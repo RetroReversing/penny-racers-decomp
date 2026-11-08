@@ -51,7 +51,8 @@ if ((u32) (var_t0 & 0xFF) < 3U) goto __repair_rows;
             var_a1 = 0;
             var_a0 = 1;
 loop_5:
-            temp_v0 = (var_a1 & 0xFF) * 4;
+            var_a1_2 = var_a1 & 0xFF;
+    temp_v0 = (var_a1_2) * 4;
             var_v1 = 0;
 do {
             if (*(temp_v0 + ((temp_t2 << 5) + &D_8018D3A0)) & ~*(temp_v0 + (temp_t4 + &D_8018D3A0)) & var_a0) {

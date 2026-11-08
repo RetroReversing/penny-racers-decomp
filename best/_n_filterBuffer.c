@@ -1,4 +1,4 @@
-s32 func_80034640(s32);
+unsigned long long func_80034640(s32);
 s32 _n_filterBuffer(void *arg0, unsigned short arg1, void *arg2)
 {
   *((s32 *) (((char *) arg2) + 0)) = 0x0B000020;
