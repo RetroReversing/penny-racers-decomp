@@ -1,6 +1,6 @@
 s32 func_8002D164();
 extern void *D_80046DF4;
-void n_alSndpSetVol(volatile char arg0)
+void n_alSndpSetVol(unsigned int arg0)
 {
   volatile int sp14;
   s16 sp18;

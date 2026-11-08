@@ -1,88 +1,101 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
+/* identical to _pullSubFrame in V-RALLY-PAL (local match library) (matched), with its names changed by decompdecomp */
+typedef struct {
+    u32 w0;
+    u32 w1;
+} Awords;
+typedef union {
+    Awords words;
+    s64 force_union_align;
+} Acmd;
+typedef struct ALFilter_s {
+    struct ALFilter_s *source;
+    Acmd *(*handler)(void *, s16 *, s32, s32, Acmd *);
+    void *setParam;
+    s16 inp;
+    s16 outp;
+    s32 type;
+} ALFilter;
+typedef struct {
+    ALFilter filter;
+    void *state;
+    s16 pan;
+    s16 volume;
+    s16 cvolL;
+    s16 cvolR;
+    s16 dryamt;
+    s16 wetamt;
+    u16 lratl;
+    s16 lratm;
+    s16 ltgt;
+    u16 rratl;
+    s16 rratm;
+    s16 rtgt;
+    s32 delta;
+    s32 segEnd;
+    s32 first;
+    void *ctrlList;
+    void *ctrlTail;
+    void *sources;
+    s32 motion;
+} ALEnvMixer;
+extern s32 func_80034640(void *);
+extern void func_800346B0(void *, void *, s32);
+extern s16 _getRate(f64, f64, s32, u16 *);
+extern s16 D_800A38A0[];
+extern u8 D_800A7070[];
+extern u8 D_800A7074[];
 
-s32 func_80034640(s32);                             /* extern */
-M2C_UNK func_800346B0(M2C_UNK *, M2C_UNK *, M2C_UNK); /* extern */
-u16 _getRate(f64, f64, s32, s32, void *);      /* extern */
-extern M2C_UNK D_80047290;
-
-void *func_80036400(void *arg0, u16 *arg1, s16 *arg2, s32 arg3, s32 arg4, void *arg5) {
-    s16 temp_v0_2;
-    s32 temp_a0;
-    s32 temp_a0_2;
-    s32 temp_v1;
-    s32 temp_v1_2;
-    s32 var_v0;
-    void *temp_s0;
-    void *temp_s2;
-    void *temp_s2_2;
-    void *temp_s2_3;
-    void *temp_s2_4;
-    void *temp_s2_5;
-    void *temp_v0;
-    void *var_s0;
-    void *var_s2;
-
-    temp_s0 = M2C_FIELD(arg0, void **, 0);
-    if (((M2C_FIELD(arg0, s32 *, 0x48) != 1) | (arg3 == 0)) != 0) {
-        return arg5;
+#define _SHIFTL(v, s, w) ((u32)(((u32)(v) & ((1 << (w)) - 1)) << (s)))
+#define aSetBuffer(pkt, f, i, o, c) \
+    { \
+        Acmd *_a = (Acmd *)pkt; \
+        _a->words.w0 = (_SHIFTL(8, 24, 8) | _SHIFTL(f, 16, 8) | _SHIFTL(i, 0, 16)); \
+        _a->words.w1 = _SHIFTL(o, 16, 16) | _SHIFTL(c, 0, 16); \
     }
-    if (temp_s0 == NULL) {
-        func_800346B0("EX", "env.c", 0x16F);
+#define aSetVolume(pkt, f, v, t, r) \
+    { \
+        Acmd *_a = (Acmd *)pkt; \
+        _a->words.w0 = (_SHIFTL(9, 24, 8) | _SHIFTL(f, 16, 8) | _SHIFTL(v, 0, 16)); \
+        _a->words.w1 = _SHIFTL(t, 16, 16) | _SHIFTL(r, 0, 16); \
     }
-    temp_v0 = M2C_FIELD(temp_s0, void *(**)(void *, u16 *, s32, s32, void *), 4)(temp_s0, arg1, arg3, arg4, arg5);
-    temp_s2 = temp_v0 + 8;
-    M2C_FIELD(temp_v0, s32 *, 0) = (s32) (*arg1 | 0x08000000);
-    M2C_FIELD(temp_v0, s32 *, 4) = (s32) (((*arg2 + 0x440) << 0x10) | ((arg3 * 2) & 0xFFFF));
-    M2C_FIELD(temp_v0, s32 *, 8) = (s32) (((*arg2 + 0x580) & 0xFFFF) | 0x08080000);
-    temp_v0_2 = *arg2;
-    M2C_FIELD(temp_s2, s32 *, 4) = (s32) (((temp_v0_2 + 0x6C0) << 0x10) | ((temp_v0_2 + 0x800) & 0xFFFF));
-    var_s2 = temp_s2 + 8;
-    if (M2C_FIELD(arg0, s32 *, 0x38) != 0) {
-        M2C_FIELD(arg0, s32 *, 0x38) = 0;
-        temp_a0 = M2C_FIELD(arg0, s32 *, 0x34);
-        temp_v1 = (s32) (M2C_FIELD(arg0, s16 *, 0x1A) * *(&D_80047290 + (M2C_FIELD(arg0, s16 *, 0x18) * 2))) >> 0xF;
-        M2C_FIELD(arg0, u16 *, 0x28) = (u16) temp_v1;
-        M2C_FIELD(arg0, u16 *, 0x26) = _getRate((f64) M2C_FIELD(arg0, s16 *, 0x1C), (f64) (s16) temp_v1, temp_a0, temp_a0, arg0 + 0x24);
-        temp_a0_2 = M2C_FIELD(arg0, s32 *, 0x34);
-        temp_v1_2 = (s32) (M2C_FIELD(arg0, s16 *, 0x1A) * *(&D_80047290 + ((0x7F - M2C_FIELD(arg0, s16 *, 0x18)) * 2))) >> 0xF;
-        M2C_FIELD(arg0, u16 *, 0x2E) = (u16) temp_v1_2;
-        temp_s2_2 = var_s2 + 8;
-        M2C_FIELD(arg0, u16 *, 0x2C) = _getRate((f64) M2C_FIELD(arg0, s16 *, 0x1E), (f64) (s16) temp_v1_2, temp_a0_2, temp_a0_2, arg0 + 0x2A);
-        M2C_FIELD(var_s2, s32 *, 4) = 0;
-        M2C_FIELD(temp_s2, s32 *, 8) = (s32) ((u16) M2C_FIELD(arg0, s16 *, 0x1C) | 0x09060000);
-        temp_s2_3 = temp_s2_2 + 8;
-        M2C_FIELD(temp_s2_2, s32 *, 4) = 0;
-        M2C_FIELD(var_s2, s32 *, 8) = (s32) ((u16) M2C_FIELD(arg0, s16 *, 0x1E) | 0x09040000);
-        M2C_FIELD(temp_s2_2, s32 *, 8) = (s32) (M2C_FIELD(arg0, u16 *, 0x28) | 0x09020000);
-        temp_s2_4 = temp_s2_3 + 8;
-        M2C_FIELD(temp_s2_3, s32 *, 4) = (s32) ((M2C_FIELD(arg0, u16 *, 0x26) << 0x10) | M2C_FIELD(arg0, u16 *, 0x24));
-        M2C_FIELD(temp_s2_3, s32 *, 8) = (s32) (M2C_FIELD(arg0, u16 *, 0x2E) | 0x09000000);
-        temp_s2_5 = temp_s2_4 + 8;
-        M2C_FIELD(temp_s2_4, s32 *, 4) = (s32) ((M2C_FIELD(arg0, u16 *, 0x2C) << 0x10) | M2C_FIELD(arg0, u16 *, 0x2A));
-        M2C_FIELD(temp_s2_4, s32 *, 8) = (s32) (M2C_FIELD(arg0, u16 *, 0x20) | 0x09080000);
-        var_s2 = temp_s2_5 + 8;
-        var_s0 = var_s2;
-        M2C_FIELD(temp_s2_5, s32 *, 4) = (s32) M2C_FIELD(arg0, u16 *, 0x22);
-        var_v0 = 0x03090000;
+#define aEnvMixer(pkt, f, s) \
+    { \
+        Acmd *_a = (Acmd *)pkt; \
+        _a->words.w0 = (_SHIFTL(3, 24, 8) | _SHIFTL(f, 16, 8)); \
+        _a->words.w1 = (u32)(s); \
+    }
+
+Acmd *func_80036400(void *filter, s16 *inp, s16 *outp, s32 outCount, s32 sampleOffset, Acmd *p)
+{
+    Acmd *ptr = p;
+    ALEnvMixer *e = (ALEnvMixer *)filter;
+    ALFilter *source = e->filter.source;
+
+    if (e->motion != 1 || !outCount) {
+        return ptr;
+    }
+    if (!source) {
+        func_800346B0(D_800A7070, D_800A7074, 0x16F);
+    }
+    ptr = (*source->handler)(source, inp, outCount, sampleOffset, p);
+
+    aSetBuffer(ptr++, 0, *inp, *outp + 0x440, outCount << 1);
+    aSetBuffer(ptr++, 8, *outp + 0x580, *outp + 0x6C0, *outp + 0x800);
+
+    if (e->first) {
+        e->first = 0;
+        e->ltgt = (e->volume * D_800A38A0[e->pan]) >> 15; e->lratm = _getRate((f64)e->cvolL, (f64)e->ltgt, e->segEnd, &e->lratl);
+        e->rtgt = (e->volume * D_800A38A0[128 - e->pan - 1]) >> 15; e->rratm = _getRate((f64)e->cvolR, (f64)e->rtgt, e->segEnd, &e->rratl);
+        aSetVolume(ptr++, 6, e->cvolL, 0, 0);
+        aSetVolume(ptr++, 4, e->cvolR, 0, 0);
+        aSetVolume(ptr++, 2, e->ltgt, e->lratm, e->lratl);
+        aSetVolume(ptr++, 0, e->rtgt, e->rratm, e->rratl);
+        aSetVolume(ptr++, 8, e->dryamt, 0, e->wetamt);
+        aEnvMixer(ptr++, 9, func_80034640(e->state));
     } else {
-        var_s0 = var_s2;
-        var_v0 = 0x03080000;
+        aEnvMixer(ptr++, 8, func_80034640(e->state));
     }
-    M2C_FIELD(var_s0, s32 *, 0) = var_v0;
-    M2C_FIELD(var_s0, s32 *, 4) = func_80034640(M2C_FIELD(arg0, s32 *, 0x14));
-    *arg1 += arg3 * 2;
-    M2C_FIELD(arg0, s32 *, 0x30) = (s32) (M2C_FIELD(arg0, s32 *, 0x30) + arg3);
-    return var_s2 + 8;
+    *inp += outCount << 1;
+    e->delta += outCount;
+    return ptr;
 }
