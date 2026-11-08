@@ -30,10 +30,10 @@ s16 func_8002E9A4(f64 arg0, f64 arg1, s32 arg4, s16 *arg5) {
     var_fa1 = arg1;
     if (arg4 == 0) {
         if (var_fa0 <= var_fa1) {
-            *arg5 = 0xFFFF;
+            do {*arg5 = 0xFFFF;}while(0);
             return 0x7FFF;
         }
-        *arg5 = 0;
+        do {*arg5 = 0;}while(0);
         return 0;
     }
     if (var_fa1 < D_8004A438) {

@@ -41,12 +41,12 @@ void func_8002BDBC(void *arg0, void *arg1) {
                 if (M2C_FIELD(var_s0, s16 *, 0xC) == 0x15) {/*__repair_call_balance*/if(var_s2){
                     func_800382CC(var_s0);}else{
                     func_800382CC(var_s0);}
-                    if (var_s3 == NULL) {
+                    if (var_s3 != NULL) {
+                        func_800382AC(var_s0);
+                    } else {
                         var_s3 = var_s0;
                         M2C_FIELD(var_s0, void **, 0) = NULL;
                         M2C_FIELD(var_s0, s32 *, 4) = 0;
-                    } else {
-                        func_800382AC(var_s0);
                     }
                     temp_a0 = var_s2;
                     if (temp_s1 != NULL) {

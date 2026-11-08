@@ -12,11 +12,13 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 __osContAddressCrc();
+s32 func_8003F500();
 extern s8 D_800DD3E0;
 extern s32 D_800DD41C;
 
 void func_8003FBA0(s32 arg0, s32 arg1, u8 *arg2) {
+int __repair_constant = 0xFF;
+
     s8 sp10;
     s8 sp11;
     s8 sp12;
@@ -37,11 +39,11 @@ void func_8003FBA0(s32 arg0, s32 arg1, u8 *arg2) {
     D_800DD41C = 1;
     sp11 = 0x23;
     sp12 = 1;
-    sp10 = 0xFF;
+    sp10 = __repair_constant;
     sp13 = 3;
     var_v1 = &sp16;
-    sp14 = (__osContAddressCrc(arg1 & 0xFFFF) & 0xFF) | (arg1 << 5);
-    sp36 = 0xFF;
+    sp14 = (func_8003F500(arg1 & 0xFFFF) & 0xFF) | (arg1 << 5);
+    sp36 = __repair_constant;
     do {
         *(u8 *)var_v1 = *(u8 *)var_s3;
         var_v1 += 1;

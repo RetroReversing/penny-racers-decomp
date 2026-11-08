@@ -25,5 +25,5 @@ void n_alSndpSetPitch(f32 arg0) {
     sp10 = 4;
     sp18 = arg0;
     sp14 = M2C_FIELD(temp_a0, s32 *, 0x40) + (M2C_FIELD(temp_a0, s32 *, 0x3C) * 0x30);
-    func_8002D164(temp_a0 + 0x14, &sp10, 0);
+    do { func_8002D164(temp_a0 + 0x14, &sp10, 0); } while (0);
 }

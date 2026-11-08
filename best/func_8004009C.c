@@ -71,7 +71,7 @@ block_10:
             var_s1 = &sp18;
 loop_13:
             if (var_s0_2 != var_s4) {
-                temp_v0 = func_8003F980(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), *(u16 *)var_s1, arg1, 1);
+                temp_v0 = func_8003F980(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), *(u16 *)var_s1, arg1);
                 if (temp_v0 == 0) {
                     goto block_17;
                 }

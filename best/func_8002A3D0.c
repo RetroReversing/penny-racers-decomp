@@ -1,4 +1,3 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -11,24 +10,25 @@ typedef s32 M2C_UNK32;
 #define M2C_CARRY 0
 #define M2C_OVERFLOW(a) (0)
 #endif
+/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 
-M2C_UNK func_80033A90(M2C_UNK *, M2C_UNK *, M2C_UNK); /* extern */
-M2C_UNK osRecvMesg(M2C_UNK *, M2C_UNK, M2C_UNK); /* extern */
-M2C_UNK osSendMesg(M2C_UNK *, s16 *, M2C_UNK);   /* extern */
+s32 func_80033A90();
+s32 osRecvMesg(s32 *, s32, s32); /* extern */
+s32 osSendMesg(s32 *);   /* extern */
 extern s32 D_8006FEF8;
-extern M2C_UNK D_80092BE0;
+extern char D_80092BE0[];
 
 void func_8002A3D0(void) {
     s16 sp10;
-    M2C_UNK *sp14;
-    M2C_UNK sp18;
-    M2C_UNK sp30;
+    s32 *sp14;
+    s32 sp18;
+    s32 sp30;
 
     if (D_8006FEF8 != 0) {
         func_80033A90(&sp18, &sp30, 1);
         sp10 = 0x1002;
         sp14 = &sp18;
-        osSendMesg(&D_80092BE0, &sp10, 1);
+        osSendMesg(&D_80092BE0);
         /*__repair_pointer_balance*/if ((unsigned long)sp14 & 0x10000) {
 if ((unsigned long)sp14 & 0x100) {
 osRecvMesg(&sp18, 0, 1);
