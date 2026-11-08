@@ -3,7 +3,7 @@ typedef struct Param {struct Param *next;s32 time;s16 type,reset;s32 value,value
 typedef struct Env {struct Env *input;s32 pad4;s32 (*handler)(struct Env *,s32,s32);u8 padc[12];s16 pan,volume,cvolL,cvolR;u16 dry,wet,rateL;s16 ratemL,targetL;u16 rateR;s16 ratemR,targetR;s32 delta,segEnd,first;Param *ctrl,*tail;} Env;
 #define F(p,t,o) (*(t *)((u8 *)(p)+(o)))
 extern s16 D_800A38A0[];extern u8 D_800A7070[],D_800A7074[];extern void *D_800A2500;
-extern void func_800346B0(void *,void *,s32);extern void func_80039338(void *);extern void func_800393A4(void *,void *);
+extern void func_800346B0(void *,void *,s32);extern void func_80039338(void *);extern void _freePVoice(void *,void *);
 extern void *func_80036400(Env *,s16 *,s16 *,s32,s32,void *);extern f32 func_80036A84(f32,s32,s16,u16);
 void *alEnvmixerPull(Env *env, s16 *out,s32 count,s32 time,void *cmd){
 s16 left,right;s32 last=time,delta;Param *p,*freeParam,*done;Env *state;
@@ -42,7 +42,7 @@ env->first=1;break;
 case 14:
 p=env->ctrl;if(p->reset)env->handler(env,8,0);env->handler(env,5,p->value);env->handler(env,9,0);break;
 case 15:cmd=func_80036400(env,&left,&right,delta,time,cmd);env->handler(env,4,0);break;
-case 0:{struct Voice {u8 pad[0xd8];s32 offset;};void *synth=D_800A2500;freeParam=env->ctrl;((struct Voice *)freeParam->value)->offset=0;func_800393A4(synth,(void *)freeParam->value);}break;
+case 0:{struct Voice {u8 pad[0xd8];s32 offset;};void *synth=D_800A2500;freeParam=env->ctrl;((struct Voice *)freeParam->value)->offset=0;_freePVoice(synth,(void *)freeParam->value);}break;
 default:cmd=func_80036400(env,&left,&right,delta,time,cmd);env->handler(env,env->ctrl->type,env->ctrl->value);break;
 }
 done=env->ctrl;count-=delta;right+=delta*2;env->ctrl=done->next;if(!env->ctrl)env->tail=0;func_80039338(done);

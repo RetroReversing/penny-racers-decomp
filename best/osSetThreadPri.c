@@ -3,7 +3,7 @@ s32 func_8003E734();
 s32 func_8003E83C();
 s32 __osDisableInt();
 s32 func_8003EAE0();
-s32 func_80034300();
+s32 __osDequeueThread();
 extern void *D_800A2518;
 extern void *D_800A2520;
 static inline s32 *inline_fn(int arg0)
@@ -27,7 +27,7 @@ void osSetThreadPri(void *arg0, s32 arg1)
     *((s32 *) (((char *) arg0) + 4)) = arg1;
     if (new_var && ((*((u16 *) (((char *) arg0) + 0x10))) != 1))
     {
-      func_80034300(*((s32 *) (((char *) arg0) + 8)), arg0);
+      __osDequeueThread(*((s32 *) (((char *) arg0) + 8)), arg0);
       func_8003E83C(*((s32 *) (((char *) arg0) + 8)), arg0);
     }
     if ((*((s32 *) (((char *) D_800A2520) + 4))) < (*inline_fn(4)))

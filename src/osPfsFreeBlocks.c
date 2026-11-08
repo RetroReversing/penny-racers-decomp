@@ -1,6 +1,6 @@
 /* identical to func_8000A900 in Resident Evil II (local match library) (matched), with its names changed by decompdecomp */
-s32 func_800403E0(void *arg0);
-s32 func_800404A4(void *arg0, u16 *arg1, s32 arg2, s32 arg3);
+s32 __osCheckId(void *arg0);
+s32 __osPfsRWInode(void *arg0, u16 *arg1, s32 arg2, s32 arg3);
 typedef struct {
     u32 unk0;
     u8 pad[0x5C];
@@ -8,8 +8,8 @@ typedef struct {
     u8 unk64;
 } S0A900;
 
-s32 func_800403E0(void *arg0);
-s32 func_800404A4(void *arg0, u16 *arg1, s32 arg2, s32 arg3);
+s32 __osCheckId(void *arg0);
+s32 __osPfsRWInode(void *arg0, u16 *arg1, s32 arg2, s32 arg3);
 
 s32 osPfsFreeBlocks(S0A900 *arg0, s32 *arg1) {
     u16 buf[128];
@@ -24,14 +24,14 @@ s32 osPfsFreeBlocks(S0A900 *arg0, s32 *arg1) {
     if ((arg0->unk0 & 1) == 0) {
         return 5;
     }
-    if (func_800403E0(arg0) == 2) {
+    if (__osCheckId(arg0) == 2) {
         return 2;
     }
     i = 0;
     if (count < arg0->unk64) {
         do {
             k = i & 0xFF;
-            r = func_800404A4(arg0, buf, 0, k);
+            r = __osPfsRWInode(arg0, buf, 0, k);
             if (r != 0) {
                 return r;
             }

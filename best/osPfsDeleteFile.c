@@ -14,11 +14,11 @@ typedef s32 M2C_UNK32;
 
 s32 __osPfsReleasePages(void *, M2C_UNK *, u8, s16 *, u32, u16 *, s32); /* extern */
 s32 osPfsFindFile(void *, s32, s32, M2C_UNK, s32, s32 *); /* extern */
-s32 func_8003F5B0(s32, s32, s32, s32 *);            /* extern */
-s32 func_8003F980(s32, s32, s32, s32 *, s32);       /* extern */
-s32 func_800403E0(void *);                          /* extern */
-s32 func_800404A4(void *, M2C_UNK *, M2C_UNK, u32); /* extern */
-s32 func_8004077C(void *);                          /* extern */
+s32 __osContRamRead(s32, s32, s32, s32 *);            /* extern */
+s32 __osContRamWrite(s32, s32, s32, s32 *, s32);       /* extern */
+s32 __osCheckId(void *);                          /* extern */
+s32 __osPfsRWInode(void *, M2C_UNK *, M2C_UNK, u32); /* extern */
+s32 __osPfsSelectBank(void *);                          /* extern */
 
 s32 osPfsDeleteFile(void *arg0, s32 arg1, s32 arg2, M2C_UNK arg3, s32 arg4) {
     union {
@@ -63,24 +63,24 @@ s32 osPfsDeleteFile(void *arg0, s32 arg1, s32 arg2, M2C_UNK arg3, s32 arg4) {
         var_v0 = 5;
         if (M2C_FIELD(arg0, s32 *, 0) & 1) {
             var_v0 = 2;
-            if ((func_800403E0(arg0) != 2) && ((M2C_FIELD(arg0, u8 *, 0x65) == 0) || (M2C_FIELD(arg0, u8 *, 0x65) = 0U, var_v0 = func_8004077C(arg0), (var_v0 == 0)))) {
+            if ((__osCheckId(arg0) != 2) && ((M2C_FIELD(arg0, u8 *, 0x65) == 0) || (M2C_FIELD(arg0, u8 *, 0x65) = 0U, var_v0 = __osPfsSelectBank(arg0), (var_v0 == 0)))) {
                 var_v0 = osPfsFindFile(arg0, arg1 & 0xFFFF, arg2, arg3, arg4, &m2c_initial_frame.view_sp140.value);
                 if (var_v0 == 0) {
                     if (m2c_initial_frame.view_sp140.value == -1) {
                         goto block_7;
                     }
-                    var_v0 = func_8003F5B0(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), (M2C_FIELD(arg0, s32 *, 0x5C) + m2c_initial_frame.view_sp140.value) & 0xFFFF, &m2c_initial_frame.view_sp120.value);
+                    var_v0 = __osContRamRead(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), (M2C_FIELD(arg0, s32 *, 0x5C) + m2c_initial_frame.view_sp140.value) & 0xFFFF, &m2c_initial_frame.view_sp120.value);
                     if (var_v0 == 0) {
                         var_s3 = m2c_initial_frame.view_sp126.value;
                         var_s2 = m2c_initial_frame.view_sp127.value;
                         var_s0 = var_s3 & 0xFF;
                         if (var_s0 < (u8) M2C_FIELD(arg0, u8 *, 0x64)) {
 loop_11:
-                            var_v0 = func_800404A4(arg0, &m2c_initial_frame.view_sp20.value, 0, var_s0);
+                            var_v0 = __osPfsRWInode(arg0, &m2c_initial_frame.view_sp20.value, 0, var_s0);
                             if (var_v0 == 0) {
                                 var_v0 = __osPfsReleasePages(arg0, &m2c_initial_frame.view_sp20.value, var_s2, &m2c_initial_frame.view_sp144.value, var_s0, &m2c_initial_frame.view_sp146.value, 1);
                                 if (var_v0 == 0) {
-                                    var_v0 = func_800404A4(arg0, &m2c_initial_frame.view_sp20.value, 1, var_s0);
+                                    var_v0 = __osPfsRWInode(arg0, &m2c_initial_frame.view_sp20.value, 1, var_s0);
                                     if (var_v0 == 0) {
                                         if ((m2c_initial_frame.view_sp146.value == 1) || (var_s3 = (u8) m2c_initial_frame.view_sp146.value, var_s2 = m2c_initial_frame.view_unksp147.value, var_s0 = var_s3 & 0xFF, ((var_s0 < (u8) M2C_FIELD(arg0, u8 *, 0x64)) == 0))) {
                                             var_v1 = 0xF;
@@ -105,7 +105,7 @@ loop_11:
                                                 var_v0_3 -= 1;
                                             } while (var_v1_2 >= 0);
                                             m2c_initial_frame.view_sp128.value = 0;
-                                            var_v0 = func_8003F980(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), (M2C_FIELD(arg0, s32 *, 0x5C) + m2c_initial_frame.view_sp140.value) & 0xFFFF, &m2c_initial_frame.view_sp120.value, 0);
+                                            var_v0 = __osContRamWrite(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), (M2C_FIELD(arg0, s32 *, 0x5C) + m2c_initial_frame.view_sp140.value) & 0xFFFF, &m2c_initial_frame.view_sp120.value, 0);
                                             /* Duplicate return node #23. Try simplifying control flow for better match */
                                             return var_v0;
                                         }

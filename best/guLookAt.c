@@ -13,8 +13,8 @@ typedef s32 M2C_UNK32;
 #endif
 
 f32 func_80032310();
-s32 func_80032B80();
-s32 func_80032CC0();
+s32 guMtxF2L();
+s32 guMtxIdentF();
 extern f64 D_8004A5A0;
 extern s32 D_8004A5A8;
 
@@ -68,7 +68,7 @@ void guLookAt(s32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 ar
     s32 temp_s7;
 
     sp54 = arg0;
-    func_80032CC0(&sp10);
+    guMtxIdentF(&sp10);
     temp_fs3 = arg4 - arg1;
     temp_fs4 = arg5 - arg2;
     temp_fs5 = arg6 - arg3;
@@ -124,5 +124,5 @@ void guLookAt(s32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 ar
     sp40 = -((arg1 * temp_fs2_2) + (arg2 * temp_fs1_2) + (arg3 * temp_fs0_2));
     sp48 = -((arg1 * temp_fs3_2) + temp_fa0_4 + (arg3 * temp_fs5_2));
     sp44 = -((arg1 * temp_ft5) + (arg2 * temp_fa1) + (arg3 * temp_ft5_2));
-    func_80032B80(temp_fa0_4, arg3, &sp10, sp54);
+    guMtxF2L(temp_fa0_4, arg3, &sp10, sp54);
 }

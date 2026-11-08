@@ -29,7 +29,7 @@ void func_80028EB0(void **arg0, s32 arg1) {
 
     if (D_80046D6C != 0) {
         func_80033A90(&sp10, &sp38, 1);
-        temp_v0 = (arg1 * 0x68) + &D_800DDEB8;
+        temp_v0 = (char *)((arg1 * 0x68)); temp_v0 += (s32)(&D_800DDEB8);
         *arg0 = temp_v0;
         M2C_FIELD(temp_v0, s32 *, 8) = arg1;
         sp28 = 0x2001;

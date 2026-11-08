@@ -15,7 +15,7 @@ typedef s32 M2C_UNK32;
 s32 func_80029690();
 s32 func_8002A3A0();
 s32 func_8002A3D0();
-s32 func_80033A90();
+s32 osCreateMesgQueue();
 extern char D_8006C320[];
 extern char D_8006C324[];
 extern char D_8006F970[];
@@ -35,8 +35,8 @@ s32 func_80029FB0(void) {
     var_v0 = 0;
     if (D_8006FEF8 == 0) {
         func_8002A3A0();
-        func_80033A90(&D_8006F970, &D_8006C320, 1);
-        func_80033A90(&D_800DE2C8, &D_8006C324, 1);
+        osCreateMesgQueue(&D_8006F970, &D_8006C320, 1);
+        osCreateMesgQueue(&D_800DE2C8, &D_8006C324, 1);
         func_80029690(&D_8006FEF8 - 4, &func_8002A110);
         func_8002A3D0();
         D_80071F70 = 0;

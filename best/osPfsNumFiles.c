@@ -1,6 +1,6 @@
-s32 func_8003F5B0(s32, s32, s32, s32 *);
-s32 func_800403E0(void *);
-s32 func_8004077C(void *);
+s32 __osContRamRead(s32, s32, s32, s32 *);
+s32 __osCheckId(void *);
+s32 __osPfsSelectBank(void *);
 s32 osPfsNumFiles(void *arg0, s32 *arg1, s32 *arg2)
 {
   union 
@@ -27,13 +27,13 @@ s32 osPfsNumFiles(void *arg0, s32 *arg1, s32 *arg2)
     return 5;
   }
   var_v0 = 2;
-  if ((func_800403E0(arg0) != 2) && (((*((u8 *) (((char *) arg0) + 0x65))) == 0) || ((*((u8 *) (((char *) arg0) + 0x65)) = 0U, var_v0 = func_8004077C(arg0), var_v0 == 0))))
+  if ((__osCheckId(arg0) != 2) && (((*((u8 *) (((char *) arg0) + 0x65))) == 0) || ((*((u8 *) (((char *) arg0) + 0x65)) = 0U, var_v0 = __osPfsSelectBank(arg0), var_v0 == 0))))
   {
     var_s1 = 0;
     if ((*((s32 *) (((char *) arg0) + 0x50))) > 0)
     {
       loop_6:
-      __repair_result_var_v0 = func_8003F5B0(*((s32 *) (((char *) arg0) + 4)), *((s32 *) (((char *) arg0) + 8)), ((*((s32 *) (((char *) arg0) + 0x5C))) + var_s1) & 0xFFFF, &m2c_initial_frame.view_sp10.value);
+      __repair_result_var_v0 = __osContRamRead(*((s32 *) (((char *) arg0) + 4)), *((s32 *) (((char *) arg0) + 8)), ((*((s32 *) (((char *) arg0) + 0x5C))) + var_s1) & 0xFFFF, &m2c_initial_frame.view_sp10.value);
 
       if (__repair_result_var_v0 == 0)
       {

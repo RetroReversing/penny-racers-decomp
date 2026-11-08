@@ -2,7 +2,7 @@
 typedef struct {u32 type,flags,boot,bootSize,ucode,ucodeSize,data,dataSize,stack,stackSize,output,outputSize,input,inputSize,yield,yieldSize;} Task8;
 extern Task8 D_800AB9A0;
 void func_8003DAA0(void *,void *,s32);
-u32 func_80034640(void *);
+u32 osVirtualToPhysical(void *);
 void func_8003EBF0(void *,s32);
 void func_8003F0D0(s32);
 s32 func_8003F0E0(s32);
@@ -12,25 +12,25 @@ void func_80039820(Task8 *arg0) {
 Task8 *p=&D_800AB9A0;
 func_8003DAA0(arg0,p,64);
 if (D_800AB9A0.ucode) {
-D_800AB9A0.ucode=func_80034640((void *)D_800AB9A0.ucode);
+D_800AB9A0.ucode=osVirtualToPhysical((void *)D_800AB9A0.ucode);
 }
 if (D_800AB9A0.data) {
-D_800AB9A0.data=func_80034640((void *)D_800AB9A0.data);
+D_800AB9A0.data=osVirtualToPhysical((void *)D_800AB9A0.data);
 }
 if (D_800AB9A0.stack) {
-D_800AB9A0.stack=func_80034640((void *)D_800AB9A0.stack);
+D_800AB9A0.stack=osVirtualToPhysical((void *)D_800AB9A0.stack);
 }
 if (D_800AB9A0.output) {
-D_800AB9A0.output=func_80034640((void *)D_800AB9A0.output);
+D_800AB9A0.output=osVirtualToPhysical((void *)D_800AB9A0.output);
 }
 if (D_800AB9A0.outputSize) {
-D_800AB9A0.outputSize=func_80034640((void *)D_800AB9A0.outputSize);
+D_800AB9A0.outputSize=osVirtualToPhysical((void *)D_800AB9A0.outputSize);
 }
 if (D_800AB9A0.input) {
-D_800AB9A0.input=func_80034640((void *)D_800AB9A0.input);
+D_800AB9A0.input=osVirtualToPhysical((void *)D_800AB9A0.input);
 }
 if (D_800AB9A0.yield) {
-D_800AB9A0.yield=func_80034640((void *)D_800AB9A0.yield);
+D_800AB9A0.yield=osVirtualToPhysical((void *)D_800AB9A0.yield);
 }
 if(D_800AB9A0.flags&1) {
 D_800AB9A0.data=D_800AB9A0.yield;

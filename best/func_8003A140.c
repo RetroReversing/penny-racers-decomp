@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 func_80034640();
+s32 osVirtualToPhysical();
 extern void *D_800481F0;
 extern void *D_800481F4;
 extern f64 D_8004A990;
@@ -40,7 +40,7 @@ void func_8003A140(void) {
     temp_s0 = D_800481F4;
     temp_s1 = M2C_FIELD(temp_s0, void **, 8);
     temp_s2 = *(s32 *)0xA4400010 & 1;
-    var_a1 = func_80034640(M2C_FIELD(temp_s0, s32 *, 4)) + M2C_FIELD((temp_s1 + (temp_s2 * 0x14)), s32 *, 0x28);
+    var_a1 = osVirtualToPhysical(M2C_FIELD(temp_s0, s32 *, 4)) + M2C_FIELD((temp_s1 + (temp_s2 * 0x14)), s32 *, 0x28);
     if (M2C_FIELD(temp_s0, u16 *, 0) & 2) {
         M2C_FIELD(temp_s0, s32 *, 0x20) |= (M2C_FIELD(temp_s1, s32 *, 0x20) & ~0xFFF);
     } else {
@@ -70,11 +70,11 @@ void func_8003A140(void) {
     temp_s3 = M2C_FIELD(temp_s1, s32 *, 0x1C) & -((temp_v1 & 0x20) == 0);
     if (temp_v1 & 0x40) {
         M2C_FIELD(temp_s0, s32 *, 0x2C) = 0;
-        var_a1 = func_80034640(M2C_FIELD(temp_s0, s32 *, 4), var_a1);
+        var_a1 = osVirtualToPhysical(M2C_FIELD(temp_s0, s32 *, 4), var_a1);
     }
     if (M2C_FIELD(temp_s0, u16 *, 0) & 0x80) {
         M2C_FIELD(temp_s0, s32 *, 0x2C) = (s32) ((M2C_FIELD(temp_s0, u16 *, 0x28) << 0x10) & 0x03FF0000);
-        var_a1 = func_80034640(M2C_FIELD(temp_s0, s32 *, 4), var_a1);
+        var_a1 = osVirtualToPhysical(M2C_FIELD(temp_s0, s32 *, 4), var_a1);
     }
     *(s32 *)0xA4400004 = var_a1;
     *(s32 *)0xA4400008 = M2C_FIELD(temp_s1, s32 *, 8);

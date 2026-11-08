@@ -13,7 +13,7 @@ typedef s32 M2C_UNK32;
 #endif
 
 void *n_alAdpcmPull();
-s32 func_80034640();
+s32 osVirtualToPhysical();
 extern f64 D_8004A460;
 
 void *n_alResamplePull(s16 *arg0, u16 *arg1, s32 arg2) {
@@ -43,7 +43,7 @@ void *n_alResamplePull(s16 *arg0, u16 *arg1, s32 arg2) {
         M2C_FIELD(arg0, f32 *, 0x4C) = (f32) (temp_fv1 - (f32) temp_fv0);
         temp_s2 = n_alAdpcmPull(arg0, &sp10, temp_fv0, arg2);
         temp_s0 = (s32) (M2C_FIELD(arg0, f32 *, 0x44) * 32768.0f) & 0xFFFF;
-        M2C_FIELD(temp_s2, s32 *, 0) = (s32) ((func_80034640(M2C_FIELD(arg0, s32 *, 0x40)) & 0xFFFFFF) | 0x05000000);
+        M2C_FIELD(temp_s2, s32 *, 0) = (s32) ((osVirtualToPhysical(M2C_FIELD(arg0, s32 *, 0x40)) & 0xFFFFFF) | 0x05000000);
         var_s2 = temp_s2 + 8;
         M2C_FIELD(temp_s2, s32 *, 4) = (s32) ((M2C_FIELD(arg0, s32 *, 0x50) << 0x1E) | (temp_s0 << 0xE) | (((u16) sp10 & 0xFFF) * 4));
         M2C_FIELD(arg0, s32 *, 0x50) = 0;

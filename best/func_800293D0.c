@@ -34,7 +34,11 @@ void func_800293D0(s32 arg0, s32 arg1, s32 arg2) {
         sp2C = &sp10;
         sp34 = arg1;
         sp38 = arg2;
-        osSendMesg(&D_80092BE0, &sp28, 1);
-        osRecvMesg(&sp10, 0, 1);
+        do { osSendMesg(&D_80092BE0, &sp28, 1); } while (0);
+        /*__repair_pointer_balance*/if ((unsigned long)sp2C & 0x100) {
+osRecvMesg(&sp10, 0, 1);
+} else {
+osRecvMesg(&sp10, 0, 1);
+}
     }
 }

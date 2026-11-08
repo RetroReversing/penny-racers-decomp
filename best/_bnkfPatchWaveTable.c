@@ -16,9 +16,7 @@ void _bnkfPatchWaveTable(void *arg0, s32 arg1, s32 arg2)
   u8 temp_a3;
   if ((*((u8 *) (((char *) arg0) + 9))) == 0)
   {
-    temp_a3 = inline_fn2(((char *) arg0) + 8);
-    *((u8 *) (((char *) arg0) + 9)) = 1U;
-    *((s32 *) (((char *) arg0) + 0)) = (s32) ((*((s32 *) (((char *) arg0) + 0))) + arg2);
+ do { temp_a3 = inline_fn2(((char *) arg0) + 8); *((u8 *) (((char *) arg0) + 9)) = 1U; *((s32 *) (((char *) arg0) + 0)) = (s32) ((*((s32 *) (((char *) arg0) + 0))) + arg2); } while (0);
     if (temp_a3 == 0)
     {
       temp_v1 = *((s32 *) (((char *) arg0) + 0xC));
@@ -43,4 +41,3 @@ void _bnkfPatchWaveTable(void *arg0, s32 arg1, s32 arg2)
     }
   }
 }
-

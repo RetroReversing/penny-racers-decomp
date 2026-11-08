@@ -1,7 +1,7 @@
 f32 __cosf(f32);
 f32 __sinf(f32);
-s32 func_80032B80();
-s32 func_80032CC0();
+s32 guMtxF2L();
+s32 guMtxIdentF();
 extern f64 D_8004A5D0;
 extern f64 D_8004A5D8;
 extern f64 D_8004A5E0;
@@ -28,7 +28,7 @@ void guPerspective(s32 arg0, s16 *arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, 
   s32 var_a1;
   s32 var_v0_2;
   var_s0 = &sp10;
-  func_80032CC0(var_s0);
+  guMtxIdentF(var_s0);
   temp_fs0 = ((f32) (((f64) arg2) * D_8004A5D0)) / 2.0f;
   temp_fs0_2 = __cosf(temp_fs0);
   temp_fs0_3 = temp_fs0_2 / __sinf(temp_fs0);
@@ -94,6 +94,6 @@ void guPerspective(s32 arg0, s16 *arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, 
 
     }
   }
-  func_80032B80(&sp10, arg0);
+  guMtxF2L(&sp10, arg0);
 }
 

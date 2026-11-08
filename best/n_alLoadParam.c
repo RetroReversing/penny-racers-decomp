@@ -15,6 +15,8 @@ typedef s32 M2C_UNK32;
 M2C_UNK func_80038390(void *, s32, M2C_UNK, void *); /* extern */
 
 void n_alLoadParam(void *arg0, s32 arg1, s32 *arg2) {
+int __repair_literal;
+
     s32 *temp_a0;
     s32 *temp_v0;
     s32 *temp_v0_2;
@@ -36,7 +38,9 @@ void n_alLoadParam(void *arg0, s32 arg1, s32 *arg2) {
         case 0:                                     /* switch 2 */
             M2C_FIELD(temp_a0, s32 *, 4) = (s32) ((M2C_FIELD(temp_a0, s32 *, 4) / 9) * 9);
             temp_v1_2 = M2C_FIELD(M2C_FIELD(arg0, s32 **, 0x20), void **, 0x10);
-            M2C_FIELD(arg0, s32 *, 0x24) = (s32) (M2C_FIELD(temp_v1_2, s32 *, 0) * (M2C_FIELD(temp_v1_2, s32 *, 4) * 2) * 8);
+__repair_literal = 2;
+
+            M2C_FIELD(arg0, s32 *, 0x24) = (s32) (M2C_FIELD(temp_v1_2, s32 *, 0) * (M2C_FIELD(temp_v1_2, s32 *, 4) * __repair_literal) * 8);
             temp_v0 = M2C_FIELD(M2C_FIELD(arg0, s32 **, 0x20), s32 **, 0xC);
             if (temp_v0 != NULL) {
                 M2C_FIELD(arg0, s32 *, 0x14) = (s32) *temp_v0;

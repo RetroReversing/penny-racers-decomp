@@ -14,7 +14,7 @@ void n_alSndpSetPitch(f32 arg0)
   temp_a0 = *((void **) (((char *) D_80046DF4) + 0xC));
   sp10 = 4;
   sp18 = arg0;
-  sp14 = (*inline_fn(temp_a0)) + ((*((s32 *) (((char *) temp_a0) + 0x3C))) * 0x30);
+  sp14 = ((*((s32 *) (((char *) temp_a0) + 0x3C))) * 0x30) + (*inline_fn(temp_a0));
   do
   {
     func_8002D164(temp_a0 + 0x14, &sp10);

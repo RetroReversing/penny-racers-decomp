@@ -14,8 +14,8 @@ typedef s32 M2C_UNK32;
 
 s32 func_8002BF4C();
 s32 func_8002BFDC();
-s32 func_800382AC();
-s32 func_800382CC();
+s32 alLink();
+s32 alUnlink();
 
 void func_8002BDBC(void *arg0, void *arg1) {
     s32 temp_a0;
@@ -39,10 +39,10 @@ void func_8002BDBC(void *arg0, void *arg1) {
                 temp_s1 = M2C_FIELD(var_s0, void **, 0);
                 var_s2 += M2C_FIELD(var_s0, s32 *, 8);
                 if (M2C_FIELD(var_s0, s16 *, 0xC) == 0x15) {/*__repair_call_balance*/if(var_s2){
-                    func_800382CC(var_s0);}else{
-                    func_800382CC(var_s0);}
+                    alUnlink(var_s0);}else{
+                    alUnlink(var_s0);}
                     if (var_s3 != NULL) {
-                        func_800382AC(var_s0);
+                        alLink(var_s0);
                     } else {
                         var_s3 = var_s0;
                         M2C_FIELD(var_s0, void **, 0) = NULL;

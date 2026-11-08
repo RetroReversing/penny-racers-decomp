@@ -13,5 +13,9 @@ typedef s32 M2C_UNK32;
 #endif
 
 s32 func_8003F080(void) {
-    return *(s32 *)0xA450000C < 0;
+int __repair_literal;
+
+__repair_literal = 0;
+
+    return *(s32 *)0xA450000C < __repair_literal;
 }

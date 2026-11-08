@@ -278,7 +278,7 @@ typedef struct OSThread_s {
 
 extern void     osCreateThread(OSThread *, OSId, void (*)(void *), void *, void *, OSPri);
 extern void     osDestroyThread(OSThread *);
-extern void     func_8003A590(void);
+extern void     osContStartQuery(void);
 extern void     osStartThread(OSThread *);
 extern void     osStopThread(OSThread *);
 extern OSId     osGetThreadId(OSThread *);

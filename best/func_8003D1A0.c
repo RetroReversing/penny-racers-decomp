@@ -1,5 +1,5 @@
 /* identical to func_800932E0 in V-RALLY-PAL (matched), with its names changed by decompdecomp */
-extern u8 *D_800A2560[]; extern s32 D_A4600000; extern s32 func_80034640(void*);
+extern u8 *D_800A2560[]; extern s32 D_A4600000; extern s32 osVirtualToPhysical(void*);
 s32 func_8003D1A0(u8 *s0,s32 s1,s32 s2,void *dram,s32 s3){
 u32 domain;u8 *old;u32 value;volatile u32 *reg;
 if(*(volatile u32*)0xa4600010&3)do{}while(*(volatile u32*)0xa4600010&3);
@@ -19,7 +19,7 @@ if(old!=s0){
  writeTiming:*reg=(u32)old;
  done:D_800A2560[domain]=s0;
 }
-*(volatile u32*)0xa4600000=func_80034640(dram);
+*(volatile u32*)0xa4600000=osVirtualToPhysical(dram);
 *(volatile u32*)0xa4600004=(*(u32*)(s0+12)|s2)&0x1fffffff;
 { volatile u32 *tail;
 switch(s1){case 0:tail=(volatile u32*)0xa460000c;break;case 1:tail=(volatile u32*)0xa4600008;break;default:return -1;}

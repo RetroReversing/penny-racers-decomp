@@ -1,5 +1,5 @@
 /* identical to func_80095990 in V-RALLY-PAL (local match library) (matched), with its names changed by decompdecomp */
-s32 func_80034640();
+s32 osVirtualToPhysical();
 s32 func_800346B0();
 s32 func_8003F0A0();
 extern char D_800A722C[];
@@ -19,7 +19,7 @@ s32 func_8003F110(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
         return -1;
     }
     *(vs32 *)0xA4040000 = arg1;
-    *(vs32 *)0xA4040004 = func_80034640(arg2);
+    *(vs32 *)0xA4040004 = osVirtualToPhysical(arg2);
     if (arg0 == 0) {
         *(vs32 *)0xA404000C = arg3 - 1;
     } else {

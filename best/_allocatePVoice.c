@@ -12,8 +12,8 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_800382AC(void *, void *);              /* extern */
-M2C_UNK func_800382CC(void *, void **);             /* extern */
+M2C_UNK alLink(void *, void *);              /* extern */
+M2C_UNK alUnlink(void *, void **);             /* extern */
 extern void *D_80046DF4;
 
 s32 _allocatePVoice(void **arg0, s16 arg1) {
@@ -28,8 +28,8 @@ s32 _allocatePVoice(void **arg0, s16 arg1) {
     var_s1 = 0;
     if ((var_s0 != NULL) || (var_s0 = M2C_FIELD(D_80046DF4, void **, 0x10), (var_s0 != NULL))) {
         *arg0 = var_s0;
-        func_800382CC(var_s0, arg0);
-        func_800382AC(var_s0, D_80046DF4 + 0x18);
+        alUnlink(var_s0, arg0);
+        alLink(var_s0, D_80046DF4 + 0x18);
         return 0;
     }
     var_s0 = M2C_FIELD(D_80046DF4, void **, 0x18);

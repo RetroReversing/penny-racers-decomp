@@ -1,4 +1,4 @@
-s32 func_80033A90();
+s32 osCreateMesgQueue();
 s32 osRecvMesg(s32 *, s32, s32);
 s32 osSendMesg(s32 *);
 extern s32 D_8006FEF8;
@@ -11,7 +11,7 @@ void func_8002A3D0(void)
   s32 sp30;
   if (D_8006FEF8 != 0)
   {
-    func_80033A90(&sp18, &sp30, 1);
+    osCreateMesgQueue(&sp18, &sp30, 1);
     sp10 = 0x1002;
     sp14 = &sp18;
     osSendMesg(&D_80092BE0);

@@ -13,7 +13,7 @@ typedef s32 M2C_UNK32;
 #endif
 
 void *_n_loadBuffer(void *, s32, s32, s32, s32);    /* extern */
-s32 func_80034640(s32);                             /* extern */
+s32 osVirtualToPhysical(s32);                             /* extern */
 f32 _doModFunc(void *, M2C_UNK);                 /* extern */
 extern f64 D_8004A4A0;
 
@@ -40,7 +40,7 @@ void *_n_loadOutputBuffer(void *arg0, void *arg1, s32 arg2, s32 arg3) {
         temp_a3 = (s32) (temp_a1 & 7) >> 1;
         temp_s1 = temp_a3 * 2;
         temp_s4 = _n_loadBuffer(arg0, temp_a1 - temp_s1, 0x2E0, temp_fv1 + temp_a3, arg3);
-        M2C_FIELD(temp_s4, s32 *, 0) = (s32) ((func_80034640(M2C_FIELD(M2C_FIELD(arg1, void **, 0x24), s32 *, 0x14)) & 0xFFFFFF) | 0x05000000);
+        M2C_FIELD(temp_s4, s32 *, 0) = (s32) ((osVirtualToPhysical(M2C_FIELD(M2C_FIELD(arg1, void **, 0x24), s32 *, 0x14)) & 0xFFFFFF) | 0x05000000);
         M2C_FIELD(temp_s4, s32 *, 4) = (s32) ((M2C_FIELD(M2C_FIELD(arg1, void **, 0x24), s32 *, 0x24) << 0x1E) | (((s32) (temp_fs0 * 32768.0f) & 0xFFFF) << 0xE) | ((temp_s1 | 0x2E0) * 4) | ((arg2 >> 8) & 3));
         M2C_FIELD(M2C_FIELD(arg1, void **, 0x24), s32 *, 0x24) = 0;
         var_s4 = temp_s4 + 8;

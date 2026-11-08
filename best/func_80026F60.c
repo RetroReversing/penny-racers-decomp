@@ -12,9 +12,9 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 func_80034640(s32);                             /* extern */
-M2C_UNK func_800382AC(M2C_UNK *, M2C_UNK *);        /* extern */
-M2C_UNK func_800382CC(M2C_UNK *);                   /* extern */
+s32 osVirtualToPhysical(s32);                             /* extern */
+M2C_UNK alLink(M2C_UNK *, M2C_UNK *);        /* extern */
+M2C_UNK alUnlink(M2C_UNK *);                   /* extern */
 M2C_UNK osEPiStartDma(s32, void *, M2C_UNK);        /* extern */
 s32 osCartRomInit();                                /* extern */
 extern s32 D_80046C30;
@@ -52,7 +52,7 @@ loop_1:
                 goto loop_1;
             }
             M2C_FIELD(var_s1, s32 *, 0xC) = (s32) D_80046C30;
-            return func_80034640((M2C_FIELD(var_s1, s32 *, 0x10) + arg0) - M2C_FIELD(var_s1, s32 *, 8));
+            return osVirtualToPhysical((M2C_FIELD(var_s1, s32 *, 0x10) + arg0) - M2C_FIELD(var_s1, s32 *, 8));
         }
         goto block_4;
     }
@@ -63,9 +63,9 @@ block_4:
         return M2C_FIELD(D_8005D7A4, s32 *, 0x10) - 0x80000000;
     }
     D_8005D7A8 = M2C_FIELD(temp_s1, M2C_UNK **, 0);
-    func_800382CC(temp_a0);
+    alUnlink(temp_a0);
     if (var_s0 != NULL) {
-        func_800382AC(temp_s1, var_s0);
+        alLink(temp_s1, var_s0);
     } else {
         temp_s0_2 = D_8005D7A4;
         if (D_8005D7A4 != NULL) {
@@ -93,5 +93,5 @@ block_4:
     M2C_FIELD(temp_a1, s32 *, 0xC) = temp_s3;
     M2C_FIELD(temp_a1, s32 *, 0x10) = 0x400;
     osEPiStartDma(temp_a0_2, temp_a1, 0);
-    return func_80034640(temp_s2) + temp_s0;
+    return osVirtualToPhysical(temp_s2) + temp_s0;
 }

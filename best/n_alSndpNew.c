@@ -16,7 +16,7 @@ M2C_UNK func_8002D050(void *, void *, s32);         /* extern */
 s32 func_8002D0CC(void *, void *);                  /* extern */
 M2C_UNK func_8002D164(void *, s16 *, s32);          /* extern */
 M2C_UNK n_alSynAddSndPlayer(void *);                      /* extern */
-void *func_80038340(M2C_UNK, M2C_UNK, s32, M2C_UNK, s32); /* extern */
+void *alHeapDBAlloc(M2C_UNK, M2C_UNK, s32, M2C_UNK, s32); /* extern */
 extern M2C_UNK _n_sndpVoiceHandler;
 
 void n_alSndpNew(void *arg0, void *arg1) {
@@ -28,7 +28,7 @@ void n_alSndpNew(void *arg0, void *arg1) {
     M2C_FIELD(arg0, s32 *, 0x3C) = -1;
     M2C_FIELD(arg0, s32 *, 0x48) = 0x3E80;
     M2C_FIELD(arg0, u32 *, 0x44) = (u32) M2C_FIELD(arg1, u32 *, 0);
-    var_a0 = func_80038340(0, 0, M2C_FIELD(arg1, s32 *, 8), 1, M2C_FIELD(arg1, u32 *, 0) * 0x30);
+    var_a0 = alHeapDBAlloc(0, 0, M2C_FIELD(arg1, s32 *, 8), 1, M2C_FIELD(arg1, u32 *, 0) * 0x30);
     M2C_FIELD(arg0, void **, 0x40) = var_a0;
     var_v1 = 0;
     if (M2C_FIELD(arg1, u32 *, 0) != 0) {
@@ -40,7 +40,7 @@ void n_alSndpNew(void *arg0, void *arg1) {
 if (var_v1 < (u32) M2C_FIELD(arg1, u32 *, 0)) goto __repair_rows;
     }
     temp_s0 = arg0 + 0x14;
-    func_8002D050(temp_s0, func_80038340(0, 0, M2C_FIELD(arg1, s32 *, 8), 1, M2C_FIELD(arg1, s32 *, 4) * 0x1C), M2C_FIELD(arg1, s32 *, 4));
+    func_8002D050(temp_s0, alHeapDBAlloc(0, 0, M2C_FIELD(arg1, s32 *, 8), 1, M2C_FIELD(arg1, s32 *, 4) * 0x1C), M2C_FIELD(arg1, s32 *, 4));
     M2C_FIELD(arg0, s32 *, 0) = 0;
     M2C_FIELD(arg0, M2C_UNK **, 8) = &_n_sndpVoiceHandler;
     M2C_FIELD(arg0, void **, 4) = arg0;

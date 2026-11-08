@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-void *func_8002AB9C();
+void *__n_allocParam();
 s32 func_8002E6E4();
 s32 _allocatePVoice();
 extern void *D_80046DF4;
@@ -37,13 +37,13 @@ s32 func_8002FFD0(void *arg0, void *arg1) {
             M2C_FIELD(M2C_FIELD(sp10, void **, 8), s32 *, 8) = 0;
             M2C_FIELD(sp10, void **, 8) = arg0;
             M2C_FIELD(arg0, void **, 8) = sp10;
-            temp_v0_2 = func_8002AB9C(sp10);
+            temp_v0_2 = __n_allocParam(sp10);
             M2C_FIELD(temp_v0_2, s16 *, 8) = 0xB;
             M2C_FIELD(temp_v0_2, s32 *, 0xC) = 0;
             M2C_FIELD(temp_v0_2, s32 *, 4) = (s32) M2C_FIELD(D_80046DF4, s32 *, 0x28);
             M2C_FIELD(temp_v0_2, s32 *, 0x10) = (s32) (M2C_FIELD(sp10, s32 *, 0x88) - 0x40);
             func_8002E6E4(M2C_FIELD(arg0, void **, 8), 3, temp_v0_2);
-            temp_v0_3 = func_8002AB9C();
+            temp_v0_3 = __n_allocParam();
             if (temp_v0_3 != NULL) {
                 M2C_FIELD(temp_v0_3, s16 *, 8) = 0xF;
                 M2C_FIELD(temp_v0_3, s32 *, 0) = 0;

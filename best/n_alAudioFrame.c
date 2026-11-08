@@ -12,9 +12,9 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 func_8002ABE0();
-s32 func_8002AC78();
-s32 func_8002AD1C();
+s32 _n_collectPVoices();
+s32 _n_timeToSamplesNoRound();
+s32 __n_nextSampleTime();
 s32 n_alSavePull();
 extern void *D_80046DF4;
 
@@ -34,13 +34,13 @@ s32 n_alAudioFrame(s32 arg0, s32 *arg1, s32 arg2, s32 arg3) {
     if (M2C_FIELD(D_80046DF4, s32 *, 0) == 0) {
         do {*arg1 = 0;}while(0);
     } else {
-        temp_v0 = func_8002AD1C(&sp10);
+        temp_v0 = __n_nextSampleTime(&sp10);
         M2C_FIELD(D_80046DF4, s32 *, 0x28) = temp_v0;
         if ((temp_v0 - M2C_FIELD(D_80046DF4, s32 *, 0x2C)) < var_s1) {
             do {
                 M2C_FIELD(D_80046DF4, s32 *, 0x28) &= ~0xF;
-                M2C_FIELD(sp10, s32 *, 0x10) += func_8002AC78(M2C_FIELD(sp10, s32 (**)(void *), 8)(sp10));
-                temp_v0_2 = func_8002AD1C(&sp10, sp10);
+                M2C_FIELD(sp10, s32 *, 0x10) += _n_timeToSamplesNoRound(M2C_FIELD(sp10, s32 (**)(void *), 8)(sp10));
+                temp_v0_2 = __n_nextSampleTime(&sp10, sp10);
                 M2C_FIELD(D_80046DF4, s32 *, 0x28) = temp_v0_2;
             } while ((temp_v0_2 - M2C_FIELD(D_80046DF4, s32 *, 0x2C)) < var_s1);
         }
@@ -61,7 +61,7 @@ s32 n_alAudioFrame(s32 arg0, s32 *arg1, s32 arg2, s32 arg3) {
             } while (var_s1 > 0);
         }
         *arg1 = (s32) (var_s2 - arg0) >> 3;
-        func_8002ABE0(var_a0);
+        _n_collectPVoices(var_a0);
     }
     return var_s2;
 }

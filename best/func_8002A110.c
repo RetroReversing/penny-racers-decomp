@@ -14,9 +14,9 @@ typedef s32 M2C_UNK32;
 
 M2C_UNK osRecvMesg(M2C_UNK *, M2C_UNK, M2C_UNK); /* extern */
 M2C_UNK osSendMesg(M2C_UNK *, M2C_UNK, M2C_UNK); /* extern */
-M2C_UNK func_8003A590(M2C_UNK *);                   /* extern */
-M2C_UNK func_8003A610(M2C_UNK *);                   /* extern */
-M2C_UNK func_8003A630(M2C_UNK *);                   /* extern */
+M2C_UNK osContStartQuery(M2C_UNK *);                   /* extern */
+M2C_UNK osContGetQuery(M2C_UNK *);                   /* extern */
+M2C_UNK osContStartReadData(M2C_UNK *);                   /* extern */
 M2C_UNK osContGetReadData(M2C_UNK *);                   /* extern */
 extern M2C_UNK (*D_80046DA0)(s16);
 extern M2C_UNK D_8006F970;
@@ -39,7 +39,7 @@ s32 func_8002A110(void *arg0) {
             }
             if (D_8006F9D4 == 0) {
                 osRecvMesg(&D_8006F970, 0, 0);
-                func_8003A630(&D_800DE058);
+                osContStartReadData(&D_800DE058);
                 osRecvMesg(&D_800DE058, 0, 1);
                 if (!(D_8006F9D4 & 1)) {
                     osSendMesg(&D_800DE2C8, 0, 1);
@@ -58,7 +58,7 @@ s32 func_8002A110(void *arg0) {
         switch (temp_v1) {                          /* irregular */
         case 0x1001:
             osRecvMesg(&D_8006F970, 0, 0);
-            func_8003A630(&D_800DE058);
+            osContStartReadData(&D_800DE058);
             osRecvMesg(&D_800DE058, 0, 1);
             osSendMesg(&D_800DE2C8, 0, 1);
             osContGetReadData(&D_8006FE40);
@@ -71,16 +71,16 @@ s32 func_8002A110(void *arg0) {
             }
             goto block_20;
         case 0x1002:
-            func_8003A590(&D_800DE058);
+            osContStartQuery(&D_800DE058);
             osRecvMesg(&D_800DE058, 0, 1);
-            func_8003A610(&D_8006F9D8);
+            osContGetQuery(&D_8006F9D8);
             goto block_19;
         default:
             return 0;
         }
     } else {
         temp_s0 = M2C_FIELD(arg0, M2C_UNK **, 8);
-        func_8003A630(&D_800DE058);
+        osContStartReadData(&D_800DE058);
         osRecvMesg(&D_800DE058, 0, 1);
         osSendMesg(&D_800DE2C8, 0, 1);
         osContGetReadData(temp_s0);

@@ -12,8 +12,8 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_800382AC(void *, void *);              /* extern */
-M2C_UNK func_800382CC(void *);                      /* extern */
+M2C_UNK alLink(void *, void *);              /* extern */
+M2C_UNK alUnlink(void *);                      /* extern */
 extern u32 D_80046C30;
 extern M2C_UNK D_8005D7A4;
 extern s32 D_8005DCB0;
@@ -30,14 +30,14 @@ void func_80027248(void) {
                 if (M2C_FIELD(&D_8005D7A4, void **, 0) == var_s0) {
                     M2C_FIELD(&D_8005D7A4, void **, 0) = temp_s1;
                 }
-                func_800382CC(var_s0);
+                alUnlink(var_s0);
                 if (M2C_FIELD(&D_8005D7A4, void **, 4) == NULL) {
                     M2C_FIELD(&D_8005D7A4, void **, 4) = var_s0;
                     M2C_FIELD(var_s0, void **, 0) = NULL;
                     M2C_FIELD(var_s0, s32 *, 4) = 0;
                     goto block_10;
                 }
-                func_800382AC(var_s0, M2C_FIELD(&D_8005D7A4, void **, 4));
+                alLink(var_s0, M2C_FIELD(&D_8005D7A4, void **, 4));
                 var_s0 = temp_s1;
             } else {
 block_10:

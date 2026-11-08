@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-void *func_8002AB9C();                              /* extern */
+void *__n_allocParam();                              /* extern */
 M2C_UNK func_8002E6E4(void *, M2C_UNK, void *);     /* extern */
 extern void *D_80046DF4;
 
@@ -20,7 +20,7 @@ void n_alSynSetPitch(void *arg0, f32 arg1) {
     void *temp_v0;
 
     if (M2C_FIELD(arg0, void **, 8) != NULL) {
-        temp_v0 = func_8002AB9C();
+        temp_v0 = __n_allocParam();
         if (temp_v0 != NULL) {
             M2C_FIELD(temp_v0, s16 *, 8) = 7;
             M2C_FIELD(temp_v0, f32 *, 0xC) = arg1;

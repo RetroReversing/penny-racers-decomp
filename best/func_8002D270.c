@@ -13,8 +13,8 @@ typedef s32 M2C_UNK32;
 #endif
 
 s32 func_800339C0(s32);                             /* extern */
-M2C_UNK func_800382AC(void *, void *);              /* extern */
-M2C_UNK func_800382CC(void *);                      /* extern */
+M2C_UNK alLink(void *, void *);              /* extern */
+M2C_UNK alUnlink(void *);                      /* extern */
 
 void func_8002D270(void *arg0, s16 arg1) {
     s32 temp_s4;
@@ -30,8 +30,8 @@ void func_8002D270(void *arg0, s16 arg1) {
                 if (temp_s1 != NULL) {
                     M2C_FIELD(temp_s1, s32 *, 8) = (s32) (M2C_FIELD(temp_s1, s32 *, 8) + M2C_FIELD(var_s0, s32 *, 8));
                 }
-                func_800382CC(var_s0);
-                func_800382AC(var_s0, arg0);
+                alUnlink(var_s0);
+                alLink(var_s0, arg0);
             }
             var_s0 = temp_s1;
         } while (var_s0 != NULL);

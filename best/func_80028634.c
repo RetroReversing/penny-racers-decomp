@@ -16,9 +16,9 @@ s32 osWritebackDCacheAll();
 s32 osRecvMesg();
 s32 osSendMesg();
 s32 func_80039820();
-s32 func_80039A2C();
+s32 osSpTaskStartGo();
 s32 func_80039A60();
-s32 func_80039A80();
+s32 osSpTaskYielded();
 extern char D_800DD824[];
 extern s32 D_800DDE8C;
 
@@ -42,13 +42,13 @@ loop_1:
         var_s0 = 2;
         func_80039A60();
         osRecvMesg(D_800DD824 + 0xA8, &sp14, 1);
-        if (func_80039A80(temp_s1 + 0x10) != 0) {
+        if (osSpTaskYielded(temp_s1 + 0x10) != 0) {
             var_s0 = 1;
         }
     }
     *(void * *)(D_800DD824 + 0x66C) = sp10;
     func_80039820(sp10 + 0x10);
-    func_80039A2C(sp10 + 0x10);
+    osSpTaskStartGo(sp10 + 0x10);
     osRecvMesg(temp_s5, &sp14, 1);
     *(void * *)(D_800DD824 + 0x66C) = NULL;
     if (M2C_FIELD(temp_s3, s32 *, 4) != 0) {
@@ -57,7 +57,7 @@ loop_1:
     if (var_s0 == 1) {
         temp_s0 = temp_s1 + 0x10;
         func_80039820(temp_s0);
-        func_80039A2C(temp_s0);
+        osSpTaskStartGo(temp_s0);
     } else if (var_s0 == 2) {
         osSendMesg(temp_s5, &sp14, 1);
     }

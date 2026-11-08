@@ -13,12 +13,12 @@ typedef s32 M2C_UNK32;
 #endif
 
 M2C_UNK func_80028BA0();                            /* extern */
-M2C_UNK func_8003A0A0(M2C_UNK);                     /* extern */
+M2C_UNK osViSetYScale(M2C_UNK);                     /* extern */
 M2C_UNK osViBlack(M2C_UNK);                     /* extern */
 extern s32 D_80046838;
 
 void func_800267FC(void) {
-    func_8003A0A0(0x3F800000);
+    osViSetYScale(0x3F800000);
     D_80046838 = 1;
     func_80028BA0();
     osViBlack(1);

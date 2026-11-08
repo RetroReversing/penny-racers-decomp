@@ -15,7 +15,7 @@ typedef s32 M2C_UNK32;
 s32 func_800294A0();
 s32 func_8002C210();
 s32 alBnkfNew();
-void *func_80038340();
+void *alHeapDBAlloc();
 extern char D_8006E780[];
 extern char D_8006FB38[];
 extern void *D_800DA1E4;
@@ -24,7 +24,7 @@ void func_80027B40(s32 arg0, s32 arg1, s32 arg2) {
     s32 temp_s1;
     void *temp_v0;
 
-    temp_v0 = func_80038340(0, 0, &D_8006E780, 1, arg1);
+    temp_v0 = alHeapDBAlloc(0, 0, &D_8006E780, 1, arg1);
     D_800DA1E4 = temp_v0;
     func_800294A0(arg0, temp_v0, arg1);
     alBnkfNew(D_800DA1E4, arg2);

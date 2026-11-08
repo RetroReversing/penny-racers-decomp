@@ -12,9 +12,9 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_80033A90(M2C_UNK *, M2C_UNK *, M2C_UNK); /* extern */
+M2C_UNK osCreateMesgQueue(M2C_UNK *, M2C_UNK *, M2C_UNK); /* extern */
 M2C_UNK osCreateThread(M2C_UNK *, M2C_UNK, M2C_UNK *, s32 *, M2C_UNK *, s32); /* extern */
-M2C_UNK func_80034090(M2C_UNK, M2C_UNK *, s16 *);   /* extern */
+M2C_UNK osSetEventMesg(M2C_UNK, M2C_UNK *, s16 *);   /* extern */
 M2C_UNK osSetThreadPri(M2C_UNK, s32);                /* extern */
 M2C_UNK osStartThread(M2C_UNK *);                   /* extern */
 M2C_UNK __osTimerServicesInit();                            /* extern */
@@ -48,15 +48,15 @@ void osCreateViManager(s32 arg0) {
     if (D_800473D0 == 0) {
         var_s2 = -1;
         __osTimerServicesInit();
-        func_80033A90(&D_8006D530, &D_8006D548, 5);
+        osCreateMesgQueue(&D_8006D530, &D_8006D548, 5);
         D_8006D560 = 0xD;
         D_8006D562 = 0;
         D_8006D564 = 0;
         D_8006D578 = 0xE;
         D_8006D57A = 0;
         D_8006D57C = 0;
-        func_80034090(7, &D_8006D530, &D_8006D560);
-        func_80034090(3, &D_8006D530, &D_8006D578);
+        osSetEventMesg(7, &D_8006D530, &D_8006D560);
+        osSetEventMesg(3, &D_8006D530, &D_8006D578);
         temp_v0 = func_8003EDA0(0);
         if (temp_v0 < arg0) {
             var_s2 = temp_v0;

@@ -13,9 +13,9 @@ typedef s32 M2C_UNK32;
 #endif
 
 M2C_UNK osSendMesg(s32, M2C_UNK, M2C_UNK);       /* extern */
-s32 func_8003BFC0(M2C_UNK *);                       /* extern */
+s32 osEepromProbe(M2C_UNK *);                       /* extern */
 s32 osEepromLongWrite(M2C_UNK *, u8, s32, u16);         /* extern */
-s32 func_8003C130(M2C_UNK *, u8, s32, u16);         /* extern */
+s32 osEepromLongRead(M2C_UNK *, u8, s32, u16);         /* extern */
 extern M2C_UNK D_800DE058;
 
 s32 func_800299BC(void *arg0) {
@@ -29,7 +29,7 @@ s32 func_800299BC(void *arg0) {
         if (temp_v1 >= 0x4001) {
             switch (temp_v1) {                      /* irregular */
             case 0x4001:
-                var_v0_2 = func_8003C130(&D_800DE058, M2C_FIELD(arg0, u8 *, 0x10), M2C_FIELD(arg0, s32 *, 8), M2C_FIELD(arg0, u16 *, 0x12));
+                var_v0_2 = osEepromLongRead(&D_800DE058, M2C_FIELD(arg0, u8 *, 0x10), M2C_FIELD(arg0, s32 *, 8), M2C_FIELD(arg0, u16 *, 0x12));
                 goto block_8;
             case 0x4002:
                 var_v0_2 = osEepromLongWrite(&D_800DE058, M2C_FIELD(arg0, u8 *, 0x10), M2C_FIELD(arg0, s32 *, 8), M2C_FIELD(arg0, u16 *, 0x12));
@@ -42,7 +42,7 @@ s32 func_800299BC(void *arg0) {
             return var_v0;
         }
     } else {
-        var_v0_2 = func_8003BFC0(&D_800DE058);
+        var_v0_2 = osEepromProbe(&D_800DE058);
 block_8:
         M2C_FIELD(arg0, s32 *, 0xC) = var_v0_2;
         osSendMesg(M2C_FIELD(arg0, s32 *, 4), 0, 1);

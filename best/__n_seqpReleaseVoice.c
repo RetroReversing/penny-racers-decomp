@@ -15,8 +15,8 @@ typedef s32 M2C_UNK32;
 M2C_UNK func_8002D164(void *, s16 *, s32);          /* extern */
 M2C_UNK n_alSynSetVol(void *, M2C_UNK, s32);        /* extern */
 M2C_UNK func_80032300(void *, M2C_UNK);             /* extern */
-M2C_UNK func_800382AC(void *, void *);              /* extern */
-M2C_UNK func_800382CC(void *);                      /* extern */
+M2C_UNK alLink(void *, void *);              /* extern */
+M2C_UNK alUnlink(void *);                      /* extern */
 
 void __n_seqpReleaseVoice(void *arg0, void *arg1, s32 arg2) {
     s16 sp10;
@@ -35,8 +35,8 @@ void __n_seqpReleaseVoice(void *arg0, void *arg1, s32 arg2) {
                     if (temp_s1 != NULL) {
                         M2C_FIELD(temp_s1, s32 *, 8) = (s32) (M2C_FIELD(temp_s1, s32 *, 8) + M2C_FIELD(var_s0, s32 *, 8));
                     }
-                    func_800382CC(var_s0);
-                    func_800382AC(var_s0, arg0 + 0x48);
+                    alUnlink(var_s0);
+                    alLink(var_s0, arg0 + 0x48);
                 }
                 var_s0 = temp_s1;
             } while (var_s0 != NULL);

@@ -12,8 +12,8 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_8003A0F0(s32);                         /* extern */
+M2C_UNK osViSwapBuffer(s32);                         /* extern */
 
 void func_80028B30(void *arg0) {
-    func_8003A0F0(M2C_FIELD(arg0, s32 *, 0xC));
+    osViSwapBuffer(M2C_FIELD(arg0, s32 *, 0xC));
 }

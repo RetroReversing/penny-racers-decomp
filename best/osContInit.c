@@ -1,4 +1,3 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -11,26 +10,27 @@ typedef s32 M2C_UNK32;
 #define M2C_CARRY 0
 #define M2C_OVERFLOW(a) (0)
 #endif
+/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 
-M2C_UNK func_80033A90(M2C_UNK *, M2C_UNK *, M2C_UNK); /* extern */
+s32 func_80033A90();
 u64 osGetTime();                                /* extern */
-M2C_UNK osRecvMesg(M2C_UNK *, M2C_UNK *, M2C_UNK); /* extern */
-M2C_UNK func_8003A9AC(M2C_UNK, M2C_UNK);            /* extern */
-M2C_UNK __osPackRequestData(M2C_UNK);                     /* extern */
-M2C_UNK osSetTimer(M2C_UNK *, s32, s32, M2C_UNK *, M2C_UNK *); /* extern */
-s32 func_8003F350(M2C_UNK, M2C_UNK *);              /* extern */
-M2C_UNK func_8003F410();                            /* extern */
+s32 osRecvMesg(s32 *, s32 *, s32); /* extern */
+s32 func_8003A9AC();
+s32 __osPackRequestData(s32);                     /* extern */
+s32 func_8003EF90();
+s32 func_8003F350();
+s32 func_8003F410();
 extern s32 D_80048110;
-extern M2C_UNK D_8006F990;
+extern char D_8006F990[];
 extern s8 D_8006FE78;
 extern s8 D_80092C04;
-extern M2C_UNK D_800DA1B0;
-extern M2C_UNK D_800DDEA0;
+extern char D_800DA1B0[];
+extern char D_800DDEA0[];
 
-s32 osContInit(M2C_UNK *arg0, M2C_UNK arg1, M2C_UNK arg2) {
-    M2C_UNK sp20;
-    M2C_UNK sp40;
-    M2C_UNK sp58;
+s32 osContInit(s32 *arg0, s32 arg1, s32 arg2) {
+    s32 sp20;
+    s32 sp40;
+    s32 sp58;
     s32 temp_s0;
     u64 temp_ret;
     u64 temp_v0;
@@ -49,7 +49,7 @@ s32 osContInit(M2C_UNK *arg0, M2C_UNK arg1, M2C_UNK arg2) {
         } else {
 block_6:
             func_80033A90(&sp40, &sp58, 1);
-            osSetTimer(&sp20, 0, 0, &sp40, &sp58);
+            func_8003EF90(&sp20);
             osRecvMesg(&sp40, &sp58, 1);
         }
     }

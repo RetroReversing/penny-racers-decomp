@@ -7232,7 +7232,7 @@ extern void             osInitRdb(u8 *sendBuf, u32 sendSize);
 
  
 
-extern u32		 func_80034640(void *);
+extern u32		 osVirtualToPhysical(void *);
 extern void *		 osPhysicalToVirtual(u32);
 
 
@@ -8127,7 +8127,7 @@ extern ALGlobals *alGlobals;
 
 
 Acmd *_loadOutputBuffer(ALFx *r, ALDelay *d, s32 buff, s32 incount, Acmd *p);
-Acmd *func_8003771C(ALFx *r, s16 *curr_ptr, s32 buff, s32 count, Acmd *p);
+Acmd *_loadBuffer(ALFx *r, s16 *curr_ptr, s32 buff, s32 count, Acmd *p);
 Acmd *_saveBuffer(ALFx *r, s16 *curr_ptr, s32 buff, s32 count, Acmd *p);
 Acmd *_filterBuffer(ALLowPass *lp, s32 buff, s32 count, Acmd *p);
 f32  _doModFunc(ALDelay *d, s32 count);
@@ -8153,7 +8153,7 @@ s32 alFxParamHdl(void *filter, s32 paramID, void *param);
 
 
 
-Acmd *func_8003771C(ALFx *r, s16 *curr_ptr, s32 buff, s32 count, Acmd *p);
+Acmd *_loadBuffer(ALFx *r, s16 *curr_ptr, s32 buff, s32 count, Acmd *p);
  
 
 
@@ -8221,19 +8221,19 @@ Acmd *_loadOutputBuffer(ALFx *r, ALDelay *d, s32 buff, s32 incount, Acmd *p)
 
          
 
-        ptr = func_8003771C(r, out_ptr - ramalign, rbuff, count + ramalign, ptr);
+        ptr = _loadBuffer(r, out_ptr - ramalign, rbuff, count + ramalign, ptr);
 
          
         ratio = (s32)(fratio * 0x8000 );
          
         {	Acmd *_a = (Acmd *) ptr++ ;	_a->words.w0 = (((unsigned int) (((unsigned int)( 8  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   0  ) & ((0x01 << (  8 )) - 1)) << (  16 )))  |	((unsigned int) (((unsigned int)(   rbuff + (ramalign<<1)  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ); _a->words.w1 = ((unsigned int) (((unsigned int)(   buff  ) & ((0x01 << (  16 )) - 1)) << (  16 )))  | ((unsigned int) (((unsigned int)(   incount<<1  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ;	} ;
-        {	Acmd *_a = (Acmd *) ptr++ ;	_a->words.w0 = (((unsigned int) (((unsigned int)( 5  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   d->rs->first  ) & ((0x01 << (  8 )) - 1)) << (  16 )))  |	((unsigned int) (((unsigned int)(   ratio  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ); _a->words.w1 = (unsigned int)(  func_80034640(d->rs->state) );	} ;
+        {	Acmd *_a = (Acmd *) ptr++ ;	_a->words.w0 = (((unsigned int) (((unsigned int)( 5  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   d->rs->first  ) & ((0x01 << (  8 )) - 1)) << (  16 )))  |	((unsigned int) (((unsigned int)(   ratio  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ); _a->words.w1 = (unsigned int)(  osVirtualToPhysical(d->rs->state) );	} ;
 
         d->rs->first = 0;  
         d->rsdelta += count - incount;  
     } else {
         out_ptr = &r->input[-d->output];
-        ptr = func_8003771C(r, out_ptr, buff, incount, ptr);
+        ptr = _loadBuffer(r, out_ptr, buff, incount, ptr);
     }
 
     return ptr;

@@ -1,4 +1,4 @@
-void *func_8002AB9C();
+void *__n_allocParam();
 s32 func_8002E6E4(void *, s32, void *);
 extern void *D_80046DF4;
 volatile unsigned short n_alSynStopVoice(void *arg0)
@@ -6,7 +6,7 @@ volatile unsigned short n_alSynStopVoice(void *arg0)
   if ((*((void **) (((char *) arg0) + 8))) != NULL)
   {
     void *temp_v0;
-    temp_v0 = func_8002AB9C();
+    temp_v0 = __n_allocParam();
     if (temp_v0 != NULL)
     {
       *((s16 *) (((char *) temp_v0) + 8)) = 0xF;

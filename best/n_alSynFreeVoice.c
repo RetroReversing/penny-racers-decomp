@@ -12,8 +12,8 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-void *func_8002AB9C(void *);                        /* extern */
-M2C_UNK func_8002AC40(void *);                      /* extern */
+void *__n_allocParam(void *);                        /* extern */
+M2C_UNK _n_freePVoice(void *);                      /* extern */
 M2C_UNK func_8002E6E4(void *, M2C_UNK, void *);     /* extern */
 extern void *D_80046DF4;
 
@@ -24,7 +24,7 @@ void n_alSynFreeVoice(void *arg0) {
     temp_a0 = M2C_FIELD(arg0, void **, 8);
     if (temp_a0 != NULL) {
         if (M2C_FIELD(temp_a0, s32 *, 0x88) != 0) {
-            temp_v0 = func_8002AB9C(temp_a0);
+            temp_v0 = __n_allocParam(temp_a0);
             if (temp_v0 != NULL) {
                 M2C_FIELD(temp_v0, s16 *, 8) = 0;
                 M2C_FIELD(temp_v0, s32 *, 4) = (s32) (M2C_FIELD(D_80046DF4, s32 *, 0x28) + M2C_FIELD(M2C_FIELD(arg0, void **, 8), s32 *, 0x88));
@@ -33,7 +33,7 @@ void n_alSynFreeVoice(void *arg0) {
                 M2C_FIELD(arg0, void **, 8) = NULL;
             }
         } else {
-            func_8002AC40(temp_a0);
+            _n_freePVoice(temp_a0);
             M2C_FIELD(arg0, void **, 8) = NULL;
         }
     }

@@ -14,7 +14,7 @@ typedef s32 M2C_UNK32;
 
 s32 func_800294A0();
 s32 alSeqFileNew();
-s32 func_80038340();
+s32 alHeapDBAlloc();
 extern char D_8006E780[];
 extern s32 D_8006FF00;
 
@@ -27,7 +27,7 @@ void func_80027BF0(s32 arg0) {
     temp_s0 = ((u32) &sp27 >> 4) * 0x10;
     func_800294A0(arg0, temp_s0, 4);
     temp_s0_2 = ((s32) (M2C_FIELD(temp_s0, u16 *, 2) << 0x10) >> 0xD) + 4;
-    temp_v0 = func_80038340(0, 0, &D_8006E780, 1, temp_s0_2);
+    temp_v0 = alHeapDBAlloc(0, 0, &D_8006E780, 1, temp_s0_2);
     D_8006FF00 = temp_v0;
     func_800294A0(arg0, temp_v0, temp_s0_2);
     alSeqFileNew(D_8006FF00, arg0);

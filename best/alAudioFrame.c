@@ -4171,7 +4171,7 @@ typedef struct PVoice_s {
 ALParam         *__allocParam(void);
 void            __freeParam(ALParam *param);
 void            _freePVoice(ALSynth *drvr, PVoice *pvoice);
-void            func_80039350(ALSynth *drvr);
+void            _collectPVoices(ALSynth *drvr);
 
 s32             _timeToSamples(ALSynth *ALSynth, s32 micros);
 ALMicroTime     _samplesToTime(ALSynth *synth, s32 samples);
@@ -4197,8 +4197,8 @@ extern void __assert(const char *, const char *, int);
 
 
 
-static s32 func_80039478(ALSynth *drvr, ALPlayer **client);
-static s32 func_800393E4(ALSynth *ALSynth, s32 micros);
+static s32 __nextSampleTime(ALSynth *drvr, ALPlayer **client);
+static s32 _timeToSamplesNoRound(ALSynth *ALSynth, s32 micros);
 
  
 
@@ -4216,16 +4216,16 @@ void alSynNew(ALSynth *drvr, ALSynConfig *c);
 
 ALParam *__allocParam();
 void __freeParam(ALParam *param);
-void func_80039350(ALSynth *drvr);
+void _collectPVoices(ALSynth *drvr);
 void _freePVoice(ALSynth *drvr, PVoice *pvoice);
  
 
 
 
 
-s32 func_800393E4(ALSynth *synth, s32 micros);
+s32 _timeToSamplesNoRound(ALSynth *synth, s32 micros);
 s32 _timeToSamples(ALSynth *synth, s32 micros);
-static s32 func_80039478(ALSynth *drvr, ALPlayer **client);
+static s32 __nextSampleTime(ALSynth *drvr, ALPlayer **client);
 
 
 
@@ -4266,12 +4266,12 @@ Acmd *alAudioFrame(Acmd *cmdList, s32 *cmdLen, s16 *outBuf, s32 outLen)
 
 
 
-    for (drvr->paramSamples = func_80039478(drvr, &client);
+    for (drvr->paramSamples = __nextSampleTime(drvr, &client);
 	 drvr->paramSamples - drvr->curSamples < outLen;
-	 drvr->paramSamples = func_80039478(drvr, &client))
+	 drvr->paramSamples = __nextSampleTime(drvr, &client))
     {
 	drvr->paramSamples &= ~0xf;
-	client->samplesLeft += func_800393E4(drvr, (*client->handler)(client));
+	client->samplesLeft += _timeToSamplesNoRound(drvr, (*client->handler)(client));
     }
 
      
@@ -4308,7 +4308,7 @@ Acmd *alAudioFrame(Acmd *cmdList, s32 *cmdLen, s16 *outBuf, s32 outLen)
     }
     *cmdLen = (s32) (cmdlEnd - cmdList);
 
-    func_80039350(drvr);  
+    _collectPVoices(drvr);  
 
 
     return cmdlEnd;

@@ -12,12 +12,12 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 func_8002A700();
-s32 func_80033A90();
+s32 n_alInit();
+s32 osCreateMesgQueue();
 s32 osCreateThread();
 s32 osStartThread();
-s32 func_80038300();
-s32 func_80038340();
+s32 alHeapInit();
+s32 alHeapDBAlloc();
 s32 osAiSetFrequency();
 extern char D_800437A0[];
 extern s8 D_80046C3C;
@@ -57,17 +57,17 @@ void func_8002730C(s32 arg0, s32 arg1, void *arg2) {
     u32 var_a1;
 
     D_80046C3C = 1;
-    func_80038300(&D_8006E780, arg0, arg1);
-    D_8005CFC0 = func_80038340(0, 0, &D_8006E780, 1, 0x2000);
-    D_8005CFC4 = func_80038340(0, 0, &D_8006E780, 1, 0x2000);
-    D_8005D078 = func_80038340(0, 0, &D_8006E780, 1, 0x8000);
-    D_8005D07C = func_80038340(0, 0, &D_8006E780, 1, 0x8000);
-    D_8005D080 = func_80038340(0, 0, &D_8006E780, 1, 0x8000);
-    func_80033A90(&D_8005D088, &D_8005D0A0, 0x40);
+    alHeapInit(&D_8006E780, arg0, arg1);
+    D_8005CFC0 = alHeapDBAlloc(0, 0, &D_8006E780, 1, 0x2000);
+    D_8005CFC4 = alHeapDBAlloc(0, 0, &D_8006E780, 1, 0x2000);
+    D_8005D078 = alHeapDBAlloc(0, 0, &D_8006E780, 1, 0x8000);
+    D_8005D07C = alHeapDBAlloc(0, 0, &D_8006E780, 1, 0x8000);
+    D_8005D080 = alHeapDBAlloc(0, 0, &D_8006E780, 1, 0x8000);
+    osCreateMesgQueue(&D_8005D088, &D_8005D0A0, 0x40);
     M2C_FIELD(arg2, s32 **, 0x10) = &func_80027108;
     M2C_FIELD(arg2, s32 **, 0x14) = &D_8006E780;
     M2C_FIELD(arg2, s32 *, 0x18) = osAiSetFrequency(M2C_FIELD(arg2, s32 *, 0x18));
-    func_8002A700(&D_80072B80, arg2);
+    n_alInit(&D_80072B80, arg2);
     var_a1 = 0;
     var_a0 = 0;
     var_v1 = 0;

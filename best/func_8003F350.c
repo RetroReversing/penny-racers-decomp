@@ -13,7 +13,7 @@ void func_8029C610(void) {
 extern s32 D_800AB0D8;
 extern s32 D_800AB0DC;
 s32 func_800346B0(void *, void *, s32);
-s32 func_80034640(s32);
+s32 osVirtualToPhysical(s32);
 s32 func_800338B0(s32, s32);
 s32 func_8003EBF0(s32, s32);
 
@@ -27,7 +27,7 @@ s32 func_8003F350(s32 arg0, s32 arg1) {
     if (arg0 == 1) {
         func_8003EBF0(arg1, 0x40);
     }
-    *(volatile s32 *)0xA4800000 = func_80034640(arg1);
+    *(volatile s32 *)0xA4800000 = osVirtualToPhysical(arg1);
     if (arg0 == 0) {
         *(volatile s32 *)0xA4800004 = 0x1FC007C0;
     } else {

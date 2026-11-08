@@ -13,7 +13,7 @@ typedef s32 M2C_UNK32;
 #endif
 
 M2C_UNK func_8002ABC8(void *, void *);              /* extern */
-M2C_UNK func_8002AC40(s32);                         /* extern */
+M2C_UNK _n_freePVoice(s32);                         /* extern */
 M2C_UNK func_8002E6E4(void *, s16, s32);            /* extern */
 s32 func_8002E784(void *, s16 *, u16 *, s32, s32);  /* extern */
 u16 func_8002EAE4(s16, s32, s16, u16);              /* extern */
@@ -150,7 +150,7 @@ block_39:
             case 0:
                 temp_v1_3 = M2C_FIELD(arg0, void **, 0x7C);
                 M2C_FIELD(M2C_FIELD(temp_v1_3, s32 *, 0xC), s32 *, 0x88) = 0;
-                func_8002AC40(M2C_FIELD(temp_v1_3, s32 *, 0xC));
+                _n_freePVoice(M2C_FIELD(temp_v1_3, s32 *, 0xC));
                 break;
             case 7:
                 var_s3 = func_8002E784(arg0, &sp18, &sp1A, temp_s2, var_s3);

@@ -1,6 +1,6 @@
 /* Partial candidate from function #273527 in project #72; rechecked locally. */
-s32 func_800403E0(void *arg0);
-s32 func_800404A4(void *arg0, u16 *arg1, s32 arg2, s32 arg3);
+s32 __osCheckId(void *arg0);
+s32 __osPfsRWInode(void *arg0, u16 *arg1, s32 arg2, s32 arg3);
 s32 __osPfsDeclearPage(u8 *arg0, u16 *arg1, s32 arg2, s32 *arg3, u8 arg4, s32 *arg5, s32 *arg6);
 static inline int inline_fn(s32 arg0, int arg1)
 {
@@ -45,7 +45,7 @@ s32 osPfsAllocateFile(void *arg0, u16 arg1, s32 arg2, u8 *arg3, u8 *arg4, s32 ar
   {
     goto fail;
   }
-  if (func_800403E0(p) == 2)
+  if (__osCheckId(p) == 2)
   {
     return 2;
   }
@@ -85,7 +85,7 @@ s32 osPfsAllocateFile(void *arg0, u16 arg1, s32 arg2, u8 *arg3, u8 *arg4, s32 ar
     i = 0;
     do
     {
-      ret = func_800404A4(p, (u16 *) temp, 0, inline_fn(i, 255));
+      ret = __osPfsRWInode(p, (u16 *) temp, 0, inline_fn(i, 255));
       if (ret)
       {
         goto done;
@@ -105,7 +105,7 @@ s32 osPfsAllocateFile(void *arg0, u16 arg1, s32 arg2, u8 *arg3, u8 *arg4, s32 ar
         {
           pair[0] = i;
           pair[1] = base;
-          ret = func_800404A4(p, (u16 *) pair, 1, p[0x267]);
+          ret = __osPfsRWInode(p, (u16 *) pair, 1, p[0x267]);
           if (ret)
           {
             return ret;
@@ -142,7 +142,7 @@ s32 osPfsAllocateFile(void *arg0, u16 arg1, s32 arg2, u8 *arg3, u8 *arg4, s32 ar
   }
   pair[0] = idx;
   pair[1] = base;
-  ret = func_800404A4(p, (u16 *) pair, 1, p[0x267]);
+  ret = __osPfsRWInode(p, (u16 *) pair, 1, p[0x267]);
   if (ret)
   {
     return ret;
@@ -157,7 +157,7 @@ s32 osPfsAllocateFile(void *arg0, u16 arg1, s32 arg2, u8 *arg3, u8 *arg4, s32 ar
     temp[i] = arg4[i];
   }
 
-  return func_8003F980(*((s32 *) (p + 4)), *((s32 *) (p + 8)), inline_fn((*((s32 *) (p + 0x5c))) + (*arg6), 65535), buf, 0);
+  return __osContRamWrite(*((s32 *) (p + 4)), *((s32 *) (p + 8)), inline_fn((*((s32 *) (p + 0x5c))) + (*arg6), 65535), buf, 0);
   fail:
   return 5;
 

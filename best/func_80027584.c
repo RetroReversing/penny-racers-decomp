@@ -35,7 +35,7 @@ void func_80027584(void) {
     var_s4 = &D_8006FB38;
     do {
         if ((*var_s2 & 2) && (func_8002C190(var_s4) == 0)) {
-            func_80027D00(var_s3);
+            do { func_80027D00(var_s3); } while (0);
             *var_s2 &= ~2;
         }
         if (*var_s2 & 1) {
@@ -44,7 +44,7 @@ void func_80027584(void) {
                 func_8002C3E0(temp_s0, 0);
                 func_8002C410(temp_s0);
                 *(&D_8006FCB4 + var_s1) = *(&D_8006FCB4 + var_s1) & ~1;
-                func_8002C3E0(temp_s0, 0x7FFF);
+                do { func_8002C3E0(temp_s0, 0x7FFF); } while (0);
                 var_s2 += 0x184;
             } else {
                 do { func_8002C3E0(temp_s0, (s16) (func_8002C1D0(temp_s0) - *(&D_8006FCBA + var_s1))); } while (0);

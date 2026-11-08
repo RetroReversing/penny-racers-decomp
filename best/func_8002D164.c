@@ -43,10 +43,10 @@ void func_8002D164(void **arg0, s32 arg1, s32 arg2) {
 loop_6:
             temp_a2 = *var_a1;
             if (temp_a2 == NULL) {
-                if (var_s2 == 0) {
-                    M2C_FIELD(temp_s0, s32 *, 8) = var_s1;
-                } else {
+                if (var_s2 != 0) {
                     M2C_FIELD(temp_s0, s32 *, 8) = 0;
+                } else {
+                    M2C_FIELD(temp_s0, s32 *, 8) = var_s1;
                 }
                 func_800382AC(temp_s0, var_a1);
             } else {

@@ -1,32 +1,36 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
-
-void func_8003E83C(M2C_UNK *arg0, M2C_UNK *arg1) {
-    M2C_UNK *var_t8;
-    M2C_UNK *var_t9;
-    s32 temp_t7;
-
-    var_t9 = arg0;
-    var_t8 = *arg0;
-    temp_t7 = M2C_FIELD(arg1, s32 *, 4);
-    if (M2C_FIELD(var_t8, s32 *, 4) >= temp_t7) {
-        do {
-            var_t9 = var_t8;
-            var_t8 = *var_t8;
-        } while (M2C_FIELD(var_t8, s32 *, 4) >= temp_t7);
+/* Partial candidate from function #26107 in project #57; rechecked locally. */
+extern s8 D_800AE850[];
+extern s8 D_800C02AE[];
+void func_80086A34(s32 arg0);
+s32 func_80088008(u8 *arg0, u8 *arg1);
+typedef struct Q
+{
+  struct Q *next;
+  s32 priority;
+  struct Q *queue;
+} Q;
+void func_8003E83C(Q *head, Q *item)
+{
+  Q *prev = head;
+  Q *new_var2;
+  s32 new_var;
+  Q *cur = head->next;
+  s32 key = item->priority;
+  new_var = cur->priority;
+  if (new_var >= key)
+  {
+    new_var = cur->priority;
+    new_var2 = cur;
+    do
+    {
+      prev = new_var2;
+      cur = prev->next;
     }
-    M2C_FIELD(arg1, M2C_UNK **, 0) = *var_t9;
-    *var_t9 = arg1;
-    M2C_FIELD(arg1, M2C_UNK **, 8) = arg0;
+    while (new_var >= key);
+  }
+  item->next = prev->next;
+  cur->next = item;
+  item->queue = head;
 }
+
+u8 *func_80087DE4(u8 *arg0, u8 *arg1);

@@ -38,7 +38,7 @@ typedef struct {
     void *sources;
     s32 motion;
 } ALEnvMixer;
-extern s32 func_80034640(void *);
+extern s32 osVirtualToPhysical(void *);
 extern void func_800346B0(void *, void *, s32);
 extern s16 _getRate(f64, f64, s32, u16 *);
 extern s16 D_800A38A0[];
@@ -91,9 +91,9 @@ Acmd *func_80036400(void *filter, s16 *inp, s16 *outp, s32 outCount, s32 sampleO
         aSetVolume(ptr++, 2, e->ltgt, e->lratm, e->lratl);
         aSetVolume(ptr++, 0, e->rtgt, e->rratm, e->rratl);
         aSetVolume(ptr++, 8, e->dryamt, 0, e->wetamt);
-        aEnvMixer(ptr++, 9, func_80034640(e->state));
+        aEnvMixer(ptr++, 9, osVirtualToPhysical(e->state));
     } else {
-        aEnvMixer(ptr++, 8, func_80034640(e->state));
+        aEnvMixer(ptr++, 8, osVirtualToPhysical(e->state));
     }
     *inp += outCount << 1;
     e->delta += outCount;

@@ -2,7 +2,7 @@
 s32 func_8003E894();
 s32 __osDisableInt();
 s32 func_8003EAE0();
-s32 func_80034300();
+s32 __osDequeueThread();
 extern void *D_800A251C;
 extern void *D_800A2520;
 
@@ -21,7 +21,7 @@ void osDestroyThread(void *arg0)
   }
   else if (*((u16 *) (((char *) var_s0) + 0x10)) != 1)
   {
-    func_80034300(*((s32 *) (((char *) var_s0) + 8)), var_s0);
+    __osDequeueThread(*((s32 *) (((char *) var_s0) + 8)), var_s0);
   }
 
   if (D_800A251C == var_s0)

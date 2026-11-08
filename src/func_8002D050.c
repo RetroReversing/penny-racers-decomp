@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_800382AC(s32, void *);                 /* extern */
+M2C_UNK alLink(s32, void *);                 /* extern */
 
 void func_8002D050(void *arg0, s32 arg1, s32 arg2) {
     s32 var_s0;
@@ -29,7 +29,7 @@ char __repair_stack_padding[8];
     if (arg2 > 0) {
         var_s0 = arg1;
         do {
-            func_800382AC(var_s0, arg0);
+            alLink(var_s0, arg0);
             var_s2 += 1;
             var_s0 += 0x1C;
         } while (var_s2 < arg2);

@@ -15,7 +15,7 @@ typedef s32 M2C_UNK32;
 M2C_UNK func_8002D050(void *, M2C_UNK *, s32);      /* extern */
 M2C_UNK n_alSynAddSeqPlayer(void *);                      /* extern */
 M2C_UNK __n_initChanState(void *);                      /* extern */
-M2C_UNK *func_80038340(M2C_UNK, M2C_UNK, s32, u8, s32); /* extern */
+M2C_UNK *alHeapDBAlloc(M2C_UNK, M2C_UNK, s32, u8, s32); /* extern */
 extern s32 D_80046DF4;
 extern M2C_UNK func_8002AF40;
 
@@ -44,9 +44,9 @@ int __repair_literal;
     M2C_FIELD(arg0, s16 *, 0x38) = 9;
     M2C_FIELD(arg0, s32 *, 0x78) = (s32) M2C_FIELD(arg1, s32 *, 0x18);
     M2C_FIELD(arg0, u8 *, 0x34) = (u8) M2C_FIELD(arg1, u8 *, 8);
-    M2C_FIELD(arg0, M2C_UNK **, 0x60) = func_80038340(0, 0, temp_s2, M2C_FIELD(arg1, u8 *, 8), 0x10);
+    M2C_FIELD(arg0, M2C_UNK **, 0x60) = alHeapDBAlloc(0, 0, temp_s2, M2C_FIELD(arg1, u8 *, 8), 0x10);
     __n_initChanState(arg0);
-    temp_v0 = func_80038340(0, 0, temp_s2, (u8) M2C_FIELD(arg1, s32 *, 0), 0x38);
+    temp_v0 = alHeapDBAlloc(0, 0, temp_s2, (u8) M2C_FIELD(arg1, s32 *, 0), 0x38);
     M2C_FIELD(arg0, M2C_UNK **, 0x6C) = NULL;
     var_a0 = 0;
 __repair_literal = 0;
@@ -62,7 +62,7 @@ __repair_literal = 0;
     }
     M2C_FIELD(arg0, s32 *, 0x64) = 0;
     M2C_FIELD(arg0, s32 *, 0x68) = 0;
-    func_8002D050(arg0 + 0x48, func_80038340(0, 0, temp_s2, (u8) M2C_FIELD(arg1, s32 *, 4), 0x1C), M2C_FIELD(arg1, s32 *, 4));
+    func_8002D050(arg0 + 0x48, alHeapDBAlloc(0, 0, temp_s2, (u8) M2C_FIELD(arg1, s32 *, 4), 0x1C), M2C_FIELD(arg1, s32 *, 4));
     M2C_FIELD(arg0, s32 *, 0) = 0;
     M2C_FIELD(arg0, M2C_UNK **, 8) = &func_8002AF40;
     M2C_FIELD(arg0, void **, 4) = arg0;

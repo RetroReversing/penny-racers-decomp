@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 func_80035C90();
+s32 _bnkfPatchInst();
 
 void _bnkfPatchBank(void *arg0, s32 arg1, s32 arg2) {
 int __repair_literal;
@@ -29,7 +29,7 @@ int __repair_literal;
         if (temp_a0 != 0) {
             temp_a0_2 = temp_a0 + arg1;
             M2C_FIELD(arg0, s32 *, 8) = temp_a0_2;
-            func_80035C90(temp_a0_2);
+            _bnkfPatchInst(temp_a0_2);
         }
         var_s1 = 0;
 __repair_literal = 0;
@@ -40,7 +40,7 @@ __repair_literal = 0;
                 temp_a0_3 = M2C_FIELD(var_s0, s32 *, 0xC) + arg1;
                 M2C_FIELD(var_s0, s32 *, 0xC) = temp_a0_3;
                 if (temp_a0_3 != 0) {
-                    func_80035C90(temp_a0_3, arg1, arg2);
+                    _bnkfPatchInst(temp_a0_3, arg1, arg2);
                 }
                 var_s1 += 1;
                 var_s0 += 4;

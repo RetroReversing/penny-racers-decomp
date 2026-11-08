@@ -40,7 +40,7 @@ void *_n_loadBuffer(void *arg0, u32 arg1, s32 arg2, s32 arg3, void *arg4) {
         temp_s4 = arg4 + 8;
         temp_s1 = ((s32) (temp_a1 - var_a0) >> 1) * 2;
         M2C_FIELD(var_s2, s32 *, 0) = (s32) (((temp_s1 & 0xFFF) << 0xC) | ((arg2 & 0xFFF) | 0x04000000));
-        M2C_FIELD(var_s2, s32 *, 4) = func_80034640(var_a0, temp_a1, temp_a3);
+        M2C_FIELD(var_s2, s32 *, 4) = func_80034640(var_a0);
         var_s2 = temp_s4;
         M2C_FIELD(arg4, s32 *, 8) = (s32) ((((((s32) (temp_s0 - temp_a1) >> 1) * 2) & 0xFFF) << 0xC) | (((arg2 + temp_s1) & 0xFFF) | 0x04000000));
         var_a0 = M2C_FIELD(arg0, u32 *, 0x14);

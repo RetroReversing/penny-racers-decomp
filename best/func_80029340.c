@@ -32,7 +32,7 @@ void func_80029340(s32 arg0, s32 arg1) {
         sp28 = 0x2006;
         sp2C = &sp10;
         sp34 = arg1;
-        osSendMesg(&D_80092BE0, &sp28, 1);
+        do { osSendMesg(&D_80092BE0, &sp28, 1); } while (0);
         /*__repair_pointer_balance*/if ((unsigned long)sp2C & 0x100) {
 osRecvMesg(&sp10, 0, 1);
 } else {

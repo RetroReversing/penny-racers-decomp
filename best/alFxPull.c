@@ -14,9 +14,9 @@ typedef s32 M2C_UNK32;
 
 M2C_UNK func_800346B0(M2C_UNK *, M2C_UNK *, M2C_UNK); /* extern */
 void *_loadOutputBuffer(void *, void *, s16, s32, void *); /* extern */
-void *func_8003771C(void *, u32, s16, s32, void *); /* extern */
-void *func_8003788C(void *, u32, s16, s32, void *); /* extern */
-void *func_800379FC(s32, s16, s32, void *);         /* extern */
+void *_loadBuffer(void *, u32, s16, s32, void *); /* extern */
+void *_saveBuffer(void *, u32, s16, s32, void *); /* extern */
+void *_filterBuffer(s32, s16, s32, void *);         /* extern */
 
 void *alFxPull(void *arg0, M2C_UNK arg1, s32 arg2, M2C_UNK arg3, s32 arg4) {
     u16 sp1E;                                       /* compiler-managed */
@@ -62,7 +62,7 @@ void *alFxPull(void *arg0, M2C_UNK arg1, s32 arg2, M2C_UNK arg3, s32 arg4) {
     M2C_FIELD(temp_s1, s32 *, 4) = 0x06C006C0;
     M2C_FIELD(temp_s1, s32 *, 8) = 0x0C005A82;
     M2C_FIELD(temp_s1_2, s32 *, 4) = 0x080006C0;
-    temp_v0_2 = func_8003788C(arg0, M2C_FIELD(arg0, u32 *, 0x18), 0x6C0, arg2, temp_s1_2 + 8);
+    temp_v0_2 = _saveBuffer(arg0, M2C_FIELD(arg0, u32 *, 0x18), 0x6C0, arg2, temp_s1_2 + 8);
     M2C_FIELD(temp_v0_2, s32 *, 0) = 0x02000800;
     M2C_FIELD(temp_v0_2, s32 *, 4) = temp_s0_2;
     var_s6 = 0x140;
@@ -78,7 +78,7 @@ void *alFxPull(void *arg0, M2C_UNK arg1, s32 arg2, M2C_UNK arg3, s32 arg4) {
                 var_s6 = var_s7;
                 var_s7 = temp_v0_4;
             } else {
-                var_s1 = func_8003771C(arg0, temp_s4, var_s7, arg2, var_s1);
+                var_s1 = _loadBuffer(arg0, temp_s4, var_s7, arg2, var_s1);
             }
             temp_v1 = M2C_FIELD(temp_s2, s16 *, 8);
             var_s1 = _loadOutputBuffer(arg0, temp_s2, var_s6, arg2, var_s1);
@@ -87,21 +87,21 @@ void *alFxPull(void *arg0, M2C_UNK arg1, s32 arg2, M2C_UNK arg3, s32 arg4) {
                 M2C_FIELD(var_s1, s32 *, 4) = (s32) ((var_s7 << 0x10) | (var_s6 & 0xFFFF));
                 var_s1 += 8;
                 if ((M2C_FIELD(temp_s2, s32 *, 0x24) == 0) && (M2C_FIELD(temp_s2, s32 *, 0x20) == 0)) {
-                    var_s1 = func_8003788C(arg0, sp24, var_s6, arg2, var_s1);
+                    var_s1 = _saveBuffer(arg0, sp24, var_s6, arg2, var_s1);
                 }
             }
             temp_v0_5 = M2C_FIELD(temp_s2, s16 *, 0xA);
             if (temp_v0_5 != 0) {
                 M2C_FIELD(var_s1, s32 *, 0) = (s32) ((temp_v0_5 & 0xFFFF) | 0x0C000000);
                 M2C_FIELD(var_s1, s32 *, 4) = (s32) ((var_s6 << 0x10) | (var_s7 & 0xFFFF));
-                var_s1 = func_8003788C(arg0, temp_s4, var_s7, arg2, var_s1 + 8);
+                var_s1 = _saveBuffer(arg0, temp_s4, var_s7, arg2, var_s1 + 8);
             }
             temp_a0_2 = M2C_FIELD(temp_s2, s32 *, 0x20);
             if (temp_a0_2 != 0) {
-                var_s1 = func_800379FC(temp_a0_2, var_s6, arg2, var_s1);
+                var_s1 = _filterBuffer(temp_a0_2, var_s6, arg2, var_s1);
             }
             if (M2C_FIELD(temp_s2, s32 *, 0x24) == 0) {
-                var_s1 = func_8003788C(arg0, sp24, var_s6, arg2, var_s1);
+                var_s1 = _saveBuffer(arg0, sp24, var_s6, arg2, var_s1);
             }
             temp_v0_6 = M2C_FIELD(temp_s2, s16 *, 0xC);
             if (temp_v0_6 != 0) {

@@ -1,6 +1,6 @@
 /* identical to func_80009B9C in Resident Evil II (local match library) (matched), with its names changed by decompdecomp */
-s32 func_8003F980(s32, s32, s32, void *, s32);
-s32 func_8004077C(u8 *);
+s32 __osContRamWrite(s32, s32, s32, void *, s32);
+s32 __osPfsSelectBank(u8 *);
 
 s32 func_80009C68(u16 *arg0, u16 *arg1, u16 *arg2) {
     u16 *end = arg0 + 14;
@@ -35,24 +35,24 @@ void __osClearPage(u8 *p, s32 arg1, s32 arg2, u8 arg3) {
     s32 i;
 
     p[0x65] = arg3;
-    if (func_8004077C(p) == 0) {
+    if (__osPfsSelectBank(p) == 0) {
         for (i = 0; i < 8; i++) {
-            if (func_8003F980(*(s32 *)(p + 4), *(s32 *)(p + 8),
+            if (__osContRamWrite(*(s32 *)(p + 4), *(s32 *)(p + 8),
                               ((arg1 * 8) + i) & 0xFFFF, (void *)arg2, 0) != 0) {
                 break;
             }
         }
         p[0x65] = 0;
-        func_8004077C(p);
+        __osPfsSelectBank(p);
     }
 }
 
-s32 func_8004077C(u8 *arg0) {
+s32 __osPfsSelectBank(u8 *arg0) {
     u8 buf[32];
     s32 i;
 
     for (i = 0; i < 32; i++) {
         buf[i] = arg0[0x65];
     }
-    return func_8003F980(*(s32 *)(arg0 + 4), *(s32 *)(arg0 + 8), 0x400, buf, 0);
+    return __osContRamWrite(*(s32 *)(arg0 + 4), *(s32 *)(arg0 + 8), 0x400, buf, 0);
 }

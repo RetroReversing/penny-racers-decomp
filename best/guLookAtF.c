@@ -9,7 +9,7 @@ void guLookAtF(float mf[4][4], float xEye, float yEye, float zEye, float xAt,
   float yRight;
   float zRight;
 
-  func_80032CC0(mf);
+  guMtxIdentF(mf);
 
   // Look = normalize(eye - at); the leading -1 makes the camera face -Z.
   xLook = xAt - xEye;
