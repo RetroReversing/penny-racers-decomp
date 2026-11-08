@@ -22,7 +22,7 @@ extern M2C_UNK D_8011F2F0;
 extern M2C_UNK D_8011F2FD;
 extern M2C_UNK D_80168574;
 
-void func_801619B4(s32 arg0) {
+void func_801619B4(s16 arg0) {
     f32 temp_fv1;
     s16 temp_v0;
     s16 temp_v0_2;

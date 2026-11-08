@@ -1,4 +1,4 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
+/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -12,14 +12,14 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-extern M2C_UNK D_8011F32E;
+extern char D_8011F32E[];
 
 void func_8014D11C(s32 arg0) {
     s32 temp_v1;
 
     temp_v1 = (arg0 & 0xFFFF) * 0x64;
-    *(&D_8011F32E + temp_v1) = *(&D_8011F32E + temp_v1) + 1;
-    if ((u16) *(&D_8011F32E + temp_v1) >= 0x80U) {
-        *(&D_8011F32E + temp_v1) = *(&D_8011F32E + temp_v1) - 0x7F;
+    *(D_8011F32E + temp_v1) = *(D_8011F32E + temp_v1) + 1;
+    if ((u16) *(D_8011F32E + temp_v1) >= 0x80U) {
+        *(D_8011F32E + temp_v1) = *(D_8011F32E + temp_v1) - 0x7F;
     }
 }

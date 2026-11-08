@@ -66,11 +66,12 @@ void func_80218FBC(void) {
     } while (var_a0 < 8);
     D_80190CAA = 0;
     D_8021EEB2 = 1;
-    D_80046832 = 0;
-    func_800DE41C(0, 0xFF, 3, 0, 0x7F, 0, 0, &D_801D5A90, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    D_80046832 = 0;/*__repair_call_balance*/if(var_a2){
+    func_800DE41C(0, 0xFF, 3, 0, 0x7F, 0, 0, &D_801D5A90, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);}else{
+    func_800DE41C(0, 0xFF, 3, 0, 0x7F, 0, 0, &D_801D5A90, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);}
     func_8021A994();
     do { func_8021AC64(0x87, 0x52, 0, 0x80, 0x83); } while (0);
     func_800DE41C(0, 0, 3, 0, 0xA1, 0xFF, 0, NULL, &func_8013DD2C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     func_800DE41C(0, 0, 3, 0, 0x7A, 0, 0, &func_80219488, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    func_80203DF8(1, 0x3C, 0, 0, 0);
+    do { func_80203DF8(1, 0x3C, 0, 0, 0); } while (0);
 }
