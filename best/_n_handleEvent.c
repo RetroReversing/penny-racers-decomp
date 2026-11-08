@@ -12,17 +12,17 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 _removeEvents();
+s32 func_8002CC90();
 s32 func_8002CD38();
 s32 func_8002D164();
 s32 func_8002FFD0();
-s32 n_alSynFreeVoice();
+s32 func_800301B0();
 s32 func_80030250();
-s32 n_alSynSetPan();
-s32 n_alSynSetPitch();
-s32 n_alSynSetVol();
-s32 n_alSynStartVoice();
-s32 n_alSynStopVoice();
+s32 func_800302E0();
+s32 func_80030370();
+s32 func_80030400();
+s32 func_800304B0();
+s32 func_80030630();
 extern void *D_80046DF4;
 extern f64 D_8004A368;
 
@@ -42,14 +42,14 @@ void _n_handleEvent(void *arg0) {
     s16 var_v1;
     s16 var_v1_2;
     s32 temp_a0_3;
-    s32 temp_s2;
+    
     s32 temp_s5;
     s32 temp_v0;
     s32 temp_v0_2;
     u16 temp_a0_2;
     u8 temp_a0;
     u8 temp_a1;
-    void *temp_a3;
+    union { void * pointer; s32 value; } __repair_phase_storage;
     void *temp_s0;
     void *temp_s3;
     void *temp_v1_4;
@@ -65,20 +65,20 @@ void _n_handleEvent(void *arg0) {
             sp14 = 0;
             sp10 = M2C_FIELD(temp_s0, u16 *, 0x20);
             func_8002FFD0(temp_s0, &sp10);
-            temp_a3 = M2C_FIELD(temp_s3, void **, 0);
+            __repair_phase_storage.pointer = M2C_FIELD(temp_s3, void **, 0);
             temp_v1_2 = M2C_FIELD(temp_s3, u8 *, 0xC) + (M2C_FIELD(temp_s0, u8 *, 0x2E) + 0xFFC0);
             var_v1 = temp_v1_2 & ((s32) ~temp_v1_2 >> 0x1F);
-            temp_s4 = (M2C_FIELD(temp_a3, u8 *, 0xC) * M2C_FIELD(temp_s0, s16 *, 0x2C)) / 127;
+            temp_s4 = (M2C_FIELD(__repair_phase_storage.pointer, u8 *, 0xC) * M2C_FIELD(temp_s0, s16 *, 0x2C)) / 127;
             if (var_v1 >= 0x80) {
                 var_v1 = 0x7F;
             }
             temp_fs0 = M2C_FIELD(temp_s0, f32 *, 0x24);
-            temp_s2 = func_8002CD38(M2C_FIELD(temp_a3, s32 *, 0), temp_fs0, 0x81020409, temp_a3);
-            n_alSynStartVoice(temp_s0, M2C_FIELD(temp_s3, s32 *, 8));
+            __repair_phase_storage.value = func_8002CD38(M2C_FIELD(__repair_phase_storage.pointer, s32 *, 0), temp_fs0, 0x81020409, __repair_phase_storage.pointer);
+            func_800304B0(temp_s0, M2C_FIELD(temp_s3, s32 *, 8));
             M2C_FIELD(temp_s0, s32 *, 0x28) = 1;
-            n_alSynSetPan(temp_s0, var_v1 & 0xFF);
-            n_alSynSetVol(temp_s0, temp_s4, temp_s2);
-            n_alSynSetPitch(temp_s0, temp_fs0);
+            func_800302E0(temp_s0, var_v1 & 0xFF);
+            func_80030400(temp_s0, temp_s4, __repair_phase_storage.value);
+            func_80030370(temp_s0, temp_fs0);
             func_80030250(temp_s0, M2C_FIELD(temp_s0, u8 *, 0x2F));
             sp18 = 6;
             sp1C = temp_s0;
@@ -90,7 +90,7 @@ void _n_handleEvent(void *arg0) {
     case 1:
         if (((M2C_FIELD(temp_s0, s32 *, 0x28) != 1) | (temp_s3 == NULL)) == 0) {
             temp_v0 = func_8002CD38(M2C_FIELD(M2C_FIELD(temp_s3, void **, 0), s32 *, 8), M2C_FIELD(temp_s0, f32 *, 0x24));
-            n_alSynSetVol(temp_s0, 0, temp_v0);
+            func_80030400(temp_s0, 0, temp_v0);
             if (temp_v0 != 0) {
                 sp18 = 7;
                 sp1C = temp_s0;
@@ -99,9 +99,9 @@ void _n_handleEvent(void *arg0) {
                 return;
             }
         case 7:
-            n_alSynStopVoice(temp_s0);
-            n_alSynFreeVoice(temp_s0);
-            _removeEvents(temp_s5 + 0x14, temp_s0);
+            func_80030630(temp_s0);
+            func_800301B0(temp_s0);
+            func_8002CC90(temp_s5 + 0x14, temp_s0);
             M2C_FIELD(temp_s0, s32 *, 0x28) = 0;
         }
         break;
@@ -114,7 +114,7 @@ void _n_handleEvent(void *arg0) {
             if (var_v1_2 >= 0x80) {
                 var_v1_2 = 0x7F;
             }
-            n_alSynSetPan(temp_s0, var_v1_2 & 0xFF);
+            func_800302E0(temp_s0, var_v1_2 & 0xFF);
             return;
         }
         break;
@@ -125,7 +125,7 @@ void _n_handleEvent(void *arg0) {
             M2C_FIELD(temp_s0, f32 *, 0x24) = 0.0001f;
         }
         if (M2C_FIELD(temp_s0, s32 *, 0x28) == 1) {
-            n_alSynSetPitch(temp_s0, M2C_FIELD(temp_s0, f32 *, 0x24));
+            func_80030370(temp_s0, M2C_FIELD(temp_s0, f32 *, 0x24));
             return;
         }
         break;
@@ -141,7 +141,7 @@ void _n_handleEvent(void *arg0) {
         temp_a0_2 = (u16) M2C_FIELD(arg0, u8 *, 8);
         M2C_FIELD(temp_s0, s16 *, 0x2C) = (s16) temp_a0_2;
         if ((M2C_FIELD(temp_s0, s32 *, 0x28) == 1) & (temp_s3 != NULL)) {
-            n_alSynSetVol(temp_s0, (s16) ((M2C_FIELD(M2C_FIELD(temp_s3, void **, 0), u8 *, 0xD) * (s16) temp_a0_2) / 127), 0x3E8);
+            func_80030400(temp_s0, (s16) ((M2C_FIELD(M2C_FIELD(temp_s3, void **, 0), u8 *, 0xD) * (s16) temp_a0_2) / 127), 0x3E8);
             return;
         }
         break;
@@ -151,7 +151,7 @@ void _n_handleEvent(void *arg0) {
         if (temp_a0_3 != -1) {
             temp_s1 = (M2C_FIELD(temp_v1_4, u8 *, 0xD) * M2C_FIELD(temp_s0, s16 *, 0x2C)) / 127;
             temp_v0 = func_8002CD38(temp_a0_3, M2C_FIELD(temp_s0, f32 *, 0x24));
-            n_alSynSetVol(temp_s0, temp_s1, temp_v0);
+            func_80030400(temp_s0, temp_s1, temp_v0);
             sp18 = 1;
             sp1C = temp_s0;
             func_8002D164(temp_s5 + 0x14, &sp18, temp_v0);

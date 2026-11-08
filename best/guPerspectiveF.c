@@ -1,4 +1,3 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -11,9 +10,10 @@ typedef s32 M2C_UNK32;
 #define M2C_CARRY 0
 #define M2C_OVERFLOW(a) (0)
 #endif
+/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 
 f32 __cosf(f32);                             /* extern */
-M2C_UNK func_80032CC0();                            /* extern */
+s32 func_80032CC0();
 f32 __sinf(f32);                             /* extern */
 extern f64 D_8004A5B0;
 extern f64 D_8004A5B8;
@@ -21,8 +21,8 @@ extern f64 D_8004A5C0;
 extern f64 D_8004A5C8;
 
 void guPerspectiveF(f32 *arg0, s16 *arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6) {
-    f32 *var_s0;
-    f32 *var_v1;
+    char *var_s0;
+    char *var_v1;
     f32 temp_fs0;
     f32 temp_fs0_2;
     f32 temp_fs0_3;
@@ -36,7 +36,7 @@ void guPerspectiveF(f32 *arg0, s16 *arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5
     s32 var_v0_2;
 
     var_s0 = arg0;
-    func_80032CC0();
+    func_80032CC0(arg0);
     temp_fs0 = (f32) ((f64) arg2 * D_8004A5B0) / 2.0f;
     temp_fs0_2 = __cosf(temp_fs0);
     temp_fs0_3 = temp_fs0_2 / __sinf(temp_fs0);
@@ -54,7 +54,7 @@ void guPerspectiveF(f32 *arg0, s16 *arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5
         var_v1 = var_s0;
 loop_2:
         var_a0 += 1;
-        *var_v1 *= arg6;
+        *(f32 *)var_v1 *= arg6;
         var_v1 += 4;
         if (var_a0 < 4) {
             goto loop_2;
