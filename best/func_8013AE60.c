@@ -26,7 +26,7 @@ void func_8013AE60(s32 arg0) {
 
     var_a1 = 0;
     temp_a3 = (arg0 & 0xFFFF) * 0x64;
-    temp_a2 = temp_a3 + &D_8011F2F2;
+    temp_a2 = (char *)(temp_a3); temp_a2 += (s32)(&D_8011F2F2);
     __repair_rows: {
         temp_a0 = var_a1 * 2;
         var_v1 = temp_a0 + temp_a2;

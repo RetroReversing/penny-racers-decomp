@@ -37,7 +37,7 @@ void func_8020653C(s32 arg0, s32 arg1) {
         do { func_801CA140(arg0); } while (0);
         func_801CA494(arg0, 0xFF, 0xFF, 0xFF, 0xFF);
         func_801CCE7C(arg0, 0, 0, 0, 0, 0x140, 0xF0, 0x140, 0xF0, 0x40, 0x20, 0, 0, 0x13F, 0xEF, &D_802E66D8, &D_802F92E0);
-        func_801CCE7C(arg0, 0x20, (s16) ((s32) D_8021E140 + D_8021E16A), 0, 0, 0x110, 0x7F, 0x110, 0x7F, 0x40, 0x20, 0, 0, 0x13F, 0xEF, &D_802F94E8, &D_80301BE0);
+        do { func_801CCE7C(arg0, 0x20, (s16) ((s32) D_8021E140 + D_8021E16A), 0, 0, 0x110, 0x7F, 0x110, 0x7F, 0x40, 0x20, 0, 0, 0x13F, 0xEF, &D_802F94E8, &D_80301BE0); } while (0);
         func_8014A4C8(arg0, 0x54, 0xC5, 1, 1);
         func_801CA494(arg0, 0xFF, 0xFF, 0xFF, (s32) D_8021E19E);
         func_8014A4C8(arg0, 0x69, 0xA7, 1, 0);

@@ -21,6 +21,8 @@ extern M2C_UNK D_8018BC35;
 extern u16 D_80190CB2;
 
 void func_8014B890(s32 arg0) {
+int __repair_constant = 0xC8;
+
     s32 var_v1;
     u16 temp_v0;
     u16 temp_v1;
@@ -58,10 +60,10 @@ loop_9:
             }
         } else {
             M2C_FIELD(temp_s0, u8 *, 0) = func_8014BA14(D_80189CAA);
-            var_v0_2 = 0xC8;
+            var_v0_2 = __repair_constant;
             if ((u8) M2C_FIELD(temp_s0, u8 *, 0) < 2U) {
                 func_801D65BC(0x13);
-                var_v0_2 = 0xC8;
+                var_v0_2 = __repair_constant;
             }
         }
         D_80190CB2 = var_v0_2;

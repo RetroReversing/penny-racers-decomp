@@ -29,7 +29,7 @@ void func_8013E640(s32 arg0, s32 arg1, void *arg2, s16 arg3, f32 arg4, f32 arg5,
     void *temp_t0;
     void *var_a1;
 
-    temp_t0 = ((arg1 & 0xFFFF) * 0x64) + &D_8011F2F0;
+    temp_t0 = (char *)(((arg1 & 0xFFFF) * 0x64)); temp_t0 += (s32)(&D_8011F2F0);
     temp_s0 = ((arg0 & 0xFFFF) * 0x7C) + &D_8018D6C0;
     M2C_FIELD(temp_t0, void **, 0x60) = temp_s0;
     M2C_FIELD(temp_t0, s16 *, 8) = arg3;
