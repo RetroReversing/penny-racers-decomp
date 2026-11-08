@@ -21,7 +21,7 @@ s32 func_800404A4(void *arg0, void *arg1, s32 arg2, s32 arg3)
   u8 temp_v0_2;
   u8 var_v1_2;
   void *temp_a3_2;
-  void *temp_a3_3;
+  
   void *temp_a3_4;
   void *temp_s2;
   void *var_s2;
@@ -116,9 +116,9 @@ s32 func_800404A4(void *arg0, void *arg1, s32 arg2, s32 arg3)
               var_s2_2 = arg1;
               do
               {
-                temp_a3_3 = var_s2_2;
+                temp_a3_2 = var_s2_2;
                 var_s2_2 += 0x20;
-                func_8003F980(*((s32 *) (((char *) arg0) + 4)), *((s32 *) (((char *) arg0) + 8)), (((*((s32 *) (((char *) arg0) + 0x54))) + ((arg3 & 0xFF) * 8)) + var_s0_3) & 0xFFFF, temp_a3_3, 0);
+                func_8003F980(*((s32 *) (((char *) arg0) + 4)), *((s32 *) (((char *) arg0) + 8)), (((*((s32 *) (((char *) arg0) + 0x54))) + ((arg3 & 0xFF) * 8)) + var_s0_3) & 0xFFFF, temp_a3_2, 0);
                 var_s0_3 += 1;
               }
               while (var_s0_3 < 8);

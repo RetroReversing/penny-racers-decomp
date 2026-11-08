@@ -7,7 +7,7 @@ void func_8002A3D0(void)
 {
   volatile short sp10;
   s32 *sp14;
-  s32 sp18;
+  volatile long long sp18;
   s32 sp30;
   if (D_8006FEF8 != 0)
   {

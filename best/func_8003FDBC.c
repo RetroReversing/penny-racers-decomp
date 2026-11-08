@@ -1,3 +1,4 @@
+/* Partial candidate from function #273532 in project #72; rechecked locally. */
 /* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
@@ -123,8 +124,8 @@ block_19:
                             sp5C = 4;
                             sp5E = 6;
 loop_23:
-                            var_v0 = func_8003F980(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), M2C_FIELD(var_s2_2, u16 *, 0x40), arg2, 1);
-                            var_s0_2 += 1;
+                            var_v0 = func_8003F980(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), M2C_FIELD(var_s2_2, u16 *, 0x40), arg2, 1);/*__repair_loop_weight*/do {
+                            var_s0_2 += 1;} while (0);
                             if (var_v0 == 0) {
                                 var_s2_2 += 2;
                                 if (var_s0_2 >= 4) {

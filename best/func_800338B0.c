@@ -1,4 +1,4 @@
-/* Partial candidate from function #295589 in project #76; rechecked locally. */
+/* Partial candidate from function #273503 in project #72; rechecked locally. */
 /* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
@@ -13,7 +13,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-void func_800338B0(u32 arg0, s32 arg1) {
+void func_800338B0(void) {
     s32 temp_t2;
     s32 temp_t2_2;
     u32 temp_t0;
@@ -22,10 +22,10 @@ void func_800338B0(u32 arg0, s32 arg1) {
     u32 var_t0_2;
     u32 var_t1;
 
-    if (arg1 > 0) {
-        if ((u32) arg1 < 0x2000U) {
-            var_t0 = arg0;
-            temp_t1 = arg0 + arg1;
+    if (M2C_ERROR(/* Read from unset register $a1 */) > 0) {
+        if ((u32) M2C_ERROR(/* Read from unset register $a1 */) < 0x2000U) {
+            var_t0 = M2C_ERROR(/* Read from unset register $a0 */);
+            temp_t1 = M2C_ERROR(/* Read from unset register $a0 */) + M2C_ERROR(/* Read from unset register $a1 */);
             if (var_t0 < temp_t1) {
                 var_t1 = temp_t1 - 0x10;
                 temp_t2 = var_t0 & 0xF;

@@ -1,39 +1,41 @@
-/* Partial candidate from function #295608 in project #76; rechecked locally. */
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
-
-void func_8003EBF0(u32 arg0, s32 arg1) {
-    u32 temp_t1;
-    u32 var_t0;
-    u32 var_t0_2;
-
-    if (arg1 > 0) {
-        if ((u32) arg1 < 0x2000U) {
-            temp_t1 = arg0 + arg1;
-            if (arg0 < temp_t1) {
-                var_t0 = arg0 - (arg0 & 0xF);
-                do {
-                    M2C_ERROR(/* unknown instruction: cache 0x19, ($t0) */);
-                    var_t0 += 0x10;
-                } while (var_t0 < (u32) (temp_t1 - 0x10));
-            }
-        } else {
-            var_t0_2 = 0x80000000;
-            do {
-                M2C_ERROR(/* unknown instruction: cache 0x1, ($t0) */);
-                var_t0_2 += 0x10;
-            } while (var_t0_2 < 0x80001FF0U);
-        }
+/* Partial candidate from function #273623 in project #72; rechecked locally. */
+void func_8000F020(void);
+void func_8003EBF0(u32 arg0, s32 arg1)
+{
+  u32 t0;
+  u32 t1;
+  u32 t2;
+  u32 t3;
+  if (arg1 <= 0)
+  {
+    return;
+  }
+  t1 = arg0;
+  t3 = 0x2000;
+  if (((u32) arg1) < t3)
+  {
+    t0 = t1;
+    t1 = t1 + arg1;
+    if (t0 >= t1)
+    {
+      return;
     }
+    t1 -= 16;
+    t2 = t0 & 15;
+    t0 -= t2;
+    do
+    {
+      t0 += 16;
+    }
+    while (t0 < t1);
+  }
+  else
+  {
+    func_8000F020();
+  }
 }
+
+extern void *D_800129D4;
+s32 func_800072E0(void);
+s32 func_80007300(s32);
+void func_8000E980(s32 arg0);
