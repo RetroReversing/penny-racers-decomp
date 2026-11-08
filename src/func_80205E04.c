@@ -16,7 +16,7 @@ extern f32 D_8021B09C;
 extern u8 D_8021B0A0;
 extern f64 D_8021DBB0;
 
-void func_80205E04(f32 *arg0, f32 arg1, s32 arg2) {
+void func_80205E04(f32 *arg0, f32 arg1, u8 arg2) {
     if (!(arg2 & 0xFF)) {
         D_8021B0A0 = 0;
     }
