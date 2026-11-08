@@ -1,4 +1,3 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -11,17 +10,18 @@ typedef s32 M2C_UNK32;
 #define M2C_CARRY 0
 #define M2C_OVERFLOW(a) (0)
 #endif
+/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 
-s16 func_800DE41C(M2C_UNK, M2C_UNK, M2C_UNK, M2C_UNK, s32, s32, s32, M2C_UNK *, M2C_UNK *, s32, s32, s32, s32, s32, s32, s32, s32, s32); /* extern */
-M2C_UNK func_801D87FC();                            /* extern */
-M2C_UNK func_80209AEC();                            /* extern */
-M2C_UNK func_8021FCA4();                            /* extern */
-extern M2C_UNK D_801D5A90;
-extern M2C_UNK D_801D6670;
+s16 func_800DE41C();
+s32 func_801D87FC();
+s32 func_80209AEC();
+s32 func_8021FCA4();
+extern char D_801D5A90[];
+extern char D_801D6670[];
 extern s16 D_8021EFFA;
 extern s16 D_8021F00E;
-extern M2C_UNK D_8021FE04;
-extern M2C_UNK D_8022026C;
+extern char D_8021FE04[];
+extern char D_8022026C[];
 
 void func_80143DCC(void) {
     func_801D87FC();
