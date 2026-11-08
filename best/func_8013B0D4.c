@@ -23,7 +23,7 @@ void func_8013B0D4(void **arg0, s32 arg1) {
     void *temp_a0_2;
     void *temp_v1_2;
     void *temp_v1_3;
-    void *temp_v1_4;
+    
 
     temp_v1 = *(D_8011F2F0 + ((arg1 & 0xFFFF) * 0x64));
     if (temp_v1 == D_80126FF6) {
@@ -37,10 +37,10 @@ void func_8013B0D4(void **arg0, s32 arg1) {
             *arg0 = temp_v1_3 + 8;
             M2C_FIELD(temp_v1_3, s32 *, 0) = 0xB6000000;
             M2C_FIELD(temp_v1_3, s32 *, 4) = (s32) temp_a0;
-            temp_v1_4 = *arg0;
-            *arg0 = temp_v1_4 + 8;
-            M2C_FIELD(temp_v1_4, s32 *, 0) = 0xB900031D;
-            M2C_FIELD(temp_v1_4, s32 *, 4) = 0x504340;
+            temp_a0_2 = *arg0;
+            *arg0 = temp_a0_2 + 8;
+            M2C_FIELD(temp_a0_2, s32 *, 0) = 0xB900031D;
+            M2C_FIELD(temp_a0_2, s32 *, 4) = 0x504340;
         }
     }
     temp_a0_2 = *arg0;

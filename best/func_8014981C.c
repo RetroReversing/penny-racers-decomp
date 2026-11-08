@@ -38,7 +38,8 @@ void func_8014981C(s32 arg0) {
     __repair_rows: {
         *(&D_80189CC9 + var_v0) = 0;
         var_t0 += 1;
-        var_v0 = var_t0 & 0xFF;
+        var_v1 = var_t0 & 0xFF;
+    var_v0 = var_v1;
     }
 if ((u32) (var_t0 & 0xFF) < 3U) goto __repair_rows;
     var_t0_2 = 0;
