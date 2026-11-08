@@ -5,13 +5,12 @@ s32 __osPfsRWInode(void *arg0, void *arg1, s32 arg2, s32 arg3)
 {
   s32 temp_a2;
   s32 temp_a3;
-  
   s32 var_a1_2;
   s32 var_s0;
   s32 var_s0_2;
   s32 var_s0_3;
   s32 var_s5;
-s32 __repair_phase_var_s5;
+  s32 __repair_phase_var_s5;
   s32 var_v0;
   s32 var_v0_2;
   s32 var_v1;
@@ -22,7 +21,6 @@ s32 __repair_phase_var_s5;
   u8 temp_v0_2;
   u8 var_v1_2;
   void *temp_a3_2;
-  
   void *temp_a3_4;
   void *temp_s2;
   void *var_s2;
@@ -44,14 +42,7 @@ s32 __repair_phase_var_s5;
       var_v1_2 = 0;
       if (temp_a2 > 0)
       {
-        __repair_rows:
-        {
-          temp_v0 = *var_a1;
-          var_a1 += 1;
-          temp_a3 += 1;
-          var_v1_2 = (var_v1_2 + temp_v0) & 0xFFFF;
-        }
-
+ do { __repair_rows: { temp_v0 = *var_a1; var_a1 += 1; temp_a3 += 1; var_v1_2 = (var_v1_2 + temp_v0) & 0xFFFF; } } while (0);
         if (temp_a3 < temp_a2)
         {
           goto __repair_rows;
@@ -89,13 +80,18 @@ s32 __repair_phase_var_s5;
           var_a1_2 = 0;
           if (var_v1 <= (temp_a3 - 1))
           {
-            __repair_rows_: {
+            __repair_rows_:
+            {
               __repair_phase_var_s5 = (u8) (*var_a2);
               var_a2 += 1;
               var_a1_2 += 1;
               temp_a2 = (temp_a2 + __repair_phase_var_s5) & 0xFFFF;
             }
-if (var_a1_2 < temp_a3) goto __repair_rows_;
+
+            if (var_a1_2 < temp_a3)
+            {
+              goto __repair_rows_;
+            }
           }
           var_s0_2 = 0;
           if ((temp_a2 & 0xFF) != (*((u8 *) (((char *) arg1) + 1))))
@@ -146,4 +142,3 @@ if (var_a1_2 < temp_a3) goto __repair_rows_;
   }
   return var_v0;
 }
-
