@@ -1,9 +1,9 @@
 extern u16 D_80187BE0;
-extern s16 D_80189DC2;
+extern unsigned int D_80189DC2;
 extern char D_8018D738[];
 extern char D_8018D73A[];
 extern u16 D_8018F5C2;
-s32 func_8013E364(void)
+void func_8013E364(void)
 {
   s32 var_v0;
   volatile unsigned char var_v0_2;
@@ -19,7 +19,7 @@ s32 func_8013E364(void)
       do
       {
         var_v1 = (*(D_8018D73A + ((var_v0_2 - var_v1) * 4))) & 0xFFFF;
-        var_v0_2 = var_v1 << 5;
+ do { var_v0_2 = var_v1 << 5; } while (0);
       }
       while ((*(D_8018D73A + (var_v1 * 0x7C))) != 0xFFFF);
       return 0xFFFF;
@@ -42,4 +42,3 @@ s32 func_8013E364(void)
   }
   return var_v0;
 }
-
