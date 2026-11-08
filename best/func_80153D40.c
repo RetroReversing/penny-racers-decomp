@@ -6,6 +6,11 @@ extern s32 D_8011F334;
 extern s32 D_8011F338;
 extern f64 D_80183810;
 extern f64 D_80183818;
+inline static s32 *inline_fn(s32 arg0)
+{
+  return (&D_8011F32E) + arg0;
+}
+
 void func_80153D40(s32 arg0)
 {
   f32 temp_fv0;
@@ -16,7 +21,7 @@ void func_80153D40(s32 arg0)
   temp_s0 = arg0 & 0xFFFF;
   func_8013AE60(temp_s0);
   temp_v1 = temp_s0 * 0x64;
-  if ((*((&D_8011F32E) + temp_v1)) == 0)
+  if ((*inline_fn(temp_v1)) == 0)
   {
     *((&D_8011F338) + temp_v1) = *((&D_8011F30C) + temp_v1);
     *((&D_8011F32E) + temp_v1) = 1;

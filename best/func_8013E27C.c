@@ -34,9 +34,9 @@ s32 func_8013E27C(s32 arg0)
         goto __repair_rows;
       }
     }
-    temp_v1 = (var_a1 & 0xFFFF) * 0x7C;
-    *(D_8018D73A + ((*(D_8018D738 + temp_v1)) * 0x7C)) = 0xFFFF;
-    *(D_8018D738 + temp_v1) = 0xFFFF;
+    ;
+    *(D_8018D73A + ((*(D_8018D738 + ((var_a1 & 0xFFFF) * 0x7C))) * 0x7C)) = 0xFFFF;
+    *(D_8018D738 + ((var_a1 & 0xFFFF) * 0x7C)) = 0xFFFF;
     D_8018F5C2 = var_a1;
     D_80187BE0 -= arg0;
     var_v0 = temp_t0 & 0xFFFF;
