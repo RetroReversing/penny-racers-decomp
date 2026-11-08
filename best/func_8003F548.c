@@ -1,40 +1,40 @@
-inline static int inline_fn(int arg0)
+/* Partial candidate from function #273520 in project #72; rechecked locally. */
+s32 func_8003F548(u8 *p)
 {
-  return -arg0;
-}
-
-s32 func_8003F548(u8 *arg0)
-{
-  s32 temp_a2;
-  s32 var_a1;
-  s32 var_t0;
-  s32 var_v1;
-  s32 var_v1_2;
-  u8 *var_a0;
-  var_a0 = arg0;
-  var_v1 = 0;
-  var_t0 = 0;
+  s32 v1 = 0;
+  s32 t0 = 0;
+  s32 t2 = -123;
+  s32 t1 = 32;
+  s32 a1;
+  s32 v0;
+  s32 a2;
+  s32 a3;
   do
   {
-    var_a1 = 7;
-    loop_2:
-    temp_a2 = var_v1 * 2;
-
-    var_v1_2 = temp_a2;
-    if (var_t0 != 0x20)
+    a1 = 7;
+    a2 = v1 & 128;
+    do
     {
-      var_v1_2 = temp_a2 | ((((s32) (*var_a0)) >> var_a1) & 1);
+      v0 = (v1 = a2);
+      a2 = v1 << 1;
+      v0 = v0 != 0;
+      v0 = -v0;
+      a3 = v0 & t2;
+      if (t0 != t1)
+      {
+        v0 = *p;
+        v0 >>= a1;
+        v0 &= 1;
+        v1 = a2 | v0;
+      }
+      a1--;
+      v1 ^= a3;
     }
-    var_a1 -= 1;
-    var_v1 = var_v1_2 ^ (inline_fn((var_v1 & 0x80) != 0) & (~0x7A));
-    if (var_a1 >= 0)
-    {
-      goto loop_2;
-    }
-    var_t0 += 1;
-    var_a0 += 1;
+    while (a1 >= 0);
+    t0++;
+    p++;
   }
-  while (var_t0 < 0x21);
-  return var_v1 & 0xFF;
+  while (t0 < 33);
+  return v1 & 255;
 }
 
