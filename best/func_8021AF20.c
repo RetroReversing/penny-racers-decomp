@@ -25,12 +25,13 @@ void func_8021AF20(s32 arg0) {
     var_v0 = func_800E1850 & 0xFFFF;
     if ((func_800E1850 & 0xFFFF) != 0xFFFF) {
         var_v1 = var_v0 * 2;
-        do {
+        __repair_rows: {
             temp_v1 = (((var_v1 + var_v0) * 8) + var_v0) * 4;
             *(D_8011F2FD + temp_v1) = 4;
             var_v0 = *(D_8011F300 + temp_v1) & 0xFFFF;
             var_v1 = var_v0 * 2;
-        } while (var_v0 != 0xFFFF);
+        }
+if (var_v0 != 0xFFFF) goto __repair_rows;
     }
     *(D_8011F2FD + (D_8018BC3C * 0x64)) = 0;
     *(D_8011F2FD + ((arg0 & 0xFFFF) * 0x64)) = 0;
