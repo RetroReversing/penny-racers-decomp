@@ -1,7 +1,19 @@
-s32 func_8014A4C8(s32, s32, s32, s32, s32);
-s32 func_801CA140(s32);
-s32 func_801CA494(s32, s32, s32, s32, s32);
-s32 func_801CCE7C(s32, s32, s16, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32 *, s32 *);
+#ifndef M2C_DEFINES
+#define M2C_DEFINES
+typedef s32 M2C_UNK;
+typedef s8 M2C_UNK8;
+typedef s16 M2C_UNK16;
+typedef s32 M2C_UNK32;
+#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
+#define M2C_BITWISE(type, expr) ((type)(expr))
+#define M2C_ERROR(desc) (0)
+#define M2C_CARRY 0
+#define M2C_OVERFLOW(a) (0)
+#endif
+s32 func_8014A4C8();
+s32 func_801CA140();
+s32 func_801CA494();
+s32 func_801CCE7C();
 extern s32 D_8011F330;
 extern f32 D_8021E140;
 extern u16 D_8021E16A;
@@ -35,7 +47,7 @@ void func_8020653C(s32 arg0, s32 arg1)
     while (0);
       do
     {
-      func_8014A4C8(arg0, 0x54, 0xC5, 1, 1);
+      func_8014A4C8(arg0, 0x54, 0xC5, 1);
     }
     while (0);
       func_801CA494(arg0, 0xFF, 0xFF, 0xFF, (s32) D_8021E19E);
