@@ -1,4 +1,3 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -11,14 +10,15 @@ typedef s32 M2C_UNK32;
 #define M2C_CARRY 0
 #define M2C_OVERFLOW(a) (0)
 #endif
+/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 
-M2C_UNK func_8014A4C8(s32, M2C_UNK, M2C_UNK, M2C_UNK, s32); /* extern */
-M2C_UNK func_801CA140();                            /* extern */
-M2C_UNK func_801CA468(s32, M2C_UNK);                /* extern */
-M2C_UNK func_801CA494(s32, M2C_UNK, M2C_UNK, M2C_UNK, s32); /* extern */
-M2C_UNK func_801CCE7C(s32, M2C_UNK, M2C_UNK, M2C_UNK, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, M2C_UNK *, M2C_UNK *); /* extern */
-extern M2C_UNK D_802E66D8;
-extern M2C_UNK D_802F92E0;
+s32 func_8014A4C8();
+s32 func_801CA140();
+s32 func_801CA468();
+s32 func_801CA494();
+s32 func_801CCE7C();
+extern char D_802E66D8[];
+extern char D_802F92E0[];
 
 void func_80215CCC(s32 arg0) {
     func_801CA140();
