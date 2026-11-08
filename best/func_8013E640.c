@@ -62,7 +62,7 @@ void func_8013E640(s32 arg0, s32 arg1, void *arg2, s16 arg3, f32 arg4, f32 arg5,
             M2C_FIELD((temp_s0 + var_v1), s8 *, 0x60) = -1;
         }
         var_v1 += 1;
-        var_a1 = temp_s0 + var_v1;
+        var_a1 = (char *)(temp_s0); var_a1 += (s32)(var_v1);
     }
 if (var_v1 < 7) goto __repair_rows;
 }

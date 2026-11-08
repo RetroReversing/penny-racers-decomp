@@ -1,16 +1,17 @@
-s32 __osContRamRead(s32, s32, s32, void *);
-s32 __osContRamWrite(s32, s32, s32, void *, s32);
-s32 __osPfsSelectBank();
+s32 func_8003F5B0(s32, s32, s32, void *);
+s32 func_8003F980(s32, s32, s32, void *, s32);
+s32 func_8004077C();
 s32 __osPfsRWInode(void *arg0, void *arg1, s32 arg2, s32 arg3)
 {
   s32 temp_a2;
   s32 temp_a3;
-  s32 var_a0;
+  
   s32 var_a1_2;
   s32 var_s0;
   s32 var_s0_2;
   s32 var_s0_3;
   s32 var_s5;
+s32 __repair_phase_var_s5;
   s32 var_v0;
   s32 var_v0_2;
   s32 var_v1;
@@ -27,7 +28,7 @@ s32 __osPfsRWInode(void *arg0, void *arg1, s32 arg2, s32 arg3)
   void *var_s2;
   void *var_s2_2;
   void *var_s2_3;
-  if (((*((u8 *) (((char *) arg0) + 0x65))) == 0) || ((*((u8 *) (((char *) arg0) + 0x65)) = 0U, var_v0 = __osPfsSelectBank(), var_v0 == 0)))
+  if (((*((u8 *) (((char *) arg0) + 0x65))) == 0) || ((*((u8 *) (((char *) arg0) + 0x65)) = 0U, var_v0 = func_8004077C(), var_v0 == 0)))
   {
     var_s5 = 1;
     if (!(arg3 & 0xFF))
@@ -38,7 +39,7 @@ s32 __osPfsRWInode(void *arg0, void *arg1, s32 arg2, s32 arg3)
     if ((arg2 & 0xFF) == 1)
     {
       var_a1 = (var_s5 * 2) + arg1;
-      var_a0 = 0;
+      temp_a3 = 0;
       temp_a2 = (0x80 - var_s5) * 2;
       var_v1_2 = 0;
       if (temp_a2 > 0)
@@ -47,11 +48,11 @@ s32 __osPfsRWInode(void *arg0, void *arg1, s32 arg2, s32 arg3)
         {
           temp_v0 = *var_a1;
           var_a1 += 1;
-          var_a0 += 1;
+          temp_a3 += 1;
           var_v1_2 = (var_v1_2 + temp_v0) & 0xFFFF;
         }
 
-        if (var_a0 < temp_a2)
+        if (temp_a3 < temp_a2)
         {
           goto __repair_rows;
         }
@@ -66,12 +67,12 @@ s32 __osPfsRWInode(void *arg0, void *arg1, s32 arg2, s32 arg3)
 
     if ((arg2 & 0xFF) == 1)
     {
-      __osContRamWrite(*((s32 *) (((char *) arg0) + 4)), *((s32 *) (((char *) arg0) + 8)), (((*((s32 *) (((char *) arg0) + 0x54))) + temp_a2) + var_s0) & 0xFFFF, temp_s2, 0);
-      __repair_result_var_v1 = __osContRamWrite(*((s32 *) (((char *) arg0) + 4)), *((s32 *) (((char *) arg0) + 8)), (((*((s32 *) (((char *) arg0) + 0x58))) + temp_a2) + var_s0) & 0xFFFF, temp_s2, 0);
+      func_8003F980(*((s32 *) (((char *) arg0) + 4)), *((s32 *) (((char *) arg0) + 8)), (((*((s32 *) (((char *) arg0) + 0x54))) + temp_a2) + var_s0) & 0xFFFF, temp_s2, 0);
+      __repair_result_var_v1 = func_8003F980(*((s32 *) (((char *) arg0) + 4)), *((s32 *) (((char *) arg0) + 8)), (((*((s32 *) (((char *) arg0) + 0x58))) + temp_a2) + var_s0) & 0xFFFF, temp_s2, 0);
     }
     else
     {
-      var_v1 = __osContRamRead(*((s32 *) (((char *) arg0) + 4)), *((s32 *) (((char *) arg0) + 8)), (((*((s32 *) (((char *) arg0) + 0x54))) + temp_a2) + var_s0) & 0xFFFF, temp_s2);
+      var_v1 = func_8003F5B0(*((s32 *) (((char *) arg0) + 4)), *((s32 *) (((char *) arg0) + 8)), (((*((s32 *) (((char *) arg0) + 0x54))) + temp_a2) + var_s0) & 0xFFFF, temp_s2);
     }
     var_s0 += 1;
     if (var_v1 == 0)
@@ -89,10 +90,10 @@ s32 __osPfsRWInode(void *arg0, void *arg1, s32 arg2, s32 arg3)
           if (var_v1 <= (temp_a3 - 1))
           {
             __repair_rows_: {
-              var_s5 = (u8) (*var_a2);
+              __repair_phase_var_s5 = (u8) (*var_a2);
               var_a2 += 1;
               var_a1_2 += 1;
-              temp_a2 = (temp_a2 + var_s5) & 0xFFFF;
+              temp_a2 = (temp_a2 + __repair_phase_var_s5) & 0xFFFF;
             }
 if (var_a1_2 < temp_a3) goto __repair_rows_;
           }
@@ -104,7 +105,7 @@ if (var_a1_2 < temp_a3) goto __repair_rows_;
             {
               temp_a3_2 = var_s2;
               var_s2 += 0x20;
-              __osContRamRead(*((s32 *) (((char *) arg0) + 4)), *((s32 *) (((char *) arg0) + 8)), (((*((s32 *) (((char *) arg0) + 0x58))) + ((arg3 & 0xFF) * 8)) + var_s0_2) & 0xFFFF, temp_a3_2);
+              func_8003F5B0(*((s32 *) (((char *) arg0) + 4)), *((s32 *) (((char *) arg0) + 8)), (((*((s32 *) (((char *) arg0) + 0x58))) + ((arg3 & 0xFF) * 8)) + var_s0_2) & 0xFFFF, temp_a3_2);
               var_s0_2 += 1;
             }
             while (var_s0_2 < 8);
@@ -117,7 +118,7 @@ if (var_a1_2 < temp_a3) goto __repair_rows_;
               {
                 temp_a3_2 = var_s2_2;
                 var_s2_2 += 0x20;
-                __osContRamWrite(*((s32 *) (((char *) arg0) + 4)), *((s32 *) (((char *) arg0) + 8)), (((*((s32 *) (((char *) arg0) + 0x54))) + ((arg3 & 0xFF) * 8)) + var_s0_3) & 0xFFFF, temp_a3_2, 0);
+                func_8003F980(*((s32 *) (((char *) arg0) + 4)), *((s32 *) (((char *) arg0) + 8)), (((*((s32 *) (((char *) arg0) + 0x54))) + ((arg3 & 0xFF) * 8)) + var_s0_3) & 0xFFFF, temp_a3_2, 0);
                 var_s0_3 += 1;
               }
               while (var_s0_3 < 8);
@@ -130,7 +131,7 @@ if (var_a1_2 < temp_a3) goto __repair_rows_;
           {
             temp_a3_4 = var_s2_3;
             var_s2_3 += 0x20;
-            __osContRamWrite(*((s32 *) (((char *) arg0) + 4)), *((s32 *) (((char *) arg0) + 8)), (((*((s32 *) (((char *) arg0) + 0x58))) + ((arg3 & 0xFF) * 8)) + var_s0_2) & 0xFFFF, temp_a3_4, 0);
+            func_8003F980(*((s32 *) (((char *) arg0) + 4)), *((s32 *) (((char *) arg0) + 8)), (((*((s32 *) (((char *) arg0) + 0x58))) + ((arg3 & 0xFF) * 8)) + var_s0_2) & 0xFFFF, temp_a3_4, 0);
             var_s0_2 += 1;
             var_v0 = 0;
           }
