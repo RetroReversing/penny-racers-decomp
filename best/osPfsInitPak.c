@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 __osPfsGetStatus(s32, s32);                        /* extern */
+s32 func_8003C530(s32, s32);                        /* extern */
 M2C_UNK func_8003F464();                            /* extern */
 M2C_UNK func_8003F4D0();                            /* extern */
 s32 func_8003F5B0(s32, s32, M2C_UNK, u8 *);         /* extern */
@@ -44,14 +44,14 @@ s32 osPfsInitPak(s32 arg0, void *arg1, s32 arg2) {
     s32 var_a0;
     s32 var_v0;
 s32 __repair_phase_var_v0;
-    u8 *temp_a1;
-    u8 *var_a1;
     u8 *var_s2;
+    
+    u8 *temp_a1;
     u8 temp_v1;
     void *temp_v0;
 
     func_8003F464();
-    __repair_phase_var_v0 = __osPfsGetStatus(arg0, arg2);
+    __repair_phase_var_v0 = func_8003C530(arg0, arg2);
     func_8003F4D0();
     var_v0 = __repair_phase_var_v0;
     if (__repair_phase_var_v0 == 0) {
@@ -79,12 +79,12 @@ s32 __repair_phase_var_v0;
                     return __repair_phase_var_v0;
                 }
 block_10:
-                var_a1 = var_s2;
+                temp_a1 = var_s2;
                 __repair_rows: {
                     temp_v0 = arg1 + var_a0;
                     var_a0 += 1;
-                    M2C_FIELD(temp_v0, u8 *, 0xC) = (u8) *var_a1;
-                    var_a1 += 1;
+                    M2C_FIELD(temp_v0, u8 *, 0xC) = (u8) *temp_a1;
+                    temp_a1 += 1;
                 }
 if (var_a0 < 0x20) goto __repair_rows;
                 M2C_FIELD(arg1, s32 *, 0x4C) = (s32) M2C_FIELD(var_s2, u8 *, 0x1B);

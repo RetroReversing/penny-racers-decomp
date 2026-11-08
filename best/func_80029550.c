@@ -1,40 +1,26 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
-
-M2C_UNK func_80033A90(M2C_UNK *, M2C_UNK *, M2C_UNK); /* extern */
-M2C_UNK osCreateThread(M2C_UNK *, M2C_UNK, M2C_UNK *, M2C_UNK, M2C_UNK *, s32); /* extern */
-M2C_UNK func_80034090(M2C_UNK, M2C_UNK *, M2C_UNK); /* extern */
-M2C_UNK osStartThread(M2C_UNK *);                   /* extern */
-M2C_UNK osContInit(M2C_UNK *, u8 *, M2C_UNK *);  /* extern */
-extern M2C_UNK D_80063DA0;
-extern M2C_UNK D_80063DC0;
-extern M2C_UNK D_80065F70;
+s32 func_80033A90(s32 *, s32 *, s32);
+s32 osCreateThread(s32 *, s32, s32 *, s32, s32 *, s32);
+s32 func_80034090(s32, s32 *, s32);
+s32 osStartThread(s32 *);
+s32 osContInit(s32 *, u8 *, s32 *);
+extern s32 D_80063DA0;
+extern s32 D_80063DC0;
+extern s32 D_80065F70;
 extern s32 D_80092BF8;
 extern s32 D_80092BFC;
-extern M2C_UNK D_800DE058;
-extern M2C_UNK func_800295F8;
-
-u8 func_80029550(void) {
-    M2C_UNK sp18;
-    u8 sp28;
-
-    D_80092BF8 = 0;
-    D_80092BFC = 0;
-    func_80033A90(&D_800DE058, &D_80063DA0, 8);
-    func_80034090(5, &D_800DE058, 0);
-    osContInit(&D_800DE058, &sp28, &sp18);
-    osCreateThread(&D_80063DC0, 5, &func_800295F8, 0, &D_80065F70, 0x73);
-    osStartThread(&D_80063DC0);
-    return sp28;
+extern s32 D_800DE058;
+extern s32 func_800295F8;
+u8 func_80029550(void)
+{
+  volatile int sp18;
+  u8 sp28;
+  D_80092BF8 = 0;
+  D_80092BFC = 0;
+  func_80033A90(&D_800DE058, &D_80063DA0, 8);
+  func_80034090(5, &D_800DE058, 0);
+  osContInit(&D_800DE058, &sp28, &sp18);
+  osCreateThread(&D_80063DC0, 5, &func_800295F8, 0, &D_80065F70, 0x73);
+  osStartThread(&D_80063DC0);
+  return sp28;
 }
+

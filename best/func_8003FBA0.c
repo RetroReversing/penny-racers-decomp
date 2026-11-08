@@ -17,8 +17,6 @@ extern s8 D_800DD3E0;
 extern s32 D_800DD41C;
 
 void func_8003FBA0(s32 arg0, s32 arg1, u8 *arg2) {
-int __repair_constant = 0xFF;
-
     s8 sp10;
     s8 sp11;
     s8 sp12;
@@ -31,23 +29,23 @@ int __repair_constant = 0xFF;
     char *var_a2;
     char *var_a3;
     char *var_s2;
-    char *var_s3;
+    
     char *var_v1;
 
-    var_s3 = arg2;
+    var_a3 = arg2;
     var_s2 = &D_800DD3E0;
     D_800DD41C = 1;
     sp11 = 0x23;
     sp12 = 1;
-    sp10 = __repair_constant;
+    sp10 = 0xFF;
     sp13 = 3;
     var_v1 = &sp16;
     sp14 = (func_8003F500(arg1 & 0xFFFF) & 0xFF) | (arg1 << 5);
-    sp36 = __repair_constant;
+    sp36 = 0xFF;
     do {
-        *(u8 *)var_v1 = *(u8 *)var_s3;
+        *(u8 *)var_v1 = *(u8 *)var_a3;
         var_v1 += 1;
-        var_s3 += 1;
+        var_a3 += 1;
     } while ((s32) var_v1 < (s32) &sp36);
     var_a2 = &sp10;
     if (arg0 != 0) {

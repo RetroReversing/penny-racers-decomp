@@ -55,8 +55,8 @@ loop_3:
                 sp20 = temp_a2;
                 sp22 = temp_a0;
             } while ((u32) var_a1 < (u32) (arg1 + 0x1C));
-            if ((M2C_FIELD(arg1, u16 *, 0x1C) != (temp_a2 & 0xFFFF)) || (M2C_FIELD(arg1, u16 *, 0x1E) != (temp_a0 & 0xFFFF))) {
-                var_s4 += 1;
+            if ((M2C_FIELD(arg1, u16 *, 0x1C) != (temp_a2 & 0xFFFF)) || (M2C_FIELD(arg1, u16 *, 0x1E) != (temp_a0 & 0xFFFF))) {/*__repair_loop_weight*/do {
+                var_s4 += 1;} while (0);
                 var_s0 += 2;
                 if (var_s4 >= 4) {
                     goto block_10;
