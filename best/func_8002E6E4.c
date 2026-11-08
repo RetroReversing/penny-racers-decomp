@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 func_8002EF78();
+s32 n_alLoadParam();
 
 s32 func_8002E6E4(void *arg0, s32 arg1, s32 *arg2) {
     s32 *temp_v0;
@@ -42,7 +42,7 @@ s32 func_8002E6E4(void *arg0, s32 arg1, s32 *arg2) {
         M2C_FIELD(arg0, s32 *, 0x48) = 0;
         /* fallthrough */
     default:
-        func_8002EF78(arg0, var_a1);
+        n_alLoadParam(arg0, var_a1);
         break;
     }
     return 0;

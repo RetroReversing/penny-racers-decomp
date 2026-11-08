@@ -13,7 +13,7 @@ typedef s32 M2C_UNK32;
 #endif
 
 s32 func_800294A0();
-s32 func_80035B10();
+s32 alSeqFileNew();
 s32 func_80038340();
 extern char D_8006E780[];
 extern s32 D_8006FF00;
@@ -30,5 +30,5 @@ void func_80027BF0(s32 arg0) {
     temp_v0 = func_80038340(0, 0, &D_8006E780, 1, temp_s0_2);
     D_8006FF00 = temp_v0;
     func_800294A0(arg0, temp_v0, temp_s0_2);
-    func_80035B10(D_8006FF00, arg0);
+    alSeqFileNew(D_8006FF00, arg0);
 }

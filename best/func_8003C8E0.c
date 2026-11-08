@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_80033E30(s32, M2C_UNK, M2C_UNK);       /* extern */
+M2C_UNK osRecvMesg(s32, M2C_UNK, M2C_UNK);       /* extern */
 M2C_UNK func_8003F350(M2C_UNK, M2C_UNK *);          /* extern */
 M2C_UNK func_8003F464();                            /* extern */
 M2C_UNK func_8003F4D0();                            /* extern */
@@ -48,9 +48,9 @@ u32 func_8003C8E0(void *arg0) {
         func_8003F464();
         D_80092C04 = 3;
         func_8003F350(1, (M2C_FIELD(arg0, s32 *, 8) << 6) + &D_8006F9F0);
-        func_80033E30(M2C_FIELD(arg0, s32 *, 4), 0, 1);
+        osRecvMesg(M2C_FIELD(arg0, s32 *, 4), 0, 1);
         func_8003F350(0, &D_800DD3E0);
-        func_80033E30(M2C_FIELD(arg0, s32 *, 4), 0, 1);
+        osRecvMesg(M2C_FIELD(arg0, s32 *, 4), 0, 1);
         temp_a0 = M2C_FIELD(arg0, s32 *, 8);
         var_a3 = &m2c_initial_frame.view_sp10.value;
         if (temp_a0 != 0) {

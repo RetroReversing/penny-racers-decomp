@@ -3,7 +3,7 @@
 /* identical to func_80095C90 in V-RALLY (matched), with its names changed by decompdecomp */
 
 s32 func_8003E734();
-s32 func_8003EAC0();
+s32 __osDisableInt();
 s32 func_8003EAE0();
 extern char D_800470D8[];
 extern void *D_800470E0;
@@ -16,7 +16,7 @@ void func_8003F030(void)
 {
   int new_var;
   s32 temp_s0;
-  temp_s0 = func_8003EAC0();
+  temp_s0 = __osDisableInt();
   new_var = 2;
   *((s16 *) inline_fn()) = new_var;
   func_8003E734(&D_800470D8, 2);

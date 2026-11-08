@@ -45,6 +45,18 @@ void func_80028A00(void) {
     sp1C = 0;
     sp20 = 0xB8000000;
     sp24 = 0;
-    func_80029E84(&sp10, 0x18, 0, 0);
+    /*__repair_pointer_balance*/if ((unsigned long)sp14 & 0x10000) {
+if ((unsigned long)sp14 & 0x100) {
+func_80029E84(&sp10, 0x18, 0, 0);
+} else {
+func_80029E84(&sp10, 0x18, 0, 0);
+}
+} else {
+if ((unsigned long)sp14 & 0x100) {
+func_80029E84(&sp10, 0x18, 0, 0);
+} else {
+func_80029E84(&sp10, 0x18, 0, 0);
+}
+}
     func_80028B50();
 }

@@ -15,15 +15,15 @@ typedef s32 M2C_UNK32;
 s32 func_8002D0CC(void *, void *);                  /* extern */
 M2C_UNK func_8002D164(void *, s16 *, s32);          /* extern */
 M2C_UNK func_8002D270(void *, M2C_UNK);             /* extern */
-M2C_UNK func_800301B0(M2C_UNK *);                   /* extern */
-M2C_UNK func_80030370(M2C_UNK *, f32);              /* extern */
-M2C_UNK func_80030400(M2C_UNK *, s16, s32);         /* extern */
-M2C_UNK func_80030630(M2C_UNK *);                   /* extern */
+M2C_UNK n_alSynFreeVoice(M2C_UNK *);                   /* extern */
+M2C_UNK n_alSynSetPitch(M2C_UNK *, f32);              /* extern */
+M2C_UNK n_alSynSetVol(M2C_UNK *, s16, s32);         /* extern */
+M2C_UNK n_alSynStopVoice(M2C_UNK *);                   /* extern */
 M2C_UNK func_80030D4C(void *);                      /* extern */
 M2C_UNK func_80030E28(void *, void *);              /* extern */
 M2C_UNK func_80031680(void *, void *);              /* extern */
 M2C_UNK func_800316EC(void *, M2C_UNK *);           /* extern */
-M2C_UNK func_80031750(void *, s32, M2C_UNK);        /* extern */
+M2C_UNK __n_seqpReleaseVoice(void *, s32, M2C_UNK);        /* extern */
 s32 func_8003186C(void *, s32, M2C_UNK);            /* extern */
 M2C_UNK func_8003191C(void *, M2C_UNK);             /* extern */
 s16 func_80031B24(M2C_UNK *, void *);               /* extern */
@@ -83,8 +83,8 @@ s32 func_8003082C(void *arg0) {
             break;
         case 5:
             temp_s0 = M2C_FIELD(arg0, M2C_UNK **, 0x3C);
-            func_80030630(temp_s0);
-            func_800301B0(temp_s0);
+            n_alSynStopVoice(temp_s0);
+            n_alSynFreeVoice(temp_s0);
             temp_s1 = M2C_FIELD(temp_s0, M2C_UNK **, 0x10);
             if (M2C_FIELD(temp_s1, u8 *, 0x37) != 0) {
                 func_80031DD8(arg0, temp_s1);
@@ -101,7 +101,7 @@ s32 func_8003082C(void *arg0) {
             temp_s3 = M2C_FIELD(arg0, s32 *, 0x40);
             M2C_FIELD(temp_s1_2, u8 *, 0x30) = (u8) M2C_FIELD(arg0, u8 *, 0x44);
             M2C_FIELD(temp_s1_2, s32 *, 0x24) = (s32) (M2C_FIELD(arg0, s32 *, 0x1C) + temp_s3);
-            func_80030400(temp_s0_2, func_80031B24(temp_s1_2, arg0), temp_s3);
+            n_alSynSetVol(temp_s0_2, func_80031B24(temp_s1_2, arg0), temp_s3);
             var_a0 = arg0 + 0x48;
             break;
         case 22:
@@ -115,7 +115,7 @@ s32 func_8003082C(void *arg0) {
             }
             M2C_FIELD(temp_s1_3, s8 *, 0x36) = (s8) var_v1;
             temp_s0_3 = func_80031B24(temp_s1_3, arg0);
-            func_80030400(temp_s1_3 + 4, temp_s0_3, func_80031B94(temp_s1_3, M2C_FIELD(arg0, s32 *, 0x1C)));
+            n_alSynSetVol(temp_s1_3 + 4, temp_s0_3, func_80031B94(temp_s1_3, M2C_FIELD(arg0, s32 *, 0x1C)));
             sp10 = 0x16;
             sp14 = temp_s1_3;
             sp18 = temp_s4;
@@ -128,7 +128,7 @@ s32 func_8003082C(void *arg0) {
             temp_s0_4 = M2C_FIELD(arg0, u8 *, 0x44);
             temp_v0_2 = M2C_FIELD(arg0, s32 (**)(s32, f32 *), 0x74)(temp_s4_2, &sp20);
             M2C_FIELD(temp_s1_4, f32 *, 0x2C) = sp20;
-            func_80030370(temp_s1_4 + 4, M2C_FIELD(temp_s1_4, f32 *, 0x28) * sp20 * M2C_FIELD(((temp_s0_4 * 0x10) + M2C_FIELD(arg0, s32 *, 0x60)), f32 *, 0xC));
+            n_alSynSetPitch(temp_s1_4 + 4, M2C_FIELD(temp_s1_4, f32 *, 0x28) * sp20 * M2C_FIELD(((temp_s0_4 * 0x10) + M2C_FIELD(arg0, s32 *, 0x60)), f32 *, 0xC));
             sp10 = 0x17;
             sp14 = temp_s1_4;
             sp18 = temp_s4_2;
@@ -159,8 +159,8 @@ s32 func_8003082C(void *arg0) {
                 if (temp_s1_5 != NULL) {
                     var_s0 = temp_s1_5 + 4;
                     do {
-                        func_80030630(var_s0);
-                        func_800301B0(var_s0);
+                        n_alSynStopVoice(var_s0);
+                        n_alSynFreeVoice(var_s0);
                         if (M2C_FIELD(M2C_FIELD(arg0, M2C_UNK **, 0x64), u8 *, 0x37) != 0) {
                             func_80031DD8(arg0, M2C_FIELD(arg0, M2C_UNK **, 0x64));
                         }
@@ -188,7 +188,7 @@ block_49:
                     do {
                         temp_s0_6 = var_s1 + 4;
                         if ((func_8003186C(arg0, temp_s0_6, 0xC350) << 0x18) != 0) {
-                            func_80031750(arg0, temp_s0_6, 0xC350);
+                            __n_seqpReleaseVoice(arg0, temp_s0_6, 0xC350);
                         }
                         var_s1 = *var_s1;
                     } while (var_s1 != NULL);
@@ -207,7 +207,7 @@ block_49:
                 var_a0_3 = var_s1_2;
                 do {
                     temp_s0_7 = func_80031B24(var_a0_3, arg0);
-                    func_80030400(var_s1_2 + 4, temp_s0_7, func_80031B94(var_s1_2, M2C_FIELD(arg0, s32 *, 0x1C)));
+                    n_alSynSetVol(var_s1_2 + 4, temp_s0_7, func_80031B94(var_s1_2, M2C_FIELD(arg0, s32 *, 0x1C)));
                     var_s1_2 = *var_s1_2;
                     var_a0_3 = var_s1_2;
                 } while (var_s1_2 != NULL);

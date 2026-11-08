@@ -14,7 +14,7 @@ typedef s32 M2C_UNK32;
 
 M2C_UNK osSendMesg(s32, M2C_UNK, M2C_UNK);       /* extern */
 s32 func_8003BFC0(M2C_UNK *);                       /* extern */
-s32 func_8003C040(M2C_UNK *, u8, s32, u16);         /* extern */
+s32 osEepromLongWrite(M2C_UNK *, u8, s32, u16);         /* extern */
 s32 func_8003C130(M2C_UNK *, u8, s32, u16);         /* extern */
 extern M2C_UNK D_800DE058;
 
@@ -32,7 +32,7 @@ s32 func_800299BC(void *arg0) {
                 var_v0_2 = func_8003C130(&D_800DE058, M2C_FIELD(arg0, u8 *, 0x10), M2C_FIELD(arg0, s32 *, 8), M2C_FIELD(arg0, u16 *, 0x12));
                 goto block_8;
             case 0x4002:
-                var_v0_2 = func_8003C040(&D_800DE058, M2C_FIELD(arg0, u8 *, 0x10), M2C_FIELD(arg0, s32 *, 8), M2C_FIELD(arg0, u16 *, 0x12));
+                var_v0_2 = osEepromLongWrite(&D_800DE058, M2C_FIELD(arg0, u8 *, 0x10), M2C_FIELD(arg0, s32 *, 8), M2C_FIELD(arg0, u16 *, 0x12));
                 goto block_8;
             default:
                 return 0;

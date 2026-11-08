@@ -35,14 +35,14 @@ s32 func_8002D520(void *arg0, s32 arg1, void *arg2) {
     temp_v0 = func_8002DA28();
     temp_s4 = temp_v0 & 0xFF;
     if (temp_s4 == 0xFF) {
-        temp_v0_2 = func_8002DA28(arg0, arg1);
+        temp_v0_2 = func_8002DA28(arg0);
         temp_v1 = temp_v0_2 & 0xFF;
         switch (temp_v1) {                          /* irregular */
         case 0x51:
             M2C_FIELD(arg2, s16 *, 0) = 3;
             M2C_FIELD(arg2, u8 *, 8) = temp_v0;
             M2C_FIELD(arg2, u8 *, 9) = temp_v0_2;
-            M2C_FIELD(arg2, u8 *, 0xB) = func_8002DA28(arg0, arg1, temp_v0_2);
+            M2C_FIELD(arg2, u8 *, 0xB) = func_8002DA28(arg0, arg1);
             M2C_FIELD(arg2, u8 *, 0xC) = func_8002DA28(arg0, arg1);
             M2C_FIELD(arg2, u8 *, 0xD) = func_8002DA28(arg0, arg1);
             M2C_FIELD((arg0 + arg1), s8 *, 0xA8) = 0;

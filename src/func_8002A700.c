@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_8002A7A0(M2C_UNK);                     /* extern */
+M2C_UNK n_alSynNew(M2C_UNK);                     /* extern */
 extern s32 D_80046DF0;
 extern s32 D_80046DF4;
 
@@ -21,7 +21,7 @@ void func_8002A700(s32 arg0, M2C_UNK arg1) {
         D_80046DF0 = arg0;
         if (D_80046DF4 == 0) {
             D_80046DF4 = arg0;
-            func_8002A7A0(arg1);
+            n_alSynNew(arg1);
         }
     }
 }

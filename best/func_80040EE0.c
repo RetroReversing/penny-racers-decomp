@@ -7,7 +7,7 @@ void func_80041100();
 void func_8003F464();
 void func_8003F4D0();
 s32 func_8003F350();
-s32 func_80033E30(s32, s32 *, s32);
+s32 osRecvMesg(s32, s32 *, s32);
 
 s32 func_80040EE0(s32 queue, u8 *pattern) {
     s32 ret;
@@ -23,9 +23,9 @@ s32 func_80040EE0(s32 queue, u8 *pattern) {
     do {
         func_8004105C(0);
         func_8003F350(1, pif);
-        func_80033E30(queue, &dummy, 1);
+        osRecvMesg(queue, &dummy, 1);
         ret = func_8003F350(0, pif);
-        func_80033E30(queue, &dummy, 1);
+        osRecvMesg(queue, &dummy, 1);
         func_80041100(&bitpattern, data);
         for (channel = 0; channel < D_800B60E0; channel++) {
             if (!(data[channel].status & 4)) { crap--; break; }

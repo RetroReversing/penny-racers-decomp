@@ -1,4 +1,3 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -11,11 +10,12 @@ typedef s32 M2C_UNK32;
 #define M2C_CARRY 0
 #define M2C_OVERFLOW(a) (0)
 #endif
+/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 
-s32 func_8003F5B0(s32, s32, M2C_UNK, u16 *);        /* extern */
-s32 func_8003FDBC(void *, u16 *, u16 *);            /* extern */
-s32 func_8004009C(void *, u16 *, u16, u16 *);       /* extern */
-s32 func_8004077C();                                /* extern */
+s32 func_8003F5B0();
+s32 func_8003FDBC();
+s32 func_8004009C();
+s32 func_8004077C();
 
 s32 func_80040200(void *arg0) {
     union {
@@ -42,8 +42,8 @@ s32 func_80040200(void *arg0) {
     s32 var_v0;
     u16 *temp_a1;
     u16 *temp_a1_2;
-    u16 *var_a1;
-    u16 *var_a1_2;
+    char *var_a1;
+    char *var_a1_2;
     u16 *var_s1;
     u16 temp_a0;
     u16 temp_a2;
@@ -58,7 +58,7 @@ s32 func_80040200(void *arg0) {
             m2c_initial_frame.view_sp52.value = 0;
             m2c_initial_frame.view_sp50.value = 0;
             do {
-                temp_v0_2 = *var_a1;
+                temp_v0_2 = *(u16 *)var_a1;
                 var_a1 += 2;
                 temp_a2 = m2c_initial_frame.view_sp50.value + temp_v0_2;
                 temp_a0 = m2c_initial_frame.view_sp52.value + ~temp_v0_2;
@@ -105,7 +105,7 @@ block_15:
             do {
                 temp_v0_4 = arg0 + var_a0;
                 var_a0 += 1;
-                M2C_FIELD(temp_v0_4, u8 *, 0xC) = (u8) *var_a1_2;
+                M2C_FIELD(temp_v0_4, u8 *, 0xC) = (u8) *(u16 *)var_a1_2;
                 var_a1_2 += 1;
             } while (var_a0 < 0x20);
             M2C_FIELD(arg0, s32 *, 0x4C) = (s32) M2C_FIELD(var_s1, u8 *, 0x1B);

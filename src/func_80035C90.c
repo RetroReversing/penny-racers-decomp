@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_80035D24(s32, s32, M2C_UNK);           /* extern */
+M2C_UNK _bnkfPatchSound(s32, s32, M2C_UNK);           /* extern */
 
 void func_80035C90(void *arg0, s32 arg1, M2C_UNK arg2) {
 int __repair_literal;
@@ -31,7 +31,7 @@ __repair_literal = 0;
             __repair_rows: {
                 temp_a0 = M2C_FIELD(var_s0, s32 *, 0x10) + arg1;
                 M2C_FIELD(var_s0, s32 *, 0x10) = temp_a0;
-                func_80035D24(temp_a0, arg1, arg2);
+                _bnkfPatchSound(temp_a0, arg1, arg2);
                 var_s1 += 1;
                 var_s0 += 4;
             }

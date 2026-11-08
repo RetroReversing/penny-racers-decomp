@@ -13,11 +13,11 @@ typedef s32 M2C_UNK32;
 #endif
 
 s32 func_80036B10();
-extern s32 func_80037B30;
+extern s32 alSavePull;
 extern s32 func_80037C30;
 
 void func_80034EA8(void *arg0) {
-    func_80036B10(arg0, &func_80037B30, &func_80037C30, 3);
+    func_80036B10(arg0, &alSavePull, &func_80037C30, 3);
     M2C_FIELD(arg0, s32 *, 0x14) = 0;
     M2C_FIELD(arg0, s32 *, 0x18) = 1;
 }

@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 func_80033A60();
+s32 osWritebackDCacheAll();
 s32 osRecvMesg();
 s32 osSendMesg();
 s32 func_80039820();
@@ -36,7 +36,7 @@ void func_80028634(void) {
 loop_1:
     osRecvMesg(&D_800DD824, &sp10, 1);
     var_s0 = 0;
-    func_80033A60();
+    osWritebackDCacheAll();
     temp_s1 = D_800DDE8C;
     if (temp_s1 != 0) {
         var_s0 = 2;

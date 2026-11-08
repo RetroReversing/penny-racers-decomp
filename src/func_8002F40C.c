@@ -12,9 +12,9 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_8002EF78();                            /* extern */
+M2C_UNK n_alLoadParam();                            /* extern */
 
 s32 func_8002F40C(void) {
-    func_8002EF78();
+    n_alLoadParam();
     return 0;
 }

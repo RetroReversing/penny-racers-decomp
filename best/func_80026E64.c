@@ -14,10 +14,10 @@ typedef s32 M2C_UNK32;
 
 M2C_UNK func_800281F0(M2C_UNK, M2C_UNK);            /* extern */
 M2C_UNK func_80029470();                            /* extern */
-M2C_UNK func_80033AC0(M2C_UNK *, M2C_UNK, M2C_UNK *, M2C_UNK, M2C_UNK *, s32); /* extern */
-M2C_UNK func_800340F0(M2C_UNK *, M2C_UNK);          /* extern */
-M2C_UNK func_800341E0(M2C_UNK *);                   /* extern */
-M2C_UNK func_80039F30(M2C_UNK);                     /* extern */
+M2C_UNK osCreateThread(M2C_UNK *, M2C_UNK, M2C_UNK *, M2C_UNK, M2C_UNK *, s32); /* extern */
+M2C_UNK osSetThreadPri(M2C_UNK *, M2C_UNK);          /* extern */
+M2C_UNK osStartThread(M2C_UNK *);                   /* extern */
+M2C_UNK osViSetSpecialFeatures(M2C_UNK);                     /* extern */
 extern s32 D_80000300;
 extern M2C_UNK D_8004AAB0;
 extern M2C_UNK D_8004AC60;
@@ -33,10 +33,10 @@ void func_80026E64(s32 arg0) {
     } else {
         func_800281F0(0x1E, 1);
     }
-    func_80039F30(0x5A);
-    func_80033AC0(&D_8004AC60, 3, &func_80026250, 0, &D_80071F70, 0xA);
-    func_800341E0(&D_8004AC60);
-    func_800340F0(&D_8004AAB0, 0);
+    osViSetSpecialFeatures(0x5A);
+    osCreateThread(&D_8004AC60, 3, &func_80026250, 0, &D_80071F70, 0xA);
+    osStartThread(&D_8004AC60);
+    osSetThreadPri(&D_8004AAB0, 0);
 loop_4:
     if (D_800DA1E0 != NULL) {
         D_800DA1E0();

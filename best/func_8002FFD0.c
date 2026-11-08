@@ -14,7 +14,7 @@ typedef s32 M2C_UNK32;
 
 void *func_8002AB9C();
 s32 func_8002E6E4();
-s32 func_800300F0();
+s32 _allocatePVoice();
 extern void *D_80046DF4;
 
 s32 func_8002FFD0(void *arg0, void *arg1) {
@@ -30,7 +30,7 @@ s32 func_8002FFD0(void *arg0, void *arg1) {
     M2C_FIELD(arg0, s16 *, 0x14) = 0;
     M2C_FIELD(arg0, void **, 8) = NULL;
     M2C_FIELD(arg0, u16 *, 0x18) = (u16) M2C_FIELD(arg1, u16 *, 2);
-    temp_v0 = func_800300F0(&sp10, (s16) M2C_FIELD(arg1, u16 *, 0));
+    temp_v0 = _allocatePVoice(&sp10, (s16) M2C_FIELD(arg1, u16 *, 0));
     if (sp10 != NULL) {
         if (temp_v0 != 0) {
             M2C_FIELD(sp10, s32 *, 0x88) = 0x200;

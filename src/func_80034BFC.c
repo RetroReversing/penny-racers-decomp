@@ -14,11 +14,11 @@ typedef s32 M2C_UNK32;
 
 s32 func_80036B10();
 s32 func_80038340();
-extern s32 func_80035DE0;
+extern s32 alEnvmixerPull;
 extern s32 func_8003632C;
 
 void func_80034BFC(void *arg0, s32 arg1) {
-    func_80036B10(arg0, &func_80035DE0, &func_8003632C, 4);
+    func_80036B10(arg0, &alEnvmixerPull, &func_8003632C, 4);
     M2C_FIELD(arg0, s32 *, 0x14) = func_80038340(0, 0, arg1, 1, 0x50);
     M2C_FIELD(arg0, s32 *, 0x38) = 1;
     M2C_FIELD(arg0, s32 *, 0x48) = 0;

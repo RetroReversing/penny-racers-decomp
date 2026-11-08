@@ -16,7 +16,7 @@ M2C_UNK func_80033A90(void *, void *, M2C_UNK);     /* extern */
 M2C_UNK osCreateThread(void *, M2C_UNK, M2C_UNK *, void *, M2C_UNK *, s32); /* extern */
 M2C_UNK func_80034090(M2C_UNK, void *, M2C_UNK);    /* extern */
 M2C_UNK osStartThread(void *);                      /* extern */
-M2C_UNK func_80039B50(M2C_UNK);                     /* extern */
+M2C_UNK osCreateViManager(M2C_UNK);                     /* extern */
 M2C_UNK func_80039E80(void *, M2C_UNK, s32);        /* extern */
 M2C_UNK func_80039EE0(void *);                      /* extern */
 M2C_UNK osViBlack(M2C_UNK);                     /* extern */
@@ -61,7 +61,7 @@ void func_800281F0(s32 arg0, s32 arg1) {
     func_80033A90(&D_800DDE8C - 0x630, &D_800DDE8C - 0x618, 8);
     func_80033A90(&D_800DDE8C - 0x668, &D_800DDE8C - 0x650, 8);
     func_80033A90(&D_800DDE8C - 0x550, &D_800DDE8C - 0x538, 8);
-    func_80039B50(0xFE);
+    osCreateViManager(0xFE);
     func_80039EE0(((arg0 & 0xFF) * 0x50) + &D_800473F0);
     osViBlack(1);
     func_80039E80(temp_s2, 0x29A, temp_s5);

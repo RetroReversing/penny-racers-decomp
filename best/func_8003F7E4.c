@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 func_8003F500();
+s32 __osContAddressCrc();
 extern s8 D_800DD3E0;
 extern s32 D_800DD41C;
 
@@ -40,7 +40,7 @@ void func_8003F7E4(s32 arg0, s32 arg1) {
     sp13 = 2;
     var_v1 = 0x1F;
     var_a0 = &sp35;
-    sp14 = (func_8003F500(arg1 & 0xFFFF) & 0xFF) | (arg1 << 5);
+    sp14 = (__osContAddressCrc(arg1 & 0xFFFF) & 0xFF) | (arg1 << 5);
     sp36 = 0xFF;
     do {
         *(s8 *)var_a0 = 0xFF;

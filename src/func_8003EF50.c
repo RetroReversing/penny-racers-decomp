@@ -12,14 +12,14 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 func_8003EAC0();                                /* extern */
+s32 __osDisableInt();                                /* extern */
 M2C_UNK func_8003EAE0(s32);                         /* extern */
 extern s32 D_800470C0;
 
 void func_8003EF50(s32 arg0) {
     s32 temp_v0;
 
-    temp_v0 = func_8003EAC0();
+    temp_v0 = __osDisableInt();
     D_800470C0 |= arg0;
     func_8003EAE0(temp_v0);
 }

@@ -12,8 +12,8 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_80033E30(s32, M2C_UNK, M2C_UNK);       /* extern */
-u32 func_8003C530(s32, s32);                        /* extern */
+M2C_UNK osRecvMesg(s32, M2C_UNK, M2C_UNK);       /* extern */
+u32 __osPfsGetStatus(s32, s32);                        /* extern */
 M2C_UNK func_8003F350(M2C_UNK, M2C_UNK *);          /* extern */
 M2C_UNK func_8003F464(u32);                         /* extern */
 M2C_UNK func_8003F4D0();                            /* extern */
@@ -49,10 +49,10 @@ u32 func_8003F980(s32 arg0, s32 arg1, s32 arg2, M2C_UNK arg3, s32 arg4) {
         D_80092C04 = 3;
         func_8003FBA0(arg1, arg2 & 0xFFFF, arg3);
         func_8003F350(1, &D_800DD3E0);
-        func_80033E30(arg0, 0, 1);
+        osRecvMesg(arg0, 0, 1);
 loop_3:
         func_8003F350(0, &D_800DD3E0);
-        func_80033E30(arg0, 0, 1);
+        osRecvMesg(arg0, 0, 1);
         var_a0 = &D_800DD3E0;
         if (arg1 != 0) {
             var_v1 = 0;
@@ -95,7 +95,7 @@ loop_3:
             goto block_16;
         }
         if ((func_8003F548(arg3, var_a1, var_a2, var_a3) & 0xFF) != m2c_initial_frame.view_sp36.value) {
-            var_s0 = func_8003C530(arg0, arg1);
+            var_s0 = __osPfsGetStatus(arg0, arg1);
             if (var_s0 == 0) {
                 var_s0 = 4;
                 goto block_16;

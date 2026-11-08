@@ -12,8 +12,8 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s16 func_80038178();
-s32 func_800381A8();
+s16 read16();
+s32 read32();
 extern f64 D_8004A8B0;
 
 void func_80037C60(void *arg0, s32 arg1, s32 arg2) {
@@ -24,15 +24,15 @@ void func_80037C60(void *arg0, s32 arg1, s32 arg2) {
     M2C_FIELD(arg0, s16 *, 0x1A) = 0;
     M2C_FIELD(arg0, s32 *, 0xC) = 0;
     M2C_FIELD(arg0, s32 *, 8) = arg1;
-    if (func_800381A8() == 0x4D546864) {
-        func_800381A8(arg0);
-        if (((func_80038178(arg0) << 0x10) == 0) && (func_80038178(arg0) == 1)) {
-            temp_v0 = func_80038178(arg0);
+    if (read32() == 0x4D546864) {
+        read32(arg0);
+        if (((read16(arg0) << 0x10) == 0) && (read16(arg0) == 1)) {
+            temp_v0 = read16(arg0);
             M2C_FIELD(arg0, s16 *, 0x18) = temp_v0;
             if (!(temp_v0 & 0x8000)) {
                 M2C_FIELD(arg0, f32 *, 0x14) = (f32) (D_8004A8B0 / (f64) (f32) temp_v0);
-                if (func_800381A8(arg0) == 0x4D54726B) {
-                    func_800381A8(arg0);
+                if (read32(arg0) == 0x4D54726B) {
+                    read32(arg0);
                     M2C_FIELD(arg0, s32 *, 4) = (s32) M2C_FIELD(arg0, s32 *, 8);
                 }
             }

@@ -13,7 +13,7 @@ typedef s32 M2C_UNK32;
 #endif
 
 M2C_UNK func_8002D164(void *, s16 *, s32);          /* extern */
-s32 func_800385D0(s32, s32 *);                      /* extern */
+s32 __alCSeqNextDelta(s32, s32 *);                      /* extern */
 
 void func_8002C010(void *arg0) {
     s16 sp10;
@@ -22,7 +22,7 @@ void func_8002C010(void *arg0) {
 
     if (M2C_FIELD(arg0, s32 *, 0x2C) == 1) {
         temp_a0 = M2C_FIELD(arg0, s32 *, 0x18);
-        if ((temp_a0 != 0) && ((func_800385D0(temp_a0, &sp20) << 0x18) != 0)) {
+        if ((temp_a0 != 0) && ((__alCSeqNextDelta(temp_a0, &sp20) << 0x18) != 0)) {
             sp10 = 0;
             func_8002D164(arg0 + 0x48, &sp10, sp20 * M2C_FIELD(arg0, s32 *, 0x24));
         }

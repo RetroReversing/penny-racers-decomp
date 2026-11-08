@@ -425,9 +425,9 @@ typedef struct OSMesgQueue_s {
  
 
 extern void     osCreateMesgQueue(OSMesgQueue *, OSMesg *, s32);
-extern s32      func_80033F60(OSMesgQueue *, OSMesg, s32);
+extern s32      osSendMesg(OSMesgQueue *, OSMesg, s32);
 extern s32      osJamMesg(OSMesgQueue *, OSMesg, s32);
-extern s32      func_80033E30(OSMesgQueue *, OSMesg *, s32);
+extern s32      osRecvMesg(OSMesgQueue *, OSMesg *, s32);
 
  
 
@@ -5270,7 +5270,7 @@ void func_8003D5F0(void* args) {
     ret = 0;
 
     while (1 ) {
-        func_80033E30(dm->cmdQueue, (OSMesg)&mb, 1 );
+        osRecvMesg(dm->cmdQueue, (OSMesg)&mb, 1 );
 
         if (mb->piHandle != 0  && mb->piHandle->type == 2  &&
             (mb->piHandle->transferInfo.cmdType == 0  ||
@@ -5291,12 +5291,12 @@ void func_8003D5F0(void* args) {
                 messageSend = 0;
             }
 
-            func_80033E30(dm->acsQueue, &dummy, 1 );
+            osRecvMesg(dm->acsQueue, &dummy, 1 );
             func_8003EF00(0x00100401 );
             func_80041A70 (mb->piHandle, (0x05000000  + 0x510) , (info->bmCtlShadow | 0x80000000));
 
         readblock1:
-            func_80033E30(dm->evtQueue, &em, 1 );
+            osRecvMesg(dm->evtQueue, &em, 1 );
             info = &mb->piHandle->transferInfo;
             blockInfo = &info->block[info->blockNum];
 
@@ -5315,37 +5315,37 @@ void func_8003D5F0(void* args) {
                 func_8003EF50(0x00100401  | 0x00000800 );
             }
 
-            func_80033F60(mb->hdr.retQueue, mb, 0 );
+            osSendMesg(mb->hdr.retQueue, mb, 0 );
 
             if (messageSend == 1 && mb->piHandle->transferInfo.block[0].errStatus == 0 ) {
                 messageSend = 0;
                 goto readblock1;
             }
 
-            func_80033F60(dm->acsQueue, 0 , 0 );
+            osSendMesg(dm->acsQueue, 0 , 0 );
             if (mb->piHandle->transferInfo.blockNum == 1) {
                 func_8003F030();
             }
         } else {
             switch (mb->hdr.type) {
                 case ((10)  + 1) :
-                    func_80033E30(dm->acsQueue, &dummy, 1 );
+                    osRecvMesg(dm->acsQueue, &dummy, 1 );
                     ret = dm->dma(0 , mb->devAddr, mb->dramAddr, mb->size);
                     break;
                 case ((10)  + 2) :
-                    func_80033E30(dm->acsQueue, &dummy, 1 );
+                    osRecvMesg(dm->acsQueue, &dummy, 1 );
                     ret = dm->dma(1 , mb->devAddr, mb->dramAddr, mb->size);
                     break;
                 case ((10)  + 5) :
-                    func_80033E30(dm->acsQueue, &dummy, 1 );
+                    osRecvMesg(dm->acsQueue, &dummy, 1 );
                     ret = dm->edma(mb->piHandle, 0 , mb->devAddr, mb->dramAddr, mb->size);
                     break;
                 case ((10)  + 6) :
-                    func_80033E30(dm->acsQueue, &dummy, 1 );
+                    osRecvMesg(dm->acsQueue, &dummy, 1 );
                     ret = dm->edma(mb->piHandle, 1 , mb->devAddr, mb->dramAddr, mb->size);
                     break;
                 case ((10)  + 0) :
-                    func_80033F60(mb->hdr.retQueue, mb, 0 );
+                    osSendMesg(mb->hdr.retQueue, mb, 0 );
                     ret = -1;
                     break;
                 default:
@@ -5354,9 +5354,9 @@ void func_8003D5F0(void* args) {
             }
 
             if (ret == 0) {
-                func_80033E30(dm->evtQueue, &em, 1 );
-                func_80033F60(mb->hdr.retQueue, mb, 0 );
-                func_80033F60(dm->acsQueue, 0 , 0 );
+                osRecvMesg(dm->evtQueue, &em, 1 );
+                osSendMesg(mb->hdr.retQueue, mb, 0 );
+                osSendMesg(dm->acsQueue, 0 , 0 );
             }
         }
     }

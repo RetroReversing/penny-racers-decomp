@@ -13,7 +13,7 @@ typedef s32 M2C_UNK32;
 #endif
 
 s32 func_800339C0(s32);                             /* extern */
-M2C_UNK func_80033E30(M2C_UNK *, M2C_UNK, M2C_UNK); /* extern */
+M2C_UNK osRecvMesg(M2C_UNK *, M2C_UNK, M2C_UNK); /* extern */
 s32 func_80039AD0();                                /* extern */
 s32 func_80039B10();                                /* extern */
 extern M2C_UNK D_800DD93C;
@@ -41,7 +41,7 @@ void func_800288B0(void *arg0) {
 loop_1:
     if (func_80039AD0() == temp_s0) {
 block_3:
-        func_80033E30(&D_800DD93C, 0, 1);
+        osRecvMesg(&D_800DD93C, 0, 1);
         goto loop_1;
     }
     var_s1 = NULL;

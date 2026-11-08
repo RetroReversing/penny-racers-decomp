@@ -15,8 +15,8 @@ typedef s32 M2C_UNK32;
 M2C_UNK func_800338B0(s32, s32);                    /* extern */
 M2C_UNK func_80033A90(M2C_UNK *, M2C_UNK *, M2C_UNK); /* extern */
 M2C_UNK osRecvMesg(M2C_UNK *, M2C_UNK *, M2C_UNK); /* extern */
-M2C_UNK func_8003D370(s32, M2C_UNK *, M2C_UNK);     /* extern */
-s32 func_8003D410();                                /* extern */
+M2C_UNK osEPiStartDma(s32, M2C_UNK *, M2C_UNK);     /* extern */
+s32 osCartRomInit();                                /* extern */
 
 void func_800294A0(s32 arg0, s32 arg1, s32 arg2) {
     M2C_UNK sp10;
@@ -29,7 +29,7 @@ void func_800294A0(s32 arg0, s32 arg1, s32 arg2) {
     M2C_UNK sp40;
     s32 temp_s1;
 
-    temp_s1 = func_8003D410();
+    temp_s1 = osCartRomInit();
     func_80033A90(&sp28, &sp40, 1);
     func_800338B0(arg1, arg2);
     sp12 = 0;
@@ -37,6 +37,6 @@ void func_800294A0(s32 arg0, s32 arg1, s32 arg2) {
     sp18 = arg1;
     sp1C = arg0;
     sp20 = arg2;
-    func_8003D370(temp_s1, &sp10, 0);
+    osEPiStartDma(temp_s1, &sp10, 0);
     osRecvMesg(&sp28, &sp40, 1);
 }

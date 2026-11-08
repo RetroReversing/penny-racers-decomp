@@ -12,10 +12,10 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_8003A430(M2C_UNK);                     /* extern */
+M2C_UNK osViBlack(M2C_UNK);                     /* extern */
 extern s32 D_8006FB30;
 
 void func_80028BA0(void) {
     D_8006FB30 = 0;
-    func_8003A430(1);
+    osViBlack(1);
 }

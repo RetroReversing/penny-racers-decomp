@@ -13,7 +13,7 @@ typedef s32 M2C_UNK32;
 #endif
 
 u16 func_8002E9A4(f64, f64, s32, s32, void *);      /* extern */
-void *func_8002F250(void *, u16 *, void *, s32);    /* extern */
+void *n_alResamplePull(void *, u16 *, void *, s32);    /* extern */
 s32 func_80034640(s32);                             /* extern */
 extern M2C_UNK D_80046F90;
 
@@ -33,7 +33,7 @@ void *func_8002E784(void *arg0, u16 *arg1, s32 arg3, void *arg4) {
     if (((M2C_FIELD(arg0, s32 *, 0x84) != 1) | temp_a3) != 0) {
         return arg4;
     }
-    var_s2 = func_8002F250(arg0, arg1, arg4, temp_a3);
+    var_s2 = n_alResamplePull(arg0, arg1, arg4, temp_a3);
     if (M2C_FIELD(arg0, s32 *, 0x78) != 0) {
         M2C_FIELD(arg0, s32 *, 0x78) = 0;
         temp_a0 = M2C_FIELD(arg0, s32 *, 0x74);

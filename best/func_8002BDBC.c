@@ -64,7 +64,7 @@ void func_8002BDBC(void *arg0, void *arg1) {
             do {
                 temp_s1_2 = M2C_FIELD(var_s0_2, void **, 0);
                 M2C_FIELD(var_s0_2, s32 *, 8) = (s32) (((s32) M2C_FIELD(var_s0_2, s32 *, 8) / temp_s5) * M2C_FIELD(arg0, s32 *, 0x24));
-                func_8002BF4C(arg0 + 0x48, var_s0_2);
+                func_8002BF4C(arg0 + 0x48);
                 var_s0_2 = temp_s1_2;
             } while (var_s0_2 != NULL);
         }

@@ -17,7 +17,7 @@ M2C_UNK func_8002AC40(s32);                         /* extern */
 M2C_UNK func_8002E6E4(void *, s16, s32);            /* extern */
 s32 func_8002E784(void *, s16 *, u16 *, s32, s32);  /* extern */
 u16 func_8002EAE4(s16, s32, s16, u16);              /* extern */
-M2C_UNK func_8002EF78(void *, M2C_UNK, s32);        /* extern */
+M2C_UNK n_alLoadParam(void *, M2C_UNK, s32);        /* extern */
 M2C_UNK func_800346B0(M2C_UNK *, M2C_UNK *, M2C_UNK); /* extern */
 extern M2C_UNK D_80046F90;
 
@@ -73,7 +73,7 @@ loop_2:
                 if (M2C_FIELD(temp_s1, s16 *, 0xA) != 0) {
                     M2C_FIELD(arg0, s32 *, 0x48) = 1;
                 }
-                func_8002EF78(arg0, 5, M2C_FIELD(temp_s1, s32 *, 0x18));
+                n_alLoadParam(arg0, 5, M2C_FIELD(temp_s1, s32 *, 0x18));
                 M2C_FIELD(arg0, s32 *, 0x84) = 1;
                 M2C_FIELD(arg0, s32 *, 0x78) = 1;
                 M2C_FIELD(arg0, s32 *, 0x70) = 0;
@@ -137,7 +137,7 @@ loop_2:
                 if (M2C_FIELD(temp_v1_2, s16 *, 0xA) != 0) {
                     M2C_FIELD(arg0, s32 *, 0x48) = 1;
                 }
-                func_8002EF78(arg0, 5, M2C_FIELD(temp_v1_2, s32 *, 0xC));
+                n_alLoadParam(arg0, 5, M2C_FIELD(temp_v1_2, s32 *, 0xC));
                 M2C_FIELD(arg0, s32 *, 0x84) = 1;
                 break;
             case 15:
@@ -162,7 +162,7 @@ block_39:
                 break;
             case 5:
                 var_s3 = func_8002E784(arg0, &sp18, &sp1A, temp_s2, var_s3);
-                func_8002EF78(arg0, 5, M2C_FIELD(M2C_FIELD(arg0, void **, 0x7C), s32 *, 0xC));
+                n_alLoadParam(arg0, 5, M2C_FIELD(M2C_FIELD(arg0, void **, 0x7C), s32 *, 0xC));
                 break;
             default:
                 temp_v1_4 = M2C_FIELD(arg0, void **, 0x7C);

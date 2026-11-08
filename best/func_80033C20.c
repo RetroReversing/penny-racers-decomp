@@ -21,7 +21,7 @@ M2C_UNK func_8003EA40(M2C_UNK, M2C_UNK);            /* extern */
 M2C_UNK func_8003EBD0(M2C_UNK);                     /* extern */
 M2C_UNK func_8003EBE0(s32);                         /* extern */
 M2C_UNK func_8003EBF0(M2C_UNK, M2C_UNK, M2C_UNK);   /* extern */
-M2C_UNK func_8003EC70();                            /* extern */
+M2C_UNK osMapTLBRdb();                            /* extern */
 s32 func_80042630(s32, u32, M2C_UNK, M2C_UNK);      /* extern */
 extern s32 D_80000000;
 extern s32 D_80000300;
@@ -69,7 +69,7 @@ void func_80033C20(void) {
     M2C_FIELD((void *)0x80000180, s32 *, 0xC) = (s32) M2C_FIELD(&func_8003E0D0, s32 *, 0xC);
     func_8003EBF0(0x80000000, 0x190, 0x80000180);
     func_8003EA40(0x80000000, 0x190);
-    func_8003EC70();
+    osMapTLBRdb();
     func_8003CF70(4, &sp14);
     temp_a0 = sp14 & ~0xF;
     sp14 = temp_a0;

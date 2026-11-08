@@ -12,13 +12,13 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_80033AC0(M2C_UNK *, M2C_UNK, M2C_UNK *, M2C_UNK, M2C_UNK *, s32); /* extern */
-M2C_UNK func_800341E0(M2C_UNK *);                   /* extern */
+M2C_UNK osCreateThread(M2C_UNK *, M2C_UNK, M2C_UNK *, M2C_UNK, M2C_UNK *, s32); /* extern */
+M2C_UNK osStartThread(M2C_UNK *);                   /* extern */
 extern M2C_UNK D_80065F90;
 extern M2C_UNK D_8006A140;
 extern M2C_UNK func_80029AD8;
 
 void func_80029A80(void) {
-    func_80033AC0(&D_80065F90, 4, &func_80029AD8, 0, &D_8006A140, 0x32);
-    func_800341E0(&D_80065F90);
+    osCreateThread(&D_80065F90, 4, &func_80029AD8, 0, &D_8006A140, 0x32);
+    osStartThread(&D_80065F90);
 }

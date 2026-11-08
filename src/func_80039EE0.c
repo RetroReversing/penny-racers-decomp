@@ -2,7 +2,7 @@
 /* identical to func_80039EE0 in V-RALLY (matched), with its names changed by decompdecomp */
 /* identical to func_8008F260 in V-RALLY (matched), with its names changed by decompdecomp */
 
-s32 func_8003EAC0();
+s32 __osDisableInt();
 s32 func_8003EAE0();
 extern void *D_800481F4;
 void func_80039EE0(void *arg0)
@@ -12,7 +12,7 @@ void func_80039EE0(void *arg0)
   char *new_var;
   s32 temp_v0;
   void *temp_a1;
-  temp_v0 = func_8003EAC0();
+  temp_v0 = __osDisableInt();
   new_var = (char *) D_800481F4;
   *((void **) (((char *) D_800481F4) + 8)) = arg0;
   ;

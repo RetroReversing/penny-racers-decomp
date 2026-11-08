@@ -14,7 +14,7 @@ typedef s32 M2C_UNK32;
 
 s32 func_80034640(s32);                             /* extern */
 M2C_UNK func_800346B0(M2C_UNK *, M2C_UNK *, M2C_UNK); /* extern */
-u16 func_80036804(f64, f64, s32, s32, void *);      /* extern */
+u16 _getRate(f64, f64, s32, s32, void *);      /* extern */
 extern M2C_UNK D_80047290;
 
 void *func_80036400(void *arg0, u16 *arg1, s16 *arg2, s32 arg3, s32 arg4, void *arg5) {
@@ -54,12 +54,12 @@ void *func_80036400(void *arg0, u16 *arg1, s16 *arg2, s32 arg3, s32 arg4, void *
         temp_a0 = M2C_FIELD(arg0, s32 *, 0x34);
         temp_v1 = (s32) (M2C_FIELD(arg0, s16 *, 0x1A) * *(&D_80047290 + (M2C_FIELD(arg0, s16 *, 0x18) * 2))) >> 0xF;
         M2C_FIELD(arg0, u16 *, 0x28) = (u16) temp_v1;
-        M2C_FIELD(arg0, u16 *, 0x26) = func_80036804((f64) M2C_FIELD(arg0, s16 *, 0x1C), (f64) (s16) temp_v1, temp_a0, temp_a0, arg0 + 0x24);
+        M2C_FIELD(arg0, u16 *, 0x26) = _getRate((f64) M2C_FIELD(arg0, s16 *, 0x1C), (f64) (s16) temp_v1, temp_a0, temp_a0, arg0 + 0x24);
         temp_a0_2 = M2C_FIELD(arg0, s32 *, 0x34);
         temp_v1_2 = (s32) (M2C_FIELD(arg0, s16 *, 0x1A) * *(&D_80047290 + ((0x7F - M2C_FIELD(arg0, s16 *, 0x18)) * 2))) >> 0xF;
         M2C_FIELD(arg0, u16 *, 0x2E) = (u16) temp_v1_2;
         temp_s2_2 = var_s2 + 8;
-        M2C_FIELD(arg0, u16 *, 0x2C) = func_80036804((f64) M2C_FIELD(arg0, s16 *, 0x1E), (f64) (s16) temp_v1_2, temp_a0_2, temp_a0_2, arg0 + 0x2A);
+        M2C_FIELD(arg0, u16 *, 0x2C) = _getRate((f64) M2C_FIELD(arg0, s16 *, 0x1E), (f64) (s16) temp_v1_2, temp_a0_2, temp_a0_2, arg0 + 0x2A);
         M2C_FIELD(var_s2, s32 *, 4) = 0;
         M2C_FIELD(temp_s2, s32 *, 8) = (s32) ((u16) M2C_FIELD(arg0, s16 *, 0x1C) | 0x09060000);
         temp_s2_3 = temp_s2_2 + 8;

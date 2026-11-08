@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-f32 func_80033640(f32);                             /* extern */
+f32 __sinf(f32);                             /* extern */
 M2C_UNK func_8013AE60(s32);                         /* extern */
 extern f64 D_80183830;
 extern f64 D_80183838;
@@ -49,7 +49,7 @@ void func_801126F4(s32 arg0) {
     __repair_rows: {
         temp_s1 = *(&func_8016D3AC + 0x4EC + var_s2_2) * 0x10;
         temp_s0 = var_s2_2 * 2;
-        *(&D_802B27C4 + temp_s1) = (s16) (s32) (func_80033640((f32) (((f64) *(temp_s0 + (&func_8016D3AC + 0x4FC)) * temp_fs1) / temp_fs0)) * (f32) *(temp_s0 + (&func_8016D3AC + 0x508)));
+        *(&D_802B27C4 + temp_s1) = (s16) (s32) (__sinf((f32) (((f64) *(temp_s0 + (&func_8016D3AC + 0x4FC)) * temp_fs1) / temp_fs0)) * (f32) *(temp_s0 + (&func_8016D3AC + 0x508)));
         *(&D_802B27C4 + (*(&func_8016D3AC + 0x4F4 + var_s2_2) * 0x10)) = *(&D_802B27C4 + (*(&func_8016D3AC + 0x4EC + var_s2_2) * 0x10));
         var_s2_2 += 1;
     }

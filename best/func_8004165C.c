@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 func_80033E30();
+s32 osRecvMesg();
 s32 func_8003F350();
 extern s8 D_8006FF10;
 extern s32 D_8006FF4C;
@@ -65,10 +65,10 @@ s32 func_8004165C(s32 arg0, void *arg1) {
     M2C_FIELD(var_a2, s32 *, 4) = M2C_UNALIGNED32(sp14);
     M2C_FIELD(var_a2, u8 *, 8) = 0xFE;
     func_8003F350(1, &D_8006FF10, var_a2);
-    func_80033E30(arg0, 0, 1);
+    osRecvMesg(arg0, 0, 1);
     D_80092C04 = 0;
     temp_s0 = func_8003F350(0, &D_8006FF10);
-    func_80033E30(arg0, 0, 1);
+    osRecvMesg(arg0, 0, 1);
     var_v0 = temp_s0;
     if (temp_s0 == 0) {
         var_a2_2 = &D_8006FF10;

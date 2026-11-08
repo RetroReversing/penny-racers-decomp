@@ -13,8 +13,8 @@ typedef s32 M2C_UNK32;
 #endif
 
 M2C_UNK func_80033A90(M2C_UNK *, M2C_UNK *, M2C_UNK); /* extern */
-M2C_UNK func_80033E30(M2C_UNK *, M2C_UNK *, M2C_UNK); /* extern */
-M2C_UNK func_80033F60(M2C_UNK *, M2C_UNK, M2C_UNK); /* extern */
+M2C_UNK osRecvMesg(M2C_UNK *, M2C_UNK *, M2C_UNK); /* extern */
+M2C_UNK osSendMesg(M2C_UNK *, M2C_UNK, M2C_UNK); /* extern */
 extern s32 D_80048200;
 extern M2C_UNK D_8006E770;
 extern M2C_UNK D_800DE2B0;
@@ -25,7 +25,7 @@ void func_8003F464(void) {
     if (D_80048200 == 0) {
         D_80048200 = 1;
         func_80033A90(&D_800DE2B0, &D_8006E770, 1);
-        func_80033F60(&D_800DE2B0, 0, 0);
+        osSendMesg(&D_800DE2B0, 0, 0);
     }
-    func_80033E30(&D_800DE2B0, &sp10, 1);
+    osRecvMesg(&D_800DE2B0, &sp10, 1);
 }
