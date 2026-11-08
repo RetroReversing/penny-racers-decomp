@@ -17,7 +17,7 @@ extern M2C_UNK D_8011F2F0;
 void func_8013EC14(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     void *temp_v0;
 
-    temp_v0 = ((arg0 & 0xFFFF) * 0x64) + &D_8011F2F0;
+    temp_v0 = (char *)(((arg0 & 0xFFFF) * 0x64)); temp_v0 += (s32)(&D_8011F2F0);
     M2C_FIELD(temp_v0, s32 *, 0x30) = arg1;
     M2C_FIELD(temp_v0, s32 *, 0x34) = arg2;
     M2C_FIELD(temp_v0, s32 *, 0x38) = arg3;
