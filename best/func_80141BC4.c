@@ -12,18 +12,17 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-void alSeqFileNew(void *arg0, s32 arg1) {
-    s32 var_a2;
-    void *var_v1;
+extern char D_8011F2FC[];
+extern s8 D_80126FF7;
 
-    var_a2 = 0;
-    if (M2C_FIELD(arg0, s16 *, 2) > 0) {
-        var_v1 = arg0;
-        __repair_rows: {
-            M2C_FIELD(var_v1, s32 *, 4) = (s32) (M2C_FIELD(var_v1, s32 *, 4) + arg1);
-            var_a2 += 1;
-            var_v1 += 8;
-        }
-if (var_a2 < M2C_FIELD(arg0, s16 *, 2)) goto __repair_rows;
-    }
+void func_80141BC4(void **arg0, s32 arg1) {
+    u8 temp_a0;
+    void *temp_a2;
+
+    temp_a2 = *arg0;
+    *arg0 = temp_a2 + 8;
+    M2C_FIELD(temp_a2, s32 *, 0) = 0xFA000000;
+    temp_a0 = *(D_8011F2FC + ((arg1 & 0xFFFF) * 0x64));
+    M2C_FIELD(temp_a2, s32 *, 4) = (s32) (((~temp_a0 & 0xFF) << 0x10) | (temp_a0 | 0xFF000000));
+    D_80126FF7 = 0xFF;
 }

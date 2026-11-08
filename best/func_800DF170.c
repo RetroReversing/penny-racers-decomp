@@ -12,11 +12,11 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-extern M2C_UNK func_801153C8;
+extern char D_8011F2F2[];
 
 void func_800DF170(s32 arg0) {
     s32 temp_v0;
 
     temp_v0 = (arg0 & 0xFFFF) * 0x64;
-    *(&func_801153C8 + 0x9F2A + temp_v0) = *(&func_801153C8 + 0x9F2A + temp_v0) | 0x20;
+    *(D_8011F2F2 + temp_v0) = *(D_8011F2F2 + temp_v0) | 0x20;
 }

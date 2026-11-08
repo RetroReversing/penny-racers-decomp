@@ -1,5 +1,4 @@
-/* Partial candidate from function #273532 in project #72; rechecked locally. */
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
+/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 -fno-schedule-insns, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -14,9 +13,9 @@ typedef s32 M2C_UNK32;
 #endif
 
 s32 func_8003EA20();
-s32 __osContRamRead();
-s32 __osContRamWrite();
-s32 __osPfsSelectBank();
+s32 func_8003F5B0();
+s32 func_8003F980();
+s32 func_8004077C();
 
 s32 __osRepairPackId(void *arg0, void *arg1, u8 *arg2) {
     u8 sp18;
@@ -40,7 +39,7 @@ s32 __osRepairPackId(void *arg0, void *arg1, u8 *arg2) {
     char *var_v1;
     u8 var_s2;
 
-    if ((M2C_FIELD(arg0, u8 *, 0x65) == 0) || (M2C_FIELD(arg0, u8 *, 0x65) = 0U, var_v0 = __osPfsSelectBank(), (var_v0 == 0))) {
+    if ((M2C_FIELD(arg0, u8 *, 0x65) == 0) || (M2C_FIELD(arg0, u8 *, 0x65) = 0U, var_v0 = func_8004077C(), (var_v0 == 0))) {
         M2C_FIELD(arg2, s32 *, 0) = -1;
         M2C_FIELD(arg2, s32 *, 4) = func_8003EA20();
         var_s2 = 0;
@@ -50,9 +49,9 @@ s32 __osRepairPackId(void *arg0, void *arg1, u8 *arg2) {
         M2C_FIELD(arg2, s32 *, 0x14) = (s32) M2C_FIELD(arg1, s32 *, 0x14);
 loop_3:
         M2C_FIELD(arg0, u8 *, 0x65) = var_s2;
-        var_v0 = __osPfsSelectBank(arg0);
+        var_v0 = func_8004077C(arg0);
         if (var_v0 == 0) {
-            var_v0 = __osContRamRead(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), 0, &sp18);
+            var_v0 = func_8003F5B0(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), 0, &sp18);
             var_v1 = &sp18 + 1;
             if (var_v0 == 0) {
                 sp18 = var_s2 | 0x80;
@@ -60,9 +59,9 @@ loop_3:
                     *(u8 *)var_v1 = ~*(u8 *)var_v1;
                     var_v1 += 1;
                 } while ((s32) var_v1 < (s32) (&sp18 + 0x20));
-                var_v0 = __osContRamWrite(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), 0U, &sp18, 0);
+                var_v0 = func_8003F980(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), 0U, &sp18, 0);
                 if (var_v0 == 0) {
-                    var_v0 = __osContRamRead(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), 0, &sp38);
+                    var_v0 = func_8003F5B0(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), 0, &sp38);
                     var_s0 = 0;
                     if (var_v0 == 0) {
                         var_a1 = &sp18;
@@ -81,9 +80,9 @@ loop_10:
                         if (var_s0 == 0x20) {
                             if ((s32) var_s2 > 0) {
                                 M2C_FIELD(arg0, u8 *, 0x65) = 0U;
-                                var_v0 = __osPfsSelectBank(arg0, var_a1);
+                                var_v0 = func_8004077C(arg0, var_a1);
                                 if (var_v0 == 0) {
-                                    var_v0 = __osContRamRead(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), 0, &sp18);
+                                    var_v0 = func_8003F5B0(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), 0, &sp18);
                                     if (var_v0 == 0) {
                                         if (sp18 == 0x80) {
                                             goto block_18;
@@ -103,7 +102,7 @@ block_18:
                         }
 block_19:
                         M2C_FIELD(arg0, u8 *, 0x65) = 0U;
-                        var_v0 = __osPfsSelectBank(arg0);
+                        var_v0 = func_8004077C(arg0);
                         if (var_v0 == 0) {
                             var_a0_2 = arg2;
                             M2C_FIELD(arg2, u8 *, 0x1A) = var_s2;
@@ -124,12 +123,12 @@ block_19:
                             sp5C = 4;
                             sp5E = 6;
 loop_23:
-                            var_v0 = __osContRamWrite(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), M2C_FIELD(var_s2_2, u16 *, 0x40), arg2, 1);/*__repair_loop_weight*/do {
-                            var_s0_2 += 1;} while (0);
+                            var_v0 = func_8003F980(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), M2C_FIELD(var_s2_2, u16 *, 0x40), arg2, 1);
+                            var_s0_2 += 1;
                             if (var_v0 == 0) {
                                 var_s2_2 += 2;
                                 if (var_s0_2 >= 4) {
-                                    temp_v0 = __osContRamRead(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), 1, &sp18);
+                                    temp_v0 = func_8003F5B0(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), 1, &sp18);
                                     var_a2 = arg2;
                                     if (temp_v0 != 0) {
                                         return temp_v0;

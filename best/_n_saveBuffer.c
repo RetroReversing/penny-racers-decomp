@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 osVirtualToPhysical();
+s32 func_80034640();
 
 void *_n_saveBuffer(void *arg0, u32 arg1, s32 arg2, void *arg3) {
     s32 temp_s1;
@@ -38,7 +38,7 @@ void *_n_saveBuffer(void *arg0, u32 arg1, s32 arg2, void *arg3) {
         temp_s4 = arg3 + 8;
         temp_s1 = ((s32) (temp_a1 - var_a0) >> 1) * 2;
         M2C_FIELD(var_s2, s32 *, 0) = (s32) (((temp_s1 & 0xFFF) << 0xC) | ((arg2 & 0xFFF) | 0x06000000));
-        M2C_FIELD(var_s2, s32 *, 4) = osVirtualToPhysical(var_a0, temp_a1);
+        M2C_FIELD(var_s2, s32 *, 4) = func_80034640(var_a0);
         var_s2 = temp_s4;
         M2C_FIELD(arg3, s32 *, 8) = (s32) ((((((s32) (temp_s0 - temp_a1) >> 1) * 2) & 0xFFF) << 0xC) | (((arg2 + temp_s1) & 0xFFF) | 0x06000000));
         var_a0 = M2C_FIELD(arg0, u32 *, 0x14);
@@ -47,6 +47,6 @@ void *_n_saveBuffer(void *arg0, u32 arg1, s32 arg2, void *arg3) {
         var_s4 = arg3 + 8;
         M2C_FIELD(var_s2, s32 *, 0) = (s32) ((arg2 & 0xFFF) | 0x06170000);
     }
-    M2C_FIELD(var_s2, s32 *, 4) = osVirtualToPhysical(var_a0);
+    M2C_FIELD(var_s2, s32 *, 4) = func_80034640(var_a0);
     return var_s4;
 }

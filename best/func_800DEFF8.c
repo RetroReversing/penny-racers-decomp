@@ -12,8 +12,10 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
+extern M2C_UNK D_8011F2F0;
+extern M2C_UNK D_8011F2F2;
+extern M2C_UNK D_8011F300;
 extern u16 func_800E1850;
-extern M2C_UNK func_801153C8;
 
 void func_800DEFF8(void) {
     s32 temp_v1;
@@ -26,16 +28,17 @@ void func_800DEFF8(void) {
     var_v0 = var_a0 & 0xFFFF;
     if ((var_a0 & 0xFFFF) != 0xFFFF) {
         var_v1 = var_v0 * 2;
-        do {
+        __repair_rows: {
             temp_v1 = (((var_v1 + var_v0) * 8) + var_v0) * 4;
             var_v0_2 = var_a0 & 0xFFFF;
-            if (*(&func_801153C8 + 0x9F28 + temp_v1) != 0xFF) {
-                *(&func_801153C8 + 0x9F2A + temp_v1) = *(&func_801153C8 + 0x9F2A + temp_v1) | 0x10;
+            if (*(&D_8011F2F0 + temp_v1) != 0xFF) {
+                *(&D_8011F2F2 + temp_v1) = *(&D_8011F2F2 + temp_v1) | 0x10;
                 var_v0_2 = var_a0 & 0xFFFF;
             }
-            var_a0 = *(&func_801153C8 + 0x9F38 + (var_v0_2 * 0x64));
+            var_a0 = *(&D_8011F300 + (var_v0_2 * 0x64));
             var_v0 = var_a0 & 0xFFFF;
             var_v1 = var_v0 * 2;
-        } while (var_v0 != 0xFFFF);
+        }
+if (var_v0 != 0xFFFF) goto __repair_rows;
     }
 }
