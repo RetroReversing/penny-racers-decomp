@@ -9,7 +9,11 @@ f32 func_801FA3B4(f32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f3
   f32 __repair_var_ft0_1;
   f32 var_fv0;
   f32 __repair_var_fv0_1;
- do { temp_ft1 = arg6 - arg4; temp_ft2 = arg7 - arg5; } while (0);
+  do
+  {
+    temp_ft1 = arg6 - arg4; temp_ft2 = arg7 - arg5;
+  }
+  while (0);
   if (temp_ft1 == 0.0f)
   {
     if (arg0 != arg2)
@@ -36,10 +40,7 @@ f32 func_801FA3B4(f32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f3
     __repair_var_ft0_1 = arg5 - arg1;
     if (__repair_var_ft0_1 != 0.0f)
     {
-      __repair_var_fv0_1 = arg3 - arg1;
-      block_14:
-      return __repair_var_ft0_1 / __repair_var_fv0_1;
-
+ do { __repair_var_fv0_1 = arg3 - arg1; block_14: return __repair_var_ft0_1 / __repair_var_fv0_1; } while (0);
     }
   }
   block_4:
