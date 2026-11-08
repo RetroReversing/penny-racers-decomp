@@ -48,7 +48,7 @@ void func_801619B4(s16 arg0)
   if (temp_fv1 != 0.0f)
   {
     *((f32 *) (((char *) temp_s0) + 0xC)) = (f32) (temp_fv1 - 0.1f);
-    func_80129918(temp_s0 + 0x1C, *((s32 *) (((char *) temp_s1) + 0x18)), *((f32 *) (((char *) temp_s1) + 0x1C)), *((s32 *) (((char *) temp_s1) + 0x20)), *((f32 *) (((char *) temp_s0) + 8)), *((f32 *) (((char *) temp_s0) + 0xC)), *((f32 *) (((char *) temp_s0) + 0x10)));
+    do { func_80129918(temp_s0 + 0x1C, *((s32 *) (((char *) temp_s1) + 0x18)), *((f32 *) (((char *) temp_s1) + 0x1C)), *((s32 *) (((char *) temp_s1) + 0x20)), *((f32 *) (((char *) temp_s0) + 8)), *((f32 *) (((char *) temp_s0) + 0xC)), *((f32 *) (((char *) temp_s0) + 0x10))); } while (0);
     *((s32 *) (((char *) temp_s1) + 0x18)) = (s32) (*((s32 *) (((char *) temp_s0) + 0x24)));
     *((f32 *) (((char *) temp_s1) + 0x1C)) = (f32) (*((f32 *) (((char *) temp_s0) + 0x28)));
     *((s32 *) (((char *) temp_s1) + 0x20)) = (s32) (*((s32 *) (((char *) temp_s0) + 0x2C)));
