@@ -1,4 +1,4 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
+/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -12,10 +12,10 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-extern M2C_UNK D_8011F30C;
+extern char D_8011F30C[];
 extern s8 D_801C6BB9;
-extern M2C_UNK D_801C7081;
-extern M2C_UNK D_801C7084;
+extern char D_801C7081[];
+extern char D_801C7084[];
 extern void *D_801C7AB0;
 extern u8 D_801CA130;
 
@@ -28,21 +28,21 @@ s32 func_80198F1C(s32 arg0) {
 
     var_a1 = 0;
     if (M2C_FIELD(D_801C7AB0, u8 *, 0) == 3) {
-        var_v1 = *(&D_801C7084 + (D_801CA130 * 5));
+        var_v1 = *(D_801C7084 + (D_801CA130 * 5));
     } else {
-        var_v1 = *(&D_801C7084 + (D_801CA130 * 5)) - 0x2E;
+        var_v1 = *(D_801C7084 + (D_801CA130 * 5)) - 0x2E;
     }
     if (D_801C6BB9 < 0x17) {
         if (D_801CA130 != M2C_FIELD(D_801C7AB0, u8 *, 2)) {
             temp_v0 = arg0 & 0xFFFF;
             if ((u32) ((var_v1 - 0x16) & 0xFF) < 0x14U) {
                 var_v1_2 = temp_v0 * 0x64;
-                var_v0 = *(&D_801C7081 + (D_801CA130 * 5)) + 0x3C;
+                var_v0 = *(D_801C7081 + (D_801CA130 * 5)) + 0x3C;
             } else {
                 var_v1_2 = temp_v0 * 0x64;
-                var_v0 = *(&D_801C7081 + (D_801CA130 * 5));
+                var_v0 = *(D_801C7081 + (D_801CA130 * 5));
             }
-            *(&D_8011F30C + var_v1_2) = (f32) var_v0 * 0.5f;
+            *(D_8011F30C + var_v1_2) = (f32) var_v0 * 0.5f;
         }
         var_a1 = 1;
     }

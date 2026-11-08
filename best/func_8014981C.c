@@ -85,8 +85,8 @@ loop_11:
                 }
                 var_v0_2 = var_t0_2 & 0xFF;
             }
-            *(&D_80189CC9 + var_v0_2) = var_a3;
-            var_t0_2 += 1;
+            *(&D_80189CC9 + var_v0_2) = var_a3;/*__repair_loop_weight*/do {do {do {
+            var_t0_2 += 1;} while (0);} while (0);} while (0);
             var_a3 = 0;
         } while ((u32) (var_t0_2 & 0xFF) < (u8) D_8018A276);
     }
