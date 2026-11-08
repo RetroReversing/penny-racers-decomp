@@ -57,14 +57,15 @@ s32 func_80040200(void *arg0) {
         if (var_v0 == 0) {
             m2c_initial_frame.view_sp52.value = 0;
             m2c_initial_frame.view_sp50.value = 0;
-            do {
+            __repair_rows: {
                 temp_v0_2 = *(u16 *)var_a1;
                 var_a1 += 2;
                 temp_a2 = m2c_initial_frame.view_sp50.value + temp_v0_2;
                 temp_a0 = m2c_initial_frame.view_sp52.value + ~temp_v0_2;
                 m2c_initial_frame.view_sp50.value = temp_a2;
                 m2c_initial_frame.view_sp52.value = temp_a0;
-            } while ((u32) var_a1 < (u32) &m2c_initial_frame.view_sp2C.value);
+            }
+if ((u32) var_a1 < (u32) &m2c_initial_frame.view_sp2C.value) goto __repair_rows;
             var_s1 = &m2c_initial_frame.view_sp10.value;
             if ((m2c_initial_frame.view_sp2C.value != (temp_a2 & 0xFFFF)) || (m2c_initial_frame.view_sp2E.value != (temp_a0 & 0xFFFF))) {
                 temp_v0_3 = func_8004009C(arg0, var_s1, temp_a2, &m2c_initial_frame.view_sp2C.value);

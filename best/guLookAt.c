@@ -75,7 +75,7 @@ void guLookAt(s32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 ar
     temp_fa0 = (temp_fs3 * temp_fs3) + (temp_fs4 * temp_fs4) + (temp_fs5 * temp_fs5);
     var_fv1 = sqrtf(temp_fa0);
     if (var_fv1 != var_fv1) {
-        var_fv1 = func_80032310(temp_fa0, arg3);
+        var_fv1 = func_80032310(temp_fa0);
     }
     temp_ft4 = (f32) (D_8004A5A0 / (f64) var_fv1);
     temp_fs3_2 = temp_fs3 * temp_ft4;

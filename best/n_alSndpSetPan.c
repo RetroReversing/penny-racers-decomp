@@ -25,5 +25,5 @@ void n_alSndpSetPan(s8 arg0) {
     sp10 = 2;
     sp18 = arg0;
     sp14 = M2C_FIELD(temp_a2, s32 *, 0x40) + (M2C_FIELD(temp_a2, s32 *, 0x3C) * 0x30);
-    func_8002D164(temp_a2 + 0x14, &sp10, 0);
+    do { func_8002D164(temp_a2 + 0x14, &sp10, 0); } while (0);
 }

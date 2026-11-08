@@ -33,7 +33,7 @@ void func_80031FA0(void *arg0, void *arg1) {
             M2C_FIELD(arg1, s32 *, 4) = temp_v0;
             M2C_FIELD(arg1, u8 *, 8) = temp_v0_2;
             M2C_FIELD(arg1, u8 *, 9) = temp_v0_3;
-            M2C_FIELD(arg1, u8 *, 0xA) = func_8003221C(arg0, temp_v0_3);
+            M2C_FIELD(arg1, u8 *, 0xA) = func_8003221C(arg0);
             M2C_FIELD(arg1, u8 *, 0xB) = func_8003221C(arg0);
             M2C_FIELD(arg1, u8 *, 0xC) = func_8003221C(arg0);
             M2C_FIELD(arg1, u8 *, 0xD) = func_8003221C(arg0);
@@ -47,7 +47,7 @@ void func_80031FA0(void *arg0, void *arg1) {
         M2C_FIELD(arg1, s32 *, 4) = temp_v0;
         M2C_FIELD(arg1, u8 *, 8) = temp_v0_2;
         M2C_FIELD(arg1, u8 *, 9) = temp_v0_3;
-        M2C_FIELD(arg1, u8 *, 0xA) = func_8003221C(arg0, temp_v0_3);
+        M2C_FIELD(arg1, u8 *, 0xA) = func_8003221C(arg0);
 block_7:
         M2C_FIELD(arg0, u16 *, 0x1A) = 0U;
         return;
