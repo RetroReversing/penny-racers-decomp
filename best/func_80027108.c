@@ -43,8 +43,8 @@ s32 *func_80027108(u8 **arg0) {
             func_800382AC(var_s3, var_s0);
             var_s0 += 0x14;
             var_s3 += 0x14;
-            *(D_8005D7C0 + var_s2) = func_80038340(0, 0, &D_8006E780, 1, 0x400);
-            var_s1 += 1;
+            *(D_8005D7C0 + var_s2) = func_80038340(0, 0, &D_8006E780, 1, 0x400);/*__repair_loop_weight*/do {
+            var_s1 += 1;} while (0);
             var_s2 += 0x14;
         } while (var_s1 < 0x3F);
         *(D_8005D7C0 + (var_s1 * 0x14)) = func_80038340(0, 0, &D_8006E780, 1, 0x400);

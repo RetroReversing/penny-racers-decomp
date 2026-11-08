@@ -16,7 +16,7 @@ void *func_8002F104(void *, void *, s32, s32, s32, s32, s32); /* extern */
 
 void *n_alAdpcmPull(void *arg0, s16 *arg1, s32 arg2, void *arg3) {
     s16 temp_s5;
-    s16 var_s3;
+    int var_s3;
     s16 var_v0_2;
     s16 var_v0_3;
     s32 temp_a0;

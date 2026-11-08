@@ -1,4 +1,3 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -11,8 +10,9 @@ typedef s32 M2C_UNK32;
 #define M2C_CARRY 0
 #define M2C_OVERFLOW(a) (0)
 #endif
+/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 
-M2C_UNK func_8002D164(void *, s16 *, M2C_UNK);      /* extern */
+s32 func_8002D164();
 extern void *D_80046DF4;
 
 void n_alSndpStop(void) {
@@ -23,5 +23,5 @@ void n_alSndpStop(void) {
     temp_a0 = M2C_FIELD(D_80046DF4, void **, 0xC);
     sp10 = 1;
     sp14 = M2C_FIELD(temp_a0, s32 *, 0x40) + (M2C_FIELD(temp_a0, s32 *, 0x3C) * 0x30);
-    do { func_8002D164(temp_a0 + 0x14, &sp10, 0); } while (0);
+    do { func_8002D164(temp_a0 + 0x14, &sp10); } while (0);
 }

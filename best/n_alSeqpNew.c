@@ -13,13 +13,15 @@ typedef s32 M2C_UNK32;
 #endif
 
 M2C_UNK func_8002D050(void *, M2C_UNK *, s32);      /* extern */
-M2C_UNK n_alSynAddSeqPlayer(void *);                      /* extern */
-M2C_UNK __n_initChanState(void *);                      /* extern */
+M2C_UNK func_8002FF14(void *);                      /* extern */
+M2C_UNK func_80031CA0(void *);                      /* extern */
 M2C_UNK *func_80038340(M2C_UNK, M2C_UNK, s32, u8, s32); /* extern */
 extern s32 D_80046DF4;
 extern M2C_UNK func_8003082C;
 
 void n_alSeqpNew(void *arg0, void *arg1) {
+int __repair_literal;
+
     M2C_UNK *temp_v0;
     M2C_UNK *var_v1;
     s32 temp_s2;
@@ -46,11 +48,13 @@ void n_alSeqpNew(void *arg0, void *arg1) {
     M2C_FIELD(arg0, s32 *, 0x78) = (s32) M2C_FIELD(arg1, s32 *, 0x18);
     M2C_FIELD(arg0, u8 *, 0x34) = (u8) M2C_FIELD(arg1, u8 *, 8);
     M2C_FIELD(arg0, M2C_UNK **, 0x60) = func_80038340(0, 0, temp_s2, M2C_FIELD(arg1, u8 *, 8), 0x10);
-    __n_initChanState(arg0);
+    func_80031CA0(arg0);
     temp_v0 = func_80038340(0, 0, temp_s2, (u8) M2C_FIELD(arg1, s32 *, 0), 0x38);
     M2C_FIELD(arg0, M2C_UNK **, 0x6C) = NULL;
     var_a0 = 0;
-    if (M2C_FIELD(arg1, s32 *, 0) > 0) {
+__repair_literal = 0;
+
+    if (M2C_FIELD(arg1, s32 *, 0) > __repair_literal) {
         var_v1 = temp_v0;
         do {
             *var_v1 = M2C_FIELD(arg0, M2C_UNK **, 0x6C);
@@ -65,5 +69,5 @@ void n_alSeqpNew(void *arg0, void *arg1) {
     M2C_FIELD(arg0, s32 *, 0) = 0;
     M2C_FIELD(arg0, M2C_UNK **, 8) = &func_8003082C;
     M2C_FIELD(arg0, void **, 4) = arg0;
-    n_alSynAddSeqPlayer(arg0);
+    func_8002FF14(arg0);
 }
