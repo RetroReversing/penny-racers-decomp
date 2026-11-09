@@ -26,7 +26,7 @@ s32 func_80149110(void)
     {
       if ((((u32) (var_a2_2 & 0xFF)) >= ((u8) (*(D_80189CC9 + var_a0)))) && (!((*(D_8018A277 + var_a0)) & 0x10)))
       {
-        var_a2_2 = *(D_80189CC9 + var_a0);
+        var_a2_2 = *(D_80189CC9 - (-var_a0));
         var_s0 = var_a1;
       }
       var_a1 += 1;

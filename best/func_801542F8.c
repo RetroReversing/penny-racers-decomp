@@ -23,24 +23,9 @@ void func_801542F8(void **arg0, volatile unsigned int arg1)
   *((s32 *) (((char *) temp_v1_3) + 0)) = 0xE6000000;
   *((s32 **) (((char *) temp_v1_3) + 4)) = NULL;
   temp_v1_4 = *arg0;
-  *arg0 = temp_v1_4 + 8;
-  *((s32 *) (((char *) temp_v1_4) + 0)) = 0xF4000000;
-  *((s32 **) (((char *) temp_v1_4) + 4)) = (s32 *) 0x0707C07C;
-  temp_v1_5 = *arg0;
-  *arg0 = temp_v1_5 + 8;
-  *((s32 *) (((char *) temp_v1_5) + 0)) = 0xE7000000;
-  *((s32 **) (((char *) temp_v1_5) + 4)) = NULL;
-  temp_v1_6 = *arg0;
-  *arg0 = temp_v1_6 + 8;
-  *((s32 *) (((char *) temp_v1_6) + 0)) = 0xF5480800;
-  *((s32 **) (((char *) temp_v1_6) + 4)) = (s32 *) 0x14050;
-  temp_v1_7 = *arg0;
-  *arg0 = temp_v1_7 + 8;
-  *((s32 *) (((char *) temp_v1_7) + 0)) = 0xF2000000;
-  *((s32 **) (((char *) temp_v1_7) + 4)) = (s32 *) 0x7C07C;
+ do { *arg0 = temp_v1_4 + 8; *((s32 *) (((char *) temp_v1_4) + 0)) = 0xF4000000; *((s32 **) (((char *) temp_v1_4) + 4)) = (s32 *) 0x0707C07C; temp_v1_5 = *arg0; *arg0 = temp_v1_5 + 8; *((s32 *) (((char *) temp_v1_5) + 0)) = 0xE7000000; *((s32 **) (((char *) temp_v1_5) + 4)) = NULL; temp_v1_6 = *arg0; *arg0 = temp_v1_6 + 8; *((s32 *) (((char *) temp_v1_6) + 0)) = 0xF5480800; *((s32 **) (((char *) temp_v1_6) + 4)) = (s32 *) 0x14050; temp_v1_7 = *arg0; *arg0 = temp_v1_7 + 8; *((s32 *) (((char *) temp_v1_7) + 0)) = 0xF2000000; *((s32 **) (((char *) temp_v1_7) + 4)) = (s32 *) 0x7C07C; } while (0);
   temp_a2 = *arg0;
   *arg0 = temp_a2 + 8;
   *((s32 *) (((char *) temp_a2) + 0)) = (s32) (((0x7C - (*(D_8011F32E + ((arg1 & 0xFFFF) * 0x64)))) & 0xFFF) | 0xF2000000);
   *((s32 **) (((char *) temp_a2) + 4)) = (s32 *) 0x7C07C;
 }
-
