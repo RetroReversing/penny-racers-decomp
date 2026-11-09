@@ -13,17 +13,17 @@ void func_80029690(Node *arg0, s32 arg1) {
     v1 = &D_80092BF8;
     if (v1 != NULL) {
         do {
-            s0 = v1;
-            if (s0->id == arg1) {
+            if (v1->id == arg1) {
                 return;
             }
+            s0 = v1;
             v1 = s0->next;
         } while (v1 != NULL);
     }
     {
         s32 temp = func_800339C0(1);
-        arg0->id = arg1;
         arg0->next = s0->next;
+        arg0->id = arg1;
         s0->next = arg0;
         func_800339C0(temp);
     }
