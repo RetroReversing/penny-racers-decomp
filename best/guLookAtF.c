@@ -1,3 +1,8 @@
+inline static float inline_fn(float arg0)
+{
+  return arg0;
+}
+
 void guLookAtF(float mf[4][4], float xEye, float yEye, float zEye, float xAt, float yAt, float zAt, float xUp, float yUp, float zUp)
 {
   float len;
@@ -11,7 +16,7 @@ void guLookAtF(float mf[4][4], float xEye, float yEye, float zEye, float xAt, fl
   xLook = xAt - xEye;
   yLook = yAt - yEye;
   zLook = zAt - zEye;
-  len = (-1.0) / func_80032310(((xLook * xLook) + (yLook * yLook)) + (zLook * ((double) zLook)));
+  len = (-1.0) / func_80032310(((xLook * xLook) + inline_fn(yLook * yLook)) + (zLook * ((double) zLook)));
   xLook *= len;
   yLook *= len;
   zLook *= len;

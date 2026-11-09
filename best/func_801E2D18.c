@@ -1,5 +1,5 @@
 extern s32 D_801C5E9C;
-extern s32 D_801C7080;
+extern volatile unsigned long D_801C7080;
 extern s32 D_801C7081;
 extern s32 D_801C7082;
 extern s32 D_801C7083;
@@ -22,7 +22,11 @@ void func_801E2D18(void)
   __repair_rows:
   {
     temp_v1 = var_a0 * 5;
- do { *((&D_801C7080) + temp_v1) = *(temp_v1 + (&D_801F18F8)); } while (0);
+    do
+    {
+      *((&D_801C7080) + temp_v1) = *(temp_v1 + (&D_801F18F8));
+    }
+    while (0);
     *((&D_801C7081) + temp_v1) = *(temp_v1 + (&D_801F18F9));
     *((&D_801C7082) + temp_v1) = *(temp_v1 + (&D_801F18FA));
     *((&D_801C7083) + temp_v1) = *(temp_v1 + (&D_801F18FB));
@@ -39,3 +43,4 @@ void func_801E2D18(void)
     goto __repair_rows;
   }
 }
+

@@ -4,16 +4,21 @@ s32 func_801CA468();
 extern unsigned long long D_8011F330[];
 extern s32 D_8021E130;
 extern u8 D_8021E19E;
+inline static unsigned long long *inline_fn(s32 arg0, int arg1)
+{
+  return D_8011F330 + ((arg0 & arg1) * 0x64);
+}
+
 void func_8021473C(s32 arg0, s32 arg1)
 {
   s32 var_a1;
   s32 var_a2;
   u16 temp_v1;
-  temp_v1 = *(D_8011F330 + ((arg1 & 0xFFFF) * 0x64));
+  temp_v1 = *inline_fn(arg1, 0xFFFF);
   switch (temp_v1)
   {
     case 0:
-      *(D_8011F330 + ((arg1 & 0xFFFF) * 0x64)) = 1;
+      *inline_fn(arg1, 0xFFFF) = 1;
       D_8021E19E = 0;
       return;
 
