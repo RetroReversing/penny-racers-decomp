@@ -56,9 +56,9 @@ void func_8015CB40(s32 arg0) {
         temp_v0_2 = (arg0 & 0xFFFF) * 0x64;
         temp_v0_3 = func_800DE41C(0, 0, 3, 0, 0x20, 1, NULL, &func_8015CF2C, NULL, *(&D_8011F308 + temp_v0_2), *(&D_8011F30C + temp_v0_2), *(&D_8011F310 + temp_v0_2), 0, 0, 0, 0, 0, 0);
         if ((u32) ((temp_v0_3 + 2) & 0xFFFF) >= 2U) {
-            temp_s0 = temp_v0 & 0xFFFF;
-            func_8013E818(temp_s0, temp_v0_3 & 0xFFFF, 0, 0.0f, 0.0f, 0.0f, 3);
-            *(&D_8018D6C4 + (temp_s0 * 0x7C)) = M2C_FIELD(*(&D_8011F350 + ((arg0 & 0xFFFF) * 0x64)), s32 *, 4);
+            var_s0 = temp_v0 & 0xFFFF;
+            func_8013E818(var_s0, temp_v0_3 & 0xFFFF, 0, 0.0f, 0.0f, 0.0f, 3);
+            *(&D_8018D6C4 + (var_s0 * 0x7C)) = M2C_FIELD(*(&D_8011F350 + ((arg0 & 0xFFFF) * 0x64)), s32 *, 4);
             var_s6 = 0;
             temp_s5 = (arg0 & 0xFFFF) * 0x64;
             temp_fs1 = D_80183970;
@@ -86,8 +86,8 @@ loop_6:
                     }
                     temp_s1 = temp_v0_4 & 0xFFFF;
                     func_8013E818(temp_s1, temp_v0_5 & 0xFFFF, 0x40, (f32) ((f64) (s16) (s32) ((f32) var_fv0 - 32.0f) * temp_fs0), (f32) ((f64) (s16) (s32) (f32) var_fv0_2 * temp_fs0), (f32) ((f64) (s16) (s32) ((f32) var_fv0_3 - 32.0f) * temp_fs0), func_801FA30C() & 8);
-                    *(&D_8018D6D6 + (temp_s1 * 0x7C)) = 1;
-                    var_s6 += 1;
+                    *(&D_8018D6D6 + (temp_s1 * 0x7C)) = 1;/*__repair_loop_weight*/do {
+                    var_s6 += 1;} while (0);
                     if ((u32) (var_s6 & 0xFFFF) >= 0xAU) {
 
                     } else {

@@ -23,7 +23,7 @@ s32 func_80198F1C(s32 arg0) {
     s32 temp_v0;
     s32 var_a1;
     s32 var_v1_2;
-    u8 var_v0;
+    
     u8 var_v1;
 
     var_a1 = 0;
@@ -37,12 +37,12 @@ s32 func_80198F1C(s32 arg0) {
             temp_v0 = arg0 & 0xFFFF;
             if ((u32) ((var_v1 - 0x16) & 0xFF) < 0x14U) {
                 var_v1_2 = temp_v0 * 0x64;
-                var_v0 = *(D_801C7081 + (D_801CA130 * 5)) + 0x3C;
+                var_v1 = *(D_801C7081 + (D_801CA130 * 5)) + 0x3C;
             } else {
                 var_v1_2 = temp_v0 * 0x64;
-                var_v0 = *(D_801C7081 + (D_801CA130 * 5));
+                var_v1 = *(D_801C7081 + (D_801CA130 * 5));
             }
-            *(D_8011F30C + var_v1_2) = (f32) var_v0 * 0.5f;
+            *(D_8011F30C + var_v1_2) = (f32) var_v1 * 0.5f;
         }
         var_a1 = 1;
     }

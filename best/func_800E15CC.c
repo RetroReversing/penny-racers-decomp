@@ -31,7 +31,7 @@ void func_800E15CC(void) {
     var_v0 = var_a1 & 0xFFFF;
     var_v1 = var_v0 * 2;
     do {
-        temp_v1 = ((((var_v1 + var_v0) * 8) + var_v0) * 4) + &D_8011F2F0;
+        temp_v1 = (char *)(((((var_v1 + var_v0) * 8) + var_v0) * 4)); temp_v1 += (s32)(&D_8011F2F0);
         if ((M2C_FIELD(temp_v1, s32 *, 0x54) != 0) && (M2C_FIELD(temp_v1, u8 *, 0xD) == 0)) {
             *(((var_a0 & 0xFFFF) * 2) + &D_8011F068) = var_a1;
             var_a0 += 1;

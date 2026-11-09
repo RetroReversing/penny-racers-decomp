@@ -23,6 +23,7 @@ s32 func_80198A90(void) {
     s32 var_v0;
     s32 var_v0_2;
     s8 var_v1;
+s8 __repair_result_var_v1;
 
     var_a2 = 0;
     if (D_801C6BB9 < 0x17) {
@@ -58,7 +59,7 @@ block_15:
             goto block_16;
         case 2:
             if (M2C_FIELD(&D_801C6BB0, s8 *, 0) == D_801C7068) {
-                var_v1 = M2C_FIELD(&D_801C6BB0, s8 *, 1);
+                __repair_result_var_v1 = M2C_FIELD(&D_801C6BB0, s8 *, 1);
                 goto block_15;
             }
             goto block_17;

@@ -14,7 +14,7 @@ typedef s32 M2C_UNK32;
 
 s32 func_801F9D8C(s32, s32);                        /* extern */
 
-void func_800DF2AC(s32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 *arg7, f32 *arg8) {
+void func_800DF2AC(u8 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 *arg7, f32 *arg8) {
     f32 temp_fv1;
     f32 var_fv0;
     s32 temp_fv1_2;

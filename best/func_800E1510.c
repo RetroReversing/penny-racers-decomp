@@ -38,12 +38,12 @@ void func_800E1510(void) {
                 var_v0_2 = 1 & 0xFF;
             }
         }
-        if (var_v0_2 != 0) {
-            var_v1 = 0;
-            var_a0_2 = func_800E1850;
+        if (var_v0_2 == 0) {
+            var_a0_2 = M2C_FIELD(temp_s0, u16 *, 0x10);
             var_v0 = var_a0_2 & 0xFFFF;
         } else {
-            var_a0_2 = M2C_FIELD(temp_s0, u16 *, 0x10);
+            var_v1 = 0;
+            var_a0_2 = func_800E1850;
             var_v0 = var_a0_2 & 0xFFFF;
         }
         var_a0 = var_a0_2 & 0xFFFF;

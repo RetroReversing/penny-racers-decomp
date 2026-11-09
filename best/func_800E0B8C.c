@@ -145,8 +145,8 @@ block_15:
     }
     var_v0_4 = var_s0 * 2;
 loop_18:
-    temp_a2 = *(var_v0_4 + &D_8011F068);
-    temp_a0_4 = ((temp_a2 & 0xFFFF) * 0x64) + &D_8011F2F0;
+    var_v0 = (u16)(*(var_v0_4 + &D_8011F068));
+    temp_a0_4 = ((var_v0 & 0xFFFF) * 0x64) + &D_8011F2F0;
     temp_a1_2 = M2C_FIELD(temp_a0_4, u8 *, 0xB);
     var_v0_5 = var_a3 & 0xFFFF;
     if ((u32) (temp_a1_2 - 0xB) < 2U) {
@@ -164,7 +164,7 @@ loop_18:
     if (M2C_FIELD(temp_a0_4, u8 *, 0xC) != 0xFF) {
         goto block_24;
     }
-    *(((var_s2 & 0xFFFF) * 2) + &D_800E23E0) = temp_a2;
+    *(((var_s2 & 0xFFFF) * 2) + &D_800E23E0) = var_v0;
     var_s2 += 1;
     goto block_25;
 block_23:
