@@ -1,4 +1,4 @@
-/* identical to alAudioFrame in V-RALLY-PAL (local match library) (matched), with its names changed by decompdecomp */
+/* adapted from similar verified C in alAudioFrame in V-RALLY-PAL (matched), with its names changed by decompdecomp */
 /* identical to alAudioFrame in V-RALLY (matched), with its names changed by decompdecomp */
  
 
@@ -3254,7 +3254,7 @@ void    alSynSetFXMix(ALSynth *s, ALVoice *voice, u8 fxmix);
 void    alSynSetPriority(ALSynth *s, ALVoice *voice, s16 priority);
 s16     alSynGetPriority(ALSynth *s, ALVoice *voice);
 
-ALFxRef *D_8003A980(ALSynth *s, s16 bus, ALSynConfig *c, ALHeap *hp);
+ALFxRef *alSynAllocFX(ALSynth *s, s16 bus, ALSynConfig *c, ALHeap *hp);
 ALFxRef alSynGetFXRef(ALSynth *s, s16 bus, s16 index);
 void    alSynFreeFX(ALSynth *s, ALFxRef *fx);
 void    alSynSetFXParam(ALSynth *s, ALFxRef fx, s16 paramID, void *param);
@@ -3266,7 +3266,7 @@ typedef struct {
     ALSynth     drvr;
 } ALGlobals;
 
-extern ALGlobals *D_800A2500;
+extern ALGlobals *D_800473B0;
 
 void    alInit(ALGlobals *glob, ALSynConfig *c);
 void    alClose(ALGlobals *glob);
@@ -4181,7 +4181,7 @@ ALMicroTime     _samplesToTime(ALSynth *synth, s32 samples);
 
 
 
-void            func_80091D80 (ALLowPass *lp);
+void            alFxFillDecay (ALLowPass *lp);
 
 
 
@@ -4233,7 +4233,7 @@ Acmd *alAudioFrame(Acmd *cmdList, s32 *cmdLen, s16 *outBuf, s32 outLen)
 {
     ALPlayer    *client;
     ALFilter    *output;
-    ALSynth     *drvr = &D_800A2500->drvr;
+    ALSynth     *drvr = &D_800473B0->drvr;
     s16         tmp = 0;         
     Acmd        *cmdlEnd = cmdList;
     Acmd        *cmdPtr;
