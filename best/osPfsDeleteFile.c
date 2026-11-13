@@ -12,13 +12,13 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 __osPfsReleasePages(void *, M2C_UNK *, u8, s16 *, u32, u16 *, s32); /* extern */
-s32 osPfsFindFile(void *, s32, s32, M2C_UNK, s32, s32 *); /* extern */
-s32 __osContRamRead(s32, s32, s32, s32 *);            /* extern */
-s32 __osContRamWrite(s32, s32, s32, s32 *, s32);       /* extern */
-s32 __osCheckId(void *);                          /* extern */
-s32 __osPfsRWInode(void *, M2C_UNK *, M2C_UNK, u32); /* extern */
-s32 __osPfsSelectBank(void *);                          /* extern */
+s32 func_8003B33C(void *, M2C_UNK *, u8, s16 *, u32, u16 *, s32); /* extern */
+s32 func_8003BC20(void *, s32, s32, M2C_UNK, s32, s32 *); /* extern */
+s32 func_8003F5B0(s32, s32, s32, s32 *);            /* extern */
+s32 func_8003F980(s32, s32, s32, s32 *, s32);       /* extern */
+s32 func_800403E0(void *);                          /* extern */
+s32 func_800404A4(void *, M2C_UNK *, M2C_UNK, u32); /* extern */
+s32 func_8004077C(void *);                          /* extern */
 
 s32 osPfsDeleteFile(void *arg0, s32 arg1, s32 arg2, M2C_UNK arg3, s32 arg4) {
     union {
@@ -50,8 +50,10 @@ s32 osPfsDeleteFile(void *arg0, s32 arg1, s32 arg2, M2C_UNK arg3, s32 arg4) {
               
               
     s32 var_v0;
-    s32 var_v1;
-    s32 var_v1_2;
+s32 __repair_phase_var_v0;
+s32 __repair_result_var_v0;
+    
+    
     s8 *var_v0_2;
     s8 *var_v0_3;
     u32 var_s0;
@@ -63,27 +65,27 @@ s32 osPfsDeleteFile(void *arg0, s32 arg1, s32 arg2, M2C_UNK arg3, s32 arg4) {
         var_v0 = 5;
         if (M2C_FIELD(arg0, s32 *, 0) & 1) {
             var_v0 = 2;
-            if ((__osCheckId(arg0) != 2) && ((M2C_FIELD(arg0, u8 *, 0x65) == 0) || (M2C_FIELD(arg0, u8 *, 0x65) = 0U, var_v0 = __osPfsSelectBank(arg0), (var_v0 == 0)))) {
-                var_v0 = osPfsFindFile(arg0, arg1 & 0xFFFF, arg2, arg3, arg4, &m2c_initial_frame.view_sp140.value);
+            if ((func_800403E0(arg0) != 2) && ((M2C_FIELD(arg0, u8 *, 0x65) == 0) || (M2C_FIELD(arg0, u8 *, 0x65) = 0U, var_v0 = func_8004077C(arg0), (var_v0 == 0)))) {
+                var_v0 = func_8003BC20(arg0, arg1 & 0xFFFF, arg2, arg3, arg4, &m2c_initial_frame.view_sp140.value);
                 if (var_v0 == 0) {
                     if (m2c_initial_frame.view_sp140.value == -1) {
                         goto block_7;
                     }
-                    var_v0 = __osContRamRead(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), (M2C_FIELD(arg0, s32 *, 0x5C) + m2c_initial_frame.view_sp140.value) & 0xFFFF, &m2c_initial_frame.view_sp120.value);
-                    if (var_v0 == 0) {
+                    __repair_phase_var_v0 = func_8003F5B0(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), (M2C_FIELD(arg0, s32 *, 0x5C) + m2c_initial_frame.view_sp140.value) & 0xFFFF, &m2c_initial_frame.view_sp120.value);
+                    if (__repair_phase_var_v0 == 0) {
                         var_s3 = m2c_initial_frame.view_sp126.value;
                         var_s2 = m2c_initial_frame.view_sp127.value;
                         var_s0 = var_s3 & 0xFF;
                         if (var_s0 < (u8) M2C_FIELD(arg0, u8 *, 0x64)) {
 loop_11:
-                            var_v0 = __osPfsRWInode(arg0, &m2c_initial_frame.view_sp20.value, 0, var_s0);
+                            var_v0 = func_800404A4(arg0, &m2c_initial_frame.view_sp20.value, 0, var_s0);
                             if (var_v0 == 0) {
-                                var_v0 = __osPfsReleasePages(arg0, &m2c_initial_frame.view_sp20.value, var_s2, &m2c_initial_frame.view_sp144.value, var_s0, &m2c_initial_frame.view_sp146.value, 1);
+                                var_v0 = func_8003B33C(arg0, &m2c_initial_frame.view_sp20.value, var_s2, &m2c_initial_frame.view_sp144.value, var_s0, &m2c_initial_frame.view_sp146.value, 1);
                                 if (var_v0 == 0) {
-                                    var_v0 = __osPfsRWInode(arg0, &m2c_initial_frame.view_sp20.value, 1, var_s0);
-                                    if (var_v0 == 0) {
+                                    __repair_result_var_v0 = func_800404A4(arg0, &m2c_initial_frame.view_sp20.value, 1, var_s0);
+                                    if (__repair_result_var_v0 == 0) {
                                         if ((m2c_initial_frame.view_sp146.value == 1) || (var_s3 = (u8) m2c_initial_frame.view_sp146.value, var_s2 = m2c_initial_frame.view_unksp147.value, var_s0 = var_s3 & 0xFF, ((var_s0 < (u8) M2C_FIELD(arg0, u8 *, 0x64)) == 0))) {
-                                            var_v1 = 0xF;
+                                            var_v0 = 0xF;
                                             if (var_s3 >= (u8) M2C_FIELD(arg0, u8 *, 0x64)) {
                                                 goto block_17;
                                             }
@@ -94,18 +96,18 @@ loop_11:
                                             m2c_initial_frame.view_sp12A.value = 0;
                                             do {
                                                 *var_v0_2 = 0;
-                                                var_v1 -= 1;
+                                                var_v0 -= 1;
                                                 var_v0_2 -= 1;
-                                            } while (var_v1 >= 0);
-                                            var_v1_2 = 3;
+                                            } while (var_v0 >= 0);
+                                            var_v0 = 3;
                                             var_v0_3 = &m2c_initial_frame.view_sp12F.value;
                                             do {
                                                 *var_v0_3 = 0;
-                                                var_v1_2 -= 1;
+                                                var_v0 -= 1;
                                                 var_v0_3 -= 1;
-                                            } while (var_v1_2 >= 0);
+                                            } while (var_v0 >= 0);
                                             m2c_initial_frame.view_sp128.value = 0;
-                                            var_v0 = __osContRamWrite(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), (M2C_FIELD(arg0, s32 *, 0x5C) + m2c_initial_frame.view_sp140.value) & 0xFFFF, &m2c_initial_frame.view_sp120.value, 0);
+                                            var_v0 = func_8003F980(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), (M2C_FIELD(arg0, s32 *, 0x5C) + m2c_initial_frame.view_sp140.value) & 0xFFFF, &m2c_initial_frame.view_sp120.value, 0);
                                             /* Duplicate return node #23. Try simplifying control flow for better match */
                                             return var_v0;
                                         }
@@ -120,7 +122,7 @@ block_17:
                         return 3;
                     }
                     /* Duplicate return node #23. Try simplifying control flow for better match */
-                    return var_v0;
+                    return __repair_phase_var_v0;
                 }
             }
         }

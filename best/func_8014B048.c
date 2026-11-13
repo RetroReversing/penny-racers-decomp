@@ -10,7 +10,7 @@ void func_8014B048(volatile int arg0)
   var_s0 = 0;
   __repair_rows:
   {
-    if (((*(D_8018A277 + var_s0)) & 0x20) && ((*(D_8018A277 + var_s0)) != 0xFF))
+    if (((*(D_8018A277 + var_s0)) & 0x20) && ((*(u16 *)(D_8018A277 + var_s0)) != 0xFF))
     {
       var_v1 = 0xF;
       if (D_80190CB2 & 2)

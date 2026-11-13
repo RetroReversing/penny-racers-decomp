@@ -12,8 +12,8 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-extern M2C_UNK D_8011F308;
-extern M2C_UNK D_8011F310;
+extern f32 D_8011F308;
+extern f32 D_8011F310;
 extern M2C_UNK D_8011F340;
 
 s32 func_80129348(u16 *arg0, u16 *arg1, f32 arg2, f32 arg4) {

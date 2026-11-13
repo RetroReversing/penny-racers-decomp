@@ -13,7 +13,7 @@ typedef s32 M2C_UNK32;
 #endif
 
 s32 func_800294A0();
-s32 func_8002C210();
+s32 alSeqpSetBank();
 s32 alBnkfNew();
 void *alHeapDBAlloc();
 extern char D_8006E780[];
@@ -29,6 +29,6 @@ void func_80027B40(s32 arg0, s32 arg1, s32 arg2) {
     func_800294A0(arg0, temp_v0, arg1);
     alBnkfNew(D_800DA1E4, arg2);
     temp_s1 = M2C_FIELD(D_800DA1E4, s32 *, 4);
-    func_8002C210(&D_8006FB38, temp_s1);
-    func_8002C210(D_8006FB38 + 0x184, temp_s1);
+    alSeqpSetBank(&D_8006FB38, temp_s1);
+    alSeqpSetBank(D_8006FB38 + 0x184, temp_s1);
 }

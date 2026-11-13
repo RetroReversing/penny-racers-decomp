@@ -15,7 +15,7 @@ typedef s32 M2C_UNK32;
 M2C_UNK func_80027D00(s32);                         /* extern */
 s32 func_8002C190(M2C_UNK *);                       /* extern */
 s16 func_8002C1D0(void *);                          /* extern */
-M2C_UNK func_8002C3E0(void *, s16);                 /* extern */
+M2C_UNK alSeqpSetVol(void *, s16);                 /* extern */
 M2C_UNK func_8002C410(void *);                      /* extern */
 extern M2C_UNK D_8006FB38;
 extern M2C_UNK D_8006FCB4;
@@ -41,13 +41,13 @@ void func_80027584(void) {
         if (*var_s2 & 1) {
             temp_s0 = var_s1 + &D_8006FB38;
             if (*(&D_8006FCB8 + var_s1) == 0) {
-                func_8002C3E0(temp_s0, 0);
+                alSeqpSetVol(temp_s0, 0);
                 func_8002C410(temp_s0);
                 *(&D_8006FCB4 + var_s1) = *(&D_8006FCB4 + var_s1) & ~1;
-                do { func_8002C3E0(temp_s0, 0x7FFF); } while (0);
+                do { alSeqpSetVol(temp_s0, 0x7FFF); } while (0);
                 var_s2 += 0x184;
             } else {
-                do { func_8002C3E0(temp_s0, (s16) (func_8002C1D0(temp_s0) - *(&D_8006FCBA + var_s1))); } while (0);
+                do { alSeqpSetVol(temp_s0, (s16) (func_8002C1D0(temp_s0) - *(&D_8006FCBA + var_s1))); } while (0);
                 M2C_FIELD(temp_s0, s16 *, 0x180) = (s16) (*(&D_8006FCB8 + var_s1) - 1);
                 goto block_8;
             }

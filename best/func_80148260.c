@@ -14,7 +14,7 @@ typedef s32 M2C_UNK32;
 
 extern u8 D_80189B36;
 extern M2C_UNK D_8018D140;
-extern M2C_UNK D_8018D26C;
+extern u8 D_8018D26C[];
 extern M2C_UNK D_8018D3A0;
 
 s32 func_80148260(s32 arg0, s32 arg1) {
@@ -69,7 +69,7 @@ loop_4:
         var_a2_3 = 0;
         var_v1 = var_a3;
         __repair_rows: {
-            *((var_v1 * 2) + &D_8018D26C) = *((var_a2_3 * 2) + &D_8018D26C);
+            *((var_v1 * 2) + D_8018D26C) = *((var_a2_3 * 2) + D_8018D26C);
             var_a2_3 += 1;
             var_v1 = var_a3 + var_a2_3;
         }

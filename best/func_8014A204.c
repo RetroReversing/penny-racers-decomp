@@ -38,6 +38,6 @@ void func_8014A204(s32 arg0, s32 arg1) {
     temp_fa0 = (temp_ft1 * temp_ft1) + (temp_ft0 * temp_ft0) + (temp_fv0 * temp_fv0);
     temp_fv0_2 = sqrtf(temp_fa0);
     if (temp_fv0_2 != temp_fv0_2) {
-        func_80032310(temp_fa0, temp_a0, temp_a1);
+        func_80032310(temp_fa0);
     }
 }

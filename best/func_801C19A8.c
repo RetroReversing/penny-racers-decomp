@@ -73,8 +73,8 @@ void func_801C19A8(s32 arg0) {
             } else {
                 var_fv0 = temp_fv0 + 4.0f;
             }
-            *var_v0_2 = var_fv0;
-            var_s3 += 1;
+            *var_v0_2 = var_fv0;/*__repair_loop_weight*/do {
+            var_s3 += 1;} while (0);
             var_v0 = var_s3 * 4;
         } while (var_s3 < 8);
         var_s3_2 = 0;
@@ -85,7 +85,7 @@ void func_801C19A8(s32 arg0) {
             *(&D_80167FBC + var_s2) = (s16) temp_fv1;
             var_s3_2 += 1;
             var_s2 = var_s3_2 * 0x10;
-        } while (var_s3_2 < 8);
+        } while ((var_v0 = var_s3_2) < 8);
         return;
     }
     var_s3_3 = 0;
@@ -94,7 +94,7 @@ void func_801C19A8(s32 arg0) {
         *(var_v0_3 + &D_801C6B88) = (f32) var_s3_3 * 45.0f;
         var_s3_3 += 1;
         var_v0_3 = var_s3_3 * 4;
-    } while (var_s3_3 < 8);
+    } while ((var_v0 = var_s3_3) < 8);
     D_801C6BA8 = 0;
     *(&D_8011F32E + ((arg0 & 0xFFFF) * 0x64)) = 1;
 }

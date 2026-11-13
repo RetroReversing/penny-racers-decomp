@@ -15,7 +15,7 @@ typedef s32 M2C_UNK32;
 s32 func_80149778(s32);                             /* extern */
 s32 func_801FA30C();                                /* extern */
 extern M2C_UNK D_80189B34;
-extern M2C_UNK D_8018A277;
+extern u8 D_8018A277[];
 extern u16 D_8018A27C;
 extern M2C_UNK D_8018D3A0;
 extern M2C_UNK D_8018D3A4;
@@ -46,10 +46,10 @@ void func_8014BCD8(void) {
         __repair_rows: {
             temp_v0 = func_801FA30C() & 3;
             temp_s0 = -(temp_v0 != 3) & temp_v0;
-            temp_s1 = *(&D_8018A277 + temp_s0) & 0xF;
+            temp_s1 = *(D_8018A277 + temp_s0) & 0xF;
         }
 if (func_80149778(temp_s1 & 0xFF) & 0xFF) goto __repair_rows;
-        *(&D_8018A277 + temp_s0) = *(&D_8018A277 + temp_s0) | 0x20;
+        *(D_8018A277 + temp_s0) = *(D_8018A277 + temp_s0) | 0x20;
         temp_v0_2 = temp_s1 << 5;
         if (D_8018A27C & 1) {
             *(&D_8018D3A4 + temp_v0_2) = *(&D_8018D3A4 + temp_v0_2) | 0x200000;

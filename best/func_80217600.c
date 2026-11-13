@@ -16,15 +16,18 @@ extern u8 D_80190CAC;
 extern char D_8021F080[];
 
 void func_80217600(void) {
+unsigned char * __repair_loop_constant;
+
     s8 var_v1;
 
     var_v1 = 0;
-    do {
+    __repair_loop_constant = D_8021F080;
+do {
         if (var_v1 < (s32) D_80190CAC) {
-            *(D_8021F080 + var_v1) = var_v1;
+            *(__repair_loop_constant + var_v1) = var_v1;
             var_v1 += 1;
         } else {
-            *(D_8021F080 + var_v1) = 0xFF;
+            *(__repair_loop_constant + var_v1) = 0xFF;
             var_v1 += 1;
         }
     } while (var_v1 < 0x10);

@@ -16,7 +16,7 @@ void func_8021AF20(s32 arg0)
   if ((func_800E1850 & 0xFFFF) != 0xFFFF)
   {
     var_v1 = var_v0 * 2;
-    __repair_rows:
+    do {
     {
       temp_v1 = (((var_v1 + var_v0) * 8) + var_v0) * 4;
       if (1)
@@ -31,10 +31,7 @@ void func_8021AF20(s32 arg0)
       var_v1 = var_v0 * 2;
     }
 
-    if (var_v0 != 0xFFFF)
-    {
-      goto __repair_rows;
-    }
+    } while (var_v0 != 0xFFFF);
   }
   *(D_8011F2FD + (D_8018BC3C * 0x64)) = 0;
   *(D_8011F2FD + inline_fn(arg0)) = 0;

@@ -38,13 +38,13 @@ s32 func_801F9D8C(s32 arg0, s32 arg1) {
         goto block_6;
     }
     var_fv1 = -(f32) arg0;
-    if (var_fv1 >= 2.1474836e9f) {
+    if (var_fv1 < 2.1474836e9f) {
+block_6:
+        var_a2 = (s32) var_fv1;
+    } else {
         var_fv0 = var_fv1 - 2.1474836e9f;
 block_7:
         var_a2 = (s32) var_fv0 | 0x80000000;
-    } else {
-block_6:
-        var_a2 = (s32) var_fv1;
     }
     var_fv1_2 = (f32) arg1;
     temp_a3 = var_a2 & 0xFFFF;
@@ -56,15 +56,15 @@ block_6:
         goto block_14;
     }
     var_fv1_2 = -(f32) arg1;
-    if (var_fv1_2 >= 2.1474836e9f) {
+    if (var_fv1_2 < 2.1474836e9f) {
+block_14:
+        var_a2_2 = (s32) var_fv1_2;
+    } else {
         var_fv0_2 = var_fv1_2 - 2.1474836e9f;
 block_15:
         var_a2_2 = (s32) var_fv0_2 | 0x80000000;
-    } else {
-block_14:
-        var_a2_2 = (s32) var_fv1_2;
     }
-    temp_v1 = var_a2_2 & 0xFFFF;
+    var_v0_2 = var_a2_2 & 0xFFFF;
     if (temp_a3 == 0) {
         var_v0 = 0x10E;
         if (arg1 > 0) {
@@ -73,10 +73,10 @@ block_14:
         /* Duplicate return node #40. Try simplifying control flow for better match */
         return var_v0;
     }
-    if (temp_v1 == 0) {
+    if (var_v0_2 == 0) {
         return -(arg0 < 1) & 0xB4;
     }
-    if (temp_a3 == temp_v1) {
+    if (temp_a3 == var_v0_2) {
         if (arg0 > 0) {
             var_v0 = 0x13B;
             if (arg1 > 0) {
@@ -92,10 +92,10 @@ block_14:
         /* Duplicate return node #40. Try simplifying control flow for better match */
         return var_v0;
     }
-    if (temp_v1 < temp_a3) {
-        var_v1 = *(&D_801FB230 + (((s32) (temp_v1 << 6) / temp_a3) * 2));
+    if (var_v0_2 < temp_a3) {
+        var_v1 = *(&D_801FB230 + (((s32) (var_v0_2 << 6) / temp_a3) * 2));
     } else {
-        var_v1 = 0x5A - *(&D_801FB230 + (((s32) (temp_a3 << 6) / temp_v1) * 2));
+        var_v1 = 0x5A - *(&D_801FB230 + (((s32) (temp_a3 << 6) / var_v0_2) * 2));
     }
     if (arg1 < 0) {
         if (arg0 >= 0) {

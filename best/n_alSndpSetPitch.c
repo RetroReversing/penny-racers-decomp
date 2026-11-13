@@ -7,9 +7,10 @@ inline static s32 *inline_fn(void *arg0)
 
 void n_alSndpSetPitch(f32 arg0)
 {
-  s16 sp10;
+  volatile unsigned short sp10;
   volatile int sp14;
   f32 sp18;
+  volatile int pad;
   void *temp_a0;
   temp_a0 = *((void **) (((char *) D_80046DF4) + 0xC));
   sp10 = 4;
@@ -17,7 +18,7 @@ void n_alSndpSetPitch(f32 arg0)
   sp14 = ((*((s32 *) (((char *) temp_a0) + 0x3C))) * 0x30) + (*inline_fn(temp_a0));
   do
   {
-    func_8002D164(temp_a0 + 0x14, &sp10);
+    func_8002D164(temp_a0 - -0x14, &sp10);
   }
   while (0);
 }

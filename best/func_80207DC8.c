@@ -17,6 +17,8 @@ extern u8 D_8021B079;
 extern u16 D_8021E1AC;
 
 void func_80207DC8(void) {
+unsigned int __repair_literal;
+
     s32 var_a0;
     s32 var_s0;
     s32 var_s1;
@@ -28,15 +30,15 @@ void func_80207DC8(void) {
     do {
         var_s0 = 0;
         var_a0 = 0 & 0xFF;
-loop_2:
-        if ((u32) (func_801E435C(var_a0, var_s2 & 0xFF) & 0xFF) < 4U) {
+__repair_literal = 4U;
+
+do {
+        if ((u32) (func_801E435C(var_a0, var_s2 & 0xFF) & 0xFF) < __repair_literal) {
             var_s1 += 1;
         }
         var_s0 += 1;
         var_a0 = var_s0 & 0xFF;
-        if ((u32) (var_s0 & 0xFF) < 9U) {
-            goto loop_2;
-        }
+        } while ((u32) (var_s0 & 0xFF) < 9U);
         var_s2 += 1;
         if ((var_s1 & 0xFF) == 9) {
             D_8021E1AC += 1;

@@ -13,7 +13,8 @@ typedef s32 M2C_UNK32;
 #endif
 
 M2C_UNK func_8013AE60(s32);                         /* extern */
-extern M2C_UNK D_8011F32E;
+typedef struct { u16 f0; u8 pad[98]; } Slot_8011F32E;
+extern Slot_8011F32E D_8011F32E[];
 
 void func_80151F70(s32 arg0) {
     s32 temp_s0;
@@ -22,8 +23,8 @@ void func_80151F70(s32 arg0) {
     temp_s0 = arg0 & 0xFFFF;
     func_8013AE60(temp_s0);
     temp_v1 = temp_s0 * 0x64;
-    *(&D_8011F32E + temp_v1) = *(&D_8011F32E + temp_v1) + 1;
-    if ((u16) *(&D_8011F32E + temp_v1) >= 0x80U) {
-        *(&D_8011F32E + temp_v1) = *(&D_8011F32E + temp_v1) - 0x7F;
+    D_8011F32E[temp_s0].f0 = D_8011F32E[temp_s0].f0 + 1;
+    if ((u16) D_8011F32E[temp_s0].f0 >= 0x80U) {
+        D_8011F32E[temp_s0].f0 = D_8011F32E[temp_s0].f0 - 0x7F;
     }
 }

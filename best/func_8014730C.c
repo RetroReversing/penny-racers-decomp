@@ -47,9 +47,9 @@ void func_8014730C(s32 arg0) {
     u8 var_v0_6;
     void *temp_s0;
 
-    temp_a0 = arg0 & 0xFFFF;
-    temp_s0 = (temp_a0 * 0x64) + &D_8011F2F0;
-    temp_s1 = func_8014BAC0(temp_a0);
+    var_v0_4 = arg0 & 0xFFFF;
+    temp_s0 = (var_v0_4 * 0x64) + &D_8011F2F0;
+    temp_s1 = func_8014BAC0(var_v0_4);
     temp_v1 = M2C_FIELD(temp_s0, u16 *, 0x3E);
     switch (temp_v1) {                              /* switch 1; irregular */
     case 0x0:                                       /* switch 1 */

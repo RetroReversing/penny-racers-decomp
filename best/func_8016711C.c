@@ -56,7 +56,7 @@ void func_8016711C(s32 arg0) {
     switch (temp_v1) {                              /* irregular */
     case 0:
         temp_ft0 = M2C_FIELD(temp_s0, f32 *, 0xC);
-        temp_fv0 = ((10.0f - temp_ft0) * 0.2f) + temp_ft0;
+        temp_fv0 = (temp_ft0) + (((10.0f - temp_ft0) * 0.2f));
         M2C_FIELD(temp_s0, f32 *, 0xC) = temp_fv0;
         if (temp_fv0 < 30.0f) {
             M2C_FIELD(temp_s0, f32 *, 0xC) = 30.0f;
@@ -96,5 +96,5 @@ void func_8016711C(s32 arg0) {
         *(&D_8011F2FD + ((arg0 & 0xFFFF) * 0x64)) = 2;
     }
     M2C_FIELD(temp_s1, s8 *, 0) = (s8) (M2C_FIELD(M2C_FIELD(temp_s0, void **, 4), u8 *, 0x7D1) - D_80233EC1);
-    func_8013AE60(arg0 & 0xFFFF);
+    do { func_8013AE60(arg0 & 0xFFFF); } while (0);
 }

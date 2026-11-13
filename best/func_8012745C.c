@@ -102,7 +102,7 @@ u8 func_8012745C(void *arg0, f32 arg1) {
     temp_v0 = func_801270B0(m2c_initial_frame.view_sp60.value, m2c_initial_frame.view_sp64.value, m2c_initial_frame.view_sp68.value, m2c_initial_frame.view_sp70.value, m2c_initial_frame.view_sp74.value, m2c_initial_frame.view_sp78.value);
     if (temp_v0 == -1) {
         func_80127148(&m2c_initial_frame.view_sp60.value, &D_8012AB58, &D_8012AB64);
-        func_80127148(&m2c_initial_frame.view_sp80.value, &D_8012AB4C, &D_8012AB64);
+        do { func_80127148(&m2c_initial_frame.view_sp80.value, &D_8012AB4C, &D_8012AB64); } while (0);
         func_80127148(&m2c_initial_frame.view_spA0.value, &D_8012AB7C, &D_8012AB64);
         func_80127030(&m2c_initial_frame.view_sp70.value, m2c_initial_frame.view_sp80.value, m2c_initial_frame.view_sp84.value, m2c_initial_frame.view_sp88.value, m2c_initial_frame.view_spA0.value, m2c_initial_frame.view_spA4.value, m2c_initial_frame.view_spA8.value);
         if (func_801270B0(m2c_initial_frame.view_sp60.value, m2c_initial_frame.view_sp64.value, m2c_initial_frame.view_sp68.value, m2c_initial_frame.view_sp70.value, m2c_initial_frame.view_sp74.value, m2c_initial_frame.view_sp78.value) == 1) {

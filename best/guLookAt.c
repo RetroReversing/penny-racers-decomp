@@ -1,4 +1,4 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 -fno-strength-reduce -g3, tried by autopilot */
+/* machine draft (m2c) for gcc-2.8.1-pm -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -12,9 +12,9 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-f32 func_80032310();
-s32 guMtxF2L();
-s32 guMtxIdentF();
+M2C_UNK guMtxF2L(f32, f32, f32 *, s32);             /* extern */
+M2C_UNK guMtxIdentF(f32 *);                         /* extern */
+f32 sqrtf(f32);                                     /* extern */
 extern f64 D_8004A5A0;
 extern s32 D_8004A5A8;
 
@@ -38,8 +38,6 @@ void guLookAt(s32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 ar
     s32 sp54;
     f32 temp_fa0;
     f32 temp_fa0_2;
-    f32 temp_fa0_3;
-    f32 temp_fa0_4;
     f32 temp_fa1;
     f32 temp_fs0;
     f32 temp_fs0_2;
@@ -62,8 +60,6 @@ void guLookAt(s32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 ar
     f32 temp_ft5;
     f32 temp_ft5_2;
     f32 var_fv0;
-    f32 var_fv0_2;
-    f32 var_fv1;
     s32 temp_s6;
     s32 temp_s7;
 
@@ -72,41 +68,31 @@ void guLookAt(s32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 ar
     temp_fs3 = arg4 - arg1;
     temp_fs4 = arg5 - arg2;
     temp_fs5 = arg6 - arg3;
-    temp_fa0 = (temp_fs3 * temp_fs3) + (temp_fs4 * temp_fs4) + (temp_fs5 * temp_fs5);
-    var_fv1 = sqrtf(temp_fa0);
-    if (var_fv1 != var_fv1) {
-        var_fv1 = func_80032310(temp_fa0);
-    }
-    temp_ft4 = (f32) (D_8004A5A0 / (f64) var_fv1);
+    temp_ft4 = (f32) (D_8004A5A0 / (f64) sqrtf((temp_fs3 * temp_fs3) + (temp_fs4 * temp_fs4) + (temp_fs5 * temp_fs5)));
     temp_fs3_2 = temp_fs3 * temp_ft4;
     temp_fs5_2 = temp_fs5 * temp_ft4;
     temp_fs4_2 = temp_fs4 * temp_ft4;
     temp_fs2 = (arg8 * temp_fs5_2) - (arg9 * temp_fs4_2);
     temp_fs1 = (arg9 * temp_fs3_2) - (arg7 * temp_fs5_2);
     temp_fs0 = (arg7 * temp_fs4_2) - (arg8 * temp_fs3_2);
-    temp_fa0_2 = (temp_fs2 * temp_fs2) + (temp_fs1 * temp_fs1) + (temp_fs0 * temp_fs0);
-    var_fv0 = sqrtf(temp_fa0_2);
-    if (var_fv0 != var_fv0) {
-        var_fv0 = func_80032310(temp_fa0_2, arg8);
-    }
     temp_s6 = D_8004A5A8;
     temp_s7 = D_8004A5A8;
-    temp_ft4_2 = (f32) (M2C_BITWISE(f64, temp_s7) / (f64) var_fv0);
+    temp_ft4_2 = (f32) (M2C_BITWISE(f64, temp_s7) / (f64) sqrtf((temp_fs2 * temp_fs2) + (temp_fs1 * temp_fs1) + (temp_fs0 * temp_fs0)));
     temp_fs2_2 = temp_fs2 * temp_ft4_2;
     temp_fs0_2 = temp_fs0 * temp_ft4_2;
     temp_fs1_2 = temp_fs1 * temp_ft4_2;
     temp_ft0 = (temp_fs4_2 * temp_fs0_2) - (temp_fs5_2 * temp_fs1_2);
     temp_ft2 = (temp_fs5_2 * temp_fs2_2) - (temp_fs3_2 * temp_fs0_2);
     temp_ft3 = (temp_fs3_2 * temp_fs1_2) - (temp_fs4_2 * temp_fs2_2);
-    temp_fa0_3 = (temp_ft0 * temp_ft0) + (temp_ft2 * temp_ft2) + (temp_ft3 * temp_ft3);
-    var_fv0_2 = sqrtf(temp_fa0_3);
-    if (var_fv0_2 != var_fv0_2) {
-        var_fv0_2 = func_80032310(temp_fa0_3);
+    temp_fa0 = (temp_ft0 * temp_ft0) + (temp_ft2 * temp_ft2) + (temp_ft3 * temp_ft3);
+    var_fv0 = sqrtf(temp_fa0);
+    if (var_fv0 != var_fv0) {
+        var_fv0 = sqrtf(temp_fa0);
     }
-    temp_ft4_3 = (f32) (M2C_BITWISE(f64, temp_s7) / (f64) var_fv0_2);
+    temp_ft4_3 = (f32) (M2C_BITWISE(f64, temp_s7) / (f64) var_fv0);
     temp_ft5 = temp_ft0 * temp_ft4_3;
     temp_fa1 = temp_ft2 * temp_ft4_3;
-    temp_fa0_4 = arg2 * temp_fs4_2;
+    temp_fa0_2 = arg2 * temp_fs4_2;
     sp10 = temp_fs2_2;
     sp20 = temp_fs1_2;
     temp_ft5_2 = temp_ft3 * temp_ft4_3;
@@ -122,7 +108,7 @@ void guLookAt(s32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 ar
     sp4C = 1.0f;
     sp34 = temp_ft5_2;
     sp40 = -((arg1 * temp_fs2_2) + (arg2 * temp_fs1_2) + (arg3 * temp_fs0_2));
-    sp48 = -((arg1 * temp_fs3_2) + temp_fa0_4 + (arg3 * temp_fs5_2));
+    sp48 = -((arg1 * temp_fs3_2) + temp_fa0_2 + (arg3 * temp_fs5_2));
     sp44 = -((arg1 * temp_ft5) + (arg2 * temp_fa1) + (arg3 * temp_ft5_2));
-    guMtxF2L(temp_fa0_4, arg3, &sp10, sp54);
+    guMtxF2L(temp_fa0_2, arg3, &sp10, sp54);
 }

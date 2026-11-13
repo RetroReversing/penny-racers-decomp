@@ -1,46 +1,31 @@
-extern s32 D_801C5E9C;
-extern volatile unsigned long D_801C7080;
-extern s32 D_801C7081;
-extern s32 D_801C7082;
-extern s32 D_801C7083;
-extern s32 D_801C7084;
-extern s32 D_801F18E4;
-extern s32 D_801F18F8;
-extern s32 D_801F18F9;
-extern s32 D_801F18FA;
-extern s32 D_801F18FB;
-extern s32 D_801F18FC;
-void func_801E2D18(void)
-{
-  s32 temp_v1;
-  u32 var_a0;
-  *((u8 *) (((char *) (&D_801C5E9C)) + 0)) = (u8) (*((u8 *) (((char *) (&D_801F18E4)) + 0)));
-  *((u8 *) (((char *) (&D_801C5E9C)) + 1)) = (u8) (*((u8 *) (((char *) (&D_801F18E4)) + 1)));
-  *((u8 *) (((char *) (&D_801C5E9C)) + 2)) = (u8) (*((u8 *) (((char *) (&D_801F18E4)) + 2)));
-  *((u8 *) (((char *) (&D_801C5E9C)) + 3)) = (u8) (*((u8 *) (((char *) (&D_801F18E4)) + 3)));
-  var_a0 = 0;
-  __repair_rows:
-  {
-    temp_v1 = var_a0 * 5;
-    do
-    {
-      *((&D_801C7080) + temp_v1) = *(temp_v1 + (&D_801F18F8));
-    }
-    while (0);
-    *((&D_801C7081) + temp_v1) = *(temp_v1 + (&D_801F18F9));
-    *((&D_801C7082) + temp_v1) = *(temp_v1 + (&D_801F18FA));
-    *((&D_801C7083) + temp_v1) = *(temp_v1 + (&D_801F18FB));
-    *((&D_801C7084) + temp_v1) = *(temp_v1 + (&D_801F18FC));
-    do
-    {
-      var_a0 += 1;
-    }
-    while (0);
-  }
+extern u8 D_801C5E9C[];
+extern u8 D_801C7080[];
+extern u8 D_801F18E4[];
+extern u8 D_801F18F8[];
+extern u8 D_801F18F9[];
+extern u8 D_801F18FA[];
+extern u8 D_801F18FB[];
+extern u8 D_801F18FC[];
 
-  if (var_a0 < 0xC8U)
-  {
-    goto __repair_rows;
-  }
+void func_801E2D18(void) {
+    u8 *src0 = D_801F18F8;
+    u8 *src1 = D_801F18F9;
+    u8 *src2 = D_801F18FA;
+    u8 *src3 = D_801F18FB;
+    u8 *src4 = D_801F18FC;
+    u32 i;
+    s32 off;
+
+    D_801C5E9C[0] = D_801F18E4[0];
+    D_801C5E9C[1] = D_801F18E4[1];
+    D_801C5E9C[2] = D_801F18E4[2];
+    D_801C5E9C[3] = D_801F18E4[3];
+    for (i = 0; i < 200; i++) {
+        off = i * 5;
+        D_801C7080[off + 0] = src0[off];
+        D_801C7080[off + 1] = src1[off];
+        D_801C7080[off + 2] = src2[off];
+        D_801C7080[off + 3] = src3[off];
+        D_801C7080[off + 4] = src4[off];
+    }
 }
-

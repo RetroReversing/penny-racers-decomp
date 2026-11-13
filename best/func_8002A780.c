@@ -1,4 +1,4 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
+/* machine draft (m2c) for sn-n64-272-0004 -G0 -mips3 -O1 -mgas -meb -mhard-float, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -15,10 +15,8 @@ typedef s32 M2C_UNK32;
 extern void *D_80046DF4;
 
 void func_8002A780(void) {
-void *__repair_cached_pointer = D_80046DF4;
-
     M2C_FIELD(D_80046DF4, s32 *, 0) = 0;
-    M2C_FIELD(__repair_cached_pointer, s32 *, 4) = 0;
+    M2C_FIELD(D_80046DF4, s32 *, 4) = 0;
     M2C_FIELD(D_80046DF4, s32 *, 8) = 0;
     M2C_FIELD(D_80046DF4, s32 *, 0xC) = 0;
 }

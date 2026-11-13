@@ -1,24 +1,32 @@
-extern unsigned char D_80168D38[];
-unsigned char func_80149F40(int a0, unsigned int a1, unsigned char a2) {
-    unsigned char v = a2;
-    if (a1 < 8) {
-        switch (a1) {
+extern u8 D_80168D38[];
+
+u8 func_80149F40(s32 arg0, u32 arg1, u8 arg2) {
+    u8 temp_v1;
+
+    temp_v1 = arg2;
+    if (arg1 < 8) {
+        switch (arg1) {
         case 0:
-            v = D_80168D38[a2];
-            if (v & 0x80) {
-                v = (v & 0x7F) + a0;
+            temp_v1 = D_80168D38[arg2];
+            if (temp_v1 & 0x80) {
+                temp_v1 = (temp_v1 & 0x7F) + arg0;
             }
             break;
         case 1:
-            if (a2 == 0x5A) {
-                v = 0;
+            if (arg2 == 0x5A) {
+                temp_v1 = 0;
             } else {
-                v = v + 1;
+                temp_v1 += 1;
             }
             break;
-        default:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
             break;
         }
     }
-    return v;
+    return temp_v1;
 }

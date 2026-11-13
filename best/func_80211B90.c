@@ -12,24 +12,24 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-extern M2C_UNK D_8021B59C;
+extern u8 D_8021B59C[];
 extern M2C_UNK D_8021B5F8;
 extern M2C_UNK D_8021B618;
-extern M2C_UNK D_8021B620;
+extern u8 D_8021B620[];
 extern M2C_UNK D_8021EEC1;
 extern u16 D_8021EEC6;
 extern u16 D_8021EEC8;
 
 void func_80211B90(void) {
-    u32 temp_v0;
     u8 temp_a0;
+    u32 temp_v0;
 
-    temp_a0 = *(&D_8021B59C + M2C_FIELD(&D_8021EEC1, u8 *, 0));
+    temp_a0 = *(u16 *)(D_8021B59C + M2C_FIELD(&D_8021EEC1, u8 *, 0));
     temp_v0 = temp_a0 >> 4;
     if ((temp_a0 & 0xF) == 6) {
         M2C_FIELD(&D_8021EEC1, u16 *, 5) = (u16) *(&D_8021B618 + (temp_v0 * 2));
     } else {
         D_8021EEC6 = *(&D_8021B5F8 + (temp_v0 * 2));
     }
-    D_8021EEC8 = *(&D_8021B620 + ((temp_a0 & 0xF) * 2));
+    D_8021EEC8 = *(u16 *)(D_8021B620 + ((temp_a0 & 0xF) * 2));
 }

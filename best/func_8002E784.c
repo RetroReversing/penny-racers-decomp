@@ -13,8 +13,8 @@ typedef s32 M2C_UNK32;
 #endif
 
 u16 func_8002E9A4(f64, f64, s32, s32, void *);      /* extern */
-void *n_alResamplePull(void *, u16 *, void *, s32);    /* extern */
-s32 osVirtualToPhysical(s32);                             /* extern */
+void *func_8002F250(void *, u16 *, void *, s32);    /* extern */
+s32 func_80034640(s32);                             /* extern */
 extern M2C_UNK D_80046F90;
 
 void *func_8002E784(void *arg0, u16 *arg1, s32 arg3, void *arg4) {
@@ -33,7 +33,7 @@ void *func_8002E784(void *arg0, u16 *arg1, s32 arg3, void *arg4) {
     if (((M2C_FIELD(arg0, s32 *, 0x84) != 1) | temp_a3) != 0) {
         return arg4;
     }
-    var_s2 = n_alResamplePull(arg0, arg1, arg4, temp_a3);
+    var_s2 = func_8002F250(arg0, arg1, arg4, temp_a3);
     if (M2C_FIELD(arg0, s32 *, 0x78) != 0) {
         M2C_FIELD(arg0, s32 *, 0x78) = 0;
         temp_a0 = M2C_FIELD(arg0, s32 *, 0x74);
@@ -51,7 +51,7 @@ void *func_8002E784(void *arg0, u16 *arg1, s32 arg3, void *arg4) {
         temp_s2_2 = temp_s2 + 8;
         M2C_FIELD(temp_s2, s32 *, 4) = (s32) ((M2C_FIELD(arg0, u16 *, 0x60) << 0x10) | M2C_FIELD(arg0, u16 *, 0x62));
         M2C_FIELD(temp_s2, s32 *, 8) = (s32) (M2C_FIELD(arg0, u16 *, 0x6E) | 0x09040000);
-        var_s2 = temp_s2_2 + 8;
+        var_s2 = (char *)(temp_s2_2); var_s2 += (s32)(8);
         M2C_FIELD(temp_s2_2, s32 *, 4) = (s32) ((M2C_FIELD(arg0, u16 *, 0x6C) << 0x10) | M2C_FIELD(arg0, u16 *, 0x6A));
         var_s0 = var_s2;
         var_v0 = (u16) M2C_FIELD(arg0, s16 *, 0x5E) | 0x03010000;
@@ -60,7 +60,7 @@ void *func_8002E784(void *arg0, u16 *arg1, s32 arg3, void *arg4) {
         var_v0 = 0x03000000;
     }
     M2C_FIELD(var_s0, s32 *, 0) = var_v0;
-    M2C_FIELD(var_s0, s32 *, 4) = osVirtualToPhysical(M2C_FIELD(arg0, s32 *, 0x54));
+    M2C_FIELD(var_s0, s32 *, 4) = func_80034640(M2C_FIELD(arg0, s32 *, 0x54));
     *arg1 += 0x170;
     M2C_FIELD(arg0, s32 *, 0x70) = (s32) (M2C_FIELD(arg0, s32 *, 0x70) + 0xB8);
     return var_s2 + 8;

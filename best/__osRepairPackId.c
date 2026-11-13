@@ -1,168 +1,182 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 -fno-schedule-insns, tried by autopilot */
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
+/* Same-name source lead: __osRepairPackId in V-RALLY-PAL; verified ROM source. Destination verification required. */
+typedef struct S_osPfsInitPak_arg1
+{
+  s32 unk_00;
+  s32 unk_04;
+  s32 unk_08;
+  u8 unk_0C[0x40];
+  s32 unk_4C;
+  s32 unk_50;
+  s32 unk_54;
+  s32 unk_58;
+  s32 unk_5C;
+  s32 unk_60;
+  u8 unk_64;
+  u8 unk_65;
+} S_osPfsInitPak_arg1;
+s32 __osPfsSelectBank(void *, s32);
+s32 func_800937B0(void);
+s32 __osContRamRead(s32, s32, s32, u8 *);
+s32 __osContRamWrite(s32, s32, u16, u8 *, s32);
+static inline static u16 inline_fn(u16 *arg0)
+{
+  return *arg0;
+}
 
-s32 func_8003EA20();
-s32 func_8003F5B0();
-s32 func_8003F980();
-s32 func_8004077C();
-
-s32 __osRepairPackId(void *arg0, void *arg1, u8 *arg2) {
-    u8 sp18;
-    u8 sp38;
-    s16 sp58;
-    s16 sp5A;
-    s16 sp5C;
-    s16 sp5E;
-    s32 temp_v0;
-    s32 var_s0;
-    s32 var_s0_2;
-    s32 var_v0;
-    u16 temp_v1;
-    u8 *temp_a1;
-    char *var_a0;
-    char *var_a0_2;
-    char *var_a0_3;
-    char *var_a1;
-    char *var_a2;
-    char *var_s2_2;
-    char *var_v1;
-    u8 var_s2;
-
-    if ((M2C_FIELD(arg0, u8 *, 0x65) == 0) || (M2C_FIELD(arg0, u8 *, 0x65) = 0U, var_v0 = func_8004077C(), (var_v0 == 0))) {
-        M2C_FIELD(arg2, s32 *, 0) = -1;
-        M2C_FIELD(arg2, s32 *, 4) = func_8003EA20();
-        var_s2 = 0;
-        M2C_FIELD(arg2, s32 *, 8) = (s32) M2C_FIELD(arg1, s32 *, 8);
-        M2C_FIELD(arg2, s32 *, 0xC) = (s32) M2C_FIELD(arg1, s32 *, 0xC);
-        M2C_FIELD(arg2, s32 *, 0x10) = (s32) M2C_FIELD(arg1, s32 *, 0x10);
-        M2C_FIELD(arg2, s32 *, 0x14) = (s32) M2C_FIELD(arg1, s32 *, 0x14);
-loop_3:
-        M2C_FIELD(arg0, u8 *, 0x65) = var_s2;
-        var_v0 = func_8004077C(arg0);
-        if (var_v0 == 0) {
-            var_v0 = func_8003F5B0(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), 0, &sp18);
-            var_v1 = &sp18 + 1;
-            if (var_v0 == 0) {
-                sp18 = var_s2 | 0x80;
-                do {
-                    *(u8 *)var_v1 = ~*(u8 *)var_v1;
-                    var_v1 += 1;
-                } while ((s32) var_v1 < (s32) (&sp18 + 0x20));
-                var_v0 = func_8003F980(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), 0U, &sp18, 0);
-                if (var_v0 == 0) {
-                    var_v0 = func_8003F5B0(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), 0, &sp38);
-                    var_s0 = 0;
-                    if (var_v0 == 0) {
-                        var_a1 = &sp18;
-                        var_a0 = &sp38;
-loop_10:
-                        if (*(u8 *)var_a0 == *(u8 *)var_a1) {
-                            var_a1 += 1;
-                            var_s0 += 1;
-                            var_a0 += 1;
-                            if (var_s0 >= 0x20) {
-
-                            } else {
-                                goto loop_10;
-                            }
-                        }
-                        if (var_s0 == 0x20) {
-                            if ((s32) var_s2 > 0) {
-                                M2C_FIELD(arg0, u8 *, 0x65) = 0U;
-                                var_v0 = func_8004077C(arg0, var_a1);
-                                if (var_v0 == 0) {
-                                    var_v0 = func_8003F5B0(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), 0, &sp18);
-                                    if (var_v0 == 0) {
-                                        if (sp18 == 0x80) {
-                                            goto block_18;
-                                        }
-                                        goto block_19;
-                                    }
-                                }
-                                /* Duplicate return node #32. Try simplifying control flow for better match */
-                                return var_v0;
-                            }
-block_18:
-                            var_s2 += 1;
-                            if ((s32) var_s2 >= 0x3E) {
-                                goto block_19;
-                            }
-                            goto loop_3;
-                        }
-block_19:
-                        M2C_FIELD(arg0, u8 *, 0x65) = 0U;
-                        var_v0 = func_8004077C(arg0);
-                        if (var_v0 == 0) {
-                            var_a0_2 = arg2;
-                            M2C_FIELD(arg2, u8 *, 0x1A) = var_s2;
-                            M2C_FIELD(arg2, s16 *, 0x18) = (s16) (((s32) var_s2 > 0) | (M2C_FIELD(arg1, u16 *, 0x18) & 0xFFFE));
-                            M2C_FIELD(arg2, u16 *, 0x1E) = 0U;
-                            M2C_FIELD(arg2, u16 *, 0x1C) = 0U;
-                            M2C_FIELD(arg2, u8 *, 0x1B) = (u8) M2C_FIELD(arg1, u8 *, 0x1B);
-                            do {
-                                temp_v1 = *(u8 *)var_a0_2;
-                                M2C_FIELD(arg2, u16 *, 0x1C) += temp_v1;
-                                var_a0_2 += 2;
-                                M2C_FIELD(arg2, u16 *, 0x1E) += ~temp_v1;
-                                var_s0_2 = 0;
-                            } while ((u32) var_a0_2 < (u32) (arg2 + 0x1C));
-                            var_s2_2 = &sp18;
-                            sp58 = 1;
-                            sp5A = 3;
-                            sp5C = 4;
-                            sp5E = 6;
-loop_23:
-                            var_v0 = func_8003F980(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), M2C_FIELD(var_s2_2, u16 *, 0x40), arg2, 1);
-                            var_s0_2 += 1;
-                            if (var_v0 == 0) {
-                                var_s2_2 += 2;
-                                if (var_s0_2 >= 4) {
-                                    temp_v0 = func_8003F5B0(M2C_FIELD(arg0, s32 *, 4), M2C_FIELD(arg0, s32 *, 8), 1, &sp18);
-                                    var_a2 = arg2;
-                                    if (temp_v0 != 0) {
-                                        return temp_v0;
-                                    }
-                                    var_a0_3 = &sp18;
-                                    temp_a1 = var_a2 + 0x20;
-loop_29:
-                                    var_a2 += 1;
-                                    if (*(u8 *)var_a0_3 == *(u8 *)var_a2) {
-                                        var_a0_3 += 1;
-                                        if ((s32) var_a2 >= (s32) temp_a1) {
-                                            var_v0 = 0;
-                                            /* Duplicate return node #32. Try simplifying control flow for better match */
-                                            return var_v0;
-                                        }
-                                        goto loop_29;
-                                    }
-                                    return 0xA;
-                                }
-                                goto loop_23;
-                            }
-                            /* Duplicate return node #32. Try simplifying control flow for better match */
-                            return var_v0;
-                        }
-                        /* Duplicate return node #32. Try simplifying control flow for better match */
-                        return var_v0;
-                    }
-                }
-                /* Duplicate return node #32. Try simplifying control flow for better match */
-                return var_v0;
-            }
-        }
-        /* Duplicate return node #32. Try simplifying control flow for better match */
-        return var_v0;
+s32 __osRepairPackId(S_osPfsInitPak_arg1 *p, void *q, void *r)
+{
+  u8 a[0x20];
+  u8 b[0x20];
+  u8 *new_var2;
+  u16 new_var;
+  s32 bank;
+  s32 n;
+  s32 v;
+  s16 keys[4];
+  *((s32 *) r) = -1;
+  *(((s32 *) r) - -1) = func_800937B0();
+  {
+    s32 t0;
+    s32 t1;
+    t0 = ((s32 *) q)[2];
+    t1 = ((s32 *) q)[3];
+    ((s32 *) r)[2] = t0;
+    ((s32 *) r)[3] = t1;
+    t0 = ((s32 *) q)[4];
+    t1 = ((s32 *) q)[5];
+    ((s32 *) r)[4] = t0;
+    ((s32 *) r)[5] = t1;
+  }
+  bank = 0;
+  if (p->unk_65 && (v = __osPfsSelectBank(p, 0)))
+  {
+    return v;
+  }
+  do
+  {
+    if (v = __osPfsSelectBank(p, bank & 0xFF))
+    {
+      return v;
     }
-    return var_v0;
+    if (v = __osContRamRead(p->unk_04, p->unk_08, 0, a))
+    {
+      return v;
+    }
+    a[0] = (u8) (bank | 0x80);
+    for (n = 1; n < 0x20; n++)
+    {
+      a[n] = (u8) (~a[n]);
+    }
+
+    if (v = __osContRamWrite(p->unk_04, p->unk_08, 0, a, 0))
+    {
+      return v;
+    }
+    if (v = __osContRamRead(p->unk_04, p->unk_08, 0, b))
+    {
+      return v;
+    }
+    n = 0;
+    while (n < 0x20)
+    {
+      if (b[n] != a[n])
+      {
+        break;
+      }
+      n++;
+    }
+
+    if (n != 0x20)
+    {
+      break;
+    }
+      if (bank > 0)
+      {
+        if (v = __osPfsSelectBank(p, 0))
+        {
+          return v;
+        }
+        if (v = __osContRamRead(p->unk_04, p->unk_08, 0, a))
+        {
+          return v;
+        }
+        if (a[0] != 0x80)
+        {
+          break;
+        }
+      }
+      bank++;
+    if (bank >= 0x3E)
+    {
+      break;
+    }
+  }
+  while (1);
+  if (p->unk_65 && (v = __osPfsSelectBank(p, 0)))
+  {
+    return v;
+  }
+  {
+    u16 tv0;
+    u16 tv1;
+    u16 *a0p;
+    u16 *a1p;
+    u16 *a2p;
+    u16 *a3p;
+    u16 word;
+    u16 acc;
+    tv0 = ((u16 *) q)[0xC];
+    a2p = (u16 *) (((u8 *) r) + 0x1E);
+    a0p = (u16 *) r;
+    tv1 = (u16) (bank > 0);
+    ((u8 *) r)[0x1A] = (u8) bank;
+    tv0 = (u16) (tv0 & 0xFFFE);
+    tv1 = (u16) (tv1 | tv0);
+    ((u16 *) r)[0xC] = tv1;
+    new_var = (u16) ((u8 *) q)[0x1B];
+    tv0 = new_var;
+    a1p = (u16 *) (((u8 *) r) + 0x1C);
+    a3p = a1p;
+    *((u16 *) (((u8 *) r) + 0x1E)) = 0;
+    *a1p = 0;
+    ((u8 *) r)[0x1B] = (u8) tv0;
+    new_var2 = (u8 *) a3p;
+    do
+    {
+      word = inline_fn(a0p);
+      acc = inline_fn(a1p);
+      acc += word;
+      *a1p = acc;
+      acc = inline_fn(a2p);
+      a0p = (u16 *) (((u8 *) a0p) + 2);
+      acc += (u16) (~word);
+      *a2p = acc;
+    }
+    while (((u8 *) a0p) < new_var2);
+  }
+  keys[0] = 1;
+  keys[1] = 3;
+  keys[2] = 4;
+  keys[3] = 6;
+  for (n = 0; n < 4; n++)
+  {
+    if (v = __osContRamWrite(p->unk_04, p->unk_08, (u16) keys[n], (u8 *) r, 1))
+    {
+      return v;
+    }
+  }
+
+  if (v = __osContRamRead(p->unk_04, p->unk_08, 1, a))
+  {
+    return v;
+  }
+  for (n = 0; n < 0x20; n++)
+  {
+    if (a[n] != ((u8 *) r)[n])
+    {
+      return 10;
+    }
+  }
+
+  return 0;
 }

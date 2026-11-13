@@ -1,39 +1,21 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
-
-M2C_UNK _n_handleEvent(void *);                      /* extern */
-s32 func_8002D0CC(void *, void *);                  /* extern */
-M2C_UNK func_8002D164(void *, s16 *, s32);          /* extern */
+s32 _n_handleEvent(void *);
+s32 func_8002D0CC(void *, void *);
+s32 func_8002D164(void *, s16 *, s32);
 
 s32 _n_sndpVoiceHandler(void *arg0) {
-    s16 sp10;
-    s32 temp_v0;
-    void *var_a0;
+    s16 sp10[8];
+    s32 ret;
 
-    __repair_rows: {
-        if (M2C_FIELD(arg0, s16 *, 0x28) == 5) {
-            sp10 = 5;
-            func_8002D164(arg0 + 0x14, &sp10, M2C_FIELD(arg0, s32 *, 0x48));
-            var_a0 = arg0 + 0x14;
+    do {
+        if (*(s16 *)((s8 *)arg0 + 0x28) == 5) {
+            sp10[0] = 5;
+            func_8002D164((s8 *)arg0 + 0x14, sp10, *(s32 *)((s8 *)arg0 + 0x48));
         } else {
-            _n_handleEvent(arg0 + 0x28);
-            var_a0 = arg0 + 0x14;
+            _n_handleEvent((s8 *)arg0 + 0x28);
         }
-        temp_v0 = func_8002D0CC(var_a0, arg0 + 0x28);
-        M2C_FIELD(arg0, s32 *, 0x4C) = temp_v0;
-    }
-if (temp_v0 == 0) goto __repair_rows;
-    M2C_FIELD(arg0, s32 *, 0x50) = (s32) (M2C_FIELD(arg0, s32 *, 0x50) + temp_v0);
-    return M2C_FIELD(arg0, s32 *, 0x4C);
+        ret = func_8002D0CC((s8 *)arg0 + 0x14, (s8 *)arg0 + 0x28);
+        *(s32 *)((s8 *)arg0 + 0x4C) = ret;
+    } while (ret == 0);
+    *(s32 *)((s8 *)arg0 + 0x50) += ret;
+    return *(s32 *)((s8 *)arg0 + 0x4C);
 }

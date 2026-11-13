@@ -4,6 +4,7 @@ void n_alSndpSetFXMix(s8 arg0)
 {
   s16 sp10;
   volatile unsigned int sp14;
+  volatile unsigned long pad;
   s8 sp18;
   void *temp_a2;
   temp_a2 = *((void **) (((char *) D_80046DF4) + 0xC));

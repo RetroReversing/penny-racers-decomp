@@ -1,49 +1,31 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
-
-extern M2C_UNK D_8018A288;
-extern M2C_UNK D_8018D140;
+extern u16 D_8018A288[];
+extern u16 D_8018D140[];
 
 s32 func_801496B0(s32 arg0, s32 arg1, s32 arg2) {
-    s32 var_a3;
-    s32 var_a3_2;
-    s32 var_t0;
-    s32 var_v0;
-    s32 var_v0_2;
-    u16 temp_v1;
+    s32 i;
+    s32 j;
+    s32 count;
+    s32 n;
+    u16 v;
+    u16 *row;
+    u16 mask;
 
-    var_a3 = 0;
-    var_v0 = 0 * 2;
-    __repair_rows: {
-        *(var_v0 + &D_8018A288) = 0xFFFF;
-        var_a3 += 1;
-        var_v0 = var_a3 * 2;
+    for (i = 0; i < 32; i++) {
+        D_8018A288[i] = 0xFFFF;
     }
-if (var_a3 < 0x20) goto __repair_rows;
-    var_a3_2 = 0;
-    var_t0 = 0;
-    if ((arg2 & 0xFF) > 0) {
-        var_v0_2 = 0 * 2;
-        do {
-            temp_v1 = *(var_v0_2 + (((arg0 & 0xFF) * 0x12C) + &D_8018D140));
-            var_a3_2 += 1;
-            if (((temp_v1 & 0x700) == ((arg1 << 8) & 0x700 & 0xFFFF)) && !(temp_v1 & 0x1000)) {
-                *((var_t0 * 2) + &D_8018A288) = temp_v1;
-                var_t0 += 1;
+    mask = (arg1 << 8) & 0x700;
+    j = 0;
+    n = arg2 & 0xFF;
+    count = 0;
+    if (n > 0) {
+        row = D_8018D140 + (arg0 & 0xFF) * 150;
+        for (; j < n; j++) {
+            v = row[j];
+            if (((v & 0x700) == mask) && !(v & 0x1000)) {
+                D_8018A288[count] = v;
+                count++;
             }
-            var_v0_2 = var_a3_2 * 2;
-        } while (var_a3_2 < (arg2 & 0xFF));
+        }
     }
-    return var_t0 - 1;
+    return count - 1;
 }

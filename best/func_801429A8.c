@@ -67,7 +67,7 @@ void func_801429A8(s32 arg0) {
                 *(&D_801688DE + temp_s1) = 0;
                 func_80129C1C(temp_s1 + &D_801688D8, *(&D_801688C4 + temp_s1), *(&D_801688C8 + temp_s1), *(&D_801688CC + temp_s1), 0, -300.0f, 0);
                 *(&D_8016891C + temp_s1) = *(&D_801688E4 + temp_s1);
-                func_8013E818(temp_s3, temp_s0, 0, 0, 0, 0, 0);
+                do { func_8013E818(temp_s3, temp_s0, 0, 0, 0, 0, 0); } while (0);
                 temp_v1 = temp_s3 * 0x7C;
                 *(&D_8018D6C4 + temp_v1) = &D_8022A770;
                 *(&D_8018D730 + temp_v1) = 50.0f;

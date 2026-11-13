@@ -53,7 +53,17 @@ void func_801B312C(void *arg0, void *arg1, s32 arg2, f32 arg3, f32 arg4) {
                 if (var_v1 == 1) {
                     M2C_FIELD(var_a1, f32 *, 0) = (f32) (((f32) M2C_FIELD(arg0, s8 *, 2) * 400.0f) + 75.0f + (arg3 - 75.0f));
                 } else {
-                    switch (temp_a3) {              /* switch 1; irregular */
+                    switch (temp_a3) {
+case 3:                         /* switch 1 */
+                        var_fv1 = (f32) M2C_FIELD(arg0, s8 *, 2) * 400.0f;
+                        var_fv0 = (f32) (var_t0 & 0xFF) * 75.0f;
+                        goto block_12;
+                    case 4:                         /* switch 1 */
+                        var_fv1 = (f32) M2C_FIELD(arg0, s8 *, 2) * 400.0f;
+                        var_v0 = var_t0 & 0xFF;
+                        goto block_11;
+                    case 0: break;
+              /* switch 1; irregular */
                     case 2:                         /* switch 1 */
                         var_fv1 = (f32) M2C_FIELD(arg0, s8 *, 2) * 400.0f;
                         var_v0 = (var_t0 & 0xFF) + 1;
@@ -62,14 +72,6 @@ block_11:
 block_12:
                         M2C_FIELD(var_a1, f32 *, 0) = (f32) (var_fv1 + var_fv0 + (arg3 - 75.0f));
                         break;
-                    case 3:                         /* switch 1 */
-                        var_fv1 = (f32) M2C_FIELD(arg0, s8 *, 2) * 400.0f;
-                        var_fv0 = (f32) (var_t0 & 0xFF) * 75.0f;
-                        goto block_12;
-                    case 4:                         /* switch 1 */
-                        var_fv1 = (f32) M2C_FIELD(arg0, s8 *, 2) * 400.0f;
-                        var_v0 = var_t0 & 0xFF;
-                        goto block_11;
                     }
                 }
                 if (M2C_FIELD(D_801C7AB0, u8 *, 1) == 5) {
@@ -179,8 +181,8 @@ block_60:
                     }
                     M2C_FIELD(var_a1, M2C_UNK32 *, 0xC) = 0x42B40000;
                 }
-            }
-            var_t0 += 1;
+            }/*__repair_loop_weight*/do {do {do {
+            var_t0 += 1;} while (0);} while (0);} while (0);
             var_v1 = arg2 & 0xFF;
             var_a1 += 0x10;
         } while ((u32) (var_t0 & 0xFF) < var_v1);

@@ -15,7 +15,7 @@ typedef s32 M2C_UNK32;
 f32 __cosf(f32);                                    /* extern */
 f32 __sinf(f32);                                    /* extern */
 s32 func_800DE41C(M2C_UNK, M2C_UNK, M2C_UNK, M2C_UNK, s32, s32, M2C_UNK *, M2C_UNK *, M2C_UNK *, f32, f32, f32, s32, s32, s32, f32, f32, f32); /* extern */
-extern M2C_UNK D_8011F2F0;
+extern u8 D_8011F2F0[];
 extern M2C_UNK D_8016891C;
 extern M2C_UNK D_802390C8;
 extern M2C_UNK func_801434CC;
@@ -31,7 +31,7 @@ void func_80143250(s32 arg0, s32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, u
     void *temp_s2;
     void *temp_v0_2;
 
-    temp_s2 = ((arg0 & 0xFFFF) * 0x64) + &D_8011F2F0;
+    temp_s2 = ((arg0 & 0xFFFF) * 0x64) + D_8011F2F0;
     if (arg9 != 0) {
         var_fs3 = *(&D_8016891C + (M2C_FIELD(temp_s2, u16 *, 0x40) * 0x5C));
     } else {
@@ -46,7 +46,7 @@ void func_80143250(s32 arg0, s32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, u
             temp_v0 = func_800DE41C(0, 0, 1, 0, 0x5B, arg8 & 0xFF, &D_802390C8, &func_801434CC, &func_801435A8, (temp_fs1 * arg4) + M2C_FIELD(temp_s2, f32 *, 0x18), var_fs3, (temp_fv0 * arg4) + M2C_FIELD(temp_s2, f32 *, 0x20), 0, 0, 0, arg3, arg3, arg3);
             var_s0 += 1;
             if ((u32) ((temp_v0 + 2) & 0xFFFF) >= 2U) {
-                temp_v0_2 = ((temp_v0 & 0xFFFF) * 0x64) + &D_8011F2F0;
+                temp_v0_2 = ((temp_v0 & 0xFFFF) * 0x64) + D_8011F2F0;
                 M2C_FIELD(temp_v0_2, s16 *, 8) = 0x40;
                 M2C_FIELD(temp_v0_2, s16 *, 6) = 0x40;
                 M2C_FIELD(temp_v0_2, s16 *, 4) = 0x40;

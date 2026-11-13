@@ -70,7 +70,7 @@ loop_1:
     var_a2 = var_s1;
     temp_t0 = var_a2 + 0x20;
     if (((s32) var_a2 | (s32) var_a3) & 3) {
-        do {
+        __repair_rows: {
             var_a1 = M2C_UNALIGNED32(M2C_FIELD(var_a2, M2C_UNK *, 0xC));
             M2C_FIELD(var_a3, M2C_UNK *, 0) = M2C_UNALIGNED32(M2C_FIELD(var_a2, M2C_UNK *, 0));
             M2C_FIELD(var_a3, M2C_UNK *, 4) = M2C_UNALIGNED32(M2C_FIELD(var_a2, M2C_UNK *, 4));
@@ -78,7 +78,8 @@ loop_1:
             M2C_FIELD(var_a3, M2C_UNK *, 0xC) = var_a1;
             var_a2 += 0x10;
             var_a3 += 0x10;
-        } while (var_a2 != temp_t0);
+        }
+if (var_a2 != temp_t0) goto __repair_rows;
     } else {
         do {
             var_a1 = M2C_FIELD(var_a2, s32 *, 0xC);
@@ -108,9 +109,9 @@ block_17:
         var_v1_2 = &m2c_initial_frame.view_sp16.value;
         temp_a0 = var_v1_2 + 0x20;
         do {
-            temp_v0 = *var_v1_2;
+            var_v1 = (u8)(*var_v1_2);
             var_v1_2 += 1;
-            *var_s3 = temp_v0;
+            *var_s3 = var_v1;
             var_s3 += 1;
         } while ((s32) var_v1_2 < (s32) temp_a0);
 block_18:

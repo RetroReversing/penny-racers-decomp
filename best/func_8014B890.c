@@ -5,7 +5,7 @@ extern u16 D_80189C9E;
 extern u16 D_80189CAA;
 extern s32 D_8018BC35;
 extern u16 D_80190CB2;
-void func_8014B890(s32 arg0)
+int func_8014B890(s32 arg0)
 {
   int __repair_constant = 0xC8;
   s32 var_v1;
@@ -96,5 +96,6 @@ void func_8014B890(s32 arg0)
 
   }
 
- ;
+  ;
 }
+

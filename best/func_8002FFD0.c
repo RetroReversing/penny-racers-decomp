@@ -13,8 +13,8 @@ typedef s32 M2C_UNK32;
 #endif
 
 void *__n_allocParam();
-s32 func_8002E6E4();
 s32 _allocatePVoice();
+s32 func_8002E6E4();
 extern void *D_80046DF4;
 
 s32 func_8002FFD0(void *arg0, void *arg1) {

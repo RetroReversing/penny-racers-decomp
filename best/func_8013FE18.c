@@ -23,7 +23,7 @@ extern M2C_UNK D_8011F2F0;
 extern M2C_UNK D_8011F304;
 extern M2C_UNK D_8011F32E;
 extern M2C_UNK D_8011F334;
-extern M2C_UNK D_8011F33C;
+extern u8 D_8011F33C[];
 extern M2C_UNK D_8011F340;
 extern void *D_8018A280;
 extern s32 D_8018D674;
@@ -93,7 +93,7 @@ block_14:
                 } else {
                     var_v1 = (s32) temp_fv1 & 0xFFFF;
                 }
-                *(&D_8011F33C + (var_v1 * 0x64)) = 0.4f;
+                *(D_8011F33C + (var_v1 * 0x64)) = 0.4f;
                 M2C_FIELD(*(&D_8011F340 + ((M2C_FIELD(&D_8022DD10, u16 *, 2) + 5) * 0x64)), s32 *, 4) = 0;
                 M2C_FIELD(*(&D_8011F340 + ((M2C_FIELD(&D_8022DD10, u16 *, 2) + 6) * 0x64)), s32 *, 4) = 0;
                 M2C_FIELD(*(&D_8011F340 + ((M2C_FIELD(&D_8022DD10, u16 *, 2) + 7) * 0x64)), s32 *, 4) = 0;

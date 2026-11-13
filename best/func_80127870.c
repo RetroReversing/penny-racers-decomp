@@ -20,7 +20,7 @@ void func_80127870(void *arg0, void *arg1, void *arg2, void *arg3, void *arg4)
   f32 temp_fv1_9;
   temp_fv0 = *((f32 *) (((char *) arg1) + 0));
   temp_fv1 = *((f32 *) (((char *) arg0) + 0));
-  if (temp_fv1 < temp_fv0)
+  if (temp_fv1 < (*((f32 *) (((char *) arg1) + 0))))
   {
     temp_fv0_2 = *((f32 *) (((char *) arg2) + 0));
     if (temp_fv0_2 < temp_fv1)
@@ -45,7 +45,7 @@ void func_80127870(void *arg0, void *arg1, void *arg2, void *arg3, void *arg4)
   else
   {
     temp_fv1_3 = *((f32 *) (((char *) arg2) + 0));
-    if (temp_fv1_3 < temp_fv0)
+    if (temp_fv1_3 < (*((f32 *) (((char *) arg1) + 0))))
     {
       *((f32 *) (((char *) arg3) + 0)) = temp_fv1_3;
       goto block_12;

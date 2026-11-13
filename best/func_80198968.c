@@ -12,8 +12,8 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-extern M2C_UNK D_801C6BB0;
-extern s8 D_801C6BB1;
+extern signed char D_801C6BB0;
+extern signed char D_801C6BB1;
 extern s8 D_801C6BB9;
 extern s8 D_801C7068;
 extern u8 D_801C7469;
@@ -28,10 +28,10 @@ s32 func_80198968(void) {
     if (D_801C7068 != 0) {
         switch (D_801C7469) {                       /* irregular */
         case 0:
-            if (M2C_FIELD(&D_801C6BB0, s8 *, 0) == (D_801C7068 - 1)) {
+            if (D_801C6BB0 == (D_801C7068 - 1)) {
                 var_v1 = D_801C6BB9;
-                if (M2C_FIELD(&D_801C6BB0, s8 *, 1) != var_v1) {
-                    var_v0 = M2C_FIELD(&D_801C6BB0, s8 *, 1) - 1;
+                if (D_801C6BB1 != var_v1) {
+                    var_v0 = D_801C6BB1 - 1;
 block_17:
                     if (var_v1 != var_v0) {
                         goto block_18;
@@ -43,18 +43,18 @@ block_18:
             }
             break;
         case 1:
-            if (M2C_FIELD(&D_801C6BB0, s8 *, 0) == (D_801C7068 - 1)) {
-                var_v1 = M2C_FIELD(&D_801C6BB0, s8 *, 1);
+            if (D_801C6BB0 == (D_801C7068 - 1)) {
+                var_v1 = D_801C6BB1;
 block_16:
                 var_v0 = D_801C6BB9;
                 goto block_17;
             }
             goto block_18;
         case 2:
-            if (M2C_FIELD(&D_801C6BB0, s8 *, 0) == (D_801C7068 - 1)) {
+            if (D_801C6BB0 == (D_801C7068 - 1)) {
                 var_v1 = D_801C6BB9;
-                if (M2C_FIELD(&D_801C6BB0, s8 *, 1) != var_v1) {
-                    var_v0 = M2C_FIELD(&D_801C6BB0, s8 *, 1) + 1;
+                if (D_801C6BB1 != var_v1) {
+                    var_v0 = D_801C6BB1 + 1;
                     goto block_17;
                 }
             } else {
@@ -63,7 +63,7 @@ block_16:
             break;
         case 3:
             temp_v1 = D_801C7068 - 1;
-            if ((M2C_FIELD(&D_801C6BB0, s8 *, 0) == temp_v1) || ((M2C_FIELD(&D_801C6BB0, s8 *, 0) + 1) == temp_v1)) {
+            if ((D_801C6BB0 == temp_v1) || ((D_801C6BB0 + 1) == temp_v1)) {
                 var_v1 = D_801C6BB1;
                 goto block_16;
             }

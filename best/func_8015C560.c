@@ -33,7 +33,7 @@ void func_8015C560(void **arg0, s32 arg1) {
     u8 temp_t5;
     void *temp_a0_2;
     void *temp_a1;
-    void *temp_v0;
+    
     void *temp_v1;
     void *temp_v1_10;
     void *temp_v1_11;
@@ -79,17 +79,17 @@ void func_8015C560(void **arg0, s32 arg1) {
         *arg0 = temp_v1_7 + 8;
         M2C_FIELD(temp_v1_7, s32 *, 0) = 0xF2000000;
         M2C_FIELD(temp_v1_7, M2C_UNK **, 4) = (M2C_UNK *)0x7C000;
-        var_t0 = 0;
-        temp_t2 = temp_t5 << 6;
+        var_t0 = 0;do{
+        temp_a0 = temp_t5 << 6;}while(0);
         do {
             temp_v1_8 = var_t0 * 0x10;
-            temp_v0 = temp_v1_8 + (temp_t2 + ((D_80046834 * 0x1C0) + &D_80189DC8));
-            temp_v1_9 = temp_v1_8 + (temp_t2 + &D_80189970);
-            M2C_FIELD(temp_v0, s32 *, 0) = (s32) M2C_FIELD(temp_v1_9, s32 *, 0);
-            M2C_FIELD(temp_v0, s32 *, 4) = (s32) M2C_FIELD(temp_v1_9, s32 *, 4);
-            M2C_FIELD(temp_v0, s32 *, 8) = (s32) M2C_FIELD(temp_v1_9, s32 *, 8);
-            M2C_FIELD(temp_v0, s32 *, 0xC) = (s32) M2C_FIELD(temp_v1_9, s32 *, 0xC);
-            var_t0 += 1;
+            temp_a0_2 = temp_v1_8 + (temp_a0 + ((D_80046834 * 0x1C0) + &D_80189DC8));
+            temp_v1_9 = temp_v1_8 + (temp_a0 + &D_80189970);
+            M2C_FIELD(temp_a0_2, s32 *, 0) = (s32) M2C_FIELD(temp_v1_9, s32 *, 0);
+            M2C_FIELD(temp_a0_2, s32 *, 4) = (s32) M2C_FIELD(temp_v1_9, s32 *, 4);
+            M2C_FIELD(temp_a0_2, s32 *, 8) = (s32) M2C_FIELD(temp_v1_9, s32 *, 8);
+            M2C_FIELD(temp_a0_2, s32 *, 0xC) = (s32) M2C_FIELD(temp_v1_9, s32 *, 0xC);/*__repair_loop_weight*/do {
+            var_t0 += 1;} while (0);
         } while (var_t0 < 4);
         temp_a1 = *arg0;
         *arg0 = temp_a1 + 8;

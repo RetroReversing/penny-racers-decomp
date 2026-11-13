@@ -28,7 +28,7 @@ void *n_alResamplePull(s16 *arg0, u16 *arg1, s32 arg2) {
 
     sp10 = 0x170;
     if (M2C_FIELD(arg0, s32 *, 0x48) != 0) {
-        temp_v0 = n_alAdpcmPull(arg0, &sp10, (s16 *)0xB8, arg2);
+        temp_v0 = n_alAdpcmPull(&sp10, (s16 *)0xB8, arg2);
         M2C_FIELD(temp_v0, s32 *, 0) = (s32) ((sp10 & 0xFFFFFF) | 0x0A000000);
         var_s2 = temp_v0 + 8;
         M2C_FIELD(temp_v0, s32 *, 4) = (s32) ((*arg1 << 0x10) | 0x170);

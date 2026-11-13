@@ -5,6 +5,7 @@ inline static float inline_fn(float arg0)
 
 void guLookAtF(float mf[4][4], float xEye, float yEye, float zEye, float xAt, float yAt, float zAt, float xUp, float yUp, float zUp)
 {
+  volatile unsigned char pad;
   float len;
   float xLook;
   float yLook;
@@ -13,24 +14,24 @@ void guLookAtF(float mf[4][4], float xEye, float yEye, float zEye, float xAt, fl
   float yRight;
   float zRight;
   func_80032CC0(mf);
-  xLook = xAt - xEye;
+  xLook = (long) (xAt - xEye);
   yLook = yAt - yEye;
   zLook = zAt - zEye;
   len = (-1.0) / func_80032310(((xLook * xLook) + inline_fn(yLook * yLook)) + (zLook * ((double) zLook)));
   xLook *= len;
   yLook *= len;
   zLook *= len;
-  xRight = (yUp * zLook) - (zUp * yLook);
+  xRight = (yUp * zLook) - ((double) (zUp * yLook));
   yRight = (zUp * xLook) - (xUp * zLook);
   zRight = (xUp * yLook) - (yUp * xLook);
-  len = 1.0 / func_80032310(((xRight * xRight) + (yRight * yRight)) + (zRight * zRight));
+  len = 1.0 / func_80032310(((yRight * yRight) + (xRight * xRight)) + (zRight * zRight));
   xRight *= len;
   yRight *= len;
   zRight *= len;
   xUp = (yLook * zRight) - (zLook * yRight);
   yUp = (zLook * xRight) - (xLook * zRight);
   zUp = (xLook * yRight) - (yLook * xRight);
-  len = 1.0 / func_80032310(((xUp * xUp) + (yUp * yUp)) + (zUp * zUp));
+  len = 1.0 / func_80032310(((yUp * yUp) + (xUp * xUp)) + (zUp * zUp));
   xUp *= len;
   yUp *= len;
   zUp *= len;

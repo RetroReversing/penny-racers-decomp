@@ -2,8 +2,9 @@ s32 func_8002D164(void *, s16 *, s32);
 extern void *D_80046DF4;
 void n_alSndpPlay(void)
 {
+  s32 pad[2];
   s16 sp10;
-  volatile char sp14;
+  volatile unsigned int sp14;
   s32 temp_a1;
   void *temp_a0;
   temp_a0 = *((void **) (((char *) D_80046DF4) + 0xC));
@@ -15,4 +16,3 @@ void n_alSndpPlay(void)
     func_8002D164(temp_a0 + 0x14, &sp10, 0);
   }
 }
-

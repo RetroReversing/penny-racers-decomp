@@ -13,8 +13,8 @@ typedef s32 M2C_UNK32;
 #endif
 
 M2C_UNK func_80128880(void *, M2C_UNK, M2C_UNK, s32, f32, f32, f32); /* extern */
-extern M2C_UNK D_8011F2F0;
+extern u8 D_8011F2F0[];
 
 void func_80129C1C(void *arg0, M2C_UNK arg1, M2C_UNK arg2, s32 arg3, f32 arg4, f32 arg5, f32 arg6) {
-    func_80128880((M2C_FIELD(arg0, u16 *, 4) * 0x64) + &D_8011F2F0, arg1, arg2, arg3, arg4, arg5, arg6);
+    func_80128880((M2C_FIELD(arg0, u16 *, 4) * 0x64) + D_8011F2F0, arg1, arg2, arg3, arg4, arg5, arg6);
 }

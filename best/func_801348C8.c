@@ -47,11 +47,11 @@ void func_801348C8(s32 arg0) {
     case 0:
         temp_v1_2 = (arg0 & 0xFFFF) * 0x64;
         temp_a1 = *(D_8011F2FC + temp_v1_2) + 8;
-        if (temp_a1 >= 0xFFU) {
-            *(D_8011F2FC + temp_v1_2) = 0xFF;
+        if (temp_a1 < 0xFFU) {
+            *(D_8011F2FC + ((arg0 & 0xFFFF) * 0x64)) = temp_a1;
             var_v1 = arg0 & 0xFFFF;
         } else {
-            *(D_8011F2FC + ((arg0 & 0xFFFF) * 0x64)) = temp_a1;
+            *(D_8011F2FC + temp_v1_2) = 0xFF;
             var_v1 = arg0 & 0xFFFF;
         }
         temp_a2 = var_v1 * 0x64;

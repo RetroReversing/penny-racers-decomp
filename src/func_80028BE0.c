@@ -14,13 +14,13 @@ typedef s32 M2C_UNK32;
 
 M2C_UNK func_80028C20();                            /* extern */
 s32 func_80029550();                                /* extern */
-M2C_UNK func_80029FB0();                            /* extern */
+M2C_UNK nuContMgrInit();                            /* extern */
 
 s32 func_80028BE0(void) {
     s32 temp_s0;
 
     temp_s0 = func_80029550();
-    func_80029FB0();
+    nuContMgrInit();
     func_80028C20();
     return temp_s0 & 0xFF;
 }

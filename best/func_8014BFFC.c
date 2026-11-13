@@ -1,3 +1,4 @@
+static __inline__ int __repair_inline(s32 a, s32 b) { return a > b; }
 /* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
@@ -23,19 +24,18 @@ void func_8014BFFC(void) {
     s32 var_v0;
 
     var_a1 = D_8021E1A2 + 1;
-    if ((var_a1 != 4) && (var_a1 < 4)) {
+    if ((var_a1 != 4) && (__repair_inline(4, var_a1))) {
         do {
             var_a0 = 0;
             temp_v0 = var_a1 << 5;
             var_v0 = 0 * 4;
 loop_4:
             *(var_v0 + (temp_v0 + &D_8018D3A0)) = *(var_v0 + (temp_v0 + &D_8018A3B8));
-            var_a0 += 1;
-            var_v0 = var_a0 * 4;
-            if (var_a0 < 8) {
+            var_a0 += 1;{ s32 __repair_value; __repair_value = var_a0 * 4; var_v0 = __repair_value; }
+            if (__repair_inline(8, var_a0)) {
                 goto loop_4;
             }
             var_a1 += 1;
-        } while (var_a1 < 4);
+        } while (__repair_inline(4, var_a1));
     }
 }

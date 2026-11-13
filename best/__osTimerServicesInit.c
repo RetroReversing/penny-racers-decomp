@@ -1,18 +1,12 @@
-/* Partial candidate from function #3193 in project #2; rechecked locally. */
-extern void *D_800B4948;
-extern s32 D_800F7678,D_800F767C,D_800F7680,D_800F7684;
-void __osTimerServicesInit(s32 a0, s32 a1) {
-  s32 *p = D_800B4948;
-  D_800F7680 = a0;
-  D_800F7684 = a1;
-  D_800F7678 = 0;
-  D_800F767C = 0;
-  p[4] = a0;
-  p[5] = a1;
-  p[2] = a0;
-  p[3] = a1;
-  p[1] = (s32)p;
-  p[0] = (s32)p;
-  p[6] = 0;
-  p[7] = 0;
+/* Same-name source lead: __osTimerServicesInit in V-RALLY-PAL; verified ROM source. Destination verification required. */
+typedef struct T {struct T *next,*prev; u64 interval,value; void *mq; s32 msg;} T;
+extern T *__osTimerList;
+extern u8 D_800AE850;
+void __osTimerServicesInit(void){
+T *p=__osTimerList;
+*(u64*)((u8*)&D_800AE850+0x7918)=0;
+*(s32*)((u8*)&D_800AE850+4)=0;
+*(s32*)((u8*)&D_800AE850+0x2528)=0;
+p->value=0; p->interval=0;
+p->prev=p;p->next=p;p->mq=0;p->msg=0;
 }

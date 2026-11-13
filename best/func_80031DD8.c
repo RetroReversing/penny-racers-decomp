@@ -12,8 +12,8 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK alLink(void *, void *);              /* extern */
-M2C_UNK alUnlink(void *);                      /* extern */
+M2C_UNK alLink(void *, void *);                     /* extern */
+M2C_UNK alUnlink(void *);                           /* extern */
 
 void func_80031DD8(void *arg0, void *arg1) {
     u16 temp_s3;
@@ -32,7 +32,7 @@ loop_2:
             if (temp_s2 != NULL) {
                 M2C_FIELD(temp_s2, s32 *, 8) = (s32) (M2C_FIELD(temp_s2, s32 *, 8) + M2C_FIELD(var_s0, s32 *, 8));
             }
-            do { alLink(var_s0, arg0 + 0x48); } while (0);
+            alLink(var_s0, arg0 + 0x48);
             if ((s16) temp_s3 == 0x16) {
                 var_v0 = M2C_FIELD(arg1, u8 *, 0x37) & 0xFE;
             } else {

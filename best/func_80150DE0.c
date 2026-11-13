@@ -13,7 +13,7 @@ typedef s32 M2C_UNK32;
 #endif
 
 M2C_UNK func_8013AE60(s32);                         /* extern */
-extern M2C_UNK D_8011F31C;
+extern f32 D_8011F31C;
 extern f64 D_80183790;
 
 void func_80150DE0(s32 arg0) {

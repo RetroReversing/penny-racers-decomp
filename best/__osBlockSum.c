@@ -1,42 +1,33 @@
-s32 func_8003F5B0();
-s32 func_8003FD40();
-s32 func_8004077C();
-s32 __osBlockSum(void *arg0, u8 arg1, u16 *arg2, s8 arg3)
+s32 __osContRamRead(void *, s32, s32, u8 *);
+s32 __osPfsSelectBank(void *, s32);
+volatile int __osSumcalc(u8 *, s32);
+s32 __osBlockSum(void *arg0, s32 arg1, u16 *arg2, s8 arg3)
 {
-  s32 sp10;
-  s32 temp_v0;
-  s32 var_s1;
-  *((s8 *) (((char *) arg0) + 0x65)) = arg3;
-  temp_v0 = func_8004077C();
-  var_s1 = 0;
-  if (temp_v0 != 0)
+  u8 sp10[32];
+  s32 ret;
+  s32 i;
+  if (1)
   {
-    return temp_v0;
-  }
-  loop_4:
-  temp_v0 = func_8003F5B0(*((s32 *) (((char *) arg0) + 4)), *((s32 *) (((char *) arg0) + 8)), (((arg1 & 0xFF) * 8) + var_s1) & 0xFFFF, &sp10);
-
-  if (temp_v0 == 0)
-  {/*__repair_loop_weight*/do {do {do {
-    var_s1 += 1;} while (0);} while (0);} while (0);
-    *arg2 += func_8003FD40(&sp10);
-    if (var_s1 >= 8)
+    ((s8 *) arg0)[0x65] = arg3;
+    ret = __osPfsSelectBank(arg0, 0);
+    if (ret != 0)
     {
-      if (arg0 || temp_v0)
-      {
-        *((s8 *) (((char *) arg0) + 0x65)) = 0;
-        return func_8004077C(arg0);
-      }
-      else
-      {
-        *((s8 *) (((char *) arg0) + 0x65)) = 0;
-        return func_8004077C(arg0);
-      }
+      return ret;
     }
-    goto loop_4;
   }
-  *((s8 *) (((char *) arg0) + 0x65)) = 0;
-  func_8004077C(arg0);
-  return temp_v0;
+  for (i = 0; i < 8; i++)
+  {
+    ret = __osContRamRead(arg0, (((u8) arg1) * 8) + i, 0, sp10);
+    if (ret != 0)
+    {
+      ((s8 *) arg0)[0x65] = 0;
+      __osPfsSelectBank(arg0, 0);
+      return ret;
+    }
+    *arg2 += __osSumcalc(sp10, 0x20);
+  }
+
+  ((s8 *) arg0)[0x65] = 0;
+  return __osPfsSelectBank(arg0, 0);
 }
 

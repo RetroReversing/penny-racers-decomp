@@ -1,4 +1,4 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
+/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -12,10 +12,10 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 n_alLoadParam();
+M2C_UNK n_alLoadParam(s32);                         /* extern */
 
-s32 func_8002E6E4(void *arg0, s32 arg1, s32 *arg2) {
-    s32 *temp_v0;
+s32 func_8002E6E4(void *arg0, s32 arg1, M2C_UNK *arg2) {
+    M2C_UNK *temp_v0;
     s32 var_a1;
 
     var_a1 = arg1;
@@ -24,13 +24,13 @@ s32 func_8002E6E4(void *arg0, s32 arg1, s32 *arg2) {
         M2C_FIELD(arg0, s32 *, 0x84) = 1;
         break;
     case 3:
-        temp_v0 = M2C_FIELD(arg0, s32 **, 0x80);
+        temp_v0 = M2C_FIELD(arg0, M2C_UNK **, 0x80);
         if (temp_v0 == NULL) {
-            M2C_FIELD(arg0, s32 **, 0x7C) = arg2;
+            M2C_FIELD(arg0, M2C_UNK **, 0x7C) = arg2;
         } else {
             *temp_v0 = arg2;
         }
-        M2C_FIELD(arg0, s32 **, 0x80) = arg2;
+        M2C_FIELD(arg0, M2C_UNK **, 0x80) = arg2;
         break;
     case 4:
         var_a1 = 4;
@@ -42,7 +42,7 @@ s32 func_8002E6E4(void *arg0, s32 arg1, s32 *arg2) {
         M2C_FIELD(arg0, s32 *, 0x48) = 0;
         /* fallthrough */
     default:
-        n_alLoadParam(arg0, var_a1);
+        n_alLoadParam(var_a1);
         break;
     }
     return 0;

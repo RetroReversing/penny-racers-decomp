@@ -1,4 +1,4 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
+/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -83,7 +83,7 @@ void func_801FF978(void) {
     var_s2 = 0;
     M2C_FIELD(&D_802038E4, s16 *, 0) = func_8002C1D0(&D_8006FB38);
     M2C_FIELD(&D_802038E4, s32 *, -0xC) = func_8002C190(&D_8006FB38);
-    do {
+    __repair_rows: {
         temp_s1 = var_s2 & 0xFF;
         temp_s0 = var_s2 * 0x1C;
         *(&D_802038E8 + temp_s0) = func_8002C0D0(&D_8006FB38, temp_s1);
@@ -92,10 +92,11 @@ void func_801FF978(void) {
         *(&D_802038F0 + temp_s0) = func_8002C0B0(&D_8006FB38, temp_s1);
         *(&D_802038F1 + temp_s0) = func_8002C0F0(&D_8006FB38, temp_s1);
         var_s2 += 1;
-    } while (var_s2 < 0x10U);
+    }
+if (var_s2 < 0x10U) goto __repair_rows;
     var_s2_2 = 0;
     var_v0 = 0 * 8;
-    __repair_rows: {
+    do {
         temp_v1 = (var_v0 - var_s2_2) * 4;
         if (*(&D_802038F2 + temp_v1) != 0) {
             func_8002C2E0(&D_8006FB38, var_s2_2 & 0xFF, *(&D_802038F7 + temp_v1));
@@ -142,8 +143,7 @@ void func_801FF978(void) {
             var_s2_2 += 1;
         }
         var_v0 = var_s2_2 * 8;
-    }
-if (var_s2_2 < 0x10U) goto __repair_rows;
+    } while (var_s2_2 < 0x10U);
     var_s2_3 = 0;
     var_a0 = 0 << 0x10;
     do {

@@ -1,4 +1,4 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
+/* machine draft (m2c) for gcc-2.7.2-kmc -G8 -mips3 -mgp32 -mfp32 -O1, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -105,7 +105,7 @@ block_12:
     func_801CA468(arg0, M2C_FIELD(&D_802002F0, u16 *, 0));
     var_s0_2 = 0;
     var_v0 = 0 * 8;
-    __repair_rows: {
+    do {
         temp_fv1_3 = (*(&D_8011F308 + (*(&D_8022A772 + ((((var_v0 + var_s0_2) * 0x10) - var_s0_2) * 0x10)) * 0x64)) / 30.0f) + 160.0f;
         if (temp_fv1_3 >= 2.1474836e9f) {
             var_a1_2 = (s32) (temp_fv1_3 - 2.1474836e9f) | 0x80000000;
@@ -125,8 +125,7 @@ block_12:
         var_s0_2 += 1;
         func_801CBDE8(arg0, var_a1_2 & 0xFFFF, var_a2_2 & 0xFFFF, 8, *((*(&D_8022AFE9 + ((((var_v0_3 + var_s0_2) * 0x10) - var_s0_2) * 0x10)) * 4) + &D_802002D0), 1, var_s0_2 & 0xFFFF);
         var_v0 = var_s0_2 * 8;
-    }
-if (var_s0_2 < 6) goto __repair_rows;
+    } while (var_s0_2 < 6);
     func_801CA468(arg0, M2C_FIELD(&D_802002EC, u16 *, 0));
     func_801CB74C(arg0, 0x18, 0x10, 8, &D_801D4FC0, &D_80203558);
 }

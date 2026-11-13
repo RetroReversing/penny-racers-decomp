@@ -15,7 +15,7 @@ typedef s32 M2C_UNK32;
 f32 __sinf(f32);                                    /* extern */
 M2C_UNK func_8013AE60(s32);                         /* extern */
 extern M2C_UNK D_8011F314;
-extern M2C_UNK D_8011F32E;
+extern u8 D_8011F32E[];
 extern M2C_UNK D_8011F334;
 extern M2C_UNK D_8011F338;
 extern f64 D_80183770;
@@ -31,9 +31,9 @@ void func_8014D458(s32 arg0) {
     temp_s0 = arg0 & 0xFFFF;
     func_8013AE60(temp_s0);
     temp_v1 = temp_s0 * 0x64;
-    if (*(&D_8011F32E + temp_v1) == 0) {
+    if (*(D_8011F32E + temp_v1) == 0) {
         *(&D_8011F338 + temp_v1) = *(&D_8011F314 + temp_v1);
-        *(&D_8011F32E + temp_v1) = 1;
+        *(D_8011F32E + temp_v1) = 1;
     }
     temp_v0 = (arg0 & 0xFFFF) * 0x64;
     *(&D_8011F334 + temp_v0) = *(&D_8011F334 + temp_v0) + 1.0f;

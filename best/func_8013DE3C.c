@@ -1,5 +1,5 @@
 s32 func_8012AD20(u16, void *, u8, u8);
-extern s32 D_800DA260;
+extern u8 D_800DA260[];
 extern s32 D_8011F2F0;
 extern s32 D_8011F304;
 extern s32 D_80238D24;
@@ -16,7 +16,7 @@ void func_8013DE3C(void *arg0)
   s32 var_a2;
   void *temp_a0;
   void *temp_v1;
-  temp_v1 = ((*((u16 *) (((char *) arg0) + 4))) * 0x178) + (&D_800DA260);
+  temp_v1 = ((*((u16 *) (((char *) arg0) + 4))) * 0x178) + (D_800DA260);
   *((u16 *) (((char *) temp_v1) + 0)) = 6U;
   *((s8 *) (((char *) temp_v1) + 0x170)) = 0;
   func_8012AD20(*((&D_8011F304) + ((*((u16 *) (((char *) arg0) + 2))) * 0x64)), arg0 + 0x210, *((u8 *) (((char *) temp_v1) + 1)), *((u8 *) (((char *) (temp_v1 + (*((u16 *) (((char *) temp_v1) + 0))))) + 0x16A)));

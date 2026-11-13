@@ -27,6 +27,7 @@ s32 func_8002E120(void *arg0, s32 arg1, s32 arg2) {
     s16 temp_v0;
     s16 temp_v1;
     s16 var_a1;
+s16 __repair_result_var_a1;
     s32 temp_a0;
     s32 temp_a0_5;
     s32 temp_a1;
@@ -78,8 +79,8 @@ loop_2:
                 M2C_FIELD(arg0, s32 *, 0x78) = 1;
                 M2C_FIELD(arg0, s32 *, 0x70) = 0;
                 M2C_FIELD(arg0, s32 *, 0x74) = (s32) (((M2C_FIELD(temp_s1, s32 *, 0x14) + 0x5C) / 184) * 0xB8);
-                temp_v0 = M2C_FIELD(temp_s1, s16 *, 0x10);
-                M2C_FIELD(arg0, s16 *, 0x5A) = (s16) ((s32) (temp_v0 * temp_v0) >> 0xF);
+                temp_v1 = M2C_FIELD(temp_s1, s16 *, 0x10);
+                M2C_FIELD(arg0, s16 *, 0x5A) = (s16) ((s32) (temp_v1 * temp_v1) >> 0xF);
                 M2C_FIELD(arg0, s16 *, 0x58) = (s16) M2C_FIELD(temp_s1, u8 *, 0x12);
                 M2C_FIELD(arg0, u16 *, 0x60) = (u16) *((M2C_FIELD(temp_s1, u8 *, 0x13) * 2) + &D_80046F90);
                 M2C_FIELD(arg0, u16 *, 0x62) = (u16) *(((0x7F - M2C_FIELD(temp_s1, u8 *, 0x13)) * 2) + &D_80046F90);
@@ -166,7 +167,7 @@ block_39:
                 break;
             default:
                 temp_v1_4 = M2C_FIELD(arg0, void **, 0x7C);
-                var_a1 = M2C_FIELD(temp_v1_4, s16 *, 8);
+                __repair_result_var_a1 = M2C_FIELD(temp_v1_4, s16 *, 8);
                 var_a2 = M2C_FIELD(temp_v1_4, s32 *, 0xC);
                 var_s3 = func_8002E784(arg0, &sp18, &sp1A, temp_s2, var_s3);
                 goto block_39;

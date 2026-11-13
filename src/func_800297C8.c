@@ -12,9 +12,9 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_80029710(M2C_UNK *);                   /* extern */
+M2C_UNK nuSiCallBackRemove(M2C_UNK *);                   /* extern */
 extern M2C_UNK D_80046D70;
 
 void func_800297C8(void) {
-    func_80029710(&D_80046D70);
+    nuSiCallBackRemove(&D_80046D70);
 }

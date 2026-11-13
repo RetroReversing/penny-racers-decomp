@@ -1,4 +1,4 @@
-extern s32 D_80189CC9;
+extern u8 D_80189CC9[];
 extern u8 D_8018A276;
 extern s32 D_8018A277;
 extern s32 D_8018D3A0;
@@ -22,7 +22,7 @@ void func_8014981C(s32 arg0)
   var_v0 = 0 & 0xFF;
   __repair_rows:
   {
-    *((&D_80189CC9) + var_v0) = 0;
+    *((D_80189CC9) + var_v0) = 0;
     var_t0 += 1;
     var_v1 = var_t0 & 0xFF;
     var_v0 = var_v1;
@@ -87,7 +87,7 @@ void func_8014981C(s32 arg0)
         }
         var_v0_2 = var_t0_2 & 0xFF;
       }
-      *((&D_80189CC9) - (-var_v0_2)) = var_a3;
+      *((D_80189CC9) - (-var_v0_2)) = var_a3;
       do
       {
         do

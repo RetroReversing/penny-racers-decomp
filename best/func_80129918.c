@@ -26,6 +26,7 @@ void func_80129918(void *arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5,
     f32 var_fs0;
     f32 var_fs1;
     f32 var_fs2;
+f32 __repair_var_fs2_1;
     s32 temp_v0;
     s32 temp_v1;
     u8 temp_s3;
@@ -58,7 +59,7 @@ loop_3:
     temp_fv0 = M2C_FIELD(arg0, f32 *, 0x10);
     var_fs0 = temp_fv1 - arg1;
     var_fs1 = temp_ft0 - arg2;
-    var_fs2 = temp_fv0 - arg3;
+    __repair_var_fs2_1 = temp_fv0 - arg3;
     temp_s3 = var_s2 | M2C_FIELD(arg0, u8 *, 1);
     var_s2 = temp_s3;
     temp_s4 = var_s1 + M2C_FIELD(arg0, u8 *, 2);
@@ -68,7 +69,7 @@ loop_3:
             temp_v1 = func_80129348(temp_s6, temp_s5, temp_fv1, temp_ft0, temp_fv0) & 0xFF;
             if (temp_v1 != 0) {
                 if (temp_v1 == 2) {
-                    func_80127AB0(arg0, (M2C_FIELD(arg0, u16 *, 4) * 0x64) + &D_8011F2F0, 0x41400000, arg1, arg2, arg3, var_fs0, var_fs1, var_fs2, 1);
+                    func_80127AB0(arg0, (M2C_FIELD(arg0, u16 *, 4) * 0x64) + &D_8011F2F0, 0x41400000, arg1, arg2, arg3, var_fs0, var_fs1, __repair_var_fs2_1, 1);
                     temp_fv1_2 = M2C_FIELD(arg0, f32 *, 8);
                     temp_ft0_2 = M2C_FIELD(arg0, f32 *, 0xC);
                     temp_fv0_2 = M2C_FIELD(arg0, f32 *, 0x10);

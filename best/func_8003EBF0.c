@@ -1,4 +1,3 @@
-/* Partial candidate from function #273623 in project #72; rechecked locally. */
 void func_8000F020(void);
 void func_8003EBF0(u32 arg0, s32 arg1)
 {
@@ -12,7 +11,7 @@ void func_8003EBF0(u32 arg0, s32 arg1)
   }
   t1 = arg0;
   t3 = 0x2000;
-  if (((u32) arg1) < t3)
+  if (((u32) arg1) <= (t3 - 1))
   {
     t0 = t1;
     t1 = t1 + arg1;

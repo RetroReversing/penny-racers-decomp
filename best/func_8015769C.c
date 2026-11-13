@@ -1,24 +1,16 @@
-s32 func_8013AE60(s32);
-extern s32 D_8011F32E;
-inline static s32 inline_fn(s32 *arg0)
-{
-  return *arg0;
-}
-
+s32 func_8013AE60();
+extern char D_8011F32E[];
 void func_8015769C(s32 arg0)
 {
   s32 temp_s0;
   s32 temp_v1;
-  do
-  {
-    func_8013AE60(temp_s0 = arg0 & 0xFFFF);
-  }
-  while (0);
+  temp_s0 = arg0 & 0xFFFF;
+  func_8013AE60(temp_s0);
   temp_v1 = temp_s0 * 0x64;
-  *((&D_8011F32E) + temp_v1) = inline_fn((&D_8011F32E) + temp_v1) + 1;
-  if (((u16) (*((&D_8011F32E) + temp_v1))) >= 0x80U)
+  *(D_8011F32E + (temp_s0 * 0x64)) = (*(D_8011F32E + temp_v1)) + 1;
+  if (((u16) (*(D_8011F32E + temp_v1))) >= 0x80U)
   {
-    *((&D_8011F32E) + temp_v1) = (*((&D_8011F32E) + temp_v1)) - 0x7F;
+    *(D_8011F32E + temp_v1) = (*(D_8011F32E + temp_v1)) - 0x7F;
   }
 }
 

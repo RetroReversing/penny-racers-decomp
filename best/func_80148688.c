@@ -38,10 +38,10 @@ void func_80148688(s32 arg0, s32 arg1) {
         M2C_FIELD(var_a2, u8 *, 0) = var_v0;
     }
     if (arg0 & 2) {
-        if (M2C_FIELD(var_a2, u8 *, 0) == (*var_a3 - 1)) {
-            M2C_FIELD(var_a2, u8 *, 0) = 0U;
-        } else {
+        if (M2C_FIELD(var_a2, u8 *, 0) != (*var_a3 - 1)) {
             M2C_FIELD(var_a2, u8 *, 0) = (u8) (M2C_FIELD(var_a2, u8 *, 0) + 1);
+        } else {
+            M2C_FIELD(var_a2, u8 *, 0) = 0U;
         }
     }
     M2C_FIELD(&D_80183BD3, u8 *, 0) = (u8) M2C_FIELD(var_a2, u8 *, 0);

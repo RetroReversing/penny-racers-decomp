@@ -1,70 +1,35 @@
-s32 func_80033A90(s32 *, s32 *, s32);
-s32 osCreateThread(s32 *, s32, s32 *, s32 *, s32 *, s32);
-s32 func_80034090(s32, s32 *, s32);
-volatile unsigned short osSetThreadPri(s32, s32);
-s32 osStartThread(s32 *);
-s32 func_8003D9B0();
-s32 func_8003EAC0();
-s32 func_8003EAE0(s32);
-s32 func_8003EDA0(s32);
-extern s32 D_80048130;
-extern s32 *D_80048134;
-extern s32 *D_80048138;
-extern s32 *D_8004813C;
-extern s32 *D_80048140;
-extern s32 *D_80048144;
-extern s32 *D_80048148;
-extern s32 D_80048160;
-extern s32 D_8006D590;
-extern s32 D_8006E740;
-extern s32 D_8006E758;
-extern s32 D_8006FF50;
-extern s32 func_8003D1A0;
-extern s32 func_8003D5F0;
-extern s32 func_800417F0;
-void osCreatePiManager(s32 arg0, s32 *arg1, s32 *arg2, s32 arg3)
-{
-  s32 temp_v0;
-  s32 temp_v0_2;
-  s32 var_s2;
-  if (D_80048130 == 0)
-  {
-    func_80033A90(arg1, arg2, arg3);
-    do
-    {
-      func_80033A90(&D_8006E740, &D_8006E758, 1);
-    }
-    while (0);
-    if (D_80048160 == 0)
-    {
-      func_8003D9B0();
-    }
-    func_80034090(8, &D_8006E740, 0x22222222);
-    var_s2 = -1;
-    temp_v0 = func_8003EDA0(0);
-    if (temp_v0 < arg0)
-    {
- do { var_s2 = temp_v0; } while (0);
-      osSetThreadPri(0, arg0);
-    }
-    temp_v0_2 = func_8003EAC0();
-    D_80048130 = 1;
-    D_80048140 = &D_8006FF50;
-    D_80048144 = &func_800417F0;
-    D_80048148 = &func_8003D1A0;
-    D_80048134 = &D_8006D590;
-    D_80048138 = arg1;
-    D_8004813C = &D_8006E740;
-    osCreateThread(&D_8006D590, 0, &func_8003D5F0, &D_80048130, &D_8006E740, arg0);
-    osStartThread(&D_8006D590);
-    do
-    {
-      func_8003EAE0(temp_v0_2);
-    }
-    while (0);
-    if (var_s2 != (-1))
-    {
-      osSetThreadPri(0, temp_v0);
-    }
-  }
+/* adapted from similar verified C in func_80090250 in V-RALLY-PAL (matched), with its names changed by decompdecomp */
+extern s32 D_800A2540;
+extern void *D_800A2544,*D_800A2548,*D_800A254C,*D_800A2550,*D_800A2554,*D_800A2558;
+extern s32 D_800A39A0;
+extern u8 D_800A73E0[],D_800AE850[];
+extern u8 D_800AB9E0[], D_800ACB90[], D_800ACBA8[], D_800B6FF8[];
+extern void __osDevMgrMain(void),pi_raw_start_dma(void),PiRawStartDma(void),func_800903F0(void);
+extern s32 func_800937D0(s32),__osPiCreateAccessQueue(void),__osDisableInt(void),func_8003EAE0(s32);
+extern s32 osCreateMesgQueue(void *,void *,s32),osCreateThread(void *,s32,void (*)(void),void *,void *,s32),osStartThread(void *),osSetEventMesg(s32,void *,s32),osSetThreadPri(s32,s32);
+void osCreatePiManager(s32 arg0,void *arg1,void *arg2,s32 arg3){
+ s32 *flag=&D_800A2540; s32 temp_v0,temp_v0_2,var_s2; void *temp_s0,*temp_s1;
+ if(*flag) return;
+ func_800903F0();
+ osCreateMesgQueue(arg1,arg2,arg3);
+ temp_s0=D_800ACB90;
+ osCreateMesgQueue(temp_s0,D_800ACBA8,1);
+ if(D_800A39A0==0) __osPiCreateAccessQueue();
+ osSetEventMesg(8,temp_s0,0x22222222);
+ var_s2=-1;
+ temp_v0=func_800937D0(0);
+ if(temp_v0<arg0){var_s2=temp_v0;osSetThreadPri(0,arg0);}
+ temp_v0_2=__osDisableInt();
+ temp_s1=D_800AB9E0;
+ *flag=1;
+ D_800A2550=D_800AE850+0x87A8;
+ D_800A2554=pi_raw_start_dma;
+ D_800A2558=PiRawStartDma;
+ D_800A254C=temp_s0;
+ D_800A2544=temp_s1;
+ D_800A2548=arg1;
+ osCreateThread(temp_s1,0,__osDevMgrMain,flag,D_800A73E0+0x57B0,arg0);
+ osStartThread(temp_s1);
+ func_8003EAE0(temp_v0_2);
+ if(var_s2!=-1) osSetThreadPri(0,var_s2);
 }

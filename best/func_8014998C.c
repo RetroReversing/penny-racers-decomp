@@ -1,3 +1,4 @@
+static __inline__ int __repair_inline(s32 a, s32 b) { return a > b; }
 /* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
@@ -25,23 +26,27 @@ extern u8 D_80237637;
 extern u8 D_80237639;
 
 void func_8014998C(void) {
+char *__repair_addr;
+
     s32 var_v0;
     s32 var_v1;
-    s32 var_v1_2;
+    
 
     var_v1 = 0;
     do {
         *(&D_8018BC35 + var_v1) = 0xFF;
         var_v1 += 1;
-    } while (var_v1 < 6);
+    } while (__repair_inline(6, var_v1));
     if (D_80189B34 == 2) {
-        var_v1_2 = 0;
+        var_v1 = 0;
         var_v0 = 0 * 2;
         do {
-            *(&D_8018BC35 + var_v1_2) = M2C_FIELD((var_v0 + &D_80237632), u8 *, 1);
-            var_v1_2 += 1;
-            var_v0 = var_v1_2 * 2;
-        } while (var_v1_2 < 6);
+__repair_addr = (char *)((var_v0 + &D_80237632));
+
+            *(&D_8018BC35 + var_v1) = M2C_FIELD(__repair_addr, u8 *, 1);
+            var_v1 += 1;
+            var_v0 = var_v1 * 2;
+        } while (__repair_inline(6, var_v1));
     }
     if (D_80189B34 == 1) {
         switch (D_8021E1A2) {                       /* irregular */

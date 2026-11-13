@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-extern M2C_UNK D_8011F2F0;
+extern u8 D_8011F2F0[];
 extern M2C_UNK D_8011F2F2;
 extern u16 D_80233EC0;
 
@@ -30,7 +30,7 @@ void func_8013AE60(s32 arg0) {
     __repair_rows: {
         temp_a0 = var_a1 * 2;
         var_v1 = temp_a0 + temp_a2;
-        if (*(temp_a0 + (((D_80233EC0 + *(&D_8011F2F0 + temp_a3)) * 0x64) + &D_8011F2F2)) & 8) {
+        if (*(temp_a0 + (((D_80233EC0 + *(D_8011F2F0 + temp_a3)) * 0x64) + &D_8011F2F2)) & 8) {
             var_v0 = *var_v1 | 8;
         } else {
             var_v1 = (var_a1 * 2) + temp_a2;

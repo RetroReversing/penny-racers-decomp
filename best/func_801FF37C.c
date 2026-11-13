@@ -1,28 +1,14 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
-
-s16 func_80027EE0(s32);                             /* extern */
-M2C_UNK func_8002D030(s16);                         /* extern */
-M2C_UNK n_alSndpSetPan(s32);                        /* extern */
-M2C_UNK n_alSndpSetPitch(f32);                      /* extern */
-M2C_UNK n_alSndpSetVol(s16);                        /* extern */
-M2C_UNK n_alSndpStop();                             /* extern */
-extern M2C_UNK D_801D75E6;
-extern M2C_UNK D_801D7DF4;
-extern M2C_UNK D_801D7E00;
-extern M2C_UNK D_801D7E04;
-extern M2C_UNK D_801D7E08;
+s16 func_80027EE0(s32);
+void func_8002D030(s16);
+void n_alSndpSetPan(s32);
+void n_alSndpSetPitch(f32);
+void n_alSndpSetVol(s16);
+void n_alSndpStop(void);
+extern u8 D_801D75E6[];
+extern u8 D_801D7DF4[];
+extern u8 D_801D7E00[];
+extern u8 D_801D7E04[];
+extern u8 D_801D7E08[];
 extern s8 D_801E995A;
 extern s8 D_801E995B;
 extern s32 D_801E9990;
@@ -34,8 +20,8 @@ extern s32 D_801E99A8;
 extern s32 D_801E99AC;
 extern s32 D_801E99C0;
 extern s32 D_801E99C4;
-extern M2C_UNK D_802025EC;
-extern M2C_UNK D_802025F0;
+extern u8 D_802025EC[];
+extern u8 D_802025F0[];
 extern s32 D_80203AB8;
 extern u16 D_80203ABA;
 extern s32 D_80203ABC;
@@ -88,16 +74,16 @@ void func_801FF37C(void) {
         temp_v0 = func_80027EE0(D_80203AB8);
         if (temp_v0 != -1) {
             temp_v0_2 = temp_v0 * 0x2C;
-            *(&D_801D7DF4 + temp_v0_2) = temp_v0;
-            *(&D_801D7E04 + temp_v0_2) = D_80203ABA;
+            *(s16 *)(D_801D7DF4 + temp_v0_2) = temp_v0;
+            *(u16 *)(D_801D7E04 + temp_v0_2) = D_80203ABA;
             func_8002D030(temp_v0);
-            n_alSndpSetVol(*(&D_801D75E6 + (D_80203AB8 * 0xC)));
+            n_alSndpSetVol(*(s16 *)(D_801D75E6 + (D_80203AB8 * 0xC)));
         }
     }
     if (D_801E9994 == 1) {
         func_8002D030(D_80203ABE);
         n_alSndpStop();
-        *(&D_801D7DF4 + (D_80203ABC * 0x2C)) = -1;
+        *(s32 *)(D_801D7DF4 + (D_80203ABC * 0x2C)) = -1;
     }
     if (D_801E999C == 1) {
         if (D_80203ACA == 4) {
@@ -120,7 +106,7 @@ void func_801FF37C(void) {
             var_fs0 = 60.0f;
         }
         var_fs0_2 = var_fs0 - 10.0f;
-        var_fv1 = *(&D_802025F0 + (D_80203ACA * 0xC));
+        var_fv1 = *(f32 *)(D_802025F0 + (D_80203ACA * 0xC));
         var_fv0 = var_fs0_2 / 50.0f;
         goto block_35;
     }
@@ -130,10 +116,10 @@ void func_801FF37C(void) {
         }
         var_fs0_2 = var_fs0 + 10.0f;
         var_fv0 = var_fs0_2 / 50.0f;
-        var_fv1 = *(&D_802025EC + (D_80203ACA * 0xC));
+        var_fv1 = *(f32 *)(D_802025EC + (D_80203ACA * 0xC));
 block_35:
         n_alSndpSetPitch((var_fv0 * var_fv1) + 1.0f);
-        *(&D_801D7E00 + (D_80203ABC * 0x2C)) = var_fs0_2;
+        *(f32 *)(D_801D7E00 + (D_80203ABC * 0x2C)) = var_fs0_2;
     } else {
         n_alSndpSetPitch(1.0f);
     }
@@ -155,7 +141,6 @@ block_35:
             goto block_56;
         }
         goto block_54;
-        goto block_57;
     }
     if (var_fs1 < -10.0f) {
         if (var_fs1 < -74.0f) {
@@ -179,8 +164,7 @@ block_54:
 block_56:
             var_a0_3 = (s32) var_fv0_2 | 0x80000000;
         }
-block_57:
-        *(&D_801D7E08 + var_a1) = (s8) var_a0_3;
+        *(s8 *)(D_801D7E08 + var_a1) = (s8) var_a0_3;
     } else {
         n_alSndpSetPan(0x3F);
     }

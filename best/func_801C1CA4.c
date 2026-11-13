@@ -1,0 +1,16 @@
+extern u8 D_801C6AE8[];
+extern u8 *D_801C7AB0;
+
+typedef struct {
+    u8 b[0x22];
+} Blob;
+
+u8 func_801C1CA4(s8 arg0) {
+    u8 buf[0x30];
+
+    *(Blob *)buf = *(Blob *)D_801C6AE8;
+    if (*D_801C7AB0 != 3) {
+        return buf[arg0 + 0x2E];
+    }
+    return buf[arg0];
+}

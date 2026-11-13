@@ -25,8 +25,8 @@ void func_8014843C(void) {
 
     var_v1 = 0;
     __repair_rows: {
-        *(&D_8018A276 + var_v1) = 0xFF;
-        var_v1 += 1;
+        *(&D_8018A276 + var_v1) = 0xFF;/*__repair_loop_weight*/do {
+        var_v1 += 1;} while (0);
     }
 if (var_v1 < 6) goto __repair_rows;
     if (D_80189B34 == 2) {

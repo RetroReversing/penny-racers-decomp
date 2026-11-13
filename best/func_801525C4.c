@@ -1,4 +1,4 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
+/* machine draft (m2c) for gcc-2.8.1-pm -G0 -mips3 -mgp32 -mfp32 -O1, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -13,10 +13,10 @@ typedef s32 M2C_UNK32;
 #endif
 
 f32 __sinf(f32);                                    /* extern */
-s32 func_8013AE60();
-extern char D_8011F320[];
-extern char D_8011F324[];
-extern char D_8011F334[];
+M2C_UNK func_8013AE60(s32);                         /* extern */
+extern M2C_UNK D_8011F320;
+extern M2C_UNK D_8011F324;
+extern M2C_UNK D_8011F334;
 extern f64 D_801837E0;
 extern f64 D_801837E8;
 extern f64 D_801837F0;
@@ -34,14 +34,14 @@ void func_801525C4(s32 arg0) {
     temp_s0 = arg0 & 0xFFFF;
     func_8013AE60(temp_s0);
     temp_v0 = temp_s0 * 0x64;
-    temp_fv0 = (f32) ((f64) *(D_8011F334 + temp_v0) + D_801837E0);
-    *(D_8011F334 + temp_v0) = temp_fv0;
+    temp_fv0 = (f32) ((f64) *(&D_8011F334 + temp_v0) + D_801837E0);
+    *(&D_8011F334 + temp_v0) = temp_fv0;
     temp_fv1 = (f64) temp_fv0;
     if (D_801837E8 <= temp_fv1) {
-        *(D_8011F334 + temp_v0) = (f32) (D_801837E8 - temp_fv1);
+        *(&D_8011F334 + temp_v0) = (f32) (D_801837E8 - temp_fv1);
     }
     temp_s0_2 = (arg0 & 0xFFFF) * 0x64;
     temp_fs0 = D_801837F0;
-    *(D_8011F320 + temp_s0_2) = (f32) (((f64) __sinf(*(D_8011F334 + temp_s0_2)) * temp_fs0) + D_801837F8);
-    *(D_8011F324 + temp_s0_2) = (f32) (((f64) __sinf(*(D_8011F334 + temp_s0_2)) * temp_fs0) + D_80183800);
+    *(&D_8011F320 + temp_s0_2) = (f32) (((f64) __sinf(*(&D_8011F334 + temp_s0_2)) * temp_fs0) + D_801837F8);
+    *(&D_8011F324 + temp_s0_2) = (f32) (((f64) __sinf(*(&D_8011F334 + temp_s0_2)) * temp_fs0) + D_80183800);
 }

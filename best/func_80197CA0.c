@@ -1,4 +1,4 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
+/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -12,15 +12,15 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-u8 func_801984DC();
-u8 func_801987E0();
-u8 func_80198A90();
-u8 func_80198F1C();
-extern char D_8011F2FC[];
-extern char D_8011F308[];
-extern char D_8011F30C[];
-extern char D_8011F310[];
-extern char D_8011F32E[];
+u8 func_801984DC();                                 /* extern */
+u8 func_801987E0();                                 /* extern */
+u8 func_80198A90();                                 /* extern */
+u8 func_80198F1C(s32);                              /* extern */
+extern M2C_UNK D_8011F2FC;
+extern M2C_UNK D_8011F308;
+extern M2C_UNK D_8011F30C;
+extern M2C_UNK D_8011F310;
+extern M2C_UNK D_8011F32E;
 extern u8 D_801C6B32;
 extern s8 D_801C6BB9;
 extern s8 D_801C7068;
@@ -34,22 +34,22 @@ void func_80197CA0(s32 arg0) {
     u16 temp_v1_4;
 
     temp_v1 = (arg0 & 0xFFFF) * 0x64;
-    *(D_8011F308 + temp_v1) = (f32) D_801C7068 * 400.0f * 0.5f;
-    *(D_8011F30C + temp_v1) = 0;
-    *(D_8011F310 + temp_v1) = (f32) (D_801C6BB9 + 1) * 400.0f * 0.5f;
+    *(&D_8011F308 + temp_v1) = (f32) D_801C7068 * 400.0f * 0.5f;
+    *(&D_8011F30C + temp_v1) = 0;
+    *(&D_8011F310 + temp_v1) = (f32) (D_801C6BB9 + 1) * 400.0f * 0.5f;
     temp_v1_2 = D_801C7074 * 0x64;
-    if (((u32) (*(D_8011F32E + temp_v1_2) - 7) < 2U) || (*(D_8011F32E + temp_v1_2) == 6)) {
+    if (((u32) (*(&D_8011F32E + temp_v1_2) - 7) < 2U) || (*(&D_8011F32E + temp_v1_2) == 6)) {
         D_801C6B32 = func_801987E0();
     } else {
         temp_v1_3 = D_801C7074 * 0x64;
-        if (((u32) (*(D_8011F32E + temp_v1_3) - 9) < 2U) || (*(D_8011F32E + temp_v1_3) == 0xD)) {
+        if (((u32) (*(&D_8011F32E + temp_v1_3) - 9) < 2U) || (*(&D_8011F32E + temp_v1_3) == 0xD)) {
             D_801C6B32 = func_80198A90();
-        } else if ((u32) (*(D_8011F32E + (D_801C7074 * 0x64)) - 0xB) < 2U) {
+        } else if ((u32) (*(&D_8011F32E + (D_801C7074 * 0x64)) - 0xB) < 2U) {
             D_801C6B32 = func_801984DC();
-        } else if ((u32) (*(D_8011F32E + (D_801C7074 * 0x64)) - 0xF) < 2U) {
+        } else if ((u32) (*(&D_8011F32E + (D_801C7074 * 0x64)) - 0xF) < 2U) {
             D_801C6B32 = func_80198F1C(arg0 & 0xFFFF);
         } else {
-            temp_v1_4 = *(D_8011F32E + (D_801C7074 * 0x64));
+            temp_v1_4 = *(&D_8011F32E + (D_801C7074 * 0x64));
             if (((u32) (temp_v1_4 - 0x11) >= 2U) && ((u32) (temp_v1_4 - 0x13) >= 2U) && (D_801C6BB9 < 0x17)) {
                 D_801C6B32 = 1;
             } else {
@@ -58,8 +58,8 @@ void func_80197CA0(s32 arg0) {
         }
     }
     if (D_801C6B32 != 0) {
-        *(D_8011F2FC + ((arg0 & 0xFFFF) * 0x64)) = D_801C7ABD;
+        *(&D_8011F2FC + ((arg0 & 0xFFFF) * 0x64)) = D_801C7ABD;
         return;
     }
-    *(D_8011F2FC + ((arg0 & 0xFFFF) * 0x64)) = 0;
+    *(&D_8011F2FC + ((arg0 & 0xFFFF) * 0x64)) = 0;
 }

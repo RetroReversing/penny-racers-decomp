@@ -1,4 +1,4 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
+/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -12,9 +12,9 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-extern M2C_UNK D_8011F2FC;
-extern M2C_UNK D_8011F32E;
-extern M2C_UNK D_802E8158;
+extern char D_8011F2FC[];
+extern char D_8011F32E[];
+extern char D_802E8158[];
 
 void func_801578EC(void **arg0, s32 arg1) {
     s32 temp_a3;
@@ -37,7 +37,7 @@ void func_801578EC(void **arg0, s32 arg1) {
     *arg0 = temp_a2 + 8;
     M2C_FIELD(temp_a2, s32 *, 0) = 0xFA000000;
     temp_a3 = (arg1 & 0xFFFF) * 0x64;
-    M2C_FIELD(temp_a2, s32 *, 4) = (s32) (*(&D_8011F2FC + temp_a3) | 0x1414FF00);
+    M2C_FIELD(temp_a2, s32 *, 4) = (s32) (*(D_8011F2FC + temp_a3) | 0x1414FF00);
     temp_v1_2 = *arg0;
     *arg0 = temp_v1_2 + 8;
     M2C_FIELD(temp_v1_2, s32 *, 0) = 0xFD88001F;
@@ -68,6 +68,6 @@ void func_801578EC(void **arg0, s32 arg1) {
     M2C_FIELD(temp_v1_8, s32 *, 4) = 0x7C07C;
     temp_v1_9 = *arg0;
     *arg0 = temp_v1_9 + 8;
-    M2C_FIELD(temp_v1_9, s32 *, 0) = (s32) (((*(&D_8011F32E + temp_a3) & 0xFFF) << 0xC) | 0xF2000000);
+    M2C_FIELD(temp_v1_9, s32 *, 0) = (s32) (((*(D_8011F32E + temp_a3) & 0xFFF) << 0xC) | 0xF2000000);
     M2C_FIELD(temp_v1_9, s32 *, 4) = 0x7C07C;
 }

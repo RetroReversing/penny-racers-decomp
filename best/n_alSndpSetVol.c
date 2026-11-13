@@ -2,9 +2,10 @@ s32 func_8002D164();
 extern void *D_80046DF4;
 void n_alSndpSetVol(unsigned int arg0)
 {
-  volatile int sp14;
   s16 sp18;
   s16 sp10;
+  volatile unsigned int pad;
+  volatile int sp14;
   void *temp_a2;
   temp_a2 = *((void **) (((char *) D_80046DF4) + 0xC));
   sp10 = 3;

@@ -36,6 +36,16 @@ void func_8014ADA4(s32 arg0, s32 arg1) {
     func_801CA468(arg0, 0xFF);
     temp_v1 = *(D_8011F330 + (D_80190CB4 * 0x64));
     switch (temp_v1) {                              /* irregular */
+    case 0x30:
+    case 0x40:
+        var_a1 = 0xE2;
+        goto block_9;
+    case 0x20:
+        func_801CA494(arg0, 0xE2, 0x38, 0x73, 0xFF);
+        var_a1_2 = 0x8E;
+        var_a2_2 = (D_80189C9A * 0x25) + 0x58;
+        {
+        do { func_8014A4C8(arg0, var_a1_2, var_a2_2, 7); } while (0);return;}
     default:
         var_a1 = 0xE2;
         if (temp_v1 != 0x50) {
@@ -47,7 +57,7 @@ block_9:
         temp_v0 = *(D_8011F330 + (D_80190CB4 * 0x64));
         var_s1 = 0x7C;
         if (((temp_v0 == 0x40) | (temp_v0 == 0x50)) != 0) {
-            func_801CA494(arg0, 0xE2, 0x38, 0x73, 0xFF);
+            func_801CA494(arg0, 0xE2, 0x38, 0x73);
             func_8014A4C8(arg0, (s16) (s32) *(D_8011F30C + ((arg1 & 0xFFFF) * 0x64)), 0x8E, 7, 0x1B);
             var_a1 = 0x71;
             var_a2 = 0;
@@ -60,14 +70,5 @@ block_9:
 block_12:
         func_8014A4C8(arg0, var_a1_2, var_a2_2, 7);
         return;
-    case 0x20:
-        func_801CA494(arg0, 0xE2, 0x38, 0x73, 0xFF);
-        var_a1_2 = 0x8E;
-        var_a2_2 = (D_80189C9A * 0x25) + 0x58;
-        goto block_12;
-    case 0x30:
-    case 0x40:
-        var_a1 = 0xE2;
-        goto block_9;
     }
 }

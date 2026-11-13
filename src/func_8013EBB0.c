@@ -1,4 +1,4 @@
-extern unsigned char D_8011F2F0;
+extern char D_8011F2F0;
 void func_8013EBB0(s32 arg0, f32 arg1, f32 arg2, f32 arg3)
 {
   void *temp_v0;

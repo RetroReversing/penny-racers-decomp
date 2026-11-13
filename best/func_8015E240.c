@@ -1,82 +1,34 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
+extern u32 D_8011F2FC;
+extern u32 D_8011F350;
+extern u32 D_802A5A48;
 
-extern M2C_UNK D_8011F2FC;
-extern M2C_UNK D_8011F350;
-extern M2C_UNK D_802A5A48;
+typedef struct Gfx {
+    u32 w0;
+    u32 w1;
+} Gfx;
 
-void func_8015E240(void **arg0, s32 arg1) {
-    s32 temp_t0;
-    void *temp_a0;
-    void *temp_a3;
-    void *temp_v1;
-    void *temp_v1_10;
-    void *temp_v1_2;
-    void *temp_v1_3;
-    void *temp_v1_4;
-    void *temp_v1_5;
-    void *temp_v1_6;
-    void *temp_v1_7;
-    void *temp_v1_8;
-    void *temp_v1_9;
+#define GCMD(w0v, w1v) \
+    temp = *dl; \
+    *dl = temp + 1; \
+    temp->w0 = (w0v); \
+    temp->w1 = (u32)(w1v);
 
-    temp_t0 = (arg1 & 0xFFFF) * 0x64;
-    temp_a3 = *(&D_8011F350 + temp_t0);
-    if (*(&D_8011F2FC + temp_t0) != 0xFF) {
-        temp_v1 = *arg0;
-        *arg0 = temp_v1 + 8;
-        M2C_FIELD(temp_v1, s32 *, 0) = 0xB6000000;
-        M2C_FIELD(temp_v1, M2C_UNK **, 4) = (M2C_UNK *)0x3000;
-        temp_v1_2 = *arg0;
-        *arg0 = temp_v1_2 + 8;
-        M2C_FIELD(temp_v1_2, s32 *, 0) = 0xFD900000;
-        M2C_FIELD(temp_v1_2, M2C_UNK **, 4) = &D_802A5A48;
-        temp_v1_3 = *arg0;
-        *arg0 = temp_v1_3 + 8;
-        M2C_FIELD(temp_v1_3, s32 *, 0) = 0xF5900000;
-        M2C_FIELD(temp_v1_3, M2C_UNK **, 4) = (M2C_UNK *)0x07018060;
-        temp_v1_4 = *arg0;
-        *arg0 = temp_v1_4 + 8;
-        M2C_FIELD(temp_v1_4, s32 *, 0) = 0xE6000000;
-        M2C_FIELD(temp_v1_4, M2C_UNK **, 4) = NULL;
-        temp_v1_5 = *arg0;
-        *arg0 = temp_v1_5 + 8;
-        M2C_FIELD(temp_v1_5, s32 *, 0) = 0xF3000000;
-        M2C_FIELD(temp_v1_5, M2C_UNK **, 4) = (M2C_UNK *)0x0731F19A;
-        temp_v1_6 = *arg0;
-        *arg0 = temp_v1_6 + 8;
-        M2C_FIELD(temp_v1_6, s32 *, 0) = 0xE7000000;
-        M2C_FIELD(temp_v1_6, M2C_UNK **, 4) = NULL;
-        temp_v1_7 = *arg0;
-        *arg0 = temp_v1_7 + 8;
-        M2C_FIELD(temp_v1_7, s32 *, 0) = 0xF5880A00;
-        M2C_FIELD(temp_v1_7, M2C_UNK **, 4) = (M2C_UNK *)0x18060;
-        temp_v1_8 = *arg0;
-        *arg0 = temp_v1_8 + 8;
-        M2C_FIELD(temp_v1_8, s32 *, 0) = 0xF2000000;
-        M2C_FIELD(temp_v1_8, M2C_UNK **, 4) = (M2C_UNK *)0x9C09C;
-        temp_v1_9 = *arg0;
-        *arg0 = temp_v1_9 + 8;
-        M2C_FIELD(temp_v1_9, s32 *, 0) = 0xF5880800;
-        M2C_FIELD(temp_v1_9, M2C_UNK **, 4) = (M2C_UNK *)0x14060;
-        temp_v1_10 = *arg0;
-        *arg0 = temp_v1_10 + 8;
-        M2C_FIELD(temp_v1_10, s32 *, 0) = (s32) ((M2C_FIELD(M2C_FIELD(temp_a3, void **, 4), u8 *, 0x778) * 4) | 0xF2000000);
-        M2C_FIELD(temp_v1_10, M2C_UNK **, 4) = (M2C_UNK *)0x9C09C;
-        temp_a0 = *arg0;
-        *arg0 = temp_a0 + 8;
-        M2C_FIELD(temp_a0, s32 *, 0) = 0xFA000000;
-        M2C_FIELD(temp_a0, M2C_UNK **, 4) = (M2C_UNK *) ((M2C_FIELD(temp_a3, u8 *, 0x17) << 0x18) | (M2C_FIELD(temp_a3, u8 *, 0x18) << 0x10) | (M2C_FIELD(temp_a3, u8 *, 0x19) << 8) | *(&D_8011F2FC + temp_t0));
+void func_8015E240(Gfx **dl, s32 arg1) {
+    Gfx *temp;
+    s32 idx = (arg1 & 0xFFFF) * 0x64;
+    u8 *obj = *(u8 **)(&D_8011F350 + idx);
+
+    if (*(u8 *)(&D_8011F2FC + idx) != 0xFF) {
+        GCMD(0xB6000000, 0x3000)
+        GCMD(0xFD900000, &D_802A5A48)
+        GCMD(0xF5900000, 0x07018060)
+        GCMD(0xE6000000, 0)
+        GCMD(0xF3000000, 0x0731F19A)
+        GCMD(0xE7000000, 0)
+        GCMD(0xF5880A00, 0x18060)
+        GCMD(0xF2000000, 0x9C09C)
+        GCMD(0xF5880800, 0x14060)
+        GCMD(0xF2000000 | (obj[0x778] * 4), 0x9C09C)
+        GCMD(0xFA000000, (obj[0x17] << 24) | (obj[0x18] << 16) | (obj[0x19] << 8) | *(u8 *)(&D_8011F2FC + idx))
     }
 }

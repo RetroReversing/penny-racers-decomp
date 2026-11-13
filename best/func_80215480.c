@@ -25,21 +25,21 @@ void func_80215480(s32 arg0) {
     f64 temp_fv1;
     f64 temp_fv1_2;
     s32 temp_v0;
-    s32 var_v0;
+    
     s32 var_v1;
 
     var_v1 = arg0 & 0xFFFF;
     temp_v0 = var_v1 * 0x64;
     *(D_8011F320 + temp_v0) = *(D_8011F320 + temp_v0) + *(D_8011F308 + temp_v0);
-    *(D_8011F324 + temp_v0) = *(D_8011F324 + temp_v0) + *(D_8011F30C + temp_v0);
+    *(D_8011F324 + temp_v0) = ((*(D_8011F324 + temp_v0))) + ((*(D_8011F30C + temp_v0)));
     temp_fv1 = (f64) *(D_8011F320 + temp_v0);
-    var_v0 = var_v1 * 2;
+    temp_v0 = var_v1 * 2;
     if ((D_8021DE90 <= temp_fv1) || (temp_fv1 <= D_8021DE98)) {
         *(D_8011F320 + (var_v1 * 0x64)) = 0;
         var_v1 = arg0 & 0xFFFF;
-        var_v0 = var_v1 * 2;
+        temp_v0 = var_v1 * 2;
     }
-    temp_fv1_2 = (f64) *(D_8011F324 + ((((var_v0 + var_v1) * 8) + var_v1) * 4));
+    temp_fv1_2 = (f64) *(D_8011F324 + ((((temp_v0 + var_v1) * 8) + var_v1) * 4));
     if ((D_8021DEA0 <= temp_fv1_2) || (temp_fv1_2 <= D_8021DEA8)) {
         *(D_8011F324 + (var_v1 * 0x64)) = 0;
     }
