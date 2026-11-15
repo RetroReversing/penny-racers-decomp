@@ -3712,14 +3712,6 @@
   "score_after": 815
  },
  {
-  "function": "func_800DF094",
-  "text": "Deep permuter: score 655 \u2192 655; 0 improvements; 48 candidates tested; 12 cached skips; 0 rejected; 7205s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589934598",
-  "created_at": 1794357178.057687,
-  "score_before": 655,
-  "score_after": 655
- },
- {
   "function": "func_80152720",
   "text": "Deep permuter: score 9320 \u2192 6475; 4 improvements; 26 candidates tested; 99 cached skips; 0 rejected; 7204s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935479",
@@ -6534,14 +6526,6 @@
   "created_at": 1794707365.4597912,
   "score_before": 1290,
   "score_after": 1290
- },
- {
-  "function": "func_800DF094",
-  "text": "Best 910 (66.2%). Loop shape right (x100 index via sll/addu chain, lhu/andi 0xFFEF store, lhu of D_8011F300 with 0xFFFF terminator). Mismatch: target re-masks the loaded value with andi $v1,$a0,0xFFFF before each compare (3 times) and tests against $v1; candidate compares the raw $a0. Untried: make the masked value an explicit u16 local reused for both the loop test and next index, e.g. `u16 idx = func_800E1850; ... idx = temp; while (idx != 0xFFFF)`. Extern type change s16->u16 had no effect.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794707372.5957062,
-  "score_before": 910,
-  "score_after": 910
  },
  {
   "function": "func_800E15CC",
@@ -10672,14 +10656,6 @@
   "score_after": 456
  },
  {
-  "function": "func_800DF094",
-  "text": "Not matched. Best revision 9ee3d015e5028b37aa51: 1110 (58.8%), 27 insns each. Shape: `var_v1 = func_800E1850; if (var_v1 != 0xFFFF) do { temp_v0 = var_v1*0x64; *(u16*)(&D_8011F2F2+temp_v0) = *(u16*)(&D_8011F2F2+temp_v0) & 0xFFEF; temp_a0 = *(u16*)(&D_8011F300+temp_v0); var_v1 = temp_a0; } while (temp_a0 != 0xFFFF);`. Remaining: target loads func_800E1850 into $a0 and keeps the andi'd copy in $v1 (`andi $v1,$a0,0xffff`) and hoists 0xFFFF into $a1; the loop body in the target reads D_8011F2F2 before D_8011F300, but gcc emits the F300 load first (it moves it above the store; `&=` form gives the same). Same family as func_8021AF20 (saved 340 there with a u16 var and s32 temp): try that exact pattern here, which gave a stack-free loop there. Frame: none in the target.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794721446.6863842,
-  "score_before": 610,
-  "score_after": 610
- },
- {
   "function": "func_8013E958",
   "text": "Saved best 105 (historical, temp_s0/temp_t0 form with if/else duplicate branches). Target has no branches: idx = (a1&0xFFFF)*100 computed as sll/addu chain, then `andi a0,a0,0xFFFF` after the t0 computation, and s0 = (a0&0xFFFF)*124 via sll 5 / subu / sll 2. Single-path C scored 845 (sll 4 vs sll 2 for the *0x7C, and frame ordering: sw $ra/$s0 saved at the start of the body in target, interleaved in mine). Tried `((u32)a0<<5 - a0)*4` form: no change (845). Not tried: keep the saved if/else shape and make only the else branch single-path; put the arg4/arg5 f32 loads (lwc1 0x28/0x2C) before the idx computation to match the target's first instructions.",
   "by": "claude-haiku-5-5-22",
@@ -13680,14 +13656,6 @@
   "score_after": 365
  },
  {
-  "function": "func_800DF094",
-  "text": "Best 615 (77%), candidate 510373e2ff245e0d7521: `cur = func_800E1850; while (cur != 0xFFFF) { off = cur * 0x64; *(u16*)(&D_8011F2F2+off) = *(u16*)(&D_8011F2F2+off) & 0xFFEF; cur = *(u16*)(&D_8011F300+off); }`. The while form (not do/while with an initial if) removed the duplicate load of func_800E1850 and matches the loop shape. Remaining: the target's loop-exit `beq v1,v0,0x64` is 4 bytes longer than mine (0x60) with a nop in the delay slot, so the target has one more instruction before the exit test (the `andi v1,a0,0xffff` for the u16 cur is placed before the compare, and the `ori v0,zero,0xffff` constant is set before the lhu). Tried a trailing `return;` (49854479..., no change). Untried: keep cur as s32 and cast to u16 only at the compare, so the andi lands before the beq.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794730283.5102441,
-  "score_before": 610,
-  "score_after": 610
- },
- {
   "function": "func_80149F40",
   "text": "Best saved 300 (88%): 8 separate case labels 2..7 each `temp_v1 += 1; break;` with u8 temp_v1. Dense switch emits the jump table (needs all of case 0..7 present; a `default:` or merged 2..7 labels drops the table). Remaining diffs: (a) target keeps temp in $v1 via `move $v1,$a2` in the bnez delay path; the u8 temp forces `andi ...,0xff` at the case-0 add (after `(t&0x7F)+arg0`) and at case-1 add. Target only truncates at return (`andi $v0,$v1,0xff`). Tried s32 temp with `return (u8)temp_v1;` -> 500 (worse, extra andi on arg2 and reg shuffle). Tried merged 2..7 labels -> 1195 (no jump table). Untried: keep u8 temp but compute case-0 result into an s32 local before the store to temp; or `temp_v1 = arg2` replaced by `temp_v1 = (u8)arg2` variants. Jump table at 0x801836F8 is in unloaded rodata, so table contents unverified.",
   "by": "claude-haiku-5-5-20",
@@ -14182,14 +14150,6 @@
   "created_at": 1794731732.746905,
   "score_before": 1840,
   "score_after": 1840
- },
- {
-  "function": "func_800DF094",
-  "text": "Best 615 (77.2%), revision 510373e2ff245e0d7521. Tried do-while with guard and while with `u16 next` temp: both 615, no effect. Remaining diff: target's loop-exit beq goes to 0x64 vs ours 0x60 (one instruction fewer before the epilogue), and v0/v1 roles for the two address halves are swapped. Unexplored: 0xFFFF held in a register across the loop, or computing the address from a0 directly.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794731757.3679051,
-  "score_before": 610,
-  "score_after": 610
  },
  {
   "function": "func_80025C50",
@@ -15854,14 +15814,6 @@
   "created_at": 1794736176.784096,
   "score_before": 3253,
   "score_after": 3253
- },
- {
-  "function": "func_800DF094",
-  "text": "Best 615 (77.2%) = the first candidate, revision 510373e2ff245e0d7521 (the historical saved 605 is not reproduced here). Structure is right: cur=func_800E1850 (u16); while (cur != 0xFFFF) { off=cur*0x64; D_8011F2F2[off] halfword &= 0xFFEF; cur = D_8011F300[off] halfword; }. Remaining diff: the target's loop tests (u16)cur against $v0=0xFFFF with the andi on the loaded next value in the bottom branch, and keeps the cur copy in $v1 (andi $v1,$a0,0xffff at the top). Tried: separate u16 next temp (615, same); s32 cur with (u16)cur casts (660, worse: the loop test moves to $a0). Untried: a block-local off inside the loop, or the store written as a read-modify-write on a u16 pointer local.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794736237.643174,
-  "score_before": 605,
-  "score_after": 605
  },
  {
   "function": "func_80138B1C",
@@ -18190,5 +18142,61 @@
   "created_at": 1794738423.3614001,
   "score_before": 3947,
   "score_after": 3947
+ },
+ {
+  "function": "func_800DF094",
+  "text": "Deep permuter: score 655 \u2192 655; 0 improvements; 48 candidates tested; 12 cached skips; 0 rejected; 7205s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589934598",
+  "created_at": 1794357178.057687,
+  "score_before": 655,
+  "score_after": 655
+ },
+ {
+  "function": "func_800DF094",
+  "text": "Best 910 (66.2%). Loop shape right (x100 index via sll/addu chain, lhu/andi 0xFFEF store, lhu of D_8011F300 with 0xFFFF terminator). Mismatch: target re-masks the loaded value with andi $v1,$a0,0xFFFF before each compare (3 times) and tests against $v1; candidate compares the raw $a0. Untried: make the masked value an explicit u16 local reused for both the loop test and next index, e.g. `u16 idx = func_800E1850; ... idx = temp; while (idx != 0xFFFF)`. Extern type change s16->u16 had no effect.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794707372.5957062,
+  "score_before": 910,
+  "score_after": 910
+ },
+ {
+  "function": "func_800DF094",
+  "text": "Not matched. Best revision 9ee3d015e5028b37aa51: 1110 (58.8%), 27 insns each. Shape: `var_v1 = func_800E1850; if (var_v1 != 0xFFFF) do { temp_v0 = var_v1*0x64; *(u16*)(&D_8011F2F2+temp_v0) = *(u16*)(&D_8011F2F2+temp_v0) & 0xFFEF; temp_a0 = *(u16*)(&D_8011F300+temp_v0); var_v1 = temp_a0; } while (temp_a0 != 0xFFFF);`. Remaining: target loads func_800E1850 into $a0 and keeps the andi'd copy in $v1 (`andi $v1,$a0,0xffff`) and hoists 0xFFFF into $a1; the loop body in the target reads D_8011F2F2 before D_8011F300, but gcc emits the F300 load first (it moves it above the store; `&=` form gives the same). Same family as func_8021AF20 (saved 340 there with a u16 var and s32 temp): try that exact pattern here, which gave a stack-free loop there. Frame: none in the target.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794721446.6863842,
+  "score_before": 610,
+  "score_after": 610
+ },
+ {
+  "function": "func_800DF094",
+  "text": "Best 615 (77%), candidate 510373e2ff245e0d7521: `cur = func_800E1850; while (cur != 0xFFFF) { off = cur * 0x64; *(u16*)(&D_8011F2F2+off) = *(u16*)(&D_8011F2F2+off) & 0xFFEF; cur = *(u16*)(&D_8011F300+off); }`. The while form (not do/while with an initial if) removed the duplicate load of func_800E1850 and matches the loop shape. Remaining: the target's loop-exit `beq v1,v0,0x64` is 4 bytes longer than mine (0x60) with a nop in the delay slot, so the target has one more instruction before the exit test (the `andi v1,a0,0xffff` for the u16 cur is placed before the compare, and the `ori v0,zero,0xffff` constant is set before the lhu). Tried a trailing `return;` (49854479..., no change). Untried: keep cur as s32 and cast to u16 only at the compare, so the andi lands before the beq.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794730283.5102441,
+  "score_before": 610,
+  "score_after": 610
+ },
+ {
+  "function": "func_800DF094",
+  "text": "Best 615 (77.2%), revision 510373e2ff245e0d7521. Tried do-while with guard and while with `u16 next` temp: both 615, no effect. Remaining diff: target's loop-exit beq goes to 0x64 vs ours 0x60 (one instruction fewer before the epilogue), and v0/v1 roles for the two address halves are swapped. Unexplored: 0xFFFF held in a register across the loop, or computing the address from a0 directly.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794731757.3679051,
+  "score_before": 610,
+  "score_after": 610
+ },
+ {
+  "function": "func_800DF094",
+  "text": "Best 615 (77.2%) = the first candidate, revision 510373e2ff245e0d7521 (the historical saved 605 is not reproduced here). Structure is right: cur=func_800E1850 (u16); while (cur != 0xFFFF) { off=cur*0x64; D_8011F2F2[off] halfword &= 0xFFEF; cur = D_8011F300[off] halfword; }. Remaining diff: the target's loop tests (u16)cur against $v0=0xFFFF with the andi on the loaded next value in the bottom branch, and keeps the cur copy in $v1 (andi $v1,$a0,0xffff at the top). Tried: separate u16 next temp (615, same); s32 cur with (u16)cur casts (660, worse: the loop test moves to $a0). Untried: a block-local off inside the loop, or the store written as a read-modify-write on a u16 pointer local.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794736237.643174,
+  "score_before": 605,
+  "score_after": 605
+ },
+ {
+  "function": "func_800DF094",
+  "text": "Move-on budget exhausted (3/3). Rechecked baselines: my while-form source ed9f35cde52340b5a3be = 615; current s32-cur/masked variant dbac572e2768dcb041ab = 660; historical saved best 605 (permuter, different shape). Target shape: lhu D_800E1850; andi v1,a0,0xFFFF; ori v0,0xFFFF; beq exit; nop; ori a1,0xFFFF; loop at .L800DF0B0 using $v1 as u16 index (sll1/addu/sll3/addu/sll2 = *0x64); lhu/andi 0xFFEF/sh on D_8011F2F2 where the store recomputes lui $at + addu $at,$at,$v0 instead of reusing the load address; then lhu D_8011F300; andi v0,a0,0xFFFF; bne v0,a1 with delay slot andi v1,a0,0xFFFF. So the bottom test re-masks the freshly loaded value and the delay slot re-masks into the loop index register; a do-while with u16/masked cur is the untested next step (queued as next_experiment). Remaining deltas: one inserted/extra instruction at the entry test and register allocation in the address recompute; families left: record_slot_table, address_temporary, signedness, declaration_order.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794743588.399458,
+  "score_before": 605,
+  "score_after": 605
  }
 ]
