@@ -25160,28 +25160,12 @@
   "score_after": 27843
  },
  {
-  "function": "func_801497AC",
-  "text": "Best 345 (87.6%), revision ef2763c06180afe98abc: u8 var_a1=0xFF; if ((arg0&0xFF)!=0xFF) { if (D_80189B34==2) { var_a1 = D_8021E1A2==1 ? D_80168D28[arg0&7] : D_80168D20[arg0&7]; } else var_a1 = D_80168D30[arg0&7]; } return var_a1. Target keeps `andi $a0,$a0,7` as a separate step and re-applies `andi ...,0xff` in each arm (three andi 0xff total, including the return), which costs one instruction and shifts the branch offsets (0x68 vs 0x64). Tried: pointer-arith draft form (680), idx temp with &0xFF in each arm (680, adds a move of a0 to a1). Next: keep the draft's arm layout and find where the extra andi 0xff comes from. Claim was lost mid-session before release.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794706349.5185559,
-  "score_before": 460,
-  "score_after": 345
- },
- {
   "function": "func_80146E4C",
   "text": "Tried: if/else-if chain on v = arg0 & 0xFFFF (signed s32 and unsigned): 2045 (31.8%), worse than the saved 1080 draft. The target copies arg0 to $v1 first (move $v1,$a0), uses the masked value in the else branch as `andi $v1,$v1,0xFFFF`, and does the 0x4000 compare with slti before the 0x3FFF/0x2FFF tests. My chain instead tested sltiu on $a0 directly, so the register flow is wrong. Open: a source that keeps the arg in a register and masks it only after the first branch; the 0x12 and 0xA results use `addiu $a1,$zero` with beql (branch-likely) delay slots. Also the table load uses lui/addu/lbu %lo(D_80168CE4) with the index (arg0>>8)&7 computed into $v0.",
   "by": "claude-haiku-5-5-20",
   "created_at": 1794706375.131209,
   "score_before": 1080,
   "score_after": 1080
- },
- {
-  "function": "func_801497AC",
-  "text": "Best 345 (87.6%): the if/else-on-D_80189B34 and D_8021E1A2 structure with `var_a1 = 0xFF` default and `(arg0 & 0xFF) != 0xFF` guard is right. Remaining diff: the target's guard branch is `beq $v1,$v0` to the return path with `addiu $a1,$zero,0xff` in its delay slot, and the table index is re-masked from the 0xFF-masked value on the D_80168D28 / D_80168D30 paths (`andi $v0,$a0,0xff` before each `addu`), while the D_80168D20 path uses `andi a0,a0,7` in a delay slot. Tried: index via a `u8 idx` local (345, no change), and a `u8` return type (345, no change, the return andi did not appear). Next: try the index as `(arg0 & 0xFF) & 7` on one branch and `arg0 & 0xFF` on the others, to recover the three andi's.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794706375.244767,
-  "score_before": 345,
-  "score_after": 345
  },
  {
   "function": "func_8014BA14",
@@ -25278,14 +25262,6 @@
   "created_at": 1794720640.5555992,
   "score_before": 1092,
   "score_after": 1092
- },
- {
-  "function": "func_801497AC",
-  "text": "Best 200 (92.8%) at revision ccff62a545a6cd947f27 (u8 var_a1 version with `return var_a1 & 0xFF;`), the same as the plain m2c-style C. Only remaining diff: target has `andi $v0,$a1,0xff` in the jr delay slot on the shared exit (`jr $ra; andi $v0,$a1,0xff`), where ours emits `move $v0,$a1`. Tried: s32 var_a1 with `return (u8)var_a1` (655) and `return var_a1 & 0xFF` on s32 (655): both change the early `andi $v1,$a0,0xff` / compare layout and are worse. Untried: a separate s32 result temp copied from the u8 var only at the return (`s32 ret = var_a1; return ret & 0xFF;`), or a union/cast on the table loads so the value reaches the exit as int.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794720663.422912,
-  "score_before": 155,
-  "score_after": 155
  },
  {
   "function": "func_8014BA14",
@@ -25424,28 +25400,12 @@
   "score_after": 2210
  },
  {
-  "function": "func_801497AC",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794738492.730079,
-  "score_before": 155,
-  "score_after": 155
- },
- {
   "function": "func_8014A080",
   "text": "Bit-rotate helper: rotate the (arg1&0x1F)-wide field starting at bit n of arg0 left (when (arg3&0xFF)==1) or right, arg2&0xFF times.\n\nStructure is established from the target's own branch layout: each branch computes its own count. Target order after `bne $a3,$v1,.L8014A0E8`: and t1 (delay slot), andi v0,a2,0xFF, move a3,v0, blez v0, move a1,0, nor a2,zero,t0, and v0,a0,t2, loop. The else path at .L8014A0E8 repeats andi v0,a2,0xFF / move a3,v0 / blez v0 / move a1,0. So `cnt = arg2 & 0xFF;` must be *inside* each branch: revision fe1307abad6760cce7fc (score 1870) has exactly that and is the best of mine. Hoisting it above the if is worse (eacb8714cb9a8483d576 = 2065, f0e68726b2f202d4951f = 2155).\n\nRemaining gaps vs the 1730 saved best:\n1. `move $a3,$v0` (count copied into a second register) is missing; we keep the count in $a2. Needs the count in a local distinct from the andi destination, e.g. `cnt = arg2 & 0xFF; lim = cnt;` with the loop comparing `i < lim`. My lim attempt was only tried *together with* the hoist (2065/2155), never on top of fe1307 \u2014 that is the untested combination.\n2. `sltu $v1,$zero,$v0` for `bit != 0` comes from the `inline_fn(bit)` helper; keep it (dropping it gives ori).\n3. Loop-body register assignment (target keeps v in $a0, mask in $a2 via nor a2,zero,t0) follows from (1).\n4. The target's `addiu $sp,$sp,-0x10` frame is never stored into; no attempt emitted a frame. Not tried: a `volatile` local or a dummy array local to force the frame.\nUntested next step: on fe1307abad6760cce7fc, add `s32 lim;` to the declarations and, inside each branch after `cnt = arg2 & 0xFF;`, add `lim = cnt;`, changing both loop tests to `i < lim`.",
   "by": "api-route-llm-code-2",
   "created_at": 1794740854.2799392,
   "score_before": 1092,
   "score_after": 1092
- },
- {
-  "function": "func_801497AC",
-  "text": "Best 405 (85.5%) at rev 85af02f5f1182a06e82e; the 345 (87.6%) revision 8da746234cdd57b7b9cc was scored under a different source, so compare by rechecking. Current C: u8 var_a1=0xFF; if ((u8)arg0 != 0xFF) { arg0 &= 7; if (D_80189B34==2) { if (D_8021E1A2==1) var_a1=D_80168D28[(u8)arg0]; else var_a1=D_80168D20[(u8)arg0]; } else var_a1=D_80168D30[(u8)arg0]; } return var_a1 & 0xFF. Remaining diff is 3 rows: the target has a plain `bne $v1,$v0` in the D_8021E1A2 test (delay slot holds `andi $v0,$a0,0xff`), but ours emits `bnel` with the index computed after the branch; and the return keeps `andi $v0,$a1,0xff` where ours emits `move`. Tried: return (u8)var_a1 (no effect), s32 var_a1 (855, worse), u8 vs s32 index temp (680, worse). Next: compile_family(branch_orientation) on rev 85af02f5f1182a06e82e, or move the index computation into the else arm so the delay slot holds it.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794741520.780086,
-  "score_before": 10,
-  "score_after": 10
  },
  {
   "function": "func_801441E0",
@@ -25480,30 +25440,6 @@
   "score_after": 51512
  },
  {
-  "function": "func_801497AC",
-  "text": "Low progress after 25 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 0; 19 differing rows (2 opcode, 12 register, 2 branch target, 1 operand, 1 inserted, 1 deleted; advisory).\nTarget: \nCandidate: move $a1, $a0\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n> T:  | C: move $a1, $a0\nr T: andi $v1, $a0, 0xff | C: andi $v1, $a1, 0xff\n  = addiu $v0, $zero, 0xff\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nBaseline (rev 684491d8a12b23a8260c) scores 495. Tried 6 variants changing return type (u8/s32) and var_a1 type (s8/s16/u16/s32) plus index expressions (D_80168D28[temp_v0] array form vs *(&D_80168D28+temp_v0)): best of these 680 (u8 return + s16 var_a1), all worse than 495. Remaining families listed: global_address_table=6, signedness=3, masked_value_reuse=1, declaration_order=2. Next: try try_local_repairs with global_address_table and masked_value_reuse, and consider that the target likely loads through a u8 table base computed as (u8*)&D_80168D20 + idx (see knowledge #339302416422/#339302416428) rather than a typed array index.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794743359.605514,
-  "score_before": 10,
-  "score_after": 10
- },
- {
-  "function": "func_801497AC",
-  "text": "BLOCKED, no judging possible: every compile_patch / compile_and_diff / try_local_repairs call fails with \"toolchain 'gcc-2.7.2-kmc' is not installed\". try_compiler on other toolchains works, so only the project compiler is missing. Nothing could be verified this session; the saved score 490 (rev 3ff1cdefe234e2215808) is still historical/unverified.\n\nTarget (28 insns, 112 bytes) decoded exactly:\n  v1 = a0 & 0xFF; if (v1 == 0xFF) goto ret with a1 = 0xFF;   /* addiu a1,$zero,0xFF in the beq delay slot */\n  if (D_80189B34 != 2) goto L80149804;   /* andi a0,a0,7 in the bne delay slot */\n  if (D_8021E1A2 == 1) a1 = D_80168D28[a0 & 0xFF] else a1 = D_80168D20[a0 & 0xFF];  each arm ends in `j .L80149814` with the lbu in the delay slot;\nL80149804: a1 = D_80168D30[a0 & 0xFF]  (andi v0,a0,0xFF recomputed; falls through);\nL80149814: return a1 & 0xFF.\nKey detail: the first test's result is dead on the equal path (a1 is set to 0xFF in the delay slot and the branch goes straight to the epilogue), so the source is probably `u8 var_a1 = 0xFF; if ((arg0 & 0xFF) != 0xFF) {...}` \u2014 already what the candidate does. The two `j` epilogue jumps mean gcc 2.7.2 must place both if-arms as separate blocks ending in jumps rather than sharing a tail; with 2.8.1 it tail-merges (jr $ra) and scores 1355.\n\nNext steps once gcc-2.7.2-kmc is installed: re-run try_local_repairs (branch_orientation, signedness, declaration_order, parameter_width), then try declaring var_a1 as u8/s16/u16 and returning it directly without the & 0xFF (target does andi v0,a1,0xFF, so keep an explicit mask only if the type is wider than 8 bits). Also try indexing with `*(&D_80168D28 + i)` scalar-extern form to get lui/addu $a1 (not $at).",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794744544.448899,
-  "score_before": 10,
-  "score_after": 10
- },
- {
-  "function": "func_801497AC",
-  "text": "Best 295 (89.4%), revision e03f3bcc0b81c10a5761: `s32 func_801497AC(u8 arg0)` with `s8 var_a1 = 0xFF; if (arg0 != 0xFF) { temp_a0 = arg0 & 7; if (D_80189B34 == 2) { temp_v0 = temp_a0 & 0xFF; if (D_8021E1A2 == 1) var_a1 = D_80168D28[temp_v0]; else var_a1 = D_80168D20[temp_v0]; } else var_a1 = D_80168D30[temp_a0 & 0xFF]; } return var_a1 & 0xFF;`. Remaining diff is register allocation: target puts the 0xff default in $a1 and keeps arg0 in $a0 (andi $v0,$a0,0xff for the return); ours uses $a0 for the default and $a1 for the copy. Tried u8 var_a1 (485, worse). Untried: switching the return to a separate masked temp, or compile_family signedness.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794747579.596478,
-  "score_before": 10,
-  "score_after": 10
- },
- {
   "function": "func_80146E4C",
   "text": "Compiled saved candidate once: 755 (74.8%), unchanged. Remaining diffs are in the switch/compare: target does `andi $v0,$a0,0xf00; sltiu 0x800` on the masked value and then `slti $v0,$v1,0x4000` on the full 16-bit value (lowest case tested first), while ours tests against 0x3000 and uses the arg0 register directly. Not attempted further in this run (claim cap reached). Untried: compile_family(signedness) / switch_layout as listed in get_candidate.",
   "by": "claude-haiku-5-5-24",
@@ -25534,14 +25470,6 @@
   "created_at": 1794748661.357098,
   "score_before": 755,
   "score_after": 755
- },
- {
-  "function": "func_801497AC",
-  "text": "Best 215 (92.3%, revision ac7338e79bc4083a2bb8, 28 insns each). Source: s32 arg0; `s8 var_a1; var_a1 = 0xFF; if ((arg0&0xFF)!=0xFF) { arg0 = arg0 & 7; if (D_80189B34==2) { if (D_8021E1A2==1) var_a1=D_80168D28[arg0&0xFF]; else var_a1=D_80168D20[arg0&0xFF]; } else var_a1=D_80168D30[arg0&0xFF]; } return var_a1 & 0xFF;`. Remaining: mode-check branch is `bnel` in mine vs plain `bne` (target delay slot andi $v0,$a0,0xff); initializer prints -1 under s8. Tried and worse: u8 var (405), swapped D_8021E1A2 arms (445), testing D_80189B34 first with else-if chain (1010), u8 return (405). Structural variants around the mode test don't close the gap; the next agent should work on the branch-likely shape of the outer `!=` (e.g. a flag set before the if) rather than repeating these.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794748736.941354,
-  "score_before": 10,
-  "score_after": 10
  },
  {
   "function": "func_801FA7FC",
@@ -25608,14 +25536,6 @@
   "score_after": 23982
  },
  {
-  "function": "func_801497AC",
-  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 27; 1 differing rows (1 opcode; advisory).\nTarget: andi $v0, $a1, 0xff\nCandidate: move $v0, $a1\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n  = lbu $a1, %lo(D_80168D30)($a1)\n  = jr $ra\n| T: andi $v0, $a1, 0xff | C: move $v0, $a1\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nBest 10: `u8 f(u8 arg0)`, u8 tables D_80168D20/28/30[], local `s8 r = 0xFF`, arg0 &= 7, nested ifs, `return (u8)r;`. Only diff: init emits addiu a1,-1 vs target 0xff. u8/u16/s16 r give 200 (final move instead of andi); s32/u32 r give 655 (const CSE'd with compare, hoisted). Unexplored: r as int with compare constant differing mode, or r assigned from a struct/other source; maybe a different compare form ((arg0 & 0xFF) on s32 param) combined with s32 r.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794760348.8439848,
-  "score_before": 10,
-  "score_after": 10
- },
- {
   "function": "func_8014A080",
   "text": "Improved inherited1730 to1295 with clean for loops and inline nonzero helper, count masking inside branches. Current best82a43a8ccc0d341550dc reproduces target16-byte leaf frame WITHOUT dummy pad. pad[4] increased frame32 (1297). Explicit pretest/do-loop1670 loses frame. Separate inline rotleft/rotright helpers worse2985 and do not preserve count copy. O1 diagnostic same1297 on padded source. Remaining core target count move a3,v0 and blez vs optimized beqz, register lifetimes; no local repairs remain for clean best.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -25640,28 +25560,12 @@
   "score_after": 2210
  },
  {
-  "function": "func_801497AC",
-  "text": "MATCHES at KMC GCC -O1 with `u8 r = 0xFF` version (suggestion filed). Needs user to apply -O1.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794760542.246285,
-  "score_before": 10,
-  "score_after": 10
- },
- {
   "function": "func_80146E4C",
   "text": "MATCHES at KMC GCC -O1 with u16 arg0, `u16 r = 0`, switch with 0x2FFF/0x4FFF cases first (suggestion filed). Needs user to apply -O1.",
   "by": "claude-opus-medium-1",
   "created_at": 1794760543.23533,
   "score_before": 755,
   "score_after": 55
- },
- {
-  "function": "func_801497AC",
-  "text": "Exact -O1 bundle with u8 r=255 submitted via suggest, automatic compiler changes off. Trial cec38a38ae7ee465f3c1. Signed r at -O2 leaves addiu -1 vs 255; u8 at -O1 reproduces all bytes. Apply saved bundle instead of tuning historical workaround.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794760564.608949,
-  "score_before": 10,
-  "score_after": 10
  },
  {
   "function": "func_80146E4C",
@@ -25712,14 +25616,6 @@
   "score_after": 25388
  },
  {
-  "function": "func_801497AC",
-  "text": "Exact match at -O1 with plain u8 r = 0xFF source (search_flags verified); suggested function-only bundle. At -O2 best is 10 (s8 r; constant -1 vs 0xff) \u2014 no C fix found at -O2.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794761416.186663,
-  "score_before": 10,
-  "score_after": 10
- },
- {
   "function": "func_8014A080",
   "text": "Key unsolved clue: target has a 0x10 stack frame with no stores (likely an inlined function leaving frame space) and loop-entry `andi v0,a2,0xff; move a3,v0; blez v0` (signed test; ours folds to beqz because gcc knows count&255 >=0). Tried: plain two loops with u8 count/dir (1510); saved-best with inline nonzero() (1295); both loops as static inline rotl/rotr(v,count,bitmask,high,keep) (1890, still beqz). -O1 doesn't help (search_flags all 1295). Next: try an inline helper whose int return passes through a variable so the count copy is opaque, or count arg passed as s32 into inline with compare done in caller; check whether the frame comes from an inline with a local array.",
   "by": "claude-opus-medium-1",
@@ -25742,14 +25638,6 @@
   "created_at": 1794761617.194039,
   "score_before": 1570,
   "score_after": 1570
- },
- {
-  "function": "func_801497AC",
-  "text": "Rechecked saved baseline score10: sole difference a1 initialized -1 vs target255. u8/u16/s16 return local => score200, final move v0,a1 instead of required andi255. s32/u32 local worsens allocation. static inline helper with u8 initial255 likewise score200; signed casts of table loads produce lb and score1045. All flag variants score10. No novel progress across these source families and >218 inherited attempts; preserve saved s8 baseline. Next: seek unsigned initializer with signed merged local range without changing lbu or return mask.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794761736.505806,
-  "score_before": 10,
-  "score_after": 10
  },
  {
   "function": "func_8019904C",
@@ -26004,6 +25892,134 @@
   "text": "Stopping for session capacity, not a verified dead end. Best reproducible score 8880 (62.6%) at c37c471985c8f3bcfb22; the historical saved best (10) could not be reproduced from its shown source. Swapping && operand order gave 9210 (worse). Target is 238 insns vs 193 mine. Main gaps: target prologue saves ra at 0x34 and s0 at 0x30 before the first D_801C7074/D_801C707B loads; target reloads the globals again per branch; extra arg setup and stack slots 0x10 x16 differ. Next steps: get_assembly on the target prologue, compare frame layout, and rebuild the if-arms so each global is loaded per use.",
   "by": "claude-haiku-5-5-21",
   "created_at": 1794762013.842995,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_801497AC",
+  "text": "Best 345 (87.6%), revision ef2763c06180afe98abc: u8 var_a1=0xFF; if ((arg0&0xFF)!=0xFF) { if (D_80189B34==2) { var_a1 = D_8021E1A2==1 ? D_80168D28[arg0&7] : D_80168D20[arg0&7]; } else var_a1 = D_80168D30[arg0&7]; } return var_a1. Target keeps `andi $a0,$a0,7` as a separate step and re-applies `andi ...,0xff` in each arm (three andi 0xff total, including the return), which costs one instruction and shifts the branch offsets (0x68 vs 0x64). Tried: pointer-arith draft form (680), idx temp with &0xFF in each arm (680, adds a move of a0 to a1). Next: keep the draft's arm layout and find where the extra andi 0xff comes from. Claim was lost mid-session before release.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794706349.5185559,
+  "score_before": 460,
+  "score_after": 345
+ },
+ {
+  "function": "func_801497AC",
+  "text": "Best 345 (87.6%): the if/else-on-D_80189B34 and D_8021E1A2 structure with `var_a1 = 0xFF` default and `(arg0 & 0xFF) != 0xFF` guard is right. Remaining diff: the target's guard branch is `beq $v1,$v0` to the return path with `addiu $a1,$zero,0xff` in its delay slot, and the table index is re-masked from the 0xFF-masked value on the D_80168D28 / D_80168D30 paths (`andi $v0,$a0,0xff` before each `addu`), while the D_80168D20 path uses `andi a0,a0,7` in a delay slot. Tried: index via a `u8 idx` local (345, no change), and a `u8` return type (345, no change, the return andi did not appear). Next: try the index as `(arg0 & 0xFF) & 7` on one branch and `arg0 & 0xFF` on the others, to recover the three andi's.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794706375.244767,
+  "score_before": 345,
+  "score_after": 345
+ },
+ {
+  "function": "func_801497AC",
+  "text": "Best 200 (92.8%) at revision ccff62a545a6cd947f27 (u8 var_a1 version with `return var_a1 & 0xFF;`), the same as the plain m2c-style C. Only remaining diff: target has `andi $v0,$a1,0xff` in the jr delay slot on the shared exit (`jr $ra; andi $v0,$a1,0xff`), where ours emits `move $v0,$a1`. Tried: s32 var_a1 with `return (u8)var_a1` (655) and `return var_a1 & 0xFF` on s32 (655): both change the early `andi $v1,$a0,0xff` / compare layout and are worse. Untried: a separate s32 result temp copied from the u8 var only at the return (`s32 ret = var_a1; return ret & 0xFF;`), or a union/cast on the table loads so the value reaches the exit as int.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794720663.422912,
+  "score_before": 155,
+  "score_after": 155
+ },
+ {
+  "function": "func_801497AC",
+  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794738492.730079,
+  "score_before": 155,
+  "score_after": 155
+ },
+ {
+  "function": "func_801497AC",
+  "text": "Best 405 (85.5%) at rev 85af02f5f1182a06e82e; the 345 (87.6%) revision 8da746234cdd57b7b9cc was scored under a different source, so compare by rechecking. Current C: u8 var_a1=0xFF; if ((u8)arg0 != 0xFF) { arg0 &= 7; if (D_80189B34==2) { if (D_8021E1A2==1) var_a1=D_80168D28[(u8)arg0]; else var_a1=D_80168D20[(u8)arg0]; } else var_a1=D_80168D30[(u8)arg0]; } return var_a1 & 0xFF. Remaining diff is 3 rows: the target has a plain `bne $v1,$v0` in the D_8021E1A2 test (delay slot holds `andi $v0,$a0,0xff`), but ours emits `bnel` with the index computed after the branch; and the return keeps `andi $v0,$a1,0xff` where ours emits `move`. Tried: return (u8)var_a1 (no effect), s32 var_a1 (855, worse), u8 vs s32 index temp (680, worse). Next: compile_family(branch_orientation) on rev 85af02f5f1182a06e82e, or move the index computation into the else arm so the delay slot holds it.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794741520.780086,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_801497AC",
+  "text": "Low progress after 25 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 0; 19 differing rows (2 opcode, 12 register, 2 branch target, 1 operand, 1 inserted, 1 deleted; advisory).\nTarget: \nCandidate: move $a1, $a0\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n> T:  | C: move $a1, $a0\nr T: andi $v1, $a0, 0xff | C: andi $v1, $a1, 0xff\n  = addiu $v0, $zero, 0xff\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nBaseline (rev 684491d8a12b23a8260c) scores 495. Tried 6 variants changing return type (u8/s32) and var_a1 type (s8/s16/u16/s32) plus index expressions (D_80168D28[temp_v0] array form vs *(&D_80168D28+temp_v0)): best of these 680 (u8 return + s16 var_a1), all worse than 495. Remaining families listed: global_address_table=6, signedness=3, masked_value_reuse=1, declaration_order=2. Next: try try_local_repairs with global_address_table and masked_value_reuse, and consider that the target likely loads through a u8 table base computed as (u8*)&D_80168D20 + idx (see knowledge #339302416422/#339302416428) rather than a typed array index.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794743359.605514,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_801497AC",
+  "text": "BLOCKED, no judging possible: every compile_patch / compile_and_diff / try_local_repairs call fails with \"toolchain 'gcc-2.7.2-kmc' is not installed\". try_compiler on other toolchains works, so only the project compiler is missing. Nothing could be verified this session; the saved score 490 (rev 3ff1cdefe234e2215808) is still historical/unverified.\n\nTarget (28 insns, 112 bytes) decoded exactly:\n  v1 = a0 & 0xFF; if (v1 == 0xFF) goto ret with a1 = 0xFF;   /* addiu a1,$zero,0xFF in the beq delay slot */\n  if (D_80189B34 != 2) goto L80149804;   /* andi a0,a0,7 in the bne delay slot */\n  if (D_8021E1A2 == 1) a1 = D_80168D28[a0 & 0xFF] else a1 = D_80168D20[a0 & 0xFF];  each arm ends in `j .L80149814` with the lbu in the delay slot;\nL80149804: a1 = D_80168D30[a0 & 0xFF]  (andi v0,a0,0xFF recomputed; falls through);\nL80149814: return a1 & 0xFF.\nKey detail: the first test's result is dead on the equal path (a1 is set to 0xFF in the delay slot and the branch goes straight to the epilogue), so the source is probably `u8 var_a1 = 0xFF; if ((arg0 & 0xFF) != 0xFF) {...}` \u2014 already what the candidate does. The two `j` epilogue jumps mean gcc 2.7.2 must place both if-arms as separate blocks ending in jumps rather than sharing a tail; with 2.8.1 it tail-merges (jr $ra) and scores 1355.\n\nNext steps once gcc-2.7.2-kmc is installed: re-run try_local_repairs (branch_orientation, signedness, declaration_order, parameter_width), then try declaring var_a1 as u8/s16/u16 and returning it directly without the & 0xFF (target does andi v0,a1,0xFF, so keep an explicit mask only if the type is wider than 8 bits). Also try indexing with `*(&D_80168D28 + i)` scalar-extern form to get lui/addu $a1 (not $at).",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794744544.448899,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_801497AC",
+  "text": "Best 295 (89.4%), revision e03f3bcc0b81c10a5761: `s32 func_801497AC(u8 arg0)` with `s8 var_a1 = 0xFF; if (arg0 != 0xFF) { temp_a0 = arg0 & 7; if (D_80189B34 == 2) { temp_v0 = temp_a0 & 0xFF; if (D_8021E1A2 == 1) var_a1 = D_80168D28[temp_v0]; else var_a1 = D_80168D20[temp_v0]; } else var_a1 = D_80168D30[temp_a0 & 0xFF]; } return var_a1 & 0xFF;`. Remaining diff is register allocation: target puts the 0xff default in $a1 and keeps arg0 in $a0 (andi $v0,$a0,0xff for the return); ours uses $a0 for the default and $a1 for the copy. Tried u8 var_a1 (485, worse). Untried: switching the return to a separate masked temp, or compile_family signedness.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794747579.596478,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_801497AC",
+  "text": "Best 215 (92.3%, revision ac7338e79bc4083a2bb8, 28 insns each). Source: s32 arg0; `s8 var_a1; var_a1 = 0xFF; if ((arg0&0xFF)!=0xFF) { arg0 = arg0 & 7; if (D_80189B34==2) { if (D_8021E1A2==1) var_a1=D_80168D28[arg0&0xFF]; else var_a1=D_80168D20[arg0&0xFF]; } else var_a1=D_80168D30[arg0&0xFF]; } return var_a1 & 0xFF;`. Remaining: mode-check branch is `bnel` in mine vs plain `bne` (target delay slot andi $v0,$a0,0xff); initializer prints -1 under s8. Tried and worse: u8 var (405), swapped D_8021E1A2 arms (445), testing D_80189B34 first with else-if chain (1010), u8 return (405). Structural variants around the mode test don't close the gap; the next agent should work on the branch-likely shape of the outer `!=` (e.g. a flag set before the if) rather than repeating these.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794748736.941354,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_801497AC",
+  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 27; 1 differing rows (1 opcode; advisory).\nTarget: andi $v0, $a1, 0xff\nCandidate: move $v0, $a1\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n  = lbu $a1, %lo(D_80168D30)($a1)\n  = jr $ra\n| T: andi $v0, $a1, 0xff | C: move $v0, $a1\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nBest 10: `u8 f(u8 arg0)`, u8 tables D_80168D20/28/30[], local `s8 r = 0xFF`, arg0 &= 7, nested ifs, `return (u8)r;`. Only diff: init emits addiu a1,-1 vs target 0xff. u8/u16/s16 r give 200 (final move instead of andi); s32/u32 r give 655 (const CSE'd with compare, hoisted). Unexplored: r as int with compare constant differing mode, or r assigned from a struct/other source; maybe a different compare form ((arg0 & 0xFF) on s32 param) combined with s32 r.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794760348.8439848,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_801497AC",
+  "text": "MATCHES at KMC GCC -O1 with `u8 r = 0xFF` version (suggestion filed). Needs user to apply -O1.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794760542.246285,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_801497AC",
+  "text": "Exact -O1 bundle with u8 r=255 submitted via suggest, automatic compiler changes off. Trial cec38a38ae7ee465f3c1. Signed r at -O2 leaves addiu -1 vs 255; u8 at -O1 reproduces all bytes. Apply saved bundle instead of tuning historical workaround.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794760564.608949,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_801497AC",
+  "text": "Exact match at -O1 with plain u8 r = 0xFF source (search_flags verified); suggested function-only bundle. At -O2 best is 10 (s8 r; constant -1 vs 0xff) \u2014 no C fix found at -O2.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794761416.186663,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_801497AC",
+  "text": "Rechecked saved baseline score10: sole difference a1 initialized -1 vs target255. u8/u16/s16 return local => score200, final move v0,a1 instead of required andi255. s32/u32 local worsens allocation. static inline helper with u8 initial255 likewise score200; signed casts of table loads produce lb and score1045. All flag variants score10. No novel progress across these source families and >218 inherited attempts; preserve saved s8 baseline. Next: seek unsigned initializer with signed merged local range without changing lbu or return mask.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794761736.505806,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_801497AC",
+  "text": "Matches byte-for-byte at -O1 with natural C: u8 r = 0xFF, three table lookups. A suggestion with that exact C is filed. At -O2 the best is 10 (s8 r): -O2 drops the return andi for u8 r and uses li -1 for s8 r. It can't get closer under -O2.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794762555.589397,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_801497AC",
+  "text": "New exact O1 bundle trial2d978ed9774dd6f123bc submitted via suggest. Change saved s8 accumulator to s16 r=255; preserves init255 and final &255. u8 r removes mask; s32 poor allocation. Automatic compiler changes off, apply pending bundle.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794762720.4726012,
   "score_before": 10,
   "score_after": 10
  }

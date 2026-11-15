@@ -5,18 +5,21 @@ extern u8 D_80189B34;
 extern s16 D_8021E1A2;
 
 u8 func_801497AC(u8 arg0) {
-    s8 r = 0xFF;
+    u8 var_a1;
+    u8 temp_a0;
+
+    var_a1 = 0xFF;
     if (arg0 != 0xFF) {
-        arg0 &= 7;
+        temp_a0 = arg0 & 7;
         if (D_80189B34 == 2) {
             if (D_8021E1A2 == 1) {
-                r = D_80168D28[arg0];
+                var_a1 = D_80168D28[temp_a0];
             } else {
-                r = D_80168D20[arg0];
+                var_a1 = D_80168D20[temp_a0];
             }
         } else {
-            r = D_80168D30[arg0];
+            var_a1 = D_80168D30[temp_a0];
         }
     }
-    return r;
+    return var_a1;
 }
