@@ -13,12 +13,13 @@ void nuContPakFileDelete(s32 arg0, s32 arg1, s32 arg2)
         s32 b;
         s32 c;
     } f;
+    s32 pad[2];
     s32 buf;
 
     if (D_80046D6C) {
         osCreateMesgQueue(queue, &buf, 1);
         f.a = arg0;
-        f.type = 0x2007;
+        f.type = 0x2005;
         f.q = (s32)queue;
         f.b = arg1;
         f.c = arg2;
