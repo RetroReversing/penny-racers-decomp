@@ -5944,14 +5944,6 @@
   "score_after": 345
  },
  {
-  "function": "func_801610E0",
-  "text": "Best 875 (78.1%). The saved draft's guard is right: `D_8011F2FC[off]!=0 && **(u8**)(D_8011F340+off)!=0`, then pointer from D_8011F350+off. Remaining diff is order/register: the target loads the D_8011F350 pointer (lw $a0) before loading *arg0 (lw $a1,(v1)), and the byte word is built as (b17<<24)|(b18<<16)|(b19<<8) then OR with D_8011F2FC[off] (lui for D_8011F2FC comes last, using $v0). Tried reordering the `*arg0` load and an explicit running-OR temp; neither moved the score. Next: force the D_8011F350 load ahead of the arg0 load (e.g. read temp_a0 into a local before any write, or swap the declaration order), then check whether the arg0 pointer is copied into $v1 first (`addu $v1,$a0,$zero`).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794706389.3971462,
-  "score_before": 875,
-  "score_after": 875
- },
- {
   "function": "func_8015E484",
   "text": "Saved best 660 is the better start; my rewrite scored 1185 (worse, not saved). Target order: the D_8011F350 pointer load (lui $a1; addu; lw $a1,%lo) comes BEFORE the D_8011F2FC byte load (lui $v1; addu; lbu). Our version loads the byte first and reads the pointer after. Also target keeps arg0 in $a2 via `move $a2,$a0` before the first record write, which ours lacks (we use $a0 directly). Next: declare the pointer local before the `if`, read the D_8011F350 pointer into a register before the byte compare, and copy arg0 into a second `void **` local (same as func_8015E404's branch-distance issue, which is the same instruction shape).",
   "by": "claude-haiku-5-5-23",
@@ -8696,14 +8688,6 @@
   "score_after": 3782
  },
  {
-  "function": "func_801610E0",
-  "text": "40 insns, best 875 (revision 397c3e279008a7052ec5, rechecked 875). Structure is settled and reproduces every instruction; only 3 load-order rows + regalloc differ.\n\nWorking source:\n  extern u8 D_8011F2FC[]; extern u8 D_8011F340[]; extern u8 D_8011F350[];\n  void func_801610E0(s32 **arg0, u16 arg1) {\n      s32 *temp_a1; u8 *temp_a0; s32 off = arg1 * 0x64;\n      if (*(D_8011F2FC + off) != 0 && **(u8 **)(D_8011F340 + off) != 0) {\n          temp_a0 = *(u8 **)(D_8011F350 + off);\n          temp_a1 = *arg0; *arg0 = temp_a1 + 2;\n          temp_a1[0] = 0xFA000000;\n          temp_a1[1] = (temp_a0[0x17] << 24) | (temp_a0[0x18] << 16) | (temp_a0[0x19] << 8) | *(D_8011F2FC + off);\n      }\n  }\n\nRemaining diff: (a) the target loads obj (lw a0,%lo(D_8011F350)) BEFORE `lw $a1,($v1)`; gcc schedules the FIFO read first. (b) in the OR chain the target interleaves load/shift/or (lbu v1,0x17; sll; lbu v0,0x18; sll; or; lbu v0,0x19; sll; or) keeping only v0/v1 as temps, while gcc hoists all three lbu first and reuses $a0 as a temp.\n\nTried, all still 875 (identical bytes): term-by-term `val |= ...`, `vu8 *temp_a0` (volatile pointee, no effect on the score), `void **arg0` with byte offsets. Also tried compiler gcc-2.8.1-pm-sn-as: 915, worse, so gcc-2.7.2-kmc is right. Same scheduling-vs-source-order problem as func_8015E484 \u2014 likely the same root cause; solving one probably solves both.",
-  "by": "opencode-deepseek-v4.1-flash-free-5",
-  "created_at": 1794712335.0011678,
-  "score_before": 875,
-  "score_after": 875
- },
- {
   "function": "func_80129C88",
   "text": "Not matched. The current candidate (three do/while loops over a node table at D_8011F340 with stride 100, flag set/clear on D_8011F2F2 at stride 100 plus (arg2&0xFF)*2) scores 9535 in the current harness (saved best 4030 from an unavailable source). Diffs: the target re-reads the table entry as lw $v1,%lo(D_8011F340)($v1) (x12) with the %lo folded into the load, with the index kept in $v1 and the base in $t4 for D_8011F2F2. My build instead re-materialises lui/addiu for D_8011F340 and D_8011F2F2 separately and moves a3 through a copy. Try: a single base pointer for each table (u8 *tab = (u8*)D_8011F340, then index as *(u8**)(tab + i*100)), and a single shared index variable rather than separate a3/i pair, to fold the %lo offsets. Loop structure (the first loop with the t1 flag test, then two loops with n<arg1) is likely right; register order is the remaining issue.",
   "by": "claude-haiku-5-5-21",
@@ -8854,22 +8838,6 @@
   "created_at": 1794713664.933242,
   "score_before": 11375,
   "score_after": 10655
- },
- {
-  "function": "func_801610E0",
-  "text": "SOLVED pending compiler-profile change (unit code_8015A414 = -O1). The candidate C is byte-identical to the ROM with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (try_compiler: MATCHES; function-scoped suggest() filed). At -O2 it scores 875 with only register-allocation/order differences (40/40 insns). Do not chase those; apply -O1. Matching C: extern u8 D_8011F2FC[], D_8011F340[], D_8011F350[] (candidate-local); void func_801610E0(u32 **arg0, u16 arg1){ s32 off; u8 *obj; u32 *p; off = arg1 * 0x64; if (D_8011F2FC[off] != 0 && **(u8 **)(D_8011F340 + off) != 0) { obj = *(u8 **)(D_8011F350 + off); p = *arg0; *arg0 = p + 2; p[0] = 0xFA000000; p[1] = (obj[0x17] << 24) | (obj[0x18] << 16) | (obj[0x19] << 8) | D_8011F2FC[off]; } }. Note the pointer bump is two words (0x8 bytes) and the final D_8011F2FC byte is re-read at the end (the target reloads it).",
-  "by": "opencode-deepseek-v4.1-flash-free-5",
-  "created_at": 1794713717.069637,
-  "score_before": 875,
-  "score_after": 875
- },
- {
-  "function": "func_801610E0",
-  "text": "Released because its agent stopped (provider.free-limit: Free usage limit reached. Connect a provider or subscribe to OpenCode Go to keep going, or switch models. Review the agent settings and resolve this error before restarting.); its attempts are kept.",
-  "by": "opencode-deepseek-v4.1-flash-free-5",
-  "created_at": 1794713740.269283,
-  "score_before": 875,
-  "score_after": 875
  },
  {
   "function": "func_801604F0",
@@ -9174,14 +9142,6 @@
   "created_at": 1794718144.2513611,
   "score_before": 170,
   "score_after": 170
- },
- {
-  "function": "func_801610E0",
-  "text": "Best stays 875 (saved best). Logic matches: guards on F2FC[off] and *(F340[off]) != 0, table ptr from F350[off], *arg0 bump by 8, words 0xFA000000 and (b17<<24|b18<<16|b19<<8|F2FC[off]). Remaining diff: the target loads the F350 table pointer (lui/addu/lw a0) BEFORE `lw a1,(arg0)`; my build emits lw a1 earlier, and the byte-load ordering differs. Tried: parenthesising the OR chain (no change). Next try: load the table pointer into a local declared after the guard and read *arg0 only after it, or write the arg0 read as a separate statement after the table read.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794718144.661026,
-  "score_before": 875,
-  "score_after": 875
  },
  {
   "function": "func_80141268",
@@ -13392,14 +13352,6 @@
   "score_after": 290
  },
  {
-  "function": "func_801610E0",
-  "text": "Best candidate revision 008532aadee4db38a58b scores 875 (same as saved). Source: off = arg1*0x64; if (D_8011F2FC[off] != 0 && **(u8**)(D_8011F340+off) != 0) { p = *(u8**)(D_8011F350+off); q = *arg0; *arg0 = q+2; q[0]=0xFA000000; q[1] = (p[0x17]<<24)|(p[0x18]<<16)|(p[0x19]<<8)|D_8011F2FC[off]; }. Now all instructions are present (40 vs 40); remaining diff is order: gcc loads *arg0 (lw a1) before the D_8011F350 pointer load (lw a0), target does a0 first (its row 20/21). Also the word-1 OR chain: target is left-assoc with the F2FC byte last. A temporary w version gave the same 875. Next: find a source form that makes the *arg0 read come after the p load (e.g. read *arg0 into q only after computing p in a separate statement with the store to *arg0 after q[0] write, or compute the word-1 value before reading q).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794729993.093468,
-  "score_before": 875,
-  "score_after": 875
- },
- {
   "function": "func_80026E64",
   "text": "Best 1510 (76%), candidate dfdbb6e54a57c6d8d49f: `void func_80026E64(s32 arg0)` with `s32 *p; s32 pad[2];`, `p=&arg0; pad[0]=0; D_800DA1E0=NULL; nuPiInit(); if (D_80000300==1) nuScCreateScheduler(2,1) else (0x1E,1); osViSetSpecialFeatures(0x5A); osCreateThread(&D_8004AC60,3,&func_80026250,0,&D_80071F70,0xA); osStartThread(&D_8004AC60); osSetThreadPri(&D_8004AAB0,0); for(;;) if (D_800DA1E0) D_800DA1E0();`. Target frame is 0x28 with ra, fp and s0 saved, `move $fp,$sp`, and arg0 spilled via $fp (`sw $a0,0x28($fp)`); ours uses $sp with no fp. Removing pad[2] (1598) gives frame 0x20 and is worse, so pad sets the frame size but not the fp choice. Open: what makes GCC 2.7.2 choose a frame pointer here (not found by the p=&arg0 change alone). Untried: a local array indexed at runtime, and the loop layout (target jumps to loop head around the call). Moving on.",
   "by": "claude-haiku-5-5-22",
@@ -13918,14 +13870,6 @@
   "created_at": 1794731338.942071,
   "score_before": 525,
   "score_after": 525
- },
- {
-  "function": "func_801610E0",
-  "text": "Not matched; move-on budget used. Best: 875 (78.1%), revision 711362a21494a562c876. Structure is right: off=(arg1&0xFFFF)*100 (byte offset, stride 100); if (D_8011F2FC[off] && **(u8**)(D_8011F340+off)) { temp_a0=*(u8**)(D_8011F350+off); temp_a1=*arg0; *arg0=temp_a1+2; temp_a1[0]=0xFA000000; temp_a1[1]=(b17<<24)|(b18<<16)|(b19<<8)|D_8011F2FC[off]; }. Remaining diffs: (1) the target loads temp_a0 (lw D_8011F350+off) before `lw a1,(v1)` (*arg0); mine hoists the *arg0 load above it (row 17). (2) The field ORs: target order is lbu 0x17, sll 24, lbu 0x18, sll 16, or, lbu 0x19, sll 8, or, then the D_8011F2FC byte, or. Mine reorders the loads. Tried: split OR chain into w = w | ... locals (no change). Next: load temp_a0 into a local before any access to *arg0, or drop the temp_a1 local and write `temp_a1 = *arg0` after the field reads (store the sum into a local at the end). Registers: target keeps the D_8011F2FC byte in $v0 and the ptr in $a0.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794731355.4872441,
-  "score_before": 875,
-  "score_after": 875
  },
  {
   "function": "func_801485C8",
@@ -15310,14 +15254,6 @@
   "created_at": 1794735198.406302,
   "score_before": 3783,
   "score_after": 2115
- },
- {
-  "function": "func_801610E0",
-  "text": "Best verified score 875 (rev 563c7c5b0741844021e5), 40/40 insns, 18 differing rows. Working C: off = arg1*0x64 (u16 param); `if (D_8011F2FC[off] != 0 && *(u8 *)(*(u8 **)(D_8011F340 + off)) != 0)`; then `p = *(u8 **)(D_8011F350 + off); dst = *arg0; *arg0 = dst + 2; dst[0] = 0xFA000000; val = (p[0x17]<<24)|(p[0x18]<<16); val |= p[0x19]<<8; dst[1] = val | D_8011F2FC[off];`. That reproduces the target's lw-of-pointer-table loads (declaring D_8011F340/D_8011F350 as u8* tables was the key fix, 1005 -> 875). Remaining differences: (1) target emits `lw $a0,%lo(D_8011F350)($a0)` then `lw $a1,($v1)` \u2014 i.e. the pointer-table load is scheduled before the *arg0 load; ours does lw $a1,($v1) first (extra row). Swapping the two statements had no effect (gcc reorders). (2) packing: target does lbu v1,0x17; sll 24; lbu v0,0x18; sll 16; or; lbu v0,0x19; sll 8; or; then reload D_8011F2FC and or; ours merges into fewer ors and reuses a0. Three-or split and single-expression forms both scored 875 unchanged; `((a|b)|(c|d))` form scored 1490. (3) register assignment v0/v1 swapped at the end. Tried: u32 dst, u16 index casts, s8 table, param as s32, declaration order, inlining off. Next experiment saved as untested patch.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794735236.6676512,
-  "score_before": 875,
-  "score_after": 875
  },
  {
   "function": "func_80153F74",
@@ -18214,5 +18150,69 @@
   "created_at": 1794729917.6366751,
   "score_before": 870,
   "score_after": 870
+ },
+ {
+  "function": "func_801610E0",
+  "text": "Best 875 (78.1%). The saved draft's guard is right: `D_8011F2FC[off]!=0 && **(u8**)(D_8011F340+off)!=0`, then pointer from D_8011F350+off. Remaining diff is order/register: the target loads the D_8011F350 pointer (lw $a0) before loading *arg0 (lw $a1,(v1)), and the byte word is built as (b17<<24)|(b18<<16)|(b19<<8) then OR with D_8011F2FC[off] (lui for D_8011F2FC comes last, using $v0). Tried reordering the `*arg0` load and an explicit running-OR temp; neither moved the score. Next: force the D_8011F350 load ahead of the arg0 load (e.g. read temp_a0 into a local before any write, or swap the declaration order), then check whether the arg0 pointer is copied into $v1 first (`addu $v1,$a0,$zero`).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794706389.3971462,
+  "score_before": 875,
+  "score_after": 875
+ },
+ {
+  "function": "func_801610E0",
+  "text": "40 insns, best 875 (revision 397c3e279008a7052ec5, rechecked 875). Structure is settled and reproduces every instruction; only 3 load-order rows + regalloc differ.\n\nWorking source:\n  extern u8 D_8011F2FC[]; extern u8 D_8011F340[]; extern u8 D_8011F350[];\n  void func_801610E0(s32 **arg0, u16 arg1) {\n      s32 *temp_a1; u8 *temp_a0; s32 off = arg1 * 0x64;\n      if (*(D_8011F2FC + off) != 0 && **(u8 **)(D_8011F340 + off) != 0) {\n          temp_a0 = *(u8 **)(D_8011F350 + off);\n          temp_a1 = *arg0; *arg0 = temp_a1 + 2;\n          temp_a1[0] = 0xFA000000;\n          temp_a1[1] = (temp_a0[0x17] << 24) | (temp_a0[0x18] << 16) | (temp_a0[0x19] << 8) | *(D_8011F2FC + off);\n      }\n  }\n\nRemaining diff: (a) the target loads obj (lw a0,%lo(D_8011F350)) BEFORE `lw $a1,($v1)`; gcc schedules the FIFO read first. (b) in the OR chain the target interleaves load/shift/or (lbu v1,0x17; sll; lbu v0,0x18; sll; or; lbu v0,0x19; sll; or) keeping only v0/v1 as temps, while gcc hoists all three lbu first and reuses $a0 as a temp.\n\nTried, all still 875 (identical bytes): term-by-term `val |= ...`, `vu8 *temp_a0` (volatile pointee, no effect on the score), `void **arg0` with byte offsets. Also tried compiler gcc-2.8.1-pm-sn-as: 915, worse, so gcc-2.7.2-kmc is right. Same scheduling-vs-source-order problem as func_8015E484 \u2014 likely the same root cause; solving one probably solves both.",
+  "by": "opencode-deepseek-v4.1-flash-free-5",
+  "created_at": 1794712335.0011678,
+  "score_before": 875,
+  "score_after": 875
+ },
+ {
+  "function": "func_801610E0",
+  "text": "SOLVED pending compiler-profile change (unit code_8015A414 = -O1). The candidate C is byte-identical to the ROM with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (try_compiler: MATCHES; function-scoped suggest() filed). At -O2 it scores 875 with only register-allocation/order differences (40/40 insns). Do not chase those; apply -O1. Matching C: extern u8 D_8011F2FC[], D_8011F340[], D_8011F350[] (candidate-local); void func_801610E0(u32 **arg0, u16 arg1){ s32 off; u8 *obj; u32 *p; off = arg1 * 0x64; if (D_8011F2FC[off] != 0 && **(u8 **)(D_8011F340 + off) != 0) { obj = *(u8 **)(D_8011F350 + off); p = *arg0; *arg0 = p + 2; p[0] = 0xFA000000; p[1] = (obj[0x17] << 24) | (obj[0x18] << 16) | (obj[0x19] << 8) | D_8011F2FC[off]; } }. Note the pointer bump is two words (0x8 bytes) and the final D_8011F2FC byte is re-read at the end (the target reloads it).",
+  "by": "opencode-deepseek-v4.1-flash-free-5",
+  "created_at": 1794713717.069637,
+  "score_before": 875,
+  "score_after": 875
+ },
+ {
+  "function": "func_801610E0",
+  "text": "Released because its agent stopped (provider.free-limit: Free usage limit reached. Connect a provider or subscribe to OpenCode Go to keep going, or switch models. Review the agent settings and resolve this error before restarting.); its attempts are kept.",
+  "by": "opencode-deepseek-v4.1-flash-free-5",
+  "created_at": 1794713740.269283,
+  "score_before": 875,
+  "score_after": 875
+ },
+ {
+  "function": "func_801610E0",
+  "text": "Best stays 875 (saved best). Logic matches: guards on F2FC[off] and *(F340[off]) != 0, table ptr from F350[off], *arg0 bump by 8, words 0xFA000000 and (b17<<24|b18<<16|b19<<8|F2FC[off]). Remaining diff: the target loads the F350 table pointer (lui/addu/lw a0) BEFORE `lw a1,(arg0)`; my build emits lw a1 earlier, and the byte-load ordering differs. Tried: parenthesising the OR chain (no change). Next try: load the table pointer into a local declared after the guard and read *arg0 only after it, or write the arg0 read as a separate statement after the table read.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794718144.661026,
+  "score_before": 875,
+  "score_after": 875
+ },
+ {
+  "function": "func_801610E0",
+  "text": "Best candidate revision 008532aadee4db38a58b scores 875 (same as saved). Source: off = arg1*0x64; if (D_8011F2FC[off] != 0 && **(u8**)(D_8011F340+off) != 0) { p = *(u8**)(D_8011F350+off); q = *arg0; *arg0 = q+2; q[0]=0xFA000000; q[1] = (p[0x17]<<24)|(p[0x18]<<16)|(p[0x19]<<8)|D_8011F2FC[off]; }. Now all instructions are present (40 vs 40); remaining diff is order: gcc loads *arg0 (lw a1) before the D_8011F350 pointer load (lw a0), target does a0 first (its row 20/21). Also the word-1 OR chain: target is left-assoc with the F2FC byte last. A temporary w version gave the same 875. Next: find a source form that makes the *arg0 read come after the p load (e.g. read *arg0 into q only after computing p in a separate statement with the store to *arg0 after q[0] write, or compute the word-1 value before reading q).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794729993.093468,
+  "score_before": 875,
+  "score_after": 875
+ },
+ {
+  "function": "func_801610E0",
+  "text": "Not matched; move-on budget used. Best: 875 (78.1%), revision 711362a21494a562c876. Structure is right: off=(arg1&0xFFFF)*100 (byte offset, stride 100); if (D_8011F2FC[off] && **(u8**)(D_8011F340+off)) { temp_a0=*(u8**)(D_8011F350+off); temp_a1=*arg0; *arg0=temp_a1+2; temp_a1[0]=0xFA000000; temp_a1[1]=(b17<<24)|(b18<<16)|(b19<<8)|D_8011F2FC[off]; }. Remaining diffs: (1) the target loads temp_a0 (lw D_8011F350+off) before `lw a1,(v1)` (*arg0); mine hoists the *arg0 load above it (row 17). (2) The field ORs: target order is lbu 0x17, sll 24, lbu 0x18, sll 16, or, lbu 0x19, sll 8, or, then the D_8011F2FC byte, or. Mine reorders the loads. Tried: split OR chain into w = w | ... locals (no change). Next: load temp_a0 into a local before any access to *arg0, or drop the temp_a1 local and write `temp_a1 = *arg0` after the field reads (store the sum into a local at the end). Registers: target keeps the D_8011F2FC byte in $v0 and the ptr in $a0.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794731355.4872441,
+  "score_before": 875,
+  "score_after": 875
+ },
+ {
+  "function": "func_801610E0",
+  "text": "Best verified score 875 (rev 563c7c5b0741844021e5), 40/40 insns, 18 differing rows. Working C: off = arg1*0x64 (u16 param); `if (D_8011F2FC[off] != 0 && *(u8 *)(*(u8 **)(D_8011F340 + off)) != 0)`; then `p = *(u8 **)(D_8011F350 + off); dst = *arg0; *arg0 = dst + 2; dst[0] = 0xFA000000; val = (p[0x17]<<24)|(p[0x18]<<16); val |= p[0x19]<<8; dst[1] = val | D_8011F2FC[off];`. That reproduces the target's lw-of-pointer-table loads (declaring D_8011F340/D_8011F350 as u8* tables was the key fix, 1005 -> 875). Remaining differences: (1) target emits `lw $a0,%lo(D_8011F350)($a0)` then `lw $a1,($v1)` \u2014 i.e. the pointer-table load is scheduled before the *arg0 load; ours does lw $a1,($v1) first (extra row). Swapping the two statements had no effect (gcc reorders). (2) packing: target does lbu v1,0x17; sll 24; lbu v0,0x18; sll 16; or; lbu v0,0x19; sll 8; or; then reload D_8011F2FC and or; ours merges into fewer ors and reuses a0. Three-or split and single-expression forms both scored 875 unchanged; `((a|b)|(c|d))` form scored 1490. (3) register assignment v0/v1 swapped at the end. Tried: u32 dst, u16 index casts, s8 table, param as s32, declaration order, inlining off. Next experiment saved as untested patch.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794735236.6676512,
+  "score_before": 875,
+  "score_after": 875
  }
 ]
