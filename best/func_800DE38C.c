@@ -5,6 +5,8 @@ extern s16 D_800E2662;
 extern s16 D_8011ED58;
 
 void func_800DE38C(void) {
+char *__repair_addr;
+
     s32 temp_v1;
     s32 var_a0;
     u32 temp_v0;
@@ -18,7 +20,9 @@ void func_800DE38C(void) {
     do {
         var_v0 = var_a0 * 2;do{
         temp_v0 = (((var_v0 + var_a0) << 5) + var_a0) * 8;}while(0);
-        *(u16 *)((u8 *)&D_800E2660 + temp_v0) = var_a0 - 1;
+__repair_addr = (char *)((u8 *)&D_800E2660 + temp_v0);
+
+        *(u16 *)(__repair_addr) = var_a0 - 1;
         temp_v1 = var_a0 + 1;
         *(u16 *)((u8 *)&D_800E2662 + temp_v0) = temp_v1;
         var_a0 = temp_v1;

@@ -22,6 +22,7 @@ void func_8013B704(Gfx **pkt, u16 arg1) {
             g = *pkt;
             g->w0 = 0xE7000000;
             g->w1 = 0;
+g->w0 = 0xE7000000;
             *pkt = g + 1;
             g = *pkt;
             g->w0 = 0xB6000000;

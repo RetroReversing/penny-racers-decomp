@@ -50,6 +50,13 @@ void func_8013536C(void **arg0, s32 arg1)
           var_a2 = (D_8011F2F0[temp_v0 * 0x64] * 0x6C) + 0x32;
         }
         else
+          if (arg1 || arg0)
+        {
+          temp_v0_2 = D_8011F2F0[temp_v0 * 0x64] * 2;
+          var_a1 = *((u16 *) (D_80167F58 + temp_v0_2));
+          var_a2 = *((u16 *) (D_80167F60 + temp_v0_2));
+        }
+        else
         {
           temp_v0_2 = D_8011F2F0[temp_v0 * 0x64] * 2;
           var_a1 = *((u16 *) (D_80167F58 + temp_v0_2));

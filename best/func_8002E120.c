@@ -179,7 +179,7 @@ s32 func_8002E120(Voice *arg0, s32 arg1, s32 arg2) {
         func_8002ABC8((s32 *) note);
     }
     res = func_8002E784(arg0, &sp18, &sp1A, rem, res);
-    if (arg0->i74 < arg0->i70) {
+    if (arg0->i70 > arg0->i74) {
         arg0->i70 = arg0->i74;
     }
     return res;

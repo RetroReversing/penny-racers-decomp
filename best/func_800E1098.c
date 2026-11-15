@@ -91,8 +91,8 @@ void func_800E1098(s32 arg0, s32 arg1, s32 arg2, u8 arg3, u8 arg4) {
                     break;
                 case 1:
                     if (*(u16 *)(p2 + D_800E23E0[s1 & 0xFFFF] * 0x64 + D_80126FF6 * 2) & 0x100) {
-                        func_800DF428(arg0, D_800E23E0[s1 & 0xFFFF], arg1 & 0xFF,
-                                      e2->a, e2->b, e2->c, e2->d, e2->e, e2->f);
+                        do { func_800DF428(arg0, D_800E23E0[s1 & 0xFFFF], arg1 & 0xFF,
+                                      e2->a, e2->b, e2->c, e2->d, e2->e, e2->f); } while (0);
                         s1++;
                     } else if (*(u16 *)(p2 + D_800E23E0[s1 & 0xFFFF] * 0x64 + D_80126FF6 * 2) & 0x200) {
                         func_800DF428(arg0, D_800E23E0[s1 & 0xFFFF], arg1 & 0xFF,

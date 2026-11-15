@@ -24,9 +24,9 @@ s32 func_80029938(void) {
         osCreateMesgQueue(mq, buf, 1);
         msg.type = 0x4000;
         msg.mq = mq;
-        msg.a0 = 0;
-        msg.c = 0;
         msg.d = 0;
+        msg.c = 0;
+        msg.a0 = 0;
         osSendMesg(D_80092BE0, &msg, 1);
         osRecvMesg(mq, 0, 1);
         return msg.ret;

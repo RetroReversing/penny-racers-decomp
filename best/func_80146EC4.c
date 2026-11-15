@@ -4,7 +4,8 @@ extern s32 func_8014A870(s32, s32, s32);
 extern void func_8014B854(s32);
 extern s32 func_8014BAC0(s32);
 extern u8 D_8011F2F0[];
-extern u8 D_8011F2FD[];
+typedef struct { u16 f0; u8 pad[98]; } Slot_8011F2FD;
+extern Slot_8011F2FD D_8011F2FD[];
 extern u8 D_80189B36;
 extern s16 D_80189C98;
 extern u8 D_80189C9A[];
@@ -12,13 +13,16 @@ extern u8 D_80189CC6[];
 extern u8 D_80190CA0[];
 
 void func_80146EC4(s32 arg0) {
+u16 __repair_argument;
+
     s32 s1;
     u8 *temp_s0;
     u8 *base;
 
     temp_s0 = D_8011F2F0 + (arg0 & 0xFFFF) * 0x64;
-    base = D_80189CC6;
-    if (*(u16 *)base & 0x800) {
+    __repair_argument = *(u16 *)base & 0x800;
+base = D_80189CC6;
+    if (__repair_argument) {
         s1 = func_8014A870(0x14, 3, base[-8]);
         if (s1 & 8) {
             if (!(*(u16 *)base & 0x8000)) {
@@ -42,10 +46,10 @@ void func_80146EC4(s32 arg0) {
     if (s1 & 0x10) {
         D_80189B36 &= 0xEF;
         if (!(*(u16 *)base & 0x8000)) {
-            *(u16 *)(D_8011F2FD + *(u16 *)D_80190CA0 * 0x64) = 2;
-            *(u16 *)(D_8011F2FD + *(u16 *)(D_80190CA0 + 2) * 0x64) = 2;
+            D_8011F2FD[*(u16 *)D_80190CA0].f0 = 2;
+            D_8011F2FD[*(u16 *)(D_80190CA0 + 2)].f0 = 2;
             *(u16 *)base |= 0x3000;
-            func_8014B854(0x3D);
+            do { func_8014B854(0x3D); } while (0);
             func_80148754(base[-0x10], base[-8]);
             if (func_801485C8() == 0) {
                 *(s16 *)(base - 0x2E) = 0x100;

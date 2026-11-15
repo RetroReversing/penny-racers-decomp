@@ -80,7 +80,7 @@ void func_80218288(u32 arg0) {
     a1 = D_8011F314[mi];
     a2 = D_8011F318[mi];
     a3 = D_8011F31C[mi];
-    guRotateF(m60, a1, one, zero, zero);
+    do { guRotateF(m60, a1, one, zero, zero); } while (0);
     guRotateF(m20, a2, zero, one, zero);
     guRotateF(mA0, a3, zero, zero, one);
     guMtxCatF(m20, m60, mE0);

@@ -32,7 +32,12 @@ void func_80192E00(s8 arg0) {
     if (!(arg0 & 0xFF)) {
         if (func_8019A31C() & 1) {
             D_801C7469 = 0;
-            if (M2C_FIELD(D_801C7AB0, u8 *, 1) == 5) {
+            if (M2C_FIELD(D_801C7AB0, u8 *, 1) != 5) {
+                M2C_FIELD(D_801C6BB0, s8 *, 2) = 0x2B;
+                if (M2C_FIELD(D_801C7AB0, u8 *, 0) == 4) {
+                    M2C_FIELD(D_801C6BB0, s8 *, 2) = 0x59;
+                }
+            } else {
                 temp_a1 = D_801C6BB0 + 2;
                 M2C_FIELD(D_801C6BB0, s8 *, 2) = 5;
                 M2C_FIELD(&D_801C7062, u8 *, 0) = (u8) M2C_FIELD(temp_a1, u8 *, -2);
@@ -41,11 +46,6 @@ void func_80192E00(s8 arg0) {
                 if (M2C_FIELD(D_801C7AB0, u8 *, 0) == 4) {
                     M2C_FIELD(D_801C6BB0, s8 *, 2) = 0x33;
                     M2C_FIELD(&D_801C7062, s8 *, 2) = 0x33;
-                }
-            } else {
-                M2C_FIELD(D_801C6BB0, s8 *, 2) = 0x2B;
-                if (M2C_FIELD(D_801C7AB0, u8 *, 0) == 4) {
-                    M2C_FIELD(D_801C6BB0, s8 *, 2) = 0x59;
                 }
             }
             D_801C6B23 = -1;

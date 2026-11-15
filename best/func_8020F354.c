@@ -71,7 +71,7 @@ void func_8020F354(s32 arg0, s32 arg1)
       func_8014A4C8(arg0, 1, 0x12, 0xB, 0x33);
       func_8014A4C8(arg0, 1, 0x7A, 0xB, 0x34);
       func_8014A4C8(arg0, 0x49, 0xCB, 0xB, 0x35);
-      func_801CA468(arg0, 0xFF);
+      do { func_801CA468(arg0, 0xFF); } while (0);
       func_8014A4C8(arg0, 0x16, 0x13, 6, 0);
       func_8014A4C8(arg0, 0x1A, 0x26, 0xB, D_8021EEA7 + 0x47);
       func_8014A4C8(arg0, 0x17, 0x88, 6, 0x1B);
