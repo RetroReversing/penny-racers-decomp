@@ -5264,14 +5264,6 @@
   "score_after": 1385
  },
  {
-  "function": "func_80211C08",
-  "text": "Saved best is the autopilot draft at 380 (not improved). My tries scored ~1005-1015: a shared base pointer `u8 *a1=(u8*)&D_8021EFA0` makes the body close, but the compiler keeps the EEC0 block's base in $v1 and reorders the stores. Target: lui/addiu $a1=&D_8021EFA0 first, lw, and a0=v&~0x1800, sw a0, then byte at -0xDD vs 1, ori v1 after the first branch, and the EEC0 block uses $a0 for its base. The first store is `sw $a0` (not $v1). Next: the first store must be of `a0` from the masked value and the EEC0 base in $a0, not $v1.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794706954.194601,
-  "score_before": 380,
-  "score_after": 380
- },
- {
   "function": "func_80198CC4",
   "text": "Move-on budget exhausted. Best verified this session: 1255 (rev f8c0ec93c912e6ea8ede); inherited saved best 950 (m2c draft, rev a02de0563b7aebd85551) \u2014 the 950 source is a different shape and its lower score comes from fewer inserted insns, not from better structure.\n\nWhat is established (target is 75 insns, 82 in the 950 draft, 70 in the 1255 draft):\n- Globals: D_801C7AB0 is a pointer (u8 *), D_801C7084 and D_801C7081 are u8 arrays indexed by D_801CA130*5 (sll 2 / addu / lui+addu+%lo), D_801C6BB9 is s8 tested with lb/beqz, D_801CA130 is u8, D_8011F30C is a f32 table indexed by (arg0 & 0xFFFF)*100 bytes.\n- Order: read D_801C7AB0[0]==3 first (bne, with `addu $a1,$zero,$zero` in the delay slot -> return accumulator is a1 and is initialized inside the first branch's delay slot); then the D_801C7084 read with or without -0x2E; both paths jump to a common point. Then D_801C6BB9 test, then `beql $a1,$v0` on D_801CA130 == D_801C7AB0[2] with `addiu $a1,$zero,1` in the delay slot (return 1 when equal), then `(u32)((v-0x16)&0xFF) < 0x14` selects D_801C7081[idx]+0x3C vs D_801C7081[idx], then store (f32)val*0.5f, then ret=1, epilogue `jr $ra; andi $v0,$a1,0xFF`.\n- `*(f32 *)((char *)&D_8011F30C + off)` with `s32 off = (arg0 & 0xFFFF) * 100` is right (1255); writing D_8011F30C[off] as an f32 array scored 1930.\n- Register-role diffs in the second block (target lui $v0/addu $v0/lbu $v0 with index in $v1, ours the mirror) are pure allocation fallout; branch_orientation, cfg_integer_lifetimes, scalar_storage_reuse and signedness families all failed to improve (1275/1295/1255/1710/1645).\n\nLeft: get `beql` for the D_801CA130 == D_801C7AB0[2] test (see stored next_experiment: duplicate `ret = 1` in both arms so gcc emits the branch-likely with the addiu in the delay slot), and get the return accumulator into a1 (the 950 draft already uses a1; combining its `var_a1` naming with the 1255 addressing may be the shortest path).",
   "by": "api-route-llm-code-1",
@@ -9118,5 +9110,13 @@
   "created_at": 1794707259.081923,
   "score_before": 1190,
   "score_after": 1190
+ },
+ {
+  "function": "func_80211C08",
+  "text": "Saved best is the autopilot draft at 380 (not improved). My tries scored ~1005-1015: a shared base pointer `u8 *a1=(u8*)&D_8021EFA0` makes the body close, but the compiler keeps the EEC0 block's base in $v1 and reorders the stores. Target: lui/addiu $a1=&D_8021EFA0 first, lw, and a0=v&~0x1800, sw a0, then byte at -0xDD vs 1, ori v1 after the first branch, and the EEC0 block uses $a0 for its base. The first store is `sw $a0` (not $v1). Next: the first store must be of `a0` from the masked value and the EEC0 base in $a0, not $v1.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794706954.194601,
+  "score_before": 380,
+  "score_after": 380
  }
 ]
