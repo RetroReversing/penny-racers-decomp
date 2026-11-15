@@ -8,17 +8,17 @@ void func_8013E49C(u16);
 void func_8013F44C(s32, void *);
 void func_801D7028(s32, s32);
 
-void func_8014081C(s32 arg0) {
-    s32 idx = arg0 & 0xFFFF;
-    s32 off = idx * 100;
+void func_8014081C(s32 arg0)
+{
+    u16 idx = arg0;
     u8 *s1;
     u8 *s0;
     f32 f;
     s32 t;
 
-    if (**(u8 **)(D_8011F340 + off) == 0) {
-        s1 = *(u8 **)(D_8011F350 + off);
-        s0 = D_8011F2F0 + off;
+    if (**(u8 **)(D_8011F340 + idx * 100) == 0) {
+        s1 = *(u8 **)(D_8011F350 + idx * 100);
+        s0 = D_8011F2F0 + idx * 100;
         *(f32 *)(s1 + 0xC) = *(f32 *)(s1 + 0xC) - 0.2f;
         *(f32 *)(s0 + 0x18) = *(f32 *)(s0 + 0x18) + *(f32 *)(s1 + 0x8);
         *(f32 *)(s0 + 0x20) = *(f32 *)(s0 + 0x20) + *(f32 *)(s1 + 0x10);
@@ -30,7 +30,7 @@ void func_8014081C(s32 arg0) {
         }
         if (*(f32 *)(s0 + 0x1C) < -200.0f) {
             func_8013E49C(*(u16 *)(s1 + 0x76));
-            D_8011F2FD[off] = 2;
+            D_8011F2FD[(arg0 & 0xFFFF) * 100] = 2;
             f = *(f32 *)(s0 + 0x44);
             if (f >= 2147483648.0f) {
                 t = ((s32)(f - 2147483648.0f) | 0x80000000) & 0xFFFF;

@@ -73,7 +73,8 @@ block_18:
                     temp_v0 = var_v1_3 * 0x64;
                     D_8011F2F2[var_v1_3].f0 = D_8011F2F2[var_v1_3].f0 & 0xFFEF;
                     temp_a1 = *(&D_8011F300 + temp_v0);
-                    var_v1_3 = temp_a1 & 0xFFFF;
+                    temp_v1_2 = temp_a1 & 0xFFFF;
+    var_v1_3 = temp_v1_2;
                 }
 if ((temp_a1 & 0xFFFF) != 0xFFFF) goto __repair_rows;
                 temp_v0 = arg0 & 0xFFFF;
