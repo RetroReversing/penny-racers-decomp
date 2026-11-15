@@ -23,11 +23,11 @@ extern u8 D_8006FF10[];
 extern s8 D_80092C04;
 s32 osEepromWrite(s32 mq, u8 address, u8 *buffer)
 {
+  EepFmt fmt;
   s32 i;
   volatile char ret;
   u8 *ptr;
   OSContStat sdata;
-  EepFmt fmt;
   func_8003F464();
   __osEepStatus(mq, &sdata);
   ret = __osEepStatus(mq, &sdata);

@@ -5,6 +5,8 @@ extern void func_8013F638();
 
 void func_80230EFC(u8 *a0)
 {
+char *__repair_addr;
+
     s32 s0;
     s32 ret;
 
@@ -23,8 +25,10 @@ void func_80230EFC(u8 *a0)
         case 15: s0 = 4; break;
         }
         break;
+__repair_addr = (char *)(a0 + 0x53A);
+
     case 1:
-        switch (*(u16 *)(a0 + 0x53A)) {
+        switch (*(u16 *)(__repair_addr)) {
         case 1: case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10:
         case 12: case 13: case 14:
             s0 = 1; break;

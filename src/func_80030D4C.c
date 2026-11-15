@@ -3,7 +3,7 @@ extern char D_8004A4B4[];
 
 void alEvtqPostEvent(void *a0, s16 *a1, s32 a2);
 void func_80030E28(void *a0, s16 *a1);
-void func_80031680(void *a0, s16 *a1);
+void __handleMetaMsg(void *a0, s16 *a1);
 void func_80031EC8(void *a0);
 void func_80031FA0(void *a0, s16 *a1);
 void func_800346B0(char *a0, char *a1, s32 a2);
@@ -19,7 +19,7 @@ void func_80030D4C(void *arg0) {
             func_80031EC8(arg0);
             return;
         case 3:
-            func_80031680(arg0, sp10);
+            __handleMetaMsg(arg0, sp10);
             func_80031EC8(arg0);
             return;
         case 4:

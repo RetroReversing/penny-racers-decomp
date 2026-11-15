@@ -67,12 +67,12 @@ void func_801B36F8(void *arg0) {
             *(&D_802330B1 + temp_s0) = 1;
             temp_a0 = (var_v1 * 5) + arg0;
             *(&D_802330B4 + temp_s0) = (M2C_FIELD(temp_a0, s8 *, 4) * 8) + D_8031445C;
-            temp_v0_3 = func_800DE41C(0, 0, 2, 0, 0x51, 0xFF, temp_s0 + &D_802330B0, 0, 0, ((f32) M2C_FIELD(temp_a0, s8 *, 2) * 400.0f) + 400.0f, (f32) M2C_FIELD(temp_a0, u8 *, 1), ((f32) M2C_FIELD(temp_a0, s8 *, 3) * 400.0f) + 400.0f, 0, 0, 0, 1.0f, 1.0f, 1.0f);
+            temp_s0_2 = (s16)(func_800DE41C(0, 0, 2, 0, 0x51, 0xFF, temp_s0 + &D_802330B0, 0, 0, ((f32) M2C_FIELD(temp_a0, s8 *, 2) * 400.0f) + 400.0f, (f32) M2C_FIELD(temp_a0, u8 *, 1), ((f32) M2C_FIELD(temp_a0, s8 *, 3) * 400.0f) + 400.0f, 0, 0, 0, 1.0f, 1.0f, 1.0f));
             *(&D_802330B8 + temp_s0) = var_s1 + (temp_v0 + 0xFFFF);
             *(&D_802330BA + temp_s0) = var_s1 + (temp_v0 + 1);
             *(&D_802330BC + temp_s0) = 0xFFFF;
             *(&D_802330BE + temp_s0) = 0xFFFF;
-            temp_v1 = (temp_v0_3 & 0xFFFF) * 0x64;
+            temp_v1 = (temp_s0_2 & 0xFFFF) * 0x64;
             *(&D_8011F334 + temp_v1) = *(&D_8011F308 + temp_v1);
             *(&D_8011F338 + temp_v1) = *(&D_8011F30C + temp_v1);
             *(&D_8011F33C + temp_v1) = *(&D_8011F310 + temp_v1);

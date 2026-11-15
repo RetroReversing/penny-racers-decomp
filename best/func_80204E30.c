@@ -74,7 +74,7 @@ void func_80204E30(s32 arg0)
     }
   }
   func_8014A4C8(arg0, 0xAB, 0x40, 8, 7);
-  if ((p[0] == 3) && (p[1] == 0))
+  if ((D_8021E15F[0] == 3) && (p[1] == 0))
   {
     func_801CA494(arg0, 0xFF, 0xFF, 0xFF, 0xFF);
   }

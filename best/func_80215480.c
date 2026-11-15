@@ -8,24 +8,28 @@ extern f64 D_8021DEA0;
 extern f64 D_8021DEA8;
 
 void func_80215480(s32 arg0) {
-int __repair_literal;
+    s32 idx;
+    s32 t;
+    f32 a;
+    f32 b;
+    f64 temp_fv1;
+    f64 temp_fv1_2;
 
-    s32 i = arg0 & 0xFFFF;
-    s32 t = i * 0x64;
-    f32 v;
-f32 __repair_v_1;
-
-    *(f32 *)(D_8011F320 + t) += *(f32 *)(D_8011F308 + t);
-    *(f32 *)(D_8011F324 + t) += *(f32 *)(D_8011F30C + t);
-    v = *(f32 *)(D_8011F320 + t);do{
-    t = i * 2;}while(0);
-    if (D_8021DE90 <= v || v <= D_8021DE98) {
-        *(u32 *)(D_8011F320 + (arg0 & 0xFFFF) * 0x64) = 0;
+    idx = arg0 & 0xFFFF;
+    t = idx * 0x64;
+    a = *(f32 *)(D_8011F320 + t);
+    b = *(f32 *)(D_8011F308 + t);
+    *(f32 *)(D_8011F320 + t) = a + b;
+    a = *(f32 *)(D_8011F324 + t);
+    b = *(f32 *)(D_8011F30C + t);
+    *(f32 *)(D_8011F324 + t) = a + b;
+    temp_fv1 = (f64) *(f32 *)(D_8011F320 + t);
+    if ((D_8021DE90 <= temp_fv1) || (temp_fv1 <= D_8021DE98)) {
+        *(f32 *)(D_8011F320 + idx * 0x64) = 0.0f;
+        idx = arg0 & 0xFFFF;
     }
-__repair_literal = 4;
-
-    __repair_v_1 = *(f32 *)(D_8011F324 + (((arg0 & 0xFFFF) * 2 + i) * 8 + i) * __repair_literal);
-    if (D_8021DEA0 <= __repair_v_1 || __repair_v_1 <= D_8021DEA8) {
-        *(u32 *)(D_8011F324 + i * 0x64) = 0;
+    temp_fv1_2 = (f64) *(f32 *)(D_8011F324 + ((((idx * 2) + idx) * 8 + idx) * 4));
+    if ((D_8021DEA0 <= temp_fv1_2) || (temp_fv1_2 <= D_8021DEA8)) {
+        *(f32 *)(D_8011F324 + idx * 0x64) = 0.0f;
     }
 }

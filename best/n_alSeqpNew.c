@@ -1,4 +1,4 @@
-extern s32 D_80046DF4;
+extern u8 D_80046DF4;
 extern void *func_8003082C;
 void *alHeapDBAlloc(s32, s32, s32, s32, s32);
 void __n_initChanState(void *);
@@ -6,6 +6,8 @@ void alEvtqNew(void *, void *, s32);
 void n_alSynAddSeqPlayer(void *);
 
 void n_alSeqpNew(void *arg0, void *arg1) {
+int __repair_literal;
+
     s32 temp_s2;
     void *temp_v0;
     void *var_v1;
@@ -36,7 +38,9 @@ void n_alSeqpNew(void *arg0, void *arg1) {
     temp_v0 = alHeapDBAlloc(0, 0, temp_s2, *(s32 *)arg1, 0x38);
     *(void **)((u8 *)arg0 + 0x6C) = NULL;
     var_a0 = 0;
-    if (*(s32 *)arg1 > 0) {
+__repair_literal = 0;
+
+    if (*(s32 *)arg1 > __repair_literal) {
         var_v1 = temp_v0;
         do {
             *(void **)var_v1 = *(void **)((u8 *)arg0 + 0x6C);

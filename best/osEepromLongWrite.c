@@ -48,6 +48,13 @@ s32 osEepromLongWrite(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     var_v0 = var_s0;
 
   }
-  return var_v0;
+  if (arg1)
+  {
+    return var_v0;
+  }
+  else
+  {
+    return var_v0;
+  }
 }
 

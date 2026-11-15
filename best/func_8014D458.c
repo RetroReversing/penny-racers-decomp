@@ -16,10 +16,9 @@ void func_8014D458(s32 arg0) {
 
     idx = arg0;
     func_8013AE60(idx);
-    off = idx * 0x64;
-    if (*(u16 *)(D_8011F32E + off) == 0) {
-        F32(D_8011F338, off) = F32(D_8011F314, off);
-        *(u16 *)(D_8011F32E + off) = 1;
+    if (*(u16 *)(D_8011F32E + idx * 0x64) == 0) {
+        F32(D_8011F338, idx * 0x64) = F32(D_8011F314, idx * 0x64);
+        *(u16 *)(D_8011F32E + idx * 0x64) = 1;
     }
     off = ((u16) arg0) * 0x64;
     F32(D_8011F334, off) = F32(D_8011F334, off) + 1.0f;

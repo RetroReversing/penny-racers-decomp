@@ -16,12 +16,7 @@ void func_8014ABD8(s32 arg0)
   temp_v1 = *((u16 *) (((char *) temp_a1) + 0x3E));
   switch (temp_v1)
   {
-    case 0:
-      temp_v0 = (arg0 & 0xFFFF) * 0x64;
-      *((u16 *) (D_8011F2F2 + temp_v0)) = (*((u16 *) (D_8011F2F2 + temp_v0))) | 0x8000;
-      *((u16 *) (((char *) temp_a1) + 0x3E)) = 1U;
-      return;
-
+ do { case 0: temp_v0 = (arg0 & 0xFFFF) * 0x64; *((u16 *) (D_8011F2F2 + temp_v0)) = (*((u16 *) (D_8011F2F2 + temp_v0))) | 0x8000; *((u16 *) (((char *) temp_a1) + 0x3E)) = 1U; return; } while (0);
     case 1:
       if ((*((s32 *) D_8011F340[arg0 & 0xFFFF].f0)) == 0)
     {
@@ -37,4 +32,3 @@ void func_8014ABD8(s32 arg0)
   }
 
 }
-

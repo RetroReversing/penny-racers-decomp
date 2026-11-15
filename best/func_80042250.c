@@ -1,9 +1,14 @@
-s32 func_80042250(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
-    if (arg0 < arg2) {
+s32 func_80042250(s32 a0, s32 a1, s32 a2, s32 a3) {
+    if (a0 < a2) {
         return 0;
     }
-    if (arg0 == arg2) {
-        return 2;
+    if (a0 == a2) {
+        if (a1 < a3) {
+            return 0;
+        }
+        if (a1 == a3) {
+            return 1;
+        }
     }
-    return 1;
+    return 2;
 }

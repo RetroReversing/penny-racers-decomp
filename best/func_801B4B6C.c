@@ -1,6 +1,6 @@
 extern u8 D_8011F2F0;
 extern u8 D_8011F2FC;
-extern u16 D_8011F32E;
+extern u8 D_8011F32E[];
 extern u16 D_801C7074;
 extern u8 D_801C707B;
 extern s8 D_801C7AB5;
@@ -13,7 +13,7 @@ inline static u8 *inline_fn(s32 arg0)
 void func_801B4B6C(s32 arg0)
 {
   s32 off;
-  if (((*((&D_8011F32E) + (D_801C7074 * 0x64))) == 0x10) && (D_801C707B == 1))
+  if ((*(u16 *)(D_8011F32E + D_801C7074 * 0x64) == 0x10) && (D_801C707B == 1))
   {
     if (D_801CA138 != 0)
     {
@@ -46,7 +46,7 @@ void func_801B4B6C(s32 arg0)
     }
     else
     {
-s32 __repair_branch_off_0;
+      s32 __repair_branch_off_0;
 
       __repair_branch_off_0 = (arg0 & 0xFFFF) * 0x64;
       *inline_fn(__repair_branch_off_0) = 0;
@@ -54,4 +54,3 @@ s32 __repair_branch_off_0;
     }
   }
 }
-

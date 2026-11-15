@@ -117,7 +117,7 @@ void func_80206848(s32 arg0)
       else
         if (D_8021B0C0 == 0)
       {
-        func_80203DF8(2, 6, 0, 0, 0);
+        do { func_80203DF8(2, 6, 0, 0, 0); } while (0);
         D_8021AFDC = __repair_constant;
         var_v0_3 = 4;
         block_36:

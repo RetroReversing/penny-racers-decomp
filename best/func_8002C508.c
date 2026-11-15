@@ -32,14 +32,16 @@ extern u8 D_8021F029;
 s32 func_8002C508(u8 *arg0, s32 arg1)
 {
   T *t = D_80046DF4->t;
+  u8 *tab = t->tab;
   s16 i;
   for (i = 0; i < t->n; i++)
   {
-    S *s = (S *) (((char *) t->tab) + (i * 0x30));
+    S *s = (S *) (tab + (i * 0x30));
     if (s->o == 0)
     {
       s->o = arg0;
- do { s->a = 5; s->z = 0; } while (0);
+      s->a = 5;
+      s->z = 0;
       s->f = 0.5f;
       s->b = 0x40;
       s->c = 0;

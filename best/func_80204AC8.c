@@ -16,12 +16,13 @@ void func_80204AC8(s32 arg0)
         a3 = (0xFF - D_8021E19E) & 0xFFFF;
         a1 = a3;
         a2 = a3;
-    } else {
+    
+    do { func_801CA494(arg0, a1, a2, a3, 0xFF); } while (0);} else {
         a1 = 0x64;
         a2 = 0x64;
         a3 = 0x64;
-    }
-    func_801CA494(arg0, a1, a2, a3, 0xFF);
+    
+    func_801CA494(arg0, a1, a2, a3, 0xFF);}
     func_8014A4C8(arg0, 0x77, 0x3A, 0xB, 0x61);
     func_8014A4C8(arg0, 0x77, 0x9C, 0xB, 0x62);
     func_8014A4C8(arg0, 0xC0, 0x3A, 0xB, 0x63);

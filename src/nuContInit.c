@@ -1,26 +1,13 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
+extern s32 nuSiMgrInit(void);
+extern void nuContMgrInit(void);
+extern void func_80028C20(void);
 
-M2C_UNK func_80028C20();                            /* extern */
-s32 func_80029550();                                /* extern */
-M2C_UNK nuContMgrInit();                            /* extern */
+s32 nuContInit(void)
+{
+  s32 temp_s0;
 
-s32 nuContInit(void) {
-    s32 temp_s0;
-
-    temp_s0 = func_80029550();
-    nuContMgrInit();
-    func_80028C20();
-    return temp_s0 & 0xFF;
+  temp_s0 = nuSiMgrInit();
+  nuContMgrInit();
+  func_80028C20();
+  return temp_s0 & 0xFF;
 }

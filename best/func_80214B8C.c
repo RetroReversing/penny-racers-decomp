@@ -79,7 +79,7 @@ void func_80214B8C(s32 arg0) {
                 var_v0_2 = var_s0 & 4;
                 if ((&D_8021F028)[D_80190C98] != 0x15) {
                     (&D_8021F028)[D_80190C98] = (&D_8021F028)[D_80190C98] + 1;
-                    func_8014B854(0x3B);
+                    do { func_8014B854(0x3B); } while (0);
                     var_v0_2 = var_s0 & 4;
                     if (D_80190C98 == 0) {
                         alSeqpSetVol(D_8006FB38, (s16) (D_8021F028 * 0x43E));
@@ -156,7 +156,7 @@ block_43:
             func_80231C5C();
             func_801CF468(D_8018BC3C, 0, 0, 0);
             D_8021AFDC = 0x26;
-            D_80168BB0 = D_8021AFE0;
+            D_80168BB0 = (s32)&D_8021AFE0;
         }
         break;
     }

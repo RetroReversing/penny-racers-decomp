@@ -36,7 +36,7 @@ void func_80211FD0(void) {
     }
     D_80232820 = D_8021E1A3 + 1;
     k2 = 0;
-    func_8003DE60(D_8021DDE0, D_8021E1A2);
+    do { func_8003DE60(D_8021DDE0, D_8021E1A2); } while (0);
     i = 0;
     if (D_8021E1A2 >= 0) {
         do {
