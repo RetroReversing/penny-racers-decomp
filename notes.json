@@ -6272,14 +6272,6 @@
   "score_after": 1010
  },
  {
-  "function": "func_802153C4",
-  "text": "Not matched. Best saved is 440 (historical). Frame is 0x58 with ra/s0/s1/s2 saved; the target saves s0-s2 and loads arg4/arg5 via lbu from 0x6b($sp), so the args arg3..arg5 are in s0..s2 and the prologue is different from mine. Tried: direct *(s16*) stores to D_8021F02C+2 (1631, frame missing), pointer p=D_8021F02C+2 with byte stores p[4..6] (1631, no change). Call args on stack: 0x10=arg0&0xFF, 0x14=0, 0x18=0, 0x1C=&func_80215480, 0x20=&func_802155CC, 0x24=arg1, 0x28=arg2, rest 0. Next: the prologue (saving s0-s2 and where args come from) is the blocker; try a variant with more locals so gcc allocates s0-s2.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794707132.878879,
-  "score_before": 440,
-  "score_after": 440
- },
- {
   "function": "func_801C1424",
   "text": "Best 7996 (rev e41992485fc12b52b66c). Target frame 0x60 with ra at 0x4c, s6 0x48, s5 0x44, sdc1 f22 0x58, f20 0x50 -> needs one more saved reg (s5/s6) and 8 more frame bytes than current 0x58. Target copies the whole D_801C6AC8 (0x20 bytes) into the stack buffer via lui a1,%hi(D_801C6AC8); addiu; lw loop, i.e. the struct copy happens FIRST before the D_801C6BAC test; my version tested D_801C6BAC first and loaded D_801C6AC8 into t0 as an address. Fix: do `sp10 = D_801C6AC8;` as the very first statement (struct assignment, not memcpy/pointer) so gcc emits the lw/sw copy loop with a1 base, then test D_801C6BAC. Target also has addu $v0,$v0,$v1 x9 and sll $v0,$v0,2 x7 (offset arithmetic for D_8011F32E + idx*100 and the *0x10 strides) and andi $v1,$s0,0xffff x3 \u2014 keep the u32 off = (arg0 & 0xFFFF) * 100 local and index *(u16*)((char*)&D_8011F32E + off). Remaining: register allocation for the sin loop and the two s16 stores.\n\nBest 7611 (rev 40cbad57e2f812821054, current flags -O2). With -O1 the same C scores 4182 (trial 6f12545faac914ed3820) \u2014 much closer; the sin loop and the two s16 stores line up at -O1. Target structure confirmed from assembly: (1) full 0x20-byte struct copy D_801C6AC8 -> sp+0x10 as the very first statement, emitted as lui a1,%hi(D_801C6AC8); addiu a1; three lw/sw batches; (2) if (D_801C6BAC==0) call func_8013AE60(arg0&0xFFFF,&D_801C6AC8), andi v1,$s0,0xffff computed BEFORE the branch and again after the call; (3) off = (arg0&0xFFFF)*100 via sll/addu/sll3/addu/sll2, indexed as *(u16*)((char*)&D_8011F32E+off); (4) state 0 loop writes D_801C6B60[i]=(f32)i*45.0f with s3 as counter and the address incremented by sll $v0,$s3,2 at the loop tail, then D_801C6B80=0, then a SECOND andi v0,$s0,0xffff recomputing the offset for the sh of 1; (5) state 1 loop: c.lt.s then bc1fl to the sub.s path, add.s 4.0f on the fall-through (i.e. `if (x < 360.0f) x += 4.0f; else x -= 360.0f;` written that way round), address via sll $v0,$s3,2 at the tail; (6) sin loop keeps s6=&D_80167FB8, s5=&D_801C6B60, s4=sp+0x10, s2=k*16, s1=(k+8)*16+s6, s0=k*4, and does sh $v0,4($s1) plus sh $v0,%lo(D_80167FBC)(at) with at=D_80167FBC+s2 \u2014 so index the second store as *(s16*)(D_80167FBC + k*0x10) with k*0x10 in a separate s32 local (s2) updated at the loop tail, not a pointer walk. Frame needs 0x60 with s5/s6 saved.",
   "by": "api-route-llm-code-1",
@@ -10296,14 +10288,6 @@
   "score_after": 260
  },
  {
-  "function": "func_802153C4",
-  "text": "Not matched. Saved best is 440; my best 1631 (65.2%, rev 0f41d05104cdd7479a61). Target facts: frame 0x58; saves s0-s2 and ra (sw at 0x48..0x54); call func_800DE41C(0,0,3,0, arg0&0xFF, 0, 0, &func_80215480, &func_802155CC, arg1, arg2, 0 x7) with stack args from 0x10 up (0x1C/0x20 hold the two function addresses, 0x24/0x28 arg1/arg2, 0x2C..0x44 zeros); result stored to D_8021F09A; then D_8021F02E gets sh 0 at +0 and +2, and sb s0/s1/s2 at +4/+5/+6 (base is D_8021F02C+2, computed with a single lui/addiu, not per-store). Mine uses a per-store lui and wrong stack slot order. Next step: write the call with an explicit 18-arg call and make the struct stores through a single local base pointer (`s16 *base = (s16*)(D_8021F02E)`), and check the 0x10 slot against arg0&0xFF.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794721269.6722078,
-  "score_before": 440,
-  "score_after": 440
- },
- {
   "function": "func_80211A84",
   "text": "Not matched. Best current revision 149393d0a7fab94d97f0: 900 (80.8%); saved historical best 820 is from another source. Working shape: `u8 *obj = D_8021EECC;`, `off = (arg0&0xFFFF)*0x64`, `target = *(f32*)(D_8011F308+off)` read first, `next = (target-cur)/6.0f + cur`, and the if-condition and store use a SECOND read `t2 = *(f32*)(D_8011F308+off)` (target reloads that word after the store). Remaining: target keeps obj in $a1 and does `lw $v0,0xd4($a1)` / `sw $v0,0xd4($a1)`, but gcc folds obj+0xD4 into `%lo(D_8021EFA0)` as a constant symbol and stores through $v1 (lui/%lo twice). Fix idea: make the compiler not see obj as a constant symbol, so the 0xD4 field is accessed off the register. Branch targets: target uses bc1f to .Lb4 twice, mine goes to .Lbc.",
   "by": "claude-haiku-5-5-24",
@@ -12896,14 +12880,6 @@
   "score_after": 9
  },
  {
-  "function": "func_802153C4",
-  "text": "Best current source scores 1631 (65%); the saved best 440 is the same m2c draft and is historical. Verified from the target: arg0 is masked (`andi $a0,0xff`) before it is stored as the 5th call arg at 0x10($sp); stack args 0x14 and 0x18 are explicit zeros; the stores start at D_8021F02C+2 (sh zero at +2 and +4, then sb arg3/arg4/arg5 at +6/+7/+8). The masked form (current 6c257e72\u2026) fixes the store block but not the prologue: the target saves $ra (0x54), $s2 (0x50), $s1 (0x4c) and $s0 (0x48) in that order with a 0x58 frame, while our version saves them in a different order and reads arg4/arg5 from caller stack (0x6b/0x6f) in a different place. Next: fix the parameter/stack-arg layout first (which of arg4/arg5 are caller-stack u8s), then the save order. Not matched.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794729489.100161,
-  "score_before": 440,
-  "score_after": 440
- },
- {
   "function": "func_80203DA8",
   "text": "Best candidate revision 49d27f9bd1cfa8f311a7 scores 325 (saved). Source: loop i<4 with D_8021B00C[i]=0; D_8021B128[i]=0; q[i*9]=0 where u8 *q = D_8021E20B. Remaining diff: target recomputes lui %hi(D_8021E20B) inside the loop (lui $at; addu $at,$at,$v0; sb %lo(...)($at)), but ours hoists the E20B base into a register and stores via ($v0). Tried and worse (350): plain D_8021E20B[i*9] with D_8021B128 accessed through u32 *p (hoists B128 base to $a0 as target does, but also hoists E20B). Variant with E20B first in loop body also worse. Next idea: find a way to keep the E20B base un-hoisted (e.g. indexing via a computed offset that is not loop-invariant-foldable), since target does hoist only the B128 base.",
   "by": "claude-haiku-5-5-20",
@@ -13262,14 +13238,6 @@
   "created_at": 1794730506.098965,
   "score_before": 1625,
   "score_after": 1625
- },
- {
-  "function": "func_802153C4",
-  "text": "Best candidate is historical 440 (saved, not reproduced; my attempts 1631-1636). Target facts: frame 0x58, saves ra,s0,s1,s2. Entry: s0=a3, s1=lbu 0x6B($sp) (arg4), s2=lbu 0x6F($sp) (arg5). Call func_800DE41C(0,0,3,0, arg0&0xFF,0,0, &func_80215480, &func_802155CC, arg1, arg2, 0 x7); result stored with sh to D_8021F09A. Then base v0 = &D_8021F02C+2 (one lui/addiu), sh 0 at +0, sh 0 at +2, sb s0 at +4, sb s1 at +5, sb s2 at +6. Problem: every variant (u8[] extern, scalar extern with (u8*)&SYM+2, a struct overlay at &SYM+2) makes GCC emit a separate lui $at,%hi() per store instead of one base register. Tried 4 variants, all 1631-1636. Not tried: compile_family/signedness sweep and compile_variants with the struct written as a single 7-byte store sequence; the 440 candidate may be recoverable from get_candidate(base=saved_best).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794730531.914978,
-  "score_before": 440,
-  "score_after": 440
  },
  {
   "function": "func_8013E27C",
@@ -14302,14 +14270,6 @@
   "created_at": 1794734006.258591,
   "score_before": 2745,
   "score_after": 2745
- },
- {
-  "function": "func_802153C4",
-  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: stack layout; first differing row 1; 39 differing rows (1 register, 6 stack, 10 operand, 12 reordered, 6 inserted, 4 deleted; advisory).\nTarget: sw $ra, 0x54($sp)\nCandidate: sw $s1, 0x4c($sp)\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n  = addiu $sp, $sp, -0x58\ni T: sw $ra, 0x54($sp) | C: sw $s1, 0x4c($sp)\no T: sw $s2, 0x50($sp) | C: lbu $s1, 0x6b($sp)\n< T: sw $s1, 0x4c($sp) | C: \nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nStuck at score 1631 (39 mismatch rows). Struct-field store form, u8-array form, and (u8*)&D_8021F02C+2 form all tie at 1631. Remaining leads: try_local_repairs families parameter_mask/parameter_width/sum_shape/global_address_table; the call to func_800DE41C takes 18 args with arg0&0xFF as the 5th; the two function-pointer args (&func_80215480, &func_802155CC) may need explicit casts or a declared prototype to change argument setup order.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794734017.1935802,
-  "score_before": 440,
-  "score_after": 440
  },
  {
   "function": "func_8014ABD8",
@@ -18526,14 +18486,6 @@
   "created_at": 1794748452.539333,
   "score_before": 0,
   "score_after": 0
- },
- {
-  "function": "func_802153C4",
-  "text": "Best at 1631 (65%) rev 96b8e7084eb81c937e2e. Findings: data base is D_8021F02E (not 02C): temp=D_8021F02E; sh 0 at +0,+2; sb arg3/arg4/arg5 at +4,+5,+6. Call func_800DE41C(0,0,3,0, arg0&0xFF, 0,0, func_80215480, func_802155CC, arg1, arg2, 0\u00d77): 4 reg args + 14 stack words (0x10..0x44). arg4/arg5 are the 5th/6th stack params read via lbu at 0x6B/0x6F. Target frame 0x58 saves ra,s2,s1,s0 (ra first at 0x54); my version saves s1 first and reorders stack stores; the stack-arg/prologue ordering is the open problem. Compiler gcc-2.7.2-kmc.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794748457.220327,
-  "score_before": 440,
-  "score_after": 440
  },
  {
   "function": "func_8013EA90",
@@ -26518,5 +26470,109 @@
   "created_at": 1794760906.711551,
   "score_before": 60,
   "score_after": 60
+ },
+ {
+  "function": "func_802153C4",
+  "text": "Not matched. Best saved is 440 (historical). Frame is 0x58 with ra/s0/s1/s2 saved; the target saves s0-s2 and loads arg4/arg5 via lbu from 0x6b($sp), so the args arg3..arg5 are in s0..s2 and the prologue is different from mine. Tried: direct *(s16*) stores to D_8021F02C+2 (1631, frame missing), pointer p=D_8021F02C+2 with byte stores p[4..6] (1631, no change). Call args on stack: 0x10=arg0&0xFF, 0x14=0, 0x18=0, 0x1C=&func_80215480, 0x20=&func_802155CC, 0x24=arg1, 0x28=arg2, rest 0. Next: the prologue (saving s0-s2 and where args come from) is the blocker; try a variant with more locals so gcc allocates s0-s2.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794707132.878879,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_802153C4",
+  "text": "Not matched. Saved best is 440; my best 1631 (65.2%, rev 0f41d05104cdd7479a61). Target facts: frame 0x58; saves s0-s2 and ra (sw at 0x48..0x54); call func_800DE41C(0,0,3,0, arg0&0xFF, 0, 0, &func_80215480, &func_802155CC, arg1, arg2, 0 x7) with stack args from 0x10 up (0x1C/0x20 hold the two function addresses, 0x24/0x28 arg1/arg2, 0x2C..0x44 zeros); result stored to D_8021F09A; then D_8021F02E gets sh 0 at +0 and +2, and sb s0/s1/s2 at +4/+5/+6 (base is D_8021F02C+2, computed with a single lui/addiu, not per-store). Mine uses a per-store lui and wrong stack slot order. Next step: write the call with an explicit 18-arg call and make the struct stores through a single local base pointer (`s16 *base = (s16*)(D_8021F02E)`), and check the 0x10 slot against arg0&0xFF.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794721269.6722078,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_802153C4",
+  "text": "Best current source scores 1631 (65%); the saved best 440 is the same m2c draft and is historical. Verified from the target: arg0 is masked (`andi $a0,0xff`) before it is stored as the 5th call arg at 0x10($sp); stack args 0x14 and 0x18 are explicit zeros; the stores start at D_8021F02C+2 (sh zero at +2 and +4, then sb arg3/arg4/arg5 at +6/+7/+8). The masked form (current 6c257e72\u2026) fixes the store block but not the prologue: the target saves $ra (0x54), $s2 (0x50), $s1 (0x4c) and $s0 (0x48) in that order with a 0x58 frame, while our version saves them in a different order and reads arg4/arg5 from caller stack (0x6b/0x6f) in a different place. Next: fix the parameter/stack-arg layout first (which of arg4/arg5 are caller-stack u8s), then the save order. Not matched.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794729489.100161,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_802153C4",
+  "text": "Best candidate is historical 440 (saved, not reproduced; my attempts 1631-1636). Target facts: frame 0x58, saves ra,s0,s1,s2. Entry: s0=a3, s1=lbu 0x6B($sp) (arg4), s2=lbu 0x6F($sp) (arg5). Call func_800DE41C(0,0,3,0, arg0&0xFF,0,0, &func_80215480, &func_802155CC, arg1, arg2, 0 x7); result stored with sh to D_8021F09A. Then base v0 = &D_8021F02C+2 (one lui/addiu), sh 0 at +0, sh 0 at +2, sb s0 at +4, sb s1 at +5, sb s2 at +6. Problem: every variant (u8[] extern, scalar extern with (u8*)&SYM+2, a struct overlay at &SYM+2) makes GCC emit a separate lui $at,%hi() per store instead of one base register. Tried 4 variants, all 1631-1636. Not tried: compile_family/signedness sweep and compile_variants with the struct written as a single 7-byte store sequence; the 440 candidate may be recoverable from get_candidate(base=saved_best).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794730531.914978,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_802153C4",
+  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: stack layout; first differing row 1; 39 differing rows (1 register, 6 stack, 10 operand, 12 reordered, 6 inserted, 4 deleted; advisory).\nTarget: sw $ra, 0x54($sp)\nCandidate: sw $s1, 0x4c($sp)\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n  = addiu $sp, $sp, -0x58\ni T: sw $ra, 0x54($sp) | C: sw $s1, 0x4c($sp)\no T: sw $s2, 0x50($sp) | C: lbu $s1, 0x6b($sp)\n< T: sw $s1, 0x4c($sp) | C: \nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nStuck at score 1631 (39 mismatch rows). Struct-field store form, u8-array form, and (u8*)&D_8021F02C+2 form all tie at 1631. Remaining leads: try_local_repairs families parameter_mask/parameter_width/sum_shape/global_address_table; the call to func_800DE41C takes 18 args with arg0&0xFF as the 5th; the two function-pointer args (&func_80215480, &func_802155CC) may need explicit casts or a declared prototype to change argument setup order.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794734017.1935802,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_802153C4",
+  "text": "Best at 1631 (65%) rev 96b8e7084eb81c937e2e. Findings: data base is D_8021F02E (not 02C): temp=D_8021F02E; sh 0 at +0,+2; sb arg3/arg4/arg5 at +4,+5,+6. Call func_800DE41C(0,0,3,0, arg0&0xFF, 0,0, func_80215480, func_802155CC, arg1, arg2, 0\u00d77): 4 reg args + 14 stack words (0x10..0x44). arg4/arg5 are the 5th/6th stack params read via lbu at 0x6B/0x6F. Target frame 0x58 saves ra,s2,s1,s0 (ra first at 0x54); my version saves s1 first and reorders stack stores; the stack-arg/prologue ordering is the open problem. Compiler gcc-2.7.2-kmc.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794748457.220327,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_802153C4",
+  "text": "Best saved remains 440 (saved, m2c-based, from another source); my rewrites scored 1621-1631 (worse). Target: frame 0x58 saves ra,s2,s1,s0 (ra at 0x54 first); a3 copied to s0; stack args a4/a5 read as lbu 0x6B(sp)/0x6F(sp) (u8 stack params); 14 stack words of the 18-arg call to func_800DE41C are written (0x10..0x44: a0&0xFF, 0, 0, &func_80215480, &func_802155CC, a1, a2, then zeros). Result sh'd to D_8021F09A. Tail: one base (D_8021F02C+2) in $v0 with sh 0/sh 0 at +0/+2 and sb s0/s1/s2 at +4/+5/+6. Problem in my tries: GCC folds each D_8021F02C+off into its own lui (3-4 lui's) where the target keeps one base register, and the stack-slot order differs. Untried: a u8* local set from the global once with explicit sb stores in the target order; the saved-best structure with s8 arg3.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794757102.507651,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_802153C4",
+  "text": "MATCHES at KMC -O1 (suggestion submitted with exact C): the struct at D_8021F02E is {s16,s16,u8,u8,u8}, and the 18-arg call is func_800DE41C(0,0,3,0,arg0,0,0,func_80215480,func_802155CC,arg1,arg2,0x7 zeros). Waiting for the -O1 profile.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794758209.989043,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_802153C4",
+  "text": "Current KMC -O2 baseline 1631; arg3 width, void*/u8* pointer, scalar vs array/global struct and six local repairs did not improve. Explicit correct source with KMC -O1 gives 555: prologue/call matches; remaining all global stores use separate absolute addresses rather than shared v0 base. gcc-2.8.1-pm -O1 historical source 440 uses wrong daddu move encodings and wrong pointer scale; do not treat 440 as current KMC baseline. Next investigate address CSE compiler flags under KMC -O1 or inline helper taking destination pointer to keep base live.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794758671.938378,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_802153C4",
+  "text": "Fresh exact KMC O1 source in submitted bundle: PRState {s16 a,b;u8 c,d,e;} extern D_8021F02E generates shared base all 5 stores. Full call and arg3 s8 arg4/5 u8 verified. Wrong O2 score1631; pending profile apply only.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794759937.007749,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_802153C4",
+  "text": "Matches at KMC -O1 (suggestion submitted): direct field stores to struct D_8021F02C {s16 unk0,unk2,unk4; s8 unk6; u8 unk7,unk8}; args (u8, s32, s32, s8, u8, u8).",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794760014.7267032,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_802153C4",
+  "text": "Exact 188-byte O1 bundle submitted with suggest; auto compiler changes disabled. Source uses extern u16 D_8021F02E[]; D[0]=0;D[1]=0;((u8*)D)[4]=arg3;[5]=arg4;[6]=arg5 after spawn call result stored to D_8021F09A. Corrects draft pointer arithmetic (+2 on s32 was erroneously8). Apply pending source/header/profile bundle; O2 score1631 remains.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794761044.633444,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_802153C4",
+  "text": "Exact match verified with try_compiler: gcc-2.7.2-kmc -O1 -fforce-addr (source: Sub struct {s16,s16,s8,u8,u8} at &D_8021F02C[1], p=... after call, 5 field stores). Suggested function-only bundle. Not reproducible at -O2 (1631) or plain -O1 (555; gcc folds address into each store). Nothing left on the C side.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794761199.353847,
+  "score_before": 440,
+  "score_after": 440
  }
 ]
