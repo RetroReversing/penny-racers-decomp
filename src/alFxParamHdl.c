@@ -18,9 +18,9 @@ typedef struct S0
   u8 pad[0x20];
   Ent *arr;
 } S0;
-extern u8 *D_800A2500;
-extern f64 D_800A71F0;
-extern f64 D_800A71F8;
+extern u8 *D_800473B0;
+extern f64 D_8004A870;
+extern f64 D_8004A878;
 void func_800346C0(void *);
 s32 alFxParamHdl(S0 *arg0, s32 arg1, s32 *arg2)
 {
@@ -34,50 +34,40 @@ s32 alFxParamHdl(S0 *arg0, s32 arg1, s32 *arg2)
     case 0:
       arg0->arr[arg1].f0 = val & (~7);
       break;
-
     case 1:
       arg0->arr[arg1].f4 = val & (~7);
       break;
-
     case 2:
       arg0->arr[arg1].f8 = val;
       break;
-
     case 3:
       arg0->arr[arg1].fA = val;
       break;
-
     case 4:
       arg0->arr[arg1].fC = val;
       break;
-
     case 5:
-      arg0->arr[arg1].f10 = (f32) ((((f64) (((f32) val) / 1000.0f)) * 2.0) / ((f64) (*((s32 *) (D_800A2500 + 0x44)))));
+      arg0->arr[arg1].f10 = (f32) ((((f64) (((f32) val) / 1000.0f)) * 2.0) / ((f64) (*((s32 *) (D_800473B0 + 0x44)))));
       break;
-
     case 6:
     {
-      f64 t = ((f64) ((f32) val)) / D_800A71F0;
+      f64 t = ((f64) ((f32) val)) / D_8004A870;
       unsigned int diff = arg0->arr[arg1].f4 - arg0->arr[arg1].f0;
       f64 d = (f64) diff;
       if (diff < 0)
       {
-        d += D_800A71F8;
+        d += D_8004A878;
       }
       arg0->arr[arg1].f1C = (f32) (t * d);
       break;
     }
-
     case 7:
       if (arg0->arr[arg1].f20 != NULL)
-    {
-      *((s16 *) arg0->arr[arg1].f20) = val;
-      func_800346C0(arg0->arr[arg1].f20);
-    }
+      {
+        *((s16 *) arg0->arr[arg1].f20) = val;
+        func_800346C0(arg0->arr[arg1].f20);
+      }
       break;
-
   }
-
   return 0;
 }
-
