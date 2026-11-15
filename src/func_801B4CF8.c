@@ -46,7 +46,7 @@ void func_801B4CF8(int arg0) {
         } else if ((u32)((var_v1 - 0x2A) & 0xFF) < 4) {
             func_801CABF4(arg0, 0x48, 0x93, 0xA, D_801D4390, D_801C5B3C[(s8)var_v1], 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC);
         }
-        func_801CABF4(arg0, 0x93, 0x93, 0xA, D_801D4390, D_801C586C[(D_801C7070 / 15) & 0xFF], 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC);
+        func_801CABF4(arg0, 0x93, 0x93, 0xA, D_801D4390, D_801C586C[D_801C7070 / 60], 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC);
         if (D_801C7AB5 == 0) {
             if (D_801C7078 != D_801C6BB4 && D_801C7078 != D_801C7066) {
                 func_8014A4C8(arg0, 0x36, 0x6F, 0xD, 0xC);
