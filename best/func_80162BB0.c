@@ -32,7 +32,7 @@ void func_80162BB0(void **arg0, s32 arg1)
   s8 var_v0;
   s8 var_v0_2;
   s8 var_v0_3;
-  u16 temp_v1;
+  unsigned int temp_v1;
   u8 temp_a1;
   void *temp_a0;
   void *temp_a0_2;
@@ -62,7 +62,7 @@ void func_80162BB0(void **arg0, s32 arg1)
   {
     __repair_phase_spFC = (s32) (*((u16 *) (((char *) (*((void **) (((char *) temp_t0) + 4)))) + 4)));
     temp_a2 = __repair_phase_spFC;
-    temp_s0_2 = (u8)(*((u8 *) (((char *) temp_a0) + 0xC)));
+    temp_s0_2 = (u8) (*((u8 *) (((char *) temp_a0) + 0xC)));
     spFC = (temp_a2 * 0x24C) + ((temp_s0_2 * 0xC4) + D_8018A460);
     var_s1 = (temp_a2 * 0x300) + ((temp_s0_2 << 8) + D_8018BC40);
     sp104 = var_s1;

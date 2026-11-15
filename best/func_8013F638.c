@@ -16,8 +16,10 @@ void func_8013F638(s16 arg0) {
     s1 = D_8011F2F0 + (arg0 & 0xFFFF) * 100;
     s0 = D_8022A770 + *(u8 *)s1 * 0x8F0;
     a0 = 0;
-    switch (*(u16 *)(s1 + 0x3E)) {
-    case 0:
+    if (*(u16 *)(s1 + 0x3E) != 1) {
+        if (*(u16 *)(s1 + 0x3E) != 0) {
+            return;
+        }
         switch (*(u16 *)(s0 + 0x53A) - 1) {
         case 0:
             if (!(*(u16 *)(s0 + 0x560) & 7)) {
@@ -39,12 +41,9 @@ void func_8013F638(s16 arg0) {
                 *(u16 *)(s1 + 0x3E) = 1;
             }
             break;
+        case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12: case 13: case 14:
+            break;
         }
-        break;
-    case 1:
-        break;
-    default:
-        return;
     }
     switch (*(u16 *)(s0 + 0x53A) - 1) {
     case 0:
@@ -58,6 +57,8 @@ void func_8013F638(s16 arg0) {
         break;
     case 3:
         a0 = 0x1E;
+        break;
+    case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12: case 13: case 14:
         break;
     }
     t = *(s16 *)(s0 + 0x55E);

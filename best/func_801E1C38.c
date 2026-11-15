@@ -31,7 +31,7 @@ void func_801E1C38(void)
     u8 t1;
     u16 n;
 
-    func_8003DE60(D_801E94EC, D_801E973C, 0);
+    do { func_8003DE60(D_801E94EC, D_801E973C, 0); } while (0);
     D_801E87E3 = 1;
     D_801E87E1 = D_801F18E4;
     D_801E87E0 = D_801F18E4;
