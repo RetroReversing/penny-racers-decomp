@@ -25,9 +25,9 @@ void __CSPHandleMetaMsg(void *arg0, void *arg1)
  do { matched = NULL; } while (0);
   if ((m[8] == 0xFF) && (m[9] == 0x51))
   {
-    div = *((s32 *) (a + 0x24));
-    func_8002BFDC(a, (f32) (((m[0xB] << 16) | (m[0xC] << 8)) | m[0xD]));
-    node = *((CSPNode **) (a + 0x50));
+    div = *((s32 *) (arg0 + 0x24));
+    func_8002BFDC(arg0, (f32) (((m[0xB] << 16) | (m[0xC] << 8)) | m[0xD]));
+    node = *((CSPNode **) (arg0 + 0x50));
     if (node != NULL)
     {
       do
@@ -66,8 +66,8 @@ void __CSPHandleMetaMsg(void *arg0, void *arg1)
       do
       {
         next = node->next;
-        node->f8 = (node->f8 / div) * (*((s32 *) (a + 0x24)));
-        __CSPRepostEvent(a + 0x48, node);
+        node->f8 = (node->f8 / div) * (*((s32 *) (arg0 + 0x24)));
+        __CSPRepostEvent(arg0 + 0x48, node);
         node = next;
       }
       while (node != NULL);
