@@ -14,11 +14,11 @@ void *func_800319F4(char *arg0, unsigned char arg1, unsigned char arg2, unsigned
     u32 k2;
 
     entry = *(char **)(arg0 + 0x60) + arg3 * 16;
-    tbl = *(char **)entry;
+    tbl = *(char **)(*(char **)(arg0 + 0x60) + arg3 * 16);
     hi = *(s16 *)(tbl + 0xE);
     lo = 1;
     if (tbl == NULL) {
-        func_800346B0(D_8004A4B0, D_8004A4B4, 0x3CE, entry);
+        func_800346B0(D_8004A4B0, D_8004A4B4, 0x3CE, (*(char **)(arg0 + 0x60) + arg3 * 16));
     }
     if (hi > 0) {
         k1 = arg1 & 0xFF;

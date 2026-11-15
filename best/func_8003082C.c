@@ -101,7 +101,6 @@ s32 func_8003082C(SeqPlayer *arg0) {
     s32 s3;
     s32 s4;
     u8 b44;
-    s16 vol;
 
     do {
         switch (p->unk38) {
@@ -136,12 +135,9 @@ s32 func_8003082C(SeqPlayer *arg0) {
         case 22:
             v = (SeqVoice *)p->unk3C.ptr;
             s4 = p->unk40;
-            s3 = ((s32 (*)(s32, f32 *))p->unk3C.ptr, 0);
             s3 = ((s32 (*)(s32, f32 *))((void **)p)[0x1D])(s4, &val);
             v->unk36 = (u32)val;
-            vol = __vsVol(v, p);
-            len = func_80031B94(v, p->unk1C);
-            n_alSynSetVol((u8 *)v + 4, vol, len);
+            n_alSynSetVol((u8 *)v + 4, (s16)__vsVol(v, p), func_80031B94(v, p->unk1C));
             ev.type = 0x16;
             ev.unk4 = v;
             ev.unk8 = s4;
@@ -210,8 +206,7 @@ s32 func_8003082C(SeqPlayer *arg0) {
             p->unk32 = p->unk3C.h;
             if (node != NULL) {
                 do {
-                    vol = __vsVol(node, p);
-                    n_alSynSetVol(node + 4, vol, func_80031B94(node, p->unk1C));
+                    n_alSynSetVol(node + 4, (s16)__vsVol(node, p), func_80031B94(node, p->unk1C));
                     node = *(u8 **)node;
                 } while (node != NULL);
             }
@@ -238,9 +233,8 @@ s32 func_8003082C(SeqPlayer *arg0) {
             if (p->unk2C != 0) {
                 func_800346B0("EX", "n_seqplayer.c", 0x121);
             }
-            v = (SeqVoice *)p->unk3C.ptr;
-            p->unk20 = v;
-            __initFromBank(p, v);
+            p->unk20 = p->unk3C.ptr;
+            __initFromBank(p, p->unk20);
             break;
         case 1:
         case 3:

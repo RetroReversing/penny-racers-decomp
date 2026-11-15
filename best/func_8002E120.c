@@ -9,7 +9,7 @@ typedef struct Note {
     s16 type;            /* 0x08 */
     s16 unkA;            /* 0x0A */
     s32 valC;            /* 0x0C */
-    U10 f10;             /* 0x10 */
+    s16 f10;             /* 0x10 */
     u8 u12;              /* 0x12 */
     u8 u13;              /* 0x13 */
     s32 i14;             /* 0x14 */
@@ -62,6 +62,7 @@ s32 func_8002E120(Voice *arg0, s32 arg1, s32 arg2) {
     s32 rem;
     s16 *tbl;
 
+    tbl = (s16 *) D_80046F90;
     res = arg2;
     rem = 0xB8;
     sp1A = 0;
@@ -92,7 +93,7 @@ s32 func_8002E120(Voice *arg0, s32 arg1, s32 arg2) {
                 arg0->i78 = 1;
                 arg0->i70 = 0;
                 arg0->i74 = ((note->i14 + 0x5C) / 184) * 0xB8;
-                arg0->s5A = (s16) ((note->f10.s * note->f10.s) >> 15);
+                arg0->s5A = (s16) ((note->f10 * note->f10) >> 15);
                 arg0->s58 = (s16) note->u12;
                 arg0->u60 = ((u16 *) tbl)[note->u13];
                 arg0->u62 = ((u16 *) tbl)[0x7F - note->u13];
@@ -131,7 +132,7 @@ s32 func_8002E120(Voice *arg0, s32 arg1, s32 arg2) {
                 if (arg0->p7C->type == 0xB) {
                     arg0->i70 = 0;
                     arg0->s5A = (s16) ((arg0->p7C->valC * arg0->p7C->valC) >> 15);
-                    arg0->i74 = ((arg0->p7C->f10.w + 0x5C) / 184) * 0xB8;
+                    arg0->i74 = ((*(s32 *) ((u8 *) arg0->p7C + 0x10) + 0x5C) / 184) * 0xB8;
                 }
                 if (arg0->p7C->type == 0x10) {
                     arg0->u60 = ((u16 *) tbl)[arg0->p7C->valC];
@@ -140,10 +141,10 @@ s32 func_8002E120(Voice *arg0, s32 arg1, s32 arg2) {
                 arg0->i78 = 1;
                 break;
             case 14:
-                if (note->unkA != 0) {
+                if (arg0->p7C->unkA != 0) {
                     arg0->i48 = 1;
                 }
-                n_alLoadParam(arg0, 5, note->valC);
+                n_alLoadParam(arg0, 5, arg0->p7C->valC);
                 arg0->i84 = 1;
                 break;
             case 15:
