@@ -38,8 +38,16 @@ s32 osEepromWrite(s32 mq, u8 address, u8 *buffer)
   }
   if ((((float) (sdata.type & 0xC000)) != 0x8000) && ((sdata.type & 0xC000) != 0xC000))
   {
-    func_8003F4D0();
-    return 8;
+    if (ptr)
+    {
+      func_8003F4D0();
+      return 8;
+    }
+    else
+    {
+      func_8003F4D0();
+      return 8;
+    }
   }
   if (address > 0x40)
   {

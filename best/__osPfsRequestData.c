@@ -1,53 +1,45 @@
-/* Partial candidate from function #273548 in project #72; rechecked locally. */
-typedef struct 
+/* adapted from similar verified C in func_8009284C in V-RALLY (matched), with its names changed by decompdecomp */
+/* identical to __osPfsRequestData in V-RALLY-PAL, another release of this game, fitted to this release's offsets (matched), with its names changed by decompdecomp */
+typedef struct
 {
-  u8 b0;
-  u8 b1;
-  u8 b2;
-  s8 b3;
-  s8 b4;
-  s8 b5;
-  s8 b6;
-  s8 b7;
-} Blob8;
-extern u8 D_80014F9C;
-extern s8 D_80014FE0;
-extern u8 D_80016470[];
-extern s32 D_800164AC;
-void __osPfsRequestData(s8 a0)
+      u32 ramarray[15];
+      u32 pifstatus;
+} OSPifRam;
+typedef struct
 {
-  u8 new_var2;
-  int new_var3;
-  Blob8 b;
-  s32 *base;
-  Blob8 *p;
-  u8 ff;
-  int new_var;
-  s32 i;
-  s8 *new_var4;
-  p = (Blob8 *) D_80016470;
-  base = &D_800164AC;
-  ff = 0xFF;
-  new_var = 0;
-  i = new_var;
-  new_var4 = &a0;
-  *base = 1;
-  b.b1 = 1;
-  D_80014FE0 = *new_var4;
-  b.b0 = ff;
-  b.b2 = (new_var3 = 3);
-  new_var2 = ff;
-  b.b3 = a0;
-  b.b4 = ff;
-  b.b5 = ff;
-  b.b6 = ff;
-  b.b7 = new_var2;
-  for (; i < D_80014F9C; i++)
-  {
-    *p = b;
-    p++;
-  }
+      u8 dummy;
+      u8 txsize;
+      u8 rxsize;
+      u8 cmd;
+      u8 typeh;
+      u8 typel;
+      u8 status;
+      u8 dummy1;
+} __OSContRequesFormat;
+extern OSPifRam D_800CC5F0;
+extern u8 D_800C713C;
+extern u8 D_8006FE78;
 
-  *((u8 *) p) = 0xFE;
+/* Fills the PIF buffer with one controller-pak request block per channel, then writes the end-of-list byte. */ void __osPfsRequestData(u8 cmd) {
+    u8* cursor = (u8*)&D_800CC5F0;
+    __OSContRequesFormat req;
+    int i;
+
+    D_800C713C = cmd;
+    D_800CC5F0.pifstatus = 1 ;
+    req.dummy = 0xff ;
+    req.txsize = 1 ;
+    req.rxsize = 3 ;
+    req.cmd = cmd;
+    req.typeh = 0xff ;
+    req.typel = 0xff ;
+    req.status = 0xff ;
+    req.dummy1 = 0xff ;
+
+    for (i = 0; i < D_8006FE78; i++) {
+        *((__OSContRequesFormat*)cursor) = req;
+        cursor += sizeof(__OSContRequesFormat);
+    }
+
+    *cursor = (short)0xfe ;
 }
-

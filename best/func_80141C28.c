@@ -1,6 +1,5 @@
 s32 func_800DE41C(s32, s32, s32, s32, s32, s32, s32 *, s32 *, s32 *, f32, f32, f32, s32, s32, s32, f32, f32, f32);
 s32 func_8013E364();
-s32 func_8013E49C(s32);
 s32 func_8013E818(s32, s32, s32, s32, s32, s32, s32);
 s32 func_801FA30C();
 extern u8 D_8011F2F0[];
