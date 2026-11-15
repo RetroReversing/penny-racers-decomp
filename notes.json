@@ -16136,14 +16136,6 @@
   "score_after": 8560
  },
  {
-  "function": "pi_raw_start_dma",
-  "text": "Best 755 (85.4%), from the switch version using `volatile s32 *reg` for 0xA4600004 and a switch(arg0) with case 0 / case 1 / default each doing its own store and return. Remaining diff is layout of the tail. The target branches on arg0 with `beqz s0` to case 0 (lui/ori 0xA460000C), and case 1 tests `beq s0,v0` (addiu v0,1) and then `j` to a shared `addiu v0,s2,-1; sw` store, with the return 0 in the delay slot. The shared store needs the case-0 and case-1 address set in v1 and a single store; my attempt at that (pointer chosen in if/else, then one store, score 1035) was worse than the switch version, so the switch form with `return 0` per arm is closer. Next: keep the 755 switch source and try a `default: return -1` placed before case 0 so the default branch falls first; then try the store order `reg` after the switch-address compute. Registers last.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794738354.2577548,
-  "score_before": 0,
-  "score_after": 0
- },
- {
   "function": "func_8014BA14",
   "text": "Best = saved_best revision d7cd8f58429b3256a715 (score 2210): switch(arg0 & 0xFFFF) with grouped cases (0xD; 0x115..0x118; 0x409; 0x506,0x507; 0x612..0x614; 0x70E -> v=1, 0x2FFF/0x4FFF -> v=2), `s32 v = 0;` and `return v & 0xFF;`. That reproduces the target's slti/beql binary-search tree for all v=1 groups. Remaining 33 differing rows are almost all caused by the v=2 pair: target emits `addiu v0,0x2FFF; beq a0,v0,.L; addiu v0,0x4FFF; bne a0,v0,END; nop; addiu v1,2` (6 insns, no beql), while grouped `case 0x2FFF: case 0x4FFF:` gives beql a0,v0 + addiu v1,2 twice plus j/nop, making the function 2 insns shorter (41 vs 43) and shifting every END branch target by 8. Tried: separate `case 0x2FFF: v=2; break; case 0x4FFF: v=2; break;` (4990, worse - gcc merges back to beql), each case listed individually for all labels (4990), u16/s16 arg (no change), u8 v / u8 return, `return v;`, hand-written if/slti chain replicating the tree (3630). Next idea: keep the switch for the v=1 groups but express the 2 case so gcc cannot use beql, e.g. put `default: if (arg0 == 0x2FFF || arg0 == 0x4FFF) v = 2; break;` inside the switch, or declare v volatile for that branch only.",
   "by": "api-route-llm-code-1",
@@ -18214,5 +18206,13 @@
   "created_at": 1794735236.6676512,
   "score_before": 875,
   "score_after": 875
+ },
+ {
+  "function": "pi_raw_start_dma",
+  "text": "Best 755 (85.4%), from the switch version using `volatile s32 *reg` for 0xA4600004 and a switch(arg0) with case 0 / case 1 / default each doing its own store and return. Remaining diff is layout of the tail. The target branches on arg0 with `beqz s0` to case 0 (lui/ori 0xA460000C), and case 1 tests `beq s0,v0` (addiu v0,1) and then `j` to a shared `addiu v0,s2,-1; sw` store, with the return 0 in the delay slot. The shared store needs the case-0 and case-1 address set in v1 and a single store; my attempt at that (pointer chosen in if/else, then one store, score 1035) was worse than the switch version, so the switch form with `return 0` per arm is closer. Next: keep the 755 switch source and try a `default: return -1` placed before case 0 so the default branch falls first; then try the store order `reg` after the switch-address compute. Registers last.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794738354.2577548,
+  "score_before": 0,
+  "score_after": 0
  }
 ]
