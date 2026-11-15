@@ -190,11 +190,11 @@ if ((u32) (var_s4 & 0xFFFF) < 5U) goto __repair_rows_;
     func_801CB74C(arg0, 0x28, 0x38, 8, &D_801D4FC0, &D_80203760);
     var_s4_2 = 0;
     __repair_rows: {
-        temp_v1_14 = var_s4_2 + D_80203ACE;
-        temp_s1 = temp_v1_14 & 0xFFFF;
+        temp_v0 = (s16)(var_s4_2 + D_80203ACE);
+        temp_s1 = temp_v0 & 0xFFFF;
         if (temp_s1 < 0x1AU) {
             temp_s0 = (((var_s4_2 & 0xFFFF) + 7) * 8) & 0xFFFF;
-            func_801CBF48(arg0, 0x88, temp_s0, 8, &D_801D4FC0, 2, (s32) temp_v1_14);
+            func_801CBF48(arg0, 0x88, temp_s0, 8, &D_801D4FC0, 2, (s32) temp_v0);
             do { func_801CB74C(arg0, 0xA0, temp_s0, 8, &D_801D4FC0, *(&D_80202580 + (temp_s1 * 4))); } while (0);
         }
         var_s4_2 += 1;

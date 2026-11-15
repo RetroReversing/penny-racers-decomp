@@ -19,19 +19,19 @@ extern s8 D_8022AD06;
 s32 func_8014B108(void) {
     s32 s0 = 0;
     s32 i;
-    s32 flag;
+    
     u8 *b;
-    s16 *p1;
+    union { s16 * pointer; s32 value; } __repair_phase_storage;
     s16 *p2;
 
     b = D_8022A770;
-    p1 = D_8021E1A2;
+    __repair_phase_storage.pointer = D_8021E1A2;
     p2 = D_8021E1A6;
     if (D_80189B34 == 2) {
-        if (p1[0] == 0) {
+        if (__repair_phase_storage.pointer[0] == 0) {
             func_8003DE60(D_80183740, D_8022A776);
             if (D_8022AD06 < 4) {
-                D_8018A44A[p1[2]] = func_8014A030(D_8018A44A[p1[2]], p1[-0xB], 1);
+                D_8018A44A[__repair_phase_storage.pointer[2]] = func_8014A030(D_8018A44A[__repair_phase_storage.pointer[2]], __repair_phase_storage.pointer[-0xB], 1);
             }
             if (p2[0] == 2) {
                 if (b[0x596] == 1) {
@@ -71,13 +71,13 @@ s32 func_8014B108(void) {
                     if ((D_8018D3B8 & 0x3FFFF) == 0x3FFFF) {
                         s0 |= 0x200;
                     }
-                    flag = 0;
+                    __repair_phase_storage.value = 0;
                     for (i = 0; i < 7; i++) {
-                        if ((D_8018D3A0[i] & D_80168D54[i * 4]) != D_80168D54[i * 4]) {
-                            flag = 1;
+                        if ((D_8018D3A0[(unsigned short)i] & D_80168D54[i * 4]) != D_80168D54[i * 4]) {
+                            __repair_phase_storage.value = 1;
                         }
                     }
-                    if (flag == 0) {
+                    if (__repair_phase_storage.value == 0) {
                         s0 |= 0x400;
                     }
                 }

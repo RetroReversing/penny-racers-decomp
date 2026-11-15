@@ -38,7 +38,14 @@ void func_80218840(void)
 {
   do
   {
-    *((s8 *) D_80190CB0) = 0;
+    if (D_80190CB0)
+    {
+      *((s8 *) D_80190CB0) = 0;
+    }
+    else
+    {
+      *((s8 *) D_80190CB0) = 0;
+    }
   }
   while (0);
   *((u16 *) ((&D_8018A44A) + (D_8021E1A6 * 2))) = 0;
@@ -51,7 +58,12 @@ void func_80218840(void)
     func_8021FCA4();
   }
   while (0);
- do { func_800DE41C(0, 0, 3, 0, 0x72, 0xFF, NULL, NULL, D_8021FE04, 0, 0, 0, 0, 0, 0, 0, 0, 0); D_80220E40 = 10.0f; } while (0);
+  do
+  {
+    func_800DE41C(0, 0, 3, 0, 0x72, 0xFF, NULL, NULL, D_8021FE04, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    D_80220E40 = 10.0f;
+  }
+  while (0);
   func_800DE41C(0, 0, 3, 0, 0x74, 0xFF, NULL, NULL, D_8022026C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   func_800DE41C(0, 0, 3, 0, 0x7A, 1, NULL, func_80149A80, NULL, 0, 0, 0, 0, (short) 0x41F00000, 0x42480000, 0, 0, 0);
   *((u16 *) (D_80190CB0 - 0x18)) = func_800DE41C(0, 0, 1, 0x8000, 0x7C, 0x9B, D_80239714, func_80219A60, func_80219B58, 0x3FC00000, 0xC0000000, 0, 0xC1A00000, 0, 0, 0x3D4CCCCD, 0x3DCCCCCD, 0x3D4CCCCD);
@@ -63,3 +75,4 @@ void func_80218840(void)
   }
   while (0);
 }
+
