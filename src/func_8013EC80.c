@@ -59,5 +59,9 @@ void func_8013EC80(u8 *a0) {
     case 12:
         func_80161BE0();
         break;
+    case 13:
+    case 14:
+    case 15:
+        break;
     }
 }
