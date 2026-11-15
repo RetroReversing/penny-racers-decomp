@@ -14,7 +14,8 @@ typedef s32 M2C_UNK32;
 
 extern f64 D_800E1E70;
 extern u8 D_8011F2F1[];
-extern M2C_UNK D_8011F300;
+typedef struct { u16 f0; u8 pad[98]; } Slot_8011F300;
+extern Slot_8011F300 D_8011F300[];
 extern M2C_UNK D_8011F308;
 extern M2C_UNK D_8011F30C;
 extern M2C_UNK D_8011F310;
@@ -67,7 +68,7 @@ loop_1:
             var_v1 = var_a1 & 0xFFFF;
         }
     }
-    var_a1 = *(&D_8011F300 + (var_v1 * 0x64));
+    var_a1 = D_8011F300[var_v1].f0;
     temp_v0_4 = var_a1 & 0xFFFF;
     if (temp_v0_4 != 0xFFFF) {
         var_v0 = var_a1 & 0xFFFF;

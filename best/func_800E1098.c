@@ -84,11 +84,6 @@ void func_800E1098(s32 arg0, s32 arg1, s32 arg2, u8 arg3, u8 arg4) {
                 }
                 type = D_8011F2F1[D_800E23E0[s1 & 0xFFFF] * 0x64];
                 switch (type) {
-                case 2:
-                    func_800DFD64(arg0, D_800E23E0[s1 & 0xFFFF], arg1 & 0xFF,
-                                  e0->a, e0->b, e0->c, e0->d, e0->e, e0->f);
-                    s1++;
-                    break;
                 case 1:
                     if (*(u16 *)(p2 + D_800E23E0[s1 & 0xFFFF] * 0x64 + D_80126FF6 * 2) & 0x100) {
                         do { func_800DF428(arg0, D_800E23E0[s1 & 0xFFFF], arg1 & 0xFF,
@@ -109,6 +104,11 @@ void func_800E1098(s32 arg0, s32 arg1, s32 arg2, u8 arg3, u8 arg4) {
                     s1++;
                     break;
                 default:
+                    s1++;
+                    break;
+                case 2:
+                    func_800DFD64(arg0, D_800E23E0[s1 & 0xFFFF], arg1 & 0xFF,
+                                  e0->a, e0->b, e0->c, e0->d, e0->e, e0->f);
                     s1++;
                     break;
                 }

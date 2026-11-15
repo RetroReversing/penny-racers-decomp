@@ -8,7 +8,7 @@ extern u8 D_801D59B2[];
 
 #define ENT (*(u8 **)(D_8011F350 + *p * 0x64))
 
-void func_8021AC64(s8 arg0, s8 arg1, s8 arg2, s8 arg3, u8 arg4)
+void func_8021AC64(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 {
     u16 *p = &D_80190CB4;
 
