@@ -4680,14 +4680,6 @@
   "score_after": 0
  },
  {
-  "function": "func_80205518",
-  "text": "Saved best 280 unmatched. Semantics understood: a1=0; if arg0[0] > 0xFFFE exit; else a1=1, loop while arg0[a1&0xFF] <= 0xFFFE (a1++); return (0x140 - 12*((a1&0xFF)+1)) >> 1 (signed). Tried: inverted if with while (825), goto-done form (825), if(arg0[0]<=..) form (825), if(arg0[0]>..) form with 'i' variable (1205, wrong loop shape). Remaining diff: target has an 8-byte stack frame (addiu sp,-8 at entry, addiu sp,+8 at exit) and loads arg0[0] into v1 with ori v0=0xFFFE sltu v0,v0,v1 before the bnez; compiler emits the compare as sltu with 0xFFFE in a register and the loop branch as beql. Untested: a local u16 temp for arg0[0] and an 8-byte local (e.g. a u16 array) to force the frame; then loop with do-while.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794706935.058227,
-  "score_before": 280,
-  "score_after": 280
- },
- {
   "function": "func_80211E9C",
   "text": "Unmatched; saved best 1385 (other attempt); my best 2320 (22.6%). Target: j=a1 in 0..13 (do-while, bnel). Per j: src = *(u8**)(D_802030CC + 4*j) via lw; dst base = D_8021F270 + arg0*0xE0 + j*16; inner i in 0..7 (do-while, slti 8) doing sh/lhu at byte offset 2i shared by src and dst. Tried: pointer-indexed dst[i]=((u16*)src)[i] (2320); byte-offset form (2320); base hoisted out of the j loop (2580, worse; the target computes D_802030CC's lui first, which the hoist reversed). Remaining: target loads the table pointer (t1 = D_802030CC) before D_8021F270 (v1), so declare src table before the base in the source, and keep the j*16 folded into the store offset.",
   "by": "claude-haiku-5-5-21",
@@ -10406,5 +10398,29 @@
   "created_at": 1794729784.981843,
   "score_before": 15,
   "score_after": 0
+ },
+ {
+  "function": "func_80205518",
+  "text": "Saved best 280 unmatched. Semantics understood: a1=0; if arg0[0] > 0xFFFE exit; else a1=1, loop while arg0[a1&0xFF] <= 0xFFFE (a1++); return (0x140 - 12*((a1&0xFF)+1)) >> 1 (signed). Tried: inverted if with while (825), goto-done form (825), if(arg0[0]<=..) form (825), if(arg0[0]>..) form with 'i' variable (1205, wrong loop shape). Remaining diff: target has an 8-byte stack frame (addiu sp,-8 at entry, addiu sp,+8 at exit) and loads arg0[0] into v1 with ori v0=0xFFFE sltu v0,v0,v1 before the bnez; compiler emits the compare as sltu with 0xFFFE in a register and the loop branch as beql. Untested: a local u16 temp for arg0[0] and an 8-byte local (e.g. a u16 array) to force the frame; then loop with do-while.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794706935.058227,
+  "score_before": 280,
+  "score_after": 280
+ },
+ {
+  "function": "func_80205518",
+  "text": "Best 280 (88.8%), revision b6681f5d0d5c4617abdd (m2c-shaped do/while over u16 array with index a1&0xFF, return (0x140-((a1+1)*0xC))>>1). Only control-flow rows remain plus one frame difference: the target allocates an 8-byte frame (addiu sp,-8 / addiu sp,8) with no calls and no visible stack use, and its loop is laid out as an entry test then a beql back-edge with a1 starting at 1. Ours has no frame. Untried: a dead local that forces a frame (e.g. a u16 array whose address is taken by a no-op), or writing the loop with a1 starting at 1 after the first test.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794721060.706987,
+  "score_before": 280,
+  "score_after": 280
+ },
+ {
+  "function": "func_80205518",
+  "text": "Saved best remains 280 (m2c-derived C, revision 9229510574fbaf49a16c). Two explicit rewrites (while-loop form and do/break form, both with if (arg0[0] <= 0xFFFE) { i = 1; loop on arg0[i&0xFF] <= 0xFFFE; i++ } and return (0x140 - ((i&0xFF)+1)*0xC) >> 1) scored 825 and were worse. Both gave a leaf without the target's 8-byte frame: target has addiu $sp,-8 and ori $v0,$0,0xFFFE; sltu $v0,$v0,$v1 with v1 = lhu arg0[0]. Unexplored: target's frame and the 0xFFFE compare orientation (0xFFFE < x form) and a single-load first compare; a local variable that forces the 8-byte frame may be needed.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794729652.4175518,
+  "score_before": 280,
+  "score_after": 280
  }
 ]
