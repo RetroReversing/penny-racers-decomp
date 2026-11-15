@@ -4992,14 +4992,6 @@
   "score_after": 640
  },
  {
-  "function": "func_801E2E48",
-  "text": "Best 320 (89.6%), revision a5ecceb22b7d8f39e493: `off = (arg0 & 0xFFFF) * 0x30`, copy loop D_801E97A0[off+i] = D_801E9018[off+i] for i<0x30, then `arg0 &= 0xFFFF; func_801E2E00(arg0, D_801E97CC + arg0 * 0x30)`. Instructions match; remaining diff is statement order and register choice. Target materialises D_801E97A0 and D_801E9018 (lui/addiu) before `andi v1,a0,0xffff`, and the loop uses a2 for off and a1 for i. Pointer locals initialised first scored 455 (worse). Next: try the copy as pointer-offset loop `*dst++ = *src++` with off computed after the addresses, or reorder the lui/addiu pairs by declaring the globals after the offset.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794706174.0147781,
-  "score_before": 695,
-  "score_after": 320
- },
- {
   "function": "func_80026D40",
   "text": "Correct signature: func_80026D40(u32 flags, char *a1, FlagEntry *tbl) with FlagEntry {u32 mask; u32 value; char *name;}. Calls: func_8003DE60(D_8004A208, a1, flags); func_8003DE60(D_8004A214); loop while tbl->mask != 0 with (flags & mask)==value; separator D_8004A218 printed when !first; then D_8004A21C with name; finally D_8004A220. The saved best (3603) wrongly passed tbl as the first printf arg. Remaining mismatch: gcc gives frame 0x28 with saves s1,s2,s3 (flags kept in s3) while target is frame 0x20 with s0 (tbl), s1 (first), s2 (flags), and ra at 0x1C. Tried: while loop with tbl++, for loop, FlagEntry* copy; all 3893 (13.4%). Untried: forcing flags into a later-declared local, or a separate helper for the separator branch to change liveness; try ordering of param copies.",
   "by": "claude-haiku-5-5-22",
@@ -9136,28 +9128,12 @@
   "score_after": 5860
  },
  {
-  "function": "func_801E2E48",
-  "text": "Best 515 (83.3%, revision 9a3163004eb5ccd204f9): dst = D_801E97A0, src = D_801E9018 as u8 pointers set before the loop; off = (arg0&0xFFFF)*0x30; for (i=0;i<0x30;i++) dst[off+i] = src[off+i]; then func_801E2E00(arg0&0xFFFF, (u8*)((arg0&0xFFFF)*0x30 + D_801E97CC), off, src). Remaining diff: ordering of the two lui/addiu pairs for dst and src, and where the andi and i=0 go. Tried setting dst/src after off (755, worse). Target order: andi v1 first, dst lui/addiu, off by sll/addu/sll, src lui/addiu, loop with v0=off+i, v1=v0+dst, v0=v0+src.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794720343.775551,
-  "score_before": 320,
-  "score_after": 320
- },
- {
   "function": "func_801FA240",
   "text": "Not solved. Best source is revision 9dbe0c3972e7be8a14ce (2220) and the saved best is 1647 (different source). Arg mapping confirmed by the target: arg0=f12, arg1=f14, arg2 in a2 (bits, mtc1), arg3 in a3 (bits, mtc1 to f4 or f8), arg4 and arg5 on the caller stack (loaded from 0x38($sp) and 0x3c($sp) of the callee frame, frame -0x28, ra at 0x20). Target computes d.x = arg0 - arg3 and stores it to 0x10($sp) before the sqrt, d.y = arg1 - arg4 stored to 0x14, so the struct local is address-taken (the stores are real, not register-only). The sqrt is sqrt.s with a c.eq.s NaN check and sqrtf fallback. Then if len != 0 it scales the three components and calls func_801F9C8C with two of them (the target's second call arg is the stored d.x / d.y, re-loaded from the stack). Next: make the struct local volatile-free but address-taken (pass &d to a helper or use a pointer), then fix the arg order of the three subtractions to match the target's mtc1 a3 first.",
   "by": "claude-haiku-5-5-24",
   "created_at": 1794720358.2863302,
   "score_before": 1647,
   "score_after": 1647
- },
- {
-  "function": "func_801E2E48",
-  "text": "func_801E2E48 (124 B, unit code_801E0B98). Best 430 (86.1%): u16 idx = arg0; a 0x30-byte copy loop from D_801E9018 to D_801E97A0 at idx*0x30, then func_801E2E00(idx, D_801E97CC + idx*0x30, idx*0x30, D_801E9018). Target computes the stride once (sll 4 + addu) and keeps the D_801E97CC base in registers; mine reloads %hi/%lo for D_801E97CC and recomputes the stride. The pointer-based copy (src/dst locals) scored 1395, worse. Not tried: the copy loop as a counted loop over a single index with the pointer advanced by 1, and the call's 4th arg as the D_801E9018 address held in a register.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794720380.6652339,
-  "score_before": 320,
-  "score_after": 320
  },
  {
   "function": "func_801FCBEC",
@@ -11112,14 +11088,6 @@
   "score_after": 3698
  },
  {
-  "function": "func_801E2E48",
-  "text": "Saved C (revision ac56df644d3ac50419d3) is semantically right: 31/31 instructions, score 200 at -O2, all differences are scheduling (target hoists `andi $v1,$a0,0xffff` before the lui/addiu of D_801E97A0 and orders the loop body addu/src-addu/lbu/sb/addiu). search_flags: score 0 with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1; -O2 -fno-schedule-insns gives 60. suggest() filed for a function-scoped -O1 profile. Do not rewrite the C for -O2; apply the profile instead. Tried: u16/u32 idx, (u16) casts, separate off temp, dst/src pointer locals, arg0&0xFFFF at call site \u2014 all worse (445-760).",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794725919.056947,
-  "score_before": 320,
-  "score_after": 200
- },
- {
   "function": "func_8015C8A4",
   "text": "Display-list builder: 8 Gfx commands (8 bytes each: `*arg0` advance, two words), with idx = arg1&0xFFFF and three float tables at stride 100 (D_8011F334, D_8011F338 converted via the >=2^31 unsigned idiom; D_8011F33C compared to 0.0f, then the 0xB1000204/0xB1000402 choice). Best remains saved 2125 (m2c-derived). My hand rewrite with GCMD macro and float conversions scored 6695 then 5800: the target keeps arg0 in $a3 (`move $a3,$a0`) and evaluates the float compare with bc1t (not bc1tl), and stores the 3rd float load before the first command. Next step: start from saved 2125 and only fix register/order of the float conversion (the 2^31 branch should be `c.le.s` with fallthrough to trunc.w.s), and the D_8011F33C load should be hoisted above the first GCMD.",
   "by": "claude-haiku-5-5-22",
@@ -12190,14 +12158,6 @@
   "created_at": 1794729115.650812,
   "score_before": 1770,
   "score_after": 1770
- },
- {
-  "function": "func_801E2E48",
-  "text": "Not matched. Best: 200 (93.5%) at revision ac56df644d3ac50419d3: `u16 idx = arg0;` then `for (i=0;i<0x30;i++) D_801E97A0[idx*0x30+i] = D_801E9018[idx*0x30+i];` then `func_801E2E00(idx, (s32*)(D_801E97CC + idx*0x30));`. Remaining diff is ordering: the target does `andi $v1,$a0,0xffff` at the top (idx is andi'd before the lui of D_801E97A0 and D_801E9018), loads both bases (t0, a3) into regs before the loop, and keeps the loop offset in $v0 = a2 + a1 with dst = v0 + t0 and src = v0 + a3. Ours re-adds idx*0x30 each iteration. Tried: a local `s32 off = idx*0x30` (695, worse: the sll/addu chain is lost); `s32 idx = arg0 & 0xFFFF` with inline idx*0x30 (310, andi is then not at the top). Untried: `u16 idx` plus a local `s32 off` assigned after the andi, or reversing the loop bound to count down. Prototype func_801E2E00(s32, s32*) is from the draft.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794729115.727751,
-  "score_before": 200,
-  "score_after": 200
  },
  {
   "function": "func_801FCBEC",
@@ -18630,5 +18590,61 @@
   "created_at": 1794755097.5659468,
   "score_before": 1,
   "score_after": 1
+ },
+ {
+  "function": "func_801E2E48",
+  "text": "Best 320 (89.6%), revision a5ecceb22b7d8f39e493: `off = (arg0 & 0xFFFF) * 0x30`, copy loop D_801E97A0[off+i] = D_801E9018[off+i] for i<0x30, then `arg0 &= 0xFFFF; func_801E2E00(arg0, D_801E97CC + arg0 * 0x30)`. Instructions match; remaining diff is statement order and register choice. Target materialises D_801E97A0 and D_801E9018 (lui/addiu) before `andi v1,a0,0xffff`, and the loop uses a2 for off and a1 for i. Pointer locals initialised first scored 455 (worse). Next: try the copy as pointer-offset loop `*dst++ = *src++` with off computed after the addresses, or reorder the lui/addiu pairs by declaring the globals after the offset.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794706174.0147781,
+  "score_before": 695,
+  "score_after": 320
+ },
+ {
+  "function": "func_801E2E48",
+  "text": "Best 515 (83.3%, revision 9a3163004eb5ccd204f9): dst = D_801E97A0, src = D_801E9018 as u8 pointers set before the loop; off = (arg0&0xFFFF)*0x30; for (i=0;i<0x30;i++) dst[off+i] = src[off+i]; then func_801E2E00(arg0&0xFFFF, (u8*)((arg0&0xFFFF)*0x30 + D_801E97CC), off, src). Remaining diff: ordering of the two lui/addiu pairs for dst and src, and where the andi and i=0 go. Tried setting dst/src after off (755, worse). Target order: andi v1 first, dst lui/addiu, off by sll/addu/sll, src lui/addiu, loop with v0=off+i, v1=v0+dst, v0=v0+src.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794720343.775551,
+  "score_before": 320,
+  "score_after": 320
+ },
+ {
+  "function": "func_801E2E48",
+  "text": "func_801E2E48 (124 B, unit code_801E0B98). Best 430 (86.1%): u16 idx = arg0; a 0x30-byte copy loop from D_801E9018 to D_801E97A0 at idx*0x30, then func_801E2E00(idx, D_801E97CC + idx*0x30, idx*0x30, D_801E9018). Target computes the stride once (sll 4 + addu) and keeps the D_801E97CC base in registers; mine reloads %hi/%lo for D_801E97CC and recomputes the stride. The pointer-based copy (src/dst locals) scored 1395, worse. Not tried: the copy loop as a counted loop over a single index with the pointer advanced by 1, and the call's 4th arg as the D_801E9018 address held in a register.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794720380.6652339,
+  "score_before": 320,
+  "score_after": 320
+ },
+ {
+  "function": "func_801E2E48",
+  "text": "Saved C (revision ac56df644d3ac50419d3) is semantically right: 31/31 instructions, score 200 at -O2, all differences are scheduling (target hoists `andi $v1,$a0,0xffff` before the lui/addiu of D_801E97A0 and orders the loop body addu/src-addu/lbu/sb/addiu). search_flags: score 0 with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1; -O2 -fno-schedule-insns gives 60. suggest() filed for a function-scoped -O1 profile. Do not rewrite the C for -O2; apply the profile instead. Tried: u16/u32 idx, (u16) casts, separate off temp, dst/src pointer locals, arg0&0xFFFF at call site \u2014 all worse (445-760).",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794725919.056947,
+  "score_before": 320,
+  "score_after": 200
+ },
+ {
+  "function": "func_801E2E48",
+  "text": "Not matched. Best: 200 (93.5%) at revision ac56df644d3ac50419d3: `u16 idx = arg0;` then `for (i=0;i<0x30;i++) D_801E97A0[idx*0x30+i] = D_801E9018[idx*0x30+i];` then `func_801E2E00(idx, (s32*)(D_801E97CC + idx*0x30));`. Remaining diff is ordering: the target does `andi $v1,$a0,0xffff` at the top (idx is andi'd before the lui of D_801E97A0 and D_801E9018), loads both bases (t0, a3) into regs before the loop, and keeps the loop offset in $v0 = a2 + a1 with dst = v0 + t0 and src = v0 + a3. Ours re-adds idx*0x30 each iteration. Tried: a local `s32 off = idx*0x30` (695, worse: the sll/addu chain is lost); `s32 idx = arg0 & 0xFFFF` with inline idx*0x30 (310, andi is then not at the top). Untried: `u16 idx` plus a local `s32 off` assigned after the andi, or reversing the loop bound to count down. Prototype func_801E2E00(s32, s32*) is from the draft.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794729115.727751,
+  "score_before": 200,
+  "score_after": 200
+ },
+ {
+  "function": "func_801E2E48",
+  "text": "Saved best is the signed-counter version (score 200, 93.5%, 31 insns, all differences are registers and ordering). Target uses a signed `slti $v0,$a1,0x30` loop test, so the counter must stay s32. Tried and worse: precomputed `off = idx*0x30` local (695), unsigned counter (400, sltiu). Remaining mismatch: the target loads D_801E9018 before the first `addu` of the body and keeps the loop pointer in $v1 across the copy; the candidate interleaves the two loads. Next idea: write the copy as two separate index expressions in a different order, or read D_801E9018 into a local before the store.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794747355.910225,
+  "score_before": 200,
+  "score_after": 200
+ },
+ {
+  "function": "func_801E2E48",
+  "text": "Not matched. Best 720 (76.7%): void func_801E2E48(s32 arg0){ s32 i; u32 off; off=(arg0&0xFFFF)*0x30; for(i=0;i<0x30;i++) D_801E97A0[off+i]=D_801E9018[off+i]; func_801E2E00(arg0&0xFFFF, D_801E97CC+off, off, D_801E9018); } with u8 arrays. Remaining diff: target keeps the masked arg0 in $v1 (andi $v1,$a0,0xFFFF) and computes off with sll/addu from it; then the lui/addiu of D_801E97A0 is hoisted before the loop (target loads it into $t0 and uses addu $v1,$v0,$t0 as dst), and the tail uses D_801E97CC at $v0 with off recomputed (sll 1, addu, sll 4). Variant with idx local (820) was worse: it recomputes the table address lui/addiu inside the tail and re-masks arg0. Next: try dst pointer hoisting via a local u8 *dst = D_801E97A0 and the off recomputed in the tail call instead of reusing off.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794748452.539333,
+  "score_before": 0,
+  "score_after": 0
  }
 ]
