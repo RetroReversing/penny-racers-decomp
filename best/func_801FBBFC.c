@@ -1,2 +1,4 @@
-void func_801FBBFC(s32 arg0) {
+void func_801FBBFC(volatile long long arg0)
+{
 }
+

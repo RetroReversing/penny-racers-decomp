@@ -18,12 +18,15 @@ s32 __voiceNeedsNoteKill(void *arg0, s32 arg1, s32 arg2) {
     s32 d;
 
     while (v != NULL) {
+        Voice *next;
+
+        next = v->next;
         d = v->field08;
         total += d;
         if (v->field0C == 5 && v->field10 == arg1) {
             if (arg2 < total) {
-                if (v->next != NULL) {
-                    v->next->field08 += d;
+                if (next != NULL) {
+                    next->field08 += d;
                 }
                 alUnlink(v);
                 alLink(v, (Voice **)((u8 *)arg0 + 0x48));
@@ -32,7 +35,7 @@ s32 __voiceNeedsNoteKill(void *arg0, s32 arg1, s32 arg2) {
             ret = 0;
             break;
         }
-        v = v->next;
+        v = next;
     }
     return ret;
 }

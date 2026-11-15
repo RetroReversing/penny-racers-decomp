@@ -16,7 +16,7 @@ s32 func_800DE41C(M2C_UNK, M2C_UNK, M2C_UNK, M2C_UNK, s32, s32, M2C_UNK *, M2C_U
 M2C_UNK func_8013E49C(u16);                         /* extern */
 s32 func_801FA30C();                                /* extern */
 M2C_UNK guMtxXFMF(void *, M2C_UNK, M2C_UNK, M2C_UNK, f32 *, f32 *, f32 *); /* extern */
-extern M2C_UNK D_8011F2F0;
+extern u8 D_8011F2F0[];
 extern M2C_UNK D_8011F2FD;
 extern M2C_UNK D_80182E30;
 extern f64 D_80183990;
@@ -49,10 +49,10 @@ void func_8015F7F8(s32 arg0) {
     void *temp_s1;
     void *temp_s2;
 
-    temp_s1 = ((arg0 & 0xFFFF) * 0x64) + &D_8011F2F0;
+    temp_s1 = ((arg0 & 0xFFFF) * 0x64) + D_8011F2F0;
     temp_a1 = M2C_FIELD(temp_s1, void **, 0x50);
     temp_s2 = M2C_FIELD(temp_s1, void **, 0x60);
-    temp_s0 = (M2C_FIELD(M2C_FIELD(temp_s2, void **, 4), u16 *, 2) * 0x64) + &D_8011F2F0;
+    temp_s0 = (M2C_FIELD(M2C_FIELD(temp_s2, void **, 4), u16 *, 2) * 0x64) + D_8011F2F0;
     M2C_FIELD(temp_s1, s8 *, 0xC) = 0xFF;
     temp_fv1 = M2C_FIELD(temp_s1, f32 *, 0x44);
     if (temp_fv1 > 0.0f) {
@@ -77,7 +77,7 @@ void func_8015F7F8(s32 arg0) {
             do {
                 temp_v0_2 = func_800DE41C(0, 0, 1, 0, 0x5B, 0xFA, &D_802390C8, &func_80164218, &func_8015FE60, sp48 + M2C_FIELD(temp_s1, f32 *, 0x18), sp4C + M2C_FIELD(temp_s1, f32 *, 0x1C), sp50 + M2C_FIELD(temp_s1, f32 *, 0x20), 0, 0, 0, 0.08f, 0.08f, 0.08f);
                 if ((u32) ((temp_v0_2 + 2) & 0xFFFF) >= 2U) {
-                    temp_s0_2 = ((temp_v0_2 & 0xFFFF) * 0x64) + &D_8011F2F0;
+                    temp_s0_2 = ((temp_v0_2 & 0xFFFF) * 0x64) + D_8011F2F0;
                     M2C_FIELD(temp_s0_2, s16 *, 8) = 0x40;
                     M2C_FIELD(temp_s0_2, s16 *, 6) = 0x40;
                     M2C_FIELD(temp_s0_2, s16 *, 4) = 0x40;
@@ -107,7 +107,7 @@ void func_8015F7F8(s32 arg0) {
         }
         temp_v0_6 = func_800DE41C(0, 0, 1, 0, 0x5B, 0xFA, &D_802390C8, &func_80164218, &func_8015FE60, sp48 + M2C_FIELD(temp_s1, f32 *, 0x18), sp4C + M2C_FIELD(temp_s1, f32 *, 0x1C), sp50 + M2C_FIELD(temp_s1, f32 *, 0x20), 0, 0, 0, 0.08f, 0.08f, 0.08f);
         if ((u32) ((temp_v0_6 + 2) & 0xFFFF) >= 2U) {
-            temp_s0_3 = ((temp_v0_6 & 0xFFFF) * 0x64) + &D_8011F2F0;
+            temp_s0_3 = ((temp_v0_6 & 0xFFFF) * 0x64) + D_8011F2F0;
             M2C_FIELD(temp_s0_3, s16 *, 8) = 0x40;
             M2C_FIELD(temp_s0_3, s16 *, 6) = 0x40;
             M2C_FIELD(temp_s0_3, s16 *, 4) = 0x40;

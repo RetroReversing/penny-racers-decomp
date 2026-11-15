@@ -15,8 +15,7 @@ void func_8021078C(u16 arg0)
 {
     u16 *sp = &D_80190CB6;
     u8 *p = D_8011F2F0 + arg0 * 100;
-    s32 *f;
-    u8 *q;
+    u8 *q = &D_8021EEC2;
 
     func_80211C7C(0x14);
     switch (*(u16 *)(p + 0x3E)) {
@@ -27,8 +26,7 @@ void func_8021078C(u16 arg0)
         break;
     case 0x10:
         *sp = func_800DE41C(0, 0, 3, 0, 0x4F, 0, 0, func_802117AC, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-        f = &D_8021EFA0;
-        *f = (*f & ~0x4000) | 0x8000;
+        D_8021EFA0 = (D_8021EFA0 & ~0x4000) | 0x8000;
         *(u16 *)(p + 0x3E) = 0x11;
     case 0x11:
         if (!(D_8021EFA0 & 0x8000)) {
@@ -38,7 +36,6 @@ void func_8021078C(u16 arg0)
         break;
     case 0x20:
         *sp = func_800DE41C(0, 0, 3, 0, 0x4F, 0, 0, func_80211094, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-        q = &D_8021EEC2;
         q[0] = 0;
         q[-1] = 0x5A;
         func_80211B90();

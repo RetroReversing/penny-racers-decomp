@@ -9,7 +9,7 @@ extern u8 D_80187BF0[];
 extern u32 *D_80203080[];
 extern u8 D_8021B633[];
 extern u8 D_8021E15F;
-extern u8 D_8021E231[];
+extern s8 D_8021E231[];
 extern u8 D_8021EEC0[];
 extern u8 D_8021EEC1[];
 extern u8 D_8021EEC6[];

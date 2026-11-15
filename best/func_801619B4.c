@@ -61,9 +61,9 @@ void func_801619B4(s16 arg0) {
             o = *(u8 **)(obj + 4);
             *(u16 *)(o + 0x560) = *(u16 *)(o + 0x560) | ((v & 7) - 1);
             func_8013E49C(*(u16 *)(obj + 0x76));
-            func_8015CB40(racer);
-            func_801D7028(racer, 0x33);
-            *(u8 *)(D_8011F2FD + (s32)racer * 100) = 2;
+            func_8015CB40(arg0 & 0xFFFF);
+            func_801D7028(arg0 & 0xFFFF, 0x33);
+            *(u8 *)(D_8011F2FD + (s32)(arg0 & 0xFFFF) * 100) = 2;
         }
     }
 }
