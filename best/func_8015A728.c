@@ -20,12 +20,14 @@ void func_8015A728(s32 arg0)
 {
   u16 idx;
   u16 cur;
-  u16 st;
 
   idx = arg0 & 0xFFFF;
-  st = D_8011F2F0[idx].state;
-  if (st == 1)
-  {
+  switch (D_8011F2F0[idx].state) {
+  case 0:
+    D_80187CF0 = 0;
+    D_8011F2F0[idx].state = 1;
+    break;
+  case 1:
     if (*(s32 *)(D_801E99C0 + 0) == 1 || *(s32 *)(D_801E99C0 + 0x70) == 1 ||
         *(s32 *)(D_801E99C0 + 0xE0) == 1 || *(s32 *)(D_801E99C0 + 0x150) == 1)
     {
@@ -40,14 +42,8 @@ void func_8015A728(s32 arg0)
       }
       D_8011F2F0[idx].state = 2;
     }
-  }
-  else if (st == 0)
-  {
-    D_80187CF0 = 0;
-    D_8011F2F0[idx].state = 1;
-  }
-  else if (st == 2)
-  {
+    break;
+  case 2:
     if (*(s32 *)(D_801E9994 + 0) == 1 || *(s32 *)(D_801E9994 + 0x70) == 1 ||
         *(s32 *)(D_801E9994 + 0xE0) == 1 || *(s32 *)(D_801E9994 + 0x150) == 1)
     {
@@ -59,5 +55,6 @@ void func_8015A728(s32 arg0)
       }
       D_8011F2F0[idx].state = 1;
     }
+    break;
   }
 }

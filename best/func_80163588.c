@@ -1,6 +1,5 @@
 s32 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, s32, s32, s32, f32, f32, f32);
 void func_80129918(void *, s32, s32, s32, f32, f32, f32);
-void func_8013E49C(u16);
 s32 func_8013F1D4(s32, void *);
 void func_801D7028(s32, s32);
 void func_8016410C(void);
@@ -34,11 +33,7 @@ void func_80163588(u16 arg0) {
     if (*(s16 *)(obj + 0x14) > 0) {
         *(s16 *)(obj + 0x14) -= 1;
         if (*(s16 *)(obj + 0x14) <= 0) {
-            if (*(f32 *)(obj + 0xC) == 0.0f) {
-                for (i = 0; i != 7; i++) {
-                    *(u8 *)(obj + i + 0x67) = 0;
-                }
-            } else {
+            if (*(f32 *)(obj + 0xC) != 0.0f) {
                 o = *(u8 **)(obj + 4);
                 v = *(u16 *)(o + 0x560);
                 lo = v & 7;
@@ -48,6 +43,10 @@ void func_80163588(u16 arg0) {
                 *(u16 *)(o + 0x560) = v | (lo - 1);
                 func_8013E49C(*(u16 *)(obj + 0x76));
                 D_8011F2FD[idx] = 2;
+            } else {
+                for (i = 0; i != 7; i++) {
+                    *(u8 *)(obj + i + 0x67) = 0;
+                }
             }
         }
     }

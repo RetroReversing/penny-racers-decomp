@@ -7,20 +7,14 @@ void func_801CA494(s32, s32, s32, s32, s32);
 void func_8014A4C8(s32, s32, s32, s32, s32);
 
 void func_80204410(s32 arg0) {
-    s32 var_a1;
-    s32 var_a2;
-    s32 var_a3;
+    s32 var_a;
 
     if ((D_8021E15F == 0) && (D_8021E160 == 0)) {
-        var_a3 = (0xFF - D_8021E19E) & 0xFFFF;
-        var_a1 = var_a3;
-        var_a2 = var_a3;
+        var_a = (0xFF - D_8021E19E) & 0xFFFF;
+        func_801CA494(arg0, var_a, var_a, var_a, 0xFF);
     } else {
-        var_a1 = 0x64;
-        var_a2 = 0x64;
-        var_a3 = 0x64;
+        func_801CA494(arg0, 0x64, 0x64, 0x64, 0xFF);
     }
-    func_801CA494(arg0, var_a1, var_a2, var_a3, 0);
     func_8014A4C8(arg0, 0x1F, 0x3E, 0xB, 0x5E);
     func_8014A4C8(arg0, 0x1F, 0xA0, 0xB, 0x5F);
     func_8014A4C8(arg0, 0x68, 0x3E, 0xB, 0x60);
