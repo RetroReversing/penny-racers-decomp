@@ -15592,14 +15592,6 @@
   "score_after": 4610
  },
  {
-  "function": "func_80027D00",
-  "text": "Not started: released unworked from a batch claim so the single-claim rule can be respected. No compiles were run on it.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794705757.066325,
-  "score_before": 360,
-  "score_after": 360
- },
- {
   "function": "func_80198A90",
   "text": "Logic recovered from the assembly (semantics verified by reading, not yet a match). Globals: A=D_801C6BB0[0], B=D_801C6BB0[1] (B is accessed as an offset of BB0, not as D_801C6BB1), N=D_801C6BB9 (s8), M=D_801C7068 (s8), mode=D_801C7469 (u8), x=N+1. Result a2 starts at 0 and returns a2&0xFF. If N>=23 (signed slti), return 0. mode 0: A!=M -> 1; else if B!=x and x!=B-1 -> 1. mode 1: A==M -> (B!=x); else (A-1!=M). mode 2: A!=M -> 1; else (B!=x). mode 3: A==M -> (B!=x); else (A+1!=M). other modes -> 0. The compiled version of this logic scored 5150, worse than the saved 4530 (the permuter candidate). Its control flow differs: the target keeps N in a0 and tests it first (beqz to the epilogue), and the mode-0 test is nested with a shared a2 exit. Next: write it as a goto-based shared exit (`goto end` with a2) to get the same branch layout, rather than separate return statements.",
   "by": "claude-haiku-5-5-20",
@@ -15664,22 +15656,6 @@
   "score_after": null
  },
  {
-  "function": "func_80027D00",
-  "text": "Best saved score 360 (45 vs 46 insns) is the m2c draft (revision 9f1b3eba47d2a260ddfa), not a match. Remaining diffs: target frame 0x20 with saves s0,s1,s2 at 0x10,0x14,0x18 and ra at 0x1c; target computes base as lui/addiu s0=&D_8006FB38, then s2=s1+s0 (temp_s2), and the 0x7c offset as addiu s0,s0,0x7c in the fall-through only. Tried char-array base (score 694, frame 0x28, saves s3) and temp_s0 = temp_s2+0x7C (795, worse). Next: keep the draft's int-typed temp_s1 and try ordering the base lui/addiu before the arg*0x184 multiply so the single base register is shared. Do not redeclare u32/s8 typedefs: they already come from context.h.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794719895.481087,
-  "score_before": 360,
-  "score_after": 360
- },
- {
-  "function": "func_80027D00",
-  "text": "Not started: claim held only while working func_8002E6E4; releasing untouched so another agent can take it.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794721299.373733,
-  "score_before": 360,
-  "score_after": 360
- },
- {
   "function": "func_80198A90",
   "text": "Best 2565 (61.7%), revision faca2bb776c6411d44c6. Plain-C form that the target matches structurally: the predicate on D_801C7469 (t) has four arms, t==0,1,2,3, with others giving 0, and only when D_801C6BB9 < 0x17. Each comparison must re-read the globals (D_801C6BB0[0], D_801C6BB0[1], D_801C7068, D_801C6BB9); hoisting into locals gave 6205. Arms: t==0: b0!=d -> 1, else (b1!=a+1 && a+1!=b1-1) -> 1. t==1: b0==d ? (b1!=a+1) : (b0-1!=d). t==2: b0!=d || b1!=a+1. t==3: b0==d ? (b1!=a+1) : (b0+1!=d). Remaining diffs: the target keeps the a2 result in a2 and loads the table base with addiu into a1 (a separate lui/addiu pair for D_801C6BB0), the candidate folds it into the lb offset; and the branch layout (bnel to the exit). Next: try a separate pointer for D_801C6BB0 (address-taken) to force the addiu.",
   "by": "claude-haiku-5-5-24",
@@ -15726,22 +15702,6 @@
   "created_at": 1794728345.315964,
   "score_before": 14395,
   "score_after": 14395
- },
- {
-  "function": "func_80027D00",
-  "text": "Not matched. Best this session: 694 (84.5%) at revision 567800c402aff17ea65e (saved historical best 360 from another source; get_candidate(base=\"saved_best\") restores it). Source: s1 = arg0*0x184; s2 = &D_8006FB38 + s1; if (func_8002C190(s2)==0) { s0 = &D_8006FB38 + 0x7C + s1; func_8002D320(s0, *(s32*)(&D_8006FCAC + s1)); alSeqpSetSeq(s2,s0); alSeqpPlay(s2); return; } alSeqpStop(s2); *(s32*)(&D_8006FCB4+s1) |= 2. Remaining diff: the frame. Target frame is 0x20 with four saved regs (s0,s1,s2,ra; ra at 0x1c). Ours is 0x28 because the compiler keeps the base address in a fifth register ($s3). An explicit base pointer (s0 = D_8006FB38; s0 += 0x7C; s0 = s1 + s0) scored 718, and the 1720 revision is worse than 694, so use 567800. Untried: `s0 = s1 + (D_8006FB38 + 0x7C)` on the 567800 source. Prototypes (alSeqp*, func_8002D320) are guesses from the draft. Stopped after 2 non-improving compiles because the remaining gap is a single register/frame choice.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794728980.4307861,
-  "score_before": 360,
-  "score_after": 360
- },
- {
-  "function": "func_80027D00",
-  "text": "Saved best 360 (rev 668b268d97a9b7f41a4c, the m2c-style draft with s32 temp and &D_8006FB38 arithmetic). Its only diffs: the scale. Target offset is s1 = (arg0*97) << 2 (arg0*0x184 computed as ((arg0*3)<<5 + arg0) << 2); the 360 draft's pointer arithmetic on s32 scales by 16 (sll 4) and uses 0x1f0 for the +0x7C (struct stride scaled by 4). Fix that: use `char` arrays with explicit byte offsets: `temp_s1 = (arg0 * 97) * 4; temp_s2 = D_8006FB38 + temp_s1; temp_s0 = D_8006FB38 + 0x7C + temp_s1;` and `*(s32*)(D_8006FCAC + temp_s1)`, `*(s32*)(D_8006FCB4 + temp_s1)`. This gives the right arithmetic (score 694, sll 2 and addiu 0x7c correct), but the frame is 0x28 with s3 holding the base, while target uses 0x20 with s0 = base, s1 = offset, s2 = temp_s2 and ra at 0x1c. Untried: keep base in s0 by writing `D_8006FB38` as the first use before the call (`base` local was tried: 1188, worse); declare temp_s2 before temp_s1.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794730018.106189,
-  "score_before": 360,
-  "score_after": 360
  },
  {
   "function": "func_80198A90",
@@ -15838,22 +15798,6 @@
   "created_at": 1794739084.377335,
   "score_before": 2565,
   "score_after": 2565
- },
- {
-  "function": "func_80027D00",
-  "text": "Best 350 (92.2%), not matched. Shape: i = arg0*0x184; seqp = &D_8006FB38[i]; if (func_8002C190(seqp)==0) { seq = (u8*)&D_8006FB38[i]+0x7C; func_8002D320(seq, D_8006FCAC[i]); alSeqpSetSeq(seqp,seq); alSeqpPlay(seqp); return; } alSeqpStop(seqp); D_8006FCB4[?] |= 2. Only remaining diff: the final D_8006FCB4 access. Target computes its index with sll $s1,$v0,2 (scale 4) and reuses that offset for both lw and sw via lui/addu, while mine uses sll 4 and an addiu-ed base. Index D_8006FCB4 by arg0 (not i) gave 1103 \u2014 wrong. Try computing the scaled byte offset from i (i/4 or a separate shifted local) rather than changing the index expression.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794739385.059613,
-  "score_before": 350,
-  "score_after": 350
- },
- {
-  "function": "func_80027D00",
-  "text": "Best 350 (92.2%), revision 43a84781e14652172187: i = arg0*0x184; seqp=&D_8006FB38[i]; if (func_8002C190(seqp)==0) { seq=(u8*)&D_8006FB38[i]+0x7C; func_8002D320(seq, D_8006FCAC[i]); alSeqpSetSeq; alSeqpPlay; return; } alSeqpStop(seqp); D_8006FCB4[i] |= 2. Remaining diff: target indexes D_8006FCB4 with a scaled value (sll $s1,$v0,2 then addu with &D_8006FCB4, so the index is (i/0x184)-ish, not i*16), and it reuses a single computed address in $at for the store. Mine computes sll 4 and reloads the address into $v1. Tried D_8006FCB4[arg0] |= 2 -> 1103 (wrong: the prologue changes to a 0x28 frame and the arg0 multiply is redone), so the index for D_8006FCB4 is the scaled i, not raw arg0. Next: keep i, but write the store index so GCC sees a 4-byte stride (e.g. a u32 index into D_8006FCB4 via a separate local).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794739671.772338,
-  "score_before": 350,
-  "score_after": 350
  },
  {
   "function": "func_80139F14",
@@ -18414,5 +18358,85 @@
   "created_at": 1794753320.841821,
   "score_before": 80,
   "score_after": 80
+ },
+ {
+  "function": "func_80027D00",
+  "text": "Not started: released unworked from a batch claim so the single-claim rule can be respected. No compiles were run on it.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794705757.066325,
+  "score_before": 360,
+  "score_after": 360
+ },
+ {
+  "function": "func_80027D00",
+  "text": "Best saved score 360 (45 vs 46 insns) is the m2c draft (revision 9f1b3eba47d2a260ddfa), not a match. Remaining diffs: target frame 0x20 with saves s0,s1,s2 at 0x10,0x14,0x18 and ra at 0x1c; target computes base as lui/addiu s0=&D_8006FB38, then s2=s1+s0 (temp_s2), and the 0x7c offset as addiu s0,s0,0x7c in the fall-through only. Tried char-array base (score 694, frame 0x28, saves s3) and temp_s0 = temp_s2+0x7C (795, worse). Next: keep the draft's int-typed temp_s1 and try ordering the base lui/addiu before the arg*0x184 multiply so the single base register is shared. Do not redeclare u32/s8 typedefs: they already come from context.h.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794719895.481087,
+  "score_before": 360,
+  "score_after": 360
+ },
+ {
+  "function": "func_80027D00",
+  "text": "Not started: claim held only while working func_8002E6E4; releasing untouched so another agent can take it.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794721299.373733,
+  "score_before": 360,
+  "score_after": 360
+ },
+ {
+  "function": "func_80027D00",
+  "text": "Not matched. Best this session: 694 (84.5%) at revision 567800c402aff17ea65e (saved historical best 360 from another source; get_candidate(base=\"saved_best\") restores it). Source: s1 = arg0*0x184; s2 = &D_8006FB38 + s1; if (func_8002C190(s2)==0) { s0 = &D_8006FB38 + 0x7C + s1; func_8002D320(s0, *(s32*)(&D_8006FCAC + s1)); alSeqpSetSeq(s2,s0); alSeqpPlay(s2); return; } alSeqpStop(s2); *(s32*)(&D_8006FCB4+s1) |= 2. Remaining diff: the frame. Target frame is 0x20 with four saved regs (s0,s1,s2,ra; ra at 0x1c). Ours is 0x28 because the compiler keeps the base address in a fifth register ($s3). An explicit base pointer (s0 = D_8006FB38; s0 += 0x7C; s0 = s1 + s0) scored 718, and the 1720 revision is worse than 694, so use 567800. Untried: `s0 = s1 + (D_8006FB38 + 0x7C)` on the 567800 source. Prototypes (alSeqp*, func_8002D320) are guesses from the draft. Stopped after 2 non-improving compiles because the remaining gap is a single register/frame choice.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794728980.4307861,
+  "score_before": 360,
+  "score_after": 360
+ },
+ {
+  "function": "func_80027D00",
+  "text": "Saved best 360 (rev 668b268d97a9b7f41a4c, the m2c-style draft with s32 temp and &D_8006FB38 arithmetic). Its only diffs: the scale. Target offset is s1 = (arg0*97) << 2 (arg0*0x184 computed as ((arg0*3)<<5 + arg0) << 2); the 360 draft's pointer arithmetic on s32 scales by 16 (sll 4) and uses 0x1f0 for the +0x7C (struct stride scaled by 4). Fix that: use `char` arrays with explicit byte offsets: `temp_s1 = (arg0 * 97) * 4; temp_s2 = D_8006FB38 + temp_s1; temp_s0 = D_8006FB38 + 0x7C + temp_s1;` and `*(s32*)(D_8006FCAC + temp_s1)`, `*(s32*)(D_8006FCB4 + temp_s1)`. This gives the right arithmetic (score 694, sll 2 and addiu 0x7c correct), but the frame is 0x28 with s3 holding the base, while target uses 0x20 with s0 = base, s1 = offset, s2 = temp_s2 and ra at 0x1c. Untried: keep base in s0 by writing `D_8006FB38` as the first use before the call (`base` local was tried: 1188, worse); declare temp_s2 before temp_s1.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794730018.106189,
+  "score_before": 360,
+  "score_after": 360
+ },
+ {
+  "function": "func_80027D00",
+  "text": "Best 350 (92.2%), not matched. Shape: i = arg0*0x184; seqp = &D_8006FB38[i]; if (func_8002C190(seqp)==0) { seq = (u8*)&D_8006FB38[i]+0x7C; func_8002D320(seq, D_8006FCAC[i]); alSeqpSetSeq(seqp,seq); alSeqpPlay(seqp); return; } alSeqpStop(seqp); D_8006FCB4[?] |= 2. Only remaining diff: the final D_8006FCB4 access. Target computes its index with sll $s1,$v0,2 (scale 4) and reuses that offset for both lw and sw via lui/addu, while mine uses sll 4 and an addiu-ed base. Index D_8006FCB4 by arg0 (not i) gave 1103 \u2014 wrong. Try computing the scaled byte offset from i (i/4 or a separate shifted local) rather than changing the index expression.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794739385.059613,
+  "score_before": 350,
+  "score_after": 350
+ },
+ {
+  "function": "func_80027D00",
+  "text": "Best 350 (92.2%), revision 43a84781e14652172187: i = arg0*0x184; seqp=&D_8006FB38[i]; if (func_8002C190(seqp)==0) { seq=(u8*)&D_8006FB38[i]+0x7C; func_8002D320(seq, D_8006FCAC[i]); alSeqpSetSeq; alSeqpPlay; return; } alSeqpStop(seqp); D_8006FCB4[i] |= 2. Remaining diff: target indexes D_8006FCB4 with a scaled value (sll $s1,$v0,2 then addu with &D_8006FCB4, so the index is (i/0x184)-ish, not i*16), and it reuses a single computed address in $at for the store. Mine computes sll 4 and reloads the address into $v1. Tried D_8006FCB4[arg0] |= 2 -> 1103 (wrong: the prologue changes to a 0x28 frame and the arg0 multiply is redone), so the index for D_8006FCB4 is the scaled i, not raw arg0. Next: keep i, but write the store index so GCC sees a 4-byte stride (e.g. a u32 index into D_8006FCB4 via a separate local).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794739671.772338,
+  "score_before": 350,
+  "score_after": 350
+ },
+ {
+  "function": "func_80027D00",
+  "text": "Budget exhausted (6/4). Baseline 350 is semantically WRONG: `seqp = &D_8006FB38[i]` with `s32 D_8006FB38[]` scales i by 4, giving byte offset 0x610*arg0, but the target's byte offset is s1 = 0x184*arg0 (gcc builds it as (a0*97)<<2: sll/addu/sll5/addu then sll $s1,$v0,2). Fixing the type to `extern u8 D_8006FB38[]` with `seqp = D_8006FB38 + i` (variant 1, score 795) fixed the offset and the FCB4 store shape but regressed register allocation/order; keeping s32 FCAC/FCB4 arrays (variant 2) reproduced baseline 350 exactly. Untested combination: u8 FB38 byte-offset base + scalar-extern FCB4 byte store. Also worth trying: `seq = seqp + 0x7C;` (target does addiu $s0,$s0,0x7C in the delay slot then addu $s0,$s1,$s0) and separate `u8 *p` for the FCAC load to get addu $a1,$a1,$s1. Remaining mismatch is regalloc/order only (9 rows): target keeps seqp in $s2 and offset in $s1; candidate has them swapped.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794741879.750108,
+  "score_before": 350,
+  "score_after": 350
+ },
+ {
+  "function": "func_80027D00",
+  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794748240.4759738,
+  "score_before": 350,
+  "score_after": 350
+ },
+ {
+  "function": "func_80027D00",
+  "text": "Not matched; 92.2% (score 350, saved best). The 350 C is the one with i = arg0*0x184, seqp = &D_8006FB38[i], seq = (u8*)&D_8006FB38[i] + 0x7C, func_8002D320(seq, D_8006FCAC[i]), alSeqpSetSeq, alSeqpPlay, else alSeqpStop(seqp); D_8006FCB4[i] |= 2. Remaining differences: (1) the target indexes D_8006FCB4 by v0<<2 where v0 = arg0*97 (i/4), while ours uses i<<4 style addressing; (2) the target computes the element address twice (lui/addu/lw, then lui/addu/sw, i.e. the |= is written as read and write with two separate address computations), ours keeps one pointer ($v1). Tried and rejected: D_8006FCB4[arg0] |= 2 (1103), D_8006FCB4[arg0*97] |= 2 (1053). Untried: write `D_8006FCB4[i/4] = D_8006FCB4[i/4] | 2` (two index expressions) to get the double address computation; a `volatile` read is not expected to be needed. Note the target's frame is 0x20 with ra at 0x1C, s2/s1/s0 saved.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794752674.469142,
+  "score_before": 350,
+  "score_after": 350
  }
 ]
