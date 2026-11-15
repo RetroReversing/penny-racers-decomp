@@ -115,8 +115,8 @@ s32 func_8002AF40(void *arg0)
         var_v1 = ((s32) (sp20 - 2.1474836e9f)) | 0x80000000;
       }
         *((s8 *) (((char *) temp_s1_3) + 0x36)) = (s8) var_v1;
-        temp_s0_3 = __vsVol(temp_s1_3, arg0);
-        func_80030400(temp_s1_3 + 4, temp_s0_3, func_80031B94(temp_s1_3, *((s32 *) (((char *) arg0) + 0x1C))));
+        temp_v0 = (s16)(__vsVol(temp_s1_3, arg0));
+        do { func_80030400(temp_s1_3 + 4, temp_v0, func_80031B94(temp_s1_3, *((s32 *) (((char *) arg0) + 0x1C)))); } while (0);
         sp10 = 0x16;
         sp14 = temp_s1_3;
         sp18 = temp_s4;
@@ -127,14 +127,14 @@ s32 func_8002AF40(void *arg0)
       case 23:
         temp_s1_4 = *((s32 **) (((char *) arg0) + 0x3C));
         temp_s4 = *((s32 *) (((char *) arg0) + 0x40));
-        temp_s0_4 = *((u8 *) (((char *) arg0) + 0x44));
+        temp_v0 = (u8)(*((u8 *) (((char *) arg0) + 0x44)));
         temp_s3 = (*((s32 (**)(s32, f32 *)) (((char *) arg0) + 0x74)))(temp_s4, &sp20);
         *((f32 *) (((char *) temp_s1_4) + 0x2C)) = sp20;
-        func_80030370(temp_s1_4 + 4, ((*((f32 *) (((char *) temp_s1_4) + 0x28))) * sp20) * (*((f32 *) (((char *) ((temp_s0_4 * 0x10) + (*((s32 *) (((char *) arg0) + 0x60))))) + 0xC))));
+        func_80030370(temp_s1_4 + 4, ((*((f32 *) (((char *) temp_s1_4) + 0x28))) * sp20) * (*((f32 *) (((char *) ((temp_v0 * 0x10) + (*((s32 *) (((char *) arg0) + 0x60))))) + 0xC))));
         sp10 = 0x17;
         sp14 = temp_s1_4;
         sp18 = temp_s4;
-        sp1C = temp_s0_4;
+        sp1C = temp_v0;
         alEvtqPostEvent(arg0 + 0x48, &sp10, temp_s3);
         var_a0 = arg0 + 0x48;
         break;

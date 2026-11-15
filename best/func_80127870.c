@@ -117,7 +117,7 @@ void func_80127870(void *arg0, void *arg1, void *arg2, void *arg3, void *arg4)
   }
   temp_fv0_5 = *((f32 *) (((char *) arg1) + 8));
   temp_fv1_9 = *((f32 *) (((char *) arg0) + 8));
-  if (temp_fv1_9 < temp_fv0_5)
+  if (temp_fv1_9 < (*((f32 *) (((char *) arg1) + 8))))
   {
     temp_fv0_6 = *((f32 *) (((char *) arg2) + 8));
     if (temp_fv0_6 < temp_fv1_9)
@@ -137,7 +137,7 @@ void func_80127870(void *arg0, void *arg1, void *arg2, void *arg3, void *arg4)
     return;
   }
   temp_fv1_11 = *((f32 *) (((char *) arg2) + 8));
-  if (temp_fv1_11 < temp_fv0_5)
+  if (temp_fv1_11 < (*((f32 *) (((char *) arg1) + 8))))
   {
     *((f32 *) (((char *) arg3) + 8)) = temp_fv1_11;
     goto block_38;
