@@ -6920,14 +6920,6 @@
   "score_after": 280
  },
  {
-  "function": "nuGfxTaskMgrInit",
-  "text": "Best 770 (93.0%), revision 936cafe25ed7f700c3dd (the claimed source, unchanged). Only real diff is scheduling: the target computes loop-invariant constants first (i=0 in a2, a3=&D_800DE0E8, a0-free t9=1, t0=func_800428B0, t1=func_800428B0+0xD0-func_800428B0, t8=0x1000, s0=0x800, t7=D_800DD420, t6=0x400, t5/t4/t3=D_80072BE0/D_80092BE0/D_80071F80, t2=0xC00), and only then loads v0=D_800DAE98 and sets a0=v0-8, a1=v0, v1=0. The candidate loads D_800DAE98 first, so the loop has 109 insns and bnez lands at 0xd0 not 0xd4. Tried moving q/p after off=0: 945, worse. Next idea: find a source form where the loop constants are materialised before the D_800DAE98 address (e.g. use the constants through pointers declared before q), not more reordering of q.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794708061.046089,
-  "score_before": 770,
-  "score_after": 770
- },
- {
   "function": "func_80042690",
   "text": "Soft-float f64 -> s64 (__fixdfdi-like, hand-tuned). Target spills $f12 with sdc1 and reloads hi (word 0) / lo (word 1). Best saved: 7155 (revision d27350837b7c9b7ad8a9). Recovered: e=exp-0x3FF; early return 0 when exp<0x3FF; return 0x80000000:0 when e>=0x40; mh=(hi&0xFFFFF)|0x100000; e<0x34 right shift by r=0x34-e (r<32: lo=(lo>>r)|(mh<<(32-r)), mh>>=r; else lo=mh>>(r-32), mh=0); else left shift by s=e-0x34 if s!=0; negate 64-bit if hi sign set. Structure that helped: nesting the e>=0x3FF / e<0x40 checks so the zero return falls out last (7685 to 7155). Remaining diff: target keeps hi/lo copies in a2/a3/v0 before computing mh, and its sign-negate is xor -1 plus sltiu carry, not -lo. Tried copying the sign word into a separate variable: worse (7255). Not matched; the layout of the tail blocks and register copies is the open problem.",
   "by": "claude-haiku-5-5-24",
@@ -10936,14 +10928,6 @@
   "score_after": 1850
  },
  {
-  "function": "nuGfxTaskMgrInit",
-  "text": "Best 770 (93.0%), saved as baseline. Target 110 insns, mine 109. The only remaining difference is the pre-loop setup. Target: `lui v0,%hi(D_800DAE98); addiu v0; addiu a0,v0,-8; move a1,v0` (loads the base once into v0, derives p into a0, copies q into a1 afterwards). Mine: `lui a1; addiu a1; addiu a0,a1,-8`, so q stays in a1 and the copy is absent, which shifts the `bnez v0` target from 0xd4 to 0xd0. Tried, all no better: (a) p computed before q -> 795; (b) p=(void**)((char*)D_800DAE98-8) -> 770; (c) loop-local `char *base = D_800DAE98;` used for both q and p -> 770, identical diff. Conclusion: the v0-then-move-to-a1 ordering is a register-allocation choice I could not steer from C source. Next idea if retried: the target's v0 is also the `bnez` test register, so try writing q as the value of a conditional or as a second read of D_800DAE98 after the p computation so gcc materializes it into v0 first.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794721921.178572,
-  "score_before": 770,
-  "score_after": 770
- },
- {
   "function": "auDmaCallBack",
   "text": "Not matched. Best saved is 3400 (other source); my draft scores 3585 (66.1%). The draft's logic matches the asm structurally (free-list search over D_8005D7A4 linked list, osVirtualToPhysical returns, alUnlink/alLink, then osCartRomInit + osEPiStartDma with a 0x18-byte entry at D_8005D1A0 + index*0x18 and D_8005DCB0 counter). Remaining diffs are frame/prologue: target saves $s1 first (sw $s1,0x14), then $s3, $s2, $s0, $ra last, and $s3 = arg0 is copied before the list walk; my version saves $ra first and reorders. Also the target loads D_8005D7A8 via lui/addiu into $v1 then lw $s1,0($v1) (the address is kept in a register). Next step: restructure the early part so arg0 lives in $s3 and the saves follow the target order; keep the late tail (rom offset & 1 -> s0, osEPiStartDma). Not tested beyond this one compile.",
   "by": "claude-haiku-5-5-21",
@@ -14240,14 +14224,6 @@
   "score_after": 1625
  },
  {
-  "function": "nuGfxTaskMgrInit",
-  "text": "Best 770 (93.0%), not a match; moving on. Remaining diff is only register/scheduling: target forms &D_800DAE98 in v0 (lui/addiu), makes p = v0-8 in a0, copies v0 into a1 (q, the one extra `move a1,v0`), and places `move v1,zero` (off=0) after the constant-hoisting block. Ours forms the address directly in a1, so the loop-tail branch is one instruction short (bnez 0xd0 vs 0xd4). Tried, no gain: moving `off = 0` above `q = D_800DAE98` (945); `p = (void **)(D_800DAE98 - 8)` (770, same); repeating off=0 after p (770, same). Untried: a local `char *base = D_800DAE98;` feeding both q and p, to force the extra copy.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794731985.968886,
-  "score_before": 770,
-  "score_after": 770
- },
- {
   "function": "func_8002FFD0",
   "text": "func_8002FFD0 (288 bytes): not attempted to a score; no compile run. Machine draft fails to compile: `__n_allocParam` is called with too few arguments on the second call. Target's second `jal __n_allocParam` sits in a nop delay slot with no argument setup, so its a0 is whatever the first call left in it. The fixed field-store order (0x16,0xC,0x1A,0x14,0x8,0x18 stores before _allocatePVoice(&sp,*(s16*)arg1)) and the sp10->0x88/0x8 link sequence follow the draft. Next: find a C form that leaves a0 unset on the second call (e.g. declare the callee with an unused prototype or a dummy call through a volatile pointer), then compare the 0x88 store order.",
   "by": "claude-haiku-5-5-23",
@@ -14806,14 +14782,6 @@
   "created_at": 1794733450.70475,
   "score_before": 870,
   "score_after": 870
- },
- {
-  "function": "nuGfxTaskMgrInit",
-  "text": "Best saved 770 (93.0%) from revision 936cafe25ed7f700c3dd (`q = D_800DAE98; p = (void **)(q - 8);` right after osStartThread, then `off = 0;`). Remaining diff is instruction scheduling of loop-invariant setup: target computes the loop constants first (lui/addiu of D_800DE0E8, func_800428B0, D_800DD420, D_80072BE0, D_80092BE0, D_80071F80, immediates 0x1000/0x800/0x400/0xC00), then `lui/addiu $v0,D_800DAE98; addiu $a0,$v0,-8; move $a1,$v0` and `move $v1,$zero` late. Tried: moving `off = 0;` above q/p (945, worse); folding q/p into the for-init as `for (i=0, q=D_800DAE98, p=(void**)(D_800DAE98-8); ...)` after `off = 0;` (915, worse). Target also has `move $a2,$zero` before the constant loads, which none of the variants reproduced. Not tried: putting the constant loads in a separate pre-loop statement block, or declaring `p` as char* with a byte offset. Expected yield low; move on.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794733492.923472,
-  "score_before": 770,
-  "score_after": 770
  },
  {
   "function": "func_80042690",
@@ -16694,14 +16662,6 @@
   "created_at": 1794739015.63452,
   "score_before": null,
   "score_after": null
- },
- {
-  "function": "nuGfxTaskMgrInit",
-  "text": "Best 1035 (90.5%, not matched). The array is nuGfxTask[10] (NUScTask, 0x58 bytes; next@0, msgQ@0x50). Use data symbols as addresses ((u32)&SYM), not values, or gcc reloads them each iteration. ucode_boot_size = func_80042980 - func_800428B0 (func_80042980 is a separate symbol). Remaining: the msgQ address (&D_800DE0E8) is hoisted once in the target but re-materialised in mine; the tail differs (target: lui/addiu of D_800DAE98 then addiu a0,v0,-8 and move a1,v0; final store via v0 = D_800DB158 with addiu v1,v0,-0x318).\n\nBest 1035 (90.5%), not matched. Array is nuGfxTask[10] (NUScTask, 0x58 bytes; next@0, msgQ@0x50, ucode_boot@0x18, ucode_boot_size=(func_80042980-func_800428B0)@0x1C, dram_stack@0x30, output_buff@0x38, output_buff_size@0x3C, yield_data@0x48). Use data symbols as addresses ((u32)&SYM), never values, or gcc reloads them per iteration. Remaining diffs: (1) target hoists &D_800DE0E8 into $a3 before the loop and reuses it; mine re-materialises it. (2) Tail: gcc folds (&D_800DB158 - 0x318) to &D_800DAE40 as a constant, but the target computes v0=&D_800DB158 then addiu v1,v0,-0x318 and stores via v0 first, then D_8006A140. Needs an un-foldable form of that subtraction. Also tried: pointer-variable a1/a0 setup (lui/addiu then addiu a0,a1,-8), matches target shape but score unchanged.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794739049.092837,
-  "score_before": 560,
-  "score_after": 560
  },
  {
   "function": "func_80211C7C",
@@ -25758,5 +25718,45 @@
   "created_at": 1794735518.820263,
   "score_before": 670,
   "score_after": 670
+ },
+ {
+  "function": "nuGfxTaskMgrInit",
+  "text": "Best 770 (93.0%), revision 936cafe25ed7f700c3dd (the claimed source, unchanged). Only real diff is scheduling: the target computes loop-invariant constants first (i=0 in a2, a3=&D_800DE0E8, a0-free t9=1, t0=func_800428B0, t1=func_800428B0+0xD0-func_800428B0, t8=0x1000, s0=0x800, t7=D_800DD420, t6=0x400, t5/t4/t3=D_80072BE0/D_80092BE0/D_80071F80, t2=0xC00), and only then loads v0=D_800DAE98 and sets a0=v0-8, a1=v0, v1=0. The candidate loads D_800DAE98 first, so the loop has 109 insns and bnez lands at 0xd0 not 0xd4. Tried moving q/p after off=0: 945, worse. Next idea: find a source form where the loop constants are materialised before the D_800DAE98 address (e.g. use the constants through pointers declared before q), not more reordering of q.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794708061.046089,
+  "score_before": 770,
+  "score_after": 770
+ },
+ {
+  "function": "nuGfxTaskMgrInit",
+  "text": "Best 770 (93.0%), saved as baseline. Target 110 insns, mine 109. The only remaining difference is the pre-loop setup. Target: `lui v0,%hi(D_800DAE98); addiu v0; addiu a0,v0,-8; move a1,v0` (loads the base once into v0, derives p into a0, copies q into a1 afterwards). Mine: `lui a1; addiu a1; addiu a0,a1,-8`, so q stays in a1 and the copy is absent, which shifts the `bnez v0` target from 0xd4 to 0xd0. Tried, all no better: (a) p computed before q -> 795; (b) p=(void**)((char*)D_800DAE98-8) -> 770; (c) loop-local `char *base = D_800DAE98;` used for both q and p -> 770, identical diff. Conclusion: the v0-then-move-to-a1 ordering is a register-allocation choice I could not steer from C source. Next idea if retried: the target's v0 is also the `bnez` test register, so try writing q as the value of a conditional or as a second read of D_800DAE98 after the p computation so gcc materializes it into v0 first.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794721921.178572,
+  "score_before": 770,
+  "score_after": 770
+ },
+ {
+  "function": "nuGfxTaskMgrInit",
+  "text": "Best 770 (93.0%), not a match; moving on. Remaining diff is only register/scheduling: target forms &D_800DAE98 in v0 (lui/addiu), makes p = v0-8 in a0, copies v0 into a1 (q, the one extra `move a1,v0`), and places `move v1,zero` (off=0) after the constant-hoisting block. Ours forms the address directly in a1, so the loop-tail branch is one instruction short (bnez 0xd0 vs 0xd4). Tried, no gain: moving `off = 0` above `q = D_800DAE98` (945); `p = (void **)(D_800DAE98 - 8)` (770, same); repeating off=0 after p (770, same). Untried: a local `char *base = D_800DAE98;` feeding both q and p, to force the extra copy.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794731985.968886,
+  "score_before": 770,
+  "score_after": 770
+ },
+ {
+  "function": "nuGfxTaskMgrInit",
+  "text": "Best saved 770 (93.0%) from revision 936cafe25ed7f700c3dd (`q = D_800DAE98; p = (void **)(q - 8);` right after osStartThread, then `off = 0;`). Remaining diff is instruction scheduling of loop-invariant setup: target computes the loop constants first (lui/addiu of D_800DE0E8, func_800428B0, D_800DD420, D_80072BE0, D_80092BE0, D_80071F80, immediates 0x1000/0x800/0x400/0xC00), then `lui/addiu $v0,D_800DAE98; addiu $a0,$v0,-8; move $a1,$v0` and `move $v1,$zero` late. Tried: moving `off = 0;` above q/p (945, worse); folding q/p into the for-init as `for (i=0, q=D_800DAE98, p=(void**)(D_800DAE98-8); ...)` after `off = 0;` (915, worse). Target also has `move $a2,$zero` before the constant loads, which none of the variants reproduced. Not tried: putting the constant loads in a separate pre-loop statement block, or declaring `p` as char* with a byte offset. Expected yield low; move on.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794733492.923472,
+  "score_before": 770,
+  "score_after": 770
+ },
+ {
+  "function": "nuGfxTaskMgrInit",
+  "text": "Best 1035 (90.5%, not matched). The array is nuGfxTask[10] (NUScTask, 0x58 bytes; next@0, msgQ@0x50). Use data symbols as addresses ((u32)&SYM), not values, or gcc reloads them each iteration. ucode_boot_size = func_80042980 - func_800428B0 (func_80042980 is a separate symbol). Remaining: the msgQ address (&D_800DE0E8) is hoisted once in the target but re-materialised in mine; the tail differs (target: lui/addiu of D_800DAE98 then addiu a0,v0,-8 and move a1,v0; final store via v0 = D_800DB158 with addiu v1,v0,-0x318).\n\nBest 1035 (90.5%), not matched. Array is nuGfxTask[10] (NUScTask, 0x58 bytes; next@0, msgQ@0x50, ucode_boot@0x18, ucode_boot_size=(func_80042980-func_800428B0)@0x1C, dram_stack@0x30, output_buff@0x38, output_buff_size@0x3C, yield_data@0x48). Use data symbols as addresses ((u32)&SYM), never values, or gcc reloads them per iteration. Remaining diffs: (1) target hoists &D_800DE0E8 into $a3 before the loop and reuses it; mine re-materialises it. (2) Tail: gcc folds (&D_800DB158 - 0x318) to &D_800DAE40 as a constant, but the target computes v0=&D_800DB158 then addiu v1,v0,-0x318 and stores via v0 first, then D_8006A140. Needs an un-foldable form of that subtraction. Also tried: pointer-variable a1/a0 setup (lui/addiu then addiu a0,a1,-8), matches target shape but score unchanged.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794739049.092837,
+  "score_before": 560,
+  "score_after": 560
  }
 ]
