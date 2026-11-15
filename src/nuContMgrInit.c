@@ -16,6 +16,7 @@ s32 nuContMgrInit(void)
   s32 var_a0;
   s32 var_a1;
   s32 var_v1;
+  s32 var_a2;
   s32 *p;
   p = &D_8006FEF8;
   if ((*p) != 0)
@@ -30,11 +31,12 @@ s32 nuContMgrInit(void)
   D_80071F70 = 0;
   var_a0 = 1;
   var_a1 = 0;
+  var_a2 = 5;
   for (var_v1 = 0; var_v1 < 0x10; var_v1 += 4)
   {
     if (D_8006F9DB[var_v1] == 0)
     {
-      if (((*((u16 *) (D_8006F9D8 + var_v1))) & 5) == 5)
+      if (((*((u16 *) (D_8006F9D8 + var_v1))) & 5) == var_a2)
       {
         var_a1 |= var_a0;
         D_80071F70 += 1;
