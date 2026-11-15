@@ -47,6 +47,7 @@ s32 func_80193160(s32 arg0) {
     s32 temp_a0;
     s32 var_v0;
     u16 var_a1;
+u16 __repair_result_var_a1;
     u8 var_s1;
     u16 idx;
     u16 temp_v0;
@@ -94,10 +95,10 @@ s32 func_80193160(s32 arg0) {
                 AT(u8, D_801C7D30, D_801C7078 * 0x10) = 0;
                 AT(u8, D_801C7D31, D_801C7078 * 0x10) = 1;
                 AT(void *, D_801C7D34, D_801C7078 * 0x10) = (((s8 *)&D_801C6BB4)[-2] * 8) + &D_8031445C;
-                var_a1 = func_800DE41C(0, 0, 2, 0, 0x5A, 0xFF, (void *)((D_801C7078 * 0x10) + &D_801C7D30), 0, NULL, (f32)(s8)D_801C7068 * 400.0f * 0.5f, 0, (f32)(s8)D_801C6BB9 * 400.0f * 0.5f, 0, 0, 0, 0.5f, 0.5f, 0.5f);
-                temp_a0_3 = (var_a1 & 0xFFFF) * 0x64;
+                temp_v0 = func_800DE41C(0, 0, 2, 0, 0x5A, 0xFF, (void *)((D_801C7078 * 0x10) + &D_801C7D30), 0, NULL, (f32)(s8)D_801C7068 * 400.0f * 0.5f, 0, (f32)(s8)D_801C6BB9 * 400.0f * 0.5f, 0, 0, 0, 0.5f, 0.5f, 0.5f);
+                temp_a0_3 = (temp_v0 & 0xFFFF) * 0x64;
                 AT(u8, D_8011F2F4, temp_a0_3) |= 8;
-                AT(u16, D_801C6BE0, D_801C7078 * 2) = var_a1;
+                AT(u16, D_801C6BE0, D_801C7078 * 2) = temp_v0;
                 AT(u8, D_801C7AD8, D_801C7078) = ((u8 *)D_801C7AB0)[2];
                 pt = ((u8 *)D_801C7AB0)[2];
                 AT(u8, D_801C7080, pt * 5) = D_801C7469;

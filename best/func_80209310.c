@@ -34,7 +34,7 @@ void func_80209310(s32 arg0, u16 arg1) {
     func_801CA494(arg0, 0xFF, 0xFF, 0xFF, 0xFF);
     if (D_8021E1A2 != 0) {
         Tri *t = &D_8021B110[D_8011F2F0[arg1].v];
-        func_8014A4C8(arg0, t->x, t->y + D_8021AFE6, 0xB, t->id);
+        do { func_8014A4C8(arg0, t->x, t->y + D_8021AFE6, 0xB, t->id); } while (0);
     }
     if (D_8021E1A2 == 0) {
         x = 0x55;
@@ -48,7 +48,7 @@ void func_80209310(s32 arg0, u16 arg1) {
     }
     for (i = 0; i <= D_8021E1A2; i++) {
         if (D_8021B014[i] == 1) {
-            func_8014A4C8(arg0, D_8021B1A4[i].x + x, D_8021B1A4[i].y + y + D_8021AFE6, 0xB, 0x56);
+            do { func_8014A4C8(arg0, D_8021B1A4[i].x + x, D_8021B1A4[i].y + y + D_8021AFE6, 0xB, 0x56); } while (0);
         }
     }
     if (D_8021B128 == 1 && D_8011F2F0[arg1].v == D_8021E1A2) {

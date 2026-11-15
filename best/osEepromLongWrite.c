@@ -1,4 +1,8 @@
-static __inline__ int __repair_inline(s32 a, s32 b) { return a > b; }
+inline static int __repair_inline(s32 a, s32 b)
+{
+  return a > b;
+}
+
 s32 osRecvMesg(s32 *, s32, s32);
 s32 func_8003EF90(s32 arg0);
 s32 func_80041410(s32, s32, s32);
@@ -10,6 +14,7 @@ s32 osEepromLongWrite(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
   s32 var_s0;
   s32 var_s1;
   s32 var_s2;
+  volatile unsigned int pad;
   s32 var_s3;
   unsigned char var_v0;
   s32 __repair_result_var_v0;
