@@ -14,7 +14,7 @@ typedef s32 M2C_UNK32;
 #endif
 
 extern u8 D_80189B34;
-extern M2C_UNK D_8018BC35;
+extern u8 D_8018BC35[];
 extern M2C_UNK D_8018BC36;
 extern u8 D_8018BC37;
 extern u8 D_8018BC38;
@@ -34,7 +34,7 @@ char *__repair_addr;
 
     var_v1 = 0;
     do {
-        *(&D_8018BC35 + var_v1) = 0xFF;
+        *(D_8018BC35 + var_v1) = 0xFF;
         var_v1 += 1;
     } while (__repair_inline(6, var_v1));
     if (D_80189B34 == 2) {
@@ -43,7 +43,7 @@ char *__repair_addr;
         do {
 __repair_addr = (char *)((var_v0 + &D_80237632));
 
-            *(&D_8018BC35 + var_v1) = M2C_FIELD(__repair_addr, u8 *, 1);
+            *(D_8018BC35 + var_v1) = M2C_FIELD(__repair_addr, u8 *, 1);
             var_v1 += 1;
             var_v0 = var_v1 * 2;
         } while (__repair_inline(6, var_v1));

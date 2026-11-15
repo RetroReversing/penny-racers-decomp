@@ -17,7 +17,7 @@ void func_8016221C(s32 arg0)
   void *temp_a2;
   temp_a0 = (arg0 & 0xFFFF) * 0x64;
   temp_a2 = ((*((u16 *) (D_8011F2F0 + temp_a0))) * 0x8F0) + D_8022A770;
-  temp_a1 = ((*((u16 *) (((char *) temp_a2) + 2))) * 0x64) + D_8011F4E4;
+  temp_a1 = (char *)(((*((u16 *) (((char *) temp_a2) + 2))) * 0x64)); temp_a1 += (s32)(D_8011F4E4);
   temp_v1 = *((u16 *) (D_8011F32E + temp_a0));
   switch (temp_v1)
   {

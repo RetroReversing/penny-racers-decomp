@@ -87,17 +87,33 @@ void *n_alFxPull(void)
       }
       if ((*((s32 *) (((char *) temp_s1) + 0x24))) == 0)
       {
- do { var_t0 = func_8002FC68(temp_s2, temp_s6, var_s4, var_t0); } while (0);
+        do
+        {
+          var_t0 = func_8002FC68(temp_s2, temp_s6, var_s4, var_t0);
+        }
+        while (0);
       }
       temp_v0_6 = *((s16 *) (((char *) temp_s1) + 0xC));
       if (temp_v0_6 != 0)
       {
         temp_v0_7 = var_t0;
         var_t0 += 8;
-        *((s32 *) (((char *) temp_v0_7) + 0)) = (s32) ((temp_v0_6 & 0xFFFF) | 0x0C000000);
+        *((s32 *) (((char *) temp_v0_7) + 0)) = ((s32) ((temp_v0_6 & 0xFFFF) | 0x0C000000)) & 0xFFFF;
         *((s32 *) (((char *) temp_v0_7) + 4)) = (s32) ((var_s4 << 0x10) | 0x930);
-      }do{do{do{
-      temp_v0_3 = var_s7 + 1;}while(0);}while(0);}while(0);
+      }
+      do
+      {
+        do
+        {
+          do
+          {
+            temp_v0_3 = var_s7 + 1;
+          }
+          while (0);
+        }
+        while (0);
+      }
+      while (0);
       var_s7 = temp_v0_3;
       var_s0 = (*((u32 *) (((char *) temp_s2) + 0x18))) + ((*((s32 *) (((char *) temp_s1) + 4))) * 2);
       var_v1 = var_s7 << 0x10;
@@ -119,3 +135,4 @@ void *n_alFxPull(void)
   *((s32 *) (((char *) var_t0) + 4)) = 0x07C00170;
   return var_t0 + 8;
 }
+

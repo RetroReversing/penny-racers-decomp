@@ -17,7 +17,7 @@ M2C_UNK func_801CA468(void **, u8);                 /* extern */
 M2C_UNK func_801CC150(void **, s32, s32, M2C_UNK, M2C_UNK *); /* extern */
 M2C_UNK func_801CCE7C(void **, s16, s16, M2C_UNK, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, M2C_UNK *, M2C_UNK *); /* extern */
 extern M2C_UNK D_800DB1B8;
-extern M2C_UNK D_8011F2F0;
+extern u8 D_8011F2F0[];
 extern M2C_UNK D_8011F2FC;
 extern M2C_UNK D_8011F308;
 extern M2C_UNK D_8011F30C;
@@ -60,9 +60,9 @@ void func_80134C68(void **arg0, s32 arg1) {
             temp_v0 = arg1 & 0xFFFF;
             if (M2C_FIELD(&D_800DB1B8, s16 *, 0x2108) == 2) {
                 var_a1 = 0x70;
-                var_a2 = (*(&D_8011F2F0 + (temp_v0 * 0x64)) * 0x6C) + 0x32;
+                var_a2 = (*(D_8011F2F0 + (temp_v0 * 0x64)) * 0x6C) + 0x32;
             } else {
-                temp_v0_2 = *(&D_8011F2F0 + (temp_v0 * 0x64)) * 2;
+                temp_v0_2 = *(D_8011F2F0 + (temp_v0 * 0x64)) * 2;
                 var_a1 = *(&D_80167F58 + temp_v0_2);
                 var_a2 = *(&D_80167F60 + temp_v0_2);
             }

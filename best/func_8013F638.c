@@ -6,7 +6,7 @@ extern u8 D_8022A770[];
 extern u8 D_801833F0[];
 extern u8 D_80183408[];
 
-void func_8013F638(s32 arg0) {
+void func_8013F638(s16 arg0) {
     u8 *s1;
     u8 *s0;
     s32 a0;
