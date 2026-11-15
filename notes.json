@@ -2600,14 +2600,6 @@
   "score_after": 0
  },
  {
-  "function": "func_800DE38C",
-  "text": "Deep permuter: score 4165 \u2192 3330; 3 improvements; 340 candidates tested; 20 cached skips; 0 rejected; 3002s elapsed. Time limit reached.",
-  "by": "W5.permuter-8589934594",
-  "created_at": 1794176458.643276,
-  "score_before": 4165,
-  "score_after": 3330
- },
- {
   "function": "func_800DECCC",
   "text": "Deep permuter: score 16548 \u2192 14583; 3 improvements; 356 candidates tested; 10 cached skips; 0 rejected; 3001s elapsed. Time limit reached.",
   "by": "W5.permuter-8589934596",
@@ -3366,14 +3358,6 @@
   "created_at": 1794357208.676796,
   "score_before": 315,
   "score_after": 315
- },
- {
-  "function": "func_800DE38C",
-  "text": "Deep permuter: score 3180 \u2192 1050; 3 improvements; 58 candidates tested; 194 cached skips; 0 rejected; 7204s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589934594",
-  "created_at": 1794357144.739171,
-  "score_before": 3180,
-  "score_after": 1050
  },
  {
   "function": "osMotorInit",
@@ -6624,14 +6608,6 @@
   "score_after": 895
  },
  {
-  "function": "func_800DE38C",
-  "text": "Not converged; no improvement over the inherited 2215 (my best compile 3180, 35 insns vs target 36).\n\nTarget shape (36 insns, 776-byte stride = ((i*2+i)<<5 + i)*8):\n  D_800E1ED0 = 0x140; D_80126FF2 = 0;            -> addiu v0,zero,0x140 / lui+sh / lui+sh zero\n  v1 = &D_800E2660 (lui v1,%hi + addiu v1,%lo)   <- TARGET MATERIALISES THE BASE IN A REGISTER,\n  sh 0xFFFF,0($v1); sh 1,2($v1)                     then uses 0/2 offsets. My C always folds these\n                                                    to `lui $at,%hi(sym); sh %lo(sym)($at)`.\n  do { off = (((i*2+i)<<5)+i)*8;                 -> sll v0,a0,1 in the latch (loop rotated)\n       *(u16*)((u8*)&D_800E2660 + off) = i-1;    -> lui at,%hi; addu at,at,off; sh %lo(...)(at)\n       *(u16*)((u8*)&D_800E2662 + off) = i+1;\n     } while (i < 0x13F);\n  *(u16*)((u8*)&D_8011ED58 + 0) = 0x13E;         -> lui v0,%hi; addiu v0,%lo; sh 0(v0); sh 2(v0)\n  *(u16*)((u8*)&D_8011ED58 + 2) = 0xFFFF;\n\nHard-to-reach bits I diagnosed but did not finish:\n1. Header pair needs a register base (lui+addiu into v1, then sh 0(v1)/sh 2(v1)). Direct `*(u16*)((u8*)&SYM + off)` folds to %lo(sym)($at). Next thing to try: an explicit pointer local, e.g. `s16 *p = (s16 *)&D_800E2660; p[0] = -1; p[1] = 1;` (or `((u16*)&SYM)[0]/[1]`), which is how func_800DE2E0's target (D_8011F300, offsets 0/2/-0xF) looks too.\n2. Loop register roles: target keeps the index in $a0 and the neighbours in $v1 (`addiu v1,a0,-1`, `addiu v1,a0,1`, `addu a0,v1,zero`); mine puts the index in $v1 and the -1 temp in $a0. Declaring/using the index first (m2c's var_a0/temp_v1 naming) may steer this.\n3. Loop body order: target emits the `sll v0,v0,3` (offset complete) BEFORE `addiu v1,a0,-1`; mine interleaves the +-1 first.\nDeclaring the symbols as `extern s16 SYM;` (scalar) and using `*(u16*)((u8*)&SYM + off)` is required - `extern u8 SYM[]` gives the same score, so the scalar form is not proven but is the m2c/project convention here.\nSibling function func_800DE2E0 (claimed separately) has the same init pattern with stride 100; solve them together.",
-  "by": "opencode-deepseek-v4.1-flash-free-5",
-  "created_at": 1794707440.31196,
-  "score_before": 800,
-  "score_after": 800
- },
- {
   "function": "func_8013EA90",
   "text": "Three clamped byte fields: a = arg0[0x17]+arg1, b = arg0[0x18]+arg2, c = arg0[0x19]+arg3, each clamped to [0,0xFF] (0 if <0, 0xFF if >=0x100), then stored back. Target loads all three bytes first, then does the adds and clamp ladder (sll 16 sign test on raw value, bgez, slti/beql). Best saved is 1025 (1170 rechecked, m2c-style with u8 fields and s16 locals). Tried: clamp of a without neg check, loads/adds after clamps (1785), and loads-first then clamp ladder with the s16 locals (1765, register and branch-order diffs only). Next: keep the loads-first order, and try the 8013EA18 idiom (s16 locals, `if (x<0) x=0; else if (x>=0x100) x=0xFF;`) with the sign test on the sum before the copy.",
   "by": "claude-haiku-5-5-20",
@@ -6694,14 +6670,6 @@
   "created_at": 1794707535.6117141,
   "score_before": 7501,
   "score_after": 7501
- },
- {
-  "function": "func_800DE38C",
-  "text": "Tried this session: a do-while over i=1..0x13E with off=((((2i+i)<<5)+i)<<3), storing (i-1) at D_800E2660+off and (i+1) at D_800E2662+off, plus the two header stores \u2014 scored 3180, worse than saved 2215. The compiler reorders the global stores into separate lui/at pairs per store; the target keeps $v1=&D_800E2660 for the first two halfword stores (addiu $v1,$v1,%lo) and reuses it. Next try: write the first two stores via a local base pointer u16 *p = (u16*)&D_800E2660 before the loop, and keep D_800E1ED0/D_80126FF2 stores first in source order.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794707557.527911,
-  "score_before": 800,
-  "score_after": 800
  },
  {
   "function": "func_80127030",
@@ -6822,14 +6790,6 @@
   "created_at": 1794707617.0690198,
   "score_before": 1200,
   "score_after": 1200
- },
- {
-  "function": "func_800DE38C",
-  "text": "Session attempts (all worse than saved 2215): (a) pointer p=(u16*)&D_800E2660 for the two constant stores, loop as do-while with off=((((i*2)+i)<<5)+i)<<3 \u2014 scored 3180; the compiler reloads lui/at for every store and puts i in $v1 instead of $a0, so the target's $v1=&D_800E2660 reuse is not reproduced. (b) same plus separate n=i+1 temp for store and next i \u2014 scored 3420, worse. Target loop: i in $a0, v0 holds 2*i across the back-edge (sll in the bnez delay slot), temp $v1=i+1 then move $a0,$v1. Untried: forcing i into $a0 by declaring the loop variable after the pointer, and writing the 0x13E/0xFFFF stores through a pointer to D_8011ED58 that is loaded before the loop.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794707642.164832,
-  "score_before": 800,
-  "score_after": 800
  },
  {
   "function": "func_801B3E18",
@@ -10768,14 +10728,6 @@
   "score_after": 456
  },
  {
-  "function": "func_800DE38C",
-  "text": "Not matched; saved best 1795 (permuter, __repair_addr loop) stands. Clean rewrite (i loop with off=((2i+i)<<5 + i)*8, D_800E2660[off]=i-1, D_800E2662[off]=i+1, do-while i<0x13F, then D_8011ED58 stores) scored 3275: the compiler emits lui/sh for each D_800E1ED0 and D_80126FF2 store separately. The target instead does D_800E1ED0=0x140 and D_80126FF2=0 first, then materialises &D_800E2660 once into v1 (lui+addiu) and stores with `sh v0,0(v1)` / `sh v0,2(v1)` using v0=0xFFFF and 1, so the table base is a single pointer and the constants live in registers. Target loop: v0 = a0*2 is computed before the label (sll in the first slot), and the next iteration's v0 is produced in the bnez delay slot. Untried: write the loop with `s16 *tbl = (s16*)&D_800E2660;` for the first two stores and CSE the offset, or split the first two stores into an explicit (s16*) pointer.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794721428.1009579,
-  "score_before": 800,
-  "score_after": 800
- },
- {
   "function": "func_800DF094",
   "text": "Not matched. Best revision 9ee3d015e5028b37aa51: 1110 (58.8%), 27 insns each. Shape: `var_v1 = func_800E1850; if (var_v1 != 0xFFFF) do { temp_v0 = var_v1*0x64; *(u16*)(&D_8011F2F2+temp_v0) = *(u16*)(&D_8011F2F2+temp_v0) & 0xFFEF; temp_a0 = *(u16*)(&D_8011F300+temp_v0); var_v1 = temp_a0; } while (temp_a0 != 0xFFFF);`. Remaining: target loads func_800E1850 into $a0 and keeps the andi'd copy in $v1 (`andi $v1,$a0,0xffff`) and hoists 0xFFFF into $a1; the loop body in the target reads D_8011F2F2 before D_8011F300, but gcc emits the F300 load first (it moves it above the store; `&=` form gives the same). Same family as func_8021AF20 (saved 340 there with a u16 var and s32 temp): try that exact pattern here, which gave a stack-free loop there. Frame: none in the target.",
   "by": "claude-haiku-5-5-24",
@@ -10846,14 +10798,6 @@
   "created_at": 1794721628.3986628,
   "score_before": 260,
   "score_after": 260
- },
- {
-  "function": "func_800DE38C",
-  "text": "Not matched (best 3180 in this session, saved best 1795). Target: 3 leading stores (D_800E1ED0=0x140, D_80126FF2=0, D_800E2660 = 0xFFFF / +2 = 1) in source order, then loop i=1..0x13E: off=((3i<<5)+i)*8 (i.e. 776*i); store u16 (i-1) at D_800E2660+off and (i+1) at D_800E2662+off; tail D_8011ED58=0x13E, +2=0xFFFF. Every attempt with plain u16/s16 globals, casts or u8[] arrays makes gcc hoist the loop-init constant (addiu $v1,$zero,1) above the three prologue stores, so the store order is wrong. Untried: write the prologue stores via one local pointer, or a for-loop starting at i=0 with the stride computed from i+1.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794721656.3245509,
-  "score_before": 800,
-  "score_after": 800
  },
  {
   "function": "func_8003E644",
@@ -14816,14 +14760,6 @@
   "score_after": 3783
  },
  {
-  "function": "func_800DE38C",
-  "text": "Not matched. Target (36 insns): one loop i=1..0x13E. t=i*2 is computed in the bnez delay slot. Body: t=((t+i)<<5 + i)<<3; sh (i-1) at D_800E2660+t; sh (i+1) at D_800E2662+t. Header: ED0=0x140, 80126FF2=0, table[0]=0xFFFF, table[1]=1 via one $v1 base (lui/addiu v1, sh 0(v1), sh 2(v1)); tail D_8011ED58 = 0x13E, 0xFFFF. Best saved is 1655 (permuter, messy form; restore that). Rewrites tried this session all score 2230: a clean for/do-while with i/t locals; a u8* base for header stores; a u16* p for header stores. Compiler emits lui $at per store and reorders ED0/80126FF2 stores ahead of the table. The header-base-in-$v1 pattern is what's missing. Untried: write the table header through a single base and put the D_800E1ED0/D_80126FF2 stores after it, or compile_family signedness.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794732614.229534,
-  "score_before": 800,
-  "score_after": 800
- },
- {
   "function": "func_80210D88",
   "text": "Partial. Best this session 5975 (51.0%, revision be7f0beeac4041a94731, same score as the recorded attempt; the keep-local variant b9df2c276ae8a31f0180 had no effect). Remaining differences: the target keeps arg0 & 0xFFFF in s2 across the call to func_8012AD20 and saves s0-s2 and ra in the prologue; mine does not. Target reads D_8011F2F0 with lbu (byte table) in two places, mine reads it with lw and lwc1, so that symbol's element type is probably wrong. Target's address is `addu` of index*100 with the table base. Untried: give D_8011F2F0 a u8-typed read at the index and float reads at another offset; check the call arg order against the target's sw/move sequence. The m2c draft had a compile error (typedef redefinition) and is fixed in the current revision.",
   "by": "claude-haiku-5-5-22",
@@ -15158,14 +15094,6 @@
   "created_at": 1794733711.00987,
   "score_before": 2170,
   "score_after": 2170
- },
- {
-  "function": "func_800DE38C",
-  "text": "Target: 39-insn init loop. Loop body stores at offset off=i*776 (computed as ((2i+i)<<5 + i)*8): sh (i-1) at D_800E2660+off, sh (i+1) at D_800E2662+off, i from 1 while i<0x13F. Preamble: D_800E1ED0=0x140 (stored first), D_80126FF2=0, then D_800E2660[0]=-1, [2]=1 via one base pointer (lui/addiu v1,D_800E2660; sh at 0 and 2). Tail: D_8011ED58[0]=0x13E, [2]=-1. Best 3275 (9.0%) at revision 670b3d9c047cd1687fcd: loop is right but store/init order differs (we store the D_800E2660 pair first and reload D_800E1ED0). Untested next step: declare `s16 *p;` and use p[0]=-1; p[1]=1; after the 0x140/0x0 stores.\n\nFinal state: best 3275 (9.0%) at revision 670b3d9c047cd1687fcd (fails only on ordering). Moving the D_800E1ED0/D_80126FF2 stores after the loop-variable init gave 3280 (fb18a253675af3220a7a), which is no better. Carried `t = 2*i` form (aa1b89fad10a4903496a, 3470) is worse. Confirmed: the compiler hoists loop constants above the preamble stores whichever order the source uses, and our loop is one instruction short (target carries 2*i; ours recomputes). Next experiment to try if picked up: express the store of D_800E1ED0 through a char* base to change which constant is kept live. Otherwise move on. Low-medium yield.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794733722.0729861,
-  "score_before": 800,
-  "score_after": 800
  },
  {
   "function": "func_8014A080",
@@ -18182,5 +18110,85 @@
   "created_at": 1794740203.569134,
   "score_before": 1615,
   "score_after": 1615
+ },
+ {
+  "function": "func_800DE38C",
+  "text": "Deep permuter: score 4165 \u2192 3330; 3 improvements; 340 candidates tested; 20 cached skips; 0 rejected; 3002s elapsed. Time limit reached.",
+  "by": "W5.permuter-8589934594",
+  "created_at": 1794176458.643276,
+  "score_before": 4165,
+  "score_after": 3330
+ },
+ {
+  "function": "func_800DE38C",
+  "text": "Deep permuter: score 3180 \u2192 1050; 3 improvements; 58 candidates tested; 194 cached skips; 0 rejected; 7204s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589934594",
+  "created_at": 1794357144.739171,
+  "score_before": 3180,
+  "score_after": 1050
+ },
+ {
+  "function": "func_800DE38C",
+  "text": "Not converged; no improvement over the inherited 2215 (my best compile 3180, 35 insns vs target 36).\n\nTarget shape (36 insns, 776-byte stride = ((i*2+i)<<5 + i)*8):\n  D_800E1ED0 = 0x140; D_80126FF2 = 0;            -> addiu v0,zero,0x140 / lui+sh / lui+sh zero\n  v1 = &D_800E2660 (lui v1,%hi + addiu v1,%lo)   <- TARGET MATERIALISES THE BASE IN A REGISTER,\n  sh 0xFFFF,0($v1); sh 1,2($v1)                     then uses 0/2 offsets. My C always folds these\n                                                    to `lui $at,%hi(sym); sh %lo(sym)($at)`.\n  do { off = (((i*2+i)<<5)+i)*8;                 -> sll v0,a0,1 in the latch (loop rotated)\n       *(u16*)((u8*)&D_800E2660 + off) = i-1;    -> lui at,%hi; addu at,at,off; sh %lo(...)(at)\n       *(u16*)((u8*)&D_800E2662 + off) = i+1;\n     } while (i < 0x13F);\n  *(u16*)((u8*)&D_8011ED58 + 0) = 0x13E;         -> lui v0,%hi; addiu v0,%lo; sh 0(v0); sh 2(v0)\n  *(u16*)((u8*)&D_8011ED58 + 2) = 0xFFFF;\n\nHard-to-reach bits I diagnosed but did not finish:\n1. Header pair needs a register base (lui+addiu into v1, then sh 0(v1)/sh 2(v1)). Direct `*(u16*)((u8*)&SYM + off)` folds to %lo(sym)($at). Next thing to try: an explicit pointer local, e.g. `s16 *p = (s16 *)&D_800E2660; p[0] = -1; p[1] = 1;` (or `((u16*)&SYM)[0]/[1]`), which is how func_800DE2E0's target (D_8011F300, offsets 0/2/-0xF) looks too.\n2. Loop register roles: target keeps the index in $a0 and the neighbours in $v1 (`addiu v1,a0,-1`, `addiu v1,a0,1`, `addu a0,v1,zero`); mine puts the index in $v1 and the -1 temp in $a0. Declaring/using the index first (m2c's var_a0/temp_v1 naming) may steer this.\n3. Loop body order: target emits the `sll v0,v0,3` (offset complete) BEFORE `addiu v1,a0,-1`; mine interleaves the +-1 first.\nDeclaring the symbols as `extern s16 SYM;` (scalar) and using `*(u16*)((u8*)&SYM + off)` is required - `extern u8 SYM[]` gives the same score, so the scalar form is not proven but is the m2c/project convention here.\nSibling function func_800DE2E0 (claimed separately) has the same init pattern with stride 100; solve them together.",
+  "by": "opencode-deepseek-v4.1-flash-free-5",
+  "created_at": 1794707440.31196,
+  "score_before": 800,
+  "score_after": 800
+ },
+ {
+  "function": "func_800DE38C",
+  "text": "Tried this session: a do-while over i=1..0x13E with off=((((2i+i)<<5)+i)<<3), storing (i-1) at D_800E2660+off and (i+1) at D_800E2662+off, plus the two header stores \u2014 scored 3180, worse than saved 2215. The compiler reorders the global stores into separate lui/at pairs per store; the target keeps $v1=&D_800E2660 for the first two halfword stores (addiu $v1,$v1,%lo) and reuses it. Next try: write the first two stores via a local base pointer u16 *p = (u16*)&D_800E2660 before the loop, and keep D_800E1ED0/D_80126FF2 stores first in source order.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794707557.527911,
+  "score_before": 800,
+  "score_after": 800
+ },
+ {
+  "function": "func_800DE38C",
+  "text": "Session attempts (all worse than saved 2215): (a) pointer p=(u16*)&D_800E2660 for the two constant stores, loop as do-while with off=((((i*2)+i)<<5)+i)<<3 \u2014 scored 3180; the compiler reloads lui/at for every store and puts i in $v1 instead of $a0, so the target's $v1=&D_800E2660 reuse is not reproduced. (b) same plus separate n=i+1 temp for store and next i \u2014 scored 3420, worse. Target loop: i in $a0, v0 holds 2*i across the back-edge (sll in the bnez delay slot), temp $v1=i+1 then move $a0,$v1. Untried: forcing i into $a0 by declaring the loop variable after the pointer, and writing the 0x13E/0xFFFF stores through a pointer to D_8011ED58 that is loaded before the loop.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794707642.164832,
+  "score_before": 800,
+  "score_after": 800
+ },
+ {
+  "function": "func_800DE38C",
+  "text": "Not matched; saved best 1795 (permuter, __repair_addr loop) stands. Clean rewrite (i loop with off=((2i+i)<<5 + i)*8, D_800E2660[off]=i-1, D_800E2662[off]=i+1, do-while i<0x13F, then D_8011ED58 stores) scored 3275: the compiler emits lui/sh for each D_800E1ED0 and D_80126FF2 store separately. The target instead does D_800E1ED0=0x140 and D_80126FF2=0 first, then materialises &D_800E2660 once into v1 (lui+addiu) and stores with `sh v0,0(v1)` / `sh v0,2(v1)` using v0=0xFFFF and 1, so the table base is a single pointer and the constants live in registers. Target loop: v0 = a0*2 is computed before the label (sll in the first slot), and the next iteration's v0 is produced in the bnez delay slot. Untried: write the loop with `s16 *tbl = (s16*)&D_800E2660;` for the first two stores and CSE the offset, or split the first two stores into an explicit (s16*) pointer.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794721428.1009579,
+  "score_before": 800,
+  "score_after": 800
+ },
+ {
+  "function": "func_800DE38C",
+  "text": "Not matched (best 3180 in this session, saved best 1795). Target: 3 leading stores (D_800E1ED0=0x140, D_80126FF2=0, D_800E2660 = 0xFFFF / +2 = 1) in source order, then loop i=1..0x13E: off=((3i<<5)+i)*8 (i.e. 776*i); store u16 (i-1) at D_800E2660+off and (i+1) at D_800E2662+off; tail D_8011ED58=0x13E, +2=0xFFFF. Every attempt with plain u16/s16 globals, casts or u8[] arrays makes gcc hoist the loop-init constant (addiu $v1,$zero,1) above the three prologue stores, so the store order is wrong. Untried: write the prologue stores via one local pointer, or a for-loop starting at i=0 with the stride computed from i+1.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794721656.3245509,
+  "score_before": 800,
+  "score_after": 800
+ },
+ {
+  "function": "func_800DE38C",
+  "text": "Not matched. Target (36 insns): one loop i=1..0x13E. t=i*2 is computed in the bnez delay slot. Body: t=((t+i)<<5 + i)<<3; sh (i-1) at D_800E2660+t; sh (i+1) at D_800E2662+t. Header: ED0=0x140, 80126FF2=0, table[0]=0xFFFF, table[1]=1 via one $v1 base (lui/addiu v1, sh 0(v1), sh 2(v1)); tail D_8011ED58 = 0x13E, 0xFFFF. Best saved is 1655 (permuter, messy form; restore that). Rewrites tried this session all score 2230: a clean for/do-while with i/t locals; a u8* base for header stores; a u16* p for header stores. Compiler emits lui $at per store and reorders ED0/80126FF2 stores ahead of the table. The header-base-in-$v1 pattern is what's missing. Untried: write the table header through a single base and put the D_800E1ED0/D_80126FF2 stores after it, or compile_family signedness.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794732614.229534,
+  "score_before": 800,
+  "score_after": 800
+ },
+ {
+  "function": "func_800DE38C",
+  "text": "Target: 39-insn init loop. Loop body stores at offset off=i*776 (computed as ((2i+i)<<5 + i)*8): sh (i-1) at D_800E2660+off, sh (i+1) at D_800E2662+off, i from 1 while i<0x13F. Preamble: D_800E1ED0=0x140 (stored first), D_80126FF2=0, then D_800E2660[0]=-1, [2]=1 via one base pointer (lui/addiu v1,D_800E2660; sh at 0 and 2). Tail: D_8011ED58[0]=0x13E, [2]=-1. Best 3275 (9.0%) at revision 670b3d9c047cd1687fcd: loop is right but store/init order differs (we store the D_800E2660 pair first and reload D_800E1ED0). Untested next step: declare `s16 *p;` and use p[0]=-1; p[1]=1; after the 0x140/0x0 stores.\n\nFinal state: best 3275 (9.0%) at revision 670b3d9c047cd1687fcd (fails only on ordering). Moving the D_800E1ED0/D_80126FF2 stores after the loop-variable init gave 3280 (fb18a253675af3220a7a), which is no better. Carried `t = 2*i` form (aa1b89fad10a4903496a, 3470) is worse. Confirmed: the compiler hoists loop constants above the preamble stores whichever order the source uses, and our loop is one instruction short (target carries 2*i; ours recomputes). Next experiment to try if picked up: express the store of D_800E1ED0 through a char* base to change which constant is kept live. Otherwise move on. Low-medium yield.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794733722.0729861,
+  "score_before": 800,
+  "score_after": 800
+ },
+ {
+  "function": "func_800DE38C",
+  "text": "BLOCKED: every compile_patch/compile_and_diff call fails with \"toolchain 'gcc-2.7.2-kmc' is not installed: install it in decompdecomp, under Compilers & tools\". No judging possible with the project compiler; try_compiler with sn-n64-272-0001 still runs (score 3515), so only the default profile is missing. Nothing was verified this session.\n\nTarget shape (36 insns) fully read: sh 0x140 -> D_800E1ED0; sh 0 -> D_80126FF2; $v1 = &D_800E2660 via lui+addiu, sh -1 at 0($v1), sh 1 at 2($v1); a0=1; sll v0,a0,1 hoisted before .L800DE3C0; loop: addu v0,v0,a0; sll 5; addu v0,v0,a0; sll 3 (= idx = ((i*3)<<5 + i)<<3, i.e. i*0x64 bytes); v1=a0-1; lui $at,%hi(D_800E2660); addu $at,$at,$v0; sh %lo(D_800E2660)($at); v1=a0+1; same recompute for D_800E2662; a0=v1 (i++ reuses the i+1 register); slti v0,a0,0x13F; bnez with delay slot sll v0,a0,1. Tail: $v0=&D_8011ED58 (lui+addiu into a register, not $at), sh 0x13E at 0, sh -1 at 2 in the jr delay slot.\n\nUntested next step: the saved best (score 3275) already has the right skeleton; the remaining deltas are the store address recompute (lui $at + addu $at,$at,$v0 per store, i.e. use *(&D_800E2660 + idx) style rather than a cached base pointer) and `i = i + 1` feeding slti through $a0. Apply: keep `*(s16 *)((u8 *)&D_800E2660 + idx)` form, and write the increment as a separate `i = i + 1;` then `} while (i < 0x13F);` (already so). Also try idx computed with `<< 3` instead of `* 8` so no extra shift appears.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794743859.920609,
+  "score_before": 800,
+  "score_after": 800
  }
 ]
