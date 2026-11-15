@@ -5952,14 +5952,6 @@
   "score_after": 120
  },
  {
-  "function": "func_800297E8",
-  "text": "Best 1500 (64.2%), candidate revision 343afc8b0974188e3d65. The C is a message send: a 0x14-byte struct at sp+0x10 (s16 0x4001 at +0, reply pointer at +4, word at +8 = arg1, byte at +0x10 = arg0, s16 at +0x12 = arg2; return read from +0xC), a 0x18-byte queue at sp+0x28 and an 8-byte buffer (buf[2]) at sp+0x40. Frame 0x60 matches with that layout. Remaining diff is the prologue: the target copies arg0/arg1/arg2 into callee-saved $s0/$s2/$s1 and loads 0x4001 into $s3 BEFORE the D_80046D74 test, then branches to a shared epilogue. My version saves args after the test. Moving the field stores above the if gave 2612 (worse, frame changed). Explicit early locals (b/v/c) changed nothing. Still open: get the prologue order without changing the frame.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794706010.8795788,
-  "score_before": 485,
-  "score_after": 485
- },
- {
   "function": "func_80030250",
   "text": "Best 1026 (68.9%), candidate revision 223fde2ac3f3d49185f3 (draft with byte-level offsets: sub = *(u8**)(arg0+8); early return if NULL; p = __n_allocParam(); fields +8 s16 0x10, +0xC arg1&0xFF, +0 0, +4 = *(s32*)((u8*)D_80046DF4+0x28) + *(s32*)(sub+0x88); call func_8002E6E4(sub,3,p)). Target order: saves $s0 (arg0) at 0x10, $s1 (arg1) at 0x14, $ra at 0x18, and keeps arg0 in $s0 with arg1 in $s1 across __n_allocParam; the D_80046DF4 load is scheduled after the jal delay-slot nop. Mine keeps arg0 in $s2 and uses $ra at 0x1c, so the saved-register assignment and frame slots still differ. Try arg0/arg1 as separate scalar uses so the callee-saved order follows the target.",
   "by": "claude-haiku-5-5-24",
@@ -6014,14 +6006,6 @@
   "created_at": 1794706107.925715,
   "score_before": 2418,
   "score_after": 2418
- },
- {
-  "function": "func_800297E8",
-  "text": "Not started; released to work one function at a time (batch claim held).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794706122.471081,
-  "score_before": 485,
-  "score_after": 485
  },
  {
   "function": "func_80029890",
@@ -10808,14 +10792,6 @@
   "score_after": 2033
  },
  {
-  "function": "func_800297E8",
-  "text": "Best 500 (88%, revision 1cd5718f5e666788d087) is the saved best; frame 0x60 matches. Structure: struct f {s16 type; s16 pad; s32 q; s32 a; s32 b; s8 c; s16 d;} first, then queue[6], buf; body inside `if (D_80046D74 != 0)`, else return -1; return f.b. Remaining: register allocation of params. Target saves arg1 in s2 (0x50), arg0 in s0 (0x48), arg2 in s1 (0x4c), hoists 0x4001 into s3 before the branch; mine puts arg1 in s3. Tried without gain: hoisting type constant to a local (no effect); f.a=arg1 before the if (600); f.c=arg0 before the if (808). nuContPakFileDelete (matched, revision a10106eb8e669ed0174c) uses the same message pattern, with queue at sp+0x10 and a pad[2] before buf. Next idea: different declaration order of f/queue/buf, or copy params into locals in target order.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794720228.908583,
-  "score_before": 485,
-  "score_after": 485
- },
- {
   "function": "nuScEventHandler",
   "text": "Best candidate: revision ff6ad3ac129b5f3f5724, score 200 (95.7%, 47/47 instructions). Structure: while(1){ osRecvMesg(D_800DD894,&msg,1); switch(msg){case 0x29A: D_8006FB2C++; nuScEventBroadcast((u8*)D_800DD894-0x74); break; case 0x29D: nuScEventBroadcast((u8*)D_800DD894-0x72); if (D_80046C50 != NULL) D_80046C50(D_800DD894); break;} }, with D_8006FB2C=0 before the loop. Only difference: target has `jalr $v0; nop; j loop; addu $a0,$s0,$zero` (a0 move in the loop-back j delay slot), candidate puts `move $a0,$s0` in the jalr delay slot. Tried with same score 200: local function-pointer variable, signedness of msg, moving the fn-pointer test before the broadcast call. Untried: compile_variants with a goto-shared tail, or a different loop exit shape.",
   "by": "claude-haiku-5-5-24",
@@ -11390,14 +11366,6 @@
   "created_at": 1794721303.36932,
   "score_before": 336,
   "score_after": 336
- },
- {
-  "function": "func_800297E8",
-  "text": "Not started: claim held only while working func_8002E6E4; releasing untouched so another agent can take it.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794721306.5541031,
-  "score_before": 485,
-  "score_after": 485
  },
  {
   "function": "func_80219B58",
@@ -14390,14 +14358,6 @@
   "created_at": 1794729128.815237,
   "score_before": 525,
   "score_after": 525
- },
- {
-  "function": "func_800297E8",
-  "text": "Saved best 9 (rev eb48c7f463f4892b1697). Only diff: stack layout. Target has mq (passed to osCreateMesgQueue, sp+0x28) and Msg m at sp+0x10 (f1c read at sp+0x1c; f20 at sp+0x20; f22 at sp+0x22); ours has them swapped (mq at 0x10, m at 0x28). Swapping the declaration order (Msg m first, then u8 mq[0x18]) fixes the stack offsets but changes register allocation: arg copies land in s3/s1/s2 instead of target s2=arg1, s0=arg0, s1=arg2, and kind in s3 (score 556). Dropping the q local (m.p14 = mq) with swapped order: still 556. Untried: swapped order with arg copies forced into the target's registers, e.g. a local for arg1 declared first, or kind as a separate u16/s32 local.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794729155.192342,
-  "score_before": 9,
-  "score_after": 9
  },
  {
   "function": "func_801FA240",
@@ -18072,14 +18032,6 @@
   "score_after": 160
  },
  {
-  "function": "func_800297E8",
-  "text": "Best 9 (42/42 insns, only stack offsets differ) with saved best eb48c7f463f4892b1697: `u8 mq[0x18]; Msg m; s32 buf;` gives mq at sp+0x10, m at sp+0x28, buf at sp+0x40. Target wants the opposite: m at sp+0x10, mq at sp+0x28, buf at sp+0x40 (osCreateMesgQueue gets $a0=$sp+0x28, $a1=$sp+0x40; osSendMesg gets $a1=$sp+0x10; msg fields at 0x10 type(sh), 0x14 p14(sw), 0x18 f18(sw), 0x1c f1c(lw), 0x20 f20(sb), 0x22 f22(sh)). gcc gives the first-declared local the lowest slot, so swapping to `Msg m; u8 mq[0x18];` fixes the frame but costs 2 extra insns (score 556): an extra callee-saved s4 plus `sw $ra,0x5c`. Target uses s0=&mq, s1=arg2, s2=arg1, s3=0x4001; the swapped version uses s1=arg0, s2=arg2, s3=arg1, s4=0x4001. Remaining work: get declaration order m-then-mq while keeping only four callee-saved registers (try mq as s32[6], taking &mq from one expression, or a different Msg layout). Also tried a full rewrite with struct fields split into scalars (score 2557, 28 insns: gcc treated the send buffer as dead). Local-repair families on eb48c7f463f4892b1697 are largely unexplored (28 proposals: signedness=9, declaration_order=5, call_arity=2, guard_shape=1).",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794739107.5058932,
-  "score_before": 9,
-  "score_after": 9
- },
- {
   "function": "func_80198B9C",
   "text": "Best 3860 (47.8%), not matched. Target is 74 insns: entry loads D_801C7068 (lb), slti 0x17, beqz to end; then lbu D_801C7469 and a 4-way mode dispatch. The target re-loads D_801C7068 and D_801C6BB0/D_801C6BB9 separately in each mode arm (lui+lb each time), with the mode-0 arm reusing the first-loaded a0 for addiu v0,a0,1. Rewriting each arm to read globals directly (no local p) gave 3900, worse. Mine currently uses a shared local pointer p and produces 61 insns. Unexplored: a0-caching shape matching the mode-0 arm, and an order that loads BB0[1] before BB0[0] in mode 1/3.",
   "by": "claude-haiku-5-5-20",
@@ -18326,14 +18278,6 @@
   "created_at": 1794739479.076021,
   "score_before": 1230,
   "score_after": 1230
- },
- {
-  "function": "func_800297E8",
-  "text": "Best 9 (99.7%), saved revision eb48c7f463f4892b1697 (same source as the m2c-cleaned draft: Msg m on stack is not declared; mq[0x18] local, buf s32, kind s16=0x4001). Remaining diff is stack layout only: target puts Msg m at sp+0x10 (type 0x10, p14 0x14, f18 0x18, f1c 0x1c, f20 0x20, f22 0x22) and mq at sp+0x28, buf elsewhere. Mine has m at 0x28 and mq at 0x10. Swapping declaration order (Msg m before u8 mq[]) gave 556 because it changed the callee-saved register allocation and the prologue (extra sw $ra/ sw $s4), so reordering locals alone is not the fix. Next: try keeping mq first but making m a struct field-block with the same offsets, or declare buf/mq as one struct to pin order. Not yet tried: an explicit u8 pad before mq.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794739515.5602481,
-  "score_before": 9,
-  "score_after": 9
  },
  {
   "function": "func_80216128",
@@ -20814,14 +20758,6 @@
   "created_at": 1794747355.910225,
   "score_before": 200,
   "score_after": 200
- },
- {
-  "function": "func_800297E8",
-  "text": "OS message send/receive helper (42 insns, frame 0x60, saves s0-s3, ra at 0x58). Best C scores 9 (99.7%): extern D_80046D74, D_80092BE0[]; typedef Msg {s16 type; s16 pad; void *p14; s32 f18; s32 f1c; s8 f20; s8 pad21; s16 f22;}; local u8 mq[0x18]; Msg m; s32 buf; if (D_80046D74 != 0) { osCreateMesgQueue(mq,&buf,1); osSendMesg(D_80092BE0,&m,1); osRecvMesg(q,0,1); return m.f1c; } return -1. Only remaining diff: stack layout. Target: msg at sp+0x10, mq at sp+0x28, buf at sp+0x40, (sp+0x1c = result). Ours puts mq at sp+0x10 and msg at sp+0x28. Reordering declarations (m, mq, buf) scored 556 (worse, changed the early-return structure), so the early-return order matters. Untried: keeping the 'if' form but declaring buf first, or a single struct wrapping mq+buf to force offsets.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794747446.579533,
-  "score_before": 9,
-  "score_after": 9
  },
  {
   "function": "func_801F9BE8",
@@ -23368,14 +23304,6 @@
   "score_after": 425
  },
  {
-  "function": "func_800297E8",
-  "text": "Best is score 9 (the saved best C, revision 03601fbed585331c4bfe). Only the stack layout differs. Target: mq (u8[0x18]) at sp+0x28, Msg m at sp+0x10 (type@0, p14@4, f18@8, f1c@0xC, f20@0x10, f22@0x12 in its struct), buf at sp+0x40, return reads m.f1c at sp+0x1C. Reordering the locals (buf/mq/m or m/buf/mq) either left the score at 9 or made it 556. Next to try: explicit struct placement via a union or a single struct holding mq, buf and m in that offset order. Note the osCreateMesgQueue prototype (void*,void*,s32) is what the target calls with a1 = &buf.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794753512.868284,
-  "score_before": 9,
-  "score_after": 9
- },
- {
   "function": "guPerspective",
   "text": "Not matched. Saved best is 2044 (82%, revision a49a2a73f68dc33968d1). Two compiles this claim, no improvement: (1) the recorded candidate, unchanged, 2044; (2) a rewrite with a 4x4 float matrix array, copies of arg3..arg6 into locals, the sin/cos result folded into one expression and loops for the scale. It regressed to 2334 (frame 0x90, saves f26/f28/f30 and s0/s1 rather than the target's f20..f28 set). Target facts: frame 0x88; matrix at sp+0x10 (0x40 bytes); s0/s1/s2/ra at 0x50..0x5c; five double saves at 0x60..0x80; stack args arg4..arg6 are loaded from 0x98..0xa0 and kept live in FP regs across guMtxIdentF/__cosf/__sinf. The arithmetic order matches the candidate (cos, sin, div by arg3, arg4+arg5, arg4-arg5, then the scale). The gap is register allocation and the number of values live across calls, so the rewrite should keep the original sequential temporaries rather than folding them. Next step: start from the saved best, and only change the order that makes arg4/arg5/arg6 live across the calls.",
   "by": "claude-haiku-5-5-20",
@@ -24094,14 +24022,6 @@
   "created_at": 1794754332.414291,
   "score_before": 1790,
   "score_after": 1790
- },
- {
-  "function": "func_800297E8",
-  "text": "Baseline9 all stack offsets. Tested reordered locals, Msg[1], volatile Msg, s32/u64/struct/union queue, explicit aggregate layout: message first introduces extra s register and score556; queue first all score9. Need stack slot order while retaining s0 reuse after sb. Current baseline eb48c7f463f4892b1697.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794754332.8111281,
-  "score_before": 9,
-  "score_after": 9
  },
  {
   "function": "func_80146EC4",
@@ -25294,5 +25214,85 @@
   "created_at": 1794755900.376204,
   "score_before": 4605,
   "score_after": 4605
+ },
+ {
+  "function": "func_800297E8",
+  "text": "Best 1500 (64.2%), candidate revision 343afc8b0974188e3d65. The C is a message send: a 0x14-byte struct at sp+0x10 (s16 0x4001 at +0, reply pointer at +4, word at +8 = arg1, byte at +0x10 = arg0, s16 at +0x12 = arg2; return read from +0xC), a 0x18-byte queue at sp+0x28 and an 8-byte buffer (buf[2]) at sp+0x40. Frame 0x60 matches with that layout. Remaining diff is the prologue: the target copies arg0/arg1/arg2 into callee-saved $s0/$s2/$s1 and loads 0x4001 into $s3 BEFORE the D_80046D74 test, then branches to a shared epilogue. My version saves args after the test. Moving the field stores above the if gave 2612 (worse, frame changed). Explicit early locals (b/v/c) changed nothing. Still open: get the prologue order without changing the frame.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794706010.8795788,
+  "score_before": 485,
+  "score_after": 485
+ },
+ {
+  "function": "func_800297E8",
+  "text": "Not started; released to work one function at a time (batch claim held).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794706122.471081,
+  "score_before": 485,
+  "score_after": 485
+ },
+ {
+  "function": "func_800297E8",
+  "text": "Best 500 (88%, revision 1cd5718f5e666788d087) is the saved best; frame 0x60 matches. Structure: struct f {s16 type; s16 pad; s32 q; s32 a; s32 b; s8 c; s16 d;} first, then queue[6], buf; body inside `if (D_80046D74 != 0)`, else return -1; return f.b. Remaining: register allocation of params. Target saves arg1 in s2 (0x50), arg0 in s0 (0x48), arg2 in s1 (0x4c), hoists 0x4001 into s3 before the branch; mine puts arg1 in s3. Tried without gain: hoisting type constant to a local (no effect); f.a=arg1 before the if (600); f.c=arg0 before the if (808). nuContPakFileDelete (matched, revision a10106eb8e669ed0174c) uses the same message pattern, with queue at sp+0x10 and a pad[2] before buf. Next idea: different declaration order of f/queue/buf, or copy params into locals in target order.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794720228.908583,
+  "score_before": 485,
+  "score_after": 485
+ },
+ {
+  "function": "func_800297E8",
+  "text": "Not started: claim held only while working func_8002E6E4; releasing untouched so another agent can take it.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794721306.5541031,
+  "score_before": 485,
+  "score_after": 485
+ },
+ {
+  "function": "func_800297E8",
+  "text": "Saved best 9 (rev eb48c7f463f4892b1697). Only diff: stack layout. Target has mq (passed to osCreateMesgQueue, sp+0x28) and Msg m at sp+0x10 (f1c read at sp+0x1c; f20 at sp+0x20; f22 at sp+0x22); ours has them swapped (mq at 0x10, m at 0x28). Swapping the declaration order (Msg m first, then u8 mq[0x18]) fixes the stack offsets but changes register allocation: arg copies land in s3/s1/s2 instead of target s2=arg1, s0=arg0, s1=arg2, and kind in s3 (score 556). Dropping the q local (m.p14 = mq) with swapped order: still 556. Untried: swapped order with arg copies forced into the target's registers, e.g. a local for arg1 declared first, or kind as a separate u16/s32 local.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794729155.192342,
+  "score_before": 9,
+  "score_after": 9
+ },
+ {
+  "function": "func_800297E8",
+  "text": "Best 9 (42/42 insns, only stack offsets differ) with saved best eb48c7f463f4892b1697: `u8 mq[0x18]; Msg m; s32 buf;` gives mq at sp+0x10, m at sp+0x28, buf at sp+0x40. Target wants the opposite: m at sp+0x10, mq at sp+0x28, buf at sp+0x40 (osCreateMesgQueue gets $a0=$sp+0x28, $a1=$sp+0x40; osSendMesg gets $a1=$sp+0x10; msg fields at 0x10 type(sh), 0x14 p14(sw), 0x18 f18(sw), 0x1c f1c(lw), 0x20 f20(sb), 0x22 f22(sh)). gcc gives the first-declared local the lowest slot, so swapping to `Msg m; u8 mq[0x18];` fixes the frame but costs 2 extra insns (score 556): an extra callee-saved s4 plus `sw $ra,0x5c`. Target uses s0=&mq, s1=arg2, s2=arg1, s3=0x4001; the swapped version uses s1=arg0, s2=arg2, s3=arg1, s4=0x4001. Remaining work: get declaration order m-then-mq while keeping only four callee-saved registers (try mq as s32[6], taking &mq from one expression, or a different Msg layout). Also tried a full rewrite with struct fields split into scalars (score 2557, 28 insns: gcc treated the send buffer as dead). Local-repair families on eb48c7f463f4892b1697 are largely unexplored (28 proposals: signedness=9, declaration_order=5, call_arity=2, guard_shape=1).",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794739107.5058932,
+  "score_before": 9,
+  "score_after": 9
+ },
+ {
+  "function": "func_800297E8",
+  "text": "Best 9 (99.7%), saved revision eb48c7f463f4892b1697 (same source as the m2c-cleaned draft: Msg m on stack is not declared; mq[0x18] local, buf s32, kind s16=0x4001). Remaining diff is stack layout only: target puts Msg m at sp+0x10 (type 0x10, p14 0x14, f18 0x18, f1c 0x1c, f20 0x20, f22 0x22) and mq at sp+0x28, buf elsewhere. Mine has m at 0x28 and mq at 0x10. Swapping declaration order (Msg m before u8 mq[]) gave 556 because it changed the callee-saved register allocation and the prologue (extra sw $ra/ sw $s4), so reordering locals alone is not the fix. Next: try keeping mq first but making m a struct field-block with the same offsets, or declare buf/mq as one struct to pin order. Not yet tried: an explicit u8 pad before mq.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794739515.5602481,
+  "score_before": 9,
+  "score_after": 9
+ },
+ {
+  "function": "func_800297E8",
+  "text": "OS message send/receive helper (42 insns, frame 0x60, saves s0-s3, ra at 0x58). Best C scores 9 (99.7%): extern D_80046D74, D_80092BE0[]; typedef Msg {s16 type; s16 pad; void *p14; s32 f18; s32 f1c; s8 f20; s8 pad21; s16 f22;}; local u8 mq[0x18]; Msg m; s32 buf; if (D_80046D74 != 0) { osCreateMesgQueue(mq,&buf,1); osSendMesg(D_80092BE0,&m,1); osRecvMesg(q,0,1); return m.f1c; } return -1. Only remaining diff: stack layout. Target: msg at sp+0x10, mq at sp+0x28, buf at sp+0x40, (sp+0x1c = result). Ours puts mq at sp+0x10 and msg at sp+0x28. Reordering declarations (m, mq, buf) scored 556 (worse, changed the early-return structure), so the early-return order matters. Untried: keeping the 'if' form but declaring buf first, or a single struct wrapping mq+buf to force offsets.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794747446.579533,
+  "score_before": 9,
+  "score_after": 9
+ },
+ {
+  "function": "func_800297E8",
+  "text": "Best is score 9 (the saved best C, revision 03601fbed585331c4bfe). Only the stack layout differs. Target: mq (u8[0x18]) at sp+0x28, Msg m at sp+0x10 (type@0, p14@4, f18@8, f1c@0xC, f20@0x10, f22@0x12 in its struct), buf at sp+0x40, return reads m.f1c at sp+0x1C. Reordering the locals (buf/mq/m or m/buf/mq) either left the score at 9 or made it 556. Next to try: explicit struct placement via a union or a single struct holding mq, buf and m in that offset order. Note the osCreateMesgQueue prototype (void*,void*,s32) is what the target calls with a1 = &buf.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794753512.868284,
+  "score_before": 9,
+  "score_after": 9
+ },
+ {
+  "function": "func_800297E8",
+  "text": "Baseline9 all stack offsets. Tested reordered locals, Msg[1], volatile Msg, s32/u64/struct/union queue, explicit aggregate layout: message first introduces extra s register and score556; queue first all score9. Need stack slot order while retaining s0 reuse after sb. Current baseline eb48c7f463f4892b1697.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794754332.8111281,
+  "score_before": 9,
+  "score_after": 9
  }
 ]
