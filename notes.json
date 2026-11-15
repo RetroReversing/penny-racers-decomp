@@ -23216,22 +23216,6 @@
   "score_after": 965
  },
  {
-  "function": "func_800DF1E0",
-  "text": "Deep permuter: score 2420 \u2192 2420; 0 improvements; 58 candidates tested; 40 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589934603",
-  "created_at": 1794356157.0582132,
-  "score_before": 2420,
-  "score_after": 2420
- },
- {
-  "function": "func_800DF1E0",
-  "text": "Unmatched. Best saved 3345 (inherited); my 4100 was worse. Why it stalls: my C has the wrong shape from the first branch on. Target stores arg1 into D_8011F34C + off (off = (arg0&0xFFFF)*100, computed as ((v*2+v)*8+v)*4), then does a two-hop pointer load (*(*(D_8011F340+off)+4)+4) to get a byte mode t, maps t (1 -> 0x10, 2 -> 0x100, else 0) to a count, then copies that many halfwords through a second pointer chain (+4 then +8) with a 2-byte index loop. Frame is 8 bytes (addiu sp). Next step for anyone picking it up: write the lookup chain once as a local pointer, keep the mode switch as the flat if/else the branch targets show, and fix the index register order before anything else.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794707250.4572742,
-  "score_before": 2425,
-  "score_after": 2425
- },
- {
   "function": "func_8013AE60",
   "text": "Best 770 (81.6%), revision 40b085a93f83e1706966: base=&D_8011F2F2, off=arg0*100, k=D_80233EC0 read once before loop, dst=base+off outside loop, src=base+(k+D_8011F2F0[off])*100 recomputed in loop, 4-iteration loop on u16 pairs with OR 8 / AND 0xFFF7. Remaining diffs: target keeps i*2 as a fresh `sll a0,a1,1` each iteration and computes the true-branch dst address in the beqz delay slot (addu v1,a0,a2); mine uses a pointer increment (addiu a0,a0,2) so the loop is one instruction longer (bnez encoding differs by one word). Register allocation also differs (target dst lives in a2, src base in t0). Tried: index form src[i]/dst[i], byte-offset form (dst+i*2), explicit |= vs = | rewrite: all 770 or worse. Untried: a for-loop over a byte offset o (0..6 step 2) written as *(u16*)(dst+o), or compile_family(signedness).",
   "by": "claude-haiku-5-5-23",
@@ -23280,14 +23264,6 @@
   "score_after": 770
  },
  {
-  "function": "func_800DF1E0",
-  "text": "Best 2270 (revision 4f541fd8740ded107029): store `*(s32*)((u8*)&D_8011F34C + (arg0&0xFFFF)*0x64) = arg1;` first, then n-switch `if (v != 1) {n=0; if (v>=2){n=0x100; if (v!=2) n=0;}} else n=0x10;`, then `i=0; if(n!=0) do{...}while(i<n)`. Still differs: target computes off once into $t0 (andi, sll chain 25*4) and reuses it in the loop; target has a frame (addiu $sp,-8) and uses signed slti v<2 / bnez on the n-switch, with move $a3,$zero inside the chain. Tried: local off variable (4105, andi lands in $a0); signed-compare switch (2330, no frame). Untested: local off with the 2270 store ordering; a stack local to reproduce the -8 frame.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794721556.434535,
-  "score_before": 2425,
-  "score_after": 2270
- },
- {
   "function": "func_8015E530",
   "text": "Not matched. Current candidate compiles (revision 3d7ba9458a7eb448f5f8) at 12248 (48.3%); saved best 12148 is from an earlier source. The draft had repair artifacts and wrong types; fixed: removed __repair_phase var, func_8013E49C takes one u16 (context declaration), two-arg calls changed to one arg. Remaining: the target frame is 0x68 with s0..s3 saved and no $f20 spill; mine is 0x70 with sdc1 $f20 and extra s-register saves, and the target's first branch compares s0 against a value from func_8013E364 with an early `nop` before the `andi`/`move $s3` pair. The 0x7C table at D_8018D6C0/D_8018D6C8 is addressed as `lui $at,%hi(D_8018D6C8)` nine times in the target, so write it as one base expression, not casts of 0x8018d6c0. Restart from the assembly with a clean rewrite (the state-1 test on *(s32*)(arg0+0x898), flags at 0x560 mask 0x18, the 0x7C-stride writes, and the 0x64-stride float writes to D_8011F334/D_8011F338).",
   "by": "claude-haiku-5-5-21",
@@ -23320,14 +23296,6 @@
   "score_after": 5760
  },
  {
-  "function": "func_800DF1E0",
-  "text": "Decoded (verified): off=(arg0&0xFFFF)*100 (sll/addu chain, t0=off); *(s32*)(&D_8011F34C+off)=arg1; X=*(s32*)(&D_8011F340+off); Y=*(s32*)(X+4); v=*(u8*)(Y+4); n = v==1 ? 0x10 : v==2 ? 0x100 : 0; if (n) { src = *(u16**)(Y+8); for i<n: ((u16*)arg1)[i] = src[i]; }. Target has a stack frame (addiu sp,-8) and an extra register for `addiu $v0,$zero,1; beq v,1` then `slti v<2` then `addiu $v0,2; beq`, i.e. the n-selection is a compare chain with `beq`, not a ternary. Ours (3880) hoists the `andi` into $a0 and computes the sum with $a0; target keeps arg0 masked in $v1. Saved best 2100 is a different source. Next: write the andi into a local `u16 idx` and use it for both offsets; use `if/else if` for n, not ternary; check whether the frame needs an 8-byte local (volatile-like) for `off` or the loop index.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794730325.698224,
-  "score_before": 2100,
-  "score_after": 2100
- },
- {
   "function": "func_8013AE60",
   "text": "Best 770 (81.6%). Working candidate: u16 k = D_80233EC0 at top; off = arg0*100; base = D_8011F2F2; dst = base+off; loop i<4, src = base+(k+D_8011F2F0[off])*100; if (src[i]&8) dst[i]|=8 else dst[i]&=0xFFF7. Remaining diffs: the target keeps D_80233EC0 in $t1 loaded before off; mine reloads it per iteration (lui t0 x3). Target computes off via ((a*2+a)*8+a)<<2 and keeps base+off in $a2 before the loop; mine recomputes it inside. Target loop has a beqz to the else arm then j to the join, with the store in the delay-slot-free join; mine has an extra addiu $a0 in the loop. Tried: u16* dst with k at top (1280, worse); hoisted u8* dst local (770, same). Not tried: a pointer-increment loop (src/dst bumped by 2 each iteration) instead of i*2 indexing, and forcing the strength-reduced multiply via a u32 shift form.",
   "by": "claude-haiku-5-5-22",
@@ -23342,22 +23310,6 @@
   "created_at": 1794731800.071029,
   "score_before": 770,
   "score_after": 770
- },
- {
-  "function": "func_800DF1E0",
-  "text": "Structure understood (see previous note): off=(u16)arg0*100 via sll/addu chain; store arg1 as s32 at D_8011F34C+off; v=byte at (*(s32*)(*(s32*)(D_8011F340+off)+4)+4); n = v==1?0x10 : v==2?0x100 : 0; if n, copy n halfwords from (*(s32*)(p+4)+8) into (u16*)arg1. Best candidates: ec1f50db4bab87364b83 and 3fe95cb1156be3311617, both 3810 (25.2%); saved best 2100 from another revision. Tried: pointer-typed tbl local (no effect). Gaps: target has an 8-byte stack frame (addiu $sp,-8) that ours drops; target masks index into v1 first; the store address lui $at/addu is computed before the loop. Unexplored: force a frame via a used local, and check the saved-best revision.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794731817.967496,
-  "score_before": 2100,
-  "score_after": 2100
- },
- {
-  "function": "func_800DF1E0",
-  "text": "Saved best 2100 is the earlier draft (get_candidate saved_best). Current variants: if-chain on v with the u16 copy loop 3575 (29.9%); off-hoisted variant 4155 (worse). Why it can't get closer now: the target computes the stride-100 index from arg0 with the sll/addu chain into $v1 and uses that one value for both the sw to D_8011F34C and the D_8011F340 struct chain. Gcc keeps re-deriving the index per use and the if-chain layout differs (target branches directly to the 0x10/0 cases with beq/slti). The remaining work is a source shape for the n selection that gcc lowers as beq/slti/bnez, and an index reused once. Move-on budget reached for this claim.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794732789.133467,
-  "score_before": 2100,
-  "score_after": 2100
  },
  {
   "function": "func_8015E530",
@@ -23392,14 +23344,6 @@
   "score_after": 5760
  },
  {
-  "function": "func_800DF1E0",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794745506.270942,
-  "score_before": 1925,
-  "score_after": 1925
- },
- {
   "function": "func_8013AE60",
   "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
   "by": "claude-haiku-5-5-20",
@@ -23414,14 +23358,6 @@
   "created_at": 1794748452.523217,
   "score_before": 770,
   "score_after": 770
- },
- {
-  "function": "func_800DF1E0",
-  "text": "Can't get closer at -O2: C is byte-exact at -O1 (verified by search_flags, suggestion filed). Revision 6676f4e5bb381ddce6d4. Remaining -O2 diff is purely loop strength reduction of arg1 which -O1 doesn't do. Apply the -O1 function profile.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794757048.1500149,
-  "score_before": 1925,
-  "score_after": 900
  },
  {
   "function": "func_80025DE0",
@@ -23440,14 +23376,6 @@
   "score_after": 765
  },
  {
-  "function": "func_800DF1E0",
-  "text": "Exact target bytes independently verified by try_compiler and suggest using saved best C at O1. No additional C experiment appropriate: current profile O2 is incorrect, not source signedness. Function-specific pending suggestion contains all needed source/profile; auto application disabled. Source restored to original i<n.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794757597.8887732,
-  "score_before": 900,
-  "score_after": 900
- },
- {
   "function": "func_8015E530",
   "text": "Best 5313 (77.5%) using a separate `s32 idx` for the second func_8013E364() result (instead of reusing temp_s0). Remaining: (1) frame is 0x68 in target (ra 0x60, s0-s3 at 0x50-0x5c) while mine is 0x70 with an `sdc1 $f20` spill, so one of the `* 2.0f` / float-argument expressions is being widened to double somewhere; try writing the three `* 2.0f` terms as `2.0f * (f32)` on the already loaded values or check that D_8011F320..328 are f32 (not double) in the header. (2) Target keeps arg0 in s1 and the masked index in s0/s2 (`move $s1,$a0` at entry, `andi $s2,$v0,0xffff` after the call), mine keeps arg0 in s0 and reuses s2 for the index: restructure so the first-block index is a separate local (`u16 slot = (u16)func_8013E364()`), matching the second block. (3) The `*(void**)(... D_8018D6C0 ...)` double store after the `1.0f` store is probably real (both kept in the draft), leave it.",
   "by": "claude-haiku-5-5-20",
@@ -23462,14 +23390,6 @@
   "created_at": 1794758076.966861,
   "score_before": 5760,
   "score_after": 5395
- },
- {
-  "function": "func_800DF1E0",
-  "text": "The existing candidate C MATCHES byte-for-byte at KMC -O1 (try_compiler); suggestion submitted. Unit code_800DE2E0 is -O1. Waiting for the profile to be applied.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794758127.865966,
-  "score_before": 900,
-  "score_after": 900
  },
  {
   "function": "nuGfxTaskMgr",
@@ -26286,5 +26206,109 @@
   "created_at": 1794760791.301192,
   "score_before": 435,
   "score_after": 435
+ },
+ {
+  "function": "func_800DF1E0",
+  "text": "Deep permuter: score 2420 \u2192 2420; 0 improvements; 58 candidates tested; 40 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589934603",
+  "created_at": 1794356157.0582132,
+  "score_before": 2420,
+  "score_after": 2420
+ },
+ {
+  "function": "func_800DF1E0",
+  "text": "Unmatched. Best saved 3345 (inherited); my 4100 was worse. Why it stalls: my C has the wrong shape from the first branch on. Target stores arg1 into D_8011F34C + off (off = (arg0&0xFFFF)*100, computed as ((v*2+v)*8+v)*4), then does a two-hop pointer load (*(*(D_8011F340+off)+4)+4) to get a byte mode t, maps t (1 -> 0x10, 2 -> 0x100, else 0) to a count, then copies that many halfwords through a second pointer chain (+4 then +8) with a 2-byte index loop. Frame is 8 bytes (addiu sp). Next step for anyone picking it up: write the lookup chain once as a local pointer, keep the mode switch as the flat if/else the branch targets show, and fix the index register order before anything else.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794707250.4572742,
+  "score_before": 2425,
+  "score_after": 2425
+ },
+ {
+  "function": "func_800DF1E0",
+  "text": "Best 2270 (revision 4f541fd8740ded107029): store `*(s32*)((u8*)&D_8011F34C + (arg0&0xFFFF)*0x64) = arg1;` first, then n-switch `if (v != 1) {n=0; if (v>=2){n=0x100; if (v!=2) n=0;}} else n=0x10;`, then `i=0; if(n!=0) do{...}while(i<n)`. Still differs: target computes off once into $t0 (andi, sll chain 25*4) and reuses it in the loop; target has a frame (addiu $sp,-8) and uses signed slti v<2 / bnez on the n-switch, with move $a3,$zero inside the chain. Tried: local off variable (4105, andi lands in $a0); signed-compare switch (2330, no frame). Untested: local off with the 2270 store ordering; a stack local to reproduce the -8 frame.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794721556.434535,
+  "score_before": 2425,
+  "score_after": 2270
+ },
+ {
+  "function": "func_800DF1E0",
+  "text": "Decoded (verified): off=(arg0&0xFFFF)*100 (sll/addu chain, t0=off); *(s32*)(&D_8011F34C+off)=arg1; X=*(s32*)(&D_8011F340+off); Y=*(s32*)(X+4); v=*(u8*)(Y+4); n = v==1 ? 0x10 : v==2 ? 0x100 : 0; if (n) { src = *(u16**)(Y+8); for i<n: ((u16*)arg1)[i] = src[i]; }. Target has a stack frame (addiu sp,-8) and an extra register for `addiu $v0,$zero,1; beq v,1` then `slti v<2` then `addiu $v0,2; beq`, i.e. the n-selection is a compare chain with `beq`, not a ternary. Ours (3880) hoists the `andi` into $a0 and computes the sum with $a0; target keeps arg0 masked in $v1. Saved best 2100 is a different source. Next: write the andi into a local `u16 idx` and use it for both offsets; use `if/else if` for n, not ternary; check whether the frame needs an 8-byte local (volatile-like) for `off` or the loop index.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794730325.698224,
+  "score_before": 2100,
+  "score_after": 2100
+ },
+ {
+  "function": "func_800DF1E0",
+  "text": "Structure understood (see previous note): off=(u16)arg0*100 via sll/addu chain; store arg1 as s32 at D_8011F34C+off; v=byte at (*(s32*)(*(s32*)(D_8011F340+off)+4)+4); n = v==1?0x10 : v==2?0x100 : 0; if n, copy n halfwords from (*(s32*)(p+4)+8) into (u16*)arg1. Best candidates: ec1f50db4bab87364b83 and 3fe95cb1156be3311617, both 3810 (25.2%); saved best 2100 from another revision. Tried: pointer-typed tbl local (no effect). Gaps: target has an 8-byte stack frame (addiu $sp,-8) that ours drops; target masks index into v1 first; the store address lui $at/addu is computed before the loop. Unexplored: force a frame via a used local, and check the saved-best revision.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794731817.967496,
+  "score_before": 2100,
+  "score_after": 2100
+ },
+ {
+  "function": "func_800DF1E0",
+  "text": "Saved best 2100 is the earlier draft (get_candidate saved_best). Current variants: if-chain on v with the u16 copy loop 3575 (29.9%); off-hoisted variant 4155 (worse). Why it can't get closer now: the target computes the stride-100 index from arg0 with the sll/addu chain into $v1 and uses that one value for both the sw to D_8011F34C and the D_8011F340 struct chain. Gcc keeps re-deriving the index per use and the if-chain layout differs (target branches directly to the 0x10/0 cases with beq/slti). The remaining work is a source shape for the n selection that gcc lowers as beq/slti/bnez, and an index reused once. Move-on budget reached for this claim.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794732789.133467,
+  "score_before": 2100,
+  "score_after": 2100
+ },
+ {
+  "function": "func_800DF1E0",
+  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794745506.270942,
+  "score_before": 1925,
+  "score_after": 1925
+ },
+ {
+  "function": "func_800DF1E0",
+  "text": "Can't get closer at -O2: C is byte-exact at -O1 (verified by search_flags, suggestion filed). Revision 6676f4e5bb381ddce6d4. Remaining -O2 diff is purely loop strength reduction of arg1 which -O1 doesn't do. Apply the -O1 function profile.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794757048.1500149,
+  "score_before": 1925,
+  "score_after": 900
+ },
+ {
+  "function": "func_800DF1E0",
+  "text": "Exact target bytes independently verified by try_compiler and suggest using saved best C at O1. No additional C experiment appropriate: current profile O2 is incorrect, not source signedness. Function-specific pending suggestion contains all needed source/profile; auto application disabled. Source restored to original i<n.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794757597.8887732,
+  "score_before": 900,
+  "score_after": 900
+ },
+ {
+  "function": "func_800DF1E0",
+  "text": "The existing candidate C MATCHES byte-for-byte at KMC -O1 (try_compiler); suggestion submitted. Unit code_800DE2E0 is -O1. Waiting for the profile to be applied.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794758127.865966,
+  "score_before": 900,
+  "score_after": 900
+ },
+ {
+  "function": "func_800DF1E0",
+  "text": "Fresh verified exact try_compiler -O1 and suggestion on unchanged source revision 6676f4e5bb381ddce6d4. Source done. Compiler auto changes disabled; awaiting apply only. Do not keep reassigning for C tuning under -O2.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794758854.5897741,
+  "score_before": 900,
+  "score_after": 900
+ },
+ {
+  "function": "func_800DF1E0",
+  "text": "Byte-exact with KMC -O1 (suggested): an if(n) do-while loop, plus an unused s32[2] local for the 8-byte stack frame.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794759552.802816,
+  "score_before": 900,
+  "score_after": 900
+ },
+ {
+  "function": "func_800DF1E0",
+  "text": "Fresh exact O1 verification on saved source (0x10 ->16 cosmetic patch). Current O2 score900. Existing function-only exact source/profile bundle awaits apply; no further O2 source tuning.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794759845.0591319,
+  "score_before": 900,
+  "score_after": 900
  }
 ]
