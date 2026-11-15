@@ -34,9 +34,9 @@ void func_801619B4(s16 arg0) {
     f = *(f32 *)(obj + 0xC);
     if (f != 0.0f) {
         *(f32 *)(obj + 0xC) = f - 0.1f;
-        func_80129918(obj + 0x1C, *(s32 *)(racer + 0x18), *(s32 *)(racer + 0x1C),
+        do { func_80129918(obj + 0x1C, *(s32 *)(racer + 0x18), *(s32 *)(racer + 0x1C),
                       *(s32 *)(racer + 0x20), *(f32 *)(obj + 8), *(f32 *)(obj + 0xC),
-                      *(f32 *)(obj + 0x10));
+                      *(f32 *)(obj + 0x10)); } while (0);
         *(f32 *)(racer + 0x18) = *(f32 *)(obj + 0x24);
         *(f32 *)(racer + 0x1C) = *(f32 *)(obj + 0x28);
         *(f32 *)(racer + 0x20) = *(f32 *)(obj + 0x2C);

@@ -1,3 +1,4 @@
+static __inline__ int __repair_inline(s32 a, s32 b) { return a > b; }
 extern s32 D_80189B38[];
 extern s32 D_8018D3A0;
 extern u8 D_8021E22F[];
@@ -14,10 +15,10 @@ s32 func_8014B590(s32 arg0) {
 
     if ((u32)(arg0 & 0xFF) < 4U) {
         var_s0 = 0;
-        for (i = 0; i < 0xE; i++) {
+        for (i = 0; __repair_inline(0xE, i); i++) {
         }
         sum = 0;
-        for (j = 4; j < 0x140; j++) {
+        for (j = 4; __repair_inline(0x140, j); j++) {
             sum += ((s32 *)D_80189B38)[j];
         }
         D_80189B38[0] = sum;

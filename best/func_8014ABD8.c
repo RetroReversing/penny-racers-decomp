@@ -14,7 +14,8 @@ typedef s32 M2C_UNK32;
 
 extern char D_8011F2F0[];
 extern char D_8011F2F2[];
-extern char D_8011F340[];
+typedef struct { u32 f0; u8 pad[96]; } Slot_8011F340;
+extern Slot_8011F340 D_8011F340[];
 
 void func_8014ABD8(s32 arg0) {
     f32 temp_fv1;
@@ -31,7 +32,7 @@ void func_8014ABD8(s32 arg0) {
         M2C_FIELD(temp_a1, u16 *, 0x3E) = 1U;
         return;
     case 1:
-        if (*(s32 *)*(D_8011F340 + ((arg0 & 0xFFFF) * 0x64)) == 0) {
+        if (*(s32 *)D_8011F340[arg0 & 0xFFFF].f0 == 0) {
             temp_fv1 = M2C_FIELD(temp_a1, f32 *, 0x28) - 1.0f;
             M2C_FIELD(temp_a1, f32 *, 0x28) = temp_fv1;
             if (temp_fv1 < 0.0f) {
