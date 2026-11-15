@@ -5960,14 +5960,6 @@
   "score_after": 2490
  },
  {
-  "function": "func_8014998C",
-  "text": "Unmatched; saved best 2815 (other agent); my best 4060 (33%, do-while loops, switch form). Control flow understood: (1) loop i=0..5 storing 0xFF to D_8018BC35[i] (ascending, lui at + addu at,at,i + sb, slti 6); (2) if D_80189B34==2, same loop storing D_80237632[2*i+1]; (3) if D_80189B34==1: if D_8021E1A2==3 store D_80237639 into D_8018BC38; then if value is 3 or 2 store D_80237637 into D_8018BC37; otherwise (not 1) return; then store D_80237635 at &D_8018BC36 and D_80237633 at [-1]. Tried: for-loops (countdown + stray D_8018BC3A symbol, 4060); if/else-if chain (5860, worse). The compiler keeps turning the loops into countdown forms and the stray symbol comes from the array-indexed D_8018BC35 declaration. Next: declare D_8018BC35 as a scalar and walk with an explicit u8 *p pointer (p = &D_8018BC35; p[i] = 0xFF), and try the original switch (4060 layout) with case 3/case 2 reordered so the sb of D_8018BC38 comes before the D_80237637 load.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794706692.545258,
-  "score_before": 2815,
-  "score_after": 2815
- },
- {
   "function": "func_8014ABD8",
   "text": "Tried: switch(flag) with case 0 (D_8011F2F2[idx*100] |= 0x8000; flag=1) and case 1 (if (**(u8**)(D_8011F340+idx*100)==0) {f0 = f28-1.0f; store; if <0 store +360}) scored 1735; if/else-if chain scored 2170 (worse). Target layout: flag lhu + beqz -> case0 block at the end; flag==1 check via addiu v0,1 + beq; default falls to j end. Each branch recomputes the andi/sll/addu index chain (x2 in case0). Switch with the index recomputed per case is the closest direction; the saved 1640 permuter form is still the best. Not tried: an explicit `u32 idx` local inside each case.",
   "by": "claude-haiku-5-5-22",
@@ -9792,14 +9784,6 @@
   "score_after": 290
  },
  {
-  "function": "func_8014998C",
-  "text": "Not matched. Saved best 2220 (from an earlier agent) is still the best. My rewrite (for-loop fill of D_8018BC35[0..5] = 0xFF; if D_80189B34==2 copy D_80237632[i*2+1] for i<6; if D_80189B34==1 switch on D_8021E1A2 with cases 2 and 3) scored 4650, far worse: the target is a do-while over 6 with the loop bound compared via `slti v0,v1,6`, the switch is lowered to explicit beq/beql/bne compares with D_8021E1A2 loaded via lh and compared with 2, 3, and D_80189B34 (the second compare uses $a0 = D_80189B34), and the store addresses are at D_80237639/D_80237637 with D_8018BC37/D_8018BC38 ordered as the target shows. Note: the saved candidate contains repair artifacts (__repair_inline, goto block_15) and should not be reused. Next step: write the switch as the explicit if-chain (`if (D_8021E1A2 == 2) ... else if (D_8021E1A2 < 3) ... else if (D_8021E1A2 == D_80189B34)`) and check which of D_8018BC37/38 receives which of D_80237637/39 from the raw addresses.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794720779.4669042,
-  "score_before": 2220,
-  "score_after": 2220
- },
- {
   "function": "func_80146970",
   "text": "Not matched. Best current candidate revision df3cc4c7fbbfab4adb60: 2602 (55.8%), where temp_v0 is reused as the 0x10-path zero (`temp_v0 = 0;`, then `if (temp_v0 & 0x20)`), which fixed the join. Historical saved best 915 is from a different source. Remaining structural gap: target keeps p=&D_80190CB0 in callee-saved $s1 across the func_80148688 call (lui+addiu once, then lbu 0($s1) and lhu -4($s1)); mine re-materializes lui/%lo at each use and the frame is 0x18 instead of 0x20 (ra, s1, s0 saved). Tried: extern-array form of D_80190CB0 (no effect). Untried: a struct overlay on D_80190CB0 so the base pointer is a non-constant value across the call; then fix the extra nop/branch-target offset (0xd8 vs 0xd0).",
   "by": "claude-haiku-5-5-24",
@@ -12680,14 +12664,6 @@
   "score_after": 30
  },
  {
-  "function": "func_8014998C",
-  "text": "Not matched. Saved best 2220 is from another agent and is not reproduced by my rewrite (4330). The machine draft in the claim was not usable (it contains invalid repair code: an inline helper and a do/while with a case label inside it), so I started from the assembly. Verified from the target: the first loop writes 0xFF to six bytes of D_8018BC35 (the loop runs 6 times, `slti v1,6`); the D_80189B34==2 path copies six bytes from D_80237632[2*i+1] into D_8018BC35; the D_80189B34==1 path reads D_8021E1A2 as a halfword (`lh`), compares it with 2, then 3 (`slti 3`), and writes D_8018BC38 from D_80237639 on the case-3 path and D_8018BC37 from D_80237637 on the case-2 path; the lui/lbu sequence for D_80237635 and D_80237633 is in the tail (not yet read). Next: read the tail (get_assembly start=52) and write the 1-path case explicitly with the bytes at the right offsets (the store to D_8018BC36 and -1 offsets in the draft were from a bad repair). Check the 0xFF loop bound and whether the first loop stores via a pointer.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794730255.429031,
-  "score_before": 2220,
-  "score_after": 2220
- },
- {
   "function": "func_800DF094",
   "text": "Best 615 (77%), candidate 510373e2ff245e0d7521: `cur = func_800E1850; while (cur != 0xFFFF) { off = cur * 0x64; *(u16*)(&D_8011F2F2+off) = *(u16*)(&D_8011F2F2+off) & 0xFFEF; cur = *(u16*)(&D_8011F300+off); }`. The while form (not do/while with an initial if) removed the duplicate load of func_800E1850 and matches the loop shape. Remaining: the target's loop-exit `beq v1,v0,0x64` is 4 bytes longer than mine (0x60) with a nop in the delay slot, so the target has one more instruction before the exit test (the `andi v1,a0,0xffff` for the u16 cur is placed before the compare, and the `ori v0,zero,0xffff` constant is set before the lhu). Tried a trailing `return;` (49854479..., no change). Untried: keep cur as s32 and cast to u16 only at the compare, so the andi lands before the beq.",
   "by": "claude-haiku-5-5-22",
@@ -12886,14 +12862,6 @@
   "created_at": 1794731311.834924,
   "score_before": 1510,
   "score_after": 1510
- },
- {
-  "function": "func_8014998C",
-  "text": "Moved on after one compile: a loop/switch rewrite (for i<6 fill D_8018BC35 with 0xFF; D_80189B34==2 copies every second byte from &D_80237632 + i*2 + 1; D_80189B34==1 switch on D_8021E1A2 with fallthrough into the D_8018BC37/38 stores) scored 4520 (25.9%), worse than the saved 2220. The target's loop uses a 2-byte-stride pointer that GCC does not recreate from an index. Restore the saved 2220 (get_candidate saved_best) before any further work. Not read: the saved candidate's exact structure.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794731320.262416,
-  "score_before": 2220,
-  "score_after": 2220
  },
  {
   "function": "func_801610E0",
@@ -14720,14 +14688,6 @@
   "score_after": 1230
  },
  {
-  "function": "func_8014998C",
-  "text": "Machine draft is not usable. Best clean rewrite so far: revision e54d7a34438c3abce747, score 5700 (6.5%). Target: (a) loop i<6 storing 0xFF to D_8018BC35[i] with index-register addressing; (b) if D_80189B34==2, loop storing D_80237632[2*i+1] into D_8018BC35[i]; (c) if D_80189B34==1, switch on lh D_8021E1A2: 3 writes D_8018BC38 from D_80237639 and falls into case 2; 2 writes D_8018BC37 from D_80237637 and falls into block15; 1 goes to block15; else return; block15 stores D_80237635 at &D_8018BC36 and D_80237633 at &D_8018BC36 - 1. Our build reverses the first loop (addiu -1, bgez) and shows a D_8018BC3A address, so the loop shape is wrong. Next: write the 0xFF loop with an s32 counter counting up and check the case-2 store target address.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794737286.66934,
-  "score_before": 1435,
-  "score_after": 1435
- },
- {
   "function": "func_8013B894",
   "text": "func_8013B894 (420 bytes, float table update with __sinf/__cosf, table stride 0x64, D_8011F30C/F334/F308/F310/F338 f32 fields, byte flag at D_8011F2FD). Saved best 890 (not reverified). Unprototyped `f32 __cosf();`/`f32 __sinf();` compiles at 2095 (80%), but the candidate shows cvt.d.s $f12 x4 that the target lacks: the target passes f32 directly, so the calls need a single-precision prototype (the `f32 __cosf(f32);` form fails with 'too few arguments', so some other declaration is needed; check other matched functions for __sinf usage first with find_similar). Also the target begins `sw $ra,0x14($sp)` then `move $a1,$a0`, while ours saves s0 first. The saved 890 source should be restored with get_candidate(base=\"saved_best\") before any new edit.",
   "by": "claude-haiku-5-5-22",
@@ -14918,14 +14878,6 @@
   "created_at": 1794738659.8772879,
   "score_before": null,
   "score_after": null
- },
- {
-  "function": "func_8014998C",
-  "text": "Not matched. Best saved 1295 (revision c5fb8fadd4657d77ddea). This session's variant with do-while loops scored 1345 (cad951946ec539e80826). Findings: (1) the first loop (0xFF fill of D_8018BC35[0..5]) must stay unsigned (u32 i); s32 i makes GCC reverse the loop and scores 3190. (2) The second loop's target uses slti (signed compare), not sltiu, and forms the index as sll v0,v1,1 / addu v0,v0,a0 / lbu 1(v0), i.e. address p+2*i+1 with the pointer kept in a0. The sltiu from u32 i gives 1345. Untried: make only the second loop's bound signed, e.g. `(s32)i < 6`, with the first loop unchanged. Remaining diffs are in that loop and in the switch's s16 compare form.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794738719.873208,
-  "score_before": 1295,
-  "score_after": 1295
  },
  {
   "function": "func_80132004",
@@ -17102,14 +17054,6 @@
   "created_at": 1794742566.5118709,
   "score_before": 23107,
   "score_after": 23107
- },
- {
-  "function": "func_8014998C",
-  "text": "Best verified score 1290 (rev f20520d147a0ccdf238e), move-on budget exhausted.\n\nTarget structure (70 insns, 244 bytes, no frame):\n1) i=0; do { *(&D_8018BC35 + i) = 0xFF; i++; } while (i < 6);  -- target emits move $v1,$zero / addiu $a0,$zero,0xFF then lui $at,%hi(D_8018BC35) / addu $at,$at,$v1 / sb $a0,%lo(...)($at) / addiu $v1,$v1,1 / slti $v0,$v1,6 / bnez $v0,8 with `addiu $v0,$zero,2` in the delay slot (the 2 belongs to the following compare, i.e. gcc scheduled it into the branch delay).\n2) if (D_80189B34 == 2) { p = D_80237632; do { *(&D_8018BC35+i) = *(u8*)((u8*)p + (i<<1) + 1); i++; } while (i<6); }  -- target keeps a0 = &D_80237632, does `sll $v0,$v1,1` at the loop bottom (rotated test) then `addu $v0,$v0,$a0` / `lbu $v0,1($v0)`.\n3) if (D_80189B34 == 1) switch (D_8021E1A2): case 2 -> D_8018BC37 = D_80237637 then fall into the block_15 tail; case 3 -> D_8018BC38 = D_80237639 then falls through into case 2 body; case 1 (== D_80189B34 value in a0) -> jump straight to the tail at .L80149A58; default -> jr $ra. The `goto case2;` label form (variant 2) reproduced the exact beq/beql/slti/slti-3 compare chain and branch targets.\n4) tail: v0 = &D_8018BC36; v1 = D_80237635; sb v1,0(v0); v1 = D_80237633; sb v1,-1(v0). Target keeps the base in a register and uses `sb $v1, ($v0)` / `sb $v1, -1($v0)`; declaring D_8018BC36 as u8[] with p[0]/p[-1] still produced lui $at + %lo($at) stores in my attempts (best 2025 with an extra 8-byte frame because the loop bound was a variable). The scalar-with-*(&SYM+0)/*(&SYM-1) form gave the right two-store shape but %lo($at) addressing.\n\nOpen leads: (a) get slti (not slt/sltu) by keeping the literal 6 in the loop test; (b) get the tail stores to use a register base without introducing a stack frame; (c) suppress the extra `addiu $a1,$zero,6` / loop-guard that appeared whenever the bound was a variable. m2c draft rev 4d1987d56e5355b3dbe9 plus try_local_repairs still lists 54 proposals.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794742697.487013,
-  "score_before": 1295,
-  "score_after": 1290
  },
  {
   "function": "func_8015FD64",
@@ -27238,5 +27182,69 @@
   "created_at": 1794762085.3117938,
   "score_before": 1490,
   "score_after": 1490
+ },
+ {
+  "function": "func_8014998C",
+  "text": "Unmatched; saved best 2815 (other agent); my best 4060 (33%, do-while loops, switch form). Control flow understood: (1) loop i=0..5 storing 0xFF to D_8018BC35[i] (ascending, lui at + addu at,at,i + sb, slti 6); (2) if D_80189B34==2, same loop storing D_80237632[2*i+1]; (3) if D_80189B34==1: if D_8021E1A2==3 store D_80237639 into D_8018BC38; then if value is 3 or 2 store D_80237637 into D_8018BC37; otherwise (not 1) return; then store D_80237635 at &D_8018BC36 and D_80237633 at [-1]. Tried: for-loops (countdown + stray D_8018BC3A symbol, 4060); if/else-if chain (5860, worse). The compiler keeps turning the loops into countdown forms and the stray symbol comes from the array-indexed D_8018BC35 declaration. Next: declare D_8018BC35 as a scalar and walk with an explicit u8 *p pointer (p = &D_8018BC35; p[i] = 0xFF), and try the original switch (4060 layout) with case 3/case 2 reordered so the sb of D_8018BC38 comes before the D_80237637 load.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794706692.545258,
+  "score_before": 2815,
+  "score_after": 2815
+ },
+ {
+  "function": "func_8014998C",
+  "text": "Not matched. Saved best 2220 (from an earlier agent) is still the best. My rewrite (for-loop fill of D_8018BC35[0..5] = 0xFF; if D_80189B34==2 copy D_80237632[i*2+1] for i<6; if D_80189B34==1 switch on D_8021E1A2 with cases 2 and 3) scored 4650, far worse: the target is a do-while over 6 with the loop bound compared via `slti v0,v1,6`, the switch is lowered to explicit beq/beql/bne compares with D_8021E1A2 loaded via lh and compared with 2, 3, and D_80189B34 (the second compare uses $a0 = D_80189B34), and the store addresses are at D_80237639/D_80237637 with D_8018BC37/D_8018BC38 ordered as the target shows. Note: the saved candidate contains repair artifacts (__repair_inline, goto block_15) and should not be reused. Next step: write the switch as the explicit if-chain (`if (D_8021E1A2 == 2) ... else if (D_8021E1A2 < 3) ... else if (D_8021E1A2 == D_80189B34)`) and check which of D_8018BC37/38 receives which of D_80237637/39 from the raw addresses.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794720779.4669042,
+  "score_before": 2220,
+  "score_after": 2220
+ },
+ {
+  "function": "func_8014998C",
+  "text": "Not matched. Saved best 2220 is from another agent and is not reproduced by my rewrite (4330). The machine draft in the claim was not usable (it contains invalid repair code: an inline helper and a do/while with a case label inside it), so I started from the assembly. Verified from the target: the first loop writes 0xFF to six bytes of D_8018BC35 (the loop runs 6 times, `slti v1,6`); the D_80189B34==2 path copies six bytes from D_80237632[2*i+1] into D_8018BC35; the D_80189B34==1 path reads D_8021E1A2 as a halfword (`lh`), compares it with 2, then 3 (`slti 3`), and writes D_8018BC38 from D_80237639 on the case-3 path and D_8018BC37 from D_80237637 on the case-2 path; the lui/lbu sequence for D_80237635 and D_80237633 is in the tail (not yet read). Next: read the tail (get_assembly start=52) and write the 1-path case explicitly with the bytes at the right offsets (the store to D_8018BC36 and -1 offsets in the draft were from a bad repair). Check the 0xFF loop bound and whether the first loop stores via a pointer.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794730255.429031,
+  "score_before": 2220,
+  "score_after": 2220
+ },
+ {
+  "function": "func_8014998C",
+  "text": "Moved on after one compile: a loop/switch rewrite (for i<6 fill D_8018BC35 with 0xFF; D_80189B34==2 copies every second byte from &D_80237632 + i*2 + 1; D_80189B34==1 switch on D_8021E1A2 with fallthrough into the D_8018BC37/38 stores) scored 4520 (25.9%), worse than the saved 2220. The target's loop uses a 2-byte-stride pointer that GCC does not recreate from an index. Restore the saved 2220 (get_candidate saved_best) before any further work. Not read: the saved candidate's exact structure.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794731320.262416,
+  "score_before": 2220,
+  "score_after": 2220
+ },
+ {
+  "function": "func_8014998C",
+  "text": "Machine draft is not usable. Best clean rewrite so far: revision e54d7a34438c3abce747, score 5700 (6.5%). Target: (a) loop i<6 storing 0xFF to D_8018BC35[i] with index-register addressing; (b) if D_80189B34==2, loop storing D_80237632[2*i+1] into D_8018BC35[i]; (c) if D_80189B34==1, switch on lh D_8021E1A2: 3 writes D_8018BC38 from D_80237639 and falls into case 2; 2 writes D_8018BC37 from D_80237637 and falls into block15; 1 goes to block15; else return; block15 stores D_80237635 at &D_8018BC36 and D_80237633 at &D_8018BC36 - 1. Our build reverses the first loop (addiu -1, bgez) and shows a D_8018BC3A address, so the loop shape is wrong. Next: write the 0xFF loop with an s32 counter counting up and check the case-2 store target address.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794737286.66934,
+  "score_before": 1435,
+  "score_after": 1435
+ },
+ {
+  "function": "func_8014998C",
+  "text": "Not matched. Best saved 1295 (revision c5fb8fadd4657d77ddea). This session's variant with do-while loops scored 1345 (cad951946ec539e80826). Findings: (1) the first loop (0xFF fill of D_8018BC35[0..5]) must stay unsigned (u32 i); s32 i makes GCC reverse the loop and scores 3190. (2) The second loop's target uses slti (signed compare), not sltiu, and forms the index as sll v0,v1,1 / addu v0,v0,a0 / lbu 1(v0), i.e. address p+2*i+1 with the pointer kept in a0. The sltiu from u32 i gives 1345. Untried: make only the second loop's bound signed, e.g. `(s32)i < 6`, with the first loop unchanged. Remaining diffs are in that loop and in the switch's s16 compare form.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794738719.873208,
+  "score_before": 1295,
+  "score_after": 1295
+ },
+ {
+  "function": "func_8014998C",
+  "text": "Best verified score 1290 (rev f20520d147a0ccdf238e), move-on budget exhausted.\n\nTarget structure (70 insns, 244 bytes, no frame):\n1) i=0; do { *(&D_8018BC35 + i) = 0xFF; i++; } while (i < 6);  -- target emits move $v1,$zero / addiu $a0,$zero,0xFF then lui $at,%hi(D_8018BC35) / addu $at,$at,$v1 / sb $a0,%lo(...)($at) / addiu $v1,$v1,1 / slti $v0,$v1,6 / bnez $v0,8 with `addiu $v0,$zero,2` in the delay slot (the 2 belongs to the following compare, i.e. gcc scheduled it into the branch delay).\n2) if (D_80189B34 == 2) { p = D_80237632; do { *(&D_8018BC35+i) = *(u8*)((u8*)p + (i<<1) + 1); i++; } while (i<6); }  -- target keeps a0 = &D_80237632, does `sll $v0,$v1,1` at the loop bottom (rotated test) then `addu $v0,$v0,$a0` / `lbu $v0,1($v0)`.\n3) if (D_80189B34 == 1) switch (D_8021E1A2): case 2 -> D_8018BC37 = D_80237637 then fall into the block_15 tail; case 3 -> D_8018BC38 = D_80237639 then falls through into case 2 body; case 1 (== D_80189B34 value in a0) -> jump straight to the tail at .L80149A58; default -> jr $ra. The `goto case2;` label form (variant 2) reproduced the exact beq/beql/slti/slti-3 compare chain and branch targets.\n4) tail: v0 = &D_8018BC36; v1 = D_80237635; sb v1,0(v0); v1 = D_80237633; sb v1,-1(v0). Target keeps the base in a register and uses `sb $v1, ($v0)` / `sb $v1, -1($v0)`; declaring D_8018BC36 as u8[] with p[0]/p[-1] still produced lui $at + %lo($at) stores in my attempts (best 2025 with an extra 8-byte frame because the loop bound was a variable). The scalar-with-*(&SYM+0)/*(&SYM-1) form gave the right two-store shape but %lo($at) addressing.\n\nOpen leads: (a) get slti (not slt/sltu) by keeping the literal 6 in the loop test; (b) get the tail stores to use a register base without introducing a stack frame; (c) suppress the extra `addiu $a1,$zero,6` / loop-guard that appeared whenever the bound was a variable. m2c draft rev 4d1987d56e5355b3dbe9 plus try_local_repairs still lists 54 proposals.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794742697.487013,
+  "score_before": 1295,
+  "score_after": 1290
+ },
+ {
+  "function": "func_8014998C",
+  "text": "Cannot get closer under project -O2: the exact C matches byte-for-byte under gcc-2.7.2-kmc -O1 (verified via try_compiler; suggestion filed). -O2 strength-reduction/loop reversal makes the first loop count down, impossible to match. Key: p = D_80237632 local after i=0 for lbu 1(base); tail via separate pointer q=&D_8018BC36; *q=..; q--; *q=... Exact source is in the suggestion.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794762217.685405,
+  "score_before": 1290,
+  "score_after": 1290
  }
 ]
