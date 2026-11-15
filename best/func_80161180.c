@@ -50,7 +50,7 @@ void func_80161180(u8 *arg0)
                 }
                 st2 = *(u16 *)(arg0 + 0x560);
                 *(u16 *)(arg0 + 0x560) = (st2 & 0xF8) | ((st2 & 7) + 1);
-                guMtxXFMF(arg0 + 0x6D4, 0, 0, *(f32 *)(arg0 + 0x774) * 0.3f + 40.0f, &sp48, &sp4C, &sp50);
+                do { guMtxXFMF(arg0 + 0x6D4, 0, 0, *(f32 *)(arg0 + 0x774) * 0.3f + 40.0f, &sp48, &sp4C, &sp50); } while (0);
                 func_8013E640(idx, n & 0xFFFF, arg0, 0x40, 0, 15.0f, 0, sp48, sp4C, sp50, 0x12C);
                 D_8018D6C4[idx].f0 = (u32)arg0;
                 D_8018D727[idx * 0x7C + *(u16 *)(arg0 + 4)] = 1;

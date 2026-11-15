@@ -3,31 +3,35 @@ extern u8 D_8021B079;
 extern u16 D_8021E1AC;
 
 void func_80207DC8(void) {
-    s32 i;
-    s32 cnt;
-    s32 k;
+    s32 var_s0;
+    u8 var_s1;
+    s32 var_s2;
+    s32 nine;
+    u16 *cnt;
     u16 *p;
 
     D_8021E1AC = 0;
-    k = 0;
-    cnt = 0;
-    p = &D_8021E1AC;
+    var_s2 = 0;
+    nine = 9;
+    cnt = &D_8021E1AC;
+    var_s1 = 0;
     do {
-        i = 0;
+        var_s0 = 0;
         do {
-            if ((u8) func_801E435C((u8) i, (u8) k) < 4) {
-                cnt += 1;
+            if ((u32) (func_801E435C((u8) var_s0, (u8) var_s2) & 0xFF) < 4U) {
+                var_s1 += 1;
             }
-            i += 1;
-        } while ((u8) i < 9);
-        k += 1;
-        if ((u8) cnt == 9) {
-            *p += 1;
+            var_s0 += 1;
+        } while ((u32) (var_s0 & 0xFF) < 9U);
+        var_s2 += 1;
+        if ((var_s1 & 0xFF) == nine) {
+            *cnt += 1;
         }
-        cnt = 0;
-    } while ((u8) k < 4);
-    if ((s16) D_8021E1AC >= 4) {
-        D_8021E1AC = 3;
+        var_s1 = 0;
+    } while ((u32) (var_s2 & 0xFF) < 4U);
+    p = &D_8021E1AC;
+    if ((s16) *p >= 4) {
+        *p = 3;
     }
     if (D_8021B079 == 1) {
         D_8021E1AC = 3;

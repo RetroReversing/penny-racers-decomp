@@ -1,7 +1,8 @@
 typedef s32 M2C_UNK;
 f32 __cosf(f32);
 f32 __sinf(f32);
-extern M2C_UNK D_8011F32E;
+typedef struct { u16 f0; u8 pad[98]; } Slot_8011F32E;
+extern Slot_8011F32E D_8011F32E[];
 extern M2C_UNK D_8011F334;
 extern M2C_UNK D_8011F338;
 extern M2C_UNK D_8011F33C;
@@ -41,7 +42,7 @@ void func_801FB300(s32 arg0) {
     s32 temp_a0;
     u16 temp_v1;
 
-    temp_v1 = *(&D_8011F32E + ((arg0 & 0xFFFF) * 0x64));
+    temp_v1 = D_8011F32E[arg0 & 0xFFFF].f0;
     switch (temp_v1) {
     case 0:
         return;

@@ -31,6 +31,7 @@ unsigned int func_8015EC58(s32 arg0)
   void *v1;
   void *s2;
   s32 off;
+
   n = arg0 & 0xFFFF;
   off = n * 0x64;
   s0 = AT(void *, D_8011F350, off);
@@ -140,16 +141,16 @@ unsigned int func_8015EC58(s32 arg0)
     temp_v0_9 = func_800DE41C(0, 0, 1, 0, 0x5B, 0x7F, &D_802390C8, &func_8013AF08, &func_8015FD04, *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x720)), *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x724)), *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x728)), 0, 0, 0, 0.08f, 0.08f, 0.08f);
     if (((u32) ((temp_v0_9 + 2) & 0xFFFF)) >= 2U)
     {
-      off = (temp_v0_9 & 0xFFFF) * 0x64;
-      *((s16 *) ((char *) &D_8011F2F0 + off + 8)) = 0x40;
-      *((s16 *) ((char *) &D_8011F2F0 + off + 6)) = 0x40;
-      *((s16 *) ((char *) &D_8011F2F0 + off + 4)) = 0x40;
-      AT(s16, D_8011F2F2, off) = 0x40;
-      AT(f32, D_8011F334, off) = *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x7C0));
-      AT(f32, D_8011F338, off) = (*((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x7C4)) * 0.8f) + 1.0f;
-      AT(f32, D_8011F33C, off) = *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x7C8));
-      AT(s16, D_8011F32E, off) = (s16) *((u8 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x7CC));
-      AT(s16, D_8011F2FE, off) = *((u16 *) ((char *) *((void **) ((char *) s0 + 4)) + 2));
+      temp_v0_8 = (temp_v0_9 & 0xFFFF) * 0x64;
+      *((s16 *) ((char *) &D_8011F2F0 + temp_v0_8 + 8)) = 0x40;
+      *((s16 *) ((char *) &D_8011F2F0 + temp_v0_8 + 6)) = 0x40;
+      *((s16 *) ((char *) &D_8011F2F0 + temp_v0_8 + 4)) = 0x40;
+      AT(s16, D_8011F2F2, temp_v0_8) = 0x40;
+      AT(f32, D_8011F334, temp_v0_8) = *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x7C0));
+      AT(f32, D_8011F338, temp_v0_8) = (*((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x7C4)) * 0.8f) + 1.0f;
+      AT(f32, D_8011F33C, temp_v0_8) = *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x7C8));
+      AT(s16, D_8011F32E, temp_v0_8) = (s16) *((u8 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x7CC));
+      AT(s16, D_8011F2FE, temp_v0_8) = *((u16 *) ((char *) *((void **) ((char *) s0 + 4)) + 2));
     }
   }
   return 0;

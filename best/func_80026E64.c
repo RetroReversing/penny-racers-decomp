@@ -14,8 +14,10 @@ extern M2C_UNK func_80026250;
 
 void func_80026E64(s32 arg0) {
     s32 *p;
+    s32 pad[2];
 
     p = &arg0;
+    pad[0] = 0;
     D_800DA1E0 = NULL;
     nuPiInit();
     if (D_80000300 == 1) {

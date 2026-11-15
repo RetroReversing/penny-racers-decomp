@@ -1,7 +1,7 @@
 extern u8 D_80168D38[];
 
-u8 func_80149F40(s32 arg0, u32 arg1, u8 arg2) {
-    u8 temp_v1;
+u8 func_80149F40(s32 arg0, u32 arg1, s32 arg2) {
+    s32 temp_v1;
 
     temp_v1 = arg2;
     switch (arg1) {
@@ -19,13 +19,23 @@ u8 func_80149F40(s32 arg0, u32 arg1, u8 arg2) {
         }
         break;
     case 2:
+        temp_v1 += 1;
+        break;
     case 3:
+        temp_v1 += 1;
+        break;
     case 4:
+        temp_v1 += 1;
+        break;
     case 5:
+        temp_v1 += 1;
+        break;
     case 6:
+        temp_v1 += 1;
+        break;
     case 7:
         temp_v1 += 1;
         break;
     }
-    return temp_v1;
+    return temp_v1 & 0xFF;
 }

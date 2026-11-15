@@ -7,6 +7,7 @@ s16 func_8002E9A4(f64 arg0, f64 arg1, s32 arg4, s16 *arg5)
   f64 temp_fv0;
   f64 temp_fv0_2;
   f64 temp_fv1_3;
+  f64 scale;
   f64 var_fa0;
   f64 var_fa1;
   unsigned short temp_fv1;
@@ -17,20 +18,13 @@ s16 func_8002E9A4(f64 arg0, f64 arg1, s32 arg4, s16 *arg5)
   {
     if (var_fa0 <= var_fa1)
     {
-      do
-      {
-        *arg5 = 0xFFFF;
-      }
-      while (0);
+      *arg5 = 0xFFFF;
       return 0x7FFF;
     }
-    do
-    {
-      *arg5 = 0;
-    }
-    while (0);
+    *arg5 = 0;
     return 0;
   }
+  scale = D_8004A438 / ((f64) arg4);
   if (var_fa1 < D_8004A438)
   {
     var_fa1 = D_8004A438;
@@ -39,7 +33,7 @@ s16 func_8002E9A4(f64 arg0, f64 arg1, s32 arg4, s16 *arg5)
   {
     var_fa0 = D_8004A438;
   }
-  temp_fv0 = D_8004A440 * ((var_fa1 - var_fa0) * (D_8004A438 / ((f64) arg4)));
+  temp_fv0 = D_8004A440 * ((var_fa1 - var_fa0) * scale);
   temp_fv1 = (s32) temp_fv0;
   temp_fv0_2 = (temp_fv0 - ((f64) ((s16) temp_fv1))) + D_8004A438;
   temp_fv1_2 = (s32) temp_fv0_2;
@@ -54,4 +48,3 @@ s16 func_8002E9A4(f64 arg0, f64 arg1, s32 arg4, s16 *arg5)
   }
   return (s16) ((temp_fv1 - 1) + temp_fv1_2);
 }
-

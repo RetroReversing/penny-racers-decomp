@@ -11,20 +11,17 @@ void nuScRemoveClient(s32 *arg0) {
     var_s0 = *pp;
     var_s1 = 0;
     temp_a0 = func_800339C0(1);
-    if (var_s0 != 0) {
-        do {
-            if (var_s0 != arg0) {
-                var_s1 = var_s0;
+    while (var_s0 != 0) {
+        if (var_s0 == arg0) {
+            if (var_s1 != 0) {
+                *var_s1 = *var_s0;
             } else {
-                if (var_s1 != 0) {
-                    *var_s1 = *var_s0;
-                } else {
-                    *pp = (s32 *) *var_s0;
-                }
-                break;
+                *pp = (s32 *) *var_s0;
             }
-            var_s0 = (s32 *) *var_s0;
-        } while (var_s0 != 0);
+            break;
+        }
+        var_s1 = var_s0;
+        var_s0 = (s32 *) *var_s0;
     }
     func_800339C0(temp_a0);
 }

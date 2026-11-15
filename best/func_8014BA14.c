@@ -14,19 +14,19 @@ s32 func_8014BA14(s32 arg0)
     {
       switch (temp_a0)
       {
-        case 0x409:
-          var_v1 = 1;
-          break;
-
-        default:
-          var_v1 = 1;
-          break;
-
         case 0xD:
           var_v1 = 1;
           break;
 
-      }
+      default:
+          var_v1 = 1;
+          break;
+
+        case 0x409:
+          var_v1 = 1;
+          break;
+
+        }
 
     }
   }
@@ -34,14 +34,7 @@ s32 func_8014BA14(s32 arg0)
   {
     switch (temp_a0)
     {
-      case 0x70E:
-        var_v1 = 1;
-        break;
-
-      default:
-        var_v1 = 1;
-        break;
-
+ do { case 0x70E: var_v1 = 1; break; default: var_v1 = 1; break; } while (0);
       case 0x2FFF:
 
       case 0x4FFF:
@@ -53,4 +46,3 @@ s32 func_8014BA14(s32 arg0)
   }
   return var_v1 & 0xFF;
 }
-

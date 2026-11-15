@@ -6,6 +6,8 @@ extern s32 func_801F9950[];
 extern s32 func_800E1098(void *, u8, s32, u8, s32);
 
 void func_801F97E0(s32 arg0) {
+int __repair_literal;
+
     s32 sp18[4];
     s32 i;
     s32 n;
@@ -23,7 +25,9 @@ void func_801F97E0(s32 arg0) {
     }
 if (i < 4) goto __repair_rows;
     j = 0;
-    if (n > 0) {
+__repair_literal = 0;
+
+    if (n > __repair_literal) {
         do {
             w = (u32 *)*(u32 *)((u8 *)D_800DE080 + 0x64);
             *(u32 *)((u8 *)D_800DE080 + 0x64) = (u32)w + 8;

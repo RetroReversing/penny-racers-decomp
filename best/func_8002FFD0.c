@@ -10,13 +10,13 @@ s32 func_8002FFD0(u8 *arg0, u8 *arg1)
     u8 *temp;
     s32 t1;
 
-    sp10 = NULL;
     *(u16 *)(arg0 + 0x16) = *(u16 *)(arg1 + 0);
     *(s32 *)(arg0 + 0xC) = 0;
     *(s16 *)(arg0 + 0x1A) = *(u8 *)(arg1 + 4);
     *(s16 *)(arg0 + 0x14) = 0;
     *(u8 **)(arg0 + 8) = NULL;
     *(u16 *)(arg0 + 0x18) = *(u16 *)(arg1 + 2);
+    sp10 = NULL;
     temp_v0 = _allocatePVoice(&sp10, *(s16 *)arg1);
     if (sp10 != NULL) {
         if (temp_v0 != 0) {

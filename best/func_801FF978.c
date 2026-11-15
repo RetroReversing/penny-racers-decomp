@@ -11,7 +11,7 @@ extern void func_8002C240(void *, s32, s32);
 extern void func_8002C2E0(void *, s32, s32);
 extern void func_8002C330(void *, s32, s32);
 extern void func_8002C370(void *, s32, s32);
-extern void func_8002D030(s32);
+extern void func_8002D030(short);
 extern s32 n_alSndpGetState(void);
 extern u8 D_8006FB38;
 extern u8 D_801D7DF0;
@@ -19,7 +19,8 @@ extern u8 D_801D7DF4;
 extern s32 D_802038DC;
 extern s32 D_802038E0;
 extern u8 D_802038E4;
-extern u8 D_802038E8;
+typedef struct { u8 f0; u8 pad[27]; } Slot_802038E8;
+extern Slot_802038E8 D_802038E8[];
 extern u8 D_802038E9;
 extern u8 D_802038EC;
 extern u8 D_802038F0;
@@ -50,7 +51,7 @@ void func_801FF978(void) {
     *(s32 *)((u8 *)&D_802038E4 - 0xC) = func_8002C190(&D_8006FB38);
     for (i = 0; i < 16; i++) {
         t = i * 0x1C;
-        *(&D_802038E8 + t) = func_8002C0D0(&D_8006FB38, i & 0xFF);
+        D_802038E8[j].f0 = func_8002C0D0(&D_8006FB38, i & 0xFF);
         *(&D_802038E9 + t) = func_8002C090(&D_8006FB38, i & 0xFF);
         *(s32 *)(&D_802038EC + t) = alCSPGetChlProgram(&D_8006FB38, i & 0xFF);
         *(&D_802038F0 + t) = func_8002C0B0(&D_8006FB38, i & 0xFF);
@@ -61,7 +62,7 @@ void func_801FF978(void) {
         if (*(&D_802038F2 + t) != 0) {
             func_8002C2E0(&D_8006FB38, j & 0xFF, *(&D_802038F7 + t));
         } else {
-            *(&D_802038F7 + t) = *(&D_802038E8 + t);
+            *(&D_802038F7 + t) = D_802038E8[j].f0;
         }
         if (*(&D_802038F3 + t) != 0) {
             func_8002C240(&D_8006FB38, j & 0xFF, *(&D_802038F8 + t));

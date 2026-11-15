@@ -6,7 +6,7 @@ extern u32 D_8018D3A0[];
 #define ROW_WORD(row, w) (*(u32 *)((u8 *)D_8018D3A0 + ((row) << 5) + ((w) << 2)))
 
 void func_8014981C(s32 arg0) {
-    u8 t0;
+    
     u32 t2;
     u8 a1;
     u32 mask;
@@ -16,8 +16,8 @@ void func_8014981C(s32 arg0) {
     u8 k;
     u8 cnt;
 
-    for (t0 = 0; t0 < 3; t0++) {
-        D_80189CC9[t0] = 0;
+    for (a1 = 0; a1 < 3; a1++) {
+        D_80189CC9[a1] = 0;
     }
     if (D_8018A276 != 0) {
         for (k = 0; k < D_8018A276; k++) {
