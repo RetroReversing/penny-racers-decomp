@@ -11,8 +11,8 @@ void nuScAddClient(void *arg0, s32 arg1, s16 arg2) {
     head = &D_800DDE88;
     temp_v0 = func_800339C0(1);
     node->field_4 = arg1;
-    node->field_8 = arg2;
     node->next = *head;
+    node->field_8 = arg2;
     *head = node;
     func_800339C0(temp_v0, head);
 }
