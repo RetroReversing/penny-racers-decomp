@@ -61,7 +61,11 @@ void func_800276E0(void)
   var_s4 = &D_8005CFC8;
   sp78 = 0;
   sp8C = D_8005D078;
-  temp_s7 = (((((D_800DDE98 * D_80072BCC) + 0x3B) / 60) / 184) + 1) * 0xB8;
+  {
+    u32 tq = (u32)((D_800DDE98 * D_80072BCC) + 0x3B);
+    s32 tq2 = (s32)(tq / 60);
+    temp_s7 = ((tq2 / 184) + 1) * 0xB8;
+  }
   sp84 = temp_s7 - 0xB8;
   var_fp = 0;
   for (;;)
@@ -160,4 +164,3 @@ void func_800276E0(void)
   }
 
 }
-

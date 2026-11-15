@@ -55,7 +55,7 @@ void func_80161180(u8 *arg0)
                 D_8018D6C4[idx].f0 = (u32)arg0;
                 D_8018D727[idx * 0x7C + *(u16 *)(arg0 + 4)] = 1;
                 D_8018D730[idx * 0x7C / 4] = 30.0f;
-                func_801D7028(n & 0xFFFF, 0x2D);
+                do { func_801D7028(n & 0xFFFF, 0x2D); } while (0);
                 if (*(s16 *)(arg0 + 0x55E) > 0)
                 {
                     *(s16 *)(arg0 + 0x55E) = *(s16 *)(arg0 + 0x55E) - 1;
