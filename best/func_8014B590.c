@@ -9,7 +9,7 @@ s32 func_8003DE60(void *, s32, s32, void *);
 
 s32 func_8014B590(s32 arg0) {
     s32 i;
-    s32 j;
+    
     s32 var_s0 = 0xFF;
     s32 sum;
 
@@ -18,11 +18,11 @@ s32 func_8014B590(s32 arg0) {
         for (i = 0; __repair_inline(0xE, i); i++) {
         }
         sum = 0;
-        for (j = 4; __repair_inline(0x140, j); j++) {
-            sum += ((s32 *)D_80189B38)[j];
+        for (i = 4; __repair_inline(0x140, i); i++) {
+            sum += ((s32 *)D_80189B38)[i];
         }
         D_80189B38[0] = sum;
-        func_8003DE60(D_80183750, sum, j, D_80189B38);
+        func_8003DE60(D_80183750, sum, i, D_80189B38);
     }
     return var_s0 & 0xFF;
 }

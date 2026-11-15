@@ -17,7 +17,7 @@ void func_8021078C(u16 arg0)
     u8 *p = D_8011F2F0 + arg0 * 100;
     u8 *q = &D_8021EEC2;
 
-    func_80211C7C(0x14);
+    do { func_80211C7C(0x14); } while (0);
     switch (*(u16 *)(p + 0x3E)) {
     case 0:
         if (**(u8 **)(D_8011F350 + D_8018BC3C * 100) == 0) {

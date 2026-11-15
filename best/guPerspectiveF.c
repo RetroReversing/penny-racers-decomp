@@ -58,13 +58,13 @@ void guPerspectiveF(f32 *arg0, s16 *arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5
     if (!(temp_fv1_2 <= D_8004A5B8))
     {
       temp_fv1_3 = D_8004A5C0 / temp_fv1_2;
-      if (D_8004A5C8 <= temp_fv1_3)
+      if (!(D_8004A5C8 <= temp_fv1_3))
       {
-        var_v0_2 = ((s32) (temp_fv1_3 - D_8004A5C8)) | 0x80000000;
+        var_v0_2 = (s32) temp_fv1_3;
       }
       else
       {
-        var_v0_2 = (s32) temp_fv1_3;
+        var_v0_2 = ((s32) (temp_fv1_3 - D_8004A5C8)) | 0x80000000;
       }
       *arg1 = (s16) var_v0_2;
       var_v0 = 1;
