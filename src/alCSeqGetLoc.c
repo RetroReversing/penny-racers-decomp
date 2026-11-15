@@ -23,9 +23,9 @@ void alCSeqGetLoc(void *arg0, void *arg1) {
     M2C_FIELD(arg1, s32 *, 0) = (s32) M2C_FIELD(arg0, s32 *, 4);
     var_t0 = 0;
     M2C_FIELD(arg1, s32 *, 4) = (s32) M2C_FIELD(arg0, s32 *, 0xC);
+    M2C_FIELD(arg1, s32 *, 8) = (s32) M2C_FIELD(arg0, s32 *, 0x10);
     var_a3 = arg0;
     var_a2 = arg1;
-    M2C_FIELD(arg1, s32 *, 8) = (s32) M2C_FIELD(arg0, s32 *, 0x10);
     __repair_rows: {
         M2C_FIELD(var_a2, s32 *, 0xC) = (s32) M2C_FIELD(var_a3, s32 *, 0x18);
         temp_a0 = arg0 + var_t0;
