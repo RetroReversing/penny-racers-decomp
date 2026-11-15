@@ -1,5 +1,10 @@
-void func_80127148(f32 *arg0, f32 *arg1, f32 *arg2) {
-    arg0[0] = arg1[0] - arg2[0];
-    arg0[1] = arg1[1] - arg2[1];
-    arg0[2] = arg1[2] - arg2[2];
+typedef struct { f32 x, y, z; } Vec3;
+
+Vec3 *func_80127148(Vec3 *dst, Vec3 *a, Vec3 *b) {
+    Vec3 t;
+    t.x = a->x - b->x;
+    t.y = a->y - b->y;
+    t.z = a->z - b->z;
+    *dst = t;
+    return dst;
 }

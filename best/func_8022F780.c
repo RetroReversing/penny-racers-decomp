@@ -1,2 +1,4 @@
-void func_8022F780(s32 arg0) {
+void func_8022F780(volatile unsigned char arg0)
+{
 }
+

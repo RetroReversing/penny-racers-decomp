@@ -1,50 +1,31 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
-
-s32 func_801E435C(s32, s32);                        /* extern */
+s32 func_801E435C(s32, s32);
 extern u8 D_8021B079;
 extern u16 D_8021E1AC;
 
 void func_80207DC8(void) {
-unsigned int __repair_literal;
-
-    s32 var_a0;
-    s32 var_s0;
-    s32 var_s1;
-    s32 var_s2;
+    s32 i;
+    s32 cnt;
+    s32 k;
+    u16 *p;
 
     D_8021E1AC = 0;
-    var_s2 = 0;
-    var_s1 = 0;
+    k = 0;
+    cnt = 0;
+    p = &D_8021E1AC;
     do {
-        var_s0 = 0;
-        var_a0 = 0 & 0xFF;
-__repair_literal = 4U;
-
-do {
-        if ((u32) (func_801E435C(var_a0, var_s2 & 0xFF) & 0xFF) < __repair_literal) {
-            var_s1 += 1;
+        i = 0;
+        do {
+            if ((u8) func_801E435C((u8) i, (u8) k) < 4) {
+                cnt += 1;
+            }
+            i += 1;
+        } while ((u8) i < 9);
+        k += 1;
+        if ((u8) cnt == 9) {
+            *p += 1;
         }
-        var_s0 += 1;
-        var_a0 = var_s0 & 0xFF;
-        } while ((u32) (var_s0 & 0xFF) < 9U);
-        var_s2 += 1;
-        if ((var_s1 & 0xFF) == 9) {
-            D_8021E1AC += 1;
-        }
-        var_s1 = 0;
-    } while ((u32) (var_s2 & 0xFF) < 4U);
+        cnt = 0;
+    } while ((u8) k < 4);
     if ((s16) D_8021E1AC >= 4) {
         D_8021E1AC = 3;
     }

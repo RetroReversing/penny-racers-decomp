@@ -20,7 +20,7 @@ __repair_constant = 3;
         else if (f == 90.0f) var_a1 = 1;
         else if (f == 270.0f) var_a1 = __repair_constant;
     } else if (*(s32 *)((u8 *)&D_801E995B + ((arg0 & 0xFFFF) * 0x70)) < -0x3C) {
-        s32 t = *(s32 *)((u8 *)&D_801E998C + idx);
+        s32 t = *(s32 *)((u8 *)&D_801E998C + ((arg0 & 0xFFFF) * 0x70));
         if (((t / 15) * 0xF) == (t - 1)) {
             if (f == 90.0f) var_a1 = __repair_constant;
             else if (f == 180.0f) var_a1 = 0;

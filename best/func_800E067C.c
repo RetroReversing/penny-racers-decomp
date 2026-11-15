@@ -13,7 +13,7 @@ typedef s32 M2C_UNK32;
 #endif
 
 extern f64 D_800E1E70;
-extern M2C_UNK D_8011F2F1;
+extern u8 D_8011F2F1[];
 extern M2C_UNK D_8011F300;
 extern M2C_UNK D_8011F308;
 extern M2C_UNK D_8011F30C;
@@ -38,7 +38,7 @@ void func_800E067C(void) {
     void *temp_v0;
     void *temp_v0_2;
     
-    void *temp_v1_3;
+    
     void *temp_v1_5;
 
     var_a1 = func_800E1850;
@@ -46,15 +46,15 @@ void func_800E067C(void) {
 loop_1:
     temp_a0 = var_v0 * 0x64;
     var_v1 = var_a1 & 0xFFFF;
-    if (*(&D_8011F2F1 + temp_a0) == 2) {
+    if (*(D_8011F2F1 + temp_a0) == 2) {
         temp_v0 = M2C_FIELD(*(&D_8011F340 + temp_a0), void **, 4);
         if ((temp_v0 != NULL) && (temp_v0_2 = M2C_FIELD(temp_v0, void **, 4), (temp_v0_2 != NULL))) {
             temp_v0 = M2C_FIELD(temp_v0_2, void **, 4);
             temp_v1_2 = M2C_FIELD(temp_v0, s16 *, 0x50);
             *(&D_8011F334 + temp_a0) = (f32) (((f64) (M2C_FIELD(temp_v0, s16 *, 0x40) - temp_v1_2) * D_800E1E70) + (f64) temp_v1_2 + (f64) *(&D_8011F308 + temp_a0));
-            temp_v1_3 = M2C_FIELD(M2C_FIELD(M2C_FIELD(*(&D_8011F340 + temp_a0), void **, 4), void **, 4), void **, 4);
-            var_v1 = (s16)(M2C_FIELD(temp_v1_3, s16 *, 0x52));
-            *(&D_8011F338 + temp_a0) = (f32) (((f64) (M2C_FIELD(temp_v1_3, s16 *, 0x42) - var_v1) * D_800E1E70) + (f64) var_v1 + (f64) *(&D_8011F30C + temp_a0));
+            temp_v0 = M2C_FIELD(M2C_FIELD(M2C_FIELD(*(&D_8011F340 + temp_a0), void **, 4), void **, 4), void **, 4);
+            var_v1 = (s16)(M2C_FIELD(temp_v0, s16 *, 0x52));
+            *(&D_8011F338 + temp_a0) = (f32) (((f64) (M2C_FIELD(temp_v0, s16 *, 0x42) - var_v1) * D_800E1E70) + (f64) var_v1 + (f64) *(&D_8011F30C + temp_a0));
             temp_v1_5 = M2C_FIELD(M2C_FIELD(M2C_FIELD(*(&D_8011F340 + temp_a0), void **, 4), void **, 4), void **, 4);
             temp_v1_6 = M2C_FIELD(temp_v1_5, s16 *, 0x54);
             *(&D_8011F33C + temp_a0) = (f32) (((f64) (M2C_FIELD(temp_v1_5, s16 *, 0x44) - temp_v1_6) * D_800E1E70) + (f64) temp_v1_6 + (f64) *(&D_8011F310 + temp_a0));

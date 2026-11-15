@@ -1,46 +1,29 @@
-f32 __sinf(f32);
-s32 func_8013AE60(s32);
-extern s32 D_8011F30C;
-extern s32 D_8011F32E;
-extern s32 D_8011F334;
-extern s32 D_8011F338;
+extern u8 D_8011F30C[];
+extern u8 D_8011F32E[];
+extern u8 D_8011F334[];
+extern u8 D_8011F338[];
 extern f64 D_80183810;
 extern f64 D_80183818;
-inline static s32 *inline_fn(s32 arg0)
-{
-  return (&D_8011F32E) + arg0;
-}
+f32 __sinf(f32);
+void func_8013AE60(s32);
 
-void func_80153D40(s32 arg0)
-{
-  f32 temp_fv0;
-  s32 temp_s0;
-  s32 temp_s0_2;
-  s32 temp_v0;
-  s32 temp_v1;
-  temp_s0 = arg0 & 0xFFFF;
-  func_8013AE60(temp_s0);
-  temp_v1 = temp_s0 * 0x64;
-  if ((*inline_fn(temp_v1)) == 0)
-  {
-    *((&D_8011F338) + temp_v1) = *((&D_8011F30C) + temp_v1);
-    *((&D_8011F32E) + temp_v1) = 1;
-  }
-  temp_v0 = (arg0 & 0xFFFF) * 0x64;
-  temp_fv0 = (*((&D_8011F334) + temp_v0)) + 2.0f;
-  *((&D_8011F334) + temp_v0) = temp_fv0;
-  if (temp_fv0 > 360.0f)
-  {
-    if (temp_fv0)
-    {
-      *((&D_8011F334) + temp_v0) = temp_fv0 - 360.0f;
-    }
-    else
-    {
-      *((&D_8011F334) + temp_v0) = temp_fv0 - 360.0f;
-    }
-  }
-  temp_s0_2 = (arg0 & 0xFFFF) * 0x64;
-  *((&D_8011F30C) + temp_s0_2) = (__sinf((f32) ((((f64) (*((&D_8011F334) + temp_s0_2))) * D_80183810) / D_80183818)) * 8.0f) + (*((&D_8011F338) + temp_s0_2));
-}
+void func_80153D40(s32 arg0) {
+    s32 idx;
+    s32 i;
+    f32 f;
 
+    idx = arg0 & 0xFFFF;
+    func_8013AE60(idx);
+    if (*(u16 *) (D_8011F32E + idx * 100) == 0) {
+        *(f32 *) (D_8011F338 + (arg0 & 0xFFFF) * 100) = *(f32 *) (D_8011F30C + (arg0 & 0xFFFF) * 100);
+        *(u16 *) (D_8011F32E + (arg0 & 0xFFFF) * 100) = 1;
+    }
+    i = (arg0 & 0xFFFF) * 100;
+    f = *(f32 *) (D_8011F334 + i) + 2.0f;
+    *(f32 *) (D_8011F334 + i) = f;
+    if (f > 360.0f) {
+        *(f32 *) (D_8011F334 + i) = f - 360.0f;
+    }
+    i = (arg0 & 0xFFFF) * 100;
+    *(f32 *) (D_8011F30C + i) = __sinf((f32) ((*(f32 *) (D_8011F334 + i) * D_80183810) / D_80183818)) * 8.0f + *(f32 *) (D_8011F338 + i);
+}
