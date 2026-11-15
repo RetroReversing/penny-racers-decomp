@@ -6376,14 +6376,6 @@
   "score_after": 325
  },
  {
-  "function": "func_80211B40",
-  "text": "Unmatched; best 965 (51.7%). Semantics: for i in 0..0x56: D_8021EEF4[i] = *D_80203080[ *(u16*)(D_8021EEF4 - 0x30 bytes) + i ]; the pointer array is scale 4 (lw), the value load is lhu, the store is sh to D+2i. Loop body in target: sll v1,a0,1 / addu v1,v1,a1 / lhu v0,-0x30(a1) / addu v0,v0,a0 / sll v0,2 / addu v0,v0,a2 / lw / lhu / sh / addiu a0 / slti 0x57 / bnel. Mismatch is register/order: target materializes D_8021EEF4 (a1) before D_80203080 (a2) and inits i in $a0; mine inits i in $v1 and uses the store pointer in $a0 with the pointer advancing by 2 (addiu a0,2). Tried do-while with s32 i, for-loop with u16 *dst, and the -0x30 byte cast; all 965. Next: keep i in $a0 by making the loop counter the store index and a second temp for the load index, or try the pointer-advance form (dst++ with +2) which the compiler emitted here.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794706895.6532989,
-  "score_before": 965,
-  "score_after": 965
- },
- {
   "function": "func_80217600",
   "text": "Tried: for-loop and do-while forms with `s32 i`, `if (i < D_80190CAC) D_8021F080[i] = i; else D_8021F080[i] = 0xFF;`: 1450 (no better than the saved 1190 m2c-style do-while with s8 var). Target: the loop bound is re-read from D_80190CAC each iteration (lui a1/lbu inside the loop), 0xFF is hoisted to a0 before the branch, the i-store is `lui at,%hi(D_8021F080); addu at,at,v1; sb v1,%lo(...)(at)` (indexed global, not a pointer). The else store is a separate block. Next: try s8 loop variable in the do-while, and a block layout where the else arm is the fall-through.",
   "by": "claude-haiku-5-5-22",
@@ -10632,14 +10624,6 @@
   "score_after": 520
  },
  {
-  "function": "func_80211B40",
-  "text": "Semantics confirmed: for i in 0..0x56 (bound 0x57): D_8021EEF4[i] = *(u16*)(D_80203080[*(u16*)((u8*)D_8021EEF4-0x30) + i]); D_80203080 is an array of u32 pointers. Best 965 (51.7%): for-loop with extern u32 D_80203080[]; extern u16 D_8021EEF4[]. Remaining diff is layout only: target materialises D_8021EEF4 into $a1 first and uses it as the store base (v1 = 2*i + a1 at loop top, bnel back-edge with counter in $a0); ours materialises D_80203080 into $a2 first, uses a separate v1 counter, bnez back-edge. Tried: do-while (same 965), local dst/tab pointers (1045, worse), s16 dst signedness (1045). Untried: store address as byte offset (u8 *base + 2*i) so the counter lives as a byte offset in $a0. Stopping here as the no-improvement budget is spent across these forms.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794720958.234655,
-  "score_before": 870,
-  "score_after": 870
- },
- {
   "function": "func_80205F64",
   "text": "Best 45 (97.5%), revision f4eca84d7eb9c220c498: `i=0; arg0&=0xFF; base=D_8021F048; base+=arg0*14; do { base[i&0xFF]=0; i++; } while((u32)(i&0xFF)<14U);`. Only 9 register rows differ: target keeps i in $a1 and base in $v1 (lui/addiu for base land in $v1), mine swaps them. Tried: declaration order (base first) 45, u8 loop counter 45, statement order variants 105/120. Untried: try_local_repairs on allocation, or a base-pointer as a local struct/array cast.",
   "by": "claude-haiku-5-5-22",
@@ -13480,14 +13464,6 @@
   "score_after": 335
  },
  {
-  "function": "func_80211B40",
-  "text": "SOLVED but blocked by flags: the current C (revision 81759b95f23910f178e6) scores 0 with -O1 and 965 with the project's -O2. search_flags found it; suggest() was filed (gcc-2.7.2-kmc, flags \"-G0 -mips3 -mgp32 -mfp32 -O1\", function=func_80211B40, source=the current candidate). Apply that function-scoped profile to save the match.\n\nMatching C:\n  extern u8 *D_80203080[];\n  extern u16 D_8021EEF4;              /* scalar, so the store address is rebuilt */\n  void func_80211B40(void) { s32 i; for (i = 0; i < 0x57; i++)\n      *(&D_8021EEF4 + i) = *(u16 *)D_80203080[*(u16 *)((u8 *)&D_8021EEF4 - 0x30) + i]; }\n\nKey facts: D_80203080 is an array of u8* (target does lw then lhu 0x0); the index is a u16 halfword at D_8021EEF4-0x30 (that is why the target loads D_8021EEF4 into $a1 first and uses lhu -0x30($a1)); the destination must be a scalar extern indexed with *(&D + i) so gcc recomputes sll/addu each iteration. At -O2 the loop is strength-reduced to a pointer increment (addiu $a0,$a0,2 / bnez) which never matches the target's bnel + sll in the delay slot. Do not retry -O2 variants; only the -O1 profile matches.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794728767.6072059,
-  "score_before": 870,
-  "score_after": 870
- },
- {
   "function": "func_801C1680",
   "text": "Status: open, 202 insns, a display-list builder: state word at D_8011F330 + (arg1&0xFFFF)*0x64 selects the path; state 1 emits 9 fixed 2-word commands, then a 7-iteration do/while emitting 8 commands per iteration with t1. search_flags: -G0 -mips3 -mgp32 -mfp32 -O1 scores 2580 on the saved-best m2c draft (M2C_FIELD macros); the project flags -O2 score 11975. The -O1 result is the one to build on. My -O2 hand rewrite scored 12312 (39%) and its loop-body expressions are wrong (the t1 shift/mask arithmetic for commands 4-8 and the 0x0703C000 / 0xFD48006F constants). Why I'm stopping: the compile tools here use the project flags, so I cannot score my own C at -O1 to iterate; the -O1 result exists only for the saved-best draft. Next agent: run the saved-best draft at -O1 and fix its loop-body expressions and the frame (target: addiu sp,-8, sw s0). The flags suggestion has been posted with suggest.",
   "by": "claude-haiku-5-5-24",
@@ -13806,14 +13782,6 @@
   "created_at": 1794729844.455801,
   "score_before": 420,
   "score_after": 420
- },
- {
-  "function": "func_80211B40",
-  "text": "Best 965 (51.7%), saved best from the prior agent; I did not beat it. Target is a 20-insn loop: `move $a0,0`; loads of D_8021EEF4 (a1) and D_80203080 (a2); loop body `sll $v1,$a0,1; addu $v1,$v1,$a1; lhu $v0,-0x30($a1)` (a u16 at byte offset -0x30 from the array base, i.e. ((u16*)D_8021EEF4)[-24]); `addu $v0,$v0,$a0; sll 2; addu $v0,$v0,$a2; lw; lhu; sh $v0,0($v1); addiu $a0,1; slti 0x57; bnel` (loop branch with the sll in its delay slot). Tried: do/while with element pointer (965, same), base/tbl pointer variables (1045, worse). The remaining diff is the loop shape: the target uses a bnel with the pointer recompute in the delay slot, which gcc 2.7.2 -O2 did not produce from these forms. Next: write the loop with the store pointer computed from `i` at the top of each iteration and the condition after the store, and check the `sll 2` (index*4) on the u32 table.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794729917.6366751,
-  "score_before": 870,
-  "score_after": 870
  },
  {
   "function": "func_80042630",
@@ -18142,5 +18110,37 @@
   "created_at": 1794746604.834902,
   "score_before": 120,
   "score_after": 120
+ },
+ {
+  "function": "func_80211B40",
+  "text": "Unmatched; best 965 (51.7%). Semantics: for i in 0..0x56: D_8021EEF4[i] = *D_80203080[ *(u16*)(D_8021EEF4 - 0x30 bytes) + i ]; the pointer array is scale 4 (lw), the value load is lhu, the store is sh to D+2i. Loop body in target: sll v1,a0,1 / addu v1,v1,a1 / lhu v0,-0x30(a1) / addu v0,v0,a0 / sll v0,2 / addu v0,v0,a2 / lw / lhu / sh / addiu a0 / slti 0x57 / bnel. Mismatch is register/order: target materializes D_8021EEF4 (a1) before D_80203080 (a2) and inits i in $a0; mine inits i in $v1 and uses the store pointer in $a0 with the pointer advancing by 2 (addiu a0,2). Tried do-while with s32 i, for-loop with u16 *dst, and the -0x30 byte cast; all 965. Next: keep i in $a0 by making the loop counter the store index and a second temp for the load index, or try the pointer-advance form (dst++ with +2) which the compiler emitted here.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794706895.6532989,
+  "score_before": 965,
+  "score_after": 965
+ },
+ {
+  "function": "func_80211B40",
+  "text": "Semantics confirmed: for i in 0..0x56 (bound 0x57): D_8021EEF4[i] = *(u16*)(D_80203080[*(u16*)((u8*)D_8021EEF4-0x30) + i]); D_80203080 is an array of u32 pointers. Best 965 (51.7%): for-loop with extern u32 D_80203080[]; extern u16 D_8021EEF4[]. Remaining diff is layout only: target materialises D_8021EEF4 into $a1 first and uses it as the store base (v1 = 2*i + a1 at loop top, bnel back-edge with counter in $a0); ours materialises D_80203080 into $a2 first, uses a separate v1 counter, bnez back-edge. Tried: do-while (same 965), local dst/tab pointers (1045, worse), s16 dst signedness (1045). Untried: store address as byte offset (u8 *base + 2*i) so the counter lives as a byte offset in $a0. Stopping here as the no-improvement budget is spent across these forms.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794720958.234655,
+  "score_before": 870,
+  "score_after": 870
+ },
+ {
+  "function": "func_80211B40",
+  "text": "SOLVED but blocked by flags: the current C (revision 81759b95f23910f178e6) scores 0 with -O1 and 965 with the project's -O2. search_flags found it; suggest() was filed (gcc-2.7.2-kmc, flags \"-G0 -mips3 -mgp32 -mfp32 -O1\", function=func_80211B40, source=the current candidate). Apply that function-scoped profile to save the match.\n\nMatching C:\n  extern u8 *D_80203080[];\n  extern u16 D_8021EEF4;              /* scalar, so the store address is rebuilt */\n  void func_80211B40(void) { s32 i; for (i = 0; i < 0x57; i++)\n      *(&D_8021EEF4 + i) = *(u16 *)D_80203080[*(u16 *)((u8 *)&D_8021EEF4 - 0x30) + i]; }\n\nKey facts: D_80203080 is an array of u8* (target does lw then lhu 0x0); the index is a u16 halfword at D_8021EEF4-0x30 (that is why the target loads D_8021EEF4 into $a1 first and uses lhu -0x30($a1)); the destination must be a scalar extern indexed with *(&D + i) so gcc recomputes sll/addu each iteration. At -O2 the loop is strength-reduced to a pointer increment (addiu $a0,$a0,2 / bnez) which never matches the target's bnel + sll in the delay slot. Do not retry -O2 variants; only the -O1 profile matches.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794728767.6072059,
+  "score_before": 870,
+  "score_after": 870
+ },
+ {
+  "function": "func_80211B40",
+  "text": "Best 965 (51.7%), saved best from the prior agent; I did not beat it. Target is a 20-insn loop: `move $a0,0`; loads of D_8021EEF4 (a1) and D_80203080 (a2); loop body `sll $v1,$a0,1; addu $v1,$v1,$a1; lhu $v0,-0x30($a1)` (a u16 at byte offset -0x30 from the array base, i.e. ((u16*)D_8021EEF4)[-24]); `addu $v0,$v0,$a0; sll 2; addu $v0,$v0,$a2; lw; lhu; sh $v0,0($v1); addiu $a0,1; slti 0x57; bnel` (loop branch with the sll in its delay slot). Tried: do/while with element pointer (965, same), base/tbl pointer variables (1045, worse). The remaining diff is the loop shape: the target uses a bnel with the pointer recompute in the delay slot, which gcc 2.7.2 -O2 did not produce from these forms. Next: write the loop with the store pointer computed from `i` at the top of each iteration and the condition after the store, and check the `sll 2` (index*4) on the u32 table.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794729917.6366751,
+  "score_before": 870,
+  "score_after": 870
  }
 ]
