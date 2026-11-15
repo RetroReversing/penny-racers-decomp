@@ -2,6 +2,11 @@ s32 func_8014A4C8();
 s32 func_801CA140();
 extern char D_8018A277[];
 extern u8 D_80190CB2;
+inline static int inline_fn(s32 arg0)
+{
+  return (*((u16 *) (D_8018A277 + arg0))) != 0xFF;
+}
+
 void func_8014B048(volatile int arg0)
 {
   s32 var_s0;
@@ -10,7 +15,7 @@ void func_8014B048(volatile int arg0)
   var_s0 = 0;
   __repair_rows:
   {
-    if (((*(D_8018A277 + var_s0)) & 0x20) && ((*(u16 *)(D_8018A277 + var_s0)) != 0xFF))
+    if (((*(D_8018A277 + var_s0)) & 0x20) && inline_fn(var_s0))
     {
       var_v1 = 0xF;
       if (D_80190CB2 & 2)
@@ -19,7 +24,7 @@ void func_8014B048(volatile int arg0)
       }
       func_8014A4C8(arg0, 0xA5, (s16) ((var_s0 * 0x25) + 0x47), 7, var_v1);
     }
-    var_s0 += 1;
+    var_s0 = var_s0 + 1;
   }
 
   if (var_s0 < 3)
