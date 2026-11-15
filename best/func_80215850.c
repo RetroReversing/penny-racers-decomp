@@ -24,7 +24,8 @@ s32 func_80231C5C();
 extern s16 D_8006F9E8;
 extern char D_8011F2F0[];
 extern char D_8011F2FD[];
-extern char D_8011F350[];
+typedef struct { u32 f0; u8 pad[96]; } Slot_8011F350;
+extern Slot_8011F350 D_8011F350[];
 extern s32 D_80168BB0;
 extern u16 D_8018BC3C;
 extern u16 D_80190C9A;
@@ -53,7 +54,7 @@ void func_80215850(s32 arg0) {
         func_80203DF8(2, 6, 0, 0);
         M2C_FIELD(temp_s0, u16 *, 0x3E) = 0xF8U;
     case 0xF8:                                      /* switch 1 */
-        if (*(s32 *)*(D_8011F350 + (D_8018BC3C * 0x64)) == 0) {
+        if (*(s32 *)D_8011F350[D_8018BC3C].f0 == 0) {
             func_800DE38C();
             func_800DE2E0();
             func_80231C5C();
@@ -66,7 +67,7 @@ void func_80215850(s32 arg0) {
         }
         return;
     case 0x0:                                       /* switch 1 */
-        if (*(s32 *)*(D_8011F350 + (D_8018BC3C * 0x64)) == 0) {
+        if (*(s32 *)D_8011F350[D_8018BC3C].f0 == 0) {
             D_8021E19C = 0;
             M2C_FIELD(temp_s0, u16 *, 0x3E) = 0x10U;
             switch (D_801C5EA2) {                   /* switch 2; irregular */
@@ -112,7 +113,7 @@ block_30:
         M2C_FIELD(temp_s0, u16 *, 0x3E) = 0xFBU;
         /* fallthrough */
     case 0xFB:                                      /* switch 1 */
-        if (*(s32 *)*(D_8011F350 + (D_8018BC3C * 0x64)) == 0) {
+        if (*(s32 *)D_8011F350[D_8018BC3C].f0 == 0) {
             func_800DE38C();
             func_800DE2E0();
             func_80231C5C();

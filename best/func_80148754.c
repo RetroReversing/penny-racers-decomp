@@ -18,10 +18,11 @@ void func_80148754(u8 arg0, u8 arg1)
   u8 *c = (u8 *) D_80189C9E;
   u8 *c2 = c + 0xC;
   u32 s6;
-  u32 s5;
+  
   u32 s4;
   u32 s1;
   u32 s3;
+u32 __repair_phase_s3;
   u32 i;
   u32 j;
   s32 *p;
@@ -47,22 +48,22 @@ void func_80148754(u8 arg0, u8 arg1)
 
     }
   }
-  s5 = D_80189CC4 >> 8;
-  if (!(s5 & 8))
+  s3 = D_80189CC4 >> 8;
+  if (!(s3 & 8))
   {
     s4 = D_80189CC5 & 0x1F;
-    s1 = (s5 & 0xF) * 4;
-    s3 = s4 & 0xFF;
+    s1 = (s3 & 0xF) * 4;
+    __repair_phase_s3 = s4 & 0xFF;
     p = (s32 *) ((D_8018D3A0 + (sp17 << 5)) + s1);
-    *p = func_8014A030(*p, s3, 1);
+    *p = func_8014A030(*p, __repair_phase_s3, 1);
     p = (s32 *) ((D_8018D3A0 + (sp1F << 5)) + s1);
-    *p = func_8014A030(*p, s3, 0);
-    if (!(s5 & 7))
+    *p = func_8014A030(*p, __repair_phase_s3, 0);
+    if (!(s3 & 7))
     {
-      fp[0x16A + s3] = s7[0x16A + s3];
+      fp[0x16A + __repair_phase_s3] = s7[0x16A + __repair_phase_s3];
       for (i = 0; i < 8; i++)
       {
-        *((u16 *) (((fp + (s3 * 18)) + 0x6E) + (i * 2))) = *((u16 *) (((s7 + (s3 * 18)) + 0x6E) + (i * 2)));
+        *((u16 *) (((fp + (__repair_phase_s3 * 18)) + 0x6E) + (i * 2))) = *((u16 *) (((s7 + (__repair_phase_s3 * 18)) + 0x6E) + (i * 2)));
       }
 
     }

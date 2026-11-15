@@ -13,7 +13,7 @@ extern u8 D_8011F318[];
 extern u8 D_802378E4[];
 extern u8 D_80237914[];
 
-void func_8016608C(s32 arg0) {
+void func_8016608C(s16 arg0) {
     u8 *s0 = D_8011F350[arg0 & 0xFFFF].p;
     u8 *a0 = D_8011F4E4 + *(u16 *)(*(u8 **)(s0 + 4) + 2) * 0x64;
     u8 *s1 = *(u8 **)(a0 + 0x50);

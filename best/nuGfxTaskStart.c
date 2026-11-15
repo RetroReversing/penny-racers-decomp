@@ -28,7 +28,7 @@ void nuGfxTaskStart(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     msg[0x20 / 4] = entry[0];
     msg[0x08 / 4] = arg3;
     flag = arg3 & 1;
-    msg[0x0C / 4] = D_800DB1B0;
+    msg[0x0C / 4] = (s32)&D_800DB1B0;
     msg[0x28 / 4] = entry[1];
     var_a1 = arg1;
     if (flag != 0) {

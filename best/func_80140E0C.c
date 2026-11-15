@@ -1,3 +1,4 @@
+static __inline__ int __repair_inline(s32 a, s32 b) { return a > b; }
 void func_8013AE60(s32 arg0);
 void func_8013F1D4(s32 arg0, void *arg1);
 void func_8013F44C(s32 arg0, void *arg1);
@@ -31,7 +32,7 @@ void func_80140E0C(u32 arg0) {
             D_8011F32E[(arg0 & 0xFFFF) * 50] = 2;
         }
         func_8013F1D4(arg0 & 0xFFFF, obj);
-        for (i = 0; i < 7; i++) {
+        for (i = 0; __repair_inline(7, i); i++) {
             obj[0x67 + i] = 0;
         }
         break;
@@ -66,7 +67,7 @@ void func_80140E0C(u32 arg0) {
             D_8011F32E[(arg0 & 0xFFFF) * 50] = 6;
         }
         func_8013F1D4(arg0 & 0xFFFF, obj);
-        for (i = 0; i < 7; i++) {
+        for (i = 0; __repair_inline(7, i); i++) {
             obj[0x67 + i] = 0;
         }
         break;

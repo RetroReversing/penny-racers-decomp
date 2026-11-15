@@ -87,12 +87,12 @@ if ((var_s1 & 0xFFFF) < (M2C_FIELD(D_801C7AB0, u8 *, 2) - 1)) goto __repair_rows
     *(&D_802330B1 + temp_s0_2) = 1;
     temp_a0_2 = (temp_v1_2 * 5) + arg0;
     *(&D_802330B4 + temp_s0_2) = (M2C_FIELD(temp_a0_2, s8 *, 4) * 8) + &D_8031445C;
-    temp_v0_4 = func_800DE41C(0, 0, 2, 0, 0x51, 0xFF, temp_s0_2 + &D_802330B0, 0, 0, ((f32) M2C_FIELD(temp_a0_2, s8 *, 2) * 400.0f) + 400.0f, (f32) M2C_FIELD(temp_a0_2, u8 *, 1), ((f32) M2C_FIELD(temp_a0_2, s8 *, 3) * 400.0f) + 400.0f, 0, 0, 0, 1.0f, 1.0f, 1.0f);
+    temp_s0 = (s16)(func_800DE41C(0, 0, 2, 0, 0x51, 0xFF, temp_s0_2 + &D_802330B0, 0, 0, ((f32) M2C_FIELD(temp_a0_2, s8 *, 2) * 400.0f) + 400.0f, (f32) M2C_FIELD(temp_a0_2, u8 *, 1), ((f32) M2C_FIELD(temp_a0_2, s8 *, 3) * 400.0f) + 400.0f, 0, 0, 0, 1.0f, 1.0f, 1.0f));
     *(&D_802330B8 + temp_s0_2) = M2C_FIELD(D_801C7AB0, u8 *, 2) + (temp_v0 + 0xFFFE);
     *(&D_802330BA + temp_s0_2) = temp_v0;
     *(&D_802330BC + temp_s0_2) = 0xFFFF;
     *(&D_802330BE + temp_s0_2) = 0xFFFF;
-    temp_v1_3 = (temp_v0_4 & 0xFFFF) * 0x64;
+    temp_v1_3 = (temp_s0 & 0xFFFF) * 0x64;
     *(&D_8011F334 + temp_v1_3) = *(&D_8011F308 + temp_v1_3);
     *(&D_8011F338 + temp_v1_3) = *(&D_8011F30C + temp_v1_3);
     *(&D_8011F33C + temp_v1_3) = *(&D_8011F310 + temp_v1_3);
