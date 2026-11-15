@@ -33,7 +33,7 @@ extern char D_8004A1D8[];
 extern char D_8004A1F0[];
 
 void func_800268C0(u8 *arg0) {
-    func_8003DE60(D_80049ED4, *(s32 *)(arg0 + 0x14));
+    do { func_8003DE60(D_80049ED4, *(s32 *)(arg0 + 0x14)); } while (0);
     func_8003DE60(D_80049EEC, *(s32 *)(arg0 + 0x11C));
     func_80026D40(*(s32 *)(arg0 + 0x120), D_80049EFC, D_80046850);
     func_80026D40(*(s32 *)(arg0 + 0x118), D_80049F04, D_800469A0);

@@ -1,5 +1,5 @@
-extern unsigned int D_8011F2F0[];
-extern char D_8011F2F2[];
+extern u8 D_8011F2F0[];
+extern u8 D_8011F2F2[];
 typedef struct 
 {
   u32 f0;
