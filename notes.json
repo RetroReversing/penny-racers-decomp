@@ -23536,22 +23536,6 @@
   "score_after": 2420
  },
  {
-  "function": "func_8020FFD0",
-  "text": "Best 520 (82%, SN compiler, the one compile_and_diff uses): `p=(u8*)&D_8021E22F + ((arg0&0xFF)*0x110); v=*(s8*)(p + s0*0x22 + (arg2&0xFF) + 2); return func_801FD530(s0, func_80149F40(0,s0,v)&0xFF)&0xFF;` with s0=arg1&0xFF. Target: sw $ra first then sw $s0 (SN-style), base address via lui/addiu computed into $v0 right after andi a0, then sll/addu index math, lb 2(v0). Our version folds +2 into lb %lo symbol, and the a0 term picks up $v0 wrongly. Tried: KMC via try_compiler (600, the target is not KMC-style on the stack order), idx temp (970, worse), inline arithmetic (1385). Next: make the base pointer a real variable assigned before the a0 term so it is computed into $v0 first.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794706935.2257931,
-  "score_before": 905,
-  "score_after": 520
- },
- {
-  "function": "func_8020FFD0",
-  "text": "Matches this compiler's structure under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 (not the claimed gcc-2.8.1-pm-sn-as, which scored 1765). Best: 240 (91.7%) via try_compiler(kmc) with source: extern s8 D_8021E22F[]; s32 func_80149F40(s32,s32,s32); s32 func_801FD530(s32,s32); s32 func_8020FFD0(arg0,arg1,arg2){ temp_a0=arg0&0xFF; temp_v0=(u32)D_8021E22F; temp_v1=temp_v0+temp_a0*0x110; temp_s0=arg1&0xFF; temp_v0=(temp_s0*0x22)+temp_v1; temp_v0=temp_v0+(arg2&0xFF); return func_801FD530(temp_s0, func_80149F40(0,temp_s0,*(s8*)(temp_v0+2))&0xFF)&0xFF; }. Remaining diff is only scheduling: target stores ra and s0 at the very top before andi a0 and the lui of D_8021E22F; ours puts sw s0 / sw ra later and the andi a0 after the lui. Untried: making the call's first argument be computed before the table lookup to pull the sw's forward. Note: try_compiler does not record a revision, so compile_and_diff/compile_patch still run on the sn compiler; the kmc source must be submitted through try_compiler.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794707171.615996,
-  "score_before": 520,
-  "score_after": 520
- },
- {
   "function": "func_800E15CC",
   "text": "Best this session 695 (85.2%) with: n,cur u16; cur=func_800E1850; do { e=D_8011F2F0+cur*100; if (*(s32*)(e+0x54)!=0 && *(u8*)(e+0xD)==0) { D_8011F068[n]=cur; n++; } cur=*(u16*)(e+0x10); } while (cur!=0xFFFF); D_8011F068[n]=0xFFFF; tmp=n-1; if (tmp>0) func_800E0A00(0,tmp,D_8011F068,D_8011F068). Remaining: loop-exit compare and the sll/blez ordering; target compares the loaded cur register directly (bne $v0,$a2) and the nop/move a0 placement differs. Claim ended before release.\n\nBest 695 (85.2%): n,cur u16; cur=func_800E1850; do { e=D_8011F2F0+cur*100; if (*(s32*)(e+0x54)!=0 && *(u8*)(e+0xD)==0) { D_8011F068[n]=cur; n++; } cur=*(u16*)(e+0x10); } while (cur!=0xFFFF); D_8011F068[n]=0xFFFF; tmp=n-1; if (tmp>0) func_800E0A00(0,tmp,D_8011F068,D_8011F068). Remaining: loop compare on the loaded register (bne $v0,$a2) with v1=v0*2 after the branch; prologue sw ra/frame order; 'move $a0,$zero' placement. Same-score retry with a different temp form gave no gain.",
   "by": "claude-haiku-5-5-22",
@@ -23632,14 +23616,6 @@
   "score_after": 6485
  },
  {
-  "function": "func_8020FFD0",
-  "text": "Best 1765 under default SN compiler (gcc-2.8.1-pm-sn-as). gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 on saved source gives 1700 and is closer in structure (ra saved, lui/addiu of D_8021E22F). Target sums the table base first: v1 = D_8021E22F + a0*0x110, then + s0*0x22, then + (arg2&0xFF), then lb 2(v). Reordering the sum to put (u32)D_8021E22F first gave no change under SN. compile_and_diff cannot select KMC, so the reorder still needs testing under gcc-2.7.2-kmc via try_compiler on a patched source.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794720947.2897348,
-  "score_before": 520,
-  "score_after": 520
- },
- {
   "function": "func_8013AE60",
   "text": "Not matched. Best revision abd62d722fc2c7178683: 770 (81.6%), 42 target insns vs 40 mine. Current shape: `i=0; k=D_80233EC0; off=(arg0&0xFFFF)*100; base=D_8011F2F2; dst=base+off; do { src=(u16*)(base+(k+D_8011F2F0[off])*100); if (src[i]&8) dst[i]|=8 else dst[i]&=0xFFF7; i++; } while (i<4);`. Remaining: the target has two extra `addu $a2,$a3,$t0` (dst = base+off recomputed in the loop) and one extra `sll $v1,$v0,1`, so my code is 2 insns short and the bnez offset differs by 2 bytes. Tried inline `base+off+i*2` stores (no change) and byte-pointer dst (no change). Next: compute the two loop-invariant base+off sums inside the loop body rather than once outside, and keep k loaded via the same index chain (lbu of D_8011F2F0[off] then k+ that) as separate statement.",
   "by": "claude-haiku-5-5-24",
@@ -23696,14 +23672,6 @@
   "score_after": 5760
  },
  {
-  "function": "func_8020FFD0",
-  "text": "Best 285 (s8 D_8021E22F[] + s8 *p, p += (arg0&0xFF)*0x110; p += b*0x22; p += arg2&0xFF; return func_801FD530(b, func_80149F40(0,b,p[2])&0xFF)&0xFF). u8 base scored 480 (lbu vs target lb) -> must be s8. Remaining 17 rows are pure scheduling/regalloc: target emits andi a0,a0,0xff and the lui/addiu of D_8021E22F *before* the frame stores sw ra/sw s0, scales in $v1 with base in $v0 (addu $v1,$v1,$v0), keeps the p[2] pointer in $v0, and does the final andi $v0,$v0,0xff before lw ra/lw s0; ours stores ra late and swaps the addu operand order. Tried: separate `s32 a = arg0 & 0xFF;` before the pointer init (315), folding the whole offset into the initialiser (1765), pointer-init-last declaration order (285), (u8) cast return (285). Left: get the frame saves scheduled before the body (maybe an early use of arg1 forcing $s0 spill first), and the andi operand order in the final addu.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794730065.339193,
-  "score_before": 255,
-  "score_after": 255
- },
- {
   "function": "func_800DF1E0",
   "text": "Decoded (verified): off=(arg0&0xFFFF)*100 (sll/addu chain, t0=off); *(s32*)(&D_8011F34C+off)=arg1; X=*(s32*)(&D_8011F340+off); Y=*(s32*)(X+4); v=*(u8*)(Y+4); n = v==1 ? 0x10 : v==2 ? 0x100 : 0; if (n) { src = *(u16**)(Y+8); for i<n: ((u16*)arg1)[i] = src[i]; }. Target has a stack frame (addiu sp,-8) and an extra register for `addiu $v0,$zero,1; beq v,1` then `slti v<2` then `addiu $v0,2; beq`, i.e. the n-selection is a compare chain with `beq`, not a ternary. Ours (3880) hoists the `andi` into $a0 and computes the sum with $a0; target keeps arg0 masked in $v1. Saved best 2100 is a different source. Next: write the andi into a local `u16 idx` and use it for both offsets; use `if/else if` for n, not ternary; check whether the frame needs an 8-byte local (volatile-like) for `off` or the loop index.",
   "by": "claude-haiku-5-5-21",
@@ -23718,14 +23686,6 @@
   "created_at": 1794730435.470324,
   "score_before": 770,
   "score_after": 770
- },
- {
-  "function": "func_8020FFD0",
-  "text": "Best 285 (90.1%), first draft (s8 *p = D_8021E22F; p += (arg0&0xFF)*0x110; p += b*0x22; p += arg2&0xFF; then call). Target computes base-plus-a0*0x110 first with the lui/addiu base in $v1 and a0 in $v0-based shifts; remaining diffs are register allocation and stack-save order (sw $ra/$s0 placement). Tried: base+a0*0x110 as a cast-to-u32 sum (315, worse); a and b as separate locals (285, same). Unresolved: stack frame save order and the lui/addiu register choice. Next idea: swap which variable is named first, or use an explicit u8 typed index.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794731329.87997,
-  "score_before": 255,
-  "score_after": 255
  },
  {
   "function": "func_8013AE60",
@@ -23750,22 +23710,6 @@
   "created_at": 1794732789.133467,
   "score_before": 2100,
   "score_after": 2100
- },
- {
-  "function": "func_8020FFD0",
-  "text": "Not matched. Best 285 (90.1%, 29 insns, same length as target). Restore revision 3591d43bafa6b4b08a13: s8 *p = D_8021E22F; p += (arg0&0xFF)*0x110; p += b*0x22; p += arg2&0xFF; return func_801FD530(b, func_80149F40(0,b,p[2]) & 0xFF) & 0xFF; with b = arg1&0xFF. Remaining diff is register roles and order only: target keeps the base D_8021E22F in $v0 and the offset in $v1 (addu v1,v1,v0 at the end), and the arg0 mask is in $a0; ours puts the base in $v1. Tried: separate offset variable (915, worse: lb reloads as %lo(D_8021E231)); base-first accumulation (750, worse: the target's scale chain sll/addu/sll is lost). Next idea: keep the 285 form and only swap the final addu operands or write the arg0 scale as (x*16 + x)*16 to match the target's chain.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794733063.808352,
-  "score_before": 255,
-  "score_after": 255
- },
- {
-  "function": "func_8020FFD0",
-  "text": "Best stays 285 (90.1%, 29/29 insns, all instructions present; only register assignment + statement order differ). Target shape: andi a0,a0,0xFF ; lui/addiu v0 = &D_8021E22F ; v1 = a0*0x110 (sll4/addu/sll4) ; v1 += v0 ; andi s0,a1 ; v0 = s0*0x22 (sll4/addu/sll1) ; v0 += v1 ; andi a2 ; v0 += a2 ; lb a2,2(v0). So the base pointer lives in v0 and the accumulated index in v1, i.e. base is materialised first, then offsets added to a separate accumulator. Current C (revision a196e96375da7ffc7045) puts the base in v1 and the arg0 term in v0, and the prologue sw $ra/sw $s0 are emitted last instead of first. Tried: s32 vs u8 params, single-expression pointer sum, p = b*0x22 + p, p = (arg2&0xFF) + p, p = (arg0&0xFF)*0x110 + p, fully nested single expression, b declared before p, s8* vs u8* casts; local families parameter_width/single_use_inline/byte_table_signedness all identical output. Also gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 scores 420 (worse). Left: force the base pointer into v0 by writing `u8 *p = (u8 *)D_8021E22F;` with a separate s32 index accumulator (off = (arg0&0xFF)*0x110; off = b*0x22 + off; off = (arg2&0xFF) + off; then read p[off+2]) so the add tree is index-side, not pointer-side; that should also let the prologue s0/ra saves sink to the top.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794740179.92524,
-  "score_before": 255,
-  "score_after": 255
  },
  {
   "function": "func_8015E530",
@@ -23856,14 +23800,6 @@
   "score_after": 435
  },
  {
-  "function": "func_8020FFD0",
-  "text": "Best 285 (90.1%) with SN default compiler (gcc-2.8.1-pm-sn-as), source: `u8 *p = D_8021E22F; p = p + (arg0&0xFF)*0x110; s0=arg1&0xFF; p = p + s0*0x22 + (arg2&0xFF); v = *(s8*)(p+2); return func_801FD530(s0, func_80149F40(0,s0,v)&0xFF)&0xFF;` with `extern u8 D_8021E22F[]; u8 func_80149F40(s32,u32,s32); s32 func_801FD530(s32,s32);`. Remaining diff: target computes the base address (lui/addiu D_8021E22F) first, then the a0 part (sll/addu/sll), then adds the base; target also saves ra before s0 and does andi a0 first. Ours uses the a0 part first (lui after). Tried: index pre-cast to u32 i (615), KMC GCC 2.7.2 on the 285 source (420, worse). Variant with the return cast moved (no change). Untested idea: write the base as a separate u8 *base local and compute `base + ((a0*0x110)...)` to pull the lui ahead.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794756964.442347,
-  "score_before": 255,
-  "score_after": 255
- },
- {
   "function": "func_800DF1E0",
   "text": "Can't get closer at -O2: C is byte-exact at -O1 (verified by search_flags, suggestion filed). Revision 6676f4e5bb381ddce6d4. Remaining -O2 diff is purely loop strength reduction of arg1 which -O1 doesn't do. Apply the -O1 function profile.",
   "by": "claude-opus-medium-1",
@@ -23878,14 +23814,6 @@
   "created_at": 1794757111.771709,
   "score_before": 2515,
   "score_after": 2320
- },
- {
-  "function": "func_8020FFD0",
-  "text": "SOLVED with gcc-2.7.2-kmc -O1 (byte-exact via try_compiler; suggestion filed). Revision a2717067779188eaadfb holds the exact C (scores 270 under the assigned SN 2.8.1 profile only because of compiler). Key: arg0 &= 0xFF first; q = p + arg0*0x110; r = (u8*)(s0*0x22 + (u32)q) as a NEW variable with product first; v = *(s8*)(r + (arg2&0xFF) + 2). Apply the KMC -O1 profile.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794757351.606882,
-  "score_before": 255,
-  "score_after": 255
  },
  {
   "function": "func_800E15CC",
@@ -23910,14 +23838,6 @@
   "created_at": 1794757597.8887732,
   "score_before": 900,
   "score_after": 900
- },
- {
-  "function": "func_8020FFD0",
-  "text": "Freshly verified byte-exact with existing saved candidate under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1. Function-only profile bundle submitted; auto profile changes off. Current GCC2.8.1/SN O2 score270; KMC O2 score180; O1 exact.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794757948.027432,
-  "score_before": 255,
-  "score_after": 255
  },
  {
   "function": "func_8015E530",
@@ -26022,5 +25942,117 @@
   "created_at": 1794755748.519084,
   "score_before": 3210,
   "score_after": 3210
+ },
+ {
+  "function": "func_8020FFD0",
+  "text": "Best 520 (82%, SN compiler, the one compile_and_diff uses): `p=(u8*)&D_8021E22F + ((arg0&0xFF)*0x110); v=*(s8*)(p + s0*0x22 + (arg2&0xFF) + 2); return func_801FD530(s0, func_80149F40(0,s0,v)&0xFF)&0xFF;` with s0=arg1&0xFF. Target: sw $ra first then sw $s0 (SN-style), base address via lui/addiu computed into $v0 right after andi a0, then sll/addu index math, lb 2(v0). Our version folds +2 into lb %lo symbol, and the a0 term picks up $v0 wrongly. Tried: KMC via try_compiler (600, the target is not KMC-style on the stack order), idx temp (970, worse), inline arithmetic (1385). Next: make the base pointer a real variable assigned before the a0 term so it is computed into $v0 first.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794706935.2257931,
+  "score_before": 905,
+  "score_after": 520
+ },
+ {
+  "function": "func_8020FFD0",
+  "text": "Matches this compiler's structure under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 (not the claimed gcc-2.8.1-pm-sn-as, which scored 1765). Best: 240 (91.7%) via try_compiler(kmc) with source: extern s8 D_8021E22F[]; s32 func_80149F40(s32,s32,s32); s32 func_801FD530(s32,s32); s32 func_8020FFD0(arg0,arg1,arg2){ temp_a0=arg0&0xFF; temp_v0=(u32)D_8021E22F; temp_v1=temp_v0+temp_a0*0x110; temp_s0=arg1&0xFF; temp_v0=(temp_s0*0x22)+temp_v1; temp_v0=temp_v0+(arg2&0xFF); return func_801FD530(temp_s0, func_80149F40(0,temp_s0,*(s8*)(temp_v0+2))&0xFF)&0xFF; }. Remaining diff is only scheduling: target stores ra and s0 at the very top before andi a0 and the lui of D_8021E22F; ours puts sw s0 / sw ra later and the andi a0 after the lui. Untried: making the call's first argument be computed before the table lookup to pull the sw's forward. Note: try_compiler does not record a revision, so compile_and_diff/compile_patch still run on the sn compiler; the kmc source must be submitted through try_compiler.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794707171.615996,
+  "score_before": 520,
+  "score_after": 520
+ },
+ {
+  "function": "func_8020FFD0",
+  "text": "Best 1765 under default SN compiler (gcc-2.8.1-pm-sn-as). gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 on saved source gives 1700 and is closer in structure (ra saved, lui/addiu of D_8021E22F). Target sums the table base first: v1 = D_8021E22F + a0*0x110, then + s0*0x22, then + (arg2&0xFF), then lb 2(v). Reordering the sum to put (u32)D_8021E22F first gave no change under SN. compile_and_diff cannot select KMC, so the reorder still needs testing under gcc-2.7.2-kmc via try_compiler on a patched source.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794720947.2897348,
+  "score_before": 520,
+  "score_after": 520
+ },
+ {
+  "function": "func_8020FFD0",
+  "text": "Best 285 (s8 D_8021E22F[] + s8 *p, p += (arg0&0xFF)*0x110; p += b*0x22; p += arg2&0xFF; return func_801FD530(b, func_80149F40(0,b,p[2])&0xFF)&0xFF). u8 base scored 480 (lbu vs target lb) -> must be s8. Remaining 17 rows are pure scheduling/regalloc: target emits andi a0,a0,0xff and the lui/addiu of D_8021E22F *before* the frame stores sw ra/sw s0, scales in $v1 with base in $v0 (addu $v1,$v1,$v0), keeps the p[2] pointer in $v0, and does the final andi $v0,$v0,0xff before lw ra/lw s0; ours stores ra late and swaps the addu operand order. Tried: separate `s32 a = arg0 & 0xFF;` before the pointer init (315), folding the whole offset into the initialiser (1765), pointer-init-last declaration order (285), (u8) cast return (285). Left: get the frame saves scheduled before the body (maybe an early use of arg1 forcing $s0 spill first), and the andi operand order in the final addu.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794730065.339193,
+  "score_before": 255,
+  "score_after": 255
+ },
+ {
+  "function": "func_8020FFD0",
+  "text": "Best 285 (90.1%), first draft (s8 *p = D_8021E22F; p += (arg0&0xFF)*0x110; p += b*0x22; p += arg2&0xFF; then call). Target computes base-plus-a0*0x110 first with the lui/addiu base in $v1 and a0 in $v0-based shifts; remaining diffs are register allocation and stack-save order (sw $ra/$s0 placement). Tried: base+a0*0x110 as a cast-to-u32 sum (315, worse); a and b as separate locals (285, same). Unresolved: stack frame save order and the lui/addiu register choice. Next idea: swap which variable is named first, or use an explicit u8 typed index.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794731329.87997,
+  "score_before": 255,
+  "score_after": 255
+ },
+ {
+  "function": "func_8020FFD0",
+  "text": "Not matched. Best 285 (90.1%, 29 insns, same length as target). Restore revision 3591d43bafa6b4b08a13: s8 *p = D_8021E22F; p += (arg0&0xFF)*0x110; p += b*0x22; p += arg2&0xFF; return func_801FD530(b, func_80149F40(0,b,p[2]) & 0xFF) & 0xFF; with b = arg1&0xFF. Remaining diff is register roles and order only: target keeps the base D_8021E22F in $v0 and the offset in $v1 (addu v1,v1,v0 at the end), and the arg0 mask is in $a0; ours puts the base in $v1. Tried: separate offset variable (915, worse: lb reloads as %lo(D_8021E231)); base-first accumulation (750, worse: the target's scale chain sll/addu/sll is lost). Next idea: keep the 285 form and only swap the final addu operands or write the arg0 scale as (x*16 + x)*16 to match the target's chain.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794733063.808352,
+  "score_before": 255,
+  "score_after": 255
+ },
+ {
+  "function": "func_8020FFD0",
+  "text": "Best stays 285 (90.1%, 29/29 insns, all instructions present; only register assignment + statement order differ). Target shape: andi a0,a0,0xFF ; lui/addiu v0 = &D_8021E22F ; v1 = a0*0x110 (sll4/addu/sll4) ; v1 += v0 ; andi s0,a1 ; v0 = s0*0x22 (sll4/addu/sll1) ; v0 += v1 ; andi a2 ; v0 += a2 ; lb a2,2(v0). So the base pointer lives in v0 and the accumulated index in v1, i.e. base is materialised first, then offsets added to a separate accumulator. Current C (revision a196e96375da7ffc7045) puts the base in v1 and the arg0 term in v0, and the prologue sw $ra/sw $s0 are emitted last instead of first. Tried: s32 vs u8 params, single-expression pointer sum, p = b*0x22 + p, p = (arg2&0xFF) + p, p = (arg0&0xFF)*0x110 + p, fully nested single expression, b declared before p, s8* vs u8* casts; local families parameter_width/single_use_inline/byte_table_signedness all identical output. Also gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 scores 420 (worse). Left: force the base pointer into v0 by writing `u8 *p = (u8 *)D_8021E22F;` with a separate s32 index accumulator (off = (arg0&0xFF)*0x110; off = b*0x22 + off; off = (arg2&0xFF) + off; then read p[off+2]) so the add tree is index-side, not pointer-side; that should also let the prologue s0/ra saves sink to the top.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794740179.92524,
+  "score_before": 255,
+  "score_after": 255
+ },
+ {
+  "function": "func_8020FFD0",
+  "text": "Best 285 (90.1%) with SN default compiler (gcc-2.8.1-pm-sn-as), source: `u8 *p = D_8021E22F; p = p + (arg0&0xFF)*0x110; s0=arg1&0xFF; p = p + s0*0x22 + (arg2&0xFF); v = *(s8*)(p+2); return func_801FD530(s0, func_80149F40(0,s0,v)&0xFF)&0xFF;` with `extern u8 D_8021E22F[]; u8 func_80149F40(s32,u32,s32); s32 func_801FD530(s32,s32);`. Remaining diff: target computes the base address (lui/addiu D_8021E22F) first, then the a0 part (sll/addu/sll), then adds the base; target also saves ra before s0 and does andi a0 first. Ours uses the a0 part first (lui after). Tried: index pre-cast to u32 i (615), KMC GCC 2.7.2 on the 285 source (420, worse). Variant with the return cast moved (no change). Untested idea: write the base as a separate u8 *base local and compute `base + ((a0*0x110)...)` to pull the lui ahead.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794756964.442347,
+  "score_before": 255,
+  "score_after": 255
+ },
+ {
+  "function": "func_8020FFD0",
+  "text": "SOLVED with gcc-2.7.2-kmc -O1 (byte-exact via try_compiler; suggestion filed). Revision a2717067779188eaadfb holds the exact C (scores 270 under the assigned SN 2.8.1 profile only because of compiler). Key: arg0 &= 0xFF first; q = p + arg0*0x110; r = (u8*)(s0*0x22 + (u32)q) as a NEW variable with product first; v = *(s8*)(r + (arg2&0xFF) + 2). Apply the KMC -O1 profile.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794757351.606882,
+  "score_before": 255,
+  "score_after": 255
+ },
+ {
+  "function": "func_8020FFD0",
+  "text": "Freshly verified byte-exact with existing saved candidate under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1. Function-only profile bundle submitted; auto profile changes off. Current GCC2.8.1/SN O2 score270; KMC O2 score180; O1 exact.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794757948.027432,
+  "score_before": 255,
+  "score_after": 255
+ },
+ {
+  "function": "func_8020FFD0",
+  "text": "MATCHES at KMC -O1 (suggestion submitted with exact C). Key points: the params are s32 with explicit &=0xFF (u8 params put the andi after the base load); the base goes through a local pointer p=D_8021E22F so the +2 field offset stays in the lb rather than folding into the symbol. Waiting for the -O1 profile.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794758306.2160718,
+  "score_before": 255,
+  "score_after": 255
+ },
+ {
+  "function": "func_8020FFD0",
+  "text": "Fresh verified exact KMC -O1 bundle submitted; auto changes disabled. Current exact source revision d759e89f5ec9a04e7457. Needs profile apply only.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794758883.384491,
+  "score_before": 255,
+  "score_after": 255
+ },
+ {
+  "function": "func_8020FFD0",
+  "text": "Matches at KMC -O1 (exact C submitted via suggest). At the project's -O2 the best is 270 (current candidate). Waiting on the per-unit -O1 profile for code_8020E650; don't spend more compiles at -O2.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794759597.4736671,
+  "score_before": 255,
+  "score_after": 255
+ },
+ {
+  "function": "func_8020FFD0",
+  "text": "Freshly verified exact KMC O1 source/profile submitted. Current O2 profile unsuitable, pending automatic-changes-off manual application. No further C tuning needed.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794759883.815327,
+  "score_before": 255,
+  "score_after": 255
  }
 ]
