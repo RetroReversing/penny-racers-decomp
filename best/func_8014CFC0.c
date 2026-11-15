@@ -1,17 +1,18 @@
+/* adapted from similar verified C in func_8014CF50 in PENNY RACERS (matched), with its names changed by decompdecomp */
 extern u8 D_8011F2FC[];
-extern u8 D_80126FF7;
-
-void func_8014CFC0(s32 **arg0, s32 arg1) {
-    s32 *temp_a2;
-    s32 *temp_v1;
-
-    temp_v1 = *arg0;
-    *arg0 = temp_v1 + 2;
-    temp_v1[0] = 0xB6000000;
-    temp_v1[1] = 0x2000;
-    temp_a2 = *arg0;
-    *arg0 = temp_a2 + 2;
-    temp_a2[0] = 0xFA000000;
-    temp_a2[1] = D_8011F2FC[(arg1 & 0xFFFF) * 100] | 0xFA5000;
-    D_80126FF7 = 0xFF;
+extern unsigned char D_80126FF7;
+void func_8014CFC0(void **arg0, s32 arg1)
+{
+  void *temp_a2;
+  void *temp_v1;
+  temp_v1 = *arg0;
+  *arg0 = temp_v1 + 8;
+  *((s32 *) (((char *) temp_v1) + 0)) = 0xB6000000;
+  *((s32 *) (((char *) temp_v1) + 4)) = 0x2000;
+  temp_a2 = *arg0;
+  *arg0 = temp_a2 + 8;
+  *((s32 *) (((char *) temp_a2) + 0)) = 0xFA000000;
+  *((s32 *) (((char *) temp_a2) + 4)) = (s32) ((*(D_8011F2FC + ((arg1 & 0xFFFF) * 0x64))) | 0xE6640000);
+  D_80126FF7 = 0xFF;
 }
+

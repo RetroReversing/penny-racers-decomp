@@ -2528,14 +2528,6 @@
   "score_after": 20614
  },
  {
-  "function": "nuContMgrInit",
-  "text": "Deep permuter: score 1856 \u2192 1836; 1 improvements; 358 candidates tested; 7 cached skips; 0 rejected; 3001s elapsed. Time limit reached.",
-  "by": "W5.permuter-8589934822",
-  "created_at": 1794176089.852711,
-  "score_before": 1856,
-  "score_after": 1836
- },
- {
   "function": "func_8003D1A0",
   "text": "Deep permuter: score 60 \u2192 60; 0 improvements; 367 candidates tested; 28 cached skips; 0 rejected; 3007s elapsed. Time limit reached.",
   "by": "W5.permuter-8589935136",
@@ -5632,14 +5624,6 @@
   "score_after": 27843
  },
  {
-  "function": "func_800427B0",
-  "text": "Deep permuter: score 10856 \u2192 10856; 0 improvements; 434 candidates tested; 0 cached skips; 0 rejected; 3000s elapsed. Time limit reached.",
-  "by": "W5.permuter-8589935227",
-  "created_at": 1794175941.3395252,
-  "score_before": 10856,
-  "score_after": 10856
- },
- {
   "function": "func_80029938",
   "text": "Deep permuter: score 997 \u2192 276; 2 improvements; 136 candidates tested; 0 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934815",
@@ -5710,5 +5694,69 @@
   "created_at": 1794705778.290626,
   "score_before": 569,
   "score_after": 569
+ },
+ {
+  "function": "func_800427B0",
+  "text": "Deep permuter: score 10856 \u2192 10856; 0 improvements; 434 candidates tested; 0 cached skips; 0 rejected; 3000s elapsed. Time limit reached.",
+  "by": "W5.permuter-8589935227",
+  "created_at": 1794175941.3395252,
+  "score_before": 10856,
+  "score_after": 10856
+ },
+ {
+  "function": "nuContMgrInit",
+  "text": "Deep permuter: score 1856 \u2192 1836; 1 improvements; 358 candidates tested; 7 cached skips; 0 rejected; 3001s elapsed. Time limit reached.",
+  "by": "W5.permuter-8589934822",
+  "created_at": 1794176089.852711,
+  "score_before": 1856,
+  "score_after": 1836
+ },
+ {
+  "function": "func_80031DD8",
+  "text": "Best 285 (95.2%, source in candidate revision bc5718438310ea5f5787 / b112cbb695f0b42c6f2b). Frame 0x30 and the saved set (ra,s0-s5) already match. Remaining diff is register allocation and one control-flow shape: target keeps arg1 in $s1 and the next pointer (loaded from 0(s0)) in $s2, the reverse of mine. Declaration-order swap did nothing. Also the outer NULL test is `beqz $s0,0xcc` in the target (the loop exit jumps far), suggesting the loop is `for(;;)` with the exit test at the bottom rather than do/while. Next: restructure the loop as a `while (s0 != NULL)` with the exit at the bottom and retry the lifetimes.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794705912.7818828,
+  "score_before": 929,
+  "score_after": 285
+ },
+ {
+  "function": "nuContMgrInit",
+  "text": "Best remains the saved 200 (candidate f3f0af264392ef290e34). Tried this session: early-return form (`if (D_8006FEF8 != 0) return 0;` with global, and with `p` local) gives 1340 or 210; the 210 form keeps `var_v0 = 0` before the branch as the target does, but the compiler still emits an extra `move $a0,$zero` and the branch target is 0xe4 vs 0xe0. Swapping accumulator/mask variable names (mask in var_a1, accumulator in var_a0, return `var_a0 & 0xFF`) also gave 210 and did not fix the register rows. Remaining gap: the delay-slot `move $v0,$zero` before `bnez` must be the only zero-init, and the loop's register assignment (mask=a0, accum=a1, const 5 in a2, index in v1) needs to match. Next idea not tried: write the accumulator as `u32` or use `s32 var_a1 = 0; s32 var_a0 = 1;` declared in the reverse order.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794706035.077424,
+  "score_before": 200,
+  "score_after": 200
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Best 2418 (46.2%) from the `for (; tbl->mask != 0; tbl++)` form: frame 0x28 vs target 0x20, one extra saved reg ($s3), and the loop tail differs. The function is a flag printer: three printf-like calls (fmt D_8004A208 with a1 and tbl, then \"<\" with flags), a table {u32 mask; u32 value; char *name} walked to mask==0 with (flags & mask)==value tests, comma separator on each match after the first, and a closing \">\\n\". The target loop uses bnel to skip to a shared loop tail, so the increment sits on both paths. The while-loop rewrite (tbl++ at the bottom) scored 3603, worse. Next: drop the first-printf args and make the loop body a single if/else so the increment is common, or try `u32 *tbl` raw indexing to change the saved-register set.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794706107.925715,
+  "score_before": 2418,
+  "score_after": 2418
+ },
+ {
+  "function": "func_801E2E48",
+  "text": "Best 320 (89.6%), revision a5ecceb22b7d8f39e493: `off = (arg0 & 0xFFFF) * 0x30`, copy loop D_801E97A0[off+i] = D_801E9018[off+i] for i<0x30, then `arg0 &= 0xFFFF; func_801E2E00(arg0, D_801E97CC + arg0 * 0x30)`. Instructions match; remaining diff is statement order and register choice. Target materialises D_801E97A0 and D_801E9018 (lui/addiu) before `andi v1,a0,0xffff`, and the loop uses a2 for off and a1 for i. Pointer locals initialised first scored 455 (worse). Next: try the copy as pointer-offset loop `*dst++ = *src++` with off computed after the addresses, or reorder the lui/addiu pairs by declaring the globals after the offset.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794706174.0147781,
+  "score_before": 695,
+  "score_after": 320
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Correct signature: func_80026D40(u32 flags, char *a1, FlagEntry *tbl) with FlagEntry {u32 mask; u32 value; char *name;}. Calls: func_8003DE60(D_8004A208, a1, flags); func_8003DE60(D_8004A214); loop while tbl->mask != 0 with (flags & mask)==value; separator D_8004A218 printed when !first; then D_8004A21C with name; finally D_8004A220. The saved best (3603) wrongly passed tbl as the first printf arg. Remaining mismatch: gcc gives frame 0x28 with saves s1,s2,s3 (flags kept in s3) while target is frame 0x20 with s0 (tbl), s1 (first), s2 (flags), and ra at 0x1C. Tried: while loop with tbl++, for loop, FlagEntry* copy; all 3893 (13.4%). Untried: forcing flags into a later-declared local, or a separate helper for the separator branch to change liveness; try ordering of param copies.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794706174.063008,
+  "score_before": 2418,
+  "score_after": 2418
+ },
+ {
+  "function": "func_800427B0",
+  "text": "Target: signed 64-bit integer (hi:lo in a0:a1) to f64, returned in $fv0. Logic is understood: zero test on (hi|lo) returns the bits unchanged; if hi's sign bit is set, negate the 64-bit value; normalise by a right-shift loop when vh & 0xFFE00000, else a left-shift loop until bit 20 of vh is set; hi word = (vh & 0xFFFFF) | sign | ((exp + 0x433) << 20), lo word = vl. Best saved is 5860 (candidate 5a35b07877c83f071275): writing the result through `u32 buf[2]` and returning `*(f64 *)buf` gives the sw/ldc1 stack round-trip; a union return gives mtc1 and scored 6515. Still differing: the target copies hi/lo into v0/v1 before the zero test, keeps the sign in a2 (repeated `xor a2,a2,a2`), and places the constant 0x80000000 in a0; my variants keep the parameter registers and use different registers for the loops. Negation as `xor -1; +1; sltiu; addu` and a separate zero-path epilogue did not change the score. Stopping because the register assignment is controlled by the copies at the top, which I could not reproduce; a next try should force the copies into v0/v1 explicitly (e.g. via volatile-free locals declared in that order) before tuning anything else.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794706201.7395651,
+  "score_before": 5955,
+  "score_after": 5860
  }
 ]

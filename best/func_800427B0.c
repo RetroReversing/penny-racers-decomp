@@ -1,5 +1,5 @@
-/* Partial candidate from function #26355 in project #57; rechecked locally. */
-f32 func_800427B0(u32 hi, u32 lo, s32 arg2) {
+f64 func_800427B0(u32 hi, u32 lo, s32 arg2) {
+    u32 buf[2];
     u32 sign;
     s32 exp;
     u32 vh;
@@ -7,11 +7,13 @@ f32 func_800427B0(u32 hi, u32 lo, s32 arg2) {
 
     vh = hi;
     vl = lo;
-    if ((hi | lo) == 0) {
-        return 0;
+    if ((vh | vl) == 0) {
+        buf[0] = vh;
+        buf[1] = vl;
+        return *(f64 *)buf;
     }
     sign = 0;
-    if (hi & 0x80000000) {
+    if (vh & 0x80000000) {
         vl = (vl ^ 0xFFFFFFFF) + 1;
         vh = (vh ^ 0xFFFFFFFF) + (vl == 0);
         sign = 0x80000000;
@@ -30,5 +32,7 @@ f32 func_800427B0(u32 hi, u32 lo, s32 arg2) {
             exp -= 1;
         }
     }
-    return 0;
+    buf[0] = (vh & 0xFFFFF) | sign | ((exp + 0x433) << 20);
+    buf[1] = vl;
+    return *(f64 *)buf;
 }
