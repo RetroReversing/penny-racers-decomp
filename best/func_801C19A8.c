@@ -14,9 +14,10 @@ typedef s32 M2C_UNK32;
 
 f32 __sinf(f32);                                    /* extern */
 M2C_UNK func_8013AE60(s32, M2C_UNK *);              /* extern */
-extern M2C_UNK D_8011F32E;
+typedef struct { u16 f0; u8 pad[98]; } Slot_8011F32E;
+extern Slot_8011F32E D_8011F32E[];
 extern M2C_UNK D_80167FB8;
-extern M2C_UNK D_80167FBC;
+extern u8 D_80167FBC[];
 extern M2C_UNK D_801C6AC8;
 extern M2C_UNK D_801C6B88;
 extern s32 D_801C6BA8;
@@ -57,7 +58,7 @@ void func_801C19A8(s32 arg0) {
         func_8013AE60(arg0 & 0xFFFF, &D_801C6AC8);
         var_v1 = arg0 & 0xFFFF;
     }
-    temp_v1 = *(&D_8011F32E + (var_v1 * 0x64));
+    temp_v1 = D_8011F32E[var_v1].f0;
     if (temp_v1 != 0) {
         var_s3 = 0;
         if (temp_v1 != 1) {
@@ -82,7 +83,7 @@ void func_801C19A8(s32 arg0) {
         do {
             temp_fv1 = (s32) (__sinf((*((var_s3_2 * 4) + &D_801C6B88) * 3.1415927f) / 180.0f) * (&sp10)[var_s3_2]);
             M2C_FIELD((((var_s3_2 + 8) * 0x10) + &D_80167FB8), s16 *, 4) = (s16) temp_fv1;
-            *(&D_80167FBC + var_s2) = (s16) temp_fv1;
+            *(D_80167FBC + var_s2) = (s16) temp_fv1;
             var_s3_2 += 1;
             var_s2 = var_s3_2 * 0x10;
         } while ((var_v0 = var_s3_2) < 8);
@@ -96,5 +97,5 @@ void func_801C19A8(s32 arg0) {
         var_v0_3 = var_s3_3 * 4;
     } while ((var_v0 = var_s3_3) < 8);
     D_801C6BA8 = 0;
-    *(&D_8011F32E + ((arg0 & 0xFFFF) * 0x64)) = 1;
+    D_8011F32E[arg0 & 0xFFFF].f0 = 1;
 }

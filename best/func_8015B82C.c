@@ -47,11 +47,9 @@ void func_8015B82C(void)
   }
   while (0);
   D_80301BE0 = 0xFFFF;
-  do
   {
     func_80231A0C();
   }
-  while (0);
   c = D_802210C8;
   c[0] = 170.0f;
   c[1] = -100.0f;
@@ -97,7 +95,7 @@ void func_8015B82C(void)
       }
       else
       {
-        for (i = 0; i < 2; i++)
+        for (i = 0; 0 < 2; i++)
         {
           D_80187D00[i][(y * 16) + x].x = x * 160;
           D_80187D00[i][(y * 16) + x].y = y * (-150);

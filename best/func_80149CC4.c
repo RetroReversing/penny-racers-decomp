@@ -66,7 +66,7 @@ void func_80149CC4(s32 arg0, s32 arg1)
     {
       if (inline_fn(var_t1, *((temp_a1 * 4) + ((arg0 << 5) + D_8018D3A0))))
       {
-        *(((temp_a1 * 0x22) + ((arg0 * 0x110) + D_8021E22F)) + (inline_fn(var_a3, 0xFF) + (inline_fn(-(((u32) inline_fn(var_t0_2, 0xFF)) >= 5U), 3) | 2))) = var_a2_2;
+ do { *(((temp_a1 * 0x22) + ((arg0 * 0x110) + D_8021E22F)) + (inline_fn(var_a3, 0xFF) + (inline_fn(-(((u32) inline_fn(var_t0_2, 0xFF)) >= 5U), 3) | 2))) = var_a2_2; } while (0);
         var_a3 += 1;
       }
       var_a2_2 += 1;
@@ -115,4 +115,3 @@ void func_80149CC4(s32 arg0, s32 arg1)
     *(D_8021E31D + var_t0_2) = 0;
   }
 }
-

@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-extern M2C_UNK D_8011F2F0;
+extern u8 D_8011F2F0[];
 typedef struct { u16 f0; u8 pad[98]; } Slot_8011F2F2;
 extern Slot_8011F2F2 D_8011F2F2[];
 extern M2C_UNK D_8011F300;
@@ -46,7 +46,7 @@ void func_8015A728(s32 arg0) {
                     if (var_v1_2 != (arg0 & 0xFFFF)) {
                         temp_v1_2 = var_v1_2 * 0x64;
                         var_v0_3 = var_a1 & 0xFFFF;
-                        if (*(&D_8011F2F0 + temp_v1_2) != 0x63) {
+                        if (*(D_8011F2F0 + temp_v1_2) != 0x63) {
                             D_8011F2F2[var_v1_2].f0 = D_8011F2F2[var_v1_2].f0 | 0x10;
                             goto block_18;
                         }
