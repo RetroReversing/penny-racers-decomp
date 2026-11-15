@@ -1,42 +1,38 @@
-void alUnlink(void *);
-void alLink(void *, void *);
+typedef struct Voice Voice;
+struct Voice {
+    Voice *next;      /* 0x00 */
+    u8 pad04[4];
+    s32 field08;      /* 0x08 */
+    s16 field0C;      /* 0x0C */
+    s16 pad0E;
+    s32 field10;      /* 0x10 */
+};
 
-typedef struct Node {
-    struct Node *next;
-    s32 pad4;
-    s32 delta;
-    s16 type;
-    s16 pad_e;
-    s32 note;
-} Node;
+void alUnlink(Voice *node);
+void alLink(Voice *node, Voice **list);
 
-s32 __voiceNeedsNoteKill(u8 *arg0, s32 arg1, s32 arg2) {
-    Node *s0;
-    Node *next;
-    s32 acc;
-    s32 s2;
-    s32 delta;
+s32 __voiceNeedsNoteKill(void *arg0, s32 arg1, s32 arg2) {
+    Voice *v = *(Voice **)((u8 *)arg0 + 0x50);
+    s32 total = 0;
+    s32 ret = 1;
+    s32 d;
 
-    s0 = *(Node **)(arg0 + 0x50);
-    acc = 0;
-    s2 = 1;
-    while (s0 != NULL) {
-        delta = s0->delta;
-        next = s0->next;
-        acc += delta;
-        if (s0->type == 5 && s0->note == arg1) {
-            if (arg2 >= acc) {
-                s2 = 0;
-                break;
+    while (v != NULL) {
+        d = v->field08;
+        total += d;
+        if (v->field0C == 5 && v->field10 == arg1) {
+            if (arg2 < total) {
+                if (v->next != NULL) {
+                    v->next->field08 += d;
+                }
+                alUnlink(v);
+                alLink(v, (Voice **)((u8 *)arg0 + 0x48));
+                return ret;
             }
-            if (next != NULL) {
-                next->delta += delta;
-            }
-            alUnlink(s0);
-            alLink(s0, arg0 + 0x48);
-            return 1;
+            ret = 0;
+            break;
         }
-        s0 = next;
+        v = v->next;
     }
-    return s2;
+    return ret;
 }

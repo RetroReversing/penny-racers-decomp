@@ -13,7 +13,7 @@ typedef s32 M2C_UNK32;
 #endif
 
 extern unsigned short D_8006FB10;
-f32 func_80032310();
+f32 sqrtf();
 s32 func_80129918();
 s32 func_8013E49C();
 s32 func_8013F050();
@@ -123,7 +123,7 @@ void func_80162460(s32 arg0) {
             temp_fv0 = sqrtf(temp_fa0);
             var_fs1 = temp_fv0;
             if (temp_fv0 != temp_fv0) {
-                var_fs1 = func_80032310(temp_fa0, D_8018A460, temp_a1);
+                var_fs1 = sqrtf(temp_fa0, D_8018A460, temp_a1);
             }
             temp_fv0_2 = M2C_FIELD(temp_s1, f32 *, 8);
             temp_fv0_3 = M2C_FIELD(temp_s1, f32 *, 0xC);
@@ -132,7 +132,7 @@ void func_80162460(s32 arg0) {
             temp_fv0_5 = sqrtf(temp_fa0_2);
             var_fv1 = temp_fv0_5;
             if (temp_fv0_5 != temp_fv0_5) {
-                var_fv1 = func_80032310(temp_fa0_2);
+                var_fv1 = sqrtf(temp_fa0_2);
             }
             if (var_fs1 == 0.0f) {
                 var_fs1 = 1.0f;
@@ -198,7 +198,7 @@ void func_80162460(s32 arg0) {
         temp_fv0_10 = sqrtf(temp_fa0_3);
         var_fs1_2 = temp_fv0_10;
         if (temp_fv0_10 != temp_fv0_10) {
-            var_fs1_2 = func_80032310(temp_fa0_3);
+            var_fs1_2 = sqrtf(temp_fa0_3);
         }
         if (var_fs1_2 != 0.0f) {
             var_fs1_2 = 1000.0f / var_fs1_2;

@@ -40,6 +40,7 @@ void func_8015A9CC(s32 arg0) {
     s32 i;
 s32 __repair_phase_i;
     f32 f;
+f32 __repair_f_1;
 
     switch (state) {
     case 0:
@@ -103,9 +104,9 @@ s32 __repair_phase_i;
         }
     }
     if (D_80183BB4 < 255.0f) {
-        f = (f32)((f64)D_80183BB4 + D_80183940);
-        D_80183BB4 = f;
-        D_8018F5C0 = (u8)(s32)f;
+        __repair_f_1 = (f32)((f64)D_80183BB4 + D_80183940);
+        D_80183BB4 = __repair_f_1;
+        D_8018F5C0 = (u8)(s32)__repair_f_1;
         D_8018991C = D_8018F5C0;
         D_8018D39F = D_8018F5C0;
     }

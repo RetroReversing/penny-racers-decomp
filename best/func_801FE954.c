@@ -60,10 +60,10 @@ void func_801FE954(void) {
         a2 = 0;
     }
 
-    if (D_80203AC0 == 25) {
-        D_80203ACC = 0;
-    } else {
+    if (D_80203AC0 != 25) {
         D_80203ACC++;
+    } else {
+        D_80203ACC = 0;
     }
     if (D_801E9990 == 1) {
         alSeqpStop(D_8006FB38);

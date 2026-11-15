@@ -1,4 +1,4 @@
-f32 func_80032310();
+f32 sqrtf();
 s32 func_800DE41C();
 s32 func_8013E364();
 s32 func_8013E49C();
@@ -44,10 +44,11 @@ void func_801402B8(s32 arg0)
   s32 temp_v0_5;
   s32 temp_v0_6;
   s32 temp_v0_7;
-  s32 temp_v0_8;
+  
   s32 temp_v0_9;
   s32 temp_v1;
   s32 temp_v1_2;
+s32 __repair_phase_temp_v1_2;
   s32 var_s0;
   s32 var_s2;
   s32 var_v0;
@@ -75,7 +76,7 @@ void func_801402B8(s32 arg0)
       var_fv0 = sqrtf(temp_fa0);
       if (var_fv0 != var_fv0)
       {
-        var_fv0 = func_80032310(temp_fa0);
+        var_fv0 = sqrtf(temp_fa0);
       }
       if (var_fv0 < 1400.0f)
       {
@@ -120,9 +121,9 @@ void func_801402B8(s32 arg0)
         var_fv1_3 += D_801834B8;
       }
       temp_fs0_2 = (((f32) var_fv1_3) * 0.01f) + 0.5f;
-      temp_v0_8 = func_801FA30C() & 0xF;
-      var_fv1_4 = (f64) temp_v0_8;
-      if (temp_v0_8 < 0)
+      temp_v0_7 = func_801FA30C() & 0xF;
+      var_fv1_4 = (f64) temp_v0_7;
+      if (temp_v0_7 < 0)
       {
         var_fv1_4 += D_801834C0;
       }
@@ -134,11 +135,11 @@ void func_801402B8(s32 arg0)
       *(D_8011F338 + temp_s2) = 0;
       *(D_8018D730 + (temp_s0 * 0x7C)) = 25.0f;
       temp_v0_6 = func_800DE41C(0, 0, 1, 0, 0x52, 0x9B, D_80239950, &func_80140A38, &func_80138304, 0.0f, 0, 0.0f, 0, 0, 0, 0.2f, 0.2f, 0.2f);
-      temp_v1_2 = temp_v0_6 & 0xFFFF;
+      __repair_phase_temp_v1_2 = temp_v0_6 & 0xFFFF;
       if (((u32) ((temp_v0_6 + 2) & 0xFFFF)) >= 2U)
       {
-        *(D_8011F334 + (temp_v1_2 * 0x64)) = (f32) temp_s1_2;
-        *(D_8011F334 + temp_s2) = (f32) temp_v1_2;
+        *(D_8011F334 + (__repair_phase_temp_v1_2 * 0x64)) = (f32) temp_s1_2;
+        *(D_8011F334 + temp_s2) = (f32) __repair_phase_temp_v1_2;
       }
     }
     else

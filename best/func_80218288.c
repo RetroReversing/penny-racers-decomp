@@ -14,7 +14,6 @@ typedef s32 M2C_UNK32;
 
 f32 __cosf(f32);                                    /* extern */
 f32 __sinf(f32);                                    /* extern */
-f32 func_80032310(f32, void *);                     /* extern */
 M2C_UNK func_80129C88(M2C_UNK *, M2C_UNK, M2C_UNK); /* extern */
 f32 func_801F9C8C(f32, f32);                        /* extern */
 M2C_UNK guMtxCatF(M2C_UNK *, M2C_UNK *, M2C_UNK *); /* extern */
@@ -60,7 +59,6 @@ void func_80218288(s32 arg0) {
     f32 sp124;
     f32 sp128;
     f32 temp_fa0;
-    f32 temp_fa0_2;
     f32 temp_fs0;
     f32 temp_fs0_2;
     f32 temp_fs0_3;
@@ -77,7 +75,6 @@ void func_80218288(s32 arg0) {
     f32 temp_fv1_2;
     f32 temp_fv1_3;
     f32 temp_fv1_4;
-    f32 var_fv0;
     s32 temp_s0;
     s32 temp_s2;
     s32 temp_v0_2;
@@ -135,13 +132,8 @@ void func_80218288(s32 arg0) {
     temp_fs1 = *(&D_8022108C + temp_v0_3) - *(&D_80221080 + temp_v0_3);
     temp_fv1_4 = *(&D_80221090 + temp_v0_3) - *(&D_80221084 + temp_v0_3);
     temp_fs0_2 = *(&D_80221094 + temp_v0_3) - *(&D_80221088 + temp_v0_3);
-    temp_fa0 = (temp_fs1 * temp_fs1) + (temp_fv1_4 * temp_fv1_4) + (temp_fs0_2 * temp_fs0_2);
-    var_fv0 = sqrtf(temp_fa0);
-    if (var_fv0 != var_fv0) {
-        var_fv0 = func_80032310(temp_fa0, temp_a0);
-    }
-    temp_fa0_2 = 1.0f / var_fv0;
-    temp_fs4 = func_801F9C8C(temp_fs0_2 * temp_fa0_2, -(temp_fs1 * temp_fa0_2));
+    temp_fa0 = 1.0f / sqrtf((temp_fs1 * temp_fs1) + (temp_fv1_4 * temp_fv1_4) + (temp_fs0_2 * temp_fs0_2));
+    temp_fs4 = func_801F9C8C(temp_fs0_2 * temp_fa0, -(temp_fs1 * temp_fa0));
     temp_s0 = ((temp_s4 & 0xFFFF) - 1) * 0x24;
     *(&D_80221080 + temp_s0) = 0.0f;
     *(&D_80221084 + temp_s0) = 0.0f;

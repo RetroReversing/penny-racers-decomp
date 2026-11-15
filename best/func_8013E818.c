@@ -8,7 +8,7 @@ typedef struct { f32 f0; u8 pad[2284]; } Slot_8022AD5C;
 extern Slot_8022AD5C D_8022AD5C[];
 extern u16 D_80233EC0;
 
-void func_8013E818(s32 arg0, s32 arg1, s32 arg2, s32 arg3, f32 arg4, f32 arg5, s32 arg6) {
+void func_8013E818(s32 arg0, s32 arg1, s32 arg2, s32 arg3, f32 arg4, f32 arg5, u16 arg6) {
     s32 i;
     u8 *s0;
     u8 *t0;

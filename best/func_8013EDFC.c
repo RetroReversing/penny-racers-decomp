@@ -1,4 +1,4 @@
-f32 func_80032310();
+f32 sqrtf();
 s32 func_801D7028();
 extern char D_8011F2F0[];
 extern char D_8011F308[];
@@ -64,7 +64,7 @@ void func_8013EDFC(s32 arg0, void *arg1)
         var_fv1 = sqrtf(temp_fa0);
         if (var_fv1 != var_fv1)
         {
-          var_fv1 = func_80032310(temp_fa0);
+          var_fv1 = sqrtf(temp_fa0);
         }
         temp_v1_2 = arg1 + var_s1;
         if ((var_fv1 < (*((f32 *) (((char *) arg1) + 0x70)))) && ((*((u8 *) (((char *) temp_v1_2) + 0x67))) == 0))

@@ -8,10 +8,11 @@ void func_80204760(s32 arg0) {
     s32 v;
     if (D_8021E15F[0] == 1 && D_8021E15F[1] == 0) {
         v = (0xFF - D_8021E19E) & 0xFFFF;
-    } else {
+    
+    do { func_801CA494(arg0, v, v, v, 0xFF); } while (0);} else {
         v = 0x64;
-    }
-    func_801CA494(arg0, v, v, v, 0xFF);
+    
+    func_801CA494(arg0, v, v, v, 0xFF);}
     func_8014A4C8(arg0, 0x4B, 0x3C, 0xB, 0x64);
     func_8014A4C8(arg0, 0x4B, 0x9E, 0xB, 0x65);
     func_8014A4C8(arg0, 0x94, 0x3C, 0xB, 0x66);

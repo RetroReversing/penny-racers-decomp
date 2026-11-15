@@ -1,3 +1,15 @@
+#ifndef M2C_DEFINES
+#define M2C_DEFINES
+typedef s32 M2C_UNK;
+typedef s8 M2C_UNK8;
+typedef s16 M2C_UNK16;
+typedef s32 M2C_UNK32;
+#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
+#define M2C_BITWISE(type, expr) ((type)(expr))
+#define M2C_ERROR(desc) (0)
+#define M2C_CARRY 0
+#define M2C_OVERFLOW(a) (0)
+#endif
 typedef struct { u8 a, b, c; } T3;
 typedef struct { u8 pad[0x2E]; u16 st; u8 pad2[0x34]; } Rec;
 extern Rec D_8011F300[];
@@ -18,19 +30,19 @@ extern s32 D_801E97CC[];
 extern u16 D_801E9B32;
 extern s32 D_801E9D58;
 extern u16 D_8011F32E[];
-void func_80029790(void);
-void func_801E2EF4(void);
-s32 func_80029938(void);
-s32 func_800297E8(s32, void *, s32);
-s32 func_80029890(s32, void *, s32);
-s32 func_801E3010(void);
-s32 func_801E2FA4(void);
-void func_801E2E00(u16, void *);
-void func_801E2E48(u16);
-void func_801E2F38(u16);
-void func_801E2EC4(void *);
-void func_801DD938(s32, s32, s32, s32, s32, s32, s32, s32, s32, s32);
-void func_800297C8(void);
+void func_80029790();
+void func_801E2EF4();
+s32 func_80029938();
+s32 func_800297E8();
+s32 func_80029890();
+s32 func_801E3010();
+s32 func_801E2FA4();
+void func_801E2E00();
+void func_801E2E48();
+void func_801E2F38();
+void func_801E2EC4();
+void func_801DD938();
+void func_800297C8();
 
 #define ST(i) (*(u16 *)((u8 *)D_8011F32E + (i) * 100))
 #define B2FD(i) (*(u8 *)((u8 *)D_8011F2FD + (i) * 100))

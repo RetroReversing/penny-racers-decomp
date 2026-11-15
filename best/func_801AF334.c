@@ -97,8 +97,8 @@ void func_801AF334(void) {
             D_801C7D31[temp_s0].f0 = 1;
             *(u16 *)(D_801C7D34 + temp_a0_2) = (*(s32 *)(D_801C7084 + temp_a1_2) * 8) + D_8031445C;
             temp_v0_3 = func_800DE41C(0, 0, 2, 0, 0x5A, 0xFF, temp_a0_2 + D_801C7D30, 0, NULL, (f32) *(f32 *)(D_801C7082 + temp_a1_2) * 400.0f * 0.5f, (f32) *(f32 *)(D_801C7081 + temp_a1_2) * 0.5f, (f32) *(f32 *)(D_801C7083 + temp_a1_2) * 400.0f * 0.5f, 0, 0, 0, 0.5f, 0.5f, 0.5f);
-            temp_v1 = (temp_v0_3 & 0xFFFF) * 0x64;
-            *(u16 *)(D_8011F2F4 + temp_v1) = *(u16 *)(D_8011F2F4 + temp_v1) | 8;
+            temp_a0_2 = (temp_v0_3 & 0xFFFF) * 0x64;
+            *(u16 *)(D_8011F2F4 + temp_a0_2) = *(u16 *)(D_8011F2F4 + temp_a0_2) | 8;
             *(u16 *)(D_801C6BE0 + (temp_s0 * 2)) = temp_v0_3;
             *(u16 *)(D_801C7AD8 + temp_s0) = var_s1;
             if (D_801C5E9D == 5) {

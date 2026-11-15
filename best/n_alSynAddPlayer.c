@@ -22,5 +22,5 @@ void n_alSynAddPlayer(void *arg0) {
     M2C_FIELD(arg0, s32 *, 0x10) = (s32) M2C_FIELD(D_80046DF4, s32 *, 0x2C);
     M2C_FIELD(arg0, void **, 0) = (void *) M2C_FIELD(D_80046DF4, void **, 0);
     M2C_FIELD(D_80046DF4, void **, 0) = arg0;
-    func_800339C0(temp_v0, D_80046DF4);
+    func_800339C0(temp_v0);
 }

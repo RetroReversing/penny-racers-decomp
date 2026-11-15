@@ -94,7 +94,7 @@ s32 __repair_phase_temp_a0_2;
 
     temp_v1 = (arg0 & 0xFFFF) * 0x64;
     temp_a0_2 = (u8)(*(D_8011F2F0 + temp_v1));
-    temp_v1_2 = *(D_8011F32E + temp_v1);
+    temp_v1_2 = *(u16 *)(D_8011F32E + temp_v1);
     temp_s0 = ((temp_a0_2 & 0xFF) * 0x8F0) + D_8022A770;
     switch (temp_v1_2) {                            /* irregular */
     case 0:
@@ -172,7 +172,7 @@ if (0) goto __repair_rows_;
         }
 if (var_a0 < 4) goto __repair_rows;
         *(D_8018D66A + (temp_a0_2 & 0xFF)) = 0;
-        *(D_8011F32E + ((arg0 & 0xFFFF) * 0x64)) = 1;
+        *(u16 *)(D_8011F32E + ((arg0 & 0xFFFF) * 0x64)) = 1;
         return;
     case 1:
         var_v1 = arg0 & 0xFFFF;

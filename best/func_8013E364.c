@@ -1,55 +1,29 @@
-/* machine draft (m2c) for sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float, tried by autopilot */
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
-
+typedef struct { u16 prev; u16 next; u8 pad[120]; } Node;
 extern u16 D_80187BE0;
 extern s16 D_80189DC2;
-extern M2C_UNK D_8018D738;
-extern M2C_UNK D_8018D73A;
+extern Node D_8018D738[];
 extern u16 D_8018F5C2;
 
-s32 func_8013E364(void) {
-    s32 var_v0;
-    s32 var_v0_2;
-    s32 var_v1;
-    u16 temp_a1;
-
+u16 func_8013E364(void) {
+    u16 a1;
     if (D_80187BE0 == 0) {
-        var_v0 = 0xFFFF;
-        if (*(&D_8018D73A + ((D_8018F5C2 & 0xFFFF) * 0x7C)) != 0xFFFF) {
-            var_v1 = D_8018F5C2 & 0xFFFF;
-            var_v0_2 = var_v1 << 5;
-            __repair_rows: {
-                var_v1 = *(&D_8018D73A + ((var_v0_2 - var_v1) * 4)) & 0xFFFF;
-                var_v0_2 = var_v1 << 5;
-            }
-if (*(&D_8018D73A + (var_v1 * 0x7C)) != 0xFFFF) goto __repair_rows;
-            return 0xFFFF;
+        u16 cur = D_8018F5C2;
+        if (D_8018D738[cur].next != 0xFFFF) {
+            do {
+                cur = D_8018D738[cur].next;
+            } while (D_8018D738[cur].next != 0xFFFF);
         }
-        /* Duplicate return node #9. Try simplifying control flow for better match */
-        return var_v0;
+        return 0xFFFF;
     }
-    temp_a1 = D_8018F5C2;
-    D_8018F5C2 = *(&D_8018D73A + (D_8018F5C2 * 0x7C));
-    *(&D_8018D73A + ((temp_a1 & 0xFFFF) * 0x7C)) = 0xFFFF;
+    a1 = D_8018F5C2;
+    D_8018F5C2 = D_8018D738[a1].next;
+    D_8018D738[a1].next = 0xFFFF;
     if (D_8018F5C2 != 0xFFFF) {
-        *(&D_8018D738 + (D_8018F5C2 * 0x7C)) = 0xFFFF;
+        D_8018D738[D_8018F5C2].prev = 0xFFFF;
     }
     D_80187BE0 -= 1;
-    var_v0 = temp_a1 & 0xFFFF;
     if (D_80187BE0 == 0) {
         D_80189DC2 = 0xFFFF;
-        var_v0 = temp_a1 & 0xFFFF;
     }
-    return var_v0;
+    return a1;
 }

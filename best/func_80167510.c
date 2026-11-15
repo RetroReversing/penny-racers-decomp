@@ -12,7 +12,6 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-f32 func_80032310(f32);                             /* extern */
 s32 func_800DE41C(M2C_UNK, M2C_UNK, M2C_UNK, M2C_UNK, s32, s32, M2C_UNK *, M2C_UNK *, M2C_UNK *, M2C_UNK32, f32, M2C_UNK32, s32, s32, s32, f32, f32, f32); /* extern */
 s16 func_8012913C(u16, M2C_UNK32, f32, M2C_UNK32);  /* extern */
 M2C_UNK func_80129918(void *, M2C_UNK32, f32, M2C_UNK32, f32, f32, f32); /* extern */
@@ -36,14 +35,13 @@ extern M2C_UNK func_80167DD4;
 void func_80167510(s32 arg0) {
     M2C_UNK32 temp_fv0_3;
     M2C_UNK32 temp_fv0_4;
-    f32 temp_fa0;
     f32 temp_fs0;
     f32 temp_fs1;
+    f32 temp_ft0;
     f32 temp_ft1;
     f32 temp_ft2;
     f32 temp_fv0;
     f32 temp_fv0_2;
-    f32 var_ft0;
     s32 temp_s0;
     s32 temp_s2;
     s32 temp_v0;
@@ -83,7 +81,7 @@ void func_80167510(s32 arg0) {
             M2C_FIELD(temp_s1, M2C_UNK32 *, 0x4C) = (M2C_UNK32) M2C_FIELD(temp_s1, M2C_UNK32 *, 0x20);
             M2C_FIELD(temp_s1, f32 *, 0x1C) = (f32) (M2C_FIELD(temp_s1, f32 *, 0x1C) + 100.0f);
         default:
-block_36:
+block_34:
             func_8013AE60(arg0 & 0xFFFF);
         }
         return;
@@ -109,7 +107,7 @@ block_36:
                 M2C_FIELD(temp_v1_2, f32 *, 0x4C) = (f32) M2C_FIELD(temp_s2_2, f32 *, 0x7C8);
             }
         }
-        goto block_36;
+        goto block_34;
     case 2:
         temp_s0_3 = M2C_FIELD(temp_s1, void **, 0x60);
         M2C_FIELD(temp_s0_3, f32 *, 0xC) = (f32) (M2C_FIELD(temp_s0_3, f32 *, 0xC) - 0.15f);
@@ -157,38 +155,35 @@ block_36:
             }
             temp_fs0 = M2C_FIELD(temp_s0_3, f32 *, 8);
             temp_fs1 = M2C_FIELD(temp_s0_3, f32 *, 0x10);
-            temp_fa0 = (temp_fs0 * temp_fs0) + (temp_fs1 * temp_fs1);
-            var_ft0 = sqrtf(temp_fa0);
-            if (var_ft0 != var_ft0) {
-                var_ft0 = func_80032310(temp_fa0);
-            }
+            temp_ft0 = sqrtf((temp_fs0 * temp_fs0) + (temp_fs1 * temp_fs1));
             temp_ft1 = M2C_FIELD(temp_s0_3, f32 *, 0x30);
             temp_ft2 = M2C_FIELD(temp_s0_3, f32 *, 0x38);
             var_a0 = arg0 & 0xFFFF;
-            if (var_ft0 != 0.0f) {
-                temp_fv0 = (((temp_fs0 * temp_ft1) + (temp_fs1 * temp_ft2)) / var_ft0) * var_ft0 * -1.3f;
+            if (temp_ft0 != 0.0f) {
+                temp_fv0 = (((temp_fs0 * temp_ft1) + (temp_fs1 * temp_ft2)) / temp_ft0) * temp_ft0 * -1.3f;
                 M2C_FIELD(temp_s0_3, f32 *, 8) = (f32) (temp_fs0 + (temp_ft1 * temp_fv0));
                 M2C_FIELD(temp_s0_3, f32 *, 0x10) = (f32) (temp_fs1 + (temp_ft2 * temp_fv0));
                 temp_fv0_2 = M2C_FIELD(temp_s0_3, f32 *, 0xC) * 0.8f;
                 M2C_FIELD(temp_s0_3, f32 *, 0xC) = temp_fv0_2;
                 if (temp_fv0_2 < 0.0f) {
                     M2C_FIELD(temp_s0_3, f32 *, 0xC) = (f32) -temp_fv0_2;
-                    goto block_27;
+                    goto block_25;
                 }
             }
-            goto block_28;
+            goto block_26;
         }
-block_27:
+block_25:
         var_a0 = arg0 & 0xFFFF;
-block_28:
+block_26:
         var_v1_2 = 0;
         if (func_8013F1D4(var_a0, temp_s0_3) & 0xFF) {
             var_v0_2 = temp_s0_3;
-            do {
+            __repair_rows: {
                 M2C_FIELD(var_v0_2, s8 *, 0x67) = 0;
                 var_v1_2 += 1;
                 var_v0_2 = temp_s0_3 + var_v1_2;
-            } while (var_v1_2 < 7);
+            }
+if (var_v1_2 < 7) goto __repair_rows;
             temp_v0_6 = func_800DE41C(0, 0, 1, 0, 0x5B, 0xFA, &D_802390C8, &func_80164218, &func_80167DD4, M2C_FIELD(temp_s1, M2C_UNK32 *, 0x18), M2C_FIELD(temp_s1, f32 *, 0x1C), M2C_FIELD(temp_s1, M2C_UNK32 *, 0x20), 0, 0, 0, 0.08f, 0.08f, 0.08f);
             if ((u32) ((temp_v0_6 + 2) & 0xFFFF) >= 2U) {
                 temp_v1_5 = ((temp_v0_6 & 0xFFFF) * 0x64) + &D_8011F2F0;
@@ -226,6 +221,6 @@ block_28:
             M2C_FIELD(temp_s0_3, f32 *, 0x10) = 0.0f;
             M2C_FIELD(temp_s1, u16 *, 0x3E) = 1U;
         }
-        goto block_36;
+        goto block_34;
     }
 }
