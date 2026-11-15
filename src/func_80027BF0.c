@@ -10,7 +10,7 @@ void func_80027BF0(s32 arg0) {
     s32 temp_s0_2;
     s32 temp_v0;
 
-    temp_s0 = ((u32)&sp27 >> 4) * 0x10;
+    temp_s0 = ((((u32)&sp27) + 0xF) >> 4) * 0x10;
     func_800294A0(arg0, temp_s0, 4);
     temp_s0_2 = ((s32)(*(u16 *)(temp_s0 + 2) << 0x10) >> 0xD) + 4;
     temp_v0 = alHeapDBAlloc(0, 0, &D_8006E780, 1, temp_s0_2);
