@@ -2,8 +2,6 @@ extern s32 D_80168BB0;
 extern u8 D_8006FB38[];
 extern u8 D_8021E678;
 extern s32 D_8021B680;
-extern s32 D_8021AFDC;
-extern s32 D_8021AFE0;
 void alSeqpStop(void *);
 void func_801D65BC(s32);
 
@@ -21,10 +19,12 @@ void func_80214860(void)
         }
         break;
     case 2:
-        if (D_8021B680 != 0x1C && D_8021B680 != 4) {
+        if (D_8021B680 == 0x1C || D_8021B680 == 4) {
             func_801D65BC(0);
             D_80168BB0 = 2;
         }
+        break;
+    case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12: case 13: case 14: case 15: case 16: case 17: case 18: case 19: case 20: case 21: case 22: case 23: case 24: case 25: case 26: case 27: case 28: case 29: case 30: case 31: case 32: case 33: case 34: case 35:
         break;
     default:
         break;

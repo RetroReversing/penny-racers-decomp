@@ -1,18 +1,11 @@
-extern u8 D_8011F2F0[];
-extern u8 D_8011F2F2[];
+typedef struct {u8 index, pad; u16 flags[4]; u8 rest[90];} Record100;
+extern Record100 D_8011F2F0[];
 extern u16 D_80233EC0;
-
 void func_8013AE60(u16 arg0) {
-    s32 i;
-    s32 off = arg0 * 100;
-    u8 *base = D_8011F2F2;
-    u16 k = D_80233EC0;
-    for (i = 0; i < 4; i++) {
-        u16 *src = (u16 *)(i * 2 + (u32)(base + (k + D_8011F2F0[off]) * 100));
-        if (src[0] & 8) {
-            *(u16 *)(i * 2 + (u32)(base + off)) |= 8;
-        } else {
-            *(u16 *)(i * 2 + (u32)(base + off)) &= 0xFFF7;
-        }
-    }
+ s32 i;
+ for(i=0;i<4;i++) {
+  if(D_8011F2F0[D_80233EC0+D_8011F2F0[arg0].index].flags[i] & 8)
+   D_8011F2F0[arg0].flags[i] |= 8;
+  else D_8011F2F0[arg0].flags[i] &= ~8;
+ }
 }

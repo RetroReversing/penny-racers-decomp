@@ -4,10 +4,8 @@ void func_80138B1C(u32 **arg0) {
     u32 *g;
     u32 r, gr, b, t1, t2, t3;
     u32 w;
-    u32 v;
 
-    v = *(u16 *)(D_8006FAF0 + 0x20);
-    switch (v) {
+    switch (*(u16 *)(D_8006FAF0 + 0x20)) {
     case 0:
     case 1:
         r = 0xA; gr = 0xA; b = 0x32; t1 = t2 = t3 = 0xFF;
@@ -50,7 +48,7 @@ void func_80138B1C(u32 **arg0) {
     g[0] = 0xF64FC3BC;
     g[1] = 0;
 
-    if (v == 2 || v == 7) {
+    if (*(u16 *)(D_8006FAF0 + 0x20) == 2 || *(u16 *)(D_8006FAF0 + 0x20) == 7) {
         g = *arg0;
         *arg0 = g + 2;
         g[0] = 0xF8000000;

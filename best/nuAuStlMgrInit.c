@@ -41,6 +41,7 @@ void nuAuStlMgrInit(s32 arg0, s32 arg1, s32 *arg2)
   u32 i;
   s32 a0;
   s32 v1;
+  s32 size;
   D_80046C3C = 1;
   alHeapInit(D_8006E780, arg0, arg1);
   D_8005CFC0 = alHeapDBAlloc(0, 0, D_8006E780, 1, 0x2000);
@@ -55,12 +56,13 @@ void nuAuStlMgrInit(s32 arg0, s32 arg1, s32 *arg2)
   n_alInit(D_80072B80, arg2);
   a0 = 0;
   v1 = 0;
+  size = (s32) (func_800428B0 + 0xD0) - (s32) func_800428B0;
   for (i = 0; (i + 1) <= 2; i++)
   {
     *((s32 *) (D_8005D01C + v1)) = 0;
     *((s32 *) (D_8005CFD8 + v1)) = 2;
     *((s32 *) (D_8005CFE0 + v1)) = (s32) func_800428B0;
-    *((s32 *) (D_8005CFE4 + v1)) = ((s32) (func_800428B0 + 0xD0)) - ((s32) func_800428B0);
+    *((s32 *) (D_8005CFE4 + v1)) = size;
     *((s32 *) (D_8005CFE8 + v1)) = (s32) D_800437A0;
     *((s32 *) (D_8005CFF0 + v1)) = (s32) D_800485C0;
     *((s32 *) (D_8005CFF4 + v1)) = 0x800;
