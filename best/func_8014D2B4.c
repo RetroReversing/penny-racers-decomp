@@ -11,6 +11,8 @@ f32 __cosf(f32);
 void func_8013AE60(s32);
 
 void func_8014D2B4(s32 arg0) {
+char *__repair_addr;
+
     s32 i;
     s32 off;
     f32 angle;
@@ -22,7 +24,9 @@ void func_8014D2B4(s32 arg0) {
         *(f32 *)(D_8011F338 + off) = *(f32 *)(D_8011F314 + off);
         *(u16 *)(D_8011F32E + off) = 1;
     }
-    *(f32 *)(D_8011F334 + off) = *(f32 *)(D_8011F334 + off) + 1.0f;
+__repair_addr = (char *)(D_8011F334 + off);
+
+    *(f32 *)(__repair_addr) = *(f32 *)(D_8011F334 + off) + 1.0f;
     if (*(f32 *)(D_8011F334 + off) > 360.0f) {
         *(f32 *)(D_8011F334 + off) = *(f32 *)(D_8011F334 + off) - 360.0f;
     }

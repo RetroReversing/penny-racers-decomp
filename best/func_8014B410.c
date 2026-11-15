@@ -16,7 +16,7 @@ void func_8014B410(void)
             idx = 0x110 * i + 34 * j;
             sp[j] = base[idx + (s8)base[idx] + 2];
         }
-        func_80149CC4(i, 1, 8, base + 0x110 * i);
+        do { func_80149CC4(i, 1, 8, base + 0x110 * i); } while (0);
         for (j = 0; j < 8; j++) {
             idx = 0x110 * i + 34 * j;
             base[idx] = 0;

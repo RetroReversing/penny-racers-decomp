@@ -17,18 +17,18 @@ s64 func_80042690(f64 arg0) {
             mh = (hi & 0xFFFFF) | 0x100000;
             if (e < 0x34) {
                 r = 0x34 - e;
-                if (r < 0x20) {
-                    lo = (lo >> r) | (mh << (0x20 - r));
-                    mh = mh >> r;
-                } else {
+                if (r >= 0x20) {
                     lo = mh >> (r - 0x20);
                     mh = 0;
+                } else {
+                    lo = (lo >> r) | (mh << (0x20 - r));
+                    mh = mh >> r;
                 }
             } else {
                 s = e - 0x34;
                 if (s != 0) {
-                    mh = (mh << s) | (lo >> (0x20 - s));
-                    lo = lo << s;
+                    mh = (mh << s) | (lo >> (0x20 - s));do{do{do{
+                    lo = lo << s;}while(0);}while(0);}while(0);
                 }
             }
             if (hi & 0x80000000) {
