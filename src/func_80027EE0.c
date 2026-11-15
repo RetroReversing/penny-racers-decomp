@@ -14,7 +14,7 @@ s16 func_80027EE0(s32 arg0) {
 
     tbl = *(s32 **)((u8 *)(*(void **)((u8 *)D_80046C34 + 4)) + 0xC);
     i = 0;
-    while (D_8006FEE4 != 0 && i < D_8006FEE4) {
+    while (i < D_8006FEE4) {
         if (D_80046C38[i] != -1) {
             func_8002D030(D_80046C38[i]);
             if (n_alSndpGetState() == 0) {
