@@ -9,7 +9,7 @@ extern s32 D_80000300;
 extern M2C_UNK D_8004AAB0;
 extern M2C_UNK D_8004AC60;
 extern M2C_UNK D_80071F70;
-extern void (*D_800DA1E0)();
+extern void (*volatile D_800DA1E0)();
 extern M2C_UNK func_80026250;
 
 void func_80026E64(s32 arg0) {

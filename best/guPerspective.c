@@ -24,9 +24,9 @@ void guPerspective(s32 arg0, s16 *arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, 
   f64 temp_fv1_2;
   f64 temp_fv1_3;
   unsigned int var_v0;
+  s32 var_v0_2;
   s32 var_a0;
   s32 var_a1;
-  s32 var_v0_2;
   var_s0 = &sp10;
   func_80032CC0(var_s0);
   temp_fs0 = ((f32) (((f64) arg2) * D_8004A5D0)) / 2.0f;
@@ -80,7 +80,14 @@ void guPerspective(s32 arg0, s16 *arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, 
       {
         var_v0_2 = ((s32) (temp_fv1_3 - D_8004A5E8)) | 0x80000000;
       }
-      *arg1 = (s16) var_v0_2;
+      if (var_v0_2)
+      {
+        *arg1 = (s16) var_v0_2;
+      }
+      else
+      {
+        *arg1 = (s16) var_v0_2;
+      }
       if (!(var_v0_2 & 0xFFFF))
       {
         var_v0 = 1;

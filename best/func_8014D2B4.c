@@ -1,5 +1,5 @@
-extern char D_8011F314[];
-extern char D_8011F31C[];
+extern volatile unsigned char D_8011F314[];
+extern unsigned long D_8011F31C[];
 extern char D_8011F32E[];
 extern char D_8011F334[];
 extern char D_8011F338[];

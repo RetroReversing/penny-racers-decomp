@@ -46,9 +46,11 @@ void func_801B4B6C(s32 arg0)
     }
     else
     {
-      off = (arg0 & 0xFFFF) * 0x64;
-      *inline_fn(off) = 0;
-      *((&D_8011F2FC) + off) = 0;
+s32 __repair_branch_off_0;
+
+      __repair_branch_off_0 = (arg0 & 0xFFFF) * 0x64;
+      *inline_fn(__repair_branch_off_0) = 0;
+      *((&D_8011F2FC) + __repair_branch_off_0) = 0;
     }
   }
 }

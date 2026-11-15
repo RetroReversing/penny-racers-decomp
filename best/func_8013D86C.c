@@ -24,9 +24,9 @@ void func_8013D86C(s32 *arg0, u16 arg1) {
     s32 n;
     s32 k;
     u8 *base;
-    u32 *g;
+    u32 *g;do{
 
-    idx = arg1 * 25;
+    idx = arg1 * 25;}while(0);
     if (D_8011F340[idx][0] != 0) {
         return;
     }
