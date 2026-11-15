@@ -65,7 +65,7 @@ void nuAuStlMgrInit(s32 arg0, s32 arg1, s32 *arg2)
     *((s32 *) (D_8005CFF0 + v1)) = (s32) D_800485C0;
     *((s32 *) (D_8005CFF4 + v1)) = 0x800;
     *((s32 *) (D_8005CFF8 + v1)) = 0;
-    *((s32 *) (D_8005CFFC + v1)) = 0;
+ do { *((s32 *) (D_8005CFFC + v1)) = 0; } while (0);
     *((s32 *) (D_8005D000 + v1)) = 0;
     *((s32 *) (D_8005D004 + v1)) = 0;
     *((s32 *) (D_8005D010 + v1)) = 0;
@@ -78,4 +78,3 @@ void nuAuStlMgrInit(s32 arg0, s32 arg1, s32 *arg2)
   osCreateThread(D_8004CE10, 6, func_800276E0, 0, D_8004EFC0, 0x46);
   osStartThread(D_8004CE10);
 }
-

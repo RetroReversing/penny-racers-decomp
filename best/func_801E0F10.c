@@ -56,9 +56,10 @@ void func_801E0F10(s32 arg0) {
     s32 temp_a1_2;
     s32 temp_s0;
     s32 temp_v0;
-    s32 temp_v0_3;
+    
     s32 temp_v0_4;
     s32 temp_v0_5;
+s32 __repair_phase_temp_v0_5;
     s32 temp_v0_6;
     s32 temp_v1_3;
     s32 temp_v1_5;
@@ -160,8 +161,8 @@ void func_801E0F10(s32 arg0) {
                     M2C_FIELD(var_a3, s32 *, 0) = (s32) M2C_FIELD(var_a2, s32 *, 0);
                     M2C_FIELD(var_a3, s32 *, 4) = (s32) M2C_FIELD(var_a2, s32 *, 4);
 loop_32:
-                    temp_v0_3 = *((D_801E87E5 * 4) + D_801F1880);
-                    *(temp_v0_3 + D_801E9D80) = *(temp_v0_3 + D_801F18E0);
+                    temp_v0 = *((D_801E87E5 * 4) + D_801F1880);
+                    *(temp_v0 + D_801E9D80) = *(temp_v0 + D_801F18E0);
                     temp_v0_4 = *((D_801E87E5 * 4) + D_801F1880);
                     *(temp_v0_4 + D_801E9D81) = *(temp_v0_4 + D_801F18E1);
                     temp_v1_3 = *((D_801E87E5 * 4) + D_801F1880);
@@ -215,11 +216,11 @@ block_34:
         temp_a1_2 = *(D_801F1880 + (D_801E87E5 * 4));
         temp_a0_4 = *(D_801E9D80 + temp_a1_2);
         if (((temp_a0_4 == 0xFF) && (var_v0_2 = arg0 & 0xFFFF, (M2C_FIELD((D_801E9D80 + temp_a1_2), u8 *, 1) == temp_a0_4))) || (var_v0_2 = arg0 & 0xFFFF, (temp_t0 == 0))) {
-            temp_v0_5 = var_v0_2 * 0x64;
-            *(D_8011F2FC + temp_v0_5) = 0;
+            __repair_phase_temp_v0_5 = var_v0_2 * 0x64;
+            *(D_8011F2FC + __repair_phase_temp_v0_5) = 0;
             *(D_8022AFE9 + (D_801E87E5 * 0x8F0)) = 1;
             func_80232360(D_801E87E5, 0);
-            *(D_8011F32E + temp_v0_5) = 1;
+            *(D_8011F32E + __repair_phase_temp_v0_5) = 1;
         }
         break;
     }

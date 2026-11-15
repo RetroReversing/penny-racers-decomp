@@ -21,9 +21,10 @@ void func_800DF1E0(s32 arg0, s32 arg1) {
     }
     i = 0;
     if (n != 0) {
-        do {
+        __repair_rows: {
             *(u16 *)((u8 *)arg1 + i * 2) = *(u16 *)((u8 *)(*(s32 *)(*(s32 *)((u8 *)&D_8011F340 + (arg0 & 0xFFFF) * 0x64) + 4) + 8) + i * 2);
             i++;
-        } while (i < n);
+        }
+if (i < n) goto __repair_rows;
     }
 }

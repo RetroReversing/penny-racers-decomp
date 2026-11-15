@@ -152,10 +152,11 @@ block_35:
         temp_fv1_2 = temp_fs1_2 + 64.0f;
         if (temp_fv1_2 >= 2.1474836e9f) {
             var_a0_2 = (s32) (temp_fv1_2 - 2.1474836e9f); var_a0_2 = var_a0_2 | 0x80000000;
-        } else {
+        
+        n_alSndpSetPan(var_a0_2 & 0xFF);} else {
             var_a0_2 = (s32) temp_fv1_2;
-        }
-        n_alSndpSetPan(var_a0_2 & 0xFF);
+        
+        n_alSndpSetPan(var_a0_2 & 0xFF);}
         var_fv1_2 = temp_fs1_2 + 64.0f;
         var_a1 = D_80203ABC * 0x2C;
         if (!(var_fv1_2 >= 2.1474836e9f)) {
