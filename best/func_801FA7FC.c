@@ -2,102 +2,41 @@ f32 __cosf(f32);
 f32 __sinf(f32);
 s32 guMtxF2L(f32 *, s32);
 extern f32 D_801FB2B4;
-void func_801FA7FC(s32 arg0, f32 arg1, f32 arg2, f32 arg3)
-{
-  f32 sp10;
-  f32 sp14;
-  f32 sp18;
-  s32 sp1C;
-  f32 sp20;
-  f32 sp24;
-  f32 sp28;
-  s32 sp2C;
-  f32 sp30;
-  f32 sp34;
-  f32 sp38;
-  s32 sp3C;
-  s32 sp40;
-  s32 sp44;
-  s32 sp48;
-  f32 sp4C;
-  f32 temp_fs0;
-  f32 temp_fs0_2;
-  f32 temp_fs1;
-  f32 temp_fs1_2;
-  f32 temp_fs2;
-  f32 temp_fs2_2;
-  f32 temp_fs3;
-  f32 temp_fs4;
-  f32 temp_fs5;
-  f32 temp_ft1;
-  f32 temp_fv0;
-  f32 temp_fv1;
-  if (temp_fs1_2)
-  {
-    temp_fs0 = arg1 * D_801FB2B4;
-    temp_fs1 = arg2 * D_801FB2B4;
-    temp_fs3 = arg3 * D_801FB2B4;
-    temp_fs2 = __sinf(temp_fs0);
-    temp_fs4 = __cosf(temp_fs0);
-    temp_fs0_2 = __sinf(temp_fs1);
-    temp_fs5 = __cosf(temp_fs1);
-    temp_fs1_2 = __sinf(temp_fs3);
-    temp_fv0 = __cosf(temp_fs3);
-    temp_ft1 = temp_fs2 * temp_fs0_2;
-    sp10 = (temp_fs5 * temp_fv0) - (temp_ft1 * temp_fs1_2);
-    sp14 = (temp_fs5 * temp_fs1_2) + (temp_ft1 * temp_fv0);
-    temp_fv1 = -temp_fs4;
-    sp18 = temp_fv1 * temp_fs0_2;
-    sp1C = 0;
-    sp20 = temp_fv1 * temp_fs1_2;
-    sp24 = temp_fs4 * temp_fv0;
-    sp28 = temp_fs2;
-    sp2C = 0;
-    temp_fs2_2 = temp_fs2 * temp_fs5;
-    sp30 = (temp_fs0_2 * temp_fv0) + (temp_fs2_2 * temp_fs1_2);
-    sp34 = (temp_fs0_2 * temp_fs1_2) - (temp_fs2_2 * temp_fv0);
-    sp38 = temp_fs4 * temp_fs5;
-    sp3C = 0;
-    sp40 = 0;
-    sp44 = 0;
-    sp48 = 0;
-    sp4C = 1.0f;
-  }
-  else
-  {
-    temp_fs0 = arg1 * D_801FB2B4;
-    temp_fs1 = arg2 * D_801FB2B4;
-    temp_fs3 = arg3 * D_801FB2B4;
-    temp_fs2 = __sinf(temp_fs0);
-    temp_fs4 = __cosf(temp_fs0);
-    temp_fs0_2 = __sinf(temp_fs1);
-    temp_fs5 = __cosf(temp_fs1);
-    temp_fs1_2 = __sinf(temp_fs3);
-    temp_fv0 = __cosf(temp_fs3);
-    temp_ft1 = temp_fs2 * temp_fs0_2;
-    sp10 = (temp_fs5 * temp_fv0) - (temp_ft1 * temp_fs1_2);
-    sp14 = (temp_fs5 * temp_fs1_2) + (temp_ft1 * temp_fv0);
-    temp_fv1 = -temp_fs4;
-    sp18 = temp_fv1 * temp_fs0_2;
-    sp1C = 0;
-    sp20 = temp_fv1 * temp_fs1_2;
-    sp24 = temp_fs4 * temp_fv0;
-    sp28 = temp_fs2;
-    sp2C = 0;
-    temp_fs2_2 = temp_fs2 * temp_fs5;
-    sp30 = (temp_fs0_2 * temp_fv0) + (temp_fs2_2 * temp_fs1_2);
-    sp34 = (temp_fs0_2 * temp_fs1_2) - (temp_fs2_2 * temp_fv0);
-    sp38 = temp_fs4 * temp_fs5;
-    sp3C = 0;
-    sp40 = 0;
-    sp44 = 0;
-    sp48 = 0;
-    sp4C = 1.0f;
-  }
-  do
-  {
-    guMtxF2L(&sp10, arg0);
-  }
-  while (0);
-}
 
+void func_801FA7FC(s32 arg0, f32 arg1, f32 arg2, f32 arg3) {
+    f32 m[16];
+    f32 x, y, z;
+    f32 sx, cx, sy, cy, sz, cz;
+    f32 nx;
+    f32 t;
+
+    x = arg1 * D_801FB2B4;
+    y = arg2 * D_801FB2B4;
+    z = arg3 * D_801FB2B4;
+    sx = __sinf(x);
+    cx = __cosf(x);
+    sy = __sinf(y);
+    cy = __cosf(y);
+    sz = __sinf(z);
+    cz = __cosf(z);
+    t = sx * sy;
+    m[0] = cy * cz - t * sz;
+    m[1] = cy * sz + t * cz;
+    nx = -cx;
+    m[2] = nx * sy;
+    m[3] = 0;
+    m[4] = nx * sz;
+    m[5] = cx * cz;
+    m[6] = sx;
+    m[7] = 0;
+    t = sx * cy;
+    m[8] = sy * cz + t * sz;
+    m[9] = sy * sz - t * cz;
+    m[10] = cx * cy;
+    m[11] = 0;
+    m[12] = 0;
+    m[13] = 0;
+    m[14] = 0;
+    m[15] = 1.0f;
+    do { guMtxF2L(m, arg0); } while (0);
+}
