@@ -2,6 +2,7 @@ f32 func_801FA3B4(f32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f3
 f32 dy1,dy2,denominator,numerator,first;
 dy1 = arg6 - arg4;
 dy2 = arg7 - arg5;
+arg3-=arg1;
 if (dy1 == 0.0f) {
  if (arg0 == arg2) { half: return 0.5f; }
  first = arg4 - arg0;

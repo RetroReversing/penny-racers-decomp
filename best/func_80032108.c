@@ -12,10 +12,11 @@ void func_80032108(void *arg0, void *arg1, u32 arg2) {
     u16 s3;
     u32 s2;
     s32 t;
-    char *b = arg1;
     char *a = arg0;
+    char *b = arg1;
+    u32 n = arg2;
 
-    if (arg2 == 0) {
+    if (n == 0) {
         t = *(s32 *) (a + 4);
         ((__repair_record_b *) b)->field_C = 0;
         ((__repair_record_b *) b)->field_4 = 0;
@@ -42,7 +43,7 @@ void func_80032108(void *arg0, void *arg1, u32 arg2) {
             ((__repair_record_b *) b)->field_0 = s4;
             break;
         }
-        if (*(u32 *) (a + 0xC) < arg2) {
+        if (*(u32 *) (a + 0xC) < n) {
             continue;
         }
         ((__repair_record_b *) b)->field_0 = s4;

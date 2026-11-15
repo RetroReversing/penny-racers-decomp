@@ -16,10 +16,13 @@ s32 func_80199EAC(s32 arg0) {
         if (D_801C6BCC == 0.0f) var_a1 = 0;
         else if (D_801C6BCC == 360.0f) var_a1 = 0;
         else if (D_801C6BCC == 90.0f) var_a1 = 1;
+        else if (D_801C6BCC == 180.0f) var_a1 = 2;
         else if (D_801C6BCC == 270.0f) var_a1 = 3;
     } else if (SB(D_801E995B, (u16)arg0 * 0x70) < -0x3C) {
         if (SW(D_801E998C, (u16)arg0 * 0x70) % 15 == 1) {
-            if (D_801C6BCC == 90.0f) var_a1 = 3;
+            if (D_801C6BCC == 0.0f) var_a1 = 2;
+            else if (D_801C6BCC == 360.0f) var_a1 = 2;
+            else if (D_801C6BCC == 90.0f) var_a1 = 3;
             else if (D_801C6BCC == 180.0f) var_a1 = 0;
             else if (D_801C6BCC == 270.0f) var_a1 = 1;
         } else goto l28;
@@ -29,6 +32,7 @@ l28:
             if (SW(D_801E9984, (u16)arg0 * 0x70) % 15 == 1) {
                 if (D_801C6BCC == 0.0f) var_a1 = 1;
                 else if (D_801C6BCC == 360.0f) var_a1 = 1;
+                else if (D_801C6BCC == 90.0f) var_a1 = 2;
                 else if (D_801C6BCC == 180.0f) var_a1 = 3;
                 else if (D_801C6BCC == 270.0f) var_a1 = 0;
             } else goto l44;

@@ -28,7 +28,7 @@ typedef struct
 } S;
 extern G *D_80046DF4;
 extern E D_801D75E6[];
-extern u8 D_8021F029;
+extern u8 D_8021F029[];
 s32 func_8002C508(u8 *arg0, s32 arg1)
 {
   T *t = D_80046DF4->t;
@@ -36,7 +36,7 @@ s32 func_8002C508(u8 *arg0, s32 arg1)
   s16 i;
   for (i = 0; i < t->n; i++)
   {
-    S *s = (S *) (tab + (i * 0x30));
+    S *s = (S *) ((i * 0x30) + tab);
     if (s->o == 0)
     {
       s->o = arg0;
@@ -45,7 +45,7 @@ s32 func_8002C508(u8 *arg0, s32 arg1)
       s->f = 0.5f;
       s->b = 0x40;
       s->c = 0;
-      s->vol = (((s32) ((((f32) D_801D75E6[arg1].v) * ((f32) D_8021F029)) * 0.047619f)) * arg0[0xD]) / 127;
+      s->vol = (((s32) ((((f32) D_801D75E6[arg1].v) * ((f32) D_8021F029[0])) * 0.047619f)) * arg0[0xD]) / 127;
       return i;
     }
   }
