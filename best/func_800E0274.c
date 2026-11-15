@@ -25,8 +25,8 @@ void func_800E0274(u32 **arg0, s32 arg1, s32 arg2) {
 
     s2 = D_8011F2F0 + (arg1 & 0xFFFF) * 0x64;
     s4 = D_800E2660 + *(u16 *)(s2 + 0x3C) * 0x308;
+    s0 = arg2;
     if (!(*(u16 *)(s2 + 2 + D_80126FF6 * 2) & 0x20)) {
-        s0 = arg2;
         s6 = 0;
         if (*(f32 *)(s2 + 0x30) == D_800E1E40) {
             goto mask;

@@ -142,8 +142,8 @@ void func_8020A160(s32 arg0)
     temp_v1 = &(&D_8021F090)[arg0];
     *temp_v1 = func_800DE41C(0, arg0 & 0xFF, 1, 0, 0x64, 0xFF, (arg0 * 0x1A0) + D_8021E680, &func_8020AA48, &func_8020FED8, 0x41400000, var_fs0 + (*(D_8021B2D8 + (arg0 * 4))), 0, *(D_8021B2E8 + (arg0 * 4)), 0, 0, 0x3ECCCCCD, 0x3ECCCCCD, 0x3ECCCCCD);
     var_a0 = *(D_8011F340 + ((*(D_8011F304 + ((*temp_v1) * 0x64))) * 0x64));
-    temp_v0_4 = arg0 * 0x110;
-    var_v0_2 = ((*(D_8021E231 + (temp_v0_4 + (D_8021E22F[arg0].f0)))) * 0xC) + D_80237DC0;
+    var_t0 = arg0 * 0x110;
+    var_v0_2 = ((*(D_8021E231 + (var_t0 + (D_8021E22F[arg0].f0)))) * 0xC) + D_80237DC0;
   }
   *((void **) (((char *) var_a0) + 4)) = var_v0_2;
 }

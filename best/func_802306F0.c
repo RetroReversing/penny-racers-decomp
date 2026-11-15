@@ -24,7 +24,7 @@ loop0:
     if (i < 14) goto loop0;
     switch (arg0 & 0xFFFF) {
     case 1:
-        n = D_800DA260[0].id + 1;
+        n = D_800DA260[0].id; n += 1;
         i = 1;
 loop1:
         n++;
@@ -46,8 +46,8 @@ loop2:
         }
         func_80230BC4(i, n);
         D_800DA260[i].flag = 0;
-        used[n] = 1;
-        i++;
+        used[n] = 1;/*__repair_loop_weight*/do {
+        i++;} while (0);
         if (i < 4) goto loop2;
         n = D_800DA260[1].id;
         i = 4;

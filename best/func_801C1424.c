@@ -8,7 +8,8 @@ extern u16 D_8011F32E;
 extern f32 D_801C6B60[8];
 extern s32 D_801C6B80;
 extern u8 D_80167FB8[];
-extern u8 D_80167FBC[];
+typedef struct { s16 f0; u8 pad[14]; } Slot_80167FBC;
+extern Slot_80167FBC D_80167FBC[];
 
 s32 func_8013AE60(s32, Unk801C6AC8 *);
 f32 __sinf(f32);
@@ -45,7 +46,7 @@ void func_801C1424(s32 arg0) {
         for (k = 0; k < 8; k++) {
             temp = (s32) (__sinf((D_801C6B60[k] * 3.1415927f) / 180.0f) * ((f32 *) &sp10)[k]);
             *(s16 *) (D_80167FB8 + (k + 8) * 0x10 + 4) = (s16) temp;
-            *(s16 *) (D_80167FBC + k * 0x10) = (s16) temp;
+            D_80167FBC[k].f0 = (s16) temp;
         }
     }
 }

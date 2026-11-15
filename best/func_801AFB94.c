@@ -41,7 +41,7 @@ extern void func_8012AD9C();
 extern void func_8013DD2C();
 extern void func_8015A414();
 extern u8 D_80159230[];
-void func_801AFB94(s32 arg0, s32 arg1)
+void func_801AFB94(s32 arg0, long long arg1)
 {
   u8 *__repair_cached_pointer = D_801C7AB0;
   u8 sp48[8];
@@ -58,7 +58,7 @@ void func_801AFB94(s32 arg0, s32 arg1)
     func_80231E30(arg0);
     func_801B09F0(arg0, arg1);
     func_801B0B60(arg0);
-    func_801B312C(arg0, D_80323ED0, (arg1 & 0xFF), 0x43C80000, 400.0f);
+    func_801B312C(arg0, D_80323ED0, arg1 & 0xFF, 0x43C80000, 400.0f);
     func_801B7970(D_801C7AB0, arg0);
     func_801B36F8(arg0);
   }
@@ -66,12 +66,23 @@ void func_801AFB94(s32 arg0, s32 arg1)
   {
     *((u32 *) D_801C6A38) = *((u32 *) D_801C6A38);
     *((u16 *) (D_8006FAF0 + 0x20)) = 0;
-    __repair_rows: { func_80231A0C(arg0, D_801C6A38); }
-if (0) goto __repair_rows;
+    __repair_rows:
+    {
+      func_80231A0C(arg0, D_801C6A38);
+    }
+
+    if (0)
+    {
+      goto __repair_rows;
+    }
     func_80231E30(arg0);
     func_801B09F0(arg0, arg1);
-    do { func_801B0B60(arg0); } while (0);
-    func_801B312C(arg0, D_80323ED0, (arg1 & 0xFF), 0x43C80000, 400.0f);
+    do
+    {
+      func_801B0B60(arg0);
+    }
+    while (0);
+    func_801B312C(arg0, D_80323ED0, arg1 & 0xFF, 0x43C80000, 400.0f);
     func_801B7970(__repair_cached_pointer, arg0);
     func_801B36F8(arg0);
   }
