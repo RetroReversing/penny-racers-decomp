@@ -25,3 +25,23 @@ typedef int s32_bool;
 s32 func_8013E49C(u16 arg0);
 s32 func_8013EDFC(s32 arg0, void *arg1);
 void func_80157E30(s32 arg0);
+
+/* Verified partial layouts used by n_alSynAddPlayer. */
+typedef struct N_ALPlayerLayout { struct N_ALPlayerLayout *next; u8 pad04[12]; s32 samplesLeft; } N_ALPlayerLayout;
+typedef struct { N_ALPlayerLayout *head; u8 pad04[40]; s32 samples; } N_ALSynthLayout;
+
+/* Sound event layouts verified by Stop/SetFXMix/SetPan/SetPitch. */
+typedef struct { u8 data[0x30]; } N_ALSoundStateLayout;
+typedef struct { u8 pad00[0x3c]; s32 target; N_ALSoundStateLayout *states; } N_ALSoundPlayerLayout;
+typedef struct { s16 type; u16 pad02; N_ALSoundStateLayout *state; union { s8 mix; f32 pitch; } value; u8 extra0c[4]; } N_ALSoundEventLayout;
+
+/* Bank sound relocation fields verified by _bnkfPatchSound. */
+typedef struct { u32 envelope; u32 keymap; u32 wavetable; u8 pad[2]; u8 flags; u8 padf; } N_ALBankSoundLayout;
+f32 alCents2Ratio(s32 cents);
+
+/* Verified waveform relocation and sequence timing layouts. */
+typedef struct { u32 base; s32 len; u8 type,flags; u16 pad; u32 loop,book; } N_ALWaveTableLayout;
+typedef struct { u8 pad[0x18]; s16 division; } N_ALSequenceLayout;
+
+/* Sequence-channel layout: stride and accessed offsets verified by func_80027D00. */
+typedef struct { u8 player[0x7C]; u8 seq[0xF8]; s32 data; s32 pad178; s32 flags; s32 pad180; } PennySeqState;

@@ -1,30 +1,39 @@
-extern s32 D_8011F340;
-extern s32 D_8011F34C;
+extern u8 D_8011F340;
+extern u8 D_8011F34C;
 
-void func_800DF1E0(s32 arg0, s32 arg1) {
+typedef struct {
+    u8 pad0[4];
+    u8 count;
+    u8 pad1[3];
+    u16 *data;
+} Unk800DF1E0_1;
+
+typedef struct {
+    u8 pad0[4];
+    Unk800DF1E0_1 *unk4;
+} Unk800DF1E0_2;
+
+void func_800DF1E0(s32 arg0, u16 *arg1) {
+    s32 off;
     s32 n;
     s32 i;
-    u8 v;
+    u8 count;
 
-    *(s32 *)((u8 *)&D_8011F34C + (arg0 & 0xFFFF) * 0x64) = arg1;
-    v = *(u8 *)(*(s32 *)(*(s32 *)((u8 *)&D_8011F340 + (arg0 & 0xFFFF) * 0x64) + 4) + 4);
-    if (v != 1) {
+    off = (arg0 & 0xFFFF) * 100;
+    *(u32 *)((u8 *)&D_8011F34C + off) = (u32)arg1;
+    count = (*(Unk800DF1E0_2 **)((u8 *)&D_8011F340 + off))->unk4->count;
+    if (count != 1) {
         n = 0;
-        if (v >= 2) {
+        if (count >= 2) {
             n = 0x100;
-            if (v != 2) {
+            if (count != 2) {
                 n = 0;
             }
         }
     } else {
         n = 0x10;
     }
-    i = 0;
-    if (n != 0) {
-        __repair_rows: {
-            *(u16 *)((u8 *)arg1 + i * 2) = *(u16 *)((u8 *)(*(s32 *)(*(s32 *)((u8 *)&D_8011F340 + (arg0 & 0xFFFF) * 0x64) + 4) + 8) + i * 2);
-            i++;
-        }
-if (i < n) goto __repair_rows;
+    for (i = 0; i < n; i++) {
+        arg1[i] = (*(Unk800DF1E0_2 **)((u8 *)&D_8011F340 + (arg0 & 0xFFFF) * 100))->unk4->data[i];
     }
 }

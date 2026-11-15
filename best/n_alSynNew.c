@@ -72,12 +72,13 @@ void n_alSynNew(u8 *arg0) {
     j = 0;
     if (*(s32 *)(arg0 + 8) > 0) {
         v1 = temp_v0_4;
-        do {
+        __repair_rows: {
             *v1 = *(s32 *)(D_80046DF4 + 0x38);
             *(s32 **)(D_80046DF4 + 0x38) = v1;
             j += 1;
             v1 += 7;
-        } while (j < *(s32 *)(arg0 + 8));
+        }
+if (j < *(s32 *)(arg0 + 8)) goto __repair_rows;
     }
     *(s32 *)(D_80046DF4 + 0x34) = (s32)heap;
 }

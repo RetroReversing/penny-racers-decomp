@@ -8,9 +8,10 @@ extern s32 D_80221094;
 
 void func_801FC2F8(u32 arg0) {
     s32 off;
-    s32 i;
+    volatile s32 i;
 
-    if (*(u16 *)((u8 *)&D_8011F32E + (arg0 & 0xFFFF) * 0x64) == 0) {
+    i = arg0 & 0xFFFF;
+    if (*(u16 *)((u8 *)&D_8011F32E + i * 0x64) == 0) {
         i = 2;
         *(s32 *)((u8 *)&D_8022108C + i * 0x24) = 0;
         *(s32 *)((u8 *)&D_80221090 + i * 0x24) = 0;

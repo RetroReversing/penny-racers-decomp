@@ -71,7 +71,7 @@ void func_80167510(s32 arg0) {
     case 0:
         temp_s0 = func_8013E364() & 0xFFFF;
         if (temp_s0 != 0xFFFF) {
-            func_8013E818(temp_s0, arg0 & 0xFFFF, 0, 0, 0, 0, 4);
+            do { func_8013E818(temp_s0, arg0 & 0xFFFF, 0, 0, 0, 0, 4); } while (0);
             M2C_FIELD(temp_s1, u16 *, 0x3E) = 2U;
             temp_v0 = temp_s0 * 0x7C;
             *(&D_8018D730 + temp_v0) = 15.0f;

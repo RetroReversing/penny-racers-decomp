@@ -6,7 +6,7 @@ extern u8 D_801C7081[];
 extern u8 D_8011F30C[];
 
 s32 func_80198CC4(s32 arg0) {
-    s32 a1 = 0;
+    u8 a1 = 0;
     s32 v1;
     u8 v0;
     u32 off;
@@ -18,10 +18,11 @@ s32 func_80198CC4(s32 arg0) {
     }
     if (D_801C6BB9 != 0) {
         if (D_801CA130 != ((u8 *)D_801C7AB0)[2]) {
-            off = (arg0 & 0xFFFF) * 0x64;
             if ((u8)(v1 - 0x16) < 0x14) {
+                off = (arg0 & 0xFFFF) * 0x64;
                 v0 = D_801C7081[D_801CA130 * 5] + 0x3C;
             } else {
+                off = (arg0 & 0xFFFF) * 0x64;
                 v0 = D_801C7081[D_801CA130 * 5];
             }
             *(f32 *)(D_8011F30C + off) = (f32)v0 * 0.5f;

@@ -1,5 +1,5 @@
 extern u8 D_80046DB0[];
-extern s8 D_80046DB1[];
+extern u8 D_80046DB1[];
 void nuContPakN64ToJis(u8 *arg0, u8 *arg1, u32 arg2)
 {
   u32 i;

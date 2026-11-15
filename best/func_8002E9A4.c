@@ -2,7 +2,7 @@ extern f64 D_8004A438;
 extern f64 D_8004A440;
 extern f64 D_8004A448;
 extern f64 D_8004A450;
-s16 func_8002E9A4(f64 arg0, f64 arg1, s32 arg4, s16 *arg5)
+s16 func_8002E9A4(f64 arg0, f64 arg1, s32 arg4, u16 *arg5)
 {
   f64 temp_fv0;
   f64 temp_fv0_2;

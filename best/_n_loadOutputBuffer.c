@@ -1,41 +1,37 @@
+typedef struct {u32 w0,w1;} OutCmd;
+typedef struct {char pad[0x18];s16 *input;} OutFx;
+typedef struct {char pad[0x14];void *state;char pad18[8];f32 delta;s32 first;} OutRes;
+typedef struct {s32 input,output;char pad8[0x10];s32 rsdelta;char pad1c[8];OutRes *rs;} OutDelay;
 void *_n_loadBuffer(void *, s32, s32, s32, s32);
 s32 osVirtualToPhysical(s32);
 f32 _doModFunc(void *, s32);
 extern f64 D_8004A4A0;
-void *_n_loadOutputBuffer(void *arg0, void *arg1, s32 arg2, s32 arg3)
-{
-  f32 temp_fs0;
-  f32 temp_fv0;
-  s32 temp_a1;
-  s32 temp_fv1;
-  unsigned short temp_s0;
-  s32 temp_s1;
-  void *temp_s4;
-  s32 temp_a3;
-  void *temp_v0;
-  void *var_s4;
-  if ((*((void **) (((char *) arg1) + 0x24))) != NULL)
-  {
-    temp_s0 = (*((s32 *) (((char *) arg1) + 4))) - (*((s32 *) (((char *) arg1) + 0)));
-    temp_fs0 = (f32) (D_8004A4A0 - ((f64) (((f32) ((s32) ((_doModFunc(arg1, 0xB8) / ((f32) temp_s0)) * 32768.0f))) / 32768.0f)));
-    temp_v0 = *((void **) (((char *) arg1) + 0x24));
-    temp_fv0 = (*((f32 *) (((char *) temp_v0) + 0x20))) + (temp_fs0 * ((f32) 0xB8));
-    temp_fv1 = (s32) temp_fv0;
-    *((f32 *) (((char *) temp_v0) + 0x20)) = (f32) (temp_fv0 - ((f32) temp_fv1));
-    temp_a1 = (*((s32 *) (((char *) arg0) + 0x18))) + (((*((s32 *) (((char *) arg1) + 0x18))) - (*((s32 *) (((char *) arg1) + 4)))) * 2);
-    temp_a3 = ((s32) (temp_a1 & 7)) >> 1;
-    temp_s1 = temp_a3 * 2;
-    temp_s4 = _n_loadBuffer(arg0, temp_a1 - temp_s1, 0x2E0, temp_fv1 + temp_a3, arg3);
-    *((s32 *) (((char *) temp_s4) + 0)) = (s32) ((osVirtualToPhysical(*((s32 *) (((char *) (*((void **) (((char *) arg1) + 0x24)))) + 0x14))) & 0xFFFFFF) | 0x05000000);
-    *((s32 *) (((char *) temp_s4) + 4)) = (s32) (((((*((s32 *) (((char *) (*((void **) (((char *) arg1) + 0x24)))) + 0x24))) << 0x1E) | ((((s32) (temp_fs0 * 32768.0f)) & 0xFFFF) << 0xE)) | ((temp_s1 | 0x2E0) * 4)) | ((arg2 >> 8) & 3));
-    *((s32 *) (((char *) (*((void **) (((char *) arg1) + 0x24)))) + 0x24)) = 0;
-    var_s4 = temp_s4 + 8;
-    *((s32 *) (((char *) arg1) + 0x18)) = (s32) ((*((s32 *) (((char *) arg1) + 0x18))) + (temp_fv1 - 0xB8));
-  }
-  else
-  {
-    var_s4 = _n_loadBuffer(arg0, (*((s32 *) (((char *) arg0) + 0x18))) - ((*((s32 *) (((char *) arg1) + 4))) * 2), arg2, 0xB8, arg3);
-  }
-  return var_s4;
+OutCmd *_n_loadOutputBuffer(OutFx *r, OutDelay *d, s32 buff, OutCmd *p) {
+    f32 ratio, fin;
+    s32 length, incount = 184, ptr, align, delta;
+    u16 pitch;
+    if (d->rs) {
+        length = d->output;
+        length -= d->input;
+        ratio = D_8004A4A0 - (f64)((f32)(s32)((_doModFunc(d, incount) / (f32)length) * 32768.0f) / 32768.0f);
+        fin = d->rs->delta + ratio * (f32)incount;
+        d->rs->delta = fin - (f32)(s32)fin;
+        incount = (s32)fin;
+        ptr = (s32)r->input + (d->rsdelta - d->output) * 2;
+        align = (ptr & 7) >> 1;
+        delta = align * 2;
+        p = _n_loadBuffer(r, ptr - delta, 0x2e0, incount + align, (s32)p);
+        pitch = (s32)(ratio * 32768.0f);
+        {
+            OutCmd *a = p++;
+            a->w0 = (osVirtualToPhysical((s32)d->rs->state) & 0xffffff) | 0x05000000;
+            a->w1 = ((buff >> 8) & 3) | (d->rs->first << 30) | ((u32)pitch << 14) | ((delta | 0x2e0) * 4);
+        }
+        d->rs->first = 0;
+        incount -= 184;
+        d->rsdelta += incount;
+    } else {
+        p = _n_loadBuffer(r, (s32)r->input - d->output * 2, buff, 184, (s32)p);
+    }
+    return p;
 }
-

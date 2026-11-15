@@ -26,8 +26,11 @@ void func_80207DC8(void) {
         }
         count = 0;
     } while (j < 4);
-    if ((s16)D_8021E1AC >= 4) {
-        D_8021E1AC = 3;
+    {
+        u16 *q = &D_8021E1AC;
+        if ((s16)*q >= 4) {
+            *q = 3;
+        }
     }
     if (D_8021B079 == 1) {
         D_8021E1AC = 3;

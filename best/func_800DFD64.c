@@ -22,19 +22,22 @@ void func_800DFD64(u32 **dl, u16 arg1, s32 arg2, f32 a3, f32 f1, f32 f2)
     u8 *rec = D_8011F2F0 + (arg1 & 0xFFFF) * 0x64;
     u8 *obj = D_800E2660 + U16(rec, 0x3C) * 0x308;
     u32 *g;
-    s32 s0 = arg2 & 0xFF;
-    s32 s5;
+    s32 s0 = arg2;
+    u32 s5;
     s32 s6 = 0;
+    u32 s3 = 0x80000000;
     f32 fs0 = a3;
     f32 fs1 = f1;
     f32 fs2 = f2;
+    u8 v;
+    u8 *p;
 
     if (!(U16(rec, 2 + D_80126FF6 * 2) & 8)) {
-        if (!((f64)FLT_CVT(rec, 0x30) == D_800E1E10 && (f64)FLT_CVT(rec, 0x34) == D_800E1E10 && (f64)FLT_CVT(rec, 0x38) == D_800E1E10)) {
-            guScale((u32 *)(obj + (s0 << 6) + 0x288), *(f32 *)(rec + 0x30), *(f32 *)(rec + 0x34), *(f32 *)(rec + 0x38));
+        if (!((f64)*(f32 *)(rec + 0x30) == D_800E1E10 && (f64)*(f32 *)(rec + 0x34) == D_800E1E10 && (f64)*(f32 *)(rec + 0x38) == D_800E1E10)) {
+            guScale((u32 *)(obj + ((arg2 & 0xFF) << 6) + 0x288), *(f32 *)(rec + 0x30), *(f32 *)(rec + 0x34), *(f32 *)(rec + 0x38));
             s6 = 1;
         }
-        guTranslate((u32 *)(obj + (s0 << 6) + 0x8), *(f32 *)(rec + 0x18), *(f32 *)(rec + 0x1C), *(f32 *)(rec + 0x20));
+        guTranslate((u32 *)(obj + ((arg2 & 0xFF) << 6) + 0x8), *(f32 *)(rec + 0x18), *(f32 *)(rec + 0x1C), *(f32 *)(rec + 0x20));
 
         if (U16(rec, 2 + D_80126FF6 * 2) & 0x40) {
             func_800DF2AC(1, fs0, fs1, fs2, *(f32 *)(rec + 0x18), *(f32 *)(rec + 0x1C), *(f32 *)(rec + 0x20), (u32 *)(rec + 0x24), (u32 *)(rec + 0x28));
@@ -42,20 +45,58 @@ void func_800DFD64(u32 **dl, u16 arg1, s32 arg2, f32 a3, f32 f1, f32 f2)
             func_800DF2AC(0, fs0, fs1, fs2, *(f32 *)(rec + 0x18), *(f32 *)(rec + 0x1C), *(f32 *)(rec + 0x20), (u32 *)(rec + 0x24), (u32 *)(rec + 0x28));
         }
 
-        g = *dl; *dl = g + 2;
-        g[0] = 0x01020040;
-        g[1] = (u32)(obj + (s0 << 6) + 0x8) - 0x80000000;
+        g = *dl; *dl = g + 2; g[0] = 0x01020040;
+        s0 = arg2 & 0xFF;
+        s5 = s0 << 6;
+        g[1] = (u32)(obj + s5 + 0x8) - s3;
 
-        s0 = (s0 << 8) + 0x88;
-        s0 = (s32)(obj + s0);
-        g = *dl; *dl = g + 2;
-        g[0] = 0x01000040;
-        g[1] = (u32)(s0 + (D_80126FF6 << 6)) - 0x80000000;
+        p = obj + (s0 << 8) + 0x88;
+        func_801FA678((u32)(p + (D_80126FF6 << 6)), U32(rec, 0x24), U32(rec, 0x28), U32(rec, 0x2C));
+        g = *dl; *dl = g + 2; g[0] = 0x01000040; g[1] = (u32)(p + (D_80126FF6 << 6)) - s3;
 
         if (s6 & 0xFF) {
-            g = *dl; *dl = g + 2;
-            g[0] = 0x01000040;
-            g[1] = (u32)(obj + (s0 << 6) + 0x288) - 0x80000000;
+            g = *dl; *dl = g + 2; g[0] = 0x01000040; g[1] = (u32)(obj + s5 + 0x288) - s3;
+        }
+
+        if (U8(rec, 0xB) != 0) {
+            if (U8(rec, 0xC) == 0xFF) goto L158;
+            switch (U8(rec, 0xB)) {
+            case 1: case 9:
+                if (D_80126FF7 != 0xB) { g = *dl; *dl = g + 2; g[0] = 0x06000000; g[1] = D_800E188C; }
+                v = 0xB; goto L188;
+            case 2: case 10:
+                if (D_80126FF7 != 0xC) { g = *dl; *dl = g + 2; g[0] = 0x06000000; g[1] = D_800E1890; }
+                v = 0xC; goto L188;
+            case 3: case 4:
+                if (D_80126FF7 != 5) { g = *dl; *dl = g + 2; g[0] = 0x06000000; g[1] = D_800E1874; }
+                v = 5; goto L188;
+            case 6: case 7:
+                if (D_80126FF7 != 8) { g = *dl; *dl = g + 2; g[0] = 0x06000000; g[1] = D_800E1880; }
+                v = 8; goto L188;
+            default:
+                goto L144;
+            }
+L144:
+            if (D_80126FF7 == U8(rec, 0xB)) goto L184;
+L158:
+            g = *dl; *dl = g + 2; g[0] = 0x06000000; g[1] = D_800E1860[U8(rec, 0xB)];
+L184:
+            v = U8(rec, 0xB);
+L188:
+            D_80126FF7 = v;
+            g = *dl; *dl = g + 2; g[0] = 0xFA000000; g[1] = U8(rec, 0xC) | 0xFFFFFF00;
+        }
+
+        if (!(U16(rec, 2 + D_80126FF6 * 2) & 0x4)) {
+            if (U32(rec, 0x58)) {
+                ((void (*)(u32 **, u16))U32(rec, 0x58))(dl, arg1);
+            }
+        }
+
+        if (!(U16(rec, 2 + D_80126FF6 * 2) & 0x1)) {
+            if (((u32 *)U32(rec, 0x50))[1]) {
+                g = *dl; *dl = g + 2; g[0] = 0x06000000; g[1] = *(u32 *)((u32 *)U32(rec, 0x50))[1];
+            }
         }
     }
 }

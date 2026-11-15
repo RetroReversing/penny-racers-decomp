@@ -1,14 +1,1 @@
-s32 func_80042250(s32 a0, s32 a1, s32 a2, s32 a3) {
-    if (a0 < a2) {
-        return 0;
-    }
-    if (a0 == a2) {
-        if (a1 < a3) {
-            return 0;
-        }
-        if (a1 == a3) {
-            return 1;
-        }
-    }
-    return 2;
-}
+s32 func_80042250(s32 a,s32 b,s32 c,s32 d) { if(a<c) goto zero; if(a==c) goto two; if(b<d) goto zero; if(b==d) goto two; return 1; zero:return 0; two:return 2; }

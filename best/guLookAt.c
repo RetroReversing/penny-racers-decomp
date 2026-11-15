@@ -1,0 +1,50 @@
+extern f64 D_800AC990;
+extern s32 D_800AC998;
+extern f32 sqrtf(f32);
+void guMtxF2L(f32 mf[4][4], void *m);
+void guMtxIdentF(f32 mf[4][4]);
+
+void guLookAt(void *m, f32 xEye, f32 yEye, f32 zEye, f32 xAt, f32 yAt, f32 zAt, f32 xUp, f32 yUp, f32 zUp) {
+    f32 mf[4][4];
+    f32 dx, dy, dz, len, ux, uy, uz, sx, sy, sz, rx, ry, rz, rlen;
+    f32 tx, ty, tz;
+
+    guMtxIdentF(mf);
+    dx = xAt - xEye;
+    dy = yAt - yEye;
+    dz = zAt - zEye;
+    len = (f32)(D_800AC990 / (f64)sqrtf(dx * dx + dy * dy + dz * dz));
+    dx = dx * len;
+    dy = dy * len;
+    dz = dz * len;
+    sx = yUp * dz - zUp * dy;
+    sy = zUp * dx - xUp * dz;
+    sz = xUp * dy - yUp * dx;
+    rlen = (f32)(D_800AC990 / (f64)sqrtf(sx * sx + sy * sy + sz * sz));
+    sx = sx * rlen;
+    sy = sy * rlen;
+    sz = sz * rlen;
+    rx = dy * sz - dz * sy;
+    ry = dz * sx - dx * sz;
+    rz = dx * sy - dy * sx;
+    tx = -(xEye * sx + yEye * sy + zEye * sz);
+    ty = -(xEye * rx + yEye * ry + zEye * rz);
+    tz = -(xEye * dx + yEye * dy + zEye * dz);
+    mf[0][0] = sx;
+    mf[1][0] = sy;
+    mf[2][0] = sz;
+    mf[3][0] = tx;
+    mf[0][1] = rx;
+    mf[1][1] = ry;
+    mf[2][1] = rz;
+    mf[3][1] = ty;
+    mf[0][2] = -dx;
+    mf[1][2] = -dy;
+    mf[2][2] = -dz;
+    mf[3][2] = tz;
+    mf[0][3] = 0.0f;
+    mf[1][3] = 0.0f;
+    mf[2][3] = 0.0f;
+    mf[3][3] = 1.0f;
+    guMtxF2L(mf, m);
+}

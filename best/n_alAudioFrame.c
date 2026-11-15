@@ -1,67 +1,58 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
+extern u8 *D_80046DF4;
+s32 _n_collectPVoices(void);
+s32 _n_timeToSamplesNoRound(s32);
+s32 __n_nextSampleTime(void *);
+s32 n_alSavePull(s32, s32);
 
-s32 _n_collectPVoices();
-s32 _n_timeToSamplesNoRound();
-s32 __n_nextSampleTime();
-s32 n_alSavePull();
-extern void *D_80046DF4;
-
-s32 n_alAudioFrame(s32 arg0, s32 *arg1, s32 arg2, s32 arg3) {
+s32 n_alAudioFrame(s32 arg0, s32 *arg1, s32 arg2, s32 arg3)
+{
     void *sp10;
-    s32 temp_v0;
-    s32 temp_v0_2;
-    s32 var_s0;
-    s32 var_s1;
-    s32 var_s2;
-    s32 var_s3;
-    void *var_a0;
+    s32 t;
+    s32 s0;
+    s32 s1;
+    s32 s2;
+    s32 s3;
 
-    var_s1 = arg3;
-    var_s2 = arg0;
-    var_s3 = arg2;
-    if (M2C_FIELD(D_80046DF4, s32 *, 0) == 0) {
-        do {*arg1 = 0;}while(0);
-    } else {
-        temp_v0 = __n_nextSampleTime(&sp10);
-        M2C_FIELD(D_80046DF4, s32 *, 0x28) = temp_v0;
-        if ((temp_v0 - M2C_FIELD(D_80046DF4, s32 *, 0x2C)) < var_s1) {
-            do {
-                M2C_FIELD(D_80046DF4, s32 *, 0x28) &= ~0xF;
-                M2C_FIELD(sp10, s32 *, 0x10) += _n_timeToSamplesNoRound(M2C_FIELD(sp10, s32 (**)(void *), 8)(sp10));
-                temp_v0_2 = __n_nextSampleTime(&sp10, sp10);
-                M2C_FIELD(D_80046DF4, s32 *, 0x28) = temp_v0_2;
-            } while ((temp_v0_2 - M2C_FIELD(D_80046DF4, s32 *, 0x2C)) < var_s1);
-        }
-        var_a0 = (void *)-0x10;
-        M2C_FIELD(D_80046DF4, s32 *, 0x28) &= ~0xF;
-        if (var_s1 > 0) {
-            do {
-                var_s0 = M2C_FIELD(D_80046DF4, s32 *, 0x50);
-                if (var_s1 < var_s0) {
-                    var_s0 = var_s1;
-                }
-                M2C_FIELD(D_80046DF4, s32 *, 0x54) = var_s3;
-                var_a0 = D_80046DF4;
-                var_s1 -= var_s0;
-                var_s2 = n_alSavePull(M2C_FIELD(D_80046DF4, s32 *, 0x2C), var_s2);
-                var_s3 += var_s0 * 4;
-                M2C_FIELD(var_a0, s32 *, 0x2C) += var_s0;
-            } while (var_s1 > 0);
-        }
-        *arg1 = (s32) (var_s2 - arg0) >> 3;
-        _n_collectPVoices(var_a0);
+    s1 = arg3;
+    s2 = arg0;
+    s3 = arg2;
+    if (*(s32 *)D_80046DF4 == 0)
+    {
+        *arg1 = 0;
     }
-    return var_s2;
+    else
+    {
+        t = __n_nextSampleTime(&sp10);
+        *(s32 *)(D_80046DF4 + 0x28) = t;
+        if ((t - *(s32 *)(D_80046DF4 + 0x2C)) < s1)
+        {
+            do
+            {
+                *(s32 *)(D_80046DF4 + 0x28) &= ~0xF;
+                *(s32 *)((u8 *)sp10 + 0x10) += _n_timeToSamplesNoRound(((s32 (*)(void *))(*(s32 *)((u8 *)sp10 + 8)))(sp10));
+                t = __n_nextSampleTime(&sp10);
+                *(s32 *)(D_80046DF4 + 0x28) = t;
+            } while ((t - *(s32 *)(D_80046DF4 + 0x2C)) < s1);
+        }
+        *(s32 *)(D_80046DF4 + 0x28) &= ~0xF;
+        if (s1 > 0)
+        {
+            do
+            {
+                s0 = *(s32 *)(D_80046DF4 + 0x50);
+                if (s1 < s0)
+                {
+                    s0 = s1;
+                }
+                *(s32 *)(D_80046DF4 + 0x54) = s3;
+                s1 -= s0;
+                s2 = n_alSavePull(*(s32 *)(D_80046DF4 + 0x2C), s2);
+                s3 += s0 * 4;
+                *(s32 *)(D_80046DF4 + 0x2C) += s0;
+            } while (s1 > 0);
+        }
+        *arg1 = (s32)(s2 - arg0) >> 3;
+        _n_collectPVoices();
+    }
+    return s2;
 }
