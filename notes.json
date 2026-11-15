@@ -5952,14 +5952,6 @@
   "score_after": 1625
  },
  {
-  "function": "func_8014A134",
-  "text": "Unmatched; best 2030 (60.9%, attempt 339302422870, the inline_fn/D[idx] form with idx = (a&0xFFFF)*25). Target computes off = ((a & 0xFFFF) * 25) << 2 for both args (sll/addu chain: a*3<<3 + a, then <<2). The andi on arg1 comes first, then arg0. Each array access is lui %hi(sym) + addu at,at,off + lwc1 %lo(sym)(at), i.e. global base plus byte offset. Tried: byte-offset form *(f32*)((u8*)D + off) with off = ((a&0xFFFF)*25)<<2 scored 2705 (worse; andi and index work got reordered); u32 temp_v1 signedness variant scored 2705 (no change). Untried: keep the 2030 form but compute both byte offsets into s32 temps before the first load, and check whether the target's arg0 mask is hoisted above the arg1 chain.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794706650.919627,
-  "score_before": 2030,
-  "score_after": 2030
- },
- {
   "function": "func_8014D740",
   "text": "Best saved 1490. Tried this claim: (a) direct D_8011F32E[(arg0&0xFFFF)*50] indexing -> 3705; (b) byte offset local off=(arg0&0xFFFF)*100 with *(u16*)(D_8011F32E+off) -> 2670. Target computes the index with shifts/adds (sll 1, addu, sll, addu, sll 2 chain; about 3x*8 style) and loads the table through lui %hi plus addu $at, with a 0x3 start loop. Target's lhu uses lui+lhu %lo on a base computed once, not per-access offset. Remaining: find the scale expression the compiler emits for *50 and keep the 0x15/0xB compare sequence; the loop with D_802DF420 is at a 6-byte stride, so the (D_802DF420, D_8016BA40) loads should use one shared index.",
   "by": "claude-haiku-5-5-20",
@@ -9784,14 +9776,6 @@
   "score_after": 230
  },
  {
-  "function": "func_8014A134",
-  "text": "Structure is right (52 target insns, 52 mine), score 3115 (40.0%). Best revision bfe10cf4a7c8f7b8fb1f (k=(arg1&0xFFFF)*0x64 declared first) and 42e34f19230b3420eb3c (i=(arg0&0xFFFF)*0x64 declared first) both score 3115, so declaration order alone changes nothing. Source: three read-modify-write pairs over D_8011F308/D_8011F30C/D_8011F310 with a 100-byte stride; x_k = x_k + (x_i - x_k)/a; x_k loaded once and reused for the store; a = (f32)arg2. Remaining diffs are register/order: target masks arg0 into $a0 and builds the two stride chains in $v0/$v1 (sll 1, addu, sll 3, addu, sll 2), while mine masks arg1 into $a1 first. Next: compile_patch on the single index expression, or try the (f32) conversion placed after the first load, and check the division operand order (x_i - x_k) vs (x_k - x_i) in the target's fdiv.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794720691.9918778,
-  "score_before": 1840,
-  "score_after": 1840
- },
- {
   "function": "func_8003E644",
   "text": "Ring-buffer push, identical in shape to matched __osLeoResume (0x8004219C): r = *(Ring**)(D_800DD360+arg0); if (r && r->unk8 < r->unk10) { idx=(r->unkC+r->unk8)%r->unk10; r->unk14[idx]=*(s32*)(D_800DD360+arg0+4); r->unk8++; if (*r->unk0) func_8003E83C(D_800470D8, func_8003E884(r)); }. Best C so far 3290 (revision 8a3b4cfb7c6aa13e9470: cache count in a local `cnt`, store back `cnt+1`, base pointer local `u8 *base = D_800DD360`). Remaining structural gap, unrelated to C: the target has NO stack frame \u2014 prologue is `addu $s2,$ra,$zero` and epilogue `jr $s2; nop`. gcc-2.7.2-kmc (and gcc-2.8.1-pm, sn-n64 2.7.2/2.8.1, egcs-2.91.66, ido-7.1) always build a frame and `sw $ra` for this non-leaf function; every trial emitted addiu sp,-0x18/sw ra/lw ra/jr ra. Also the target's `mfhi; lw buf; addiu at,4; mult; mflo` (index*4 via mult) is never produced by gcc from `buf[idx]` (it emits sll). Verified flags: -O1 and -O2 -fno-schedule-insns both 2945, -O2/-O3/-G8/-g3/-fomit-frame-pointer 3390, -O2 -mno-abicalls -fno-pic 3390. So no C reaches the prologue/epilogue. Boundary reported: real end 0x8003E700; the trailing 0x8003E700-0x8003E734 block (Status IM dispatch on $k0/$k1, marked handwritten) is unrelated code inside the symbol. Note the mult-based index scaling is also non-gcc, supporting handwritten origin for the whole entry.",
   "by": "api-route-llm-code-1",
@@ -12696,14 +12680,6 @@
   "score_after": 5810
  },
  {
-  "function": "func_8014A134",
-  "text": "Best 3115 (40%), candidate bfe10cf4a7c8f7b8fb1f: `void func_8014A134(s32 arg0, s32 arg1, s32 arg2)` with k=(arg1&0xFFFF)*100, i=(arg0&0xFFFF)*100, a=(f32)arg2, and three blocks of `D[k] = ((D[i]-D[k]) / a) + D[k]` over the arrays D_8011F308, D_8011F30C, D_8011F310. Multiply-by-100 chains (sll/addu) match. Remaining: the target's dataflow is not the same as my pairing. The target loads D308[i] into f0 and D308[k] into f2, computes sub/div, then adds f2 and stores with lui/addu/swc1 to D_8011F30C (not D308), so the first store lands in the second array and the later blocks shift by one. Reordering the i/k statements changed nothing (3115 both). Next: write the first block so the store goes to D_8011F30C+k (or check the target's exact store addresses in get_assembly(focus=mismatch) before editing), then recheck register allocation of f4 (a) and f10 scratch.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794730065.107758,
-  "score_before": 1840,
-  "score_after": 1840
- },
- {
   "function": "func_801FC2F8",
   "text": "Best 3680 (19.9%), candidate 5baa28cb1ad29eb53b52: `void func_801FC2F8(u32 arg0)`: if (*(u16*)(&D_8011F32E + (arg0&0xFFFF)*0x64) == 0) { i=2; six stores to D_8022108C/90/94/80/84 + i*0x24 (last one f32 1000.0f at D_80221088); off=(arg0&0xFFFF)*0x64; *(u16*)(&D_8011F32E+off)=1; }. Target: the index*100 chain matches (sll 1, addu, sll 3, addu, sll 2). The gap: the target does NOT fold i*0x24 when i=2; it computes it at run time (`addiu v1,zero,2; sll v0,v1,3; addu v0,v0,v1; sll v0,v0,2` = 72, then `lui at, D_8022108C`). So the 2 is held in a register and the stride multiply is done with shifts, not a constant. Untried: keep i in a volatile or a value read from a global so GCC cannot fold it, or write the offset as an explicit (i<<3)+i<<2 expression. Branch: target `bnez v0,0xb0` is a long forward branch; ours is 0x70, so the else path is much shorter in ours (the store block is missing from the target's taken path of the if).",
   "by": "claude-haiku-5-5-22",
@@ -12984,14 +12960,6 @@
   "score_after": 30
  },
  {
-  "function": "func_8014A134",
-  "text": "Best 2085 (60%, rev 7bd99e9f6ab02306d534): i and k declared as u16 and computed as (u16)arg0*100 and (u16)arg1*100. Remaining diff: the target masks each argument once (andi a0, andi a1) and reuses the index; ours re-masks inside both chains and orders the lwc1/sub.s differently; the target ends with an add.s of the original dst after the div. Next: one s32 mask per argument, and write dst = dst + (src - dst)/a to match the add.s order.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794731566.544087,
-  "score_before": 1840,
-  "score_after": 1840
- },
- {
   "function": "func_8014A79C",
   "text": "Best 4065 (23.3%), revision 3ed7e8de88859a810a18 (or 0a1ad1a1841805101cba, same score). The algorithm is right in outline: a table of 8 u32 copied to the stack, then `if (arg0 > 0x05F5E0FF) return 0x01234567;`, then a divide/mod loop with scale 0x10000000 >> 4 and OR-accumulate (divu, break 7 on zero). Target copies the table from D_80183718 with a single `addiu $a1,$a1,%lo(D_80183718)` base register and lw at offsets 0,4,8,... (not one lui per element), so the copy is a grouped load of two words at a time, then stores to sp+0xC..sp+0x1C. The copy is stored at the highest offsets first (sw $v0,0xC($sp)) so the 8 elements land in reverse-ish order: check the stack offsets against the table. Using a `u32 *src` pointer still re-reads D_80183718 with lui per element, so the copy needs a different shape. Untried: write the copy as a struct copy, or as two 4-word loads.",
   "by": "claude-haiku-5-5-23",
@@ -13038,14 +13006,6 @@
   "created_at": 1794731709.9734159,
   "score_before": 610,
   "score_after": 610
- },
- {
-  "function": "func_8014A134",
-  "text": "Best 2010 (61.3%), revision 4e6b4da78b3427f89d2a (k as s32 = (u16)arg1*100, i as u16 = (u16)arg0*100; also equal with m=arg1 separate u16 local). Remaining diffs: target masks arg1 (andi $a1) first and a0 later, but ours masks a0 first with a0/a1 register roles swapped; and ours has one extra andi $v1 on the k product (row 15) that target lacks. Tried without improvement: both u16 (2085), both s32 (3115), k u16/i s32 (2290), separate u16 local m (2010). Untried: reordering the two cast expressions in source, or making the f32 base pointers local (lui/%lo pattern per-field).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794731732.746905,
-  "score_before": 1840,
-  "score_after": 1840
  },
  {
   "function": "func_800DF094",
@@ -13566,14 +13526,6 @@
   "created_at": 1794733347.403154,
   "score_before": 2310,
   "score_after": 2310
- },
- {
-  "function": "func_8014A134",
-  "text": "Best still 2010 (61.3%), no change. Tried this session with no effect on score: swapping k/i statement order; s32 -> u32 for k. Every variant keeps the first emitted op as andi $a0 (target: andi $a1 for arg1), plus an extra andi $v1 at the k product. Structural cause is unresolved. Untried: compile_family(signedness) per the tool's suggestion, or a version that computes the arg1 offset through a separate expression statement. Move-on budget exhausted.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794733365.6984599,
-  "score_before": 1840,
-  "score_after": 1840
  },
  {
   "function": "func_801E3E7C",
@@ -14734,14 +14686,6 @@
   "created_at": 1794736775.610312,
   "score_before": 3471,
   "score_after": 3471
- },
- {
-  "function": "func_8014A134",
-  "text": "Best verified 1585 (rev 43c5dcfb8651bf7089dd). Structure/instruction mix is essentially right: 52 insns both sides, all address arithmetic (andi/sll/addu *100 scaling) and the lui/addu/lwc1/sub.s/div.s/add.s/swc1 sequence per global match. Remaining 26 rows are float-register allocation + schedule: target keeps ONE live pair ($f0/$f2) and the arg2 conversion in $f4, storing immediately (add.s $f0,$f0,$f2 then swc1); candidate keeps the k-value in $f6/$f12 and hoists the NEXT global's lwc1 above the previous swc1 (extra lui/addu/lwc1), so div/add land in $f10 etc.\n\nTried and rejected (all equal or worse): local u32 buf / struct copy variants (n/a here), t = t/(f32)arg2 then store t+mem (1585, best), fully inlined single-expression store (1795), f32 c = mem[k] cached (2985), f32 d=(f32)arg2 hoisted, declaration reorders (t first), volatile store, += store, separate f32 temps per statement, parameter width u16, u32 k, single_use_inline / address_temporary / split_scalar_lifetime families.\n\nNext ideas: (a) make each of the three blocks a separate small statement group where the k-value is re-read from memory in the add (forcing the reload after the div, which would free the register and let $f2 die) \u2014 the target's add.s uses $f2 = the pre-loaded k-value, so that is NOT it; (b) instead try to stop the cross-block scheduling: give each block its own pointer locals (f32 *p = ..., *q = ...) declared inside a nested block so the compiler cannot hoist the next lwc1; the nested-block variant scored 1975 (worse) but was combined with a different store form \u2014 retry nested pointers WITH the t=t/arg2; store t+mem form; (c) try s32 arg2 with (f32) cast in a local f32 variable declared last.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794736785.170773,
-  "score_before": 1840,
-  "score_after": 1585
  },
  {
   "function": "func_80198B9C",
@@ -27214,5 +27158,69 @@
   "created_at": 1794763050.800427,
   "score_before": 1365,
   "score_after": 1365
+ },
+ {
+  "function": "func_8014A134",
+  "text": "Unmatched; best 2030 (60.9%, attempt 339302422870, the inline_fn/D[idx] form with idx = (a&0xFFFF)*25). Target computes off = ((a & 0xFFFF) * 25) << 2 for both args (sll/addu chain: a*3<<3 + a, then <<2). The andi on arg1 comes first, then arg0. Each array access is lui %hi(sym) + addu at,at,off + lwc1 %lo(sym)(at), i.e. global base plus byte offset. Tried: byte-offset form *(f32*)((u8*)D + off) with off = ((a&0xFFFF)*25)<<2 scored 2705 (worse; andi and index work got reordered); u32 temp_v1 signedness variant scored 2705 (no change). Untried: keep the 2030 form but compute both byte offsets into s32 temps before the first load, and check whether the target's arg0 mask is hoisted above the arg1 chain.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794706650.919627,
+  "score_before": 2030,
+  "score_after": 2030
+ },
+ {
+  "function": "func_8014A134",
+  "text": "Structure is right (52 target insns, 52 mine), score 3115 (40.0%). Best revision bfe10cf4a7c8f7b8fb1f (k=(arg1&0xFFFF)*0x64 declared first) and 42e34f19230b3420eb3c (i=(arg0&0xFFFF)*0x64 declared first) both score 3115, so declaration order alone changes nothing. Source: three read-modify-write pairs over D_8011F308/D_8011F30C/D_8011F310 with a 100-byte stride; x_k = x_k + (x_i - x_k)/a; x_k loaded once and reused for the store; a = (f32)arg2. Remaining diffs are register/order: target masks arg0 into $a0 and builds the two stride chains in $v0/$v1 (sll 1, addu, sll 3, addu, sll 2), while mine masks arg1 into $a1 first. Next: compile_patch on the single index expression, or try the (f32) conversion placed after the first load, and check the division operand order (x_i - x_k) vs (x_k - x_i) in the target's fdiv.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794720691.9918778,
+  "score_before": 1840,
+  "score_after": 1840
+ },
+ {
+  "function": "func_8014A134",
+  "text": "Best 3115 (40%), candidate bfe10cf4a7c8f7b8fb1f: `void func_8014A134(s32 arg0, s32 arg1, s32 arg2)` with k=(arg1&0xFFFF)*100, i=(arg0&0xFFFF)*100, a=(f32)arg2, and three blocks of `D[k] = ((D[i]-D[k]) / a) + D[k]` over the arrays D_8011F308, D_8011F30C, D_8011F310. Multiply-by-100 chains (sll/addu) match. Remaining: the target's dataflow is not the same as my pairing. The target loads D308[i] into f0 and D308[k] into f2, computes sub/div, then adds f2 and stores with lui/addu/swc1 to D_8011F30C (not D308), so the first store lands in the second array and the later blocks shift by one. Reordering the i/k statements changed nothing (3115 both). Next: write the first block so the store goes to D_8011F30C+k (or check the target's exact store addresses in get_assembly(focus=mismatch) before editing), then recheck register allocation of f4 (a) and f10 scratch.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794730065.107758,
+  "score_before": 1840,
+  "score_after": 1840
+ },
+ {
+  "function": "func_8014A134",
+  "text": "Best 2085 (60%, rev 7bd99e9f6ab02306d534): i and k declared as u16 and computed as (u16)arg0*100 and (u16)arg1*100. Remaining diff: the target masks each argument once (andi a0, andi a1) and reuses the index; ours re-masks inside both chains and orders the lwc1/sub.s differently; the target ends with an add.s of the original dst after the div. Next: one s32 mask per argument, and write dst = dst + (src - dst)/a to match the add.s order.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794731566.544087,
+  "score_before": 1840,
+  "score_after": 1840
+ },
+ {
+  "function": "func_8014A134",
+  "text": "Best 2010 (61.3%), revision 4e6b4da78b3427f89d2a (k as s32 = (u16)arg1*100, i as u16 = (u16)arg0*100; also equal with m=arg1 separate u16 local). Remaining diffs: target masks arg1 (andi $a1) first and a0 later, but ours masks a0 first with a0/a1 register roles swapped; and ours has one extra andi $v1 on the k product (row 15) that target lacks. Tried without improvement: both u16 (2085), both s32 (3115), k u16/i s32 (2290), separate u16 local m (2010). Untried: reordering the two cast expressions in source, or making the f32 base pointers local (lui/%lo pattern per-field).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794731732.746905,
+  "score_before": 1840,
+  "score_after": 1840
+ },
+ {
+  "function": "func_8014A134",
+  "text": "Best still 2010 (61.3%), no change. Tried this session with no effect on score: swapping k/i statement order; s32 -> u32 for k. Every variant keeps the first emitted op as andi $a0 (target: andi $a1 for arg1), plus an extra andi $v1 at the k product. Structural cause is unresolved. Untried: compile_family(signedness) per the tool's suggestion, or a version that computes the arg1 offset through a separate expression statement. Move-on budget exhausted.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794733365.6984599,
+  "score_before": 1840,
+  "score_after": 1840
+ },
+ {
+  "function": "func_8014A134",
+  "text": "Best verified 1585 (rev 43c5dcfb8651bf7089dd). Structure/instruction mix is essentially right: 52 insns both sides, all address arithmetic (andi/sll/addu *100 scaling) and the lui/addu/lwc1/sub.s/div.s/add.s/swc1 sequence per global match. Remaining 26 rows are float-register allocation + schedule: target keeps ONE live pair ($f0/$f2) and the arg2 conversion in $f4, storing immediately (add.s $f0,$f0,$f2 then swc1); candidate keeps the k-value in $f6/$f12 and hoists the NEXT global's lwc1 above the previous swc1 (extra lui/addu/lwc1), so div/add land in $f10 etc.\n\nTried and rejected (all equal or worse): local u32 buf / struct copy variants (n/a here), t = t/(f32)arg2 then store t+mem (1585, best), fully inlined single-expression store (1795), f32 c = mem[k] cached (2985), f32 d=(f32)arg2 hoisted, declaration reorders (t first), volatile store, += store, separate f32 temps per statement, parameter width u16, u32 k, single_use_inline / address_temporary / split_scalar_lifetime families.\n\nNext ideas: (a) make each of the three blocks a separate small statement group where the k-value is re-read from memory in the add (forcing the reload after the div, which would free the register and let $f2 die) \u2014 the target's add.s uses $f2 = the pre-loaded k-value, so that is NOT it; (b) instead try to stop the cross-block scheduling: give each block its own pointer locals (f32 *p = ..., *q = ...) declared inside a nested block so the compiler cannot hoist the next lwc1; the nested-block variant scored 1975 (worse) but was combined with a different store form \u2014 retry nested pointers WITH the t=t/arg2; store t+mem form; (c) try s32 arg2 with (f32) cast in a local f32 variable declared last.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794736785.170773,
+  "score_before": 1840,
+  "score_after": 1585
+ },
+ {
+  "function": "func_8014A134",
+  "text": "EXACT MATCH at KMC GCC -O1, suggestion filed: void f(u16 arg0,u16 arg1,s32 arg2){s32 k=arg1*100,i=arg0*100; X[k] += (X[i]-X[k])/(f32)arg2; for X=D_8011F308,D_8011F30C,D_8011F310 (byte-offset f32 casts)}. Apply the suggestion to save.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794761709.324173,
+  "score_before": 1585,
+  "score_after": 1585
  }
 ]
