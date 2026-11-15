@@ -4336,14 +4336,6 @@
   "score_after": 2420
  },
  {
-  "function": "func_80215480",
-  "text": "Deep permuter: score 5185 \u2192 4405; 1 improvements; 41 candidates tested; 80 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935802",
-  "created_at": 1794356157.0593002,
-  "score_before": 5185,
-  "score_after": 4405
- },
- {
   "function": "func_8015B82C",
   "text": "Deep permuter: score 12440 \u2192 10890; 2 improvements; 87 candidates tested; 38 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935524",
@@ -7688,14 +7680,6 @@
   "score_after": 2087
  },
  {
-  "function": "func_80215480",
-  "text": "Best 2525 (69.5%): source `s32 i = arg0 & 0xFFFF; s32 t = i * 0x64; f32 v;` with `*(f32*)(D_8011F320+t) += *(f32*)(D_8011F308+t)`, same for F324/F30C, then `v = F320[t]`, `if (DE90 <= v || v <= DE98) *(u32*)(F320 + (arg0&0xFFFF)*0x64) = 0;`, `v = F324[...]` with index ((i*2+i)*8+i)*4, DEA0/DEA8 check zeroing F324+i*0x64. f64 v adds an unwanted addiu sp,-8 frame (use f32 v). Remaining diffs: target loads F308 into $f2 and F30C into $f2 (we use $f4); target computes lui $at once for the F320 store chain; second store uses swc1 $f0 to F324. Dead `t = i * 2;` line may be unnecessary; removing it is an untested next experiment. Claim lapsed mid-session; another agent may hold it now.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794709614.44106,
-  "score_before": 2540,
-  "score_after": 2525
- },
- {
   "function": "func_8019862C",
   "text": "Not matched. Compiler: the target is KMC gcc 2.7.2 (compiler map), not the claim's 2.8.1 profile. Under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 the m2c draft in the candidate scores 2295 (72.0%) via try_compiler; the best saved under 2.8.1 is 2050. Control flow of the target (from the asm): (1) a = D_801C7068 < 0x17 and D_801C6BE2 is a u16 array read with lhu at (b*0x18 + a)*2 == 0xFFFF; (2) D_801C7AB0 byte at +1 != 5 -> return 1; (3) p0 = D_801C7062[0], p1 = D_801C7062[1]. Branch A: p0==a and p1 == b+1 (beq) or p1 == b-1 -> return (D==1 || D==3). Branch B: p0 == a+1 -> (p1==b ? D==3 : 1). Branch C: p0 == a-1 and p1 == b -> (D==0 || D==2). Otherwise 1. My clean if/else rewrite of exactly this scored 7.3% under kmc (try_compiler with source), because gcc emits the branches in the draft's goto order (block_9 shared tail reached from two paths) rather than my nested order. Next: keep the draft's goto block_9/block_16 shape, compiled with gcc-2.7.2-kmc, then fix the lhu/index multiply order (target: sll 1; addu; sll 3; addu; sll 1) and the s8 loads.",
   "by": "claude-haiku-5-5-21",
@@ -7710,14 +7694,6 @@
   "created_at": 1794709624.0502012,
   "score_before": 5325,
   "score_after": 4980
- },
- {
-  "function": "func_80215480",
-  "text": "Function: per-entry update of two f32 arrays (stride 0x64) at D_8011F320/F324, adding D_8011F308/F30C, then zeroing an entry when its value is outside the f64 range checks D_8021DE90/DE98 (F320) and D_8021DEA0/DEA8 (F324). Target shape: index t = i*0x64 (computed as ((i*2+i)*8+i)*4, one shift/add chain in v0, i kept in v1 via andi), each access is lui/addu/%lo folded into lwc1/swc1. Tried: (a) `s32 t=i*0x64` with `+=` on both arrays: 4725 (the candidate that folds %lo correctly, but ordering differs). (b) per-access `i*0x64` without a temp: 6865 (no %lo folding). (c) temps a,b for the loads: 4675, GCC reorders the loads anyway. Best saved remains 2525. Unresolved: the target loads F320, F308, adds, stores F320 before touching F324; GCC schedules the second array's load earlier, and i stays in a0 rather than v1. Next idea: keep the `t` form and try the store/load ordering with the stores split into separate statements after both loads. Did not reach a match.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794709637.7294762,
-  "score_before": 2525,
-  "score_after": 2525
  },
  {
   "function": "func_80198250",
@@ -11496,14 +11472,6 @@
   "score_after": 8855
  },
  {
-  "function": "func_80215480",
-  "text": "Best 3910 (52.8%), revision 8d8cff67182c5c2bb134 or the earlier 3910 revision. Source: i = arg0 & 0xFFFF; t = i*100; F320[t] = F320[t] + F308[t]; F324[t] = F324[t] + F30C[t] (arrays declared u8[] and accessed as *(f32*)(base + off)); v = (f64)F320[t]; if (DE90 <= v || v <= DE98) { F320[i*100] = 0.0f; i = arg0 & 0xFFFF; } then v = (f64)F324[((i*2+i)*8+i)*4]; if (DEA0 <= v || v <= DEA8) F324[i*100] = 0.0f. Diffs left: target computes i*2 (sll v0,v1,1) before the first bc1t and shares the index chain at a join; ours recomputes per access. Hand-writing the shared join (k = i*2, k += i in the arm) scored 5795; if/else-if on the second compare = 3910 (no change). Next step: write the first compare as the target shape (bc1t to join when DE90 <= v, then fall through to DE98 test) so GCC keeps k=i*2 live across the join. Stopping here on the difference being in how the compiler shares the index chain; the constant-load order is a register/order detail to fix last.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794724046.7025988,
-  "score_before": 1845,
-  "score_after": 1845
- },
- {
   "function": "func_80231C5C",
   "text": "Releasing now: this session is at low effort and the remaining gap is a stack-frame and call-argument layout difference (frame 0x58 vs target 0x50, return value saved at 0x20($sp) before the table writes, 0xFF repair constants passed as literals). Nothing in the three shapes I tried reduced the diff below the saved 3610. Notes for the next agent: start from the saved 3610 source, not my literal-0xFF rewrite (3620). Next experiments: match the 0x50 frame by checking the call's stack arguments (the 6th+ args of func_800DE41C), and try computing the return value into a local before the first table store so the store to 0x20($sp) appears.",
   "by": "claude-haiku-5-5-20",
@@ -14504,14 +14472,6 @@
   "score_after": 1770
  },
  {
-  "function": "func_80215480",
-  "text": "Stuck at 4935 (40.5%). Tried: off=(arg0&0xFFFF)*0x64 inline; s32 idx=arg0&0xFFFF then off=idx*0x64; off=((u16)arg0)*0x64. All give identical instruction diff: target (83 insns vs our 66) keeps andi $v1,$a0,0xffff live in $v1 and re-derives the *100 chain (sll/addu) on the branch-join paths, i.e. the multiply is duplicated into the arms of the two || tests and the sw $zero blocks, which GCC does not produce from one shared off. Untried: recompute the offset from arg0 inside each taken arm (e.g. *(s32*)(D_8011F324 + ((arg0&0xFFFF)*0x64)) = 0;) and write the first || as nested ifs with an else, so the join gets the duplicated chain. Target branch sense: bc1t to the store, then bc1fl with addu in the delay slot for the first ||.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794732437.148005,
-  "score_before": 1845,
-  "score_after": 1845
- },
- {
   "function": "func_80205FB0",
   "text": "Not matched. Best this session is 3003 (revision 88da7a159be3390ee4f5, the original candidate). Later variants scored 3418 (cast the size to s32) and 3418 again (size in a local). Saved best 1430 is from an earlier attempt and is still the best. Remaining diffs: the target has a 0x50 frame, sw $ra at 0x48, sw $zero at 0x10 twice, and it stores D_801D7DE8 (sh $zero) before the calls. It sets v0=&D_3EA210 first, then a2=&D_3E9850, then move a0,a2, then a1=&D_8030BD90, then the size (subtract). My source loads a0/a1/a2 in argument order, which gives the register and order diffs. The pointer-subtraction form emits an sra $a2,2 that the target lacks, so the size is computed in bytes; a cast or local did not fix the order. Next: write the size as a local computed before the first call, with the sh $zero for D_801D7DE8 placed first, and check the $sp frame and ra store before touching registers.",
   "by": "claude-haiku-5-5-21",
@@ -15112,14 +15072,6 @@
   "score_after": 2570
  },
  {
-  "function": "func_80215480",
-  "text": "Best 3910 (52.8%): idx = arg0 & 0xFFFF; t = idx*0x64; float arrays D_8011F308/320/30C/324 as u8[] with byte offsets; f64 temp = (f64)*(f32*)(...) reused for DE90/DE98 compares; second index recomputed as ((((idx*2)+idx)*8+idx)*4) with idx re-masked after the first zero store. Remaining: register choice (target loads D_8011F320 into f0 and D_8011F308 into f2), add.s operand order, and branch layout around the zero stores.\n\nStopping: best 3705 (55.3%) at revision 917f71ec60d6fe0838db (saved best); the later a=a+b variant (3835) is worse. Structure is right (float byte-offset arrays, stride 0x64, masked index, f64 compare temp, re-masked second index). Remaining diffs are register/order details: the target stores D_8011F320 at [15] before loading D_8011F324, and reloads D_8011F320 for the compare after the 324 store; our code keeps the 324 store later and uses f4 for the 308/30C loads where the target uses f2. Next try: separate scopes for the 308 and 30C loads so their temps get f2, and move the 320 compare-reload after the 324 store.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794734280.590687,
-  "score_before": 1845,
-  "score_after": 1845
- },
- {
   "function": "func_80166890",
   "text": "Not matched; best 2450 (68.5%) in this session, saved best 220 (not reverified). Semantics: off=(arg0&0xFFFF)*100; a=D_8011F2F0+off; b=D_8011F2F0+a[0]*100 (record stride 100 bytes). Then a+0x28 float += 20.0f; a+0x18,0x1C,0x20 floats copied from b; byte a[0xC] -= 5; if (a[0xC] < 6) D_8011F2FD[off]=2; state=u16 a+0x3E: state 0 -> a+0x30 += 0.1f, a+0x38 = a+0x30, if (0.9f < a+0x30) state=1; state 1 -> a+0x38=0.21f, a+0x30=0.21f, a+0x34=0.6f. Immediate constants: 0x41A00000=20.0f, 0x3DCCCCCD=0.1f, 0x3F666666=0.9f, 0x3E570A3D=0.21f, 0x3F19999A=0.6f. Remaining diffs: target loads a[0] (lbu v1) early and computes b*100 with shift/add chain before the float copies; ours interleaves differently and recomputes the address for a+0xC. Target also reuses the same byte load for the counter test (`lbu v0,0xc(a1)` then beqz) rather than an andi. Tried: local `sel=a[0]` and pointer-first ordering: both 2450, no change. Next: try the switch as the original's `switch(state)` with `case 0:` having the return inside, or write the counter update via `*(u8*)(a+0xC)` to get the `beqz` form.",
   "by": "claude-haiku-5-5-22",
@@ -15462,14 +15414,6 @@
   "created_at": 1794735313.382251,
   "score_before": 2170,
   "score_after": 2170
- },
- {
-  "function": "func_80215480",
-  "text": "Best still 3705 (55.3%) at revision 917f71ec60d6fe0838db. Control flow is right: the first if is an || with a bc1t to a shared tail that recomputes t=idx*100 via the sll/addu chain; the fallthrough re-andi's arg0 into idx. Main diff: target keeps idx in $v1 separate from arg0 in $a0 (andi $v1,$a0 at entry, and again in the if-body), while my version puts idx in $a0 because arg0 is dead after the first andi. Writing the if-body store as ((arg0&0xFFFF)*0x64) changed nothing (revision cd69fe0acefbe8660d25). Next idea: make idx a distinct variable that is live-in to the chain (e.g. u16-typed local, or use arg0 directly in the first store) so GCC allocates $v1 rather than reusing $a0; also the F324 second check should reuse the t chain from the join (.L80215558) rather than a fresh andi.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794735327.9887009,
-  "score_before": 1845,
-  "score_after": 1845
  },
  {
   "function": "func_8014081C",
@@ -18198,5 +18142,61 @@
   "created_at": 1794743588.399458,
   "score_before": 605,
   "score_after": 605
+ },
+ {
+  "function": "func_80215480",
+  "text": "Deep permuter: score 5185 \u2192 4405; 1 improvements; 41 candidates tested; 80 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935802",
+  "created_at": 1794356157.0593002,
+  "score_before": 5185,
+  "score_after": 4405
+ },
+ {
+  "function": "func_80215480",
+  "text": "Best 2525 (69.5%): source `s32 i = arg0 & 0xFFFF; s32 t = i * 0x64; f32 v;` with `*(f32*)(D_8011F320+t) += *(f32*)(D_8011F308+t)`, same for F324/F30C, then `v = F320[t]`, `if (DE90 <= v || v <= DE98) *(u32*)(F320 + (arg0&0xFFFF)*0x64) = 0;`, `v = F324[...]` with index ((i*2+i)*8+i)*4, DEA0/DEA8 check zeroing F324+i*0x64. f64 v adds an unwanted addiu sp,-8 frame (use f32 v). Remaining diffs: target loads F308 into $f2 and F30C into $f2 (we use $f4); target computes lui $at once for the F320 store chain; second store uses swc1 $f0 to F324. Dead `t = i * 2;` line may be unnecessary; removing it is an untested next experiment. Claim lapsed mid-session; another agent may hold it now.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794709614.44106,
+  "score_before": 2540,
+  "score_after": 2525
+ },
+ {
+  "function": "func_80215480",
+  "text": "Function: per-entry update of two f32 arrays (stride 0x64) at D_8011F320/F324, adding D_8011F308/F30C, then zeroing an entry when its value is outside the f64 range checks D_8021DE90/DE98 (F320) and D_8021DEA0/DEA8 (F324). Target shape: index t = i*0x64 (computed as ((i*2+i)*8+i)*4, one shift/add chain in v0, i kept in v1 via andi), each access is lui/addu/%lo folded into lwc1/swc1. Tried: (a) `s32 t=i*0x64` with `+=` on both arrays: 4725 (the candidate that folds %lo correctly, but ordering differs). (b) per-access `i*0x64` without a temp: 6865 (no %lo folding). (c) temps a,b for the loads: 4675, GCC reorders the loads anyway. Best saved remains 2525. Unresolved: the target loads F320, F308, adds, stores F320 before touching F324; GCC schedules the second array's load earlier, and i stays in a0 rather than v1. Next idea: keep the `t` form and try the store/load ordering with the stores split into separate statements after both loads. Did not reach a match.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794709637.7294762,
+  "score_before": 2525,
+  "score_after": 2525
+ },
+ {
+  "function": "func_80215480",
+  "text": "Best 3910 (52.8%), revision 8d8cff67182c5c2bb134 or the earlier 3910 revision. Source: i = arg0 & 0xFFFF; t = i*100; F320[t] = F320[t] + F308[t]; F324[t] = F324[t] + F30C[t] (arrays declared u8[] and accessed as *(f32*)(base + off)); v = (f64)F320[t]; if (DE90 <= v || v <= DE98) { F320[i*100] = 0.0f; i = arg0 & 0xFFFF; } then v = (f64)F324[((i*2+i)*8+i)*4]; if (DEA0 <= v || v <= DEA8) F324[i*100] = 0.0f. Diffs left: target computes i*2 (sll v0,v1,1) before the first bc1t and shares the index chain at a join; ours recomputes per access. Hand-writing the shared join (k = i*2, k += i in the arm) scored 5795; if/else-if on the second compare = 3910 (no change). Next step: write the first compare as the target shape (bc1t to join when DE90 <= v, then fall through to DE98 test) so GCC keeps k=i*2 live across the join. Stopping here on the difference being in how the compiler shares the index chain; the constant-load order is a register/order detail to fix last.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794724046.7025988,
+  "score_before": 1845,
+  "score_after": 1845
+ },
+ {
+  "function": "func_80215480",
+  "text": "Stuck at 4935 (40.5%). Tried: off=(arg0&0xFFFF)*0x64 inline; s32 idx=arg0&0xFFFF then off=idx*0x64; off=((u16)arg0)*0x64. All give identical instruction diff: target (83 insns vs our 66) keeps andi $v1,$a0,0xffff live in $v1 and re-derives the *100 chain (sll/addu) on the branch-join paths, i.e. the multiply is duplicated into the arms of the two || tests and the sw $zero blocks, which GCC does not produce from one shared off. Untried: recompute the offset from arg0 inside each taken arm (e.g. *(s32*)(D_8011F324 + ((arg0&0xFFFF)*0x64)) = 0;) and write the first || as nested ifs with an else, so the join gets the duplicated chain. Target branch sense: bc1t to the store, then bc1fl with addu in the delay slot for the first ||.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794732437.148005,
+  "score_before": 1845,
+  "score_after": 1845
+ },
+ {
+  "function": "func_80215480",
+  "text": "Best 3910 (52.8%): idx = arg0 & 0xFFFF; t = idx*0x64; float arrays D_8011F308/320/30C/324 as u8[] with byte offsets; f64 temp = (f64)*(f32*)(...) reused for DE90/DE98 compares; second index recomputed as ((((idx*2)+idx)*8+idx)*4) with idx re-masked after the first zero store. Remaining: register choice (target loads D_8011F320 into f0 and D_8011F308 into f2), add.s operand order, and branch layout around the zero stores.\n\nStopping: best 3705 (55.3%) at revision 917f71ec60d6fe0838db (saved best); the later a=a+b variant (3835) is worse. Structure is right (float byte-offset arrays, stride 0x64, masked index, f64 compare temp, re-masked second index). Remaining diffs are register/order details: the target stores D_8011F320 at [15] before loading D_8011F324, and reloads D_8011F320 for the compare after the 324 store; our code keeps the 324 store later and uses f4 for the 308/30C loads where the target uses f2. Next try: separate scopes for the 308 and 30C loads so their temps get f2, and move the 320 compare-reload after the 324 store.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794734280.590687,
+  "score_before": 1845,
+  "score_after": 1845
+ },
+ {
+  "function": "func_80215480",
+  "text": "Best still 3705 (55.3%) at revision 917f71ec60d6fe0838db. Control flow is right: the first if is an || with a bc1t to a shared tail that recomputes t=idx*100 via the sll/addu chain; the fallthrough re-andi's arg0 into idx. Main diff: target keeps idx in $v1 separate from arg0 in $a0 (andi $v1,$a0 at entry, and again in the if-body), while my version puts idx in $a0 because arg0 is dead after the first andi. Writing the if-body store as ((arg0&0xFFFF)*0x64) changed nothing (revision cd69fe0acefbe8660d25). Next idea: make idx a distinct variable that is live-in to the chain (e.g. u16-typed local, or use arg0 directly in the first store) so GCC allocates $v1 rather than reusing $a0; also the F324 second check should reuse the t chain from the join (.L80215558) rather than a fresh andi.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794735327.9887009,
+  "score_before": 1845,
+  "score_after": 1845
  }
 ]
