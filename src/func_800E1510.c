@@ -1,0 +1,29 @@
+extern u16 func_800E1850;
+extern u8 D_8011F2F0[];
+void func_800DECCC(s32);
+
+void func_800E1510(void)
+{
+    u8 flag;
+    u16 idx;
+    u8 *ent;
+
+    idx = func_800E1850;
+    flag = 0;
+    do {
+        ent = D_8011F2F0 + (idx & 0xFFFF) * 0x64;
+        if (ent[0xD] != 0) {
+            ent[0xD] = ent[0xD] - 1;
+            if (ent[0xD] == 0) {
+                func_800DECCC(idx);
+                flag = 1;
+            }
+        }
+        if (flag == 0) {
+            idx = *(u16 *)(ent + 0x10);
+        } else {
+            flag = 0;
+            idx = func_800E1850;
+        }
+    } while (idx != 0xFFFF);
+}
