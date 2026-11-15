@@ -2,6 +2,7 @@ s32 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32
 s32 func_8013E364(void);
 void func_8013E818(s32, s32, s32, s32, s32, s32, s32);
 void func_801D7028(u16, s32);
+s32 func_8013E49C(u16);
 extern f32 D_8011F308;
 extern f32 D_8011F30C;
 extern f32 D_8011F310;
@@ -26,6 +27,7 @@ void func_8015E530(u8 *arg0) {
     s32 temp_a0;
     s16 temp_v0_3;
     s32 temp_s0_3;
+    s32 idx;
 
     temp_s0 = *(s32 *)(arg0 + 0x898);
     if (temp_s0 == 1 && !(*(u16 *)(arg0 + 0x560) & 0x18)) {
@@ -48,7 +50,7 @@ void func_8015E530(u8 *arg0) {
             if (temp_v0_3 > 0) {
                 *(s16 *)(arg0 + 0x55E) = temp_v0_3 - 1;
             }
-            if (*(u8 *)(arg0 + 0x74C) < 5 && (temp_s0 = func_8013E364() & 0xFFFF, temp_s0 != 0xFFFF)) {
+            if (*(u8 *)(arg0 + 0x74C) < 5 && (idx = func_8013E364() & 0xFFFF, idx != 0xFFFF)) {
                 temp_v0_2 = func_800DE41C(0, arg0[5], 1, 0, 0x5B, 0, &D_80239610, &func_8015F7F8, &func_8015FD64,
                     *(f32 *)((char *)&D_8011F308 + *(u16 *)(arg0 + 2) * 0x64),
                     *(f32 *)((char *)&D_8011F30C + *(u16 *)(arg0 + 2) * 0x64) + 15.0f,
@@ -59,12 +61,12 @@ void func_8015E530(u8 *arg0) {
                     *(f32 *)((char *)&D_8011F328 + *(u16 *)(arg0 + 2) * 0x64) * 2.0f);
                 temp_v0 = temp_v0_2 & 0xFFFF;
                 if ((u32)((temp_v0_2 + 2) & 0xFFFF) < 2U) {
-                    func_8013E49C(temp_s0);
+                    func_8013E49C(idx);
                     return;
                 }
                 *(f32 *)((char *)&D_8011F334 + temp_v0 * 0x64) = 16.0f;
                 *(f32 *)((char *)&D_8011F338 + temp_v0 * 0x64) = 1.0f;
-                temp_s0_3 = temp_s0;
+                temp_s0_3 = idx;
                 func_8013E818(temp_s0_3, temp_v0, 0x40, 0, 0, 0, 0x3C);
                 *(void **)((char *)&D_8018D6C4 + temp_s0_3 * 0x7C) = arg0;
             }

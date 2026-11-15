@@ -19,6 +19,7 @@ void func_800E0274(u32 **arg0, s32 arg1, s32 arg2)
   s32 s6;
   s32 s7;
   u8 *s1;
+  u8 *p;
   u32 *dl;
   s2 = D_8011F2F0 + ((arg1 & 0xFFFF) * 0x64);
   s4 = D_800E2660 + ((*((u16 *) (s2 + 0x3C))) * 0x308);
@@ -40,11 +41,7 @@ void func_800E0274(u32 **arg0, s32 arg1, s32 arg2)
       s0 &= 0xFF;
       goto L398;
     }
-    do
-    {
-      guScale((s4 + 0x288) + ((s0 & 0xFF) * 0x40), *((f32 *) (s2 + 0x30)), *((f32 *) (s2 + 0x34)), *((f32 *) (s2 + 0x38)));
-    }
-    while (0);
+    guScale((s4 + 0x288) + ((s0 & 0xFF) * 0x40), *((f32 *) (s2 + 0x30)), *((f32 *) (s2 + 0x34)), *((f32 *) (s2 + 0x38)));
     s6 = 1;
     mask:
     s0 &= 0xFF;
@@ -58,16 +55,15 @@ void func_800E0274(u32 **arg0, s32 arg1, s32 arg2)
     *arg0 = dl + 2;
     dl[0] = 0x1020040;
     dl[1] = ((u32) s1) - 0x80000000u;
-    s0 = (s4 + (s0 << 8)) + 0x88;
-    func_801FA678((void *) (s0 + (D_80126FF6 * 0x40)), *((s32 *) (s2 + 0x24)), *((s32 *) (s2 + 0x28)), *((s32 *) (s2 + 0x2C)));
-    s0 += D_80126FF6 * 0x40;
+    p = s4 + (s0 << 8) + 0x88;
+    func_801FA678(p + (D_80126FF6 * 0x40), *((s32 *) (s2 + 0x24)), *((s32 *) (s2 + 0x28)), *((s32 *) (s2 + 0x2C)));
+    p += D_80126FF6 * 0x40;
     dl = *arg0;
     *arg0 = dl + 2;
     dl[0] = 0x1000040;
-    dl[1] = ((u32) s0) - 0x80000000u;
+    dl[1] = ((u32) p) - 0x80000000u;
     if (s6 & 0xFF)
     {
-      ;
       dl = *arg0;
       *arg0 = dl + 2;
       dl[0] = 0x1000040;
@@ -91,74 +87,62 @@ void func_800E0274(u32 **arg0, s32 arg1, s32 arg2)
         switch (s2[0xB])
         {
           case 1:
-
           case 9:
             if (D_80126FF7 != 0xB)
-          {
-            dl = *arg0;
-            *arg0 = dl + 2;
-            dl[0] = 0x6000000;
-            dl[1] = D_800E188C;
-          }
+            {
+              dl = *arg0;
+              *arg0 = dl + 2;
+              dl[0] = 0x6000000;
+              dl[1] = D_800E188C;
+            }
             D_80126FF7 = 0xB;
             break;
-
           case 2:
-
           case 10:
             if (D_80126FF7 != 0xC)
-          {
-            dl = *arg0;
-            *arg0 = dl + 2;
-            dl[0] = 0x6000000;
-            dl[1] = D_800E1890;
-          }
+            {
+              dl = *arg0;
+              *arg0 = dl + 2;
+              dl[0] = 0x6000000;
+              dl[1] = D_800E1890;
+            }
             D_80126FF7 = 0xC;
             break;
-
           case 3:
-
           case 4:
             if (D_80126FF7 != 5)
-          {
-            dl = *arg0;
-            *arg0 = dl + 2;
-            dl[0] = 0x6000000;
-            dl[1] = D_800E1874;
-          }
+            {
+              dl = *arg0;
+              *arg0 = dl + 2;
+              dl[0] = 0x6000000;
+              dl[1] = D_800E1874;
+            }
             D_80126FF7 = 5;
             break;
-
           case 6:
-
           case 7:
             if (D_80126FF7 != 8)
-          {
-            dl = *arg0;
-            *arg0 = dl + 2;
-            dl[0] = 0x6000000;
-            dl[1] = D_800E1880;
-          }
+            {
+              dl = *arg0;
+              *arg0 = dl + 2;
+              dl[0] = 0x6000000;
+              dl[1] = D_800E1880;
+            }
             D_80126FF7 = 8;
             break;
-
           case 5:
-
           case 8:
-
           default:
             if (D_80126FF7 != s2[0xB])
-          {
-            dl = *arg0;
-            *arg0 = dl + 2;
-            dl[0] = 0x6000000;
-            dl[1] = D_800E1860[s2[0xB]];
-          }
+            {
+              dl = *arg0;
+              *arg0 = dl + 2;
+              dl[0] = 0x6000000;
+              dl[1] = D_800E1860[s2[0xB]];
+            }
             D_80126FF7 = s2[0xB];
             break;
-
         }
-
       }
       dl = *arg0;
       *arg0 = dl + 2;
@@ -175,4 +159,3 @@ void func_800E0274(u32 **arg0, s32 arg1, s32 arg2)
     }
   }
 }
-
