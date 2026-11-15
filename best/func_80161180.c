@@ -4,13 +4,13 @@ extern s32 func_8013E640(s32, s32, void *, s32, s32, f32, s32, f32, f32, f32, s3
 extern void func_801D7028(s32, s32);
 extern void guMtxXFMF(void *, f32, f32, f32, f32 *, f32 *, f32 *);
 extern s32 func_8013E49C(u16 arg0);
-extern f32 D_8011F308[];
+extern u8 D_8011F308[];
 extern u8 D_8011F30C[];
-extern f32 D_8011F310[];
-extern f32 D_8011F318[];
-extern f32 D_8011F320[];
-extern f32 D_8011F324[];
-extern f32 D_8011F328[];
+extern u8 D_8011F310[];
+extern u8 D_8011F318[];
+extern u8 D_8011F320[];
+extern u8 D_8011F324[];
+extern u8 D_8011F328[];
 typedef struct { u32 f0; u8 pad[120]; } Slot_8018D6C4;
 extern Slot_8018D6C4 D_8018D6C4[];
 extern u8 D_8018D727[];
@@ -26,7 +26,7 @@ void func_80161180(u8 *arg0)
     s32 r;
     s32 idx;
     s32 n;
-    u16 st;
+    s32 st;
     u16 st2;
 
     if (*(s32 *)(arg0 + 0x898) == 1)
@@ -39,10 +39,10 @@ void func_80161180(u8 *arg0)
             if (idx != 0xFFFF)
             {
                 n = func_800DE41C(0, 0, 1, 0, 0x51, 0xFF, &D_8023943C, &func_801614D8, 0,
-                    D_8011F308[*(u16 *)(arg0 + 2) * 0x64], D_8011F30C[*(u16 *)(arg0 + 2) * 0x64] + 15.0f,
-                    D_8011F310[*(u16 *)(arg0 + 2) * 0x64], 0, D_8011F318[*(u16 *)(arg0 + 2) * 0x64], 0,
-                    2.0f * D_8011F320[*(u16 *)(arg0 + 2) * 0x64], 2.0f * D_8011F324[*(u16 *)(arg0 + 2) * 0x64],
-                    2.0f * D_8011F328[*(u16 *)(arg0 + 2) * 0x64]);
+                    *(f32 *)(D_8011F308 + *(u16 *)(arg0 + 2) * 0x64), *(f32 *)(D_8011F30C + *(u16 *)(arg0 + 2) * 0x64) + 15.0f,
+                    *(f32 *)(D_8011F310 + *(u16 *)(arg0 + 2) * 0x64), 0, *(f32 *)(D_8011F318 + *(u16 *)(arg0 + 2) * 0x64), 0,
+                    2.0f * *(f32 *)(D_8011F320 + *(u16 *)(arg0 + 2) * 0x64), 2.0f * *(f32 *)(D_8011F324 + *(u16 *)(arg0 + 2) * 0x64),
+                    2.0f * *(f32 *)(D_8011F328 + *(u16 *)(arg0 + 2) * 0x64));
                 if ((u32)((n + 2) & 0xFFFF) < 2)
                 {
                     func_8013E49C(idx);
