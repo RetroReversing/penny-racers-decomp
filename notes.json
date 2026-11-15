@@ -6928,14 +6928,6 @@
   "score_after": 260
  },
  {
-  "function": "nuGfxTaskStart",
-  "text": "Best 1250 (82.8%) at revision dc06b43e8d143abf4e30 (saved historical best 730 is from an older source). Draft from m2c does not compile; this version: msg=(s32*)D_8006A140; entry=(s32*)(D_8006FF68 + arg2*8) with D_8006FF68 declared as plain s32 (declaring it as s32* multiplies by 32, the most common mistake here); msg[16]=arg0, msg[17]=arg1, msg[8]=entry[0], msg[2]=arg3, msg[3]=D_800DB1B0, msg[10]=entry[1]; flag branch with divu-by-D_80046D90 table pick; ret=func(1); D_80092C00+=1; func(D_80092C00) (second arg is a reload); writeback; osSendMesg(&D_800DD85C, D_8006A140, 1); D_8006A140=*(void**)D_8006A140. Remaining diffs: the target loads msg (lui t0/lw t0 from D_8006A140) once at the top and keeps it in t0 for all stores; mine reloads it and the stores to msg[] are reordered. Also the ret move (move a0,v0) is missing. Next: make msg a `void *` local assigned at the very top, and check whether the else/true branches store the 0x54 slot before or after the table lookup (target: lw from table then sw D_8006FB24 then sw D_800DB1B0 then the 0x54 store in the join).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794707850.598071,
-  "score_before": 730,
-  "score_after": 730
- },
- {
   "function": "func_8002E9A4",
   "text": "Claim compiler gcc-2.7.2-kmc. The version with f64 args, u16 temp_fv1, and the `if (!(D_8004A450 <= temp_fv1_3))` else form scores 1895 (76.3%); the saved best is 1880. Rewriting the else test as `if (temp_fv1_3 < D_8004A450)` scored 2285 (worse). Remaining diffs: target stores arg5 through $a1 (lw $a1,0x14($sp)) where we use $a2; target uses bc1f .L5c for the 0x80000000 branch, we emit bc1tl; target computes the final mfc1 into $a0 then `lui $v0,0x8000; or $a0,$a0,$v0`, we use addu $v0,$a0,$v0 instead of or. Untried: writing the 0x80000000 term as `| (s32)0x80000000` in a separate statement so the or is emitted, and passing arg5 through a second local to change register choice.",
   "by": "claude-haiku-5-5-22",
@@ -11040,14 +11032,6 @@
   "score_after": 365
  },
  {
-  "function": "nuGfxTaskStart",
-  "text": "Not attempted beyond the machine draft (which does not compile: pointer/int mismatches on msg fields). Structure from the target prefix: msg=D_8006A140; entry=(s32*)(arg2*8 + D_8006FF68); msg[0x40/4]=arg0; msg[0x44/4]=arg1; msg[0x20/4]=entry[0]; msg[0x08/4]=arg3; msg[0x0C/4]=&D_800DB1B0; msg[0x28/4]=entry[1]. If (arg3&1): idx=D_8006FB24+1 (stored back to D_8006FB24 after the modulo), msg[0x54/4]=&D_8006A146, D_800DB1B0 = ((s32*)D_800DD3D8)[idx % D_80046D90] via divu (the divide-by-zero check gives a `break 7` path, so the modulo is unsigned u32). Else msg[0x54/4]=&D_8006A144. Then func_800339C0(1) saved result, D_80092C00 += 1, func_800339C0(saved), then tail (not read yet). Next: compile a version with `u32` index and the modulo to see the divu layout, then read the tail (lines 52+).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794721740.776266,
-  "score_before": 660,
-  "score_after": 660
- },
- {
   "function": "func_801B41D8",
   "text": "Not matched. Best 1990 (66.8%); the u16-local variant also scored 1990 (compiler output identical). Target sequence (see notes above): andi v0,a0,0xFFFF first; index = x*25*4 via sll/addu chain on v0/v1; the byte-compare/branch and store shapes are close, so the remaining diffs are register choice (target puts x in v0, mine in v1/a1) and the `beql` delay slots. Untried: compile_family signedness did not change the score; try writing the index as `(x << 2) * 25`-free forms is unlikely to help; the better lead is to drive the index through a single u8 pointer `u8 *p = D_8011F2F0 + idx` and `p[0]`/`p[0x0C]`-style offsets for the F array. Not worth more compiles without a different pointer form.",
   "by": "claude-haiku-5-5-21",
@@ -14504,14 +14488,6 @@
   "score_after": 2310
  },
  {
-  "function": "nuGfxTaskStart",
-  "text": "Best verified 660 (90.9%), revision 1030b45cda5294aa6f1a (msg = D_8006A140 via void*; entry = arg2*8 + D_8006FF68; msg[0x0C/4] = (s32)&D_800DB1B0). Remaining diffs: the target loads the VALUE of D_800DB1B0 (lui v0 / lw v0) for the 0x0C store and reloads it after the flag branch, and the target loads D_80092C00 into v0 right before the second jal (lui/lw before `jal func_800339C0`) that the C does not reproduce. Replacing the 0x0C store with the value (730) made it worse. Also the entry[0]/entry[1] register order differs. Untried: D_800DB1B0 value read in both places with a local, and the second-call argument shape.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794732026.962427,
-  "score_before": 660,
-  "score_after": 660
- },
- {
   "function": "func_80149F40",
   "text": "Best verified 55 (97.8%), revision c9585a856719340a4950 / feaa895b1b856277f688. All 26 instructions present and identical; only 11 register-allocation rows differ, so the C is semantically right.\n\nWorking source (score 55):\n  extern u8 D_80168D38[];\n  u8 func_80149F40(s32 arg0, u32 arg1, s32 arg2) {\n      s32 temp_v1 = arg2;\n      switch (arg1) { case 0: temp_v1 = D_80168D38[arg2]; if (temp_v1 & 0x80) temp_v1 = (temp_v1 & 0x7F) + arg0; break;\n                      case 1: if (arg2 == 0x5A) temp_v1 = 0; else temp_v1 += 1; break;\n                      case 2..7: temp_v1 += 1; break; }\n      return temp_v1 & 0xFF; }\n\nKey type facts established: arg2 is a plain s32 (a u8 arg2 adds andi 0xff everywhere, +200..245), the accumulator is s32 (u8 accumulator adds andi 0xff after each case), the return keeps `andi $v0,$v1,0xff` so the return type is u8 with `& 0xFF`, and D_80168D38 must stay declared `u8 []` (s8 costs +195).\nRemaining mismatch: target keeps the accumulator in $v1 and arg2 in $a2; mine swaps them ($a2 accumulator, $v1 = arg2 copy from the switch prologue `addu $v1,$a2,$zero`). The target's `addu $v1,$v1,$a2` for the load address proves arg2 stays in $a2 while the accumulator is $v1.\nTried and worse or equal: increment-before-test in case 1 (790, xori/sltu/negu/and), separate temp for the case-0 load (55, no change), extra `s32 idx = arg2` local (785, switch became a local jump table in .rodata), `*(&D_80168D38 + arg2)` with scalar extern (55, same), `(u16)arg2` index (200), u32 accumulator (55), (arg0)+((temp&0x7F)) operand order (55), loop_weight wrapper (55).\nNext idea: force the accumulator into $v1 by making the switch's prologue copy dead - e.g. keep arg2 in a separate live variable across the whole switch (declare `s32 idx = arg2;` but use idx only in case 0's load and the 0x5A compare, and keep it live to the end so gcc cannot coalesce it), or write case 0 as `temp_v1 = *(&D_80168D38 + arg2);` with the scalar-extern form plus a second use of arg2 after the switch.",
   "by": "api-route-llm-code-1",
@@ -14998,14 +14974,6 @@
   "created_at": 1794733271.09652,
   "score_before": 3400,
   "score_after": 3400
- },
- {
-  "function": "nuGfxTaskStart",
-  "text": "Saved best 660 (90.9%) reproduced exactly from the permuter source (the revision 1030b45 candidate as supplied has type errors; compile the saved_best source). Remaining diff: target loads D_800DB1B0's VALUE (lui v0; lw v0,%lo) before the arg stores and stores it to msg[0x0C] (sw v0,0xC($t0)), then sw a3,8 and sw v0 orderings; my version uses &D_800DB1B0 (addiu). Tried: msg[0x0C/4] = D_800DB1B0 (value): 730, worse, because the D_80092C00 += 1 load (lui/lw %lo(D_80092C00)) disappears in that variant. Untried: keep the value load but leave the D_80092C00 update as written; and the pre-call stores (sw a1 0x44, entry[0] at 0x20) ordering vs target lw $v0,($a2) first.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794733288.253997,
-  "score_before": 660,
-  "score_after": 660
  },
  {
   "function": "func_8002E9A4",
@@ -19974,14 +19942,6 @@
   "created_at": 1794748563.0375,
   "score_before": 610,
   "score_after": 610
- },
- {
-  "function": "nuGfxTaskStart",
-  "text": "Best mine 730 (90%) rev 3aaf5e64abe07c7facbe; saved best 660 is another source. Layout: msg=D_8006A140 kept in t0; msg[16]=arg0, msg[17]=arg1, msg[8]=entry[0], msg[2]=arg3, msg[3]=D_800DB1B0, msg[10]=entry[1], msg[21]=&D_8006A146 or &D_8006A144. Remaining diff: target's 2nd func_800339C0 call (arg a0=ret) has delay slot `lw v0, D_80092C00` (reload after the +=1 store), mine has none; that same stray reload also shows in nuGfxTaskMgr's last call. Store ordering also differs ((entry[0]) vs msg[2] ordering: target stores 0x20 before 0xC). volatile on D_80092C00 did not reproduce the reload. Unexplored: the reload may come from a second read in the source like a comparison or cast.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794748580.3902779,
-  "score_before": 660,
-  "score_after": 660
  },
  {
   "function": "func_801E2D18",
@@ -25638,5 +25598,53 @@
   "created_at": 1794759268.9961689,
   "score_before": 6450,
   "score_after": 6240
+ },
+ {
+  "function": "nuGfxTaskStart",
+  "text": "Best 1250 (82.8%) at revision dc06b43e8d143abf4e30 (saved historical best 730 is from an older source). Draft from m2c does not compile; this version: msg=(s32*)D_8006A140; entry=(s32*)(D_8006FF68 + arg2*8) with D_8006FF68 declared as plain s32 (declaring it as s32* multiplies by 32, the most common mistake here); msg[16]=arg0, msg[17]=arg1, msg[8]=entry[0], msg[2]=arg3, msg[3]=D_800DB1B0, msg[10]=entry[1]; flag branch with divu-by-D_80046D90 table pick; ret=func(1); D_80092C00+=1; func(D_80092C00) (second arg is a reload); writeback; osSendMesg(&D_800DD85C, D_8006A140, 1); D_8006A140=*(void**)D_8006A140. Remaining diffs: the target loads msg (lui t0/lw t0 from D_8006A140) once at the top and keeps it in t0 for all stores; mine reloads it and the stores to msg[] are reordered. Also the ret move (move a0,v0) is missing. Next: make msg a `void *` local assigned at the very top, and check whether the else/true branches store the 0x54 slot before or after the table lookup (target: lw from table then sw D_8006FB24 then sw D_800DB1B0 then the 0x54 store in the join).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794707850.598071,
+  "score_before": 730,
+  "score_after": 730
+ },
+ {
+  "function": "nuGfxTaskStart",
+  "text": "Not attempted beyond the machine draft (which does not compile: pointer/int mismatches on msg fields). Structure from the target prefix: msg=D_8006A140; entry=(s32*)(arg2*8 + D_8006FF68); msg[0x40/4]=arg0; msg[0x44/4]=arg1; msg[0x20/4]=entry[0]; msg[0x08/4]=arg3; msg[0x0C/4]=&D_800DB1B0; msg[0x28/4]=entry[1]. If (arg3&1): idx=D_8006FB24+1 (stored back to D_8006FB24 after the modulo), msg[0x54/4]=&D_8006A146, D_800DB1B0 = ((s32*)D_800DD3D8)[idx % D_80046D90] via divu (the divide-by-zero check gives a `break 7` path, so the modulo is unsigned u32). Else msg[0x54/4]=&D_8006A144. Then func_800339C0(1) saved result, D_80092C00 += 1, func_800339C0(saved), then tail (not read yet). Next: compile a version with `u32` index and the modulo to see the divu layout, then read the tail (lines 52+).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794721740.776266,
+  "score_before": 660,
+  "score_after": 660
+ },
+ {
+  "function": "nuGfxTaskStart",
+  "text": "Best verified 660 (90.9%), revision 1030b45cda5294aa6f1a (msg = D_8006A140 via void*; entry = arg2*8 + D_8006FF68; msg[0x0C/4] = (s32)&D_800DB1B0). Remaining diffs: the target loads the VALUE of D_800DB1B0 (lui v0 / lw v0) for the 0x0C store and reloads it after the flag branch, and the target loads D_80092C00 into v0 right before the second jal (lui/lw before `jal func_800339C0`) that the C does not reproduce. Replacing the 0x0C store with the value (730) made it worse. Also the entry[0]/entry[1] register order differs. Untried: D_800DB1B0 value read in both places with a local, and the second-call argument shape.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794732026.962427,
+  "score_before": 660,
+  "score_after": 660
+ },
+ {
+  "function": "nuGfxTaskStart",
+  "text": "Saved best 660 (90.9%) reproduced exactly from the permuter source (the revision 1030b45 candidate as supplied has type errors; compile the saved_best source). Remaining diff: target loads D_800DB1B0's VALUE (lui v0; lw v0,%lo) before the arg stores and stores it to msg[0x0C] (sw v0,0xC($t0)), then sw a3,8 and sw v0 orderings; my version uses &D_800DB1B0 (addiu). Tried: msg[0x0C/4] = D_800DB1B0 (value): 730, worse, because the D_80092C00 += 1 load (lui/lw %lo(D_80092C00)) disappears in that variant. Untried: keep the value load but leave the D_80092C00 update as written; and the pre-call stores (sw a1 0x44, entry[0] at 0x20) ordering vs target lw $v0,($a2) first.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794733288.253997,
+  "score_before": 660,
+  "score_after": 660
+ },
+ {
+  "function": "nuGfxTaskStart",
+  "text": "Best mine 730 (90%) rev 3aaf5e64abe07c7facbe; saved best 660 is another source. Layout: msg=D_8006A140 kept in t0; msg[16]=arg0, msg[17]=arg1, msg[8]=entry[0], msg[2]=arg3, msg[3]=D_800DB1B0, msg[10]=entry[1], msg[21]=&D_8006A146 or &D_8006A144. Remaining diff: target's 2nd func_800339C0 call (arg a0=ret) has delay slot `lw v0, D_80092C00` (reload after the +=1 store), mine has none; that same stray reload also shows in nuGfxTaskMgr's last call. Store ordering also differs ((entry[0]) vs msg[2] ordering: target stores 0x20 before 0xC). volatile on D_80092C00 did not reproduce the reload. Unexplored: the reload may come from a second read in the source like a comparison or cast.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794748580.3902779,
+  "score_before": 660,
+  "score_after": 660
+ },
+ {
+  "function": "nuGfxTaskStart",
+  "text": "Matched (rev d2cac3d0415aebe84d7f). Decisive: msg[0x0C] stores the VALUE of D_800DB1B0 (not its address); D_80092C00 declared volatile and read twice (D_80092C00 += 1; D_80092C00;) to force the extra load; D_8006A140/D_8006FF68/D_800DD3D8 are pointers; D_8006A144/0x8006A146 are u16 whose addresses are stored into msg[0x54].",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794759734.4592588,
+  "score_before": 660,
+  "score_after": 0
  }
 ]
