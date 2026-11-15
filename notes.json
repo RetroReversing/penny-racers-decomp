@@ -7728,14 +7728,6 @@
   "score_after": 20
  },
  {
-  "function": "func_801FA028",
-  "text": "Best 985 (92.6%), saved; revision c1c737cc9d4b587b96ba (the if/else abs form). Remaining diff is the target re-materialising 0.0f (`mtc1 $zero,$f0`) in the negative-abs branch, which GCC here does not reproduce from C: the if/else abs form (985) and the `ft0 = arg0; if (!(arg0 > 0)) ft0 = -arg0` form (1225) both miss it, and `0.0f > arg1` changes nothing. Control flow otherwise matches the target. Stopping: I cannot find a C form that re-materialises the zero without changing the branch sense; a register-level trick would be needed.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794709825.6194088,
-  "score_before": 4280,
-  "score_after": 985
- },
- {
   "function": "func_801F9D8C",
   "text": "Not compiled yet; released to stop the session here. Asm read: two float->s32 conversions of arg0/arg1 with the 2^31 offset trick (c.lt.s against 0, then 0x4F000000 = 2^31 threshold, trunc.w.s, or 0x80000000 for the high branch), masked to u16 (a2 -> a3 = arg0 mapped, v1 = arg1 mapped). Then: special cases return 0x10E/0x5A, 0xB4, 0x13B/0x2D, 0xE1/0x87 depending on sign of arg0/arg1. Otherwise a table lookup D_801FB230 (u16) indexed by (min*64)/max or (max*64)/min via signed div (break 6/7 checks on the divisor), result = 0x5A - table when the ratio is the other way round. Final angle adjustments: when arg1<0 and arg0>=0 uses 0x168-x then a mod-360 via mult by 0xB60B60B7 (magic division by 360). Draft from m2c in the candidate is unreliable (uses goto blocks for the float branches). Next: write the two conversion helpers as static inline-style blocks matching the cvt/trunc sequence exactly, then the div-by-zero guards via the signed division, then the magic-number mod 360 last.",
   "by": "claude-haiku-5-5-23",
@@ -11710,14 +11702,6 @@
   "created_at": 1794724840.5516648,
   "score_before": 1045,
   "score_after": 1045
- },
- {
-  "function": "func_801FA028",
-  "text": "Not matched. Best score 1425 (89.3%, 128 vs 134 insns), revision 9ac82c2a0d545396c2e3 (clean rewrite of the m2c draft: ternary abs, zero/equal early returns, table lookup D_801FB230[(s32)(ratio*64)] as u16 array, final % 360 wrap). Remaining diffs: target re-materializes 0.0f with `mtc1 $zero,$f0; nop` before each zero compare (3 times); mine keeps one zero in a register, so the branch layout differs (first abs test bc1t .L28 in target vs .L20 in mine). Changing the abs form (`a = arg0; if (!(arg0>0)) a=-arg0;`) had no effect (revision 9deaf849c35fa22e1d2d, still 1425). Next step: find a form where GCC emits a fresh zero per compare (e.g. compare with a volatile-ish zero or split the two abs tests into separate functions-like blocks), then fix the join of the arg0/arg1 sign paths.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794724844.6601899,
-  "score_before": 885,
-  "score_after": 885
  },
  {
   "function": "func_801FC9D0",
@@ -15816,14 +15800,6 @@
   "score_after": 890
  },
  {
-  "function": "func_801FA028",
-  "text": "atan2-like angle function with u16 table D_801FB230 indexed by (s32)(ratio*64). Clean rewrite (ax/ay abs, ax==0, ay==0, ax==ay early returns, idx table lookup, quadrant fix-ups) scores 2815 (78.9%), revision 2d382a9ac430a3f363f4. Target has `mtc1 $zero,$f0` before the early-return compares (x3) and more compare/branch layouts (bc1t .L28 first). Ours has fewer insns (112 vs 134): the early-return ladder order and the zero-compare constants need to be re-written to follow the target's branch order. Claim lapsed mid-compile.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794737451.82272,
-  "score_before": 885,
-  "score_after": 885
- },
- {
   "function": "func_80138B1C",
   "text": "Best 3195 (69.5%), saved at revision 5c73423ebe2c22bcfbd9. Control flow matches: 10-entry jump table on v via D_80183080, four packet writes, and the v==2||v==7 tail. The remaining diff is register allocation only: the target loads v into $v1, copies arg0 into $a1 (`move $a1,$a0`), and uses t0=r, a3=gr, a2=b, and t1/t2/t3 for the tail constants. Mine loads v into $t4 and assigns r/gr/b/t-values to other registers. Tried without effect: reordering the local declarations, a `u32 **p = arg0` alias, and an `s32 *g` type change (that variant was stopped when progress changed during the compile). Next: compile_family(signedness) on the `g` declaration again, then compile_variants on the declaration order of r/gr/b.",
   "by": "claude-haiku-5-5-23",
@@ -15984,14 +15960,6 @@
   "score_after": 230
  },
  {
-  "function": "func_801FA028",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794738492.739556,
-  "score_before": 885,
-  "score_after": 885
- },
- {
   "function": "func_8022FE50",
   "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
   "by": "claude-opus-medium-1",
@@ -16078,14 +16046,6 @@
   "created_at": 1794738744.672848,
   "score_before": null,
   "score_after": null
- },
- {
-  "function": "func_801FA028",
-  "text": "Best 2375 (rev 5bd54bae21f1e1902f40): ax/ay written as if(arg>0.0f) x=arg else x=-arg, which beat the earlier 2815 (rev 74f1b309055f5c05f939). Remaining diff is branch layout: target re-materialises 0.0f with `mtc1 $zero,$f0` after each block (3 early), takes `bc1f .L210` after the ax==0 compare, and has a `nop; mtc1 $zero,$f0` pair near insn 43; ours CSEs zero and jumps to .L1c8/.Lf8. Tried `ax > ay` instead of `ay < ax`: no effect. Untried: spelling the zero compares as separate sub-expressions per branch, and the table-index arithmetic (target has 3 subu, 2 addu, sll by 1 for the u16 index). Verdict: not matched, needs a different structure for the zero handling.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794738744.7354739,
-  "score_before": 885,
-  "score_after": 885
  },
  {
   "function": "func_8013B704",
@@ -21440,14 +21400,6 @@
   "score_after": 0
  },
  {
-  "function": "func_801FA028",
-  "text": "Not matched. Best 1740 (87.0%, revision 567a6d85195aef9a8531): own C with abs-value locals a/b, zero/equal-magnitude early returns, table lookup via ((u16*)&D_801FB230)[(s32)(min*64/max)], and final sign-dependent returns with (0x168-t)%360. Remaining diffs: the target re-materializes 0.0f (mtc1 $zero,$f0 + nop) before the c.lt.s compares at the sign tests (rows 8,9,16,17), so the zero-compare shape should be written as separate float compares against 0.0f in the sign paths. Branch targets differ throughout (bc1t .L28 vs .L20, bc1f .L74 vs .L64) and the final 0x168 modulo appears as a divide; check the second page (start=70) before editing. Not attempted: the 0x168 path returns and the uint16 table index width; both need the second page of assembly.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794754013.763755,
-  "score_before": 885,
-  "score_after": 885
- },
- {
   "function": "func_8022F0E0",
   "text": "Not matched. Saved best 1200 is still the best; the m2c draft scores 6544. Confirmed: the D_8011F2F4/F2F8 updates are halfword (lhu/sh), so the byte-typed draft was wrong; `*(u16 *)(D_8011F2F4 + temp) |= 0x20` fixes width and scores 6264. Remaining: (1) the 18-argument calls to func_800DE41C are emitted with stack stores and register moves in a different order (target places a0-a3 zeros first, then sw of 0x1c..0x30); the arg list and possibly a varargs-style prototype need working out, and the target's func_80138B1C address-of is loaded after the a0-a3 setup. (2) The target reuses one loaded halfword across the D_8011F2F4 and D_8011F2F6 updates; my code loads D_8011F2F6/F8 separately, so the target likely computes the three slots from one base with +2 folded. Next: fix the call prototype first, then the base-pointer sharing.",
   "by": "claude-haiku-5-5-24",
@@ -25974,5 +25926,61 @@
   "created_at": 1794759717.208116,
   "score_before": 365,
   "score_after": 365
+ },
+ {
+  "function": "func_801FA028",
+  "text": "Best 985 (92.6%), saved; revision c1c737cc9d4b587b96ba (the if/else abs form). Remaining diff is the target re-materialising 0.0f (`mtc1 $zero,$f0`) in the negative-abs branch, which GCC here does not reproduce from C: the if/else abs form (985) and the `ft0 = arg0; if (!(arg0 > 0)) ft0 = -arg0` form (1225) both miss it, and `0.0f > arg1` changes nothing. Control flow otherwise matches the target. Stopping: I cannot find a C form that re-materialises the zero without changing the branch sense; a register-level trick would be needed.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794709825.6194088,
+  "score_before": 4280,
+  "score_after": 985
+ },
+ {
+  "function": "func_801FA028",
+  "text": "Not matched. Best score 1425 (89.3%, 128 vs 134 insns), revision 9ac82c2a0d545396c2e3 (clean rewrite of the m2c draft: ternary abs, zero/equal early returns, table lookup D_801FB230[(s32)(ratio*64)] as u16 array, final % 360 wrap). Remaining diffs: target re-materializes 0.0f with `mtc1 $zero,$f0; nop` before each zero compare (3 times); mine keeps one zero in a register, so the branch layout differs (first abs test bc1t .L28 in target vs .L20 in mine). Changing the abs form (`a = arg0; if (!(arg0>0)) a=-arg0;`) had no effect (revision 9deaf849c35fa22e1d2d, still 1425). Next step: find a form where GCC emits a fresh zero per compare (e.g. compare with a volatile-ish zero or split the two abs tests into separate functions-like blocks), then fix the join of the arg0/arg1 sign paths.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794724844.6601899,
+  "score_before": 885,
+  "score_after": 885
+ },
+ {
+  "function": "func_801FA028",
+  "text": "atan2-like angle function with u16 table D_801FB230 indexed by (s32)(ratio*64). Clean rewrite (ax/ay abs, ax==0, ay==0, ax==ay early returns, idx table lookup, quadrant fix-ups) scores 2815 (78.9%), revision 2d382a9ac430a3f363f4. Target has `mtc1 $zero,$f0` before the early-return compares (x3) and more compare/branch layouts (bc1t .L28 first). Ours has fewer insns (112 vs 134): the early-return ladder order and the zero-compare constants need to be re-written to follow the target's branch order. Claim lapsed mid-compile.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794737451.82272,
+  "score_before": 885,
+  "score_after": 885
+ },
+ {
+  "function": "func_801FA028",
+  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794738492.739556,
+  "score_before": 885,
+  "score_after": 885
+ },
+ {
+  "function": "func_801FA028",
+  "text": "Best 2375 (rev 5bd54bae21f1e1902f40): ax/ay written as if(arg>0.0f) x=arg else x=-arg, which beat the earlier 2815 (rev 74f1b309055f5c05f939). Remaining diff is branch layout: target re-materialises 0.0f with `mtc1 $zero,$f0` after each block (3 early), takes `bc1f .L210` after the ax==0 compare, and has a `nop; mtc1 $zero,$f0` pair near insn 43; ours CSEs zero and jumps to .L1c8/.Lf8. Tried `ax > ay` instead of `ay < ax`: no effect. Untried: spelling the zero compares as separate sub-expressions per branch, and the table-index arithmetic (target has 3 subu, 2 addu, sll by 1 for the u16 index). Verdict: not matched, needs a different structure for the zero handling.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794738744.7354739,
+  "score_before": 885,
+  "score_after": 885
+ },
+ {
+  "function": "func_801FA028",
+  "text": "Not matched. Best 1740 (87.0%, revision 567a6d85195aef9a8531): own C with abs-value locals a/b, zero/equal-magnitude early returns, table lookup via ((u16*)&D_801FB230)[(s32)(min*64/max)], and final sign-dependent returns with (0x168-t)%360. Remaining diffs: the target re-materializes 0.0f (mtc1 $zero,$f0 + nop) before the c.lt.s compares at the sign tests (rows 8,9,16,17), so the zero-compare shape should be written as separate float compares against 0.0f in the sign paths. Branch targets differ throughout (bc1t .L28 vs .L20, bc1f .L74 vs .L64) and the final 0x168 modulo appears as a divide; check the second page (start=70) before editing. Not attempted: the 0x168 path returns and the uint16 table index width; both need the second page of assembly.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794754013.763755,
+  "score_before": 885,
+  "score_after": 885
+ },
+ {
+  "function": "func_801FA028",
+  "text": "Best rechecked score 1740 (87.0%), revision 0ffe0ae9500f694530dd (same as the draft in substance). Target: the comparisons are emitted as `0.0f < x` (c.lt.s with fv0=0 as first operand), and `mtc1 $zero,$fv0` is re-materialized after each use (3+ times), which my version does not reproduce. Rewriting `x > 0.0f` as `0.0f < x` made no difference (the compiler normalizes it). The entry is `mtc1 zero; c.lt.s 0,arg0; bc1t skip; mov.s ft0,arg0 (delay slot); neg.s ft0,arg0; mtc1 zero` \u2014 so a = arg0 is a register copy with the negation skipped by a branch, and the zero is reloaded afterwards. Next experiments: write the zero as a local float `zf = 0.0f` re-read after each branch, or test -O1 to see whether the constant reload survives; also the table index for `b < a` vs `a > b` branch-sense is unverified.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794755923.5893261,
+  "score_before": 885,
+  "score_after": 885
  }
 ]
