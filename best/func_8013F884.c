@@ -40,6 +40,8 @@ void func_8013F884(s16 arg0)
     Racer *p;
     u16 *snd;
     Car *car;
+    s16 *cnt;
+    s32 *tbl;
 
     p = &D_8011F2F0[arg0 & 0xFFFF];
 
@@ -50,11 +52,11 @@ void func_8013F884(s16 arg0)
         D_80189C8C = *snd;
         p->state = 1;
         {
-            s32 *dst = D_80189900;
             u8 *src = &D_8022AFE9;
 
+            tbl = D_80189900;
             for (i = 0; i < 7; i++) {
-                dst[i] = *src;
+                tbl[i] = *src;
             }
         }
         goto clear;
@@ -62,6 +64,8 @@ void func_8013F884(s16 arg0)
         D_8018A244 = 0;
         D_80189920 = 0;
         D_80183BD8 = 0;
+        cnt = &D_800DD2C0;
+        tbl = D_80189900;
         for (i = 0; i < 7; i++) {
             car = &D_8022A770[i];
             if (car->id == 0xFFFF) {
@@ -74,10 +78,10 @@ void func_8013F884(s16 arg0)
                 D_80189920 = 1;
             }
             if (car->state == 5) {
-                if (D_80189900[i] == 0) {
+                if (tbl[i] == 0) {
                     D_80189C90 = 0x200;
                 }
-                if (++D_80183BD8 == D_800DD2C0) {
+                if (++D_80183BD8 == *cnt) {
                     D_8011F2FD[(arg0 & 0xFFFF) * 0x64] = 2;
                     return;
                 }
@@ -85,7 +89,7 @@ void func_8013F884(s16 arg0)
         }
         if (D_80189920) {
             if (D_80189C8C != 0xC8) {
-                func_801D65BC(0xE, 0, &D_800DD2C0, 0x200);
+                func_801D65BC(0xE, 0, cnt, 0x200);
                 D_80189C8C = 0xC8;
                 goto clear;
             }
@@ -117,22 +121,24 @@ void func_8013F884(s16 arg0)
         D_8018A244 = 0;
         D_80189920 = 0;
         D_80183BD8 = 0;
+        cnt = &D_800DD2C0;
+        tbl = D_80189900;
         for (i = 0; i < 7; i++) {
             car = &D_8022A770[i];
             if (car->id == 0xFFFF) {
                 continue;
             }
-            if (car->unk594 >= 4 && i < D_800DD2C0 && car->state != 5) {
+            if (car->unk594 >= 4 && i < *cnt && car->state != 5) {
                 D_8018A244++;
             }
             if ((car->flags & 0x20) && car->state == 0) {
                 D_80189920 = 1;
             }
             if (car->state == 5) {
-                if (D_80189900[i] == 0) {
+                if (tbl[i] == 0) {
                     D_80189C90 = 0x200;
                 }
-                if (++D_80183BD8 == D_800DD2C0) {
+                if (++D_80183BD8 == *cnt) {
                     D_8011F2FD[(arg0 & 0xFFFF) * 0x64] = 2;
                     return;
                 }
@@ -140,7 +146,7 @@ void func_8013F884(s16 arg0)
         }
         if (D_80189920) {
             if (D_80189C8C != 0xC8) {
-                func_801D65BC(0xE, 0, 5, &D_800DD2C0);
+                func_801D65BC(0xE, 0, 5, cnt);
                 D_80189C8C = 0xC8;
                 goto clear;
             }
@@ -179,10 +185,11 @@ void func_8013F884(s16 arg0)
 tail_init:
     i = 0;
 tail:
+    tbl = D_80189900;
     for (; i < 7; i++) {
         car = &D_8022A770[i];
         if (car->id != 0xFFFF) {
-            D_80189900[i] = car->state;
+            tbl[i] = car->state;
         }
     }
     return;

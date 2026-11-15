@@ -17,6 +17,8 @@ extern u16 D_8022A776;
 extern s8 D_8022AD06;
 
 s32 func_8014B108(void) {
+int __repair_literal;
+
     s32 s0 = 0;
     s32 i;
     
@@ -43,7 +45,9 @@ s32 func_8014B108(void) {
                 if (((D_80189C94 & 0x1FF) == 0x1FF) && (D_8018A43C != 0)) {
                     s0 = 0x800;
                 }
-                if (b[0x596] < 4) {
+__repair_literal = 4;
+
+                if (b[0x596] < __repair_literal) {
                     for (i = 1; i < 4; i++) {
                         if (b[0x566 + i] == 0x63) {
                             s0 |= 1;
