@@ -5832,14 +5832,6 @@
   "score_after": 875
  },
  {
-  "function": "func_8015E484",
-  "text": "Saved best 660 is the better start; my rewrite scored 1185 (worse, not saved). Target order: the D_8011F350 pointer load (lui $a1; addu; lw $a1,%lo) comes BEFORE the D_8011F2FC byte load (lui $v1; addu; lbu). Our version loads the byte first and reads the pointer after. Also target keeps arg0 in $a2 via `move $a2,$a0` before the first record write, which ours lacks (we use $a0 directly). Next: declare the pointer local before the `if`, read the D_8011F350 pointer into a register before the byte compare, and copy arg0 into a second `void **` local (same as func_8015E404's branch-distance issue, which is the same instruction shape).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794706402.9440691,
-  "score_before": 660,
-  "score_after": 660
- },
- {
   "function": "func_8014BFFC",
   "text": "Best 230 (saved, 92.5%): `i = D_8021E1A2 + 1; if (i != 4) { while (i < 4) { for (j = 0; j < 8; j++) *(s32 *)((u8 *)D_8018D3A0 + i*32 + j*4) = *(s32 *)((u8 *)D_8018A3B8 + i*32 + j*4); i++; } }` with s32 i, j. Remaining diff: the target's inner loop keeps separate row-offset registers (a3 = rowoff+D_8018D3A0, a2 = rowoff+D_8018A3B8) and the element offset is a0*4 in v0; target is 31 insns vs my 30, and the branch targets are off by one insn (beq to 0x74 vs my 0x70). Tried: separate dst/src pointer locals (650, worse); if(i!=4 && i<4) form (725); for-form with i==4 guard (430). Next idea: look for an extra nop or a second counter scaled from a0 rather than a1.",
   "by": "claude-haiku-5-5-22",
@@ -8392,14 +8384,6 @@
   "score_after": 20252
  },
  {
-  "function": "func_8015E484",
-  "text": "Target (42 insns) is the FIFO packet writer sibling of the matched func_8015E404/func_8015D368. Shape is settled: idx=(arg1&0xFFFF)*0x64 in a3; obj = *(u8 **)(D_8011F350 + idx) loaded BEFORE the branch; condition `if (*(D_8011F2FC + idx) != 0xFF)`; body does the two 8-byte packets (0xB6000000/0x3000 then 0xFA000000) through *arg0, then q[1] = (obj[0x17]<<24)|(obj[0x18]<<16)|(obj[0x19]<<8)|*(D_8011F2FC+idx).\n\nBest local source (revision ab9829105852e0629779, score 1185 vs rechecked baseline 1240) reproduces every instruction except ORDER and REGALLOC: gcc schedules the F2FC load before the F350 load and keeps arg0 in $a0, while the target has the F350 load first with obj in $a1, arg0 copied to $a2 (addu $a2,$a0,$zero in the beq delay slot), q in $a0, p in $v1.\n\nKey evidence: making the branch depend on obj (variant `if (obj[0x16] != 0xFF)`, revision 2f18c2fa3904288a3bb0, score 1130) PUTS THE F350 LOAD FIRST exactly like the target \u2014 i.e. the target's obj load is on the branch's critical path, so the original condition must read something the obj load feeds, or the RTL order otherwise makes the F350 load branch-critical. Tried and worse: separate `flag` temp (1625), slot-pointer two-step (1360), void* p/q with byte offsets / decl reorder (1185), declaring obj first (1185), inline index instead of idx var (1630). Next idea: find a C shape where the 0xFF compare operand depends on both the obj load and F2FC (e.g. an && / comma form the optimiser folds to one compare) \u2014 that is the only thing that reproduced the target's scheduling.\n\nDo NOT write the D_8011F2FC access as a subscript (D_8011F2FC[off]) \u2014 that produces the addiu-base form; use *(D_8011F2FC + idx) which folds %lo into the lbu like the target.",
-  "by": "opencode-deepseek-v4.1-flash-free-5",
-  "created_at": 1794712233.244092,
-  "score_before": 660,
-  "score_after": 660
- },
- {
   "function": "func_80206BC0",
   "text": "Not matched. Best: 5136 (76.0%), revision f77e1ed5a4a67f0e6238 (213 vs 214 insns). Structure is right: the four `if (D_8021B0C0 != k)` blocks each choose between `func_801CA494(arg0,0x64,0x64,0x64,0xFF)` and `func_801CA494(arg0,0xFF x4)`, followed by `func_8014A4C8(arg0,0x70,y,z,k)`. Remaining diffs are instruction ordering and register choice around the `addiu $s5,$zero,0xff` constant and the `beq`/`j` branch targets, which shift by 4 bytes. Tried and rejected: ternary `c = cond ? 0x64 : 0xFF` (16546); hoisting `full = 0xFF` into a local everywhere (11416); sharing `full` only in the trailing call (same 5136, no gain). Next: compile_family(family=\"branch_orientation\") on the 76% revision, and try swapping the order of the `0xFF` else-arm and the `0x64` arm (write `!=` as `==` with the arms swapped). Start from f77e1ed5a4a67f0e6238.",
   "by": "claude-haiku-5-5-23",
@@ -8574,14 +8558,6 @@
   "created_at": 1794712807.8765771,
   "score_before": 8010,
   "score_after": 1330
- },
- {
-  "function": "func_8015E484",
-  "text": "Not started: this function was queued in a batch claim behind func_8015C838 and was released unused so the batch-mate can be worked on (claims serialize compile_and_diff). No attempts, no evidence beyond the machine draft.",
-  "by": "opencode-deepseek-v4.1-flash-free-5",
-  "created_at": 1794713374.5237749,
-  "score_before": 660,
-  "score_after": 660
  },
  {
   "function": "func_80199AB0",
@@ -8846,14 +8822,6 @@
   "created_at": 1794718058.856592,
   "score_before": 120,
   "score_after": 120
- },
- {
-  "function": "func_8015E484",
-  "text": "Not matched. Best C scores 1185 (saved best 660). Index is off = (u16)arg1 * 100. Table loads: ptr from (&D_8011F350 + off), byte from (&D_8011F2FC + off). Body writes 3 words via *arg0 (+8 bump): 0xB6000000, 0x3000, then 0xFA000000, and last word = byte17<<24|byte18<<16|byte19<<8|F2FC[off]. Remaining diffs: target loads the F350 pointer before the F2FC compare branch (mine compares first); target copies arg0 into a2 in the beq delay slot; register allocation. Moving the load or using a local pp did not change the instructions. Likely needs a different statement order or an explicit arg0 copy form.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794718066.178184,
-  "score_before": 660,
-  "score_after": 660
  },
  {
   "function": "func_801FF37C",
@@ -13038,14 +13006,6 @@
   "created_at": 1794730484.105806,
   "score_before": 1010,
   "score_after": 880
- },
- {
-  "function": "func_8015E484",
-  "text": "Best verified this session 1185 (42/42 insns) with: `off = (arg1 & 0xFFFF) * 0x64; a1 = *(u8 **)((u8 *)&D_8011F350 + off); if (*((u8 *)&D_8011F2FC + off) != 0xFF) { p = *pp; *pp = p+2; p[0]=0xB6000000; p[1]=0x3000; q = *pp; *pp = q+2; q[0]=0xFA000000; q[1]= bytes at a1+0x17/0x18/0x19 shifted 24/16/8 OR'd with *((u8*)&D_8011F2FC+off); }`. Historical saved best 660 uses `extern s32` scalars with `*((&D_8011F350) + off)` \u2014 index scaled by 4 \u2014 and m2c's do/while(0) form; it is a different source and scores 1240 when recompiled now, so treat 1185 as the real baseline. Remaining 28 rows: (1) target emits `move $a2,$a0` in the beq delay slot and does all pointer loads/stores through $a2, ours keeps $a0 \u2014 tried `pp = arg0;` before/after the if, `(u32 **)arg0`, `arg0 + 0`, `&arg0[0]`, `void *arg0` cast: all identical, GCC folds the copy. (2) target loads D_8011F350 (lui/addu/lw) before D_8011F2FC (lui/addu/lbu); ours reverses them \u2014 the C already computes a1 first, so this is scheduler order, not source order. Next idea: force the $a2 copy by making arg0's use non-trivial (e.g. a struct field store through a pointer that GCC must keep live across the branch), or run search_flags/try_compiler for -O1 on this function.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794730492.517451,
-  "score_before": 660,
-  "score_after": 660
  },
  {
   "function": "alEvtqPostEvent",
@@ -18062,14 +18022,6 @@
   "created_at": 1794748046.792619,
   "score_before": 70,
   "score_after": 70
- },
- {
-  "function": "func_8015E484",
-  "text": "Best is 1200 (71%). Clean C: `off=arg1*100; src=*(u8**)(D_8011F350+off); if (D_8011F2FC[off]!=0xFF) { two dl writes (0xB6000000/0x3000 and 0xFA000000 + word from src[0x17..0x19] | D_8011F2FC[off]) }`. Remaining: target keeps arg0 in $a2 (move $a2,$a0) and loads D_8011F350 into $a1 before the D_8011F2FC compare; ours loads the D_8011F2FC compare first. Tried: `u32 **dl = arg0` at top (no change), `*(u8**)&D_8011F350[off]` (no change). Untried: writing the first two words through one u32 pointer pair; the saved 660 is a different source.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794748052.897164,
-  "score_before": 660,
-  "score_after": 660
  },
  {
   "function": "func_801496B0",
@@ -26838,5 +26790,101 @@
   "created_at": 1794762597.2621691,
   "score_before": 330,
   "score_after": 330
+ },
+ {
+  "function": "func_8015E484",
+  "text": "Saved best 660 is the better start; my rewrite scored 1185 (worse, not saved). Target order: the D_8011F350 pointer load (lui $a1; addu; lw $a1,%lo) comes BEFORE the D_8011F2FC byte load (lui $v1; addu; lbu). Our version loads the byte first and reads the pointer after. Also target keeps arg0 in $a2 via `move $a2,$a0` before the first record write, which ours lacks (we use $a0 directly). Next: declare the pointer local before the `if`, read the D_8011F350 pointer into a register before the byte compare, and copy arg0 into a second `void **` local (same as func_8015E404's branch-distance issue, which is the same instruction shape).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794706402.9440691,
+  "score_before": 660,
+  "score_after": 660
+ },
+ {
+  "function": "func_8015E484",
+  "text": "Target (42 insns) is the FIFO packet writer sibling of the matched func_8015E404/func_8015D368. Shape is settled: idx=(arg1&0xFFFF)*0x64 in a3; obj = *(u8 **)(D_8011F350 + idx) loaded BEFORE the branch; condition `if (*(D_8011F2FC + idx) != 0xFF)`; body does the two 8-byte packets (0xB6000000/0x3000 then 0xFA000000) through *arg0, then q[1] = (obj[0x17]<<24)|(obj[0x18]<<16)|(obj[0x19]<<8)|*(D_8011F2FC+idx).\n\nBest local source (revision ab9829105852e0629779, score 1185 vs rechecked baseline 1240) reproduces every instruction except ORDER and REGALLOC: gcc schedules the F2FC load before the F350 load and keeps arg0 in $a0, while the target has the F350 load first with obj in $a1, arg0 copied to $a2 (addu $a2,$a0,$zero in the beq delay slot), q in $a0, p in $v1.\n\nKey evidence: making the branch depend on obj (variant `if (obj[0x16] != 0xFF)`, revision 2f18c2fa3904288a3bb0, score 1130) PUTS THE F350 LOAD FIRST exactly like the target \u2014 i.e. the target's obj load is on the branch's critical path, so the original condition must read something the obj load feeds, or the RTL order otherwise makes the F350 load branch-critical. Tried and worse: separate `flag` temp (1625), slot-pointer two-step (1360), void* p/q with byte offsets / decl reorder (1185), declaring obj first (1185), inline index instead of idx var (1630). Next idea: find a C shape where the 0xFF compare operand depends on both the obj load and F2FC (e.g. an && / comma form the optimiser folds to one compare) \u2014 that is the only thing that reproduced the target's scheduling.\n\nDo NOT write the D_8011F2FC access as a subscript (D_8011F2FC[off]) \u2014 that produces the addiu-base form; use *(D_8011F2FC + idx) which folds %lo into the lbu like the target.",
+  "by": "opencode-deepseek-v4.1-flash-free-5",
+  "created_at": 1794712233.244092,
+  "score_before": 660,
+  "score_after": 660
+ },
+ {
+  "function": "func_8015E484",
+  "text": "Not started: this function was queued in a batch claim behind func_8015C838 and was released unused so the batch-mate can be worked on (claims serialize compile_and_diff). No attempts, no evidence beyond the machine draft.",
+  "by": "opencode-deepseek-v4.1-flash-free-5",
+  "created_at": 1794713374.5237749,
+  "score_before": 660,
+  "score_after": 660
+ },
+ {
+  "function": "func_8015E484",
+  "text": "Not matched. Best C scores 1185 (saved best 660). Index is off = (u16)arg1 * 100. Table loads: ptr from (&D_8011F350 + off), byte from (&D_8011F2FC + off). Body writes 3 words via *arg0 (+8 bump): 0xB6000000, 0x3000, then 0xFA000000, and last word = byte17<<24|byte18<<16|byte19<<8|F2FC[off]. Remaining diffs: target loads the F350 pointer before the F2FC compare branch (mine compares first); target copies arg0 into a2 in the beq delay slot; register allocation. Moving the load or using a local pp did not change the instructions. Likely needs a different statement order or an explicit arg0 copy form.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794718066.178184,
+  "score_before": 660,
+  "score_after": 660
+ },
+ {
+  "function": "func_8015E484",
+  "text": "Best verified this session 1185 (42/42 insns) with: `off = (arg1 & 0xFFFF) * 0x64; a1 = *(u8 **)((u8 *)&D_8011F350 + off); if (*((u8 *)&D_8011F2FC + off) != 0xFF) { p = *pp; *pp = p+2; p[0]=0xB6000000; p[1]=0x3000; q = *pp; *pp = q+2; q[0]=0xFA000000; q[1]= bytes at a1+0x17/0x18/0x19 shifted 24/16/8 OR'd with *((u8*)&D_8011F2FC+off); }`. Historical saved best 660 uses `extern s32` scalars with `*((&D_8011F350) + off)` \u2014 index scaled by 4 \u2014 and m2c's do/while(0) form; it is a different source and scores 1240 when recompiled now, so treat 1185 as the real baseline. Remaining 28 rows: (1) target emits `move $a2,$a0` in the beq delay slot and does all pointer loads/stores through $a2, ours keeps $a0 \u2014 tried `pp = arg0;` before/after the if, `(u32 **)arg0`, `arg0 + 0`, `&arg0[0]`, `void *arg0` cast: all identical, GCC folds the copy. (2) target loads D_8011F350 (lui/addu/lw) before D_8011F2FC (lui/addu/lbu); ours reverses them \u2014 the C already computes a1 first, so this is scheduler order, not source order. Next idea: force the $a2 copy by making arg0's use non-trivial (e.g. a struct field store through a pointer that GCC must keep live across the branch), or run search_flags/try_compiler for -O1 on this function.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794730492.517451,
+  "score_before": 660,
+  "score_after": 660
+ },
+ {
+  "function": "func_8015E484",
+  "text": "Best is 1200 (71%). Clean C: `off=arg1*100; src=*(u8**)(D_8011F350+off); if (D_8011F2FC[off]!=0xFF) { two dl writes (0xB6000000/0x3000 and 0xFA000000 + word from src[0x17..0x19] | D_8011F2FC[off]) }`. Remaining: target keeps arg0 in $a2 (move $a2,$a0) and loads D_8011F350 into $a1 before the D_8011F2FC compare; ours loads the D_8011F2FC compare first. Tried: `u32 **dl = arg0` at top (no change), `*(u8**)&D_8011F350[off]` (no change). Untried: writing the first two words through one u32 pointer pair; the saved 660 is a different source.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794748052.897164,
+  "score_before": 660,
+  "score_after": 660
+ },
+ {
+  "function": "func_8015E484",
+  "text": "Resolved: corrected u8 table accesses with byte offsets, u32 DL words, u16 arg1. Fresh -O1 byte-exact proof and exact source submitted via suggest. revision2421b00a80b2d686a09a at O2 is1185; saved660 source has wrong scaled int indexing. Pending function profile application; do not add artificial branch dependencies.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794760273.710628,
+  "score_before": 660,
+  "score_after": 660
+ },
+ {
+  "function": "func_8015E484",
+  "text": "Can't get closer at -O2: search_flags shows this exact typed C scores 0 at -O1 (verified) \u2014 the function is compiled with -O1, not a C issue. Function-only compiler bundle (-O1) suggested to the user. Source: struct 0x64 bytes at D_8011F2FC {u8 alpha@0; u8 *color@0x54}, GfxW **dl, u16 idx, two (*dl)++ writes B6000000/3000 and FA000000/(c[17]<<24|c[18]<<16|c[19]<<8|alpha).",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794761068.9441018,
+  "score_before": 660,
+  "score_after": 660
+ },
+ {
+  "function": "func_8015E484",
+  "text": "Fresh -O1 exact proof, corrected u8 byte arrays and offset arg1*100; two GfxW command pointers. Checked function-only suggestion filed. Saved660 wrong scalar-index source must not supersede exact bundle. Await profile application.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794761399.176509,
+  "score_before": 660,
+  "score_after": 660
+ },
+ {
+  "function": "func_8015E484",
+  "text": "Not retried: exact -O1 source already filed via suggest (see notes). Awaiting -O1 profile application.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794762040.1234581,
+  "score_before": 660,
+  "score_after": 660
+ },
+ {
+  "function": "func_8015E484",
+  "text": "Exact O1 corrected raw-byte record source submitted via suggest. Target stride100 requires u8 globals; old s32-global pointer arithmetic incorrectly scaled again. Off=(arg1&65535)*100; color=*(u8**)(D_8011F350+off); alpha=D_8011F2FC[off]. Two u32* graphics packets write B6000000/3000 and FA000000/RGBA. O2 score1185; O1 entire168 bytes exact. Pending function-only bundle automatic changes off.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794762641.0767438,
+  "score_before": 660,
+  "score_after": 660
+ },
+ {
+  "function": "func_8015E484",
+  "text": "EXACT MATCH at KMC GCC -O1 (verified, suggested). Entity array D_8011F2F0 stride 0x64: u8 alpha @0xC, u8 *col @0x60; writes B6000000/3000 then FA000000 with col[0x17..0x19]<<24/16/8 | alpha. Signature (Gfx **gp, u16 idx). Unit code_8015A414 is -O2 -> 1185; blocked on suggestion.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794763013.060331,
+  "score_before": 660,
+  "score_after": 660
  }
 ]
