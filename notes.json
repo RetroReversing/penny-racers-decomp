@@ -8984,14 +8984,6 @@
   "score_after": 205
  },
  {
-  "function": "func_8002E6E4",
-  "text": "Not matched. Best saved is 1190 (m2c-based, far off). A switch-based rewrite (case 9 / case 3 / case 4 / default) scored 1390, so it is worse. Target structure: compare arg1==4 first (beq to case-4 block), then slti arg1<5; inside that, beq arg1==3; else beq arg1==9; default calls n_alLoadParam(arg1) via jal with a0 unchanged. Case 4 block stores 1 to 0x78, 0 to 0x84, sh 1 to 0x5A, 0 to 0x4C, 1 to 0x50, 0 to 0x48, then falls into a call n_alLoadParam(4) with a1=4. Case 3 block: loads 0x80, if null stores arg2 at 0x7C, otherwise stores arg2 at (old 0x80)[0], then stores arg2 at 0x80. The branches are likely-form (beql/bnel), so an explicit if/else chain may match better than switch. Next step: write the if-chain form to reproduce the compare order, then fix registers.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794705757.973959,
-  "score_before": 780,
-  "score_after": 780
- },
- {
   "function": "alCSPGetChlProgram",
   "text": "Not matched. Best revision eb76b77fd962258650d8 scores 40 (98.7%): same 31 insns, only register-allocation differences. Source: typedef struct {s32 a,b,c,d;} Quad; Quad tmp = *(Quad *)(*(u8 **)(arg0+0x60) + ((arg1&0xFF)<<4)); s16 *p = *(s16 **)(arg0+0x20); n = *p; loop i<n comparing pp[i+3] with tmp.a, return i else -1. Target computes the address in a1 (addu a1,a1,v0) and loads into v0,v1,a0,a2; mine puts it in v0 and loads into v1,a0,a1. Swapping the addend order had no effect. Next: try a Quad *src pointer taken before the p load, or copy fields in a different order.",
   "by": "claude-haiku-5-5-20",
@@ -9128,14 +9120,6 @@
   "score_after": 24350
  },
  {
-  "function": "func_8002E6E4",
-  "text": "No match. Target (gcc-2.7.2-kmc -O1): frame 0x18 with ra saved; branch order: beq a1,4 -> case-4 block (stores 0x78=1,0x84=0,h 0x5A=1,0x4C=0,0x50=1,0x48=0, then a1=4 and call n_alLoadParam); else slti a1,5: if a1<5 then a1==3 -> list append block (0x80 head: if NULL store arg2 at 0x7C else *head=arg2; then 0x80=arg2; return 0), otherwise jump to call n_alLoadParam(a1); if a1>=5 then a1==9 -> 0x84=1, return 0, else call. Return value is v0=0 at the end. Best score 1190 came from the switch-form draft (saved). Tries that restructured to an if-chain with goto call scored 2585/2595 (worse): the compiler generated a register copy (move a3,a1) and reordered stores, so the switch-like form is closer. Next: keep the switch form and fix the case-4 store order (target stores 0x78 first via v1=1 shared with 0x50), and make the call's a1 set via the case-4 fallthrough.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794720132.4073868,
-  "score_before": 780,
-  "score_after": 780
- },
- {
   "function": "alCSPGetChlProgram",
   "text": "Best candidate: revision 93e5a8a6a28b74b55750, score 905 (70.8%). Source: `s32 sp[5]` local, sp[0..3] = temp_a1[0..3] where temp_a1 = (s32*)((s8*)*(void**)(arg0+0x60) + ((arg1&0xFF)<<4)), temp_a3 = *(s16**)(arg0+0x20), n = *temp_a3, then do-while loop over p=(s8*)temp_a3, p+=4 comparing *(s32*)(p+0xC) to sp[0], returning index, else -1. The -0x18 frame now matches. Remaining diffs: target keeps the first word in a register (a2) for the compare and loads it once, mine reloads from the stack; the loop register allocation (v1 index, a1 bound) differs. Tried and worse: `first = temp_a1[0]` variant (1165), `for` loop form with p[3] (1226), m2c sp0..spC/goto draft (1046), sp[4] frame (-0x10, 1046). Untried: the m2c-style variable names, and a signed s16 counter vs s32 compare.",
   "by": "claude-haiku-5-5-24",
@@ -9174,5 +9158,21 @@
   "created_at": 1794707885.9251661,
   "score_before": 405,
   "score_after": 405
+ },
+ {
+  "function": "func_8002E6E4",
+  "text": "Not matched. Best saved is 1190 (m2c-based, far off). A switch-based rewrite (case 9 / case 3 / case 4 / default) scored 1390, so it is worse. Target structure: compare arg1==4 first (beq to case-4 block), then slti arg1<5; inside that, beq arg1==3; else beq arg1==9; default calls n_alLoadParam(arg1) via jal with a0 unchanged. Case 4 block stores 1 to 0x78, 0 to 0x84, sh 1 to 0x5A, 0 to 0x4C, 1 to 0x50, 0 to 0x48, then falls into a call n_alLoadParam(4) with a1=4. Case 3 block: loads 0x80, if null stores arg2 at 0x7C, otherwise stores arg2 at (old 0x80)[0], then stores arg2 at 0x80. The branches are likely-form (beql/bnel), so an explicit if/else chain may match better than switch. Next step: write the if-chain form to reproduce the compare order, then fix registers.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794705757.973959,
+  "score_before": 780,
+  "score_after": 780
+ },
+ {
+  "function": "func_8002E6E4",
+  "text": "No match. Target (gcc-2.7.2-kmc -O1): frame 0x18 with ra saved; branch order: beq a1,4 -> case-4 block (stores 0x78=1,0x84=0,h 0x5A=1,0x4C=0,0x50=1,0x48=0, then a1=4 and call n_alLoadParam); else slti a1,5: if a1<5 then a1==3 -> list append block (0x80 head: if NULL store arg2 at 0x7C else *head=arg2; then 0x80=arg2; return 0), otherwise jump to call n_alLoadParam(a1); if a1>=5 then a1==9 -> 0x84=1, return 0, else call. Return value is v0=0 at the end. Best score 1190 came from the switch-form draft (saved). Tries that restructured to an if-chain with goto call scored 2585/2595 (worse): the compiler generated a register copy (move a3,a1) and reordered stores, so the switch-like form is closer. Next: keep the switch form and fix the case-4 store order (target stores 0x78 first via v1=1 shared with 0x50), and make the call's a1 set via the case-4 fallthrough.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794720132.4073868,
+  "score_before": 780,
+  "score_after": 780
  }
 ]

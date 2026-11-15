@@ -12,20 +12,26 @@ s32 func_8002E6E4(u8 *arg0, s32 arg1, void *arg2) {
         *(void **)(arg0 + 0x80) = arg2;
         break;
     }
-    case 4:
+    case 4: {
+        s16 one;
+        s32 one2;
         arg1 = 4;
-        *(s32 *)(arg0 + 0x78) = 1;
+        one2 = 1;
+        one = 1;
+        *(s32 *)(arg0 + 0x78) = one2;
         *(s32 *)(arg0 + 0x84) = 0;
-        *(s16 *)(arg0 + 0x5A) = 1;
+        *(s16 *)(arg0 + 0x5A) = one;
         *(s32 *)(arg0 + 0x4C) = 0;
-        *(s32 *)(arg0 + 0x50) = 1;
+        *(s32 *)(arg0 + 0x50) = one2;
         *(s32 *)(arg0 + 0x48) = 0;
-        /* fallthrough */
-    default:
-        n_alLoadParam(arg0, arg1);
-        break;
+        goto call;
+    }
     case 9:
         *(s32 *)(arg0 + 0x84) = 1;
+        break;
+    default:
+    call:
+        n_alLoadParam(arg0, arg1);
         break;
     }
     return 0;
