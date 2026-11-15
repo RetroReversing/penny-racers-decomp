@@ -1,4 +1,3 @@
-/* adapted from similar verified C in func_80155FA0 in PENNY RACERS (matched), with its names changed by decompdecomp */
 void func_8013AE60(u16);
 extern volatile u8 D_8011F32E[];
 void func_80155110(s32 arg0)
@@ -12,7 +11,7 @@ void func_80155110(s32 arg0)
     func_8013AE60(temp_s0);
     temp_v1 = temp_s0 * 100;
     temp_a0 = *((volatile u16 *) (D_8011F32E + temp_v1));
-    *((volatile u16 *) (D_8011F32E + temp_v1)) = temp_a0 + 7;
+    *((volatile u16 *) (D_8011F32E + temp_v1)) = temp_a0 + 4;
   }
   else
   {
@@ -20,11 +19,10 @@ void func_80155110(s32 arg0)
     func_8013AE60(temp_s0);
     temp_v1 = temp_s0 * 100;
     temp_a0 = *((volatile u16 *) (D_8011F32E + temp_v1));
-    *((volatile u16 *) (D_8011F32E + temp_v1)) = temp_a0 + 7;
+    *((volatile u16 *) (D_8011F32E + temp_v1)) = temp_a0 + 4;
   }
-  if ((*((volatile u16 *) (D_8011F32E + temp_v1))) >= 0x100)
+  if ((*((volatile u16 *) (D_8011F32E + temp_v1))) >= 0x80)
   {
-    *((volatile u16 *) (D_8011F32E + temp_v1)) = temp_a0 - 0xF8;
+    *((volatile u16 *) (D_8011F32E + temp_v1)) = temp_a0 - 0x7B;
   }
 }
-
