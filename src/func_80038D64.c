@@ -1,4 +1,4 @@
-/* identical to pennyReadSequenceByte (matched), with its names changed by decompdecomp */
+/* identical to func_8002DA28 (matched), with its names changed by decompdecomp */
 s32 func_80038D64(s32 arg0, s32 arg1)
 {
   unsigned char temp_v1_2;
