@@ -2720,14 +2720,6 @@
   "score_after": 75
  },
  {
-  "function": "sqrtf",
-  "text": "Tried `f32 func_80032310(f32 arg0) { return sqrtf(arg0); }` with project flags gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2. gcc emits full IEEE sqrt fallback: sqrt.s + c.eq.s $f0,$f0 + addiu $sp,-0x18 + bc1t .L20 + sw $ra,0x10($sp) + jal ?sqrtf + ... + jr $ra + addiu $sp,0x18. Target is only sqrt.s + jr $ra (8 bytes, no fallback/call/frame). Flag variants (-O1/O3/G8/-fno-*) all scored same 960; flags not the problem. Left: source form needed that makes gcc emit bare hardware sqrt. Move-on budget exhausted (3/3 no improvement).",
-  "by": "opencode-flint-40b-free-1",
-  "created_at": 1794273070.73929,
-  "score_before": 960,
-  "score_after": 960
- },
- {
   "function": "func_8002D320",
   "text": "func_8002D320: 67 insns / 268 bytes. Takes struct ptr (arg0) + ptr (arg1). Loop i=0..15 over per-entry slots at arg0+i*4: clears byte[+0xA8] and byte[+0x98] of entry, clears [arg0+4i+0x58]=0; if fn array slot *(s32*)(arg0 + i*4)... actually a0 = *(s32*)(arg0 + i*4) via array ptr at [arg0+0]; if a0 != 0: set bit i in [arg0+4]; [arg0+4i+0x18] = arg1 + a0; [arg0+4i+0xB8] = func_8002DAE0(arg0, i); else [arg0+4i+0x18]=0. Then double sqrt: v = *(s32*)(*(s32*)arg0 + 0x40); if <0 add D_8004A390 (41.0); D_8004A398 (0.5) / v; store f32 at [arg0+8]. Needs guessed struct layout.",
   "by": "opencode-flint-40b-free-1",
@@ -5696,14 +5688,6 @@
   "score_after": 2475
  },
  {
-  "function": "sqrtf",
-  "text": "Target is a single `sqrt.s $f0,$f12` in the delay slot of jr $ra, no call. Plain sqrtf / __builtin_sqrtf calls compile to a jal with NaN check (score 960). search_flags shows no better flags. Needs a C form that gcc-2.7.2-kmc turns into a bare sqrt.s (not yet found); the project's compiler may not do this without a special construct. Not c-matchable with the tried forms.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794705902.1831949,
-  "score_before": 960,
-  "score_after": 960
- },
- {
   "function": "__seqpStopOsc",
   "text": "Best 285 (95.2%, source in candidate revision bc5718438310ea5f5787 / b112cbb695f0b42c6f2b). Frame 0x30 and the saved set (ra,s0-s5) already match. Remaining diff is register allocation and one control-flow shape: target keeps arg1 in $s1 and the next pointer (loaded from 0(s0)) in $s2, the reverse of mine. Declaration-order swap did nothing. Also the outer NULL test is `beqz $s0,0xcc` in the target (the loop exit jumps far), suggesting the loop is `for(;;)` with the exit test at the bottom rather than do/while. Next: restructure the loop as a `while (s0 != NULL)` with the exit at the bottom and retry the lifetimes.",
   "by": "claude-haiku-5-5-24",
@@ -7328,14 +7312,6 @@
   "score_after": 3783
  },
  {
-  "function": "sqrtf",
-  "text": "Target is 2 insns (jr ra; sqrt.s $fv0,$fa0) \u2014 an inline single-precision sqrt with no NaN/errno path. The source is simply `f32 func_80032310(f32 arg0) { return sqrtf(arg0); }`, but with the project's flags gcc-2.7.2-kmc emits sqrt.s + c.eq.s/bc1t NaN check + jal sqrtf (score 960). Conclusively verified with try_compiler: the exact same C matches byte-for-byte (-ffast-math). search_flags tried 6 variants (none has -ffast-math); -O1 is worse. Submitted suggest() for a function-only compiler bundle gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 -ffast-math. Automatic compiler changes are off, so this cannot be saved until the user applies the suggestion. Nothing else left to try in C: no C expression makes this 2-insn form without -ffast-math.",
-  "by": "opencode-deepseek-v4.1-flash-free-5",
-  "created_at": 1794708525.7627552,
-  "score_before": 960,
-  "score_after": 960
- },
- {
   "function": "func_801513E4",
   "text": "Not matched. Best this session 4095 (revision 8b5c85cf864172267f7f): typed version with u8 D_8011F338 (f32 read at +idx*100), `if (temp_fv1 >= 2147483648.0f)` ternary-less body as in m2c draft, D_8016D0C4 u8 index into u32 D_8016D0B0, then 7 blocks. Saved best 1230 is the m2c M2C_FIELD draft (restore via saved_best). Remaining mismatch: (1) compiler adds `addiu $sp,$sp,-8` for the float path, which the target does not have; (2) branch shape: target is `c.le.s $f0,$f2 (2^31 vs f); bc1tl` with sub.s in the delay slot, my if-form gives `c.lt.s` / bc1f (swapping branches scored 4345, worse). Next: keep >= form, try a float temp declared inside the block or cast the subtraction into a separate statement to avoid the stack spill; the last block's constants 0xFA000000/0xF87800FF are correct.",
   "by": "claude-haiku-5-5-22",
@@ -8158,14 +8134,6 @@
   "created_at": 1794710418.7887192,
   "score_before": 575,
   "score_after": 575
- },
- {
-  "function": "sqrtf",
-  "text": "Asking to release now: no C can get closer under the current profile. Target is exactly `jr $ra` + `sqrt.s $fv0,$fa0` (2 insns). Exact C: `f32 sqrtf(f32 x) { return __builtin_sqrtf(x); }`. With the project profile (-G0 -mips3 -mgp32 -mfp32 -O2) GCC 2.7.2 emits a NaN check (c.eq.s/bc1t) and a recursive `jal sqrtf` (11 insns, score 960); no source form avoids that without fast-math. With -ffast-math added the same C MATCHES byte-for-byte (verified with try_compiler), and a function-only suggestion was filed: suggest(compiler=\"gcc-2.7.2-kmc\", flags=\"-G0 -mips3 -mgp32 -mfp32 -O2 -ffast-math\", function=\"sqrtf\"). Automatic compiler changes are off, so the user must apply it, then recompile the C above.",
-  "by": "opencode-deepseek-v4.1-flash-free-5",
-  "created_at": 1794710419.80434,
-  "score_before": 400,
-  "score_after": 400
  },
  {
   "function": "func_801429A8",
@@ -9278,14 +9246,6 @@
   "created_at": 1794717399.846236,
   "score_before": 10031,
   "score_after": 10031
- },
- {
-  "function": "sqrtf",
-  "text": "Target is a bare leaf: `jr $ra` + `sqrt.s $fv0,$fa0` in the delay slot, no errno check or call. Best C (`return __builtin_sqrtf(x);`) scores 960 with gcc-2.7.2-kmc at all flags tried (search_flags) and with sn-n64-281: the compiler always emits the c.eq.s NaN check and a jal sqrtf fallback. Plain C cannot drop that check, so this looks like a hand-written libm stub. Suggest leaving it as not_c unless a flag removes the errno check.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794718030.296905,
-  "score_before": 400,
-  "score_after": 400
  },
  {
   "function": "func_801FE364",
@@ -11222,14 +11182,6 @@
   "created_at": 1794722337.494234,
   "score_before": 265,
   "score_after": 265
- },
- {
-  "function": "sqrtf",
-  "text": "Target is only `jr $ra; sqrt.s $fv0,$fa0` (2 insns). gcc-2.7.2-kmc -O2 with __builtin_sqrtf(x) emits a NaN check (c.eq.s/bc1t) + stack frame + jal to sqrtf (score 960, 11 insns). Tried: __builtin_sqrt((f64)x) and __builtin_sqrt(x) (unresolved symbol, 1000), __builtin_fsqrt (unknown symbol, 1300), __builtin_sqrtf((f64)x) (same 960). Likely needs a different compiler/profile (search_flags / try_compiler with -ffast-math-ish or a sqrt.s-generating builtin) or the body is handwritten asm. Next: run search_flags(sqrtf) and try_compiler with ido-7.1 / gcc-2.8.1-pm on `f32 sqrtf(f32 x){return __builtin_sqrtf(x);}`.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794722339.860651,
-  "score_before": 400,
-  "score_after": 400
  },
  {
   "function": "func_80150FF8",
@@ -13376,14 +13328,6 @@
   "score_after": 1645
  },
  {
-  "function": "sqrtf",
-  "text": "Released at move-on: the compiler expands __builtin_sqrtf/__builtin_sqrt into a libm call plus NaN handling, not a bare sqrt.s. Both C forms tried (960, 1000) and all project flag variants (960) fail. Remaining C forms I can think of either recurse into sqrtf or go through the same libm path, so I cannot get closer with plain C here. Untested idea: find a source form the gcc 2.7.2 MIPS expander turns into sqrt.s without the libm call (maybe a different builtin spelling). Target is 2 insns: sqrt.s $f0,$f12; jr $ra.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794728803.678588,
-  "score_before": 400,
-  "score_after": 400
- },
- {
   "function": "func_8003E644",
   "text": "Best candidate: revision 22ccf6865e5ccc61f265, score 2870 (52%). The C is a plain ring-buffer push: r = table[arg0]; if r: cnt=r->unk8; if cnt < r->unk10: idx=(r->unkC+cnt)%r->unk10; r->unk14[idx]=table[arg0+4]; r->unk8=cnt+1; if *r->unk0 != 0: ret=func_8003E884(r); func_8003E83C(D_800470D8). Target is 60 insns, mine 45. The mismatch is structural, not register-only: the target saves the return address with `move $s2,$ra` and has no stack frame, returns with `jr $s2`, and it has three copies of the `move $s2,$ra`. The % uses the usual gcc div-by-zero trap pattern (break 7/6), so the modulo is right. I could not find a plain-C form that makes gcc keep ra in $s2 with no frame and emit `jr $s2`. This may be hand-written trampoline/asm code; check with a not_c review before more C work. Not tried: a version that splits the ring push into a helper called from two sites (could explain the three move $s2,$ra copies).",
   "by": "claude-haiku-5-5-24",
@@ -13608,14 +13552,6 @@
   "score_after": 280
  },
  {
-  "function": "sqrtf",
-  "text": "Target is a bare leaf: `jr $ra; sqrt.s $f0,$f12`, no NaN check, no call. All tried C forms (__builtin_sqrtf) add the errno path (c.eq.s / bc1t / jal sqrtf / stack frame), score 960 with project flags. search_flags: no variant better than 960 (-O1 1060). try_compiler: ido-7.1 gives 900 (cvt.s.w/jal __builtin_sqrtf, not sqrt.s); sn-n64-281 gives 960. Untried: a form that yields sqrt.s without the errno check (none found in C yet). Possibly this is libm and not_c candidate; not decided.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794729652.473968,
-  "score_before": 400,
-  "score_after": 400
- },
- {
   "function": "func_80208374",
   "text": "Could not reproduce the saved best (336). The source shown in the brief (s32 * prototypes for func_80205E04/func_80205EBC, p = &D_8021E19E, `*p = *p - 8`) rechecks at 2311 now. Target keeps the base pointer in $s0 (lui/addiu $s0 = &D_8021E19E, lbu/sb through s0) and reuses it for `lh $v0,4($s0)` (offset 0x8021E1A2). Mine rebuilds the address with a separate lui, and the frame (addiu sp,-0x20; sw ra 0x1c; sw s0 0x18) is missing. Next: make the pointer p live across the calls (declare it so it stays in a callee-saved reg) so the s0 frame appears. Also the D_8021B020 vs D_8021B01C raw-address warning means one argument's address is off by 4: check the &D_8021B020 call argument first.",
   "by": "claude-haiku-5-5-22",
@@ -13734,14 +13670,6 @@
   "created_at": 1794730000.449831,
   "score_before": 820,
   "score_after": 820
- },
- {
-  "function": "sqrtf",
-  "text": "Target is 2 insns: `sqrt.s $f0,$f12; jr $ra`. Best 960 is the __builtin_sqrtf(x) wrapper (the same as the saved best). Every C form tried emits the errno/NaN check (c.eq.s, bc1t, a jal to sqrtf/sqrt, cvt.d.s and mtc1). `__builtin_sqrt` (double path) scored 1000, worse, and its symbol is not resolved. search_flags shows no flag set removes the check (960 for every -O2/-O3/-G variant, 1060 for -O1). Suggest: try_compiler on the other sn-n64 toolchains (sn-n64-281/272 and gcc-egcs), which may emit sqrt.s without a math-errno check. Not matched; not_c unproven.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794730010.968927,
-  "score_before": 400,
-  "score_after": 400
  },
  {
   "function": "func_80149FA8",
@@ -18158,5 +18086,93 @@
   "created_at": 1794357151.5835881,
   "score_before": 105,
   "score_after": 105
+ },
+ {
+  "function": "sqrtf",
+  "text": "Tried `f32 func_80032310(f32 arg0) { return sqrtf(arg0); }` with project flags gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2. gcc emits full IEEE sqrt fallback: sqrt.s + c.eq.s $f0,$f0 + addiu $sp,-0x18 + bc1t .L20 + sw $ra,0x10($sp) + jal ?sqrtf + ... + jr $ra + addiu $sp,0x18. Target is only sqrt.s + jr $ra (8 bytes, no fallback/call/frame). Flag variants (-O1/O3/G8/-fno-*) all scored same 960; flags not the problem. Left: source form needed that makes gcc emit bare hardware sqrt. Move-on budget exhausted (3/3 no improvement).",
+  "by": "opencode-flint-40b-free-1",
+  "created_at": 1794273070.73929,
+  "score_before": 960,
+  "score_after": 960
+ },
+ {
+  "function": "sqrtf",
+  "text": "Target is a single `sqrt.s $f0,$f12` in the delay slot of jr $ra, no call. Plain sqrtf / __builtin_sqrtf calls compile to a jal with NaN check (score 960). search_flags shows no better flags. Needs a C form that gcc-2.7.2-kmc turns into a bare sqrt.s (not yet found); the project's compiler may not do this without a special construct. Not c-matchable with the tried forms.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794705902.1831949,
+  "score_before": 960,
+  "score_after": 960
+ },
+ {
+  "function": "sqrtf",
+  "text": "Target is 2 insns (jr ra; sqrt.s $fv0,$fa0) \u2014 an inline single-precision sqrt with no NaN/errno path. The source is simply `f32 func_80032310(f32 arg0) { return sqrtf(arg0); }`, but with the project's flags gcc-2.7.2-kmc emits sqrt.s + c.eq.s/bc1t NaN check + jal sqrtf (score 960). Conclusively verified with try_compiler: the exact same C matches byte-for-byte (-ffast-math). search_flags tried 6 variants (none has -ffast-math); -O1 is worse. Submitted suggest() for a function-only compiler bundle gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 -ffast-math. Automatic compiler changes are off, so this cannot be saved until the user applies the suggestion. Nothing else left to try in C: no C expression makes this 2-insn form without -ffast-math.",
+  "by": "opencode-deepseek-v4.1-flash-free-5",
+  "created_at": 1794708525.7627552,
+  "score_before": 960,
+  "score_after": 960
+ },
+ {
+  "function": "sqrtf",
+  "text": "Asking to release now: no C can get closer under the current profile. Target is exactly `jr $ra` + `sqrt.s $fv0,$fa0` (2 insns). Exact C: `f32 sqrtf(f32 x) { return __builtin_sqrtf(x); }`. With the project profile (-G0 -mips3 -mgp32 -mfp32 -O2) GCC 2.7.2 emits a NaN check (c.eq.s/bc1t) and a recursive `jal sqrtf` (11 insns, score 960); no source form avoids that without fast-math. With -ffast-math added the same C MATCHES byte-for-byte (verified with try_compiler), and a function-only suggestion was filed: suggest(compiler=\"gcc-2.7.2-kmc\", flags=\"-G0 -mips3 -mgp32 -mfp32 -O2 -ffast-math\", function=\"sqrtf\"). Automatic compiler changes are off, so the user must apply it, then recompile the C above.",
+  "by": "opencode-deepseek-v4.1-flash-free-5",
+  "created_at": 1794710419.80434,
+  "score_before": 400,
+  "score_after": 400
+ },
+ {
+  "function": "sqrtf",
+  "text": "Target is a bare leaf: `jr $ra` + `sqrt.s $fv0,$fa0` in the delay slot, no errno check or call. Best C (`return __builtin_sqrtf(x);`) scores 960 with gcc-2.7.2-kmc at all flags tried (search_flags) and with sn-n64-281: the compiler always emits the c.eq.s NaN check and a jal sqrtf fallback. Plain C cannot drop that check, so this looks like a hand-written libm stub. Suggest leaving it as not_c unless a flag removes the errno check.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794718030.296905,
+  "score_before": 400,
+  "score_after": 400
+ },
+ {
+  "function": "sqrtf",
+  "text": "Target is only `jr $ra; sqrt.s $fv0,$fa0` (2 insns). gcc-2.7.2-kmc -O2 with __builtin_sqrtf(x) emits a NaN check (c.eq.s/bc1t) + stack frame + jal to sqrtf (score 960, 11 insns). Tried: __builtin_sqrt((f64)x) and __builtin_sqrt(x) (unresolved symbol, 1000), __builtin_fsqrt (unknown symbol, 1300), __builtin_sqrtf((f64)x) (same 960). Likely needs a different compiler/profile (search_flags / try_compiler with -ffast-math-ish or a sqrt.s-generating builtin) or the body is handwritten asm. Next: run search_flags(sqrtf) and try_compiler with ido-7.1 / gcc-2.8.1-pm on `f32 sqrtf(f32 x){return __builtin_sqrtf(x);}`.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794722339.860651,
+  "score_before": 400,
+  "score_after": 400
+ },
+ {
+  "function": "sqrtf",
+  "text": "Released at move-on: the compiler expands __builtin_sqrtf/__builtin_sqrt into a libm call plus NaN handling, not a bare sqrt.s. Both C forms tried (960, 1000) and all project flag variants (960) fail. Remaining C forms I can think of either recurse into sqrtf or go through the same libm path, so I cannot get closer with plain C here. Untested idea: find a source form the gcc 2.7.2 MIPS expander turns into sqrt.s without the libm call (maybe a different builtin spelling). Target is 2 insns: sqrt.s $f0,$f12; jr $ra.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794728803.678588,
+  "score_before": 400,
+  "score_after": 400
+ },
+ {
+  "function": "sqrtf",
+  "text": "Target is a bare leaf: `jr $ra; sqrt.s $f0,$f12`, no NaN check, no call. All tried C forms (__builtin_sqrtf) add the errno path (c.eq.s / bc1t / jal sqrtf / stack frame), score 960 with project flags. search_flags: no variant better than 960 (-O1 1060). try_compiler: ido-7.1 gives 900 (cvt.s.w/jal __builtin_sqrtf, not sqrt.s); sn-n64-281 gives 960. Untried: a form that yields sqrt.s without the errno check (none found in C yet). Possibly this is libm and not_c candidate; not decided.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794729652.473968,
+  "score_before": 400,
+  "score_after": 400
+ },
+ {
+  "function": "sqrtf",
+  "text": "Target is 2 insns: `sqrt.s $f0,$f12; jr $ra`. Best 960 is the __builtin_sqrtf(x) wrapper (the same as the saved best). Every C form tried emits the errno/NaN check (c.eq.s, bc1t, a jal to sqrtf/sqrt, cvt.d.s and mtc1). `__builtin_sqrt` (double path) scored 1000, worse, and its symbol is not resolved. search_flags shows no flag set removes the check (960 for every -O2/-O3/-G variant, 1060 for -O1). Suggest: try_compiler on the other sn-n64 toolchains (sn-n64-281/272 and gcc-egcs), which may emit sqrt.s without a math-errno check. Not matched; not_c unproven.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794730010.968927,
+  "score_before": 400,
+  "score_after": 400
+ },
+ {
+  "function": "sqrtf",
+  "text": "Target is 2 insns: `jr $ra; sqrt.s $fv0,$fa0`. Best 960 with `f32 sqrtf(f32 x){ return __builtin_sqrtf(x); }` (revision 3ceb2381cb9aa5fdfe51). gcc emits sqrt.s plus a NaN-guard c.eq.s branch and frame setup, so the C never reaches 2 insns. Tried __builtin_sqrt (unknown symbol), sqrt(double) prototype, and search_flags (all 8 flag variants 960; -O1 1060). Flags are not the issue. This is a libm leaf that gcc-2.7.2-kmc cannot express as a bare sqrt.s; likely needs a builtin/asm-free equivalent or is effectively fixed.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794746480.710916,
+  "score_before": 400,
+  "score_after": 400
+ },
+ {
+  "function": "sqrtf",
+  "text": "Target is just `sqrt.s $f0,$f12; jr $ra`. Best remains 960 (0.0%). Tried: __builtin_sqrtf(x) (960, emits c.eq.s NaN check and errno call to sqrtf), (f32)__builtin_sqrt((f64)x) (1000, calls __builtin_sqrt, unresolved symbol). search_flags: no variant better than 960 (-O1 1060). Untried: a file-scope symbol that the builtin resolves to, or a flag set that disables math-errno; neither found in this project's flags.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794747250.504939,
+  "score_before": 400,
+  "score_after": 400
  }
 ]
