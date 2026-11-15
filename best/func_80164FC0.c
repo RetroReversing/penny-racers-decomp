@@ -19,7 +19,7 @@ extern s32 D_80237914;
 extern s32 D_802390C8;
 extern s32 func_801655A8;
 extern s32 func_801657F0;
-void func_80164FC0(volatile char arg0)
+void func_80164FC0(volatile unsigned int arg0)
 {
   f32 temp_fv0;
   f32 temp_fv1;
@@ -51,7 +51,7 @@ void func_80164FC0(volatile char arg0)
   void *temp_s3;
   void *temp_v1;
   temp_s1 = *((&D_8011F350) + ((arg0 & 0xFFFF) * 0x64));
-  temp_s0 = (char *)(((*((u16 *) (((char *) (*((void **) (((char *) temp_s1) + 4)))) + 2))) * 0x64)); temp_s0 += (s32)((&D_8011F4E4));
+  temp_s0 = (char *) ((*((u16 *) (((char *) (*((void **) (((char *) temp_s1) + 4)))) + 2))) * 0x64); temp_s0 += (s32) (&D_8011F4E4);
   temp_s3 = *((void **) (((char *) temp_s0) + 0x50));
   temp_a0 = *((u16 *) (((char *) temp_s1) + 0x14));
   var_v1 = 0;
@@ -168,7 +168,7 @@ void func_80164FC0(volatile char arg0)
       temp_a0_3 = *((void **) (((char *) temp_s1) + 4));
       *((u16 *) (((char *) temp_a0_3) + 0x560)) = (u16) ((*((u16 *) (((char *) temp_a0_3) + 0x560))) | ((temp_v0_8 & 7) - 1));
       func_8013E49C(*((u16 *) (((char *) temp_s1) + 0x76)));
-      *((D_8011F2FD) + ((arg0 & 0xFFFF) * 0x64)) = 2;
+      *(D_8011F2FD + ((arg0 & 0xFFFF) * 0x64)) = 2;
       if ((*((s16 *) (((char *) (*((void **) (((char *) temp_s1) + 4)))) + 0x55E))) == 0)
     {
       *((s32 **) (((char *) temp_s3) + 4)) = NULL;

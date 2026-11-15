@@ -24,7 +24,7 @@ s32 func_8020EE18(s32 arg0)
     u8 *s3;
     s32 s2;
     s2 = func_8014A870(0x14, 0x7, D_8021EEA7[0]);
-    func_80211C7C(arg0);
+    do { func_80211C7C(arg0); } while (0);
     s3 = D_8011F2F0 + arg0 * 0x64;
     switch (*(u16 *)(s3 + 0x3E)) {
     default:

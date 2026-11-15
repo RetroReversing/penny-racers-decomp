@@ -19,7 +19,8 @@ u16 func_800DE41C();
 s32 func_80232360();
 extern char D_8006FAF0[];
 extern char D_800DA26A[];
-extern char D_8011F2F0[];
+typedef struct { u16 f0; u8 pad[98]; } Slot_8011F2F0;
+extern Slot_8011F2F0 D_8011F2F0[];
 extern char D_8011F2FC[];
 extern char D_8011F32E[];
 extern char D_8011F350[];
@@ -81,7 +82,7 @@ void func_801E0F10(s32 arg0) {
     void *var_a3;
 
     temp_v0 = (arg0 & 0xFFFF) * 0x64;
-    D_801E87E5 = *(D_8011F2F0 + temp_v0);
+    D_801E87E5 = D_8011F2F0[arg0 & 0xFFFF].f0;
     temp_t0 = *(D_8011F2FC + temp_v0);
     temp_v1 = *(D_8011F32E + temp_v0);
     switch (temp_v1) {                              /* irregular */
@@ -130,8 +131,8 @@ void func_801E0F10(s32 arg0) {
         *(s32 *)(*(D_801F1880 + (D_801E87E5 * 4)) + temp_a1) = *(D_8022AFEB + (D_801E87E5 * 0x8F0));
         temp_v1_2 = (D_801E87E5 * 4) + D_801F1880;
         *temp_v1_2 += 2;
-        D_801E87E2 = 0;
-        temp_a0 = *temp_v1_2;
+        D_801E87E2 = 0;/*__repair_loop_weight*/do {
+        temp_a0 = *temp_v1_2;} while (0);
         if (((temp_a0 >= 0x7AFAU) | (temp_t0 == 0)) != 0) {
             *(temp_a0 + D_801F18E0) = 0xFF;
             *(s32 *)(*((D_801E87E5 * 4) + D_801F1880) + temp_a1) = 0xFF;
@@ -214,11 +215,11 @@ block_34:
         temp_a1_2 = *(D_801F1880 + (D_801E87E5 * 4));
         temp_a0_4 = *(D_801E9D80 + temp_a1_2);
         if (((temp_a0_4 == 0xFF) && (var_v0_2 = arg0 & 0xFFFF, (M2C_FIELD((D_801E9D80 + temp_a1_2), u8 *, 1) == temp_a0_4))) || (var_v0_2 = arg0 & 0xFFFF, (temp_t0 == 0))) {
-            temp_s0 = var_v0_2 * 0x64;
-            *(D_8011F2FC + temp_s0) = 0;
+            temp_v0_5 = var_v0_2 * 0x64;
+            *(D_8011F2FC + temp_v0_5) = 0;
             *(D_8022AFE9 + (D_801E87E5 * 0x8F0)) = 1;
             func_80232360(D_801E87E5, 0);
-            *(D_8011F32E + temp_s0) = 1;
+            *(D_8011F32E + temp_v0_5) = 1;
         }
         break;
     }
