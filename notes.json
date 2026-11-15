@@ -5216,14 +5216,6 @@
   "score_after": 80
  },
  {
-  "function": "func_80156180",
-  "text": "Best 80 (97.4%), revision 100292b5b942c70602c1. Constants are right now (+2, compare 0x80, subtract 0x7D after the vu16 reload). Remaining diff is the prologue, same as func_80155110: target does sw $ra,0x14 then sw $s0,0x10, then andi $s0,$a0,0xFFFF after both stores; ours stores $s0, does the andi, then stores $ra. Tried on the sibling: u16 parameter and `arg0 & 0xFFFF` temp (no change). Next: find a source form where the andi is scheduled after both saves (possibly the index is used only after the call, or a separate u16 local declared before the first call).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794706478.917526,
-  "score_before": 110,
-  "score_after": 80
- },
- {
   "function": "func_80149FA8",
   "text": "Saved best 70 (revision 353e643b) is the nested loop: `for i<0xE { src = *(u16**)((u8*)&D_802030CC + i*4); dst = (u16*)((u8*)&D_800DA26A + 0x64 + arg0*0x178 + i*0x12); for j<9 dst[j]=src[j]; }`. In this session the same text scored 2575 (not reproduced). Target shape: the table base D_802030CC (lui t2) is hoisted out of the outer loop; dst base = arg0*0x178 + &D_800DA26A+0x64 is in t0+t1, computed once; the inner loop uses lhu/sh with a0*2 offset. Variants that hoisted base or used `u16 *D_802030CC[]` scored 2575-2675, worse. Next: check the saved-best header/compiler conditions before further tuning; the loop counter must be the outer register a1 and the j loop a0.",
   "by": "claude-haiku-5-5-22",
@@ -9326,14 +9318,6 @@
   "created_at": 1794720608.058732,
   "score_before": 3575,
   "score_after": 3575
- },
- {
-  "function": "func_80156180",
-  "text": "Not matched. Best now 80 (saved best is 30 from an earlier attempt, which I did not reproduce). Body is right: s0=(u16)arg0; func_8013AE60(s0); off=s0*100; t=*(u16*)(D_8011F32E+off); store t+2; if (*(vu16*)(...) >= 0x80) store t-0x7D. Remaining diff is the prologue only: target saves `sw $ra,0x14($sp)` before `sw $s0,0x10($sp)`, ours saves s0 first. The frame and the call are otherwise right. Untried: reorder the saved registers via a second live local across the call, or check the saved-best 30 candidate for its prologue form. Donor func_80155FA0 is similar but has +7/-0xF8, so it is not a direct copy.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794720609.0871522,
-  "score_before": 30,
-  "score_after": 30
  },
  {
   "function": "func_8014A080",
@@ -18494,5 +18478,53 @@
   "created_at": 1794753829.614104,
   "score_before": 130,
   "score_after": 130
+ },
+ {
+  "function": "func_80156180",
+  "text": "Best 80 (97.4%), revision 100292b5b942c70602c1. Constants are right now (+2, compare 0x80, subtract 0x7D after the vu16 reload). Remaining diff is the prologue, same as func_80155110: target does sw $ra,0x14 then sw $s0,0x10, then andi $s0,$a0,0xFFFF after both stores; ours stores $s0, does the andi, then stores $ra. Tried on the sibling: u16 parameter and `arg0 & 0xFFFF` temp (no change). Next: find a source form where the andi is scheduled after both saves (possibly the index is used only after the call, or a separate u16 local declared before the first call).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794706478.917526,
+  "score_before": 110,
+  "score_after": 80
+ },
+ {
+  "function": "func_80156180",
+  "text": "Not matched. Best now 80 (saved best is 30 from an earlier attempt, which I did not reproduce). Body is right: s0=(u16)arg0; func_8013AE60(s0); off=s0*100; t=*(u16*)(D_8011F32E+off); store t+2; if (*(vu16*)(...) >= 0x80) store t-0x7D. Remaining diff is the prologue only: target saves `sw $ra,0x14($sp)` before `sw $s0,0x10($sp)`, ours saves s0 first. The frame and the call are otherwise right. Untried: reorder the saved registers via a second live local across the call, or check the saved-best 30 candidate for its prologue form. Donor func_80155FA0 is similar but has +7/-0xF8, so it is not a direct copy.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794720609.0871522,
+  "score_before": 30,
+  "score_after": 30
+ },
+ {
+  "function": "func_80156180",
+  "text": "Best is 80 (97.4%), from `u16 s0=(u16)arg0; s32 off; func_8013AE60(s0); off=s0*100; t=*(volatile u16*)(D_8011F32E+off); *(volatile u16*)(D_8011F32E+off)=t+2; if (*(volatile u16*)(D_8011F32E+off) >= 0x80) *(volatile u16*)(D_8011F32E+off)=t-0x7D;`. Instructions match; the only difference left is the prologue: the target stores $ra at 0x14 before $s0 at 0x10, and ours is reversed (plus the andi order). Declaration-order and s32/u32 variants of `off` made no difference. The inherited saved 30 is from a different source (+7, 0x100) and does not match this target. Untried: changing which value of s0 is used by the call (e.g. passing arg0 directly and masking after) to change the save order.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794747875.4619882,
+  "score_before": 30,
+  "score_after": 30
+ },
+ {
+  "function": "func_80156180",
+  "text": "Best current: score 80 (97.4%) with this source: void func_80156180(s32 arg0){ u16 temp_s0; u16 temp_a0; s32 temp_v1; temp_s0 = arg0; func_8013AE60(temp_s0); temp_v1 = temp_s0 * 100; temp_a0 = *((volatile u16 *)(D_8011F32E + temp_v1)); *((volatile u16 *)(D_8011F32E + temp_v1)) = temp_a0 + 2; if (*((volatile u16 *)(D_8011F32E + temp_v1)) >= 0x80) *((volatile u16 *)(D_8011F32E + temp_v1)) = temp_a0 - 0x7D; } with extern volatile u8 D_8011F32E[]; and void func_8013AE60(u16). Single-path function: s0=(u16)arg0; call; v1=s0*100 (sll/addu chain); load/store u16 at D+v1; second reload compared with 0x80. The saved_best 30 is a different, semantically wrong source (+7, 0x100, -0xF8) and should not be trusted as a match. Remaining diffs: stack save order (ra at 0x14 stored before s0 at 0x10 in target) and andi placement; frame is 0x18. Try declaring the ra-saving path differently or re-check the andi/s0 ordering.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794753894.974412,
+  "score_before": 30,
+  "score_after": 30
+ },
+ {
+  "function": "func_80156180",
+  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794754847.983835,
+  "score_before": 30,
+  "score_after": 30
+ },
+ {
+  "function": "func_80156180",
+  "text": "Released because its agent stopped (the app restarted); its attempts are kept.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794754896.2401102,
+  "score_before": 30,
+  "score_after": 30
  }
 ]
