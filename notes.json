@@ -23224,14 +23224,6 @@
   "score_after": 2420
  },
  {
-  "function": "func_800E15CC",
-  "text": "Best this session 695 (85.2%) with: n,cur u16; cur=func_800E1850; do { e=D_8011F2F0+cur*100; if (*(s32*)(e+0x54)!=0 && *(u8*)(e+0xD)==0) { D_8011F068[n]=cur; n++; } cur=*(u16*)(e+0x10); } while (cur!=0xFFFF); D_8011F068[n]=0xFFFF; tmp=n-1; if (tmp>0) func_800E0A00(0,tmp,D_8011F068,D_8011F068). Remaining: loop-exit compare and the sll/blez ordering; target compares the loaded cur register directly (bne $v0,$a2) and the nop/move a0 placement differs. Claim ended before release.\n\nBest 695 (85.2%): n,cur u16; cur=func_800E1850; do { e=D_8011F2F0+cur*100; if (*(s32*)(e+0x54)!=0 && *(u8*)(e+0xD)==0) { D_8011F068[n]=cur; n++; } cur=*(u16*)(e+0x10); } while (cur!=0xFFFF); D_8011F068[n]=0xFFFF; tmp=n-1; if (tmp>0) func_800E0A00(0,tmp,D_8011F068,D_8011F068). Remaining: loop compare on the loaded register (bne $v0,$a2) with v1=v0*2 after the branch; prologue sw ra/frame order; 'move $a0,$zero' placement. Same-score retry with a different temp form gave no gain.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794707236.3634071,
-  "score_before": 840,
-  "score_after": 695
- },
- {
   "function": "func_800DF1E0",
   "text": "Unmatched. Best saved 3345 (inherited); my 4100 was worse. Why it stalls: my C has the wrong shape from the first branch on. Target stores arg1 into D_8011F34C + off (off = (arg0&0xFFFF)*100, computed as ((v*2+v)*8+v)*4), then does a two-hop pointer load (*(*(D_8011F340+off)+4)+4) to get a byte mode t, maps t (1 -> 0x10, 2 -> 0x100, else 0) to a count, then copies that many halfwords through a second pointer chain (+4 then +8) with a 2-byte index loop. Frame is 8 bytes (addiu sp). Next step for anyone picking it up: write the lookup chain once as a local pointer, keep the mode switch as the flat if/else the branch targets show, and fix the index register order before anything else.",
   "by": "claude-haiku-5-5-24",
@@ -23240,36 +23232,12 @@
   "score_after": 2425
  },
  {
-  "function": "func_800E15CC",
-  "text": "Unmatched. Best saved 695 (inherited); my 2015 was worse. Target: walks a linked list from func_800E1850 (u16); entries 100 bytes apart from D_8011F2F0 (index = ((v*2+v)*8+v)*4). For each entry with a word at +0x54 nonzero and a byte at +0xD zero, appends the index to D_8011F068; next = halfword at +0x10, until 0xFFFF. Then writes 0xFFFF at D_8011F068[n]; if n-1 > 0 calls func_800E0A00(0, n-1, D_8011F068, D_8011F068). Has a 0x20 frame with $ra at 0x18. My candidate lacks the frame and loads the head into the wrong register. Next: fix the frame/ra save and register order first.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794707291.4313269,
-  "score_before": 695,
-  "score_after": 695
- },
- {
-  "function": "func_800E15CC",
-  "text": "Best 435 (90.7%). Source: static inline mul100(x)=((x*2+x)*8+x)*4; s32 n=0; u16 cur=func_800E1850; s32 idx=cur&0xFFFF; do{ p=D_8011F2F0+mul100(idx); if(*(s32*)(p+0x54)!=0 && p[0xD]==0){ D_8011F068[n&0xFFFF]=cur; n++; } cur=*(u16*)(p+0x10); idx=cur&0xFFFF; }while(idx!=0xFFFF); m=n&0xFFFF; D_8011F068[m]=0xFFFF; if(m-1>0) func_800E0A00(0,m-1,D_8011F068,D_8011F068). Remaining: register order: target keeps idx in v0 and the mul chain in v1 (sll v1,v0,1 first); mine swaps v0/v1 in the chain; frame (ra at 0x18, sp -0x20) matches. Tried dropping the idx var (695, worse). Untried: n as u16, or idx as the mul result.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794707418.2718909,
-  "score_before": 695,
-  "score_after": 435
- },
- {
   "function": "func_8013AE60",
   "text": "Best 770 (81.6%), revision 40b085a93f83e1706966: base=&D_8011F2F2, off=arg0*100, k=D_80233EC0 read once before loop, dst=base+off outside loop, src=base+(k+D_8011F2F0[off])*100 recomputed in loop, 4-iteration loop on u16 pairs with OR 8 / AND 0xFFF7. Remaining diffs: target keeps i*2 as a fresh `sll a0,a1,1` each iteration and computes the true-branch dst address in the beqz delay slot (addu v1,a0,a2); mine uses a pointer increment (addiu a0,a0,2) so the loop is one instruction longer (bnez encoding differs by one word). Register allocation also differs (target dst lives in a2, src base in t0). Tried: index form src[i]/dst[i], byte-offset form (dst+i*2), explicit |= vs = | rewrite: all 770 or worse. Untried: a for-loop over a byte offset o (0..6 step 2) written as *(u16*)(dst+o), or compile_family(signedness).",
   "by": "claude-haiku-5-5-23",
   "created_at": 1794707531.633562,
   "score_before": 965,
   "score_after": 770
- },
- {
-  "function": "func_800E15CC",
-  "text": "Best 660 at revision 03e3f7255ed2b9546f41 (source: `u16 n; s32 cur;` with the do/while walk over the 100-byte records, tmp = n-1 passed as s32). Tried, all worse: u32 n (1375), signed s16 n (1230), u16 cast in while condition (660, no change), removing tmp (1375), 2015 for u32/s32 variants. Remaining diffs: target emits `sw $ra,0x18($sp)` before the first argument move; our draft drops it to a later position. Target loads D_800E1850 into $a1 and the loop compare is `bne $v0,$a2` on an andi'd cur with `sll $v1,$v0,1` in the delay slot; ours compares $a1 directly and swaps the lui into $a0. Likely needs a different loop shape (for-loop or cur kept as u16 with a separate index) to match the register and delay-slot layout.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794707671.896068,
-  "score_before": 435,
-  "score_after": 435
  },
  {
   "function": "func_8015E530",
@@ -23310,14 +23278,6 @@
   "created_at": 1794721394.301844,
   "score_before": 770,
   "score_after": 770
- },
- {
-  "function": "func_800E15CC",
-  "text": "Not matched. Best 660 (85.9%): the do/while list walk with s32 cur, `e = D_8011F2F0 + cur * 100`, count n in u16, then `D_8011F068[n] = 0xFFFF; tmp = n-1; if (tmp > 0) func_800E0A00(0, tmp, D_8011F068, D_8011F068)`. Remaining diffs: target masks the index with andi (u16) before the x100 multiply and before the loop-end compare, and compares n (not tmp) with a2 for the loop check; target's `sw $ra` comes later in the prologue. Tried: cur as u16 (695, worse); (u16)cur*100 on the s32 version (695, worse). Untried: n compared as u16 against a precomputed bound; keep tmp as u16 for the call; moving the D_8011F068[n]=0xFFFF store before the if.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794721531.14159,
-  "score_before": 435,
-  "score_after": 435
  },
  {
   "function": "func_800DF1E0",
@@ -23440,14 +23400,6 @@
   "score_after": 1925
  },
  {
-  "function": "func_800E15CC",
-  "text": "Not started: released together with func_800DE2E0 to re-claim cleanly.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794747753.379275,
-  "score_before": 435,
-  "score_after": 435
- },
- {
   "function": "func_8013AE60",
   "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
   "by": "claude-haiku-5-5-20",
@@ -23464,30 +23416,6 @@
   "score_after": 770
  },
  {
-  "function": "func_800E15CC",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794749082.767922,
-  "score_before": 435,
-  "score_after": 435
- },
- {
-  "function": "func_800E15CC",
-  "text": "Best 660 (85.9%) is the saved s32-cur version (get_candidate saved_best). Target: cur index = (u16)cur*100 computed as ((c*2+c)*8+c)*4 (andi 0xffff before the shifts); loop-back test reads lhu 0x10 then andi 0xffff, bne against a2=0xFFFF in a register. Tried: u16 cur (695, index math changed to sll $v0,$a1,1 and bne a1,a2); separate u16 nx load then cur=nx while(nx!=0xFFFF) (no effect). Still open: the target does the and-0xffff on the loaded next index before the loop test and before the index shift, and stores D_8011F068[n] via a sh to lo(D_8011F068)(at) with at=hi-address+n*2 (the constant store of 0xFFFF after the loop). Next experiment: keep s32 cur, but write the loop test as ((u16)cur != 0xFFFF) and let the index be (u16)cur * 100; compare the mismatch rows at the loop back-edge first.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794754824.867029,
-  "score_before": 435,
-  "score_after": 435
- },
- {
-  "function": "func_800E15CC",
-  "text": "Exact under gcc-2.7.2-kmc -O1 (try_compiler verified); suggestion submitted. Source: do-while walk with u16 n,cur, Ent* e=&D_8011F2F0[cur]; if (e->unk54 && !e->unkD) D_8011F068[n++]=cur; cur=e->unk10; then D_8011F068[n]=0xFFFF; if (n-1>0) func_800E0A00(0,n-1,D_8011F068).",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794756913.9833212,
-  "score_before": 435,
-  "score_after": 435
- },
- {
   "function": "func_800DF1E0",
   "text": "Can't get closer at -O2: C is byte-exact at -O1 (verified by search_flags, suggestion filed). Revision 6676f4e5bb381ddce6d4. Remaining -O2 diff is purely loop strength reduction of arg1 which -O1 doesn't do. Apply the -O1 function profile.",
   "by": "claude-opus-medium-1",
@@ -23502,14 +23430,6 @@
   "created_at": 1794757111.771709,
   "score_before": 2515,
   "score_after": 2320
- },
- {
-  "function": "func_800E15CC",
-  "text": "Cannot improve meaningfully with default O2 because exact original compiler profile proven O1: try_compiler returned MATCHES byte for byte for explicit source and suggest rechecked it. Pending function-only profile bundle contains verified exact source, header/profile, automatic application is off. Default O2 is scheduling/removing redundant masks; no C defect remains. Release to allow new work while profile correction awaits application.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794757364.820339,
-  "score_before": 435,
-  "score_after": 435
  },
  {
   "function": "func_8013AE60",
@@ -23542,14 +23462,6 @@
   "created_at": 1794758076.966861,
   "score_before": 5760,
   "score_after": 5395
- },
- {
-  "function": "func_800E15CC",
-  "text": "MATCHES byte-for-byte at KMC -O1 (checked with try_compiler; suggestion submitted). The C uses u16 n,cur and Struct800DEFF8 *e; it walks the list via the field at 0x10 and collects entries with unk54!=0 && unkD==0 into D_8011F068, adds the 0xFFFF terminator, then calls func_800E0A00(0,n-1,D_8011F068) if n-1>0. Waiting for the -O1 profile.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794758090.491819,
-  "score_before": 435,
-  "score_after": 435
  },
  {
   "function": "func_800DF1E0",
@@ -26254,5 +26166,125 @@
   "created_at": 1794759758.688946,
   "score_before": 595,
   "score_after": 595
+ },
+ {
+  "function": "func_800E15CC",
+  "text": "Best this session 695 (85.2%) with: n,cur u16; cur=func_800E1850; do { e=D_8011F2F0+cur*100; if (*(s32*)(e+0x54)!=0 && *(u8*)(e+0xD)==0) { D_8011F068[n]=cur; n++; } cur=*(u16*)(e+0x10); } while (cur!=0xFFFF); D_8011F068[n]=0xFFFF; tmp=n-1; if (tmp>0) func_800E0A00(0,tmp,D_8011F068,D_8011F068). Remaining: loop-exit compare and the sll/blez ordering; target compares the loaded cur register directly (bne $v0,$a2) and the nop/move a0 placement differs. Claim ended before release.\n\nBest 695 (85.2%): n,cur u16; cur=func_800E1850; do { e=D_8011F2F0+cur*100; if (*(s32*)(e+0x54)!=0 && *(u8*)(e+0xD)==0) { D_8011F068[n]=cur; n++; } cur=*(u16*)(e+0x10); } while (cur!=0xFFFF); D_8011F068[n]=0xFFFF; tmp=n-1; if (tmp>0) func_800E0A00(0,tmp,D_8011F068,D_8011F068). Remaining: loop compare on the loaded register (bne $v0,$a2) with v1=v0*2 after the branch; prologue sw ra/frame order; 'move $a0,$zero' placement. Same-score retry with a different temp form gave no gain.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794707236.3634071,
+  "score_before": 840,
+  "score_after": 695
+ },
+ {
+  "function": "func_800E15CC",
+  "text": "Unmatched. Best saved 695 (inherited); my 2015 was worse. Target: walks a linked list from func_800E1850 (u16); entries 100 bytes apart from D_8011F2F0 (index = ((v*2+v)*8+v)*4). For each entry with a word at +0x54 nonzero and a byte at +0xD zero, appends the index to D_8011F068; next = halfword at +0x10, until 0xFFFF. Then writes 0xFFFF at D_8011F068[n]; if n-1 > 0 calls func_800E0A00(0, n-1, D_8011F068, D_8011F068). Has a 0x20 frame with $ra at 0x18. My candidate lacks the frame and loads the head into the wrong register. Next: fix the frame/ra save and register order first.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794707291.4313269,
+  "score_before": 695,
+  "score_after": 695
+ },
+ {
+  "function": "func_800E15CC",
+  "text": "Best 435 (90.7%). Source: static inline mul100(x)=((x*2+x)*8+x)*4; s32 n=0; u16 cur=func_800E1850; s32 idx=cur&0xFFFF; do{ p=D_8011F2F0+mul100(idx); if(*(s32*)(p+0x54)!=0 && p[0xD]==0){ D_8011F068[n&0xFFFF]=cur; n++; } cur=*(u16*)(p+0x10); idx=cur&0xFFFF; }while(idx!=0xFFFF); m=n&0xFFFF; D_8011F068[m]=0xFFFF; if(m-1>0) func_800E0A00(0,m-1,D_8011F068,D_8011F068). Remaining: register order: target keeps idx in v0 and the mul chain in v1 (sll v1,v0,1 first); mine swaps v0/v1 in the chain; frame (ra at 0x18, sp -0x20) matches. Tried dropping the idx var (695, worse). Untried: n as u16, or idx as the mul result.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794707418.2718909,
+  "score_before": 695,
+  "score_after": 435
+ },
+ {
+  "function": "func_800E15CC",
+  "text": "Best 660 at revision 03e3f7255ed2b9546f41 (source: `u16 n; s32 cur;` with the do/while walk over the 100-byte records, tmp = n-1 passed as s32). Tried, all worse: u32 n (1375), signed s16 n (1230), u16 cast in while condition (660, no change), removing tmp (1375), 2015 for u32/s32 variants. Remaining diffs: target emits `sw $ra,0x18($sp)` before the first argument move; our draft drops it to a later position. Target loads D_800E1850 into $a1 and the loop compare is `bne $v0,$a2` on an andi'd cur with `sll $v1,$v0,1` in the delay slot; ours compares $a1 directly and swaps the lui into $a0. Likely needs a different loop shape (for-loop or cur kept as u16 with a separate index) to match the register and delay-slot layout.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794707671.896068,
+  "score_before": 435,
+  "score_after": 435
+ },
+ {
+  "function": "func_800E15CC",
+  "text": "Not matched. Best 660 (85.9%): the do/while list walk with s32 cur, `e = D_8011F2F0 + cur * 100`, count n in u16, then `D_8011F068[n] = 0xFFFF; tmp = n-1; if (tmp > 0) func_800E0A00(0, tmp, D_8011F068, D_8011F068)`. Remaining diffs: target masks the index with andi (u16) before the x100 multiply and before the loop-end compare, and compares n (not tmp) with a2 for the loop check; target's `sw $ra` comes later in the prologue. Tried: cur as u16 (695, worse); (u16)cur*100 on the s32 version (695, worse). Untried: n compared as u16 against a precomputed bound; keep tmp as u16 for the call; moving the D_8011F068[n]=0xFFFF store before the if.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794721531.14159,
+  "score_before": 435,
+  "score_after": 435
+ },
+ {
+  "function": "func_800E15CC",
+  "text": "Not started: released together with func_800DE2E0 to re-claim cleanly.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794747753.379275,
+  "score_before": 435,
+  "score_after": 435
+ },
+ {
+  "function": "func_800E15CC",
+  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794749082.767922,
+  "score_before": 435,
+  "score_after": 435
+ },
+ {
+  "function": "func_800E15CC",
+  "text": "Best 660 (85.9%) is the saved s32-cur version (get_candidate saved_best). Target: cur index = (u16)cur*100 computed as ((c*2+c)*8+c)*4 (andi 0xffff before the shifts); loop-back test reads lhu 0x10 then andi 0xffff, bne against a2=0xFFFF in a register. Tried: u16 cur (695, index math changed to sll $v0,$a1,1 and bne a1,a2); separate u16 nx load then cur=nx while(nx!=0xFFFF) (no effect). Still open: the target does the and-0xffff on the loaded next index before the loop test and before the index shift, and stores D_8011F068[n] via a sh to lo(D_8011F068)(at) with at=hi-address+n*2 (the constant store of 0xFFFF after the loop). Next experiment: keep s32 cur, but write the loop test as ((u16)cur != 0xFFFF) and let the index be (u16)cur * 100; compare the mismatch rows at the loop back-edge first.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794754824.867029,
+  "score_before": 435,
+  "score_after": 435
+ },
+ {
+  "function": "func_800E15CC",
+  "text": "Exact under gcc-2.7.2-kmc -O1 (try_compiler verified); suggestion submitted. Source: do-while walk with u16 n,cur, Ent* e=&D_8011F2F0[cur]; if (e->unk54 && !e->unkD) D_8011F068[n++]=cur; cur=e->unk10; then D_8011F068[n]=0xFFFF; if (n-1>0) func_800E0A00(0,n-1,D_8011F068).",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794756913.9833212,
+  "score_before": 435,
+  "score_after": 435
+ },
+ {
+  "function": "func_800E15CC",
+  "text": "Cannot improve meaningfully with default O2 because exact original compiler profile proven O1: try_compiler returned MATCHES byte for byte for explicit source and suggest rechecked it. Pending function-only profile bundle contains verified exact source, header/profile, automatic application is off. Default O2 is scheduling/removing redundant masks; no C defect remains. Release to allow new work while profile correction awaits application.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794757364.820339,
+  "score_before": 435,
+  "score_after": 435
+ },
+ {
+  "function": "func_800E15CC",
+  "text": "MATCHES byte-for-byte at KMC -O1 (checked with try_compiler; suggestion submitted). The C uses u16 n,cur and Struct800DEFF8 *e; it walks the list via the field at 0x10 and collects entries with unk54!=0 && unkD==0 into D_8011F068, adds the 0xFFFF terminator, then calls func_800E0A00(0,n-1,D_8011F068) if n-1>0. Waiting for the -O1 profile.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794758090.491819,
+  "score_before": 435,
+  "score_after": 435
+ },
+ {
+  "function": "func_800E15CC",
+  "text": "Reconfirmed exact O1; source retained in function-specific suggestion. Separate D_8011F068[n]=cur; n++; statements required; D[n++]=cur yields score195, extra move and early increment. Setup remains pending apply; no O2 candidate tuning.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794758376.161956,
+  "score_before": 435,
+  "score_after": 435
+ },
+ {
+  "function": "func_800E15CC",
+  "text": "Byte-exact with KMC gcc-2.7.2 -O1 (suggested): a do/while with Obj64 *e = &D_8011F2F0[i]; checks e->unk54 (s32) and e->unkD.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794759362.532715,
+  "score_before": 435,
+  "score_after": 435
+ },
+ {
+  "function": "func_800E15CC",
+  "text": "Fresh try_compiler verifies saved source byte-exact at -O1. Submitted full source/profile bundle. Separate D[n]=cur;n++ statements retained. compile_and_diff hit progress ENOENT for unrelated func_801441E0.c.tmp; no O2 tuning warranted.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794759791.24635,
+  "score_before": 435,
+  "score_after": 435
+ },
+ {
+  "function": "func_800E15CC",
+  "text": "MATCHES (score 0) at -O1 with the struct/u16 version submitted in my last compile_and_diff (Ent800E15CC size 100: unkD@0xD u8, next@0x10 u16, unk54@0x54 s32; u16 n,cur; do/while cur!=0xFFFF). Profile is -O2 (490). Function-only compiler suggestion filed; apply it to save.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794760791.301192,
+  "score_before": 435,
+  "score_after": 435
  }
 ]
