@@ -5968,14 +5968,6 @@
   "score_after": 2830
  },
  {
-  "function": "func_80149A80",
-  "text": "Best 395 (91%): `extern u8 D_8011F2F0[]`, `i=(arg0&0xFFFF)*100; u8*p=D_8011F2F0+i; s32 k=D_8011F2FC[i]; if (*(u16*)(p+0x3E)==0) { s32 t=(k&0xFFFF)*36; *(f32*)(D_8022108C+t)=*(f32*)(p+0x18); ...0x1C->D_80221090, 0x20->D_80221094, 0x24->D_80221080, 0x28->D_80221084, 0x2C->D_80221088; *(u16*)(p+0x3E)=1; }`. Remaining: target loads k (lbu) and computes the lui/addu base BEFORE the flag lhu+bnez, and applies the andi 0xFFFF after the branch; ours puts the flag lhu first. Forcing that order via temps failed (965, 415 for variants that hoisted t before the if).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794706618.144979,
-  "score_before": 1315,
-  "score_after": 395
- },
- {
   "function": "__voiceNeedsNoteKill",
   "text": "Best saved 706 (83.9%). Shape: s0 = arg0->0x50 list head; acc=0; s2=1; loop over nodes: delta=node->0x8, next=node->0, acc+=delta; if (node->0xC==5 && node->0x10==arg1) { if (arg2>=acc) {s2=0; break;} if (next) next->8+=delta; alUnlink(node); alLink(node, arg0+0x48); return 1; } return s2. Remaining diff: target saves $ra at 0x1c and $s2 at 0x18, $s0 at 0x10 (frame 0x20); the candidate spills $ra at 0x18. Target also keeps the constant 5 in $t0 and the loop bottom is a bnez (top-tested beqz); a do-while form scored much worse (3156), so keep the while form. Next: try getting the save order/frame right (maybe an extra local or s1 use for arg0+0x48), then register allocation.",
   "by": "claude-haiku-5-5-20",
@@ -9904,14 +9896,6 @@
   "score_after": 480
  },
  {
-  "function": "func_80149A80",
-  "text": "Best 415 (90.9%), revision 8ab987426e723afe75a8. Key findings: D_8011F2FC is a u8 array indexed by the unscaled offset (temp = (arg0&0xFFFF)*0x64), lbu then multiply by 0x24; struct fields at +0x18..+0x2C are f32 copied to D_80221080..D_8022108C indexed by temp_v0_2; flag at +0x3E is u16. Remaining diff: target does lbu then andi $v1,$v1,0xffff before the 0x24 scaling; plus register/order: target computes sll v0,v0,2 first and loads lbu into v1 before lhu. Tried (u16) cast on the byte: no change. Untried: put the (arg0&0xFFFF) into a u16 local, and reorder the flag test before the f32 copies.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794720744.8345048,
-  "score_before": 395,
-  "score_after": 395
- },
- {
   "function": "nuScRemoveClient",
   "text": "Best rechecked: 675 (rev a87213eeadf7b17e6b63), 39 insns vs target 38. Structure is right; remaining diff is register allocation + branch form.\n\nTarget facts: &D_800DDE88 lives in $s3 (lui/addiu, lw $s0,($s3)), arg0 in $s2 (move $s2,$a0 saved at 0x18), and the else-branch store uses a fresh copy $v1 = $s3 (`move $v1,$s3`, `sw $v0,($v1)`). Loop is `bnel $s0,$s2,.L800285A4` with `move $s1,$s0` in the delay slot, i.e. the != path branches out of line to the tail (lw $s0,($s0); bnez $s0,loop). Our candidate emits `beq $s0,$s3,.L` (equal path in-line) plus an extra move/j, and swaps s2/s3.\n\nTried: (1) while-loop with `if (cur==arg0) ... break; prev=cur; cur=*cur;` and direct `D_800DDE88 = *cur` -> 1234 (worse, lost the *pp form). (2) do/while with `if (cur!=arg0) {prev=cur; cur=*cur; continue;} ...` -> 840 (adds insns). (3) plain declarations without pp indirection -> worse. try_local_repairs families on a87213ee are still available (24 proposals: branch_orientation, signedness, declaration_order, single_use_inline + 6 more).\n\nLeft to try: force the bnel/!= orientation with the tail out of line, and get s3=&D_800DDE88 / s2=arg0 by making the global pointer the longer-lived variable (use *pp in both load and store, reference arg0 only inside the loop). Untested variant saved as next_experiment (while-loop, equal-break first, pp indirection kept).",
   "by": "api-route-llm-code-2",
@@ -12824,14 +12808,6 @@
   "score_after": 1840
  },
  {
-  "function": "func_80149A80",
-  "text": "Claimed as a queued neighbour in the last batch and not yet worked on. No compiles were run and no source was changed, so the saved candidate is untouched. Release only; next agent should start from get_function(section=\"brief\") and get_candidate.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794730083.969842,
-  "score_before": 395,
-  "score_after": 395
- },
- {
   "function": "func_801FC2F8",
   "text": "Best 3680 (19.9%), candidate 5baa28cb1ad29eb53b52: `void func_801FC2F8(u32 arg0)`: if (*(u16*)(&D_8011F32E + (arg0&0xFFFF)*0x64) == 0) { i=2; six stores to D_8022108C/90/94/80/84 + i*0x24 (last one f32 1000.0f at D_80221088); off=(arg0&0xFFFF)*0x64; *(u16*)(&D_8011F32E+off)=1; }. Target: the index*100 chain matches (sll 1, addu, sll 3, addu, sll 2). The gap: the target does NOT fold i*0x24 when i=2; it computes it at run time (`addiu v1,zero,2; sll v0,v1,3; addu v0,v0,v1; sll v0,v0,2` = 72, then `lui at, D_8022108C`). So the 2 is held in a register and the stride multiply is done with shifts, not a constant. Untried: keep i in a volatile or a value read from a global so GCC cannot fold it, or write the offset as an explicit (i<<3)+i<<2 expression. Branch: target `bnez v0,0xb0` is a long forward branch; ours is 0x70, so the else path is much shorter in ours (the store block is missing from the target's taken path of the if).",
   "by": "claude-haiku-5-5-22",
@@ -13110,14 +13086,6 @@
   "created_at": 1794731355.4872441,
   "score_before": 875,
   "score_after": 875
- },
- {
-  "function": "func_80149A80",
-  "text": "Best 415 (90.9%), revision 8ab987426e723afe75a8. The structure is right: index temp = (arg0&0xFFFF)*0x64, table D_8011F2F0 with 0x3E u16 flag, and the six float copies from +0x18..+0x2C into the 9-word stride-0x24 tables. The one remaining diff: the target loads D_8011F2FC[] with lbu, and an `andi $v1,$v1,0xffff` sits in the bnez delay slot, i.e. the mask is applied only on the taken-to-store path. Writing `& 0xFFFF` in the index expression gets folded away (no andi). Casting to (u16) also had no effect. Untried: move the mask into a separate statement after the if test, or give the index an s32 temp and mask that temp.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794731398.2338638,
-  "score_before": 395,
-  "score_after": 395
  },
  {
   "function": "func_8015FD64",
@@ -14128,14 +14096,6 @@
   "score_after": 1875
  },
  {
-  "function": "func_80149A80",
-  "text": "Queued batch claim released untried so the agent can finish func_8014BA14 (near match, score 2210). No work done on this function.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794734887.034347,
-  "score_before": 395,
-  "score_after": 395
- },
- {
   "function": "func_8014B590",
   "text": "Not matched. Read of target: arg0&0xFF idx gates a block (idx<4). Loop1: 14 rows, base[i+4]=byte from D_8021F048[idx*14+i]; inner 8 halfwords base+i*16+0x1C+2j <- D_8021F270+idx*224+i*16+2j. Loop2: 8 iters, s32 base+0x11C+4i <- D_8018D3A0+idx*32+4i, byte base[i+0x14] <- D_8021E22F[idx*272+34i]. Loop3: zero base[0x13C..0x13F]. Loop4: sum of bytes base[4..319] stored to *(s32*)base, then func_8003DE60(D_80183750,sum,320) (3 args; a3 not set by target). Best C so far: idx written inline as (arg0&0xFF) at every index, `u8 *base = D_80189B38`, no volatile on arg0 (volatile forces a spill, 10740). Scored 8595 (revision 296571dc610bdcbb0c93), saved best 8400 is an older permuter result. Remaining diffs: target re-derives `andi $v1,$t1,0xff` and keeps arg in $t1 (move $t1,$a0), we hoist the mask; loop pointers use t0 base with explicit address adds (addu t3=A+idx*14, t2=C+idx*224) that our codegen differs on; frame saves $ra at 0x14 and $s0 at 0x10 in our draft is reversed. Next: try hoisting the two row pointers (t3, t2) as locals and keep idx as u32 from arg; do not use explicit src pointer variables (12570).",
   "by": "claude-haiku-5-5-22",
@@ -14534,14 +14494,6 @@
   "created_at": 1794735881.587347,
   "score_before": 1040,
   "score_after": 845
- },
- {
-  "function": "func_80149A80",
-  "text": "Best 400 (91.3%), 46 insns. Target computes x*100 as ((x*2+x)*8+x)*4 with the andi'd arg in a0, first sll into v0; my candidates put the first sll into v1 and swap lui/addiu regs. Target applies andi $v1 to the lbu result of D_8011F2FC. Tried: u16 idx variable (415), ((u16)table[temp])*0x24 (415), u32 temp_v0 (415, no change). Not tried: explicit x*25*4 decomposition, u16 parameter. Remaining diff is register allocation and andi placement.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794735944.798269,
-  "score_before": 395,
-  "score_after": 395
  },
  {
   "function": "func_80153D40",
@@ -15206,14 +15158,6 @@
   "created_at": 1794738492.7263098,
   "score_before": 25604,
   "score_after": 25064
- },
- {
-  "function": "func_80149A80",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794738492.734625,
-  "score_before": 395,
-  "score_after": 395
  },
  {
   "function": "func_8014BFFC",
@@ -16864,14 +16808,6 @@
   "score_after": 2605
  },
  {
-  "function": "func_80149A80",
-  "text": "Best score 415 (90.9%), revision 70a6691cb1b6d40d3a53. Source: u8 D_8011F2F0/D_8011F2FC arrays, f32 D_80221080..8022108C arrays, e = D_8011F2F0 + ((arg0&0xFFFF)*0x64), temp_v0_2 = ((u16)D_8011F2FC[temp_v0])*0x24, if (*(u16*)(e+0x3E)==0) copy six f32 fields from e+0x18..0x2C and set e+0x3E=1. Remaining diffs: target has `andi $v1,$v1,0xffff` after the lbu from D_8011F2FC; candidate elides it ((u16) cast and &0xFFFF both give 415). Target tests the 0x3E halfword before the table load; candidate schedules the table load differently. Hoisting the table load above the if gave 965 (worse). (u16)arg0 gave no change. Next: try a u16-typed local for the table value, or a separate index variable on the else path.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794741756.096906,
-  "score_before": 395,
-  "score_after": 395
- },
- {
   "function": "func_80026250",
   "text": "Best 16578 (54.3%) is the saved base; 2 further experiments were worse (18383 for inlining the size expression in the second block). Structure: 17 blocks of size=(&next)-(&cur); func_8003DE60(&tab,&cur,fn,size); func_800294A0(&cur,fn,size). Target re-materializes &D_29A40 with lui/addiu after each call and holds only s0=cur, s1=size across calls; the candidate CSEs the successor address across the calls into s2 and gets a -0x28 frame instead of -0x20. Source forms that avoid that CSE have not been found. Next: find a per-block form that stops the successor address being kept live (or accept it as a compiler-scheduling issue and check search_flags), then check the tail: p=&D_8006FB14 stores, nuContInit loop with inline_fn, nuGfxFuncSet, and the D_8006FE58 spin.",
   "by": "claude-haiku-5-5-20",
@@ -16902,14 +16838,6 @@
   "created_at": 1794741809.71571,
   "score_before": 645,
   "score_after": 645
- },
- {
-  "function": "func_80149A80",
-  "text": "Best 395 (91.4%) at revision b9fb36df708aa3f08ec2 (or f7fe7ae4c24470496a04, same score): hoisting `idx = D_8011F2FC[temp_v0];` before the `if` gained 415->395. Remaining diff: target does `lbu; lhu 0x3e; bnez $v0; andi $v1,$v1,0xffff` (andi in the branch delay slot, u16 cast kept), ours elides the andi and tests $v1 instead. Tried: u16 idx, s32 idx=(u16)..., s32 idx = ...&0xFFFF (no effect; compiler elides). Untried: compile_family signedness; a local-permutation search on the andi placement. Move on after the family check.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794741858.660783,
-  "score_before": 395,
-  "score_after": 395
  },
  {
   "function": "func_8003082C",
@@ -17520,14 +17448,6 @@
   "score_after": 30
  },
  {
-  "function": "func_80149A80",
-  "text": "Best verified 395 (46 target insns / 45 ours). All structural work recovered: e = D_8011F2F0 + (arg0&0xFFFF)*0x64, idx = D_8011F2FC[temp_v0] (u8 table), then `if (*(u16*)(e+0x3E) == 0)` copies six floats from e+0x18..0x2C to D_8022108C/90/94/80/84/88 + idx*0x24 and sets e+0x3E = 1. Remaining single mismatch block is scheduling/regalloc only: target loads lbu idx first, then lhu flag into $v0, bnez $v0, then `andi $v1,$v1,0xffff` before `sll $v0,$v1,3; addu; sll 2`; ours loads lhu flag first and drops the andi. Tried: u16/s32/u32/s8/s16 idx, u16/s32 flag temp, early-return inversion, volatile flag read, (idx&0xFFFF)*0x24, idx=D_8011F2FC[temp_v0] vs *(u8*)(D_8011F2FC+temp_v0). None changed the diff. Next: find a formulation that makes gcc 2.7.2 emit andi 0xffff on the byte-loaded index at the multiply use and keeps the lbu before the lhu.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794742972.1411881,
-  "score_before": 395,
-  "score_after": 395
- },
- {
   "function": "func_8014B048",
   "text": "Best verified 2143 (target 48 insns). Target loop body order is: (1) `andi D_8018A277[i],0x20` then `beql $v0,$zero,continue+addiu $s0,$s0,1`; (2) reload `D_8018A277[i]` and compare to 0xFF with `beql $v0,$s2,continue`; so the mask test comes FIRST and the 0xFF test second, each with the increment in the branch delay slot. Source that got 2143: `if (!(D_8018A277[i] & 0x20)) continue; if (D_8018A277[i] == 0xFF) continue;`. Remaining: stack frame is 0x28 with $s2 = 0xFF constant (needs only s0,s1,s2 saved, ours spills a 4th), and the (s16)(i*0x25+0x47) arg must be built with sll/addu chain then sll 16 / sra 16. Untested next: fold the two tests into one `if` with && (variant 1 of my last batch was never compiled).",
   "by": "api-route-llm-code-1",
@@ -17950,14 +17870,6 @@
   "created_at": 1794748216.499687,
   "score_before": 456,
   "score_after": 456
- },
- {
-  "function": "func_80149A80",
-  "text": "Near match: 395 (91.4%), best revision 167db0826aad8d40b9ce (or b8cc3701276f147fe84f with u8 idx; same score). Remaining diff is ordering only: target loads the byte D_8011F2FC[off] (lbu) AFTER lui/addu of the table address but BEFORE the lhu of e+0x3E test, and applies andi $v1,0xFFFF inside the taken branch before the sll. Mine hoists lhu e+0x3E before the lbu, and places lui $a1 for the table. GCC keeps sinking the byte load into the taken path when it is used only there. Try: keep idx as a u16 declared and assigned from D_8011F2FC[off] before the if, and use a local e2 = (u8*)&D_8011F2F0 + off only inside. Or compile_family(signedness) per the tool suggestion. The lhu-first vs lbu-first ordering is the only blocker.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794748217.203203,
-  "score_before": 395,
-  "score_after": 395
  },
  {
   "function": "func_80027D00",
@@ -27022,5 +26934,133 @@
   "created_at": 1794763226.291581,
   "score_before": 1570,
   "score_after": 200
+ },
+ {
+  "function": "func_80149A80",
+  "text": "Best 395 (91%): `extern u8 D_8011F2F0[]`, `i=(arg0&0xFFFF)*100; u8*p=D_8011F2F0+i; s32 k=D_8011F2FC[i]; if (*(u16*)(p+0x3E)==0) { s32 t=(k&0xFFFF)*36; *(f32*)(D_8022108C+t)=*(f32*)(p+0x18); ...0x1C->D_80221090, 0x20->D_80221094, 0x24->D_80221080, 0x28->D_80221084, 0x2C->D_80221088; *(u16*)(p+0x3E)=1; }`. Remaining: target loads k (lbu) and computes the lui/addu base BEFORE the flag lhu+bnez, and applies the andi 0xFFFF after the branch; ours puts the flag lhu first. Forcing that order via temps failed (965, 415 for variants that hoisted t before the if).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794706618.144979,
+  "score_before": 1315,
+  "score_after": 395
+ },
+ {
+  "function": "func_80149A80",
+  "text": "Best 415 (90.9%), revision 8ab987426e723afe75a8. Key findings: D_8011F2FC is a u8 array indexed by the unscaled offset (temp = (arg0&0xFFFF)*0x64), lbu then multiply by 0x24; struct fields at +0x18..+0x2C are f32 copied to D_80221080..D_8022108C indexed by temp_v0_2; flag at +0x3E is u16. Remaining diff: target does lbu then andi $v1,$v1,0xffff before the 0x24 scaling; plus register/order: target computes sll v0,v0,2 first and loads lbu into v1 before lhu. Tried (u16) cast on the byte: no change. Untried: put the (arg0&0xFFFF) into a u16 local, and reorder the flag test before the f32 copies.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794720744.8345048,
+  "score_before": 395,
+  "score_after": 395
+ },
+ {
+  "function": "func_80149A80",
+  "text": "Claimed as a queued neighbour in the last batch and not yet worked on. No compiles were run and no source was changed, so the saved candidate is untouched. Release only; next agent should start from get_function(section=\"brief\") and get_candidate.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794730083.969842,
+  "score_before": 395,
+  "score_after": 395
+ },
+ {
+  "function": "func_80149A80",
+  "text": "Best 415 (90.9%), revision 8ab987426e723afe75a8. The structure is right: index temp = (arg0&0xFFFF)*0x64, table D_8011F2F0 with 0x3E u16 flag, and the six float copies from +0x18..+0x2C into the 9-word stride-0x24 tables. The one remaining diff: the target loads D_8011F2FC[] with lbu, and an `andi $v1,$v1,0xffff` sits in the bnez delay slot, i.e. the mask is applied only on the taken-to-store path. Writing `& 0xFFFF` in the index expression gets folded away (no andi). Casting to (u16) also had no effect. Untried: move the mask into a separate statement after the if test, or give the index an s32 temp and mask that temp.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794731398.2338638,
+  "score_before": 395,
+  "score_after": 395
+ },
+ {
+  "function": "func_80149A80",
+  "text": "Queued batch claim released untried so the agent can finish func_8014BA14 (near match, score 2210). No work done on this function.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794734887.034347,
+  "score_before": 395,
+  "score_after": 395
+ },
+ {
+  "function": "func_80149A80",
+  "text": "Best 400 (91.3%), 46 insns. Target computes x*100 as ((x*2+x)*8+x)*4 with the andi'd arg in a0, first sll into v0; my candidates put the first sll into v1 and swap lui/addiu regs. Target applies andi $v1 to the lbu result of D_8011F2FC. Tried: u16 idx variable (415), ((u16)table[temp])*0x24 (415), u32 temp_v0 (415, no change). Not tried: explicit x*25*4 decomposition, u16 parameter. Remaining diff is register allocation and andi placement.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794735944.798269,
+  "score_before": 395,
+  "score_after": 395
+ },
+ {
+  "function": "func_80149A80",
+  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794738492.734625,
+  "score_before": 395,
+  "score_after": 395
+ },
+ {
+  "function": "func_80149A80",
+  "text": "Best score 415 (90.9%), revision 70a6691cb1b6d40d3a53. Source: u8 D_8011F2F0/D_8011F2FC arrays, f32 D_80221080..8022108C arrays, e = D_8011F2F0 + ((arg0&0xFFFF)*0x64), temp_v0_2 = ((u16)D_8011F2FC[temp_v0])*0x24, if (*(u16*)(e+0x3E)==0) copy six f32 fields from e+0x18..0x2C and set e+0x3E=1. Remaining diffs: target has `andi $v1,$v1,0xffff` after the lbu from D_8011F2FC; candidate elides it ((u16) cast and &0xFFFF both give 415). Target tests the 0x3E halfword before the table load; candidate schedules the table load differently. Hoisting the table load above the if gave 965 (worse). (u16)arg0 gave no change. Next: try a u16-typed local for the table value, or a separate index variable on the else path.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794741756.096906,
+  "score_before": 395,
+  "score_after": 395
+ },
+ {
+  "function": "func_80149A80",
+  "text": "Best 395 (91.4%) at revision b9fb36df708aa3f08ec2 (or f7fe7ae4c24470496a04, same score): hoisting `idx = D_8011F2FC[temp_v0];` before the `if` gained 415->395. Remaining diff: target does `lbu; lhu 0x3e; bnez $v0; andi $v1,$v1,0xffff` (andi in the branch delay slot, u16 cast kept), ours elides the andi and tests $v1 instead. Tried: u16 idx, s32 idx=(u16)..., s32 idx = ...&0xFFFF (no effect; compiler elides). Untried: compile_family signedness; a local-permutation search on the andi placement. Move on after the family check.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794741858.660783,
+  "score_before": 395,
+  "score_after": 395
+ },
+ {
+  "function": "func_80149A80",
+  "text": "Best verified 395 (46 target insns / 45 ours). All structural work recovered: e = D_8011F2F0 + (arg0&0xFFFF)*0x64, idx = D_8011F2FC[temp_v0] (u8 table), then `if (*(u16*)(e+0x3E) == 0)` copies six floats from e+0x18..0x2C to D_8022108C/90/94/80/84/88 + idx*0x24 and sets e+0x3E = 1. Remaining single mismatch block is scheduling/regalloc only: target loads lbu idx first, then lhu flag into $v0, bnez $v0, then `andi $v1,$v1,0xffff` before `sll $v0,$v1,3; addu; sll 2`; ours loads lhu flag first and drops the andi. Tried: u16/s32/u32/s8/s16 idx, u16/s32 flag temp, early-return inversion, volatile flag read, (idx&0xFFFF)*0x24, idx=D_8011F2FC[temp_v0] vs *(u8*)(D_8011F2FC+temp_v0). None changed the diff. Next: find a formulation that makes gcc 2.7.2 emit andi 0xffff on the byte-loaded index at the multiply use and keeps the lbu before the lhu.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794742972.1411881,
+  "score_before": 395,
+  "score_after": 395
+ },
+ {
+  "function": "func_80149A80",
+  "text": "Near match: 395 (91.4%), best revision 167db0826aad8d40b9ce (or b8cc3701276f147fe84f with u8 idx; same score). Remaining diff is ordering only: target loads the byte D_8011F2FC[off] (lbu) AFTER lui/addu of the table address but BEFORE the lhu of e+0x3E test, and applies andi $v1,0xFFFF inside the taken branch before the sll. Mine hoists lhu e+0x3E before the lbu, and places lui $a1 for the table. GCC keeps sinking the byte load into the taken path when it is used only there. Try: keep idx as a u16 declared and assigned from D_8011F2FC[off] before the if, and use a local e2 = (u8*)&D_8011F2F0 + off only inside. Or compile_family(signedness) per the tool suggestion. The lhu-first vs lbu-first ordering is the only blocker.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794748217.203203,
+  "score_before": 395,
+  "score_after": 395
+ },
+ {
+  "function": "func_80149A80",
+  "text": "Exact -O1 compiler bundle submitted through suggest; auto compiler changes off. Trial 3fc36bd12379bf0eb871, unchanged source 0af4ac1bab6ced322460. No source repair needed; O2 score395 is scheduling residual. Six local address/arithmetic repairs unchanged.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794760583.4283369,
+  "score_before": 395,
+  "score_after": 395
+ },
+ {
+  "function": "func_80149A80",
+  "text": "Exact match at -O1 (search_flags verified); function-only bundle suggested. Entity struct at D_8011F2F0 stride 0x64 (id u8 @0xC, f32 a[3]@0x18, b[3]@0x24, u16 done@0x3E); record at D_80221080 stride 0x24 (b[3]@0, a[3]@0xC). Read id via D_8011F2F0[arg0].id, not e->id.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794761523.023647,
+  "score_before": 395,
+  "score_after": 395
+ },
+ {
+  "function": "func_80149A80",
+  "text": "Saved baseline395 exactly matches with -G0 -mips3 -mgp32 -mfp32 -O1; search_flags verified0 and function-specific suggestion submitted/reverified exact. Automatic compiler changes off; apply bundle to save, no C edits needed.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794761927.6564538,
+  "score_before": 395,
+  "score_after": 395
+ },
+ {
+  "function": "func_80149A80",
+  "text": "Not retried: unit code_8014674C still -O2 (sibling func_80146E4C rechecked 210 today). Exact match at -O1 known; blocked on user -O1 suggestion.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794762881.379215,
+  "score_before": 395,
+  "score_after": 395
+ },
+ {
+  "function": "func_80149A80",
+  "text": "Rechecked O2 395; extra u16 cast identical. Existing exact O1 source/compiler bundles already submitted, including 3fc36bd12379bf0eb871; no further tuning warranted pending settings application.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794763042.445288,
+  "score_before": 395,
+  "score_after": 395
  }
 ]
