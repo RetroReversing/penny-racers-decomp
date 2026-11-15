@@ -5912,14 +5912,6 @@
   "score_after": 235
  },
  {
-  "function": "func_801496B0",
-  "text": "Not matched. Best saved score is 1365 (historical; I could not reproduce it this session). Structure of the target: 8-byte frame (addiu sp,-8, never used); first loop is an ascending for(i<32) store of 0xFFFF to D_8018A288 with i in $a3 and the address kept as v0 = (i<<1)+base; second loop uses $a3 as j (row index) and $t0 as count, store base $t1. Our compiles all make the first loop count DOWN from 0x1f (addiu t0,zero,0x1f), which breaks everything after it. Tried and worse: plain for-loop first loop (2580), pointer/temp-array variant (2710), split j/count with (arg2&0xFF) bound (2700), do-while first loop (2700), u16 tmp[2] local (2875). Next idea: find a source form for the first loop that gcc 2.7.2 keeps ascending (maybe an index used as an address in a non-store way, or the frame is from a local array that gets dropped). The 8-byte frame is still unexplained.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794706604.79515,
-  "score_before": 1365,
-  "score_after": 1365
- },
- {
   "function": "func_80148688",
   "text": "Not matched. Best saved score 2830 (inherited); my four attempts scored 3830, 3055, 3000 and 3145, so none improved it. Logic is understood: a2 = &D_80189CBF, or &D_80189CB7 when (u8)arg1==0; a3 = a2+1. arg0&1 decrements *a2 (wrapping to *a3-1 when it is 0); arg0&2 increments *a2 or sets it to 0 when it equals *a3-1. D_80183BD3 = *a2, then D_80183BD3+1 (u16) = table[(u8)arg1*300 + 2*D_80183BD3 + 6] from D_8018D140, also stored as u16 at a2+5. Remaining diff is layout. The target selects CBF in the fallthrough and CB7 in the taken branch, computes a3 in a delay slot, and computes the a2+5 pointer before the arg0&1 test. It also reloads *a2 after the nonzero check. Swapping the arm order (the branch on (u8)arg1 != 0) made it worse (3145). Next step: check whether the a2+5 pointer must be formed before the arg0 tests, and look at the signedness family for the u8 decrements.",
   "by": "claude-haiku-5-5-24",
@@ -9798,14 +9790,6 @@
   "created_at": 1794720691.9918778,
   "score_before": 1840,
   "score_after": 1840
- },
- {
-  "function": "func_801496B0",
-  "text": "Not matched. Best saved is 1365 (rev 77b940766f68b825365b, historical). Current rechecks of the same source score 2580; the variants I tried (pad[2] local, pointer dst for the first loop, reordered j/count init) scored 2590-2750 and did not help. Target facts: 8-byte frame (addiu sp,-8) with no visible sp use; first loop is an ascending `for (i=0;i<32;i++) D_8018A288[i]=0xFFFF` (index a3, base t0, value in v1); mask=(arg1<<8)&0x700 via sll/andi; row = D_8018D140 + (arg0&0xFF)*150 via sll/subu; inner loop ascends over j=a3 with count=t0 stored to D_8018A288[count]; return count-1. Main problem: gcc turns the first loop into a countdown (addiu t0,-1 / bgez) and puts 0xFFFF in v0. Untried ideas: a u32/unsigned loop counter for the first loop, a separate helper for the fill, or matching the 8-byte frame with a different local (not a pad).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794720699.035794,
-  "score_before": 1365,
-  "score_after": 1365
  },
  {
   "function": "func_8003E644",
@@ -17656,14 +17640,6 @@
   "score_after": 160
  },
  {
-  "function": "func_801496B0",
-  "text": "Saved best 1365 remains. Session: the saved candidate scores 2580; with 'u32 i' the fill loop gets 2470 (better, not saved as best). Gcc counts the fill loop DOWN (bgez/addiu -1) in the candidate, while the target counts UP with i in $a3 (sll v0,a3,1; addu v0,v0,t0; sh v1 with v1=0xFFFF; addiu a3,1; slti 0x20; bnez), and the target keeps a 8-byte stack frame (addiu sp,-8) that the candidate lacks. Target then sets count=0 with move $a3,$zero before the scan. Also the scan's row pointer: target computes row = D_8018D140 + (arg0&0xFF)*150 as ((x*5)<<2)... i.e. sll/addu/sll/subu/sll with x*150 = ((x*5)*32)-... check. Untried: forcing the upward fill (e.g., index from a separate u16 pointer that increments), and a local variable to produce the 8-byte frame.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794748066.8506298,
-  "score_before": 1365,
-  "score_after": 1365
- },
- {
   "function": "func_8015FD64",
   "text": "Current clean C (rev 246057757c86c501dfb3) scores 1690: target 63 insns, ours 56. Structure is right: gated block `if (D_8011F2FC[off]) { t=D_8011F2F0[off]; if (t==D_80126FF6) { c=D_8018A264[t]; if (c==1) { three 8-byte dl writes: 0xE7000000/0, 0xB6000000/c, 0xB900031D/0x504340 } } ; 0xFA000000 write with D_8011F2FC[off]|0xFF000000 }`. The 7-instruction gap is in the constant materialisation and the index: the target builds off = ((idx*2+idx)*8+idx)*4 with a separate andi for the arg and loads D_8011F2F0 via lui at. Not verified which constants are split; check last_diff rows 20-40. The saved best 30 is from a different m2c source. Untried: write the constant words as (u32)0xB900031DU with a separate off for each gated access.",
   "by": "claude-haiku-5-5-20",
@@ -19952,14 +19928,6 @@
   "score_after": 30
  },
  {
-  "function": "func_801496B0",
-  "text": "Not matched. Current rechecked score for the saved-best source is 2580 (saved historical 1365; header differs from recorded inputs). Remaining diffs: (1) target has a 0x8 stack frame (addiu $sp,-8) and the candidate has none, so some local is spilled or addressed in the target; not yet explained. (2) The fill loop in the target counts up (a3=i, sll 1, slti 0x20, bnez), but the candidate compiles it downward (addiu t0,-1, bgez). (3) Second loop: target uses a3 as the row index j and t0 as count (reverse of the candidate's naming); count stays in t0 and is stored with sll/addu/sh. Tried: do/while fill loop, no effect (2580 both). Next: find which local needs the 8-byte frame (addressable local or struct?), then try a signed/unsigned index change for the fill loop.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794753895.12594,
-  "score_before": 1365,
-  "score_after": 1365
- },
- {
   "function": "func_8003E884",
   "text": "Score 10 stuck: target `lw $t9,($v0); jr $ra; sw $t9,($a0)` \u2014 the loaded value lives in $t9 (PIC call register), candidate gets $v1. Tried: void*/u32/s32 element types, void return, separate t9 temporary, arg0[0] subscript form, single-statement `*(void**)arg0 = *(void**)*arg0;`, returning v0 vs t9. Also try_compiler ido-7.1 (t6) and gcc-2.8.1-pm (v1), and compiler_experiments with -fpic, -O1, -fno-omit-frame-pointer: all score 10 or worse. Remaining idea: the $t9 choice looks like a PIC/abicalls leaf convention that this profile does not produce; suggest checking whether the surrounding unit was built with -fpic/-mabicalls.",
   "by": "api-route-llm-code-1",
@@ -20894,14 +20862,6 @@
   "created_at": 1794755248.3031008,
   "score_before": 6180,
   "score_after": 6180
- },
- {
-  "function": "func_801496B0",
-  "text": "Move-on budget exhausted (3/3). Best reproducible: 2555 with revision 5bdc3bd6691503776062 (do-while clear loop + do-while scan loop); saved_best source 77b940766f68b825365b rechecks at 2580, so 2555 is the real baseline. What the target actually is: (1) clear loop is a rotated do-while keeping the INDEX form - `sll $v0,$a3,1` recomputed each iteration with `addu $v0,$v0,$t0` against a base in $t0, count up in $a3, `slti $v0,$a3,0x20`, and the `sll $v0,$a3,1` is duplicated into the bnez delay slot. gcc 2.7.2 refuses to emit this from `for`/`do-while` with an array subscript (it converts to a pointer increment or a downward countdown); I tried for, do-while, while, !=0x20, <=0x1F, 0x20>i, pointer local p[i], and byte-offset *(u16*)((u8*)D_8018A288+i*2) - all equal or worse. This single loop is the biggest remaining block. (2) The scan loop keeps the index in $a3 and the match count in $t0, i.e. `count` is the second induction variable and `i/j` the first - my declaration order gives count in $a3 and i in $t0 (rows 40/48/49). Swapping which variable is incremented in the store path vs the loop tail should fix rows 40-49. (3) Target materialises the row base as `lui $a0,%hi(D_8018D140); addiu $a0,$a0,%lo(D_8018D140)` BEFORE the stride math and keeps the stride product in $v1/$v0 with `sll $v1,$v0,2; addu $v1,$v1,$v0; sll $v0,$v1,4; subu $v0,$v0,$v1; sll $v0,$v0,2; addu $a0,$v0,$a0` - mine loads the base after the product (rows 20-29). Declaring the row pointer before computing the index, or writing `row = D_8018D140; row += (arg0 & 0xFF) * 150;` in two statements, may reorder it. (4) `n = arg2 & 0xFF` must stay a live variable compared with `blez $v0` (row 17) - inlining `(arg2 & 0xFF) > 0` yields `blez $a2`.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794755251.892662,
-  "score_before": 1365,
-  "score_after": 1365
  },
  {
   "function": "func_80157F6C",
@@ -27174,5 +27134,85 @@
   "created_at": 1794761301.566165,
   "score_before": 7470,
   "score_after": 7470
+ },
+ {
+  "function": "func_801496B0",
+  "text": "Not matched. Best saved score is 1365 (historical; I could not reproduce it this session). Structure of the target: 8-byte frame (addiu sp,-8, never used); first loop is an ascending for(i<32) store of 0xFFFF to D_8018A288 with i in $a3 and the address kept as v0 = (i<<1)+base; second loop uses $a3 as j (row index) and $t0 as count, store base $t1. Our compiles all make the first loop count DOWN from 0x1f (addiu t0,zero,0x1f), which breaks everything after it. Tried and worse: plain for-loop first loop (2580), pointer/temp-array variant (2710), split j/count with (arg2&0xFF) bound (2700), do-while first loop (2700), u16 tmp[2] local (2875). Next idea: find a source form for the first loop that gcc 2.7.2 keeps ascending (maybe an index used as an address in a non-store way, or the frame is from a local array that gets dropped). The 8-byte frame is still unexplained.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794706604.79515,
+  "score_before": 1365,
+  "score_after": 1365
+ },
+ {
+  "function": "func_801496B0",
+  "text": "Not matched. Best saved is 1365 (rev 77b940766f68b825365b, historical). Current rechecks of the same source score 2580; the variants I tried (pad[2] local, pointer dst for the first loop, reordered j/count init) scored 2590-2750 and did not help. Target facts: 8-byte frame (addiu sp,-8) with no visible sp use; first loop is an ascending `for (i=0;i<32;i++) D_8018A288[i]=0xFFFF` (index a3, base t0, value in v1); mask=(arg1<<8)&0x700 via sll/andi; row = D_8018D140 + (arg0&0xFF)*150 via sll/subu; inner loop ascends over j=a3 with count=t0 stored to D_8018A288[count]; return count-1. Main problem: gcc turns the first loop into a countdown (addiu t0,-1 / bgez) and puts 0xFFFF in v0. Untried ideas: a u32/unsigned loop counter for the first loop, a separate helper for the fill, or matching the 8-byte frame with a different local (not a pad).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794720699.035794,
+  "score_before": 1365,
+  "score_after": 1365
+ },
+ {
+  "function": "func_801496B0",
+  "text": "Saved best 1365 remains. Session: the saved candidate scores 2580; with 'u32 i' the fill loop gets 2470 (better, not saved as best). Gcc counts the fill loop DOWN (bgez/addiu -1) in the candidate, while the target counts UP with i in $a3 (sll v0,a3,1; addu v0,v0,t0; sh v1 with v1=0xFFFF; addiu a3,1; slti 0x20; bnez), and the target keeps a 8-byte stack frame (addiu sp,-8) that the candidate lacks. Target then sets count=0 with move $a3,$zero before the scan. Also the scan's row pointer: target computes row = D_8018D140 + (arg0&0xFF)*150 as ((x*5)<<2)... i.e. sll/addu/sll/subu/sll with x*150 = ((x*5)*32)-... check. Untried: forcing the upward fill (e.g., index from a separate u16 pointer that increments), and a local variable to produce the 8-byte frame.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794748066.8506298,
+  "score_before": 1365,
+  "score_after": 1365
+ },
+ {
+  "function": "func_801496B0",
+  "text": "Not matched. Current rechecked score for the saved-best source is 2580 (saved historical 1365; header differs from recorded inputs). Remaining diffs: (1) target has a 0x8 stack frame (addiu $sp,-8) and the candidate has none, so some local is spilled or addressed in the target; not yet explained. (2) The fill loop in the target counts up (a3=i, sll 1, slti 0x20, bnez), but the candidate compiles it downward (addiu t0,-1, bgez). (3) Second loop: target uses a3 as the row index j and t0 as count (reverse of the candidate's naming); count stays in t0 and is stored with sll/addu/sh. Tried: do/while fill loop, no effect (2580 both). Next: find which local needs the 8-byte frame (addressable local or struct?), then try a signed/unsigned index change for the fill loop.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794753895.12594,
+  "score_before": 1365,
+  "score_after": 1365
+ },
+ {
+  "function": "func_801496B0",
+  "text": "Move-on budget exhausted (3/3). Best reproducible: 2555 with revision 5bdc3bd6691503776062 (do-while clear loop + do-while scan loop); saved_best source 77b940766f68b825365b rechecks at 2580, so 2555 is the real baseline. What the target actually is: (1) clear loop is a rotated do-while keeping the INDEX form - `sll $v0,$a3,1` recomputed each iteration with `addu $v0,$v0,$t0` against a base in $t0, count up in $a3, `slti $v0,$a3,0x20`, and the `sll $v0,$a3,1` is duplicated into the bnez delay slot. gcc 2.7.2 refuses to emit this from `for`/`do-while` with an array subscript (it converts to a pointer increment or a downward countdown); I tried for, do-while, while, !=0x20, <=0x1F, 0x20>i, pointer local p[i], and byte-offset *(u16*)((u8*)D_8018A288+i*2) - all equal or worse. This single loop is the biggest remaining block. (2) The scan loop keeps the index in $a3 and the match count in $t0, i.e. `count` is the second induction variable and `i/j` the first - my declaration order gives count in $a3 and i in $t0 (rows 40/48/49). Swapping which variable is incremented in the store path vs the loop tail should fix rows 40-49. (3) Target materialises the row base as `lui $a0,%hi(D_8018D140); addiu $a0,$a0,%lo(D_8018D140)` BEFORE the stride math and keeps the stride product in $v1/$v0 with `sll $v1,$v0,2; addu $v1,$v1,$v0; sll $v0,$v1,4; subu $v0,$v0,$v1; sll $v0,$v0,2; addu $a0,$v0,$a0` - mine loads the base after the product (rows 20-29). Declaring the row pointer before computing the index, or writing `row = D_8018D140; row += (arg0 & 0xFF) * 150;` in two statements, may reorder it. (4) `n = arg2 & 0xFF` must stay a live variable compared with `blez $v0` (row 17) - inlining `(arg2 & 0xFF) > 0` yields `blez $a2`.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794755251.892662,
+  "score_before": 1365,
+  "score_after": 1365
+ },
+ {
+  "function": "func_801496B0",
+  "text": "Saved best 1365 (same source as the claim candidate). My rewrites under gcc-2.7.2-kmc -O2 scored 2470-2580: the first fill loop comes out as a reverse (bgez) loop with `lui a3,%hi(D_8018A2C6)` / address offset errors, and the target has an 8-byte frame (addiu sp,-8) with no call, which none of my variants produced. Target: fill loop i=0..31 with `sll v0,a3,1; addu v0,v0,t0; sh v1,0(v0); addiu a3,a3,1; slti v0,a3,0x20; bnez` (base t0 = D_8018A288), then mask=(a1<<8)&0x700 (andi 0xffff), n=a2&0xff, blez n, row = D_8018D140 + (a0&0xff)*150 via sll/subu/sll (x*150 = ((x*4+x)*16-x)*4), inner loop with lhu, andi 0x700 == mask and not 0x1000, store with count index, return count-1. Next step: find why the target keeps the 8-byte frame (maybe a volatile or unused spill) and which form of the fill loop yields the forward-counting sll/addu pattern.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794757135.8673978,
+  "score_before": 1365,
+  "score_after": 1365
+ },
+ {
+  "function": "func_801496B0",
+  "text": "Exact C/compiler pair submitted via suggest; automatic compiler changes off. Trial 2a74f0d6ec138a315984 exactly matches at -G0 -mips3 -mgp32 -mfp32 -O1. Exact source in suggestion: revision 5943133222f7adb51368 with row=D_8018D140;row+=(arg0&255)*150; replaced by i=arg0&255;row=D_8018D140;row+=i*150;. Reuse j in clear loop, u16 arg1 overwritten by mask, unused u8[8] frame required. Apply suggestion to save. No further O2 tuning warranted.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794761602.796442,
+  "score_before": 1365,
+  "score_after": 1365
+ },
+ {
+  "function": "func_801496B0",
+  "text": "Not retried: exact -O1 match already filed via suggest (see codex note). Unit code_8014674C is -O1 throughout; awaiting user applying the flag change.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794761662.218563,
+  "score_before": 1365,
+  "score_after": 1365
+ },
+ {
+  "function": "func_801496B0",
+  "text": "Existing exact O1 compiler/source suggestion trial 2a74f0d6ec138a315984 remains pending; do not repeat O2 tuning. Reconstructed candidate 7a1e3aa65d2e2b66a4a8 is NOT exact (2245 O2 / 445 O1), so use the exact source recorded in existing suggestion, not this reconstruction. Original claimed source rechecks 2580 O2. Moving on because source/compiler pair already solved and awaiting setup application.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794762838.850574,
+  "score_before": 1365,
+  "score_after": 1365
+ },
+ {
+  "function": "func_801496B0",
+  "text": "EXACT MATCH at KMC GCC -O1 (verified, suggested): params (u8 arg0, u16 arg1, u8 arg2); D_8018D140 as u16[][150]; reuse arg1 = (arg1<<8)&0x700 for the mask (separate u16 local gave 60, regswap). Unit -O2 blocks saving.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794763050.800427,
+  "score_before": 1365,
+  "score_after": 1365
  }
 ]
