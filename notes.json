@@ -6136,14 +6136,6 @@
   "score_after": 706
  },
  {
-  "function": "func_8014A204",
-  "text": "Not matched. Best 940 (81.5%), from sqrtf(). The differences are the sqrt, not register order. Target does `sqrt.s $f0,$f12` inline, with the sum of squares in $f12, then `c.eq.s $f0,$f0; bc1t` around `jal func_80032310`. sqrtf and __builtin_sqrtf both emit a libm call (?sqrtf); __builtin_sqrt (double) adds cvt.d.s/cvt.s.w (score 1275). search_flags over -O1/-O2/-O3/-G8/-fno-strength-reduce/-fno-schedule-insns gave nothing better than 610 at -O1 (not the project flag). Index math is right: i = (arg0&0xFFFF)*100. Next step: find a source form that gcc-2.7.2-kmc turns into one sqrt.s with no call.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794706639.4652202,
-  "score_before": 940,
-  "score_after": 940
- },
- {
   "function": "func_80146970",
   "text": "Best saved 915 (from earlier session). Current machine-draft form scored 2747. Target frame is 0x20 and saves $ra(0x18), $s1(0x14), $s0(0x10); it keeps &D_80190CB0 in $s1 across the calls (addiu $s1 after lui) and reloads through (s1) three times. My `u8 *p = &D_80190CB0` gets folded to lui/lbu %lo, so the pointer is never kept live. Next: force a live pointer across the calls (e.g. make the pointer's first use come after func_8014A870 and read *p through a second pointer local), and also check the second store to D_80189B36 (sb at %lo, twice). Not tried: volatile variants.",
   "by": "claude-haiku-5-5-20",
@@ -10232,14 +10224,6 @@
   "score_after": 2810
  },
  {
-  "function": "func_8014A204",
-  "text": "Best 480 (90.5%) at revision 0f8dce5c874c516240a3: `off0 = (arg0 & 0xFFFF) * 100; off1 = (arg1 & 0xFFFF) * 100;` (stride 100 bytes confirmed by the sll/addu chain), dx/dy/dz = *(f32*)(D_8011F30x + off0) - *(f32*)(D_8011F30x + off1) with char-array externs, `return sqrtf(dx*dx + dy*dy + dz*dz);`. Remaining diff is register/order only: the target saves $ra first (`sw $ra,0x10($sp)` at line 1) where ours saves it after the body, and the target's dx lands in $f6 with dz in $f0/$f2. Tried: sum as dx*dx+(dy*dy+dz*dz) (585); declaring dz first (480 again, different registers, not a match). Untried: a frame-forcing use of $ra to move the sw earlier, and per-component temporaries declared in a different order.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794720738.923986,
-  "score_before": 940,
-  "score_after": 480
- },
- {
   "function": "func_80149A80",
   "text": "Best 415 (90.9%), revision 8ab987426e723afe75a8. Key findings: D_8011F2FC is a u8 array indexed by the unscaled offset (temp = (arg0&0xFFFF)*0x64), lbu then multiply by 0x24; struct fields at +0x18..+0x2C are f32 copied to D_80221080..D_8022108C indexed by temp_v0_2; flag at +0x3E is u16. Remaining diff: target does lbu then andi $v1,$v1,0xffff before the 0x24 scaling; plus register/order: target computes sll v0,v0,2 first and loads lbu into v1 before lhu. Tried (u16) cast on the byte: no change. Untried: put the (arg0&0xFFFF) into a u16 local, and reorder the flag test before the f32 copies.",
   "by": "claude-haiku-5-5-22",
@@ -13392,14 +13376,6 @@
   "score_after": 2130
  },
  {
-  "function": "func_8014A204",
-  "text": "Best: score 480 (90.5%), candidate revision 0f8dce5c874c516240a3 (also 28cf617d6bc29879d381 with dz/dy/dx statement order, also 480): `f32 func_8014A204(s32 arg0, s32 arg1)`, off0=(arg0&0xFFFF)*100, off1=(arg1&0xFFFF)*100, dx/dy/dz = *(f32*)(D_8011F308/30C/310 + off0) - same + off1, return sqrtf(dx*dx+dy*dy+dz*dz). Frame, sqrt.s + bc1t NaN check, lui/addiu/lwc1 addressing match. Remaining: register allocation (target keeps dx in f6, dz operand in f0) and scheduling (target has mul.s dx*dx issued after the dz loads; sw $ra placement). Tried: grouped sum s=dx*dx; s+=dy*dy; s+=dz*dz (630, worse); statement order dz,dy,dx (480, same score, still regalloc diff). Untried: search_flags for -O1 variant, which the proposal notes say sometimes fixes scheduling-only diffs.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794729937.4714692,
-  "score_before": 480,
-  "score_after": 480
- },
- {
   "function": "func_80029890",
   "text": "Best 9 (99.7%, revision 04653e249d31955577b8, same source as saved best). Only difference: stack layout. Target has `addiu $a0,$sp,0x28` (mq) and `addiu $a1,$sp,0x10` (&buf) with the `sb $s0,0x20($sp)`/`sh $s3,0x10($sp)` block; ours puts mq at 0x10 and buf at 0x28. Tried: swapping declaration order of buf/mq (still 9, same layout), and Msg m first (556, worse, reorders saved regs). Untried: a local `s32 *pbuf = &buf` or taking &mq first so GCC allocates mq at the higher slot; or a second local declared between mq and m.",
   "by": "claude-haiku-5-5-21",
@@ -15470,14 +15446,6 @@
   "created_at": 1794735472.671801,
   "score_before": 1230,
   "score_after": 1230
- },
- {
-  "function": "func_8014A204",
-  "text": "Best 480 (90.5%). Target = 3 float diffs from D_8011F308/30C/310 indexed by (arg&0xFFFF)*100, then sqrtf(dx*dx+dy*dy+dz*dz) with the standard sqrt.s + c.eq.s + jal sqrtf sequence. All instructions present; residual diffs are (a) target stores $ra at 0x10($sp) in the first prologue slot while ours stores it after the index arithmetic, (b) fp register allocation (target uses $f6/$f4/$f0/$f12, ours $f2/$f4/$f0/$f12) and (c) one extra mul.s placement plus a missing nop before mul.s $f4. Tried: sum via += chain (630), right-assoc sum (585), separate s1/s2/s3 locals (480), reversed declarations (480), +0.0f (740). Untested idea: give sqrtf an explicit prototype (extern f32 sqrtf(f32);) so it is not an implicit builtin; that may make gcc emit the $ra store in the prologue slot as the target does. Also worth trying: declaring the tables as f32[] instead of char[] with pointer arithmetic done in bytes.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794735472.882352,
-  "score_before": 480,
-  "score_after": 480
  },
  {
   "function": "func_800E0A00",
@@ -18214,5 +18182,37 @@
   "created_at": 1794747446.80945,
   "score_before": 15,
   "score_after": 15
+ },
+ {
+  "function": "func_8014A204",
+  "text": "Not matched. Best 940 (81.5%), from sqrtf(). The differences are the sqrt, not register order. Target does `sqrt.s $f0,$f12` inline, with the sum of squares in $f12, then `c.eq.s $f0,$f0; bc1t` around `jal func_80032310`. sqrtf and __builtin_sqrtf both emit a libm call (?sqrtf); __builtin_sqrt (double) adds cvt.d.s/cvt.s.w (score 1275). search_flags over -O1/-O2/-O3/-G8/-fno-strength-reduce/-fno-schedule-insns gave nothing better than 610 at -O1 (not the project flag). Index math is right: i = (arg0&0xFFFF)*100. Next step: find a source form that gcc-2.7.2-kmc turns into one sqrt.s with no call.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794706639.4652202,
+  "score_before": 940,
+  "score_after": 940
+ },
+ {
+  "function": "func_8014A204",
+  "text": "Best 480 (90.5%) at revision 0f8dce5c874c516240a3: `off0 = (arg0 & 0xFFFF) * 100; off1 = (arg1 & 0xFFFF) * 100;` (stride 100 bytes confirmed by the sll/addu chain), dx/dy/dz = *(f32*)(D_8011F30x + off0) - *(f32*)(D_8011F30x + off1) with char-array externs, `return sqrtf(dx*dx + dy*dy + dz*dz);`. Remaining diff is register/order only: the target saves $ra first (`sw $ra,0x10($sp)` at line 1) where ours saves it after the body, and the target's dx lands in $f6 with dz in $f0/$f2. Tried: sum as dx*dx+(dy*dy+dz*dz) (585); declaring dz first (480 again, different registers, not a match). Untried: a frame-forcing use of $ra to move the sw earlier, and per-component temporaries declared in a different order.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794720738.923986,
+  "score_before": 940,
+  "score_after": 480
+ },
+ {
+  "function": "func_8014A204",
+  "text": "Best: score 480 (90.5%), candidate revision 0f8dce5c874c516240a3 (also 28cf617d6bc29879d381 with dz/dy/dx statement order, also 480): `f32 func_8014A204(s32 arg0, s32 arg1)`, off0=(arg0&0xFFFF)*100, off1=(arg1&0xFFFF)*100, dx/dy/dz = *(f32*)(D_8011F308/30C/310 + off0) - same + off1, return sqrtf(dx*dx+dy*dy+dz*dz). Frame, sqrt.s + bc1t NaN check, lui/addiu/lwc1 addressing match. Remaining: register allocation (target keeps dx in f6, dz operand in f0) and scheduling (target has mul.s dx*dx issued after the dz loads; sw $ra placement). Tried: grouped sum s=dx*dx; s+=dy*dy; s+=dz*dz (630, worse); statement order dz,dy,dx (480, same score, still regalloc diff). Untried: search_flags for -O1 variant, which the proposal notes say sometimes fixes scheduling-only diffs.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794729937.4714692,
+  "score_before": 480,
+  "score_after": 480
+ },
+ {
+  "function": "func_8014A204",
+  "text": "Best 480 (90.5%). Target = 3 float diffs from D_8011F308/30C/310 indexed by (arg&0xFFFF)*100, then sqrtf(dx*dx+dy*dy+dz*dz) with the standard sqrt.s + c.eq.s + jal sqrtf sequence. All instructions present; residual diffs are (a) target stores $ra at 0x10($sp) in the first prologue slot while ours stores it after the index arithmetic, (b) fp register allocation (target uses $f6/$f4/$f0/$f12, ours $f2/$f4/$f0/$f12) and (c) one extra mul.s placement plus a missing nop before mul.s $f4. Tried: sum via += chain (630), right-assoc sum (585), separate s1/s2/s3 locals (480), reversed declarations (480), +0.0f (740). Untested idea: give sqrtf an explicit prototype (extern f32 sqrtf(f32);) so it is not an implicit builtin; that may make gcc emit the $ra store in the prologue slot as the target does. Also worth trying: declaring the tables as f32[] instead of char[] with pointer arithmetic done in bytes.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794735472.882352,
+  "score_before": 480,
+  "score_after": 480
  }
 ]
