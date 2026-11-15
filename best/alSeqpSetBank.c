@@ -1,13 +1,36 @@
-/* adapted from similar verified C in func_8002C410 in PENNY RACERS (matched), with its names changed by decompdecomp */
-s32 func_8002D164(s32, s16 *, s32);
-void alSeqpSetBank(s32 arg0)
-{
-  s16 sp10;
-  sp10 = 0x11;
-  func_8002D164(arg0 + 0x48, &sp10, 0);
-  if (1)
-  {
-    char __repair_stack_padding[8];
-  }
+s32 func_8002D164(void *arg0, void *arg1, s32 arg2);
+
+typedef union {
+    s16 vol;
+    s32 seq;
+    void *bank;
+} ALEventMsg;
+
+typedef struct {
+    u16 type;
+    ALEventMsg msg;
+} ALEvent;
+
+void alSeqpSetBank(s32 arg0, s32 arg1) {
+    ALEvent evt;
+
+    evt.type = 0xE;
+    evt.msg.bank = (void *)arg1;
+    func_8002D164((void *)(arg0 + 0x48), &evt, 0);
 }
 
+void alSeqpSetSeq(s32 arg0, s32 arg1) {
+    ALEvent evt;
+
+    evt.type = 0xD;
+    evt.msg.seq = arg1;
+    func_8002D164((void *)(arg0 + 0x48), &evt, 0);
+}
+
+void alSeqpSetVol(s32 arg0, s16 arg1) {
+    ALEvent evt;
+
+    evt.type = 0xA;
+    evt.msg.vol = arg1;
+    func_8002D164((void *)(arg0 + 0x48), &evt, 0);
+}
