@@ -25,3 +25,7 @@ typedef int s32_bool;
 s32 func_8013E49C(u16 arg0);
 s32 func_8013EDFC(s32 arg0, void *arg1);
 void func_80157E30(s32 arg0);
+
+/* Verified partial layouts used by n_alSynAddPlayer. */
+typedef struct N_ALPlayerLayout { struct N_ALPlayerLayout *next; u8 pad04[12]; s32 samplesLeft; } N_ALPlayerLayout;
+typedef struct { N_ALPlayerLayout *head; u8 pad04[40]; s32 samples; } N_ALSynthLayout;
