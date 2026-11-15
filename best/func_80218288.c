@@ -6,7 +6,6 @@ f32 sqrtf(f32 arg0);
 void guRotateF(f32 *m, f32 a, f32 x, f32 y, f32 z);
 void guMtxCatF(f32 *a, f32 *b, f32 *c);
 void guMtxXFMF(f32 *m, f32 x, f32 y, f32 z, f32 *ox, f32 *oy, f32 *oz);
-
 extern u8 D_8011F2F0[];
 extern u8 D_8011F2FC[];
 extern f32 D_8011F314[];
@@ -34,77 +33,105 @@ extern f32 D_802210C4;
 extern u16 D_8022A772[];
 extern u8 D_8022AF3C[];
 extern u16 D_8022B062[];
-
-void func_80218288(u32 arg0) {
-    f32 m20[16];
-    f32 m60[16];
-    f32 mA0[16];
-    f32 mE0[16];
-    f32 ox;
-    f32 oy;
-    f32 oz;
-    f32 zero;
-    f32 one;
-    f32 s400;
-    f32 a1;
-    f32 a2;
-    f32 a3;
-    f32 *rec;
-    u8 *base;
-    u8 *p;
-    u8 car;
-    u32 racer;
-    s32 cur;
-    s32 prev;
-    s32 off;
-    s32 mi;
-
-    zero = 0.0f;
-    base = D_8011F2F0;
-    p = base + D_8022A772[0] * 0x64;
-    D_802210A4 = *(f32 *)(p + 0x18);
-    D_802210A8 = *(f32 *)(p + 0x1C) + 30.0f;
-    D_802210AC = *(f32 *)(p + 0x20);
-    p = base + D_8022B062[0] * 0x64;
-    D_802210B0 = *(f32 *)(p + 0x18);
-    D_802210B4 = *(f32 *)(p + 0x1C) + 15.0f;
-    D_802210B8 = *(f32 *)(p + 0x20);
-    one = 1.0f;
-    D_802210BC = zero;
-    D_802210C0 = one;
-    D_802210C4 = zero;
+void func_80218288(u32 arg0)
+{
+  f32 m20[16];
+  f32 m60[16];
+  f32 mA0[16];
+  f32 mE0[16];
+  f32 ox;
+  f32 oy;
+  f32 oz;
+  f32 zero;
+  f32 one;
+  f32 s400;
+  f32 a1;
+  f32 a2;
+  f32 a3;
+  f32 *rec;
+  u8 *base;
+  u8 *p;
+  u8 car;
+  u32 racer;
+  s32 cur;
+  s32 prev;
+  s32 off;
+  s32 mi;
+  zero = 0.0f;
+  base = D_8011F2F0;
+  p = base + (D_8022A772[0] * 0x64);
+  D_802210A4 = *((f32 *) (p + 0x18));
+  D_802210A8 = (*((f32 *) (p + 0x1C))) + 30.0f;
+  D_802210AC = *((f32 *) (p + 0x20));
+  p = base + (D_8022B062[0] * 0x64);
+  D_802210B0 = *((f32 *) (p + 0x18));
+  D_802210B4 = (*((f32 *) (p + 0x1C))) + 15.0f;
+  D_802210B8 = *((f32 *) (p + 0x20));
+  one = 1.0f;
+  D_802210BC = zero;
+  D_802210C0 = one;
+  D_802210C4 = zero;
+  do
+  {
     func_80129C88(D_8022AF3C, 4, 0);
+  }
+  while (0);
+  if (zero)
+  {
     car = D_8011F2FC[(arg0 & 0xFFFF) * 0x64];
     racer = car & 0xFFFF;
     mi = D_8022A772[((racer / 3) & 0xFFFF) * 0x478] * 25;
     a1 = D_8011F314[mi];
     a2 = D_8011F318[mi];
     a3 = D_8011F31C[mi];
-    do { guRotateF(m60, a1, one, zero, zero); } while (0);
-    guRotateF(m20, a2, zero, one, zero);
+  }
+  else
+  {
+    car = D_8011F2FC[(arg0 & 0xFFFF) * 0x64];
+    racer = car & 0xFFFF;
+    mi = D_8022A772[((racer / 3) & 0xFFFF) * 0x478] * 25;
+    a1 = D_8011F314[mi];
+    a2 = D_8011F318[mi];
+    a3 = D_8011F31C[mi];
+  }
+  do
+  {
+    guRotateF(m60, a1, one, zero, zero);
+  }
+  while (0);
+  guRotateF(m20, a2, zero, one, zero);
+  do
+  {
     guRotateF(mA0, a3, zero, zero, one);
-    guMtxCatF(m20, m60, mE0);
-    guMtxCatF(mE0, mA0, mE0);
+  }
+  while (0);
+  guMtxCatF(m20, m60, mE0);
+  guMtxCatF(mE0, mA0, mE0);
+  do
+  {
     guMtxXFMF(mE0, zero, one, zero, &ox, &oy, &oz);
-    prev = (racer - 1) * 9;
-    cur = racer * 9;
-    rec = &D_80221080[cur];
-    D_80221098[prev] = rec[6] = (f32)((f64)D_80221098[cur] + (f64)(ox - D_80221098[cur]) * D_8021DF08);
-    D_8022109C[prev] = rec[7] = (f32)((f64)D_8022109C[cur] + (f64)(oy - D_8022109C[cur]) * D_8021DF08);
-    D_802210A0[prev] = rec[8] = (f32)((f64)D_802210A0[cur] + (f64)(oz - D_802210A0[cur]) * D_8021DF08);
-    s400 = 400.0f;
-    off = ((car & 0xFFFF) - 1) * 9;
-    D_80221080[off] = zero;
-    D_80221084[off] = zero;
-    D_80221088[off] = zero;
-    {
-        f32 dx = D_8022108C[cur] - D_80221080[cur];
-        f32 dy = D_80221090[cur] - D_80221084[cur];
-        f32 dz = D_80221094[cur] - D_80221088[cur];
-        f32 inv = 1.0f / sqrtf(dx * dx + dy * dy + dz * dz);
-        f32 ang = func_801F9C8C(dz * inv, -(dx * inv));
-        D_8022108C[off] = __sinf(ang) * s400 - __sinf(ang) * __sinf(zero) * s400;
-        D_80221090[off] = __sinf(zero) * s400;
-        D_80221094[off] = __cosf(ang) * s400 - __cosf(ang) * __sinf(zero) * s400;
-    }
+  }
+  while (0);
+  prev = (racer - 1) * 9;
+  cur = racer * 9;
+  rec = &D_80221080[cur];
+  D_80221098[prev] = (rec[6] = (f32) (((f64) D_80221098[cur]) + (((f64) (ox - D_80221098[cur])) * D_8021DF08)));
+  D_8022109C[prev] = (rec[7] = (f32) (((f64) D_8022109C[cur]) + (((f64) (oy - D_8022109C[cur])) * D_8021DF08)));
+  D_802210A0[prev] = (rec[8] = (f32) (((f64) D_802210A0[cur]) + (((f64) (oz - D_802210A0[cur])) * D_8021DF08)));
+  s400 = 400.0f;
+  off = ((car & 0xFFFF) - 1) * 9;
+  D_80221080[off] = zero;
+  D_80221084[off] = zero;
+  D_80221088[off] = zero;
+  {
+    f32 dx = D_8022108C[cur] - D_80221080[cur];
+    f32 dy = D_80221090[cur] - D_80221084[cur];
+    f32 dz = D_80221094[cur] - D_80221088[cur];
+    f32 inv = 1.0f / sqrtf(((dx * dx) + (dy * dy)) + (dz * dz));
+    f32 ang = func_801F9C8C(dz * inv, -(dx * inv));
+    D_8022108C[off] = (__sinf(ang) * s400) - ((__sinf(ang) * __sinf(zero)) * s400);
+    D_80221090[off] = __sinf(zero) * s400;
+    D_80221094[off] = (__cosf(ang) * s400) - ((__cosf(ang) * __sinf(zero)) * s400);
+  }
 }
+

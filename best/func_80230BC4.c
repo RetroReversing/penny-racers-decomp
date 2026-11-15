@@ -59,9 +59,9 @@ void func_80230BC4(s32 arg0, s16 arg1) {
     func_80149FA8(temp_a1, temp_a1_2);
     if (D_801E99C4 != 0) {
         do { func_8003DE60(D_80232D34, temp_a1, temp_s2); } while (0);
-        func_8003DE60(D_80232D44, *(u16 *)(temp_s0 + 2));
-        func_8003DE60(D_80232D58, *(u16 *)(temp_s0 + 4));
-        func_8003DE60(D_80232D6C, *(u16 *)(temp_s0 + 6));
+        do { func_8003DE60(D_80232D44, *(u16 *)(temp_s0 + 2)); } while (0);
+        do { func_8003DE60(D_80232D58, *(u16 *)(temp_s0 + 4)); } while (0);
+        do { func_8003DE60(D_80232D6C, *(u16 *)(temp_s0 + 6)); } while (0);
         func_8003DE60(D_80232D80, *(u16 *)(temp_s0 + 8));
         func_8003DE60(D_80232D94, *(u16 *)(temp_s0 + 0xA));
         func_8003DE60(D_80232DA8, *(u16 *)(temp_s0 + 0xC));

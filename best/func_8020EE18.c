@@ -37,7 +37,7 @@ void func_8020EE18(s32 arg0) {
     s4 = &D_80190C9A;
     s0 = 0;
     s2 = func_8014A870(0x14, 7, D_8021EEA4[3]);
-    func_80211C7C(0xA);
+    do { func_80211C7C(0xA); } while (0);
     p = D_8021EEA4;
     switch (*(u16 *)(s3 + 0x3E)) {
     case 0:

@@ -52,6 +52,7 @@ s32 func_8002E120(Voice *arg0, s32 arg1, s32 arg2) {
     u16 sp1A;
     Note *note;
     Note *next;
+    Note *cur;
     s32 res;
     s32 delta;
     s32 old;
@@ -168,15 +169,15 @@ s32 func_8002E120(Voice *arg0, s32 arg1, s32 arg2) {
             func_8002E6E4(arg0, arg0->p7C->type, arg0->p7C->valC);
             break;
         }
-        note = arg0->p7C;
+        cur = arg0->p7C;
         rem -= delta;
         sp1A += delta * 2;
-        next = note->next;
+        next = cur->next;
         arg0->p7C = next;
         if (next == NULL) {
             arg0->i80 = 0;
         }
-        func_8002ABC8((s32 *) note);
+        func_8002ABC8((s32 *) cur);
     }
     res = func_8002E784(arg0, &sp18, &sp1A, rem, res);
     if (arg0->i70 > arg0->i74) {

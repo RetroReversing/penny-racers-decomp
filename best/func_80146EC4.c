@@ -38,8 +38,8 @@ base = D_80189CC6;
         }
     } else {
         s1 = func_8014BAC0(0x14) & 0x10;
-        temp_s0[0] += 1;
-        if (temp_s0[0] >= 0x29) {
+        (D_8011F2F0 + (arg0 & 0xFFFF) * 0x64)[0] += 1;
+        if ((D_8011F2F0 + (arg0 & 0xFFFF) * 0x64)[0] >= 0x29) {
             s1 = 0x10;
         }
     }

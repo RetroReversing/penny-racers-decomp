@@ -57,7 +57,7 @@ void func_8013FE18(s32 arg0) {
                 F(D_800DA26A, s32, 0x8E2) = 0;
                 F(D_800DA26A, s32, 0x8E6) = 0;
                 F(D_800DA26A, s8, 0x8EA) = 0;
-                func_8022FE50(6, 6, 6, 1);
+                do { func_8022FE50(6, 6, 6, 1); } while (0);
                 switch (D_8021E1A6) {
                 case 0:
                 case 1:
