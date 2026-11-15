@@ -4920,14 +4920,6 @@
   "score_after": 4610
  },
  {
-  "function": "func_8015C838",
-  "text": "Deep permuter: score 1060 \u2192 1060; 0 improvements; 77 candidates tested; 18 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935527",
-  "created_at": 1794356279.61638,
-  "score_before": 1060,
-  "score_after": 1060
- },
- {
   "function": "func_80129C1C",
   "text": "Deep permuter: score 633 \u2192 633; 0 improvements; 57 candidates tested; 44 cached skips; 0 rejected; 7204s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935288",
@@ -6200,14 +6192,6 @@
   "score_after": 10
  },
  {
-  "function": "func_8015C838",
-  "text": "Best 1255 (53.5%): s32 off = (arg0 & 0xFFFF) * 0x64; s8 v = *((s8*)&D_8011F2FC + off) - 2; if (v > 0) { store v back to D_8011F2FC+off; return } *((s8*)&D_8011F2FD + off) = 2. Target loads with lbu (unsigned), so use u8 for the reads; the target also recomputes andi $v1,$a0,0xffff for the second store instead of reusing the index, and the compare is bgtzl on the loaded value. Tried: u8 array form with idx*0x64 (1390, worse, lost the lui/addu base sharing). Untried: keep the andi re-computed in the else branch (e.g. write the store index from arg0 again), and check whether the else store uses D_8011F2FD with a separate index expression.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794706337.07077,
-  "score_before": 1255,
-  "score_after": 1255
- },
- {
   "function": "func_801497AC",
   "text": "Best 345 (87.6%), revision ef2763c06180afe98abc: u8 var_a1=0xFF; if ((arg0&0xFF)!=0xFF) { if (D_80189B34==2) { var_a1 = D_8021E1A2==1 ? D_80168D28[arg0&7] : D_80168D20[arg0&7]; } else var_a1 = D_80168D30[arg0&7]; } return var_a1. Target keeps `andi $a0,$a0,7` as a separate step and re-applies `andi ...,0xff` in each arm (three andi 0xff total, including the return), which costs one instruction and shifts the branch offsets (0x68 vs 0x64). Tried: pointer-arith draft form (680), idx temp with &0xFF in each arm (680, adds a move of a0 to a1). Next: keep the draft's arm layout and find where the extra andi 0xff comes from. Claim was lost mid-session before release.",
   "by": "claude-haiku-5-5-24",
@@ -6424,14 +6408,6 @@
   "score_after": 0
  },
  {
-  "function": "func_8015C838",
-  "text": "Not matched. Target: index = (arg0&0xFFFF)*100 (sll chain x*25*4) into D_8011F2FC; lbu, addiu -2, bgtzl on the full int (no sign-extension to a byte, no sll 24), store sb of the value; else branch writes 2 into D_8011F2FD at idx=(arg0&0xFFFF) WITHOUT the *100. Best of mine was 1355 with off=(arg0&0xFFFF)*100 used for both arrays; the idx version (1395) lost the shared index. Remaining diff: register allocation and the bgtzl delay-slot andi placement. Untried: keeping the s8 value and using a separate offset variable for the second array, or a branch on v computed as int with unsigned byte load.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794706558.635364,
-  "score_before": 1255,
-  "score_after": 1255
- },
- {
   "function": "func_8014D11C",
   "text": "Best 440 (84%): `extern u8 D_8011F32E[]; s32 i=(arg0&0xFFFF)*100; *(u16*)(D+i)=*(u16*)(D+i)+1; if (*(u16*)(D+i)>=0x80U) *(u16*)(D+i)=*(u16*)(D+i)-0x7F;`. Offset is arg*100 bytes (u16 element). Target re-materializes lui/addu for every access (no CSE of the address); ours shares a0 for the first load and compares against -0x7e. Remaining diff: target's if-body reloads address with fresh lui+addu+lhu and uses addiu -0x7f from v0; ours uses a0. Tried and worse: u16 indexing D[i] with i*50 (1375); temp v=load+1 (440, no change). Not yet tried: compile_family address_temporary.",
   "by": "claude-haiku-5-5-22",
@@ -6534,14 +6510,6 @@
   "created_at": 1794706671.767309,
   "score_before": 945,
   "score_after": 945
- },
- {
-  "function": "func_8015C838",
-  "text": "Not matched. Best 895 (66.8%) with the u16 v / u8 arrays / t = D2FC[idx]-2 / if (t>0) {store t; return;} D2FD[v]=2 form (see prior notes). Signed-char t variant: 1105 (worse). Target puts the andi of arg0 in the bgtzl delay slot and reuses v1 for the D2FD index; the remaining mismatch is that delay-slot placement. Next: try a local v declared after idx and a separate `s32 v2 = arg0 & 0xFFFF` used only in the else store.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794706687.242948,
-  "score_before": 1255,
-  "score_after": 895
  },
  {
   "function": "func_8014A9F4",
@@ -9416,14 +9384,6 @@
   "score_after": 11809
  },
  {
-  "function": "func_8015C838",
-  "text": "Target shape (27 insns) fully decoded, best 1395 (rev dd7fa4d39765e76f67c2; also dea47f7a310e2efe481a at 1475):\n  idx = (arg0 & 0xFFFF) * 0x64  (kept in v1, reused by the else path)\n  v = *(D_8011F2FC + idx) - 2   (lbu + addiu, %lo folded into the lbu)\n  bgtzl v -> store_v, delay slot andi $v1,$a0,0xFFFF\n  fall-through (v <= 0): D_8011F2FD[idx] = 2; j end      <- idx, i.e. *0x64, not the plain racer index\n  store_v: RECOMPUTES idx from arg0&0xFFFF (sll/addu/sll/addu/sll) then sb %lo(D_8011F2FC)\nNote D_8011F2FD is indexed by idx*0x64, same as matched donor func_8014AFD8.\n\nBlocker: gcc CSEs the D_8011F2FC address across the two paths and materialises the base (lui/addiu then lbu/sb ($reg)) -> 19-20 insns. The target never materialises: every access is lui %hi + addu + %lo folded into the lbu/sb, i.e. each address value is used exactly once per path. Tried: early return in the then block; early return in the else block; with and without an `idx` variable; inline (arg0 & 0xFFFF) * 0x64 in every access. Next idea: make the store path's address tree genuinely distinct (separate declaration/cast of the same address) so CSE cannot merge it while still emitting %lo(D_8011F2FC).\n\nUPDATE \u2014 score 960 (rev 09997bea9226316606ed), structure now matches except the last block. Working source:\n\n  extern u8 D_8011F2FC[]; extern char D_8011F2FD[];\n  void func_8015C838(s32 arg0) {\n      s32 idx; s32 v;\n      idx = (arg0 & 0xFFFF) * 0x64;\n      v = *(D_8011F2FC + idx) - 2;\n      if (v <= 0) { *(D_8011F2FD + idx) = 2; return; }\n      *(D_8011F2FC + (arg0 & 0xFFFF) * 0x64) = v;\n  }\n\nThis gives: idx in register, folded lbu (lui %hi + addu + lbu %lo), bgtz to the store block with the F2FD path as fall-through, exactly like the target. Remaining diff (5 insns): the target RECOMPUTES the index in the store block (andi $v1,$a0,0xFFFF; sll/addu/sll/addu/sll = x*100) and therefore fills the branch delay slot with the andi and emits bgtzl; gcc reuses the idx register instead (plain bgtz + nop).\n\nNext experiment (untested): kill the idx value before the store so gcc cannot CSE it, e.g.\n\n      if (v <= 0) { *(D_8011F2FD + idx) = 2; return; }\n      idx = (arg0 & 0xFFFF) * 0x64;\n      *(D_8011F2FC + idx) = v;\n\nwhich should force the recompute and the bgtzl fill.",
-  "by": "opencode-deepseek-v4.1-flash-free-5",
-  "created_at": 1794712482.408855,
-  "score_before": 895,
-  "score_after": 895
- },
- {
   "function": "func_80192E00",
   "text": "Saved best remains the m2c-based permuter candidate at 17875 (revision 8799915588c527f97b1d). Hand rewrites scored worse: 18990 (per-arg if/else chain with bytes indexed off D_801C6BB0+2) and 19135 (same with shared a0/a1/a2 pointer locals; the target reloads D_801C7AB0 in each block with its own lw, so a shared a2 local changes register use). Facts from the asm: the first test is `(arg0 & 0xFF) != 0` (bnez), then k==1 is tested first (func&4), then k==2 (&2), then k==3 (&8, else return), and k==0 (&1) is the else branch; all four converge on `D_801C6B25 = arg0; func_8014B854(0x3B)`. Stores: k=0 sets B23=-1 then B22=0; k=1/3 set B22=v then B23=0; k=2 sets B23=1 then B22=0. The W buffer D_801C7062 is written at [0],[1],[2] and BB0 at [2] via a1=D_801C6BB0+2 with reads at a1[-2], a1[-1]. Untested next step: keep the m2c shape but reorder the outer test to `if (arg0 & 0xFF) {...} else {...}` with the k==0 block last, and let each block reload D_801C7AB0 from the global.",
   "by": "claude-haiku-5-5-24",
@@ -9534,14 +9494,6 @@
   "created_at": 1794713490.739488,
   "score_before": 1330,
   "score_after": 200
- },
- {
-  "function": "func_8015C838",
-  "text": "SOLVED pending compiler-profile change. The candidate C is byte-identical to the ROM with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (try_compiler: \"MATCHES the game byte for byte\"; suggest() filed for this function, and also for func_8015CF2C - whole unit code_8015A414 looks like -O1). At -O2 the same C scores 50 with only register-allocation differences. Matching C (candidate-local externs; other matched functions declare these symbols differently): extern u8 D_8011F2FC[]; extern u8 D_8011F2FD[]; void func_8015C838(s32 arg0){ s32 off; s32 t; off = (arg0 & 0xFFFF) * 0x64; t = D_8011F2FC[off] - 2; if (t <= 0) { D_8011F2FD[off] = 2; } else { D_8011F2FC[((u16)arg0) * 0x64] = t; } } Note the deliberately different mask spellings: (arg0 & 0xFFFF) for off and ((u16)arg0) for the else-store index keep the two andi instructions separate, and the else-path store must reuse off.\n\nAlready solved pending a compiler-profile change; released again after a confirming compile (50/27 insns at -O2, register-only diffs). See the function note: the candidate C is byte-identical at gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 and a function-scoped suggest() is filed. Do not retune registers; apply the -O1 profile. Whole unit code_8015A414 appears to be -O1.",
-  "by": "opencode-deepseek-v4.1-flash-free-5",
-  "created_at": 1794713579.619924,
-  "score_before": 895,
-  "score_after": 50
  },
  {
   "function": "func_80163A38",
@@ -9974,14 +9926,6 @@
   "created_at": 1794718184.936469,
   "score_before": 10704,
   "score_after": 10704
- },
- {
-  "function": "func_8015C838",
-  "text": "Score 50 (98.1%), register-only differences: target keeps the masked index in v1 (andi $v1,$a0,0xFFFF; sll v0,v1,1; addu v0,v0,v1 ...; sll v1,v0,2), then lui a1 / addu a1,a1,v1 / lbu a1 / addiu a1,a1,-2. Mine uses v0 for the mask and a1 for the table address. Tried: u32 off, a u16 idx local, reordered decls (all still 50, identical instructions). Not yet tried: an explicit temp for the table address before the lbu, or writing the else-branch store index as a separate local. Only register allocation remains.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794718191.82033,
-  "score_before": 50,
-  "score_after": 50
  },
  {
   "function": "func_80164FC0",
@@ -14624,14 +14568,6 @@
   "score_after": 2130
  },
  {
-  "function": "func_8015C838",
-  "text": "Saved best remains 20 (revision 4ed65f3e49d9db3f184f: off = (arg0&0xFFFF)*0x64; t = D_8011F2FC[off]-2; if (t<=0) D_8011F2FD[off]=2 else D_8011F2FC[u16 arg0 *0x64]=t). Target facts: v1 = arg0&0xFFFF is computed first; v1*100 via sll/addu chain stored to v1 and used for the lbu of D_8011F2FC; the else path re-materializes andi v1 in the bgtzl delay slot and stores 2 into D_8011F2FD[v1] (index is NOT scaled by 100 there). Tried: (a) u16 idx with t>0 test: 1395 (wrong register/branch shape, lui not CSE'd); (b) off = ((u16)arg0)*0x64 with D_8011F2FD[arg0&0xFFFF]=2 in else: 865, branch is blezl where target has bgtzl with t in a1. Next: write the positive test first (if (t > 0) store t else store 2) with the scaled index recomputed in the store path (the candidate proposal #339302416415 family), keeping the 0xFFFF mask as a separate local.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794729931.1128378,
-  "score_before": 20,
-  "score_after": 20
- },
- {
   "function": "func_8014A204",
   "text": "Best: score 480 (90.5%), candidate revision 0f8dce5c874c516240a3 (also 28cf617d6bc29879d381 with dz/dy/dx statement order, also 480): `f32 func_8014A204(s32 arg0, s32 arg1)`, off0=(arg0&0xFFFF)*100, off1=(arg1&0xFFFF)*100, dx/dy/dz = *(f32*)(D_8011F308/30C/310 + off0) - same + off1, return sqrtf(dx*dx+dy*dy+dz*dz). Frame, sqrt.s + bc1t NaN check, lui/addiu/lwc1 addressing match. Remaining: register allocation (target keeps dx in f6, dz operand in f0) and scheduling (target has mul.s dx*dx issued after the dz loads; sw $ra placement). Tried: grouped sum s=dx*dx; s+=dy*dy; s+=dz*dz (630, worse); statement order dz,dy,dx (480, same score, still regalloc diff). Untried: search_flags for -O1 variant, which the proposal notes say sometimes fixes scheduling-only diffs.",
   "by": "claude-haiku-5-5-22",
@@ -15126,14 +15062,6 @@
   "created_at": 1794730615.933646,
   "score_before": 545,
   "score_after": 485
- },
- {
-  "function": "func_8015C838",
-  "text": "Saved best 20 is a different, older form (its D_8011F2FD store uses the *100 index; the target uses the raw index). Structural fix found: t = D_8011F2FC[(u16)arg0*100] - 2 (s32 t, u16 i = arg0, idx = i*100), if (t <= 0) D_8011F2FD[i] = 2; else D_8011F2FC[idx] = t; gives 965 (64%). Target's branch is bgtzl $a1 (branch-likely, taken on t>0 to the D_8011F2FC store), and the else path reuses the raw andi $v1 for the D_8011F2FD index. Mine emits bgtz (no -likely) and the `andi` is missing from the else path. Variants written as `if (t > 0)` first (1395) and with i = arg0 & 0xFFFF (1395) are worse. Next: keep the 965 shape and find the source form that produces bgtzl in the taken branch (the andi in the delay slot of the fallthrough path).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794731054.384911,
-  "score_before": 20,
-  "score_after": 20
  },
  {
   "function": "func_80127030",
@@ -17806,5 +17734,77 @@
   "created_at": 1794738492.750717,
   "score_before": 0,
   "score_after": 0
+ },
+ {
+  "function": "func_8015C838",
+  "text": "Deep permuter: score 1060 \u2192 1060; 0 improvements; 77 candidates tested; 18 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935527",
+  "created_at": 1794356279.61638,
+  "score_before": 1060,
+  "score_after": 1060
+ },
+ {
+  "function": "func_8015C838",
+  "text": "Best 1255 (53.5%): s32 off = (arg0 & 0xFFFF) * 0x64; s8 v = *((s8*)&D_8011F2FC + off) - 2; if (v > 0) { store v back to D_8011F2FC+off; return } *((s8*)&D_8011F2FD + off) = 2. Target loads with lbu (unsigned), so use u8 for the reads; the target also recomputes andi $v1,$a0,0xffff for the second store instead of reusing the index, and the compare is bgtzl on the loaded value. Tried: u8 array form with idx*0x64 (1390, worse, lost the lui/addu base sharing). Untried: keep the andi re-computed in the else branch (e.g. write the store index from arg0 again), and check whether the else store uses D_8011F2FD with a separate index expression.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794706337.07077,
+  "score_before": 1255,
+  "score_after": 1255
+ },
+ {
+  "function": "func_8015C838",
+  "text": "Not matched. Target: index = (arg0&0xFFFF)*100 (sll chain x*25*4) into D_8011F2FC; lbu, addiu -2, bgtzl on the full int (no sign-extension to a byte, no sll 24), store sb of the value; else branch writes 2 into D_8011F2FD at idx=(arg0&0xFFFF) WITHOUT the *100. Best of mine was 1355 with off=(arg0&0xFFFF)*100 used for both arrays; the idx version (1395) lost the shared index. Remaining diff: register allocation and the bgtzl delay-slot andi placement. Untried: keeping the s8 value and using a separate offset variable for the second array, or a branch on v computed as int with unsigned byte load.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794706558.635364,
+  "score_before": 1255,
+  "score_after": 1255
+ },
+ {
+  "function": "func_8015C838",
+  "text": "Not matched. Best 895 (66.8%) with the u16 v / u8 arrays / t = D2FC[idx]-2 / if (t>0) {store t; return;} D2FD[v]=2 form (see prior notes). Signed-char t variant: 1105 (worse). Target puts the andi of arg0 in the bgtzl delay slot and reuses v1 for the D2FD index; the remaining mismatch is that delay-slot placement. Next: try a local v declared after idx and a separate `s32 v2 = arg0 & 0xFFFF` used only in the else store.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794706687.242948,
+  "score_before": 1255,
+  "score_after": 895
+ },
+ {
+  "function": "func_8015C838",
+  "text": "Target shape (27 insns) fully decoded, best 1395 (rev dd7fa4d39765e76f67c2; also dea47f7a310e2efe481a at 1475):\n  idx = (arg0 & 0xFFFF) * 0x64  (kept in v1, reused by the else path)\n  v = *(D_8011F2FC + idx) - 2   (lbu + addiu, %lo folded into the lbu)\n  bgtzl v -> store_v, delay slot andi $v1,$a0,0xFFFF\n  fall-through (v <= 0): D_8011F2FD[idx] = 2; j end      <- idx, i.e. *0x64, not the plain racer index\n  store_v: RECOMPUTES idx from arg0&0xFFFF (sll/addu/sll/addu/sll) then sb %lo(D_8011F2FC)\nNote D_8011F2FD is indexed by idx*0x64, same as matched donor func_8014AFD8.\n\nBlocker: gcc CSEs the D_8011F2FC address across the two paths and materialises the base (lui/addiu then lbu/sb ($reg)) -> 19-20 insns. The target never materialises: every access is lui %hi + addu + %lo folded into the lbu/sb, i.e. each address value is used exactly once per path. Tried: early return in the then block; early return in the else block; with and without an `idx` variable; inline (arg0 & 0xFFFF) * 0x64 in every access. Next idea: make the store path's address tree genuinely distinct (separate declaration/cast of the same address) so CSE cannot merge it while still emitting %lo(D_8011F2FC).\n\nUPDATE \u2014 score 960 (rev 09997bea9226316606ed), structure now matches except the last block. Working source:\n\n  extern u8 D_8011F2FC[]; extern char D_8011F2FD[];\n  void func_8015C838(s32 arg0) {\n      s32 idx; s32 v;\n      idx = (arg0 & 0xFFFF) * 0x64;\n      v = *(D_8011F2FC + idx) - 2;\n      if (v <= 0) { *(D_8011F2FD + idx) = 2; return; }\n      *(D_8011F2FC + (arg0 & 0xFFFF) * 0x64) = v;\n  }\n\nThis gives: idx in register, folded lbu (lui %hi + addu + lbu %lo), bgtz to the store block with the F2FD path as fall-through, exactly like the target. Remaining diff (5 insns): the target RECOMPUTES the index in the store block (andi $v1,$a0,0xFFFF; sll/addu/sll/addu/sll = x*100) and therefore fills the branch delay slot with the andi and emits bgtzl; gcc reuses the idx register instead (plain bgtz + nop).\n\nNext experiment (untested): kill the idx value before the store so gcc cannot CSE it, e.g.\n\n      if (v <= 0) { *(D_8011F2FD + idx) = 2; return; }\n      idx = (arg0 & 0xFFFF) * 0x64;\n      *(D_8011F2FC + idx) = v;\n\nwhich should force the recompute and the bgtzl fill.",
+  "by": "opencode-deepseek-v4.1-flash-free-5",
+  "created_at": 1794712482.408855,
+  "score_before": 895,
+  "score_after": 895
+ },
+ {
+  "function": "func_8015C838",
+  "text": "SOLVED pending compiler-profile change. The candidate C is byte-identical to the ROM with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (try_compiler: \"MATCHES the game byte for byte\"; suggest() filed for this function, and also for func_8015CF2C - whole unit code_8015A414 looks like -O1). At -O2 the same C scores 50 with only register-allocation differences. Matching C (candidate-local externs; other matched functions declare these symbols differently): extern u8 D_8011F2FC[]; extern u8 D_8011F2FD[]; void func_8015C838(s32 arg0){ s32 off; s32 t; off = (arg0 & 0xFFFF) * 0x64; t = D_8011F2FC[off] - 2; if (t <= 0) { D_8011F2FD[off] = 2; } else { D_8011F2FC[((u16)arg0) * 0x64] = t; } } Note the deliberately different mask spellings: (arg0 & 0xFFFF) for off and ((u16)arg0) for the else-store index keep the two andi instructions separate, and the else-path store must reuse off.\n\nAlready solved pending a compiler-profile change; released again after a confirming compile (50/27 insns at -O2, register-only diffs). See the function note: the candidate C is byte-identical at gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 and a function-scoped suggest() is filed. Do not retune registers; apply the -O1 profile. Whole unit code_8015A414 appears to be -O1.",
+  "by": "opencode-deepseek-v4.1-flash-free-5",
+  "created_at": 1794713579.619924,
+  "score_before": 895,
+  "score_after": 50
+ },
+ {
+  "function": "func_8015C838",
+  "text": "Score 50 (98.1%), register-only differences: target keeps the masked index in v1 (andi $v1,$a0,0xFFFF; sll v0,v1,1; addu v0,v0,v1 ...; sll v1,v0,2), then lui a1 / addu a1,a1,v1 / lbu a1 / addiu a1,a1,-2. Mine uses v0 for the mask and a1 for the table address. Tried: u32 off, a u16 idx local, reordered decls (all still 50, identical instructions). Not yet tried: an explicit temp for the table address before the lbu, or writing the else-branch store index as a separate local. Only register allocation remains.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794718191.82033,
+  "score_before": 50,
+  "score_after": 50
+ },
+ {
+  "function": "func_8015C838",
+  "text": "Saved best remains 20 (revision 4ed65f3e49d9db3f184f: off = (arg0&0xFFFF)*0x64; t = D_8011F2FC[off]-2; if (t<=0) D_8011F2FD[off]=2 else D_8011F2FC[u16 arg0 *0x64]=t). Target facts: v1 = arg0&0xFFFF is computed first; v1*100 via sll/addu chain stored to v1 and used for the lbu of D_8011F2FC; the else path re-materializes andi v1 in the bgtzl delay slot and stores 2 into D_8011F2FD[v1] (index is NOT scaled by 100 there). Tried: (a) u16 idx with t>0 test: 1395 (wrong register/branch shape, lui not CSE'd); (b) off = ((u16)arg0)*0x64 with D_8011F2FD[arg0&0xFFFF]=2 in else: 865, branch is blezl where target has bgtzl with t in a1. Next: write the positive test first (if (t > 0) store t else store 2) with the scaled index recomputed in the store path (the candidate proposal #339302416415 family), keeping the 0xFFFF mask as a separate local.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794729931.1128378,
+  "score_before": 20,
+  "score_after": 20
+ },
+ {
+  "function": "func_8015C838",
+  "text": "Saved best 20 is a different, older form (its D_8011F2FD store uses the *100 index; the target uses the raw index). Structural fix found: t = D_8011F2FC[(u16)arg0*100] - 2 (s32 t, u16 i = arg0, idx = i*100), if (t <= 0) D_8011F2FD[i] = 2; else D_8011F2FC[idx] = t; gives 965 (64%). Target's branch is bgtzl $a1 (branch-likely, taken on t>0 to the D_8011F2FC store), and the else path reuses the raw andi $v1 for the D_8011F2FD index. Mine emits bgtz (no -likely) and the `andi` is missing from the else path. Variants written as `if (t > 0)` first (1395) and with i = arg0 & 0xFFFF (1395) are worse. Next: keep the 965 shape and find the source form that produces bgtzl in the taken branch (the andi in the delay slot of the fallthrough path).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794731054.384911,
+  "score_before": 20,
+  "score_after": 20
  }
 ]
