@@ -1,31 +1,35 @@
+extern char D_800DD360[];
+extern char D_800470D8[];
+
 typedef struct Ring {
-    void *p0;
-    s32 f4;
-    s32 count;
-    s32 head;
-    s32 cap;
-    s32 *buf;
+    s32 *unk0;
+    s32 unk4;
+    s32 unk8;
+    s32 unkC;
+    s32 unk10;
+    s32 *unk14;
 } Ring;
 
-typedef struct Entry {
-    Ring *ring;
-    s32 val;
-} Entry;
-
-extern Entry D_800DD360[];
-extern s32 D_800470D8;
 s32 func_8003E884(Ring *);
-void func_8003E83C(s32 *, s32);
+void func_8003E83C(void *, s32);
 
 void func_8003E644(s32 arg0) {
-    Entry *e = (Entry *)((u8 *)D_800DD360 + arg0);
-    Ring *r = e->ring;
+    u8 *base = D_800DD360;
+    Ring *r = *(Ring **)(base + arg0);
+    s32 idx;
+    s32 ret;
+    s32 cnt;
 
-    if (r != NULL && r->count < r->cap) {
-        r->buf[(r->head + r->count) % r->cap] = e->val;
-        r->count = r->count + 1;
-        if (*(s32 *)r->p0 != 0) {
-            func_8003E83C(&D_800470D8, func_8003E884(r));
+    if (r != NULL) {
+        cnt = r->unk8;
+        if (cnt < r->unk10) {
+            idx = (r->unkC + cnt) % r->unk10;
+            r->unk14[idx] = *(s32 *)(base + arg0 + 4);
+            r->unk8 = cnt + 1;
+            if (*r->unk0 != 0) {
+                ret = func_8003E884(r);
+                func_8003E83C(D_800470D8, ret);
+            }
         }
     }
 }
