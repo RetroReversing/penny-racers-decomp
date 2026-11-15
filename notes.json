@@ -23496,14 +23496,6 @@
   "score_after": 2775
  },
  {
-  "function": "func_80211F14",
-  "text": "Target is a nested copy loop: t1 = arg0*0x178 (computed as ((3a0<<4)-a0)<<3), dst = &D_800DA26A+0x64 + t1 + 18*i, src = &D_8021F270 + 0xE0*arg0 + 16*i; inner loop j=0..7 copies one halfword dst[2j]=src[2j]; then halfword at dst+0x10 (&D+0x74 + t1 + 18*i) = 0xFFFF. Outer i=0..13. Target keeps the 0x12*i + t1 term in a register for the store and hoists the bases; my variants compile to 34-36 insns (target 45) and differ in register/order (outer counter in t0/a2, recomputed lui/addiu for bases). Best this session: 3890 (offset form, off=i*0x12+t1, soff=i*0x10+arg0*0xE0, accessing D_800DA26A+0x64+off+2j and D+0x74+off). Saved historical best 1055 (different, older source, not reproduced here). Untried: pointer-increment form for dst/src per outer iteration, and loop with j as a1 counted from 0 with a do-while over 8.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794707028.6637099,
-  "score_before": 1055,
-  "score_after": 1055
- },
- {
   "function": "func_8002C508",
   "text": "Best this pass 2130 at revision 411e2cba7aa487c64b92 (saved best 2125 from earlier source). Source: T*t=D_80046DF4->t; for(s16 i=0;i<t->n;i++){S*s=(S*)(t->tab+i*0x30); if(!s->o){s->o=arg0; s->a=5; s->z=0; s->f=0.5f; s->b=0x40; s->c=0; s->vol=((s32)(((f32)D_801D75E6[arg1].v)*((f32)D_8021F029))*0.047619f)*arg0[0xD])/127; return i;}} return -1. Remaining diff: target hoists t->tab into $t2 and loads constants 5, 0x40, 0.5f and 0.047619f before the loop; the D_8021F029 address is computed early (lui/addiu into $t4) and read with lbu from 0($t4). Tried: a separate u8 *vp=&D_8021F029 reading *vp (2225, worse; it changed the hoisting). Next idea: hoist constants via locals before the loop (e.g. s16 five=5; u8 forty=0x40) and keep t->tab in a local pointer used for the stride.",
   "by": "claude-haiku-5-5-24",
@@ -23558,14 +23550,6 @@
   "created_at": 1794720478.685872,
   "score_before": 2775,
   "score_after": 1955
- },
- {
-  "function": "func_80211F14",
-  "text": "Not matched. Saved best 1055 (historical). Verified structure from target: t1 = arg0*0x178 (sll/add/sll/sub/sll chain) and t2 = &D_800DA26A+0x64 are hoisted out of the outer loop. Outer loop j=a2 (0..13), inner loop i=a1 (0..7) copies one u16 per step: dst = t2 + t1 + j*18 + i*2 (j*18 = (j*8+j)*2), src = D_8021F270 + arg0*0xE0 + j*16 + i*2 (a3 hoisted per row). After the inner loop it stores 0xFFFF at dst + 16 (that is D+0x74). Best C attempts scored 2585 (inline index math) and 3505 (byte-pointer row with explicit i<16 loop); the compiler keeps re-deriving the bases instead of hoisting t1/t2. Untried: write t1 and t2 as u8* locals before the j loop, compute the row base as `u8 *row = t2 + t1 + j*0x12` with the u16 stores through a row pointer and `row[8]`-style indexing.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794721201.3244019,
-  "score_before": 1055,
-  "score_after": 1055
  },
  {
   "function": "func_8002C508",
@@ -23648,22 +23632,6 @@
   "score_after": 1380
  },
  {
-  "function": "func_80211F14",
-  "text": "Best rechecked 2490 (inherited 1055 is from older inputs/header). Target: j=0; t1 = arg0*0x178 (sll1, addu, sll4, subu, sll3); t2 = &D_800DA26A+0x64; loop head .L80211F38: a1=0; v0=j*8+... -> t0 = D_800DA26A+0x64+arg0*0x178+j*0x12; a3 = D_8021F270 + arg0*0xE0 + j*16; inner recomputes v0=i*2 (sll 1, also in the bnez delay slot), addu v1,v0,t0 / addu v0,v0,a3 / lhu / sh / addiu a1 / slti 8 / bnez; then sentinel: v0=(j*9)*2 + t1, ori 0xFFFF, lui/addu %hi/%lo(D_800DA26A+0x74), sh; addiu a2,1; slti 0xE; bnel with `move a1,zero` in the delay slot. Key remaining gap: gcc strength-reduces the inner copy to pointer increments (addiu +2) instead of the target's recomputed i*2, and hoists the &D_800DA26A+0x64 lui/addiu to the top of the function instead of after t1. Verified: -fno-strength-reduce gives 915 on the same C (best known) and -O1 gives 865, both non-matching and both diagnostic only; the project profile is -O2, so a flags change would need a suggest(). Volatile destination (vu16) improved 2585 -> 2490 but did not remove the strength reduction. Also tried: u16* row locals (4110), byte base + j*0x12 + i*2 (3355), do-while loops (4110), inline (i<<1) (2585), volatile source (2585), local k=i*2 (2585). Remaining idea: with -fno-strength-reduce the only diffs are register allocation plus one extra addu pair (t1+t2 folded) \u2014 try the inline form combined with vu16 destination under that flag, or suggest() the flag for this address range.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794731022.264524,
-  "score_before": 1055,
-  "score_after": 1055
- },
- {
-  "function": "func_80211F14",
-  "text": "Not matched. Saved best remains 1055 (historical repair draft). Clean rewrites all scored worse: per-row src/dst pointers 3355; base=arg0*0x178 with inline index 3570; 0xFFFF store hoisted before inner loop 4010. Target loop shape: t1=arg0*0x178 (sll/subu chain), t2=D_800DA26A+0x64 hoisted, dst row v0=(i*8+i)*2, src row a3=i*0x10+arg0*0xE0+D_8021F270, inner j uses v0=j*2 lhu/sh, 0xFFFF sh addressed from t1+t2+i*0x12+0x10 after the inner loop. My C does not reproduce the hoisting of t1+t2 into one register or the inner-loop index form. Next idea: write the inner loop with a single u16* row pointer advanced by 1 per iteration, and compute the 0xFFFF address as dst+0x10 from the same row pointer.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794731497.5960052,
-  "score_before": 1055,
-  "score_after": 1055
- },
- {
   "function": "func_8002C508",
   "text": "Best saved 2125 (71.6%), not a match. Remaining diff is structural: the target hoists loop-invariant values before the loop (float 0x3D430C24 for 0.047619f, 0.5f, constants 5 and 0x40, magic 0x81020409 for /127) and computes &D_8021F029 once into a register (lui+addiu, then lbu 0(reg)); the candidate rebuilds these inside the loop. Tried: local `u8 *pf = &D_8021F029;` in the vol expression -> 2220 (worse, reverted). Tried signedness family: making s16 v u16 -> 2325 (worse). Next idea if revisited: write the loop so the vol constant and the address are used in more than one place before the loop, or split the vol computation into a helper-free local. Callers unknown; no boundary issue seen.",
   "by": "claude-haiku-5-5-22",
@@ -23744,14 +23712,6 @@
   "score_after": 4050
  },
  {
-  "function": "func_80211F14",
-  "text": "Saved best 1055 remains. This session's clean rewrites scored 3635-3795: (a) nested loops with dst/src row pointers and 0xFFFF tail store; (b) t1=arg0*0x178 hoisted, base = D+0x64+t1, off = i*0x12 per row. Target specifics: outer i in $a2 from 0 (move $a2,$zero first), t1 = arg0*0x178 kept in a register, 18*i computed as ((i<<3)+i)<<1, dst = t2+t1+18i (addu $v1,$t1,$t2 then addu with the 18i term), src = D_8021F270+0xE0*arg0+16*i, inner halfword copy loop j=0..7 with a signed counter (slti), tail sh 0xFFFF at dst+0x10. The compiler instead hoists the D_8021F270 base and reorders the 18i computation, giving 34-36 insns vs target 45. Untried: writing the outer loop with a2 explicitly as the index and the dst addend as u32 arithmetic (t1 + t2 + 18i) before the store.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794747873.9842198,
-  "score_before": 1055,
-  "score_after": 1055
- },
- {
   "function": "func_80032108",
   "text": "Best 135 (98.0%, 69 insns both sides), saved-best source = first candidate (a=arg0, b=arg1, ints per brief). Remaining diff is register allocation and prologue order only: target saves s0 (arg0) first at 0x28, then s1, then s5=arg2 at 0x3c; mine saves s5 first. Loop head in target: lw s4,8(a); lhu s3,0x1a(a); lw s2,0xc(a). Tried: reordering loop loads (140), swapping s2/s4 names/types (140) \u2014 both worse or equal. Not tried: moving arg2 into a local before the a/b setup, or making the early `arg2==0` branch use a/b declared after the loop-state locals.",
   "by": "claude-haiku-5-5-20",
@@ -23808,36 +23768,12 @@
   "score_after": 0
  },
  {
-  "function": "func_80211F14",
-  "text": "Not matched; saved best 1055 is still better than all my tries (best of mine: 3795). Logic verified: arg0*0x178 (t1) hoisted; outer i=0..13 with dst row = D_800DA26A+0x64+t1+18*i (u16 array), src row = D_8021F270+arg0*0xE0+16*i; inner j=0..7 dst[j]=src[j]; then D_800DA26A+0x74+t1+18*i set to 0xFFFF. Target keeps the inner index in a1 and reset in the loop-back delay slot (bnel). Remaining diffs: the target computes dst/src row offsets in the loop and uses lui/addiu of D_800DA26A+0x64 into t2 outside the loop; my versions recompute and use a3/t0 for src differently. Untried: separate hoisted row bases with a single index variable, and a helper that emits the 0xFFFF store via the same dst pointer.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794756832.091601,
-  "score_before": 1055,
-  "score_after": 1055
- },
- {
   "function": "func_801FA3B4",
   "text": "Extensive bounded diagnostics exhausted structural hypotheses (over 40 O1 compiler trials plus 18 O2 compiles); retaining best verified O2 score1236 revision7727b422e0e80fef50bd. Corrected second degenerate condition: proceed with ratio only if arg0==arg2. Shared half label inside first equality branch plus common denominator/divide tail fixes target control flow. Best O1 diagnostic e20cc9424d39cd239cc6 score90: exact operations/order/branches, only18 register mismatches. Source available in that trial; dy1/2 locals, arg3 first numerator, arg5 second numerator, denominator local. Target wants arg3 in f2, arg5 f4, arg6/dy1 f6, arg7/dy2 f8. Trial puts arg3 f8,arg6 f0,arg7/dy2 f2. Reusing dy args, separate reciprocal locals, numerator locals, shared-result epilogue, register qualifiers, integer argument reuse for denominator, reordered explicit scalar staging, and -g did not solve. Further local families unavailable. Need allocation/pseudo lifetime insight at O1 rather than more O2 permutations; effective O2 likely wrong as with nearby exact normalize_angle_degrees and func_801E2D18.",
   "by": "codex-gpt-6.1-sol-medium-4",
   "created_at": 1794757126.8232121,
   "score_before": 1380,
   "score_after": 1236
- },
- {
-  "function": "func_80211F14",
-  "text": "SOLVED with gcc-2.7.2-kmc -O1 (byte-exact via try_compiler; suggestion filed). Exact C is revision 9825177d02639173754a (scores 2690 under project -O2 only due to compiler: -O2 strength-reduces loops). Structs: Row{u16 v[8]; u16 end;} (0x12), Ent{pad[0x64]; Row rows[14]; pad[0x18]} (0x178) for D_800DA26A; D_8021F270 is u16[][14][8]. Dst needs off=i*sizeof(Row); r=D[arg0].rows; ((Row*)(off+(u32)r))->v[j] inside inner loop for operand order. Apply KMC -O1 profile.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794757458.267139,
-  "score_before": 1055,
-  "score_after": 1055
- },
- {
-  "function": "func_80211F14",
-  "text": "Exact O1 source/profile bundle suggested and reverified; current source 1b280453404f761f5909, O2 score870. Outer backward goto avoids loop hoisting seen with structured do; retain distinct base, p=arg0*224+(u32)g and src=row*16+(u32)p; dst=row*18+(off+(u32)base). Terminal store global offset +(row*18+off). Auto compiler changes off; pending application.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794757948.135523,
-  "score_before": 1055,
-  "score_after": 870
  },
  {
   "function": "func_801FA3B4",
@@ -23862,14 +23798,6 @@
   "created_at": 1794758373.5597582,
   "score_before": 16970,
   "score_after": 16013
- },
- {
-  "function": "func_80211F14",
-  "text": "Cannot match under -O2 (target has no loop-invariant hoisting / strength reduction = -O1). MATCHES byte-for-byte at -O1 via try_compiler with: typedef struct { u8 pad[0x64]; u16 grid[14][9]; u8 pad2[0x178-0x64-252]; } S; extern S D_800DA26A[]; extern u16 D_8021F270[][14][8]; for(row<14){for(col<8) D_800DA26A[arg0].grid[row][col]=D_8021F270[arg0][row][col]; D_800DA26A[arg0].grid[row][8]=0xFFFF;}. suggest() filed; apply -O1 profile.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794758487.8682828,
-  "score_before": 870,
-  "score_after": 870
  },
  {
   "function": "func_801493F0",
@@ -23902,14 +23830,6 @@
   "created_at": 1794759047.9636722,
   "score_before": 75,
   "score_after": 75
- },
- {
-  "function": "func_80211F14",
-  "text": "Reverified original do-loop C byte-exact with -O1 via try_compiler and submitted exact source/profile via suggest. Current O2 candidate improved 870->480 by explicit inner goto, but counter a1/a2 swapped and load order differs. Declaration reversal/staged destination unchanged. O1 explicit goto scores70; original do loop exact0. Pending profile application, do not spend more O2 tuning.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794759058.132364,
-  "score_before": 870,
-  "score_after": 480
  },
  {
   "function": "func_80204760",
@@ -26310,5 +26230,125 @@
   "created_at": 1794759845.0591319,
   "score_before": 900,
   "score_after": 900
+ },
+ {
+  "function": "func_80211F14",
+  "text": "Target is a nested copy loop: t1 = arg0*0x178 (computed as ((3a0<<4)-a0)<<3), dst = &D_800DA26A+0x64 + t1 + 18*i, src = &D_8021F270 + 0xE0*arg0 + 16*i; inner loop j=0..7 copies one halfword dst[2j]=src[2j]; then halfword at dst+0x10 (&D+0x74 + t1 + 18*i) = 0xFFFF. Outer i=0..13. Target keeps the 0x12*i + t1 term in a register for the store and hoists the bases; my variants compile to 34-36 insns (target 45) and differ in register/order (outer counter in t0/a2, recomputed lui/addiu for bases). Best this session: 3890 (offset form, off=i*0x12+t1, soff=i*0x10+arg0*0xE0, accessing D_800DA26A+0x64+off+2j and D+0x74+off). Saved historical best 1055 (different, older source, not reproduced here). Untried: pointer-increment form for dst/src per outer iteration, and loop with j as a1 counted from 0 with a do-while over 8.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794707028.6637099,
+  "score_before": 1055,
+  "score_after": 1055
+ },
+ {
+  "function": "func_80211F14",
+  "text": "Not matched. Saved best 1055 (historical). Verified structure from target: t1 = arg0*0x178 (sll/add/sll/sub/sll chain) and t2 = &D_800DA26A+0x64 are hoisted out of the outer loop. Outer loop j=a2 (0..13), inner loop i=a1 (0..7) copies one u16 per step: dst = t2 + t1 + j*18 + i*2 (j*18 = (j*8+j)*2), src = D_8021F270 + arg0*0xE0 + j*16 + i*2 (a3 hoisted per row). After the inner loop it stores 0xFFFF at dst + 16 (that is D+0x74). Best C attempts scored 2585 (inline index math) and 3505 (byte-pointer row with explicit i<16 loop); the compiler keeps re-deriving the bases instead of hoisting t1/t2. Untried: write t1 and t2 as u8* locals before the j loop, compute the row base as `u8 *row = t2 + t1 + j*0x12` with the u16 stores through a row pointer and `row[8]`-style indexing.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794721201.3244019,
+  "score_before": 1055,
+  "score_after": 1055
+ },
+ {
+  "function": "func_80211F14",
+  "text": "Best rechecked 2490 (inherited 1055 is from older inputs/header). Target: j=0; t1 = arg0*0x178 (sll1, addu, sll4, subu, sll3); t2 = &D_800DA26A+0x64; loop head .L80211F38: a1=0; v0=j*8+... -> t0 = D_800DA26A+0x64+arg0*0x178+j*0x12; a3 = D_8021F270 + arg0*0xE0 + j*16; inner recomputes v0=i*2 (sll 1, also in the bnez delay slot), addu v1,v0,t0 / addu v0,v0,a3 / lhu / sh / addiu a1 / slti 8 / bnez; then sentinel: v0=(j*9)*2 + t1, ori 0xFFFF, lui/addu %hi/%lo(D_800DA26A+0x74), sh; addiu a2,1; slti 0xE; bnel with `move a1,zero` in the delay slot. Key remaining gap: gcc strength-reduces the inner copy to pointer increments (addiu +2) instead of the target's recomputed i*2, and hoists the &D_800DA26A+0x64 lui/addiu to the top of the function instead of after t1. Verified: -fno-strength-reduce gives 915 on the same C (best known) and -O1 gives 865, both non-matching and both diagnostic only; the project profile is -O2, so a flags change would need a suggest(). Volatile destination (vu16) improved 2585 -> 2490 but did not remove the strength reduction. Also tried: u16* row locals (4110), byte base + j*0x12 + i*2 (3355), do-while loops (4110), inline (i<<1) (2585), volatile source (2585), local k=i*2 (2585). Remaining idea: with -fno-strength-reduce the only diffs are register allocation plus one extra addu pair (t1+t2 folded) \u2014 try the inline form combined with vu16 destination under that flag, or suggest() the flag for this address range.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794731022.264524,
+  "score_before": 1055,
+  "score_after": 1055
+ },
+ {
+  "function": "func_80211F14",
+  "text": "Not matched. Saved best remains 1055 (historical repair draft). Clean rewrites all scored worse: per-row src/dst pointers 3355; base=arg0*0x178 with inline index 3570; 0xFFFF store hoisted before inner loop 4010. Target loop shape: t1=arg0*0x178 (sll/subu chain), t2=D_800DA26A+0x64 hoisted, dst row v0=(i*8+i)*2, src row a3=i*0x10+arg0*0xE0+D_8021F270, inner j uses v0=j*2 lhu/sh, 0xFFFF sh addressed from t1+t2+i*0x12+0x10 after the inner loop. My C does not reproduce the hoisting of t1+t2 into one register or the inner-loop index form. Next idea: write the inner loop with a single u16* row pointer advanced by 1 per iteration, and compute the 0xFFFF address as dst+0x10 from the same row pointer.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794731497.5960052,
+  "score_before": 1055,
+  "score_after": 1055
+ },
+ {
+  "function": "func_80211F14",
+  "text": "Saved best 1055 remains. This session's clean rewrites scored 3635-3795: (a) nested loops with dst/src row pointers and 0xFFFF tail store; (b) t1=arg0*0x178 hoisted, base = D+0x64+t1, off = i*0x12 per row. Target specifics: outer i in $a2 from 0 (move $a2,$zero first), t1 = arg0*0x178 kept in a register, 18*i computed as ((i<<3)+i)<<1, dst = t2+t1+18i (addu $v1,$t1,$t2 then addu with the 18i term), src = D_8021F270+0xE0*arg0+16*i, inner halfword copy loop j=0..7 with a signed counter (slti), tail sh 0xFFFF at dst+0x10. The compiler instead hoists the D_8021F270 base and reorders the 18i computation, giving 34-36 insns vs target 45. Untried: writing the outer loop with a2 explicitly as the index and the dst addend as u32 arithmetic (t1 + t2 + 18i) before the store.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794747873.9842198,
+  "score_before": 1055,
+  "score_after": 1055
+ },
+ {
+  "function": "func_80211F14",
+  "text": "Not matched; saved best 1055 is still better than all my tries (best of mine: 3795). Logic verified: arg0*0x178 (t1) hoisted; outer i=0..13 with dst row = D_800DA26A+0x64+t1+18*i (u16 array), src row = D_8021F270+arg0*0xE0+16*i; inner j=0..7 dst[j]=src[j]; then D_800DA26A+0x74+t1+18*i set to 0xFFFF. Target keeps the inner index in a1 and reset in the loop-back delay slot (bnel). Remaining diffs: the target computes dst/src row offsets in the loop and uses lui/addiu of D_800DA26A+0x64 into t2 outside the loop; my versions recompute and use a3/t0 for src differently. Untried: separate hoisted row bases with a single index variable, and a helper that emits the 0xFFFF store via the same dst pointer.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794756832.091601,
+  "score_before": 1055,
+  "score_after": 1055
+ },
+ {
+  "function": "func_80211F14",
+  "text": "SOLVED with gcc-2.7.2-kmc -O1 (byte-exact via try_compiler; suggestion filed). Exact C is revision 9825177d02639173754a (scores 2690 under project -O2 only due to compiler: -O2 strength-reduces loops). Structs: Row{u16 v[8]; u16 end;} (0x12), Ent{pad[0x64]; Row rows[14]; pad[0x18]} (0x178) for D_800DA26A; D_8021F270 is u16[][14][8]. Dst needs off=i*sizeof(Row); r=D[arg0].rows; ((Row*)(off+(u32)r))->v[j] inside inner loop for operand order. Apply KMC -O1 profile.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794757458.267139,
+  "score_before": 1055,
+  "score_after": 1055
+ },
+ {
+  "function": "func_80211F14",
+  "text": "Exact O1 source/profile bundle suggested and reverified; current source 1b280453404f761f5909, O2 score870. Outer backward goto avoids loop hoisting seen with structured do; retain distinct base, p=arg0*224+(u32)g and src=row*16+(u32)p; dst=row*18+(off+(u32)base). Terminal store global offset +(row*18+off). Auto compiler changes off; pending application.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794757948.135523,
+  "score_before": 1055,
+  "score_after": 870
+ },
+ {
+  "function": "func_80211F14",
+  "text": "Cannot match under -O2 (target has no loop-invariant hoisting / strength reduction = -O1). MATCHES byte-for-byte at -O1 via try_compiler with: typedef struct { u8 pad[0x64]; u16 grid[14][9]; u8 pad2[0x178-0x64-252]; } S; extern S D_800DA26A[]; extern u16 D_8021F270[][14][8]; for(row<14){for(col<8) D_800DA26A[arg0].grid[row][col]=D_8021F270[arg0][row][col]; D_800DA26A[arg0].grid[row][8]=0xFFFF;}. suggest() filed; apply -O1 profile.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794758487.8682828,
+  "score_before": 870,
+  "score_after": 870
+ },
+ {
+  "function": "func_80211F14",
+  "text": "Reverified original do-loop C byte-exact with -O1 via try_compiler and submitted exact source/profile via suggest. Current O2 candidate improved 870->480 by explicit inner goto, but counter a1/a2 swapped and load order differs. Declaration reversal/staged destination unchanged. O1 explicit goto scores70; original do loop exact0. Pending profile application, do not spend more O2 tuning.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794759058.132364,
+  "score_before": 870,
+  "score_after": 480
+ },
+ {
+  "function": "func_80211F14",
+  "text": "Matches at KMC -O1 (the struct-grid C in the earlier notes). At -O2 the best is 480: the target has no loop-invariant hoisting. Waiting on the -O1 profile.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794759613.960862,
+  "score_before": 480,
+  "score_after": 480
+ },
+ {
+  "function": "func_80211F14",
+  "text": "Fresh baseline480 verified. Six remaining local repair families: structured inner backedge870, structured outer3445, address temp/constant local/byte signedness/operand order unchanged480. Historical O1 exact source/profile suggestion remains authoritative next step; no new profile proof needed. Current O2 unresolved counters a1/a2 swap and load scheduling; keep eeb8206dd9f44d35dc8a.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794760165.041773,
+  "score_before": 480,
+  "score_after": 480
+ },
+ {
+  "function": "func_80211F14",
+  "text": "MATCHES at -O1: struct (size 0x178) with u16 grid[14][9] at 0x64 on D_800DA26A[]; for i<14 { for j<8 grid[i][j] = D_8021F270[arg0][i][j]; grid[i][8] = 0xFFFF; }. Function-only -O1 suggestion filed.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794760844.085352,
+  "score_before": 480,
+  "score_after": 480
+ },
+ {
+  "function": "func_80211F14",
+  "text": "Exact score0 verified via search_flags for clean GridEnt{pad[0x64];u16 grid[14][9];tail[0x18]} C, revision d079c82c3752ac26211a, -O1. Submitted checked function-only bundle. Cannot improve exact result: O2 uses strength reduction absent in target. Pending profile application; best O2 480 retained independently.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794761170.1455219,
+  "score_before": 480,
+  "score_after": 480
+ },
+ {
+  "function": "func_80211F14",
+  "text": "Not retried: exact -O1 source already filed (see notes). Waiting for user to apply -O1 profile for unit code_8020E650.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794761830.313815,
+  "score_before": 480,
+  "score_after": 480
  }
 ]
