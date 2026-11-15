@@ -5848,14 +5848,6 @@
   "score_after": 80
  },
  {
-  "function": "func_80149FA8",
-  "text": "Saved best 70 (revision 353e643b) is the nested loop: `for i<0xE { src = *(u16**)((u8*)&D_802030CC + i*4); dst = (u16*)((u8*)&D_800DA26A + 0x64 + arg0*0x178 + i*0x12); for j<9 dst[j]=src[j]; }`. In this session the same text scored 2575 (not reproduced). Target shape: the table base D_802030CC (lui t2) is hoisted out of the outer loop; dst base = arg0*0x178 + &D_800DA26A+0x64 is in t0+t1, computed once; the inner loop uses lhu/sh with a0*2 offset. Variants that hoisted base or used `u16 *D_802030CC[]` scored 2575-2675, worse. Next: check the saved-best header/compiler conditions before further tuning; the loop counter must be the outer register a1 and the j loop a0.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794706483.840864,
-  "score_before": 70,
-  "score_after": 70
- },
- {
   "function": "__vsVol",
   "text": "Best 540 (80.7%): u8 *a0/*a1 views; t = a0[0x36]*a0[0x33]; t *= a0[0x30]; t >>= 6; u = ((u8*)*(void**)(a0+0x20))[0xD] * *(s16*)(a1+0x32); p = *(u8**)(a1+0x60) + (a0[0x31]<<4); u *= p[9]; v = t * (u>>14); return (v*2)>>16. Target does the whole t chain (mult, mflo, lbu 0x30, mult, sra 6) before any load from 0x20; my version loads 0x20 earlier (1040 when the u-part went first). Also the target's first lbu uses $v0 for 0x36 and $v1 for 0x33; mine swaps them. Untried: a single-expression t with the u-part kept after the sra, and an explicit (s16) cast on the 0x32 read.",
   "by": "claude-haiku-5-5-20",
@@ -9856,14 +9848,6 @@
   "score_after": 1195
  },
  {
-  "function": "func_80149FA8",
-  "text": "Not matched. Saved best 70 (source identical to revision 353e643baf1ad3527fdd) does not reproduce; today's best is 2575 (revision 98faecc81641bb4593b5, pointer-increment inner loop). Count-down inner loop (revision 10370d28395aa2646220) scores 2670, worse. Loop roles in the target, which the C has wrong: outer counter is a1 (move $a1,$zero at entry; `sll $v0,$a1,2; addu $v0,$v0,$t2; lw $a3,($v0)` loads src = D_802030CC[i]; end test `slti $v0,$a1,0xe; bnez`), inner counter is a0 (`move $a0,$zero`; body lhu/sh; `addiu $a0,$a0,1; slti $v0,$a0,9; bnez`). The dst base D_800DA26A+0x64 is built with lui/addiu into t1 and the i*0x12 offset in t0. Next: declare outer i and inner j so i lands in a1 and j in a0 (e.g. j declared before i, loop i over the outer), keep src/dst computed per outer iteration, and check the 0x12 stride is i*18 via sll 3 + sll 1 + addu. Do not reuse count-down or pointer-increment forms: both differ from the target's a0 counter.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794720556.5869079,
-  "score_before": 70,
-  "score_after": 70
- },
- {
   "function": "func_801485C8",
   "text": "Claimed in a batch and released before any work; not attempted. Next agent should start from get_candidate.",
   "by": "claude-haiku-5-5-22",
@@ -9974,14 +9958,6 @@
   "created_at": 1794720798.934798,
   "score_before": 915,
   "score_after": 915
- },
- {
-  "function": "func_80149FA8",
-  "text": "Unresolved: the saved best (historical 70, revision 353e643b) rechecks at 2575 now, so the 70 does not reproduce here. Target is a nested copy: outer i<0xE loads a pointer from the table D_802030CC (lui/addiu t2, sll i*4, addu, lw), dst = D_800DA26A+0x64+arg0*0x178+i*0x12 (arg0*0x178 = (arg0*3<<4 -arg0)<<3 style sll/addu/subu), inner j<9 copies halfwords. Both array (u32 D_802030CC[]) and pointer-to-pointer forms give 2575: the mismatch is the loop shape (target has 5 addu v0,v0,t2 and sll-by-1 scaling, so the table index is scaled differently). Untried: write the arg0 product as (arg0*0x178) via ((arg0*3)<<4 - arg0)<<3 and the inner loop as an unrolled 9-copy, or compile_family signedness.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794720798.967156,
-  "score_before": 70,
-  "score_after": 70
  },
  {
   "function": "func_8014A9F4",
@@ -12840,14 +12816,6 @@
   "score_after": 360
  },
  {
-  "function": "func_80149FA8",
-  "text": "Best is 70 (97.9%) only under -G0 -mips3 -mgp32 -mfp32 -O1 (project -O2 gives 2575). Source: the saved_best source (extern u8 D_800DA26A; extern u32 D_802030CC; loop i<0xE, src = *(u16**)((u8*)&D_802030CC + i*4); dst = (u16*)((u8*)&D_800DA26A + 0x64 + arg0*0x178 + i*0x12); inner j<9 copy). Remaining at -O1: target computes t0=arg0*0x178 and t1=&D+0x64, sums them into v1 (addu v1,t0,t1) then adds i*0x12 (addu a2,v0,v1); ours adds i*0x12 first. Target also places `move $a0,$zero` (j=0) after the address sums, ours before. Tried: base-first variant at -O1 (305, worse), pointer-array decl for D_802030CC at -O2 (2575). Next: reorder the dst sum so the arg0 term joins &D first, at -O1 only.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794730022.877954,
-  "score_before": 70,
-  "score_after": 70
- },
- {
   "function": "func_800338B0",
   "text": "Not C: the target is hand-written assembly. It contains MIPS `cache` instructions (cache 0x15 / 0x11 / 0x01 on $t0/$t1 with 0x10 strides), which the assembly listing itself annotates as \"handwritten instruction\". gcc-2.7.2 cannot emit cache ops from C, and the m2c draft only has M2C_ERROR placeholders for them. Outer control flow (size checks, 16-byte line alignment) could be written in C but would not reproduce the cache opcodes, so no byte-exact match is possible without inline asm.",
   "by": "claude-haiku-5-5-23",
@@ -13550,14 +13518,6 @@
   "created_at": 1794732454.110377,
   "score_before": 590,
   "score_after": 590
- },
- {
-  "function": "func_80149FA8",
-  "text": "Best under project flags: 70 (saved baseline). Best overall: score 10 (99.7%, 34/34 instructions identical, only 2 register rows) with flags -G0 -mips3 -mgp32 -mfp32 -O1 on this C:\n\n  extern u8 D_800DA26A; extern u32 D_802030CC;\n  void func_80149FA8(s32 arg0) {\n      s32 i, j; u16 *dst, *src;\n      for (i = 0; i < 0xE; i++) {\n          src = *(u16 **)((u8 *)&D_802030CC + i * 4);\n          j = 0;\n          dst = (u16 *)((u8 *)&D_800DA26A + (0x64 + arg0 * 0x178) + i * 0x12);\n          while (j < 9) { dst[j] = src[j]; j++; }\n      }\n  }\n(trial 2ed4a12e2e82b3d148f7 / e1db620e9c350a4339b8, score 70 under -O1; the same source at -O2 is 2575.)\n\nKey facts: the inner loop must be `j = 0; while (j < 9)` (a for-loop gives bnel/extra moves), the table read stays `*(u16 **)((u8 *)&D_802030CC + i * 4)` with a scalar u32 extern, and the destination keeps the i*0x12 byte term (i*9 on a u16* or a hoisted row base regresses).\nRemaining 2 register rows under -O1: target `addu $v1,$t0,$t1` + `addu $a2,$v0,$v1`, mine `addu $v0,$v0,$t1` + `addu $a2,$t0,$v0` (dst-row base and i*0x12 summed in the other order). Try swapping the operand order of the two adds, e.g. dst = (u16 *)(i * 0x12 + (arg0 * 0x178 + (u32)((u8 *)&D_800DA26A + 0x64))) combined with the while-loop form.\nAlso tried and worse: u8 *dst with *(u16*)(dst+j*2) (2575), base+offset forms (190/430/705), separate row pointer (245/270), arg0*0xBC in u16 units (280), loop_weight/for-loop variants.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794732486.580012,
-  "score_before": 70,
-  "score_after": 70
  },
  {
   "function": "func_8022F300",
@@ -17968,14 +17928,6 @@
   "score_after": 15
  },
  {
-  "function": "func_80149FA8",
-  "text": "Compiled saved candidate once: 2575 (24.2%), worse than the historical 70 (saved best). Target has a lui/addiu pair for D_802030CC feeding the pointer-table loads, and the loop is a 0xE x 9 halfword copy with dst stride 0x12 and base offset 0x64 + arg0*0x178. Ours hoists the stride differently and reloads D_800DA26A+0x64 each iteration. Not attempted further in this run (claim cap reached). Next: restore saved best 70 and try a single pointer-to-struct for dst rather than address arithmetic on u8*.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794747669.784491,
-  "score_before": 70,
-  "score_after": 70
- },
- {
   "function": "func_80211A84",
   "text": "Best saved 820 remains; this session's best 900 (obj = (u8*)D_8021EECC local, next = (target_reload - cur)/6+cur with target reloaded from D_8011F308+off, store next, in-range test, store target, &=~0x2000 on obj+0xD4, D_8011F2FD[off]=2). Remaining diff: gcc constant-folds obj+0xD4 into the global (lw/sw %lo(D_8021EFA0)) and rematerialises &D_8021EECC via lui/addiu v1/at, where the target keeps the base pointer in $a1 for all accesses. Variants adding (u8*) casts, obj=obj+0, and rewriting &= as a plain store all gave 900 (no change). Untried: forcing the base into a register via a function-scope pointer that gcc cannot fold (e.g., a parameter-passed base), or a struct-typed extern for D_8021EECC.",
   "by": "claude-haiku-5-5-22",
@@ -18014,14 +17966,6 @@
   "created_at": 1794747998.894745,
   "score_before": 160,
   "score_after": 160
- },
- {
-  "function": "func_80149FA8",
-  "text": "Not matched. Saved best (score 70, 'Wwww.saved-progress') does not reproduce: rechecked 2575. Correct shape: for i<14 { src = (u16*)D_802030CC[i] (u32 table, lw from &D_802030CC + i*4); dst = base + i*0x12 where base = (&D_800DA26A + 0x64) + arg0*0x178 (target computes t0=arg0*0x178 and t1=&D_800DA26A+0x64 in preamble, then v1=t0+t1, a2=v1+i*18); inner j<9 copy of u16 src[j] to dst[j]. Target hoists &D_802030CC into t2 and the table base; the main mismatch is address/pointer arithmetic order: mine folds (&D+0x64)+arg0*0x178 differently and recomputes D_802030CC lui/addiu inside the outer loop. Tried: base as u8* pointer (2675) and inline pointer sum (2575). Next idea: use separate s32 off = arg0*0x178 and compute dst as ((u8*)&D_800DA26A + 0x64 + off) + i*0x12 with the table pointer as a local u32 *tbl = D_802030CC captured before the loop.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794748046.792619,
-  "score_before": 70,
-  "score_after": 70
  },
  {
   "function": "func_801496B0",
@@ -26886,5 +26830,109 @@
   "created_at": 1794763013.060331,
   "score_before": 660,
   "score_after": 660
+ },
+ {
+  "function": "func_80149FA8",
+  "text": "Saved best 70 (revision 353e643b) is the nested loop: `for i<0xE { src = *(u16**)((u8*)&D_802030CC + i*4); dst = (u16*)((u8*)&D_800DA26A + 0x64 + arg0*0x178 + i*0x12); for j<9 dst[j]=src[j]; }`. In this session the same text scored 2575 (not reproduced). Target shape: the table base D_802030CC (lui t2) is hoisted out of the outer loop; dst base = arg0*0x178 + &D_800DA26A+0x64 is in t0+t1, computed once; the inner loop uses lhu/sh with a0*2 offset. Variants that hoisted base or used `u16 *D_802030CC[]` scored 2575-2675, worse. Next: check the saved-best header/compiler conditions before further tuning; the loop counter must be the outer register a1 and the j loop a0.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794706483.840864,
+  "score_before": 70,
+  "score_after": 70
+ },
+ {
+  "function": "func_80149FA8",
+  "text": "Not matched. Saved best 70 (source identical to revision 353e643baf1ad3527fdd) does not reproduce; today's best is 2575 (revision 98faecc81641bb4593b5, pointer-increment inner loop). Count-down inner loop (revision 10370d28395aa2646220) scores 2670, worse. Loop roles in the target, which the C has wrong: outer counter is a1 (move $a1,$zero at entry; `sll $v0,$a1,2; addu $v0,$v0,$t2; lw $a3,($v0)` loads src = D_802030CC[i]; end test `slti $v0,$a1,0xe; bnez`), inner counter is a0 (`move $a0,$zero`; body lhu/sh; `addiu $a0,$a0,1; slti $v0,$a0,9; bnez`). The dst base D_800DA26A+0x64 is built with lui/addiu into t1 and the i*0x12 offset in t0. Next: declare outer i and inner j so i lands in a1 and j in a0 (e.g. j declared before i, loop i over the outer), keep src/dst computed per outer iteration, and check the 0x12 stride is i*18 via sll 3 + sll 1 + addu. Do not reuse count-down or pointer-increment forms: both differ from the target's a0 counter.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794720556.5869079,
+  "score_before": 70,
+  "score_after": 70
+ },
+ {
+  "function": "func_80149FA8",
+  "text": "Unresolved: the saved best (historical 70, revision 353e643b) rechecks at 2575 now, so the 70 does not reproduce here. Target is a nested copy: outer i<0xE loads a pointer from the table D_802030CC (lui/addiu t2, sll i*4, addu, lw), dst = D_800DA26A+0x64+arg0*0x178+i*0x12 (arg0*0x178 = (arg0*3<<4 -arg0)<<3 style sll/addu/subu), inner j<9 copies halfwords. Both array (u32 D_802030CC[]) and pointer-to-pointer forms give 2575: the mismatch is the loop shape (target has 5 addu v0,v0,t2 and sll-by-1 scaling, so the table index is scaled differently). Untried: write the arg0 product as (arg0*0x178) via ((arg0*3)<<4 - arg0)<<3 and the inner loop as an unrolled 9-copy, or compile_family signedness.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794720798.967156,
+  "score_before": 70,
+  "score_after": 70
+ },
+ {
+  "function": "func_80149FA8",
+  "text": "Best is 70 (97.9%) only under -G0 -mips3 -mgp32 -mfp32 -O1 (project -O2 gives 2575). Source: the saved_best source (extern u8 D_800DA26A; extern u32 D_802030CC; loop i<0xE, src = *(u16**)((u8*)&D_802030CC + i*4); dst = (u16*)((u8*)&D_800DA26A + 0x64 + arg0*0x178 + i*0x12); inner j<9 copy). Remaining at -O1: target computes t0=arg0*0x178 and t1=&D+0x64, sums them into v1 (addu v1,t0,t1) then adds i*0x12 (addu a2,v0,v1); ours adds i*0x12 first. Target also places `move $a0,$zero` (j=0) after the address sums, ours before. Tried: base-first variant at -O1 (305, worse), pointer-array decl for D_802030CC at -O2 (2575). Next: reorder the dst sum so the arg0 term joins &D first, at -O1 only.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794730022.877954,
+  "score_before": 70,
+  "score_after": 70
+ },
+ {
+  "function": "func_80149FA8",
+  "text": "Best under project flags: 70 (saved baseline). Best overall: score 10 (99.7%, 34/34 instructions identical, only 2 register rows) with flags -G0 -mips3 -mgp32 -mfp32 -O1 on this C:\n\n  extern u8 D_800DA26A; extern u32 D_802030CC;\n  void func_80149FA8(s32 arg0) {\n      s32 i, j; u16 *dst, *src;\n      for (i = 0; i < 0xE; i++) {\n          src = *(u16 **)((u8 *)&D_802030CC + i * 4);\n          j = 0;\n          dst = (u16 *)((u8 *)&D_800DA26A + (0x64 + arg0 * 0x178) + i * 0x12);\n          while (j < 9) { dst[j] = src[j]; j++; }\n      }\n  }\n(trial 2ed4a12e2e82b3d148f7 / e1db620e9c350a4339b8, score 70 under -O1; the same source at -O2 is 2575.)\n\nKey facts: the inner loop must be `j = 0; while (j < 9)` (a for-loop gives bnel/extra moves), the table read stays `*(u16 **)((u8 *)&D_802030CC + i * 4)` with a scalar u32 extern, and the destination keeps the i*0x12 byte term (i*9 on a u16* or a hoisted row base regresses).\nRemaining 2 register rows under -O1: target `addu $v1,$t0,$t1` + `addu $a2,$v0,$v1`, mine `addu $v0,$v0,$t1` + `addu $a2,$t0,$v0` (dst-row base and i*0x12 summed in the other order). Try swapping the operand order of the two adds, e.g. dst = (u16 *)(i * 0x12 + (arg0 * 0x178 + (u32)((u8 *)&D_800DA26A + 0x64))) combined with the while-loop form.\nAlso tried and worse: u8 *dst with *(u16*)(dst+j*2) (2575), base+offset forms (190/430/705), separate row pointer (245/270), arg0*0xBC in u16 units (280), loop_weight/for-loop variants.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794732486.580012,
+  "score_before": 70,
+  "score_after": 70
+ },
+ {
+  "function": "func_80149FA8",
+  "text": "Compiled saved candidate once: 2575 (24.2%), worse than the historical 70 (saved best). Target has a lui/addiu pair for D_802030CC feeding the pointer-table loads, and the loop is a 0xE x 9 halfword copy with dst stride 0x12 and base offset 0x64 + arg0*0x178. Ours hoists the stride differently and reloads D_800DA26A+0x64 each iteration. Not attempted further in this run (claim cap reached). Next: restore saved best 70 and try a single pointer-to-struct for dst rather than address arithmetic on u8*.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794747669.784491,
+  "score_before": 70,
+  "score_after": 70
+ },
+ {
+  "function": "func_80149FA8",
+  "text": "Not matched. Saved best (score 70, 'Wwww.saved-progress') does not reproduce: rechecked 2575. Correct shape: for i<14 { src = (u16*)D_802030CC[i] (u32 table, lw from &D_802030CC + i*4); dst = base + i*0x12 where base = (&D_800DA26A + 0x64) + arg0*0x178 (target computes t0=arg0*0x178 and t1=&D_800DA26A+0x64 in preamble, then v1=t0+t1, a2=v1+i*18); inner j<9 copy of u16 src[j] to dst[j]. Target hoists &D_802030CC into t2 and the table base; the main mismatch is address/pointer arithmetic order: mine folds (&D+0x64)+arg0*0x178 differently and recomputes D_802030CC lui/addiu inside the outer loop. Tried: base as u8* pointer (2675) and inline pointer sum (2575). Next idea: use separate s32 off = arg0*0x178 and compute dst as ((u8*)&D_800DA26A + 0x64 + off) + i*0x12 with the table pointer as a local u32 *tbl = D_802030CC captured before the loop.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794748046.792619,
+  "score_before": 70,
+  "score_after": 70
+ },
+ {
+  "function": "func_80149FA8",
+  "text": "MATCHES at KMC GCC -O1 (suggestion filed): struct array D_800DA26A[] of size 0x178 with u16 a[14][9] at +0x64; for i<14 { src = D_802030CC[i]; j = 0; do { D_800DA26A[arg0].a[i][j] = src[j]; } while (++j < 9) }. Needs user to apply -O1 bundle.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794760498.0962691,
+  "score_before": 70,
+  "score_after": 70
+ },
+ {
+  "function": "func_80149FA8",
+  "text": "O1 gets within score10 using saved candidate modified j=0 before dst computation; do {dst[j]=src[j];j++;}while(j<9). Remaining target addu v1,t0,t1; addu a2,v0,v1 versus candidate addu v0,v0,t1;addu a2,t0,v0. i*18 and arg0*376 address association issue. Pointer parentheses, integer casts, 2D array at exact800DA2CE, struct row[14][9] with124tail bytes all same10. Separate base local or split dst+=i*9 hoists base addition outside loop and worsens245. O2 no-strength-reduce350, default O22575. Search flags no exact. Best O1 source in current candidate (j=0 before destination, do loop); requires address grouping/lifetime repair then O1 function-only suggestion.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794760987.60411,
+  "score_before": 70,
+  "score_after": 70
+ },
+ {
+  "function": "func_80149FA8",
+  "text": "Not retried: known to match at KMC GCC -O1 (see prior notes); unit code_8014674C still compiled at -O2. Awaiting user applying -O1 suggestion.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794761616.7938728,
+  "score_before": 70,
+  "score_after": 70
+ },
+ {
+  "function": "func_80149FA8",
+  "text": "Rechecked do/while with j=0 before dst: O2 2575; O1 score10 remaining two address association registers (target t0+t1 then v0+v1; candidate v0+t1 then t0+v0). New trials: folded halfword offset (arg*188+i*9)*2 O1 score215; commuted address i*18+(arg*376+base+100) score245. O1 -g/-fno-strength-reduce/-fno-schedule-insns/-fno-schedule-insns2/-fno-gcse all10; O2 -fno-strength-reduce350. Need distinct source that prevents canonical address reassociation; avoid repeating parentheses/base-local attempts from earlier notes.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794762232.2490408,
+  "score_before": 70,
+  "score_after": 70
+ },
+ {
+  "function": "func_80149FA8",
+  "text": "Not retried: unit code_8014674C still -O2. Matches at -O1 per prior notes; blocked on user -O1 suggestion.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794762882.096603,
+  "score_before": 70,
+  "score_after": 70
+ },
+ {
+  "function": "func_80149FA8",
+  "text": "Exact136-byte O1 match trial9435739312309fe2ef6c, source81584f485b436db6982a submitted via suggest. Struct stride0x178: pad100,u16 a[14][9],tail24; index directly D_800DA26A[arg0].a[i][j] solves earlier score10 address association. O2 remains2775. Added verified layout typedef PennyHalfwordRows to context.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794763225.988557,
+  "score_before": 70,
+  "score_after": 70
  }
 ]
