@@ -29,7 +29,7 @@ void func_802114C8(s32 arg0) {
     *(u32 **)(D_800DE080 + 0x64) = temp_v1 + 2;
     temp_v1[0] = 0xED000000;
     temp_v1[1] = 0x5003C0;
-    func_801CABF4(arg0, 0x9E, 0x44, 0xE, D_802D92A0, D_80187BF0 + (D_8021E231[D_8021E15F * 0x110 + D_8021EEC0[0]] * 0x12), 0, D_802D6898, 0xE, 0x10, 0xE0, 0x60);
+    do { func_801CABF4(arg0, 0x9E, 0x44, 0xE, D_802D92A0, D_80187BF0 + (D_8021E231[D_8021E15F * 0x110 + D_8021EEC0[0]] * 0x12), 0, D_802D6898, 0xE, 0x10, 0xE0, 0x60); } while (0);
     if (!(*(u32 *)(D_8021EEC0 + 0xE0) & 0x4000)) {
         if ((*(u32 *)(D_8021EEC0 + 0xE0) >> 0xB) & 1) {
             func_8014A4C8(arg0, 0xFF, 0x21, 0xB, 0x29);

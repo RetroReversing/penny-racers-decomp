@@ -124,7 +124,8 @@ block_29:
     func_8014A4C8(arg0, 0x10E, 0x6D, 0xD, 0x14);
     temp_v1 = (0xC8 - D_801C7AB6) / 100;
     temp_s1 = ((0xC8 - D_801C7AB6) % 100) / 10;
-    temp_a0_2 = temp_v1 & 0xFF;
+    temp_s2 = temp_v1 & 0xFF;
+    temp_a0_2 = temp_s2;
     temp_v1_2 = temp_a0_2;
     temp_s2 = (0xC8 - D_801C7AB6) % 10;
     if (temp_v1_2 != 0) {

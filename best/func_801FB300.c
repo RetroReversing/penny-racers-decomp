@@ -29,7 +29,9 @@ extern s32 D_8022108C;
 extern s32 D_80221090;
 extern s32 D_80221094;
 extern u16 D_80233EC0;
-
-void func_801FB300(s32 arg0) {
-    s32 unused;
+void func_801FB300(s32 arg0)
+{
+  s32 unused;
+  volatile long long pad;
 }
+

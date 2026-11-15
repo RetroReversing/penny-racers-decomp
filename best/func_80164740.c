@@ -18,7 +18,8 @@ s32 func_8013E49C();
 s32 func_8013F1D4();
 s32 func_801D7028();
 extern char D_8011F2F0[];
-extern char D_8011F2F2[];
+typedef struct { u16 f0; u8 pad[98]; } Slot_8011F2F2;
+extern Slot_8011F2F2 D_8011F2F2[];
 extern char D_8011F2FD[];
 extern char D_8011F32E[];
 extern char D_8011F334[];
@@ -109,7 +110,7 @@ void func_80164740(s32 arg0) {
                     M2C_FIELD(temp_a0_3, s16 *, 8) = 0x40;
                     M2C_FIELD(temp_a0_3, s16 *, 6) = 0x40;
                     M2C_FIELD(temp_a0_3, s16 *, 4) = 0x40;
-                    *(D_8011F2F2 + temp_v0_3) = 0x40;
+                    D_8011F2F2[temp_v0_2 & 0xFFFF].f0 = 0x40;
                     *(D_8011F334 + temp_v0_3) = 0;
                     *(D_8011F338 + temp_v0_3) = 0;
                     *(D_8011F33C + temp_v0_3) = 0;
@@ -133,7 +134,7 @@ void func_80164740(s32 arg0) {
                     M2C_FIELD(temp_a0_6, s16 *, 8) = 0x40;
                     M2C_FIELD(temp_a0_6, s16 *, 6) = 0x40;
                     M2C_FIELD(temp_a0_6, s16 *, 4) = 0x40;
-                    *(D_8011F2F2 + temp_v0_6) = 0x40;
+                    D_8011F2F2[temp_v0_5 & 0xFFFF].f0 = 0x40;
                     *(D_8011F334 + temp_v0_6) = 0;
                     *(D_8011F338 + temp_v0_6) = 0;
                     *(D_8011F33C + temp_v0_6) = 0;

@@ -25,12 +25,12 @@ void func_80209310(s32 arg0, u16 arg1) {
     s16 a, b;
     s16 p, q;
 
-    func_80209B90(arg1);
+    do { func_80209B90(arg1); } while (0);
     if (D_8011F330[arg1].st == 0 || D_8011F330[arg1].st != 2) {
         D_8011F330[arg1].st++;
         return;
     }
-    func_801CA140(arg0);
+    do { func_801CA140(arg0); } while (0);
     func_801CA494(arg0, 0xFF, 0xFF, 0xFF, 0xFF);
     if (D_8021E1A2 != 0) {
         Tri *t = &D_8021B110[D_8011F2F0[arg1].v];
