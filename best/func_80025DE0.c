@@ -53,6 +53,8 @@ loop:
         D_8006FE58 = 0;
         D_8006F9E8 = 0x18;
         break;
+    case 0:
+        break;
     case 1:
         D_8006F9E8 = 0x12;
         break;

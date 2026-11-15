@@ -1,3 +1,5 @@
-void func_801E3AE4(s32 arg0) {
-    (void)arg0;
+void func_801E3AE4(volatile unsigned short arg0)
+{
+  (void) arg0;
 }
+

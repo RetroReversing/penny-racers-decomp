@@ -14,7 +14,6 @@ typedef s32 M2C_UNK32;
 
 s32 func_800DE41C(M2C_UNK, M2C_UNK, M2C_UNK, M2C_UNK, s32, s32, M2C_UNK *, M2C_UNK *, M2C_UNK *, f32, f32, f32, s32, M2C_UNK32, s32, f32, f32, f32); /* extern */
 s32 func_8013E364();                                /* extern */
-M2C_UNK func_8013E49C(s32);                         /* extern */
 M2C_UNK func_8013E640(s32, s32, void *, M2C_UNK, s32, f32, s32, f32, f32, f32, s32); /* extern */
 M2C_UNK func_801D7028(s32, M2C_UNK);                /* extern */
 M2C_UNK guMtxXFMF(void *, M2C_UNK, M2C_UNK, f32, f32 *, f32 *, f32 *); /* extern */
@@ -41,7 +40,6 @@ void func_80163A38(s32 arg0) {
     f32 sp50;
     s16 temp_v0_5;
     s32 temp_a0;
-    s32 temp_s0;
     s32 temp_s0_2;
     s32 temp_s1;
     s32 temp_v0;
@@ -49,6 +47,7 @@ void func_80163A38(s32 arg0) {
     s32 temp_v0_3;
     s32 temp_v0_6;
     s32 var_v0;
+    u16 temp_s0;
     u16 temp_v0_4;
     void *temp_s2;
     void *temp_s3;

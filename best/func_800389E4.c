@@ -78,7 +78,7 @@ void func_800389E4(void **arg0, void *arg1, u32 arg2) {
         var_ft0 += D_8004A928;
     }
     sp28 = (f32) (D_8004A930 / (f64) (f32) var_ft0);
-loop_8:
+do {
     var_a2 = 0;
     M2C_FIELD(arg1, u32 *, 0) = sp24;
     var_t0 = &spC8;
@@ -87,7 +87,7 @@ loop_8:
     var_a1 = &sp10;
     var_a0 = arg1;
     M2C_FIELD(arg1, u32 *, 8) = sp30;
-    do {
+    __repair_rows: {
         M2C_FIELD(var_a0, s32 *, 0xC) = (s32) M2C_FIELD(var_a1, s32 *, 0x28);
         M2C_FIELD(var_a0, s32 *, 0x4C) = (s32) M2C_FIELD(var_a1, s32 *, 0x68);
         temp_v1 = arg1 + var_a2;
@@ -100,11 +100,12 @@ loop_8:
         var_a1 += 4;
         M2C_FIELD(var_a0, s32 *, 0xAC) = temp_v0_3;
         var_a0 += 4;
-    } while (var_a2 < 0x10);
+    }
+if (var_a2 < 0x10) goto __repair_rows;
     var_s0_2 = -1U;
     var_a1_2 = 0;
     var_a0_2 = &sp20;
-    do {
+    __repair_rows_: {
         if ((sp24 >> var_a1_2) & 1) {
             if (sp34 != 0) {
                 M2C_FIELD(var_a0_2, u32 *, 0xB8) -= sp30;
@@ -117,7 +118,8 @@ loop_8:
         }
         var_a1_2 += 1;
         var_a0_2 += 4;
-    } while (var_a1_2 < 0x10U);
+    }
+if (var_a1_2 < 0x10U) goto __repair_rows_;
     func_80038650(&sp20, var_s5, &sp10, var_a3);
     M2C_FIELD(&sp10, u32 *, 4) = var_s0_2;
     sp30 = var_s0_2;
@@ -127,7 +129,5 @@ loop_8:
         M2C_FIELD(temp_a0, s32 *, 0xB8) += func_80038E1C(&sp20, var_s5);
     }
     M2C_FIELD(&sp20, s32 *, 0x14) = 1;
-    if ((sp10 != 4) && (sp2C < arg2)) {
-        goto loop_8;
-    }
+    } while ((sp10 != 4) && (sp2C < arg2));
 }

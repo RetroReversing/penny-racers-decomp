@@ -11,8 +11,8 @@ s32 alSeqSecToTicks(void *arg0, f32 arg1, unsigned char arg2)
   {
     var_ft0 += D_8004A8D0;
   }
-  temp_fv1 = ((((f64) arg1) * D_8004A8C8) * ((f64) (*((s16 *) (((char *) arg0) - -0x18))))) / var_ft0;
-  if (D_8004A8D8 > temp_fv1)
+  temp_fv1 = ((((f64) arg1) * D_8004A8C8) * ((f64) (*((s16 *) (((char *) arg0) - (-0x18)))))) / var_ft0;
+  if (D_8004A8D8 >= (temp_fv1 + 1))
   {
     var_a2 = (s32) temp_fv1;
   }

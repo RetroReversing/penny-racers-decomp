@@ -22,4 +22,6 @@ typedef int s32_bool;
 #define FALSE 0
 #define ARRAY_COUNT(arr) (s32)(sizeof(arr) / sizeof(arr[0]))
 
+s32 func_8013E49C(u16 arg0);
+s32 func_8013EDFC(s32 arg0, void *arg1);
 void func_80157E30(s32 arg0);
