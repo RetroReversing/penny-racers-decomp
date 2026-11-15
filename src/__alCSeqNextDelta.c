@@ -18,6 +18,7 @@ s32 __alCSeqNextDelta(void *arg0, u32 *arg1) {
     u32 var_t0;
     void *var_a2;
 
+    s32 previous = M2C_FIELD(arg0, s32 *, 0x10);
     var_t0 = -1U;
     if (M2C_FIELD(arg0, u32 *, 4) == 0) {
         return 0;
@@ -27,7 +28,7 @@ s32 __alCSeqNextDelta(void *arg0, u32 *arg1) {
     __repair_rows: {
         if (((u32) M2C_FIELD(arg0, u32 *, 4) >> var_a3) & 1) {
             if (M2C_FIELD(arg0, s32 *, 0x14) != 0) {
-                M2C_FIELD(var_a2, u32 *, 0xB8) = (u32) (M2C_FIELD(var_a2, u32 *, 0xB8) - M2C_FIELD(arg0, s32 *, 0x10));
+                M2C_FIELD(var_a2, u32 *, 0xB8) = (u32) (M2C_FIELD(var_a2, u32 *, 0xB8) - previous);
             }
             temp_v1 = M2C_FIELD(var_a2, u32 *, 0xB8);
             if (temp_v1 < var_t0) {
