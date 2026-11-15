@@ -6928,14 +6928,6 @@
   "score_after": 5
  },
  {
-  "function": "func_800DE2E0",
-  "text": "SOLVED, but needs a compiler-profile change that is not applied automatically. Byte-identical (score 0) with gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O1 (project default kmc -O2 gives 2860). A function-specific suggest() bundle with this exact source is queued; apply it and the function saves as matched.\n\nWinning C (note: no base pointer variable -- the header/tail stores must be written directly off the symbol with constant byte offsets so GCC CSEs the address into v0 and keeps the 0xFFFF constant in v1):\n\nextern s16 D_80126FF0;\nextern s16 D_80126FF4;\nextern u16 func_800E1850;\nextern s16 D_8011F300;\nextern s16 D_8011F302;\nextern s16 D_8011F2F1;\nextern s16 D_80126F9C;\n\nvoid func_800DE2E0(void) {\n    s32 var_a0;\n    u32 temp_v0;\n\n    D_80126FF0 = 0x140;\n    D_80126FF4 = 0;\n    func_800E1850 = 0xFFFF;\n    *(u16 *)((u8 *)&D_8011F300 + 0) = 0xFFFF;\n    *(u16 *)((u8 *)&D_8011F300 + 2) = 1;\n    *(u8 *)((u8 *)&D_8011F300 - 0xF) = 0;\n    var_a0 = 1;\n    do {\n        temp_v0 = (((var_a0 * 2 + var_a0) << 3) + var_a0) * 4;\n        *(u16 *)((u8 *)&D_8011F300 + temp_v0) = var_a0 - 1;\n        *(u16 *)((u8 *)&D_8011F302 + temp_v0) = var_a0 + 1;\n        *(u8 *)((u8 *)&D_8011F2F1 + temp_v0) = 0;\n        var_a0 = var_a0 + 1;\n    } while (var_a0 < 0x13F);\n    *(u16 *)((u8 *)&D_80126F9C + 0) = 0x13E;\n    *(u16 *)((u8 *)&D_80126F9C + 2) = 0xFFFF;\n    *(u8 *)((u8 *)&D_80126F9C - 0xF) = 0;\n}\n\nUse 0xFFFF (not -1) so both 0xFFFF stores share one `ori v1,$zero,0xffff`. The tail needs the third store (`sb $zero,-0xF($v0)` after `sh 0xFFFF,2($v0)`, i.e. `jr $ra` in the delay slot) -- omitting it is a large diff. `u32 temp_v0` and the `((x*2+x)<<3)+x)*4` index shape are required for the loop.\n\nSOLVED under a non-default compiler profile; blocked only on the user applying the queued suggestion. try_compiler confirms byte-identical (score 0) with gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O1; project default kmc -O2 gives 2860. A function-specific suggest() bundle carrying the exact matching source is already queued (automatic compiler changes are off). The exact winning C is in the note on this function.\n\nKey result for future work on this unit (0x800DE2E0..0x800E1700): it is built by gcc-2.8.1-pm-sn-as at -O1, not kmc -O2. Under that profile the remaining trick was to remove the `s16 *base` local and write the header/tail stores directly as `*(u16*)((u8*)&D_8011F300 + 0)`, `+2`, `*(u8*)((u8*)&D_8011F300 - 0xF)` so GCC CSEs the address into v0 and keeps 0xFFFF in v1 (pointer-variable version scores 75, explicit-offset version scores 0). Do not re-derive this under kmc -O2.",
-  "by": "opencode-deepseek-v4.1-flash-free-5",
-  "created_at": 1794708289.4894269,
-  "score_before": 365,
-  "score_after": 365
- },
- {
   "function": "func_801542F8",
   "text": "Best recorded: 265 (saved, historical); the same text recompiled today scores 3515 (51%), so the saved text and the current build disagree and that needs checking before trusting either. The target reads *g once at the top (lw v1,(a0)), then writes 8-byte entries from v1 with addiu v0,v1,8 / sw v0,(a0) ahead of the stores, i.e. the pointer is held in a register across the stores rather than re-read per statement. Local repair variants: moving the w1 store before w0 (score 2960, improved over 3515) is the only one that helped; the rest equal or worse. Suggest: write the 8 entries through one local pointer (p = *g; *g = p + 8 once, then p[0..]) and check the store order; the 0x7C07C and 0x0707C07C constants and the (D_8011F32E[i].v & 0xFFF) | 0xF2000000 term already match the target's immediates.",
   "by": "claude-haiku-5-5-21",
@@ -10608,14 +10600,6 @@
   "score_after": 1200
  },
  {
-  "function": "func_800DE2E0",
-  "text": "Not matched; saved best 1470 (permuter, s8 pointer-based head/tail) stands. Stride check: off = i*100 is right (target computes ((i*3)*8+i)*4). Clean rewrites scored 2255 and 3005. Target head is: D_80126FF0=0x140 (lui/sh first), D_80126FF4=0, func_800E1850=0xFFFF, then D_8011F300 pointer set once (lui+addiu into v0) and stored via sh v1,0(v0) / sh v1,2(v0) with v1=0xFFFF then 1, then sb 0 at -0xF(v0). Tail: D_80126F9C pointer (lui+addiu into v0) with sh 0x13E at 0, sh 0xFFFF at 2, sb 0 at -0xF. The compiler reorders my head stores (it hoists the 0xFFFF/1 constants above the D_80126FF0 store) and re-materialises the pointer per store. Untried: keep the D_80126FF0 store first in a separate statement before any constants, and use a single `s8 *base = D_8011F300` for all head stores (the 1470 variant), tuning only the order of the first three globals.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794721481.097467,
-  "score_before": 365,
-  "score_after": 365
- },
- {
   "function": "func_800DEFF8",
   "text": "Best 900 (76.9%): verbose form with var_a0 (u16 = func_800E1850), var_v0, var_v1 = var_v0*2, temp_v1 = (((var_v1+var_v0)*8)+var_v0)*4, if (D_8011F2F0[temp_v1] != 0xFF) D_8011F2F2(u16 at temp_v1) |= 0x10; then var_v0_2 = var_a0 & 0xFFFF, var_a0 = D_8011F300(u16 at var_v0_2*100), loop while var_v0 != 0xFFFF; initial check if var_v0 != 0xFFFF. Lean forms: 1845 (cur*100 directly, worse); re-mask only at top of body: 920; re-mask only before second index: 920. Remaining diffs: the target masks $a0 into $v1 and $v0 separately (two andi), and it loads the next index via $a0 (lhu $a0,...($a0)); gcc keeps the masked value in $v0 and reloads through $v0. Untried: keep the mask in its own u32 local set once per iteration.",
   "by": "claude-haiku-5-5-23",
@@ -10670,14 +10654,6 @@
   "created_at": 1794721729.267663,
   "score_before": 1625,
   "score_after": 1625
- },
- {
-  "function": "func_800DE2E0",
-  "text": "Not matched; best this session 2060 (saved best 1470, which uses an if/else duplicate and is wrong). Target structure is clear: prologue stores D_80126FF0=0x140, D_80126FF4=0, func_800E1850=0xFFFF, D_8011F300(+0)=0xFFFF, D_8011F300+2=1, D_8011F300[-15]=0; loop i=1..0x13E with off=i*100 (table stride 0x64, same as func_800E1510's D_8011F2F0 table): u16 (i-1) at D_8011F300+off, u16 (i+1) at D_8011F302+off, u8 0 at D_8011F2F1+off; tail D_80126F9C=0x13E, +2=0xFFFF, [-15]=0. Remaining diff: gcc hoists the 'i=1 / addiu v1,1' constant above the first 0x140 store, so the prologue order is wrong; the rest of the instructions match. Untried: signedness family via compile_family, and a version that stores the 1 constant through a separate local.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794721729.746013,
-  "score_before": 365,
-  "score_after": 365
  },
  {
   "function": "func_801B41D8",
@@ -13470,14 +13446,6 @@
   "created_at": 1794730255.429031,
   "score_before": 2220,
   "score_after": 2220
- },
- {
-  "function": "func_800DE2E0",
-  "text": "No conditional in the target. Sequence: D_80126FF0 = 0x140 (s16); D_80126FF4 = 0 (s16); func_800E1850 = 0xFFFF (u16); then p = D_8011F300 with *(u16*)(p+0)=0xFFFF, *(s16*)(p+2)=1, p[-15]=0 (sb); then loop i=1..0x13E: off=i*100; *(s16*)(D_8011F300+off)=i-1; *(s16*)(D_8011F302+off)=i+1; D_8011F2F1[off]=0; while (i < 0x13F); tail: D_80126F9C: s16 0x13E at +0, u16 0xFFFF at +2, sb 0 at -15. Problem: the target uses ONE `lui $at,%hi(D_80126FF0)` for FF0 and FF4 and stores 0x140 first; ours emits a separate lui per global and hoists the `addiu v1,zero,1` constant to the top. Scores 2060 (both the separate-global and the s16[] array declarations). Saved best 1470 is a different source. Next: put the three globals' stores in that exact order with each constant materialised just before its store, and try `D_80126FF0`/`D_80126FF4` as a single s16 array of 3 elements.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794730266.814087,
-  "score_before": 365,
-  "score_after": 365
  },
  {
   "function": "func_800DF094",
@@ -18592,14 +18560,6 @@
   "score_after": 52142
  },
  {
-  "function": "func_800DE2E0",
-  "text": "BLOCKED by missing toolchain: every compile_patch/compile_and_diff fails with \"toolchain 'gcc-2.7.2-kmc' is not installed: install it in decompdecomp, under Compilers & tools\". Not worked this session; released for pickup after the compiler is installed. No score verified.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794743877.928283,
-  "score_before": 365,
-  "score_after": 365
- },
- {
   "function": "func_801485C8",
   "text": "BLOCKED: toolchain 'gcc-2.7.2-kmc' is not installed any more (compile_patch/compile_and_diff/compile_variants all abort with \"toolchain not installed\"), so no further scoring was possible this session. Best verified state reached before the toolchain vanished: revision 7e4531f839fa0969ce2b, score 2480 (baseline 4075, rechecked saved C 3845, historical best 1825). That improvement came from declaring `extern u8 D_8018A277;` (scalar) instead of `u8 D_8018A277[]` and writing `p = D_8018A277;` (pointer from integer): the target does `lui $v1,%hi(D_8018A277); addiu $v1,$v1,%lo(D_8018A277)` then lbu/sb at 0/1/2($v1), i.e. a base address in a register, not three separate %lo(address) stores. Next untested step (saved as next_experiment) is `p = (u8 *)&D_8018A277;` which removes the pointer-from-integer warning while keeping the scalar extern. Remaining structural diffs: (a) count loop still emits `addiu $v1,$v1,1` inside the body while the target increments $a0 after the addu/sltiu/addu chain and uses `slti $v0,$a0,4`; (b) the filter loop's target form is `lui $a1,%hi(D_8018A276); addu $a1,$a1,$a0; lbu $a1,%lo(D_8018A276)($a1)` for the load but `lui $at,%hi(D_8018A276); addu $at,$at,$a0; sb %lo(D_8018A276)($at)` for the store \u2014 i.e. the store address is recomputed, matching shared knowledge #339302416422 (index through `*(&SYM + i)` with a scalar extern). Reinstall the KMC compiler, then retry the next_experiment and afterwards try the count loop as `for (i = 1; i < 4; i++) n += (*(&D_8018A276 + i) & 0x10) == 0;` with the increment moved after the accumulate (a separate post-increment variable).",
   "by": "api-route-llm-code-1",
@@ -18854,14 +18814,6 @@
   "created_at": 1794747744.3790221,
   "score_before": 1380,
   "score_after": 1380
- },
- {
-  "function": "func_800DE2E0",
-  "text": "Not started: claimed in a batch but the batch's other claim (func_800DEFF8) was dropped, so released to re-claim cleanly.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794747752.563828,
-  "score_before": 365,
-  "score_after": 365
  },
  {
   "function": "func_800DEFF8",
@@ -19304,14 +19256,6 @@
   "score_after": 350
  },
  {
-  "function": "func_800DE2E0",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794749082.761495,
-  "score_before": 365,
-  "score_after": 365
- },
- {
   "function": "func_800DEFF8",
   "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
   "by": "api-route-llm-code-1",
@@ -19350,14 +19294,6 @@
   "created_at": 1794749463.881833,
   "score_before": 350,
   "score_after": 100
- },
- {
-  "function": "func_800DE2E0",
-  "text": "Move-on budget exhausted (3/3; my best this session 2155, saved historical best 1470 unverified). Structure is certain \u2014 it is the twin of MATCHED func_800DE38C (86% similar, same shape, stride 100 instead of 0x300): copy that function's C verbatim and substitute symbols. What I confirmed:\n- Target prologue order: `addiu $v0,$zero,0x140; sh ->D_80126FF0; sh $zero ->D_80126FF4; ori $v1,$zero,0xffff; sh $v1 ->func_800E1850; lui $v0,%hi(D_8011F300); addiu $v0,$v0,%lo(D_8011F300); sh $v1,($v0); addiu $v1,$zero,1; sh $v1,2($v0); sb $zero,-0xf($v0); addiu $a0,$zero,1`.\n- So D_8011F300 must be a **scalar s16 extern** used as `*(u16 *)((u8 *)&D_8011F300 + 0)` / `+ 2` and the third store as `*(u8 *)((u8 *)&D_8011F300 - 15) = 0` (D_8011F2F1 == D_8011F300-15, D_8011F302 == +2), exactly the donor's `(u8 *)&D_800E2660 + off` idiom. Changing the extern from s8 to s16 alone did not change my diff (still `lui $at` per store), so the remaining gap is register allocation: the target keeps ONE base in $v0 and reuses it for all three stores, while gcc-2.7.2-kmc emitted `lui $at,%hi` for each store in every variant I tried (pointer local, u32 base, s16 extern, all-in-one compile_and_diff). Untested idea: in the donor the `ori 0xffff` is emitted AFTER the base addiu; my sources always put the 0xFFFF store to func_800E1850 before the base load, and the ffff value then occupies $v0, pushing the base to $at. Try sourcing the ffff value into a local that is stored to func_800E1850 last, or reorder so the base load precedes the ori.\n- Loop (matched part): `var_a0=1; do { var_v0=var_a0*2; do { temp_v0=(((var_v0+var_a0)<<3)+var_a0)<<2; } while(0); *(u16*)((u8*)&D_8011F300+temp_v0)=var_a0-1; temp_v1=var_a0+1; *(u16*)((u8*)&D_8011F302+temp_v0)=temp_v1; *(u8*)((u8*)&D_8011F2F1+temp_v0)=0; var_a0=temp_v1; } while (var_a0 < 0x13F);` \u2014 this reproduced the target's sll/addu chain exactly. The `do{...}while(0)` wrapper around temp_v0 is required (it is in the donor too).\n- Tail: same base idiom on D_80126F9C (scalar s16): `*(u16*)((u8*)&D_80126F9C+0)=0x13E; *(u16*)((u8*)&D_80126F9C+2)=0xFFFF; *(u8*)((u8*)&D_80126F9C-15)=0;`.\nBest base to resume from: get_candidate(base=\"current\") revision 0d4241c0c18de6e98c89 (2155), which already has the correct loop and the s16 scalar externs.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794749483.59608,
-  "score_before": 365,
-  "score_after": 365
  },
  {
   "function": "func_8002DA28",
@@ -21342,14 +21278,6 @@
   "created_at": 1794753831.5065222,
   "score_before": 625,
   "score_after": 625
- },
- {
-  "function": "func_800DE2E0",
-  "text": "Not matched. Target 43 insns, straight-line setup then one loop then a tail store block. Best of my attempts: eade44972354f8303225 (score 2060; saved best 1470 from an earlier attempt). Latest candidate 7d28c173792e8e22fa92 is worse (5685): a for-loop rewrite and direct D_8011F300 stores break the base-register reuse. Target specifics: li 0x140 -> sh D_80126FF0; lui D_80126FF4 + sh $zero; ori 0xFFFF -> sh func_800E1850; base pointer addiu v0,v0,%lo(D_8011F300) reused for sh 0xFFFF@0, sh 1@2, sb 0@-15; loop with off=i*100 stores sh i-1 to base+off, sh i+1 to D_8011F302+off, sb 0 to D_8011F2F1+off; tail: D_80126F9C sh 0x13E@0, sh 0xFFFF@2, sb 0@-15. Unresolved: register allocation (target keeps 0xFFFF in v1 across the setup and the 0x140 in v0) and the ordering of the first lui/sh pair. Next agent should start from eade44972354f8303225 and try holding 0xFFFF in a u16 local before the 0x140 store, not from the for-loop variant.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794753852.782906,
-  "score_before": 365,
-  "score_after": 365
  },
  {
   "function": "func_80027584",
@@ -25926,5 +25854,125 @@
   "created_at": 1794762040.815917,
   "score_before": 23982,
   "score_after": 23702
+ },
+ {
+  "function": "func_800DE2E0",
+  "text": "SOLVED, but needs a compiler-profile change that is not applied automatically. Byte-identical (score 0) with gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O1 (project default kmc -O2 gives 2860). A function-specific suggest() bundle with this exact source is queued; apply it and the function saves as matched.\n\nWinning C (note: no base pointer variable -- the header/tail stores must be written directly off the symbol with constant byte offsets so GCC CSEs the address into v0 and keeps the 0xFFFF constant in v1):\n\nextern s16 D_80126FF0;\nextern s16 D_80126FF4;\nextern u16 func_800E1850;\nextern s16 D_8011F300;\nextern s16 D_8011F302;\nextern s16 D_8011F2F1;\nextern s16 D_80126F9C;\n\nvoid func_800DE2E0(void) {\n    s32 var_a0;\n    u32 temp_v0;\n\n    D_80126FF0 = 0x140;\n    D_80126FF4 = 0;\n    func_800E1850 = 0xFFFF;\n    *(u16 *)((u8 *)&D_8011F300 + 0) = 0xFFFF;\n    *(u16 *)((u8 *)&D_8011F300 + 2) = 1;\n    *(u8 *)((u8 *)&D_8011F300 - 0xF) = 0;\n    var_a0 = 1;\n    do {\n        temp_v0 = (((var_a0 * 2 + var_a0) << 3) + var_a0) * 4;\n        *(u16 *)((u8 *)&D_8011F300 + temp_v0) = var_a0 - 1;\n        *(u16 *)((u8 *)&D_8011F302 + temp_v0) = var_a0 + 1;\n        *(u8 *)((u8 *)&D_8011F2F1 + temp_v0) = 0;\n        var_a0 = var_a0 + 1;\n    } while (var_a0 < 0x13F);\n    *(u16 *)((u8 *)&D_80126F9C + 0) = 0x13E;\n    *(u16 *)((u8 *)&D_80126F9C + 2) = 0xFFFF;\n    *(u8 *)((u8 *)&D_80126F9C - 0xF) = 0;\n}\n\nUse 0xFFFF (not -1) so both 0xFFFF stores share one `ori v1,$zero,0xffff`. The tail needs the third store (`sb $zero,-0xF($v0)` after `sh 0xFFFF,2($v0)`, i.e. `jr $ra` in the delay slot) -- omitting it is a large diff. `u32 temp_v0` and the `((x*2+x)<<3)+x)*4` index shape are required for the loop.\n\nSOLVED under a non-default compiler profile; blocked only on the user applying the queued suggestion. try_compiler confirms byte-identical (score 0) with gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O1; project default kmc -O2 gives 2860. A function-specific suggest() bundle carrying the exact matching source is already queued (automatic compiler changes are off). The exact winning C is in the note on this function.\n\nKey result for future work on this unit (0x800DE2E0..0x800E1700): it is built by gcc-2.8.1-pm-sn-as at -O1, not kmc -O2. Under that profile the remaining trick was to remove the `s16 *base` local and write the header/tail stores directly as `*(u16*)((u8*)&D_8011F300 + 0)`, `+2`, `*(u8*)((u8*)&D_8011F300 - 0xF)` so GCC CSEs the address into v0 and keeps 0xFFFF in v1 (pointer-variable version scores 75, explicit-offset version scores 0). Do not re-derive this under kmc -O2.",
+  "by": "opencode-deepseek-v4.1-flash-free-5",
+  "created_at": 1794708289.4894269,
+  "score_before": 365,
+  "score_after": 365
+ },
+ {
+  "function": "func_800DE2E0",
+  "text": "Not matched; saved best 1470 (permuter, s8 pointer-based head/tail) stands. Stride check: off = i*100 is right (target computes ((i*3)*8+i)*4). Clean rewrites scored 2255 and 3005. Target head is: D_80126FF0=0x140 (lui/sh first), D_80126FF4=0, func_800E1850=0xFFFF, then D_8011F300 pointer set once (lui+addiu into v0) and stored via sh v1,0(v0) / sh v1,2(v0) with v1=0xFFFF then 1, then sb 0 at -0xF(v0). Tail: D_80126F9C pointer (lui+addiu into v0) with sh 0x13E at 0, sh 0xFFFF at 2, sb 0 at -0xF. The compiler reorders my head stores (it hoists the 0xFFFF/1 constants above the D_80126FF0 store) and re-materialises the pointer per store. Untried: keep the D_80126FF0 store first in a separate statement before any constants, and use a single `s8 *base = D_8011F300` for all head stores (the 1470 variant), tuning only the order of the first three globals.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794721481.097467,
+  "score_before": 365,
+  "score_after": 365
+ },
+ {
+  "function": "func_800DE2E0",
+  "text": "Not matched; best this session 2060 (saved best 1470, which uses an if/else duplicate and is wrong). Target structure is clear: prologue stores D_80126FF0=0x140, D_80126FF4=0, func_800E1850=0xFFFF, D_8011F300(+0)=0xFFFF, D_8011F300+2=1, D_8011F300[-15]=0; loop i=1..0x13E with off=i*100 (table stride 0x64, same as func_800E1510's D_8011F2F0 table): u16 (i-1) at D_8011F300+off, u16 (i+1) at D_8011F302+off, u8 0 at D_8011F2F1+off; tail D_80126F9C=0x13E, +2=0xFFFF, [-15]=0. Remaining diff: gcc hoists the 'i=1 / addiu v1,1' constant above the first 0x140 store, so the prologue order is wrong; the rest of the instructions match. Untried: signedness family via compile_family, and a version that stores the 1 constant through a separate local.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794721729.746013,
+  "score_before": 365,
+  "score_after": 365
+ },
+ {
+  "function": "func_800DE2E0",
+  "text": "No conditional in the target. Sequence: D_80126FF0 = 0x140 (s16); D_80126FF4 = 0 (s16); func_800E1850 = 0xFFFF (u16); then p = D_8011F300 with *(u16*)(p+0)=0xFFFF, *(s16*)(p+2)=1, p[-15]=0 (sb); then loop i=1..0x13E: off=i*100; *(s16*)(D_8011F300+off)=i-1; *(s16*)(D_8011F302+off)=i+1; D_8011F2F1[off]=0; while (i < 0x13F); tail: D_80126F9C: s16 0x13E at +0, u16 0xFFFF at +2, sb 0 at -15. Problem: the target uses ONE `lui $at,%hi(D_80126FF0)` for FF0 and FF4 and stores 0x140 first; ours emits a separate lui per global and hoists the `addiu v1,zero,1` constant to the top. Scores 2060 (both the separate-global and the s16[] array declarations). Saved best 1470 is a different source. Next: put the three globals' stores in that exact order with each constant materialised just before its store, and try `D_80126FF0`/`D_80126FF4` as a single s16 array of 3 elements.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794730266.814087,
+  "score_before": 365,
+  "score_after": 365
+ },
+ {
+  "function": "func_800DE2E0",
+  "text": "BLOCKED by missing toolchain: every compile_patch/compile_and_diff fails with \"toolchain 'gcc-2.7.2-kmc' is not installed: install it in decompdecomp, under Compilers & tools\". Not worked this session; released for pickup after the compiler is installed. No score verified.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794743877.928283,
+  "score_before": 365,
+  "score_after": 365
+ },
+ {
+  "function": "func_800DE2E0",
+  "text": "Not started: claimed in a batch but the batch's other claim (func_800DEFF8) was dropped, so released to re-claim cleanly.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794747752.563828,
+  "score_before": 365,
+  "score_after": 365
+ },
+ {
+  "function": "func_800DE2E0",
+  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794749082.761495,
+  "score_before": 365,
+  "score_after": 365
+ },
+ {
+  "function": "func_800DE2E0",
+  "text": "Move-on budget exhausted (3/3; my best this session 2155, saved historical best 1470 unverified). Structure is certain \u2014 it is the twin of MATCHED func_800DE38C (86% similar, same shape, stride 100 instead of 0x300): copy that function's C verbatim and substitute symbols. What I confirmed:\n- Target prologue order: `addiu $v0,$zero,0x140; sh ->D_80126FF0; sh $zero ->D_80126FF4; ori $v1,$zero,0xffff; sh $v1 ->func_800E1850; lui $v0,%hi(D_8011F300); addiu $v0,$v0,%lo(D_8011F300); sh $v1,($v0); addiu $v1,$zero,1; sh $v1,2($v0); sb $zero,-0xf($v0); addiu $a0,$zero,1`.\n- So D_8011F300 must be a **scalar s16 extern** used as `*(u16 *)((u8 *)&D_8011F300 + 0)` / `+ 2` and the third store as `*(u8 *)((u8 *)&D_8011F300 - 15) = 0` (D_8011F2F1 == D_8011F300-15, D_8011F302 == +2), exactly the donor's `(u8 *)&D_800E2660 + off` idiom. Changing the extern from s8 to s16 alone did not change my diff (still `lui $at` per store), so the remaining gap is register allocation: the target keeps ONE base in $v0 and reuses it for all three stores, while gcc-2.7.2-kmc emitted `lui $at,%hi` for each store in every variant I tried (pointer local, u32 base, s16 extern, all-in-one compile_and_diff). Untested idea: in the donor the `ori 0xffff` is emitted AFTER the base addiu; my sources always put the 0xFFFF store to func_800E1850 before the base load, and the ffff value then occupies $v0, pushing the base to $at. Try sourcing the ffff value into a local that is stored to func_800E1850 last, or reorder so the base load precedes the ori.\n- Loop (matched part): `var_a0=1; do { var_v0=var_a0*2; do { temp_v0=(((var_v0+var_a0)<<3)+var_a0)<<2; } while(0); *(u16*)((u8*)&D_8011F300+temp_v0)=var_a0-1; temp_v1=var_a0+1; *(u16*)((u8*)&D_8011F302+temp_v0)=temp_v1; *(u8*)((u8*)&D_8011F2F1+temp_v0)=0; var_a0=temp_v1; } while (var_a0 < 0x13F);` \u2014 this reproduced the target's sll/addu chain exactly. The `do{...}while(0)` wrapper around temp_v0 is required (it is in the donor too).\n- Tail: same base idiom on D_80126F9C (scalar s16): `*(u16*)((u8*)&D_80126F9C+0)=0x13E; *(u16*)((u8*)&D_80126F9C+2)=0xFFFF; *(u8*)((u8*)&D_80126F9C-15)=0;`.\nBest base to resume from: get_candidate(base=\"current\") revision 0d4241c0c18de6e98c89 (2155), which already has the correct loop and the s16 scalar externs.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794749483.59608,
+  "score_before": 365,
+  "score_after": 365
+ },
+ {
+  "function": "func_800DE2E0",
+  "text": "Not matched. Target 43 insns, straight-line setup then one loop then a tail store block. Best of my attempts: eade44972354f8303225 (score 2060; saved best 1470 from an earlier attempt). Latest candidate 7d28c173792e8e22fa92 is worse (5685): a for-loop rewrite and direct D_8011F300 stores break the base-register reuse. Target specifics: li 0x140 -> sh D_80126FF0; lui D_80126FF4 + sh $zero; ori 0xFFFF -> sh func_800E1850; base pointer addiu v0,v0,%lo(D_8011F300) reused for sh 0xFFFF@0, sh 1@2, sb 0@-15; loop with off=i*100 stores sh i-1 to base+off, sh i+1 to D_8011F302+off, sb 0 to D_8011F2F1+off; tail: D_80126F9C sh 0x13E@0, sh 0xFFFF@2, sb 0@-15. Unresolved: register allocation (target keeps 0xFFFF in v1 across the setup and the 0x140 in v0) and the ordering of the first lui/sh pair. Next agent should start from eade44972354f8303225 and try holding 0xFFFF in a u16 local before the 0x140 store, not from the for-loop variant.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794753852.782906,
+  "score_before": 365,
+  "score_after": 365
+ },
+ {
+  "function": "func_800DE2E0",
+  "text": "Exact under gcc-2.7.2-kmc -O1 (try_compiler verified); suggestion submitted. Source: init linked list of 320 entities in D_8011F2F0 struct array (prev @0x10, next @0x12, unk1=0), element 0 and 0x13F special-cased. O2 gives 2060; don't tune.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794756907.24031,
+  "score_before": 365,
+  "score_after": 365
+ },
+ {
+  "function": "func_800DE2E0",
+  "text": "Independently verified natural Entity struct-array initializer byte-exact under KMC -O1; source/profile submitted via function-only suggest. Automatic compiler changes disabled, so pending user application. Entity stride 0x64: u8 id @0, active @1, u16 flags @2, prev @0x10,next @0x12. Do not tune current -O2 source.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794757278.049954,
+  "score_before": 365,
+  "score_after": 365
+ },
+ {
+  "function": "func_800DE2E0",
+  "text": "MATCHES byte-for-byte at KMC -O1 (checked with try_compiler; suggestion with exact C submitted). It uses a Struct800DEFF8[] D_8011F2F0 with 0x64-byte entries (u8 unk1 @1, u16 prev @0x10, u16 next @0x12). Loop i=1..0x13E sets prev=i-1, next=i+1, unk1=0; entries 0 and 0x13F are set explicitly. Waiting for the user to apply the -O1 profile.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794758086.944133,
+  "score_before": 365,
+  "score_after": 365
+ },
+ {
+  "function": "func_800DE2E0",
+  "text": "Reconfirmed exact O1 source/profile, function-specific suggestion retained. Natural Node0x64 initializer for 320 linked nodes with active@1 prev@0x10 next@0x12. Already pending application; no O2 tuning warranted.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794758361.339505,
+  "score_before": 365,
+  "score_after": 365
+ },
+ {
+  "function": "func_800DE2E0",
+  "text": "Byte-exact with KMC gcc-2.7.2 -O1 (suggested). Uses the Obj64 100-byte struct at D_8011F2F0, plus extern u16 D_8011F300[]/D_80126F9C[] for the fixed entry-0/entry-319 stores.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794759359.493459,
+  "score_before": 365,
+  "score_after": 365
+ },
+ {
+  "function": "func_800DE2E0",
+  "text": "Verified natural PRNode initializer byte-exact at -O1; full source/profile submitted by suggest. Current O2 not appropriate; awaiting profile application.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794759717.208116,
+  "score_before": 365,
+  "score_after": 365
  }
 ]
