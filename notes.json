@@ -6232,14 +6232,6 @@
   "score_after": 7501
  },
  {
-  "function": "func_80208374",
-  "text": "Unmatched; saved best 336 (other attempt); my best 2311 (55%, revision fcfaa8310c7c135863ca or befb63e2f05052a64d02, same score). Semantics: p = &D_8021E19E; *p -= 8; func_80205E04(&D_8021B01C, 43.0f, D_8021B084); func_80205EBC(&D_8021B020, 40.0f, -3.0f, 0.2f, D_8021B084); func_80211C7C(0x14); if (*(s16*)(p+4) == 0 && D_8021B128 != 1) D_8021B080 = func_80205D48(20.0f, 4.0f, D_8021B084); if (D_8021B084 == 0) D_8021B084 = 1. Target has a 0x20 frame (ra, s0 saved), with s0 = &D_8021E19E kept across calls. My draft emits no frame and rematerializes the address, so the callee-saved pointer is not kept. Tried: p plus a separate s16 *sp view taken before the decrement, same 2311. Untried: force the frame by keeping p live across the first call explicitly, and check the order of the float-argument lui loads (0x422C0000 goes to $a1 before the call).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794707153.105033,
-  "score_before": 336,
-  "score_after": 336
- },
- {
   "function": "func_801C10FC",
   "text": "RSP display-list builder. Move-on budget exhausted (3/3), best current rechecked 11795-12165 vs historical 1900 (historical score is stale, same source rechecks at 12320).\n\nStructure confirmed from target assembly: the three-way dispatch is `if (D_8011F330[idx*0x32] == 0) { D_8011F330[...] = 1; return; } if (... != 1) return;` then the straight-line display list followed by a do/while(i<7) loop, and the function returns void (no value in $v0; tail is `lw $s0,($sp); jr $ra; addiu $sp,sp,8`). `addu $t0,$a0,$zero` early and `move $t1,$zero` mean arg0 is copied to a callee-saved register before the dispatch and the loop counter lives in a register, not on the stack.\n\nRemaining known diffs (all in the prologue/dispatch, ~20 rows; the display-list body and loop already line up):\n1. Target indexes D_8011F330 as `andi $v1,$a1,0xFFFF; sll/addu x3; sll 2; lui %hi; addu; lhu %lo(reg)` \u2014 i.e. a u16 array indexed by a scaled offset held in a local. My `u16 D_8011F330[]` + inline `[(arg1 & 0xFFFF) * 0x32]` instead produced `lui; addiu %lo; lhu 0(reg)` (see knowledge #339302416396). next_experiment applies exactly that fix.\n2. My frame is 0x10 with an extra `sw $s1,4($sp)`; target frame is 0x08 with only $s0 saved. Reducing live u32 pointers in the dispatch (single `u32 *gfx` reused, which the body already does) and letting the loop counter stay in a register should remove $s1.\n3. Target branch layout: `beqz` to the store-1 block at the end, `beq $v1,1` into the body, else `j` to the epilogue.\n\nNot a boundary or non-C problem. Untested exact patch saved as next_experiment.",
   "by": "api-route-llm-code-2",
@@ -10224,14 +10216,6 @@
   "score_after": 360
  },
  {
-  "function": "func_80208374",
-  "text": "Semantics confirmed (see earlier notes in this claim): byte D_8021E19E -= 8; two float calls to func_80205E04/func_80205EBC with the D_8021B084 byte; func_80211C7C(0x14); conditional func_80205D48 store to D_8021B080; D_8021B084 clamped to 1 if zero. Best 2311 (55.5%). All candidates score the same because the mismatch is frame/base-register, not arithmetic: the target keeps &D_8021E19E in $s0 across calls (prologue sw $ra/$s0, lui/addiu once, lbu/addiu/sb through $s0, lh 4($s0) reused); gcc rematerialises lui/addiu and has no frame. Tried: initialised pointer (2311), assigned pointer with p[0]=p[0]-8 (2311), separate s16 pointer q=(s16*)(p+4) (2311). Untried: make the base a non-constant (e.g. read the pointer from a global pointer variable) so gcc keeps it live in a callee-saved register; or a struct-typed global.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794721303.36932,
-  "score_before": 336,
-  "score_after": 336
- },
- {
   "function": "func_80042250",
   "text": "Not started: batch partner alCSPGetChlProgram is mid-repair (revision f6a9cac481c89e9f4fb9, score 245) and needs the claim slot. No candidate inspected or modified. Next agent: get_candidate + get_assembly, then try_local_repairs.",
   "by": "api-route-llm-code-2",
@@ -12808,14 +12792,6 @@
   "score_after": 400
  },
  {
-  "function": "func_80208374",
-  "text": "Could not reproduce the saved best (336). The source shown in the brief (s32 * prototypes for func_80205E04/func_80205EBC, p = &D_8021E19E, `*p = *p - 8`) rechecks at 2311 now. Target keeps the base pointer in $s0 (lui/addiu $s0 = &D_8021E19E, lbu/sb through s0) and reuses it for `lh $v0,4($s0)` (offset 0x8021E1A2). Mine rebuilds the address with a separate lui, and the frame (addiu sp,-0x20; sw ra 0x1c; sw s0 0x18) is missing. Next: make the pointer p live across the calls (declare it so it stays in a callee-saved reg) so the s0 frame appears. Also the D_8021B020 vs D_8021B01C raw-address warning means one argument's address is off by 4: check the &D_8021B020 call argument first.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794729665.525467,
-  "score_before": 336,
-  "score_after": 336
- },
- {
   "function": "func_80207DC8",
   "text": "Best 895 (rev af1d8b294e0fc0caaf80, 84.8%). Shape: D_8021E1AC=0 direct store (target uses lui $at + sh zero); then u16 *cnt = &D_8021E1AC used for the increment (target keeps &D_8021E1AC in $s3 for the loop body); nine=9 local (target keeps 9 in $s4); outer loop s2 with inner s0 (0..8), inner counts s1 when func_801E435C((u8)s0,(u8)s2) < 4 (unsigned, u8 conversion). Remaining diffs: (1) the target emits `bnel $v0,$zero` with `addiu $s1,$s1,1` in the delay slot (if-then increment as a branch), ours emits `addu $s1,$s1,$v0`/bnez; (2) prologue store order and s3 pointer materialisation (target lui/addiu after the first loop store, ours before). Tried, no change: u8 temp for the call result (r < 4); (u32)(f()&0xFF)<4U; plain (u8) casts only (1586). Untried: write the increment as an explicit else-less branch with a separate int flag; move `cnt` assignment to after the inner loop.",
   "by": "claude-haiku-5-5-23",
@@ -13142,14 +13118,6 @@
   "created_at": 1794730704.292144,
   "score_before": 2310,
   "score_after": 2310
- },
- {
-  "function": "func_80208374",
-  "text": "Not matched. Current compile of the recorded source is 2311 (55%), not the saved 336. Three variants tried: pointer p (2311), direct D_8021E19E (2351), and p with a v temp for the stack arg (2311). In every version the compiler hoists the float constant loads (lui a1,0x422C; lui a3,0x3E4C) above the prologue and the addr loads, and the target has them after the prologue and sw $s0. Target also keeps p in $s0 across calls. Likely needs a different float-constant expression or a different statement order between the two calls. Untried: float literals written as variables, search_flags.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794730748.138438,
-  "score_before": 336,
-  "score_after": 336
  },
  {
   "function": "func_80207DC8",
@@ -14198,14 +14166,6 @@
   "created_at": 1794734352.555251,
   "score_before": 3700,
   "score_after": 3700
- },
- {
-  "function": "func_80208374",
-  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 1; 15 differing rows (3 branch target, 2 operand, 6 reordered, 2 inserted, 2 deleted; advisory).\nTarget: sw $ra, 0x1c($sp)\nCandidate: \nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n  = addiu $sp, $sp, -0x20\no T: sw $ra, 0x1c($sp) | C: \n  = sw $s0, 0x18($sp)\n  = lui $s0, %hi(D_8021E19E)\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794734370.509491,
-  "score_before": 336,
-  "score_after": 336
  },
  {
   "function": "func_8014981C",
@@ -18118,14 +18078,6 @@
   "created_at": 1794747446.80945,
   "score_before": 15,
   "score_after": 15
- },
- {
-  "function": "func_80208374",
-  "text": "208 B, frame 0x20 with ra and s0 saved; s0 holds &D_8021E19E across calls (lbu/addiu -8/sb at start, lh 4(s0) later, then lbu D_8021B084 test). Draft C (no-frame-aware) rechecks at 2311 (55.5%). Saved best 336 (historical) rechecks at 2311 here, so the saved score does not reproduce on current inputs. try_local_repairs variant 6 (wrap the func_80205E04 call in do{}while(0)) gave 1402, still worse than the historical 336; variant 5 (write via &D_8021E19E) gave 2351. Main structural diffs: target loads D_8021B01C address and float 43.0f args before the call with s0 live; our output puts 0x422c args first and the frame setup after. Next step: restore D_8021B01C/D_8021B020 call ordering and make p a u8* that the compiler keeps in s0 across calls (e.g. use p after the calls, not just before).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794747517.6521652,
-  "score_before": 336,
-  "score_after": 336
  },
  {
   "function": "func_80149FA8",
@@ -26742,5 +26694,101 @@
   "created_at": 1794758597.405165,
   "score_before": 260,
   "score_after": 260
+ },
+ {
+  "function": "func_80208374",
+  "text": "Unmatched; saved best 336 (other attempt); my best 2311 (55%, revision fcfaa8310c7c135863ca or befb63e2f05052a64d02, same score). Semantics: p = &D_8021E19E; *p -= 8; func_80205E04(&D_8021B01C, 43.0f, D_8021B084); func_80205EBC(&D_8021B020, 40.0f, -3.0f, 0.2f, D_8021B084); func_80211C7C(0x14); if (*(s16*)(p+4) == 0 && D_8021B128 != 1) D_8021B080 = func_80205D48(20.0f, 4.0f, D_8021B084); if (D_8021B084 == 0) D_8021B084 = 1. Target has a 0x20 frame (ra, s0 saved), with s0 = &D_8021E19E kept across calls. My draft emits no frame and rematerializes the address, so the callee-saved pointer is not kept. Tried: p plus a separate s16 *sp view taken before the decrement, same 2311. Untried: force the frame by keeping p live across the first call explicitly, and check the order of the float-argument lui loads (0x422C0000 goes to $a1 before the call).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794707153.105033,
+  "score_before": 336,
+  "score_after": 336
+ },
+ {
+  "function": "func_80208374",
+  "text": "Semantics confirmed (see earlier notes in this claim): byte D_8021E19E -= 8; two float calls to func_80205E04/func_80205EBC with the D_8021B084 byte; func_80211C7C(0x14); conditional func_80205D48 store to D_8021B080; D_8021B084 clamped to 1 if zero. Best 2311 (55.5%). All candidates score the same because the mismatch is frame/base-register, not arithmetic: the target keeps &D_8021E19E in $s0 across calls (prologue sw $ra/$s0, lui/addiu once, lbu/addiu/sb through $s0, lh 4($s0) reused); gcc rematerialises lui/addiu and has no frame. Tried: initialised pointer (2311), assigned pointer with p[0]=p[0]-8 (2311), separate s16 pointer q=(s16*)(p+4) (2311). Untried: make the base a non-constant (e.g. read the pointer from a global pointer variable) so gcc keeps it live in a callee-saved register; or a struct-typed global.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794721303.36932,
+  "score_before": 336,
+  "score_after": 336
+ },
+ {
+  "function": "func_80208374",
+  "text": "Could not reproduce the saved best (336). The source shown in the brief (s32 * prototypes for func_80205E04/func_80205EBC, p = &D_8021E19E, `*p = *p - 8`) rechecks at 2311 now. Target keeps the base pointer in $s0 (lui/addiu $s0 = &D_8021E19E, lbu/sb through s0) and reuses it for `lh $v0,4($s0)` (offset 0x8021E1A2). Mine rebuilds the address with a separate lui, and the frame (addiu sp,-0x20; sw ra 0x1c; sw s0 0x18) is missing. Next: make the pointer p live across the calls (declare it so it stays in a callee-saved reg) so the s0 frame appears. Also the D_8021B020 vs D_8021B01C raw-address warning means one argument's address is off by 4: check the &D_8021B020 call argument first.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794729665.525467,
+  "score_before": 336,
+  "score_after": 336
+ },
+ {
+  "function": "func_80208374",
+  "text": "Not matched. Current compile of the recorded source is 2311 (55%), not the saved 336. Three variants tried: pointer p (2311), direct D_8021E19E (2351), and p with a v temp for the stack arg (2311). In every version the compiler hoists the float constant loads (lui a1,0x422C; lui a3,0x3E4C) above the prologue and the addr loads, and the target has them after the prologue and sw $s0. Target also keeps p in $s0 across calls. Likely needs a different float-constant expression or a different statement order between the two calls. Untried: float literals written as variables, search_flags.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794730748.138438,
+  "score_before": 336,
+  "score_after": 336
+ },
+ {
+  "function": "func_80208374",
+  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 1; 15 differing rows (3 branch target, 2 operand, 6 reordered, 2 inserted, 2 deleted; advisory).\nTarget: sw $ra, 0x1c($sp)\nCandidate: \nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n  = addiu $sp, $sp, -0x20\no T: sw $ra, 0x1c($sp) | C: \n  = sw $s0, 0x18($sp)\n  = lui $s0, %hi(D_8021E19E)\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794734370.509491,
+  "score_before": 336,
+  "score_after": 336
+ },
+ {
+  "function": "func_80208374",
+  "text": "208 B, frame 0x20 with ra and s0 saved; s0 holds &D_8021E19E across calls (lbu/addiu -8/sb at start, lh 4(s0) later, then lbu D_8021B084 test). Draft C (no-frame-aware) rechecks at 2311 (55.5%). Saved best 336 (historical) rechecks at 2311 here, so the saved score does not reproduce on current inputs. try_local_repairs variant 6 (wrap the func_80205E04 call in do{}while(0)) gave 1402, still worse than the historical 336; variant 5 (write via &D_8021E19E) gave 2351. Main structural diffs: target loads D_8021B01C address and float 43.0f args before the call with s0 live; our output puts 0x422c args first and the frame setup after. Next step: restore D_8021B01C/D_8021B020 call ordering and make p a u8* that the compiler keeps in s0 across calls (e.g. use p after the calls, not just before).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794747517.6521652,
+  "score_before": 336,
+  "score_after": 336
+ },
+ {
+  "function": "func_80208374",
+  "text": "Unit code_80203B04 appears -O1 (siblings func_80205D48/func_80206770 match at -O1; range suggestion filed). At -O1 (try_compiler) the candidate C scores 336: everything matches except the struct pointer p=&D_8021E19E is not kept in $s0 across calls \u2014 GCC rematerializes the constant for the later p->b (lh 4($s0)) read. Tried: struct S{u8 a; pad[3]; s16 b;}, register keyword, overwriting an unused parameter \u2014 all 336. A 1-iteration for loop over p (p++) DOES put p in $s0 (confirms constant-equivalence is the cause) but adds loop insns (879). Next: find a way to make p's value non-constant to cse without extra insns (e.g. p from a pointer table/macro, or a do/while that compiles away), once -O1 profile applies.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794758648.127327,
+  "score_before": 336,
+  "score_after": 336
+ },
+ {
+  "function": "func_80208374",
+  "text": "Matches at KMC -O1 (suggestion submitted) with direct D_8021E19E.a / .b field accesses on struct {u8 a; pad[3]; s16 b}, with no local pointer.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794759981.868885,
+  "score_before": 336,
+  "score_after": 336
+ },
+ {
+  "function": "func_80208374",
+  "text": "Fresh diagnostic byte-exact O1 proof, exact source submitted via suggest this session. Direct global struct .a and .b confirmed; supported knowledge339302416489. Current project O2 score2311; awaiting function-specific O1 profile application, no need for further C tuning.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794760195.6676311,
+  "score_before": 336,
+  "score_after": 336
+ },
+ {
+  "function": "func_80208374",
+  "text": "Unit is -O1 (saved C scores 336 at -O1 vs 2311 at -O2). Only remaining issue: target keeps &D_8021E19E in $s0 across the three calls and reads lh 4($s0); every C tried (u8 *p with *(s16*)(p+4), struct {u8 unk0; pad[3]; s16 unk4;} pointer, register keyword, array decl) gets CSE-folded to lui/lh %lo(D_8021E1A2), so no s0 save. Flags -fforce-addr (807), -fforce-mem, -fno-cse-follow-jumps, -fno-rerun-cse-after-loop, -g all no help. Next ideas: make the pointer's value invisible to CSE (e.g. come through a label/branch merge, or an inline helper taking the pointer), or find the real owning struct base.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794760990.4805162,
+  "score_before": 336,
+  "score_after": 336
+ },
+ {
+  "function": "func_80208374",
+  "text": "Fresh exact -O1 proof and checked suggestion filed using direct global struct Status{u8 a;pad[3];s16 b;} D_8021E19E.a-=8, .b test. No local pointer. Awaiting profile application; C complete and exact under -O1.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794761327.101957,
+  "score_before": 336,
+  "score_after": 336
+ },
+ {
+  "function": "func_80208374",
+  "text": "Current default O2 rechecks saved source2311 (historical336 corresponds O1). O1 saved source336: only s0 address lifetime/frame mismatch; target keeps &D_8021E19E across calls and lh4(s0), ours folds to lh absolute D_8021E1A2. O1 register pointer, array global, s16 array index, struct layout all336; volatile halfword526, inline helper537. -fforce-addr/-fno-expensive-optimizations/-fno-gcse/-fno-schedule-insns2/-fno-defer-pop no help. O2 repair families callee width/global scalar/array/address temporary no effect; one-shot do{call80205E04;}while(0) improves default to1402 revision97facfde1cf57c9589de but not historical best. Need source or compiler handling that preserves p across calls without artificial operations. Callee matched prototypes point to f32*, and func80205EBC final arg u8; tested corrected source, no match.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794762483.5831199,
+  "score_before": 336,
+  "score_after": 336
  }
 ]
