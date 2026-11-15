@@ -6224,14 +6224,6 @@
   "score_after": 10
  },
  {
-  "function": "func_80209AEC",
-  "text": "Saved best 60 (struct Entry[12] with stride 36, f8=50.0f, f1C=1.0f) unmatched at 60. Tried: s32* pointer with i*9 index and cast-to-f32 (2610), nine separate extern arrays indexed [i*9] (5020, compiler hoists per-array bases into registers). Target: v0=(i*8+i)*4 computed once per iter with 'addu at,at,v0' after each lui %hi(sym) for nine distinct symbols D_80221080..D_802210A0 (4-byte spacing), the loop tail is sll v0,v1,3 in delay slot, and f32 constants come from fv0/fv1 preloaded before the loop (lui 0x42480000 / 0x3F800000). Untested: keep the struct-array form (best) and try a single 'Entry *e = D_80221080; e[i]' form or a local f32 preload order; the loop tail arithmetic suggests i*9 as the index, not i*36 bytes.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794706959.989655,
-  "score_before": 60,
-  "score_after": 60
- },
- {
   "function": "func_80211B90",
   "text": "Saved best stays the draft at 105. My rewrite scored 535: the else-branch store to D_8021EEC6 is in the wrong place. Target loads with `addiu $a1,&D_8021EEC1` then `lbu $v0,0($a1)`, and the branch-1 store is `sh $v0,5($a1)`, which the compiler folds to %lo. The else branch uses `lui $at,%hi(D_8021EEC6); sh` (absolute, not via $a1). Next: keep the draft's `*(u16*)(D_8021B59C + ...)` byte index shape, and check the lbu/lhu base registers against the target.",
   "by": "claude-haiku-5-5-20",
@@ -10224,14 +10216,6 @@
   "score_after": 280
  },
  {
-  "function": "func_80209AEC",
-  "text": "Best stays the saved struct version (60, revision 3f149c5a4f5cc100cfd7): Entry{s32 f0,f4; f32 f8; s32 fC,f10,f14,f18; f32 f1C; s32 f20} stride 36, loop i<12, f8=50.0f, f1C=1.0f. Target's per-iteration address is (i*9)<<2 (sll 3; addu; sll 2) with a fresh lui/addu per store, a real loop. Two rewrites were much worse: word-index D[i*9+k] (4510) and byte-offset D+i*36+k (4510); the struct-array form reads as a stride-36 pointer walk, which is the wrong shape. Untried: a loop over a pointer `s32 *p` advanced by 9 words, or keep the struct and index with a computed (i*9) temp.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794721117.884274,
-  "score_before": 60,
-  "score_after": 60
- },
- {
   "function": "func_80211B90",
   "text": "Best 35 (revision 940c7bc66746a66d8d28): only register allocation differs. Source: u8 temp_a0 = D_8021B59C[D_8021EEC1[0]]; temp_v0 = temp_a0>>4; if ((temp_a0&0xF)==6) *(u16*)(D_8021EEC1+5)=D_8021B618[temp_v0]; else D_8021EEC6=D_8021B5F8[temp_v0]; D_8021EEC8=D_8021B620[temp_a0&0xF]. Target keeps the EEC1 address in $a1 (lui/addiu $a1) for both lbu and sh 5($a1), and temp_v0 in $v0; ours puts the address in $a2 and temp_v0 in $a1. Tried: swapping the two declarations (no change), pointer local `u8 *p = D_8021EEC1` (550, worse). Open: get the address into $a1 and the index into $v0 (perhaps via a u32 index variable or a different use order for the EEC1 address).",
   "by": "claude-haiku-5-5-21",
@@ -12976,14 +12960,6 @@
   "score_after": 565
  },
  {
-  "function": "func_80209AEC",
-  "text": "Saved best remains 60 (struct Entry{s32 f0,f4; f32 f8; s32 fC,f10,f14,f18; f32 f1C; s32 f20} (36 bytes), loop i<12 writing D_80221080[i].fields = 0 / 50.0f / 1.0f). Current C scored 915 in this session because the saved source differs; restore saved_best. Target computes i*36 each iteration (sll 3; addu; sll 2 with no strength reduction) and then folds field offsets into %lo of D_80221080+k, i.e. the loop index is not an induction pointer. Tried a byte-offset form (u8* + i*36, s32 p[] writes): 2805, much worse. Unexplored: forms that keep the i*36 recomputed each iteration (e.g. index through a non-induction variable, or 12 unrolled stores with the constant offsets), and whether the 0x42480000/0x3F800000 constant loads are emitted before the loop as the target shows.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794729706.2885911,
-  "score_before": 60,
-  "score_after": 60
- },
- {
   "function": "func_802144DC",
   "text": "Matched with inverted test: `if (*p >= 0xFF) v = 0xFF; else v = *p + 5;` (the `<` form scored 200). Compiler gcc-2.7.2-kmc -O2.",
   "by": "api-route-llm-code-1",
@@ -13342,14 +13318,6 @@
   "created_at": 1794730754.1796749,
   "score_before": 450,
   "score_after": 450
- },
- {
-  "function": "func_80209AEC",
-  "text": "Not matched; move-on budget used. Loop over 12 entries of 36 bytes (0x24): each iteration stores 0 at +0,+4,+0xC,+0x10,+0x14,+0x18,+0x20, f_hi(50.0f) at +8 and f_one(1.0f) at +0x1C, with lui/addu per-symbol addressing against D_80221080..D_802210A0 (the fields are separate symbols at 0x80221080+k*4). Target shape: pre-loop `move v1,0; sll v0,v1,3`, body computes off as `addu v0,v0,v1; sll v0,v0,2` (i*36), loop bottom `addiu v1,1; slti v0,v1,12; bnel ...; sll v0,v1,3` (rotated loop with the offset computed at the bottom). Constants: lui 0x4248 -> mtc1 fv1 (50.0f), lui 0x3F80 -> mtc1 fv0 (1.0f), both loaded before the loop. My forms all scored 915 (77.6%): typedef struct array; char* with off=i*36; off=((i<<3)+i)<<2; do-while. In all of them the compiler strength-reduces to a pointer increment (`addiu v1,v1,0x24` after the loop), which the target does not do. Untried: writing the offset as a separate loop variable updated at the bottom (`off += 36` form is the compiler's own choice, so avoid), or a pointer walk. The saved 60 is from a different source; I did not reproduce it.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794730754.206723,
-  "score_before": 60,
-  "score_after": 60
  },
  {
   "function": "func_8003E644",
@@ -14070,14 +14038,6 @@
   "created_at": 1794732950.573457,
   "score_before": 1875,
   "score_after": 1875
- },
- {
-  "function": "func_80209AEC",
-  "text": "Best 60 (rev 3f149c5a4f5cc100cfd7, rechecked 915 on current inputs). Target is a 12-iteration loop over a 36-byte-stride array at D_80221080 with per-field lui/addu/sw. Key finding: the target emits `sll $v0,$v1,3; addu $v0,$v0,$v1; sll $v0,$v0,2` (strength-reduced index*36) at the loop head, with `bnel` and `sll $v0,$v1,3` in the delay slot; the C form that gets closest is `i = 0; f_hi = 50.0f; f_one = 1.0f; for (; i < 12; i++) { D_80221080[i].f0 = 0; ... }` with `extern Entry D_80221080[]` (Entry = 9 x 4-byte fields, f8 and f1C float). That scored 60 with flags `-O2 -fno-strength-reduce` (default -O2 gives 915/860 because the strength reduction turns the index into `addiu $v1,$v1,0x24`). Remaining diff with -fno-strength-reduce: loop counter allocated to $a0 instead of $v1, and the increment placed before the multiply (target has it after the last store, before slti). Tried: while/do-while forms, separate per-field scalars, u8* base with i*36, Entry* local pointer, u32 index cast, declaration reordering, -O1 (60 but different), -O2 plain. All regressed or tied. Next idea: force the counter into $v1 by making the array index expression use a different pseudo than the counter (e.g. keep `i` only in the loop control and index with a separate `s32 n = i;`), and get the increment scheduled after the stores.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794732964.6859221,
-  "score_before": 60,
-  "score_after": 60
  },
  {
   "function": "func_8014B714",
@@ -18408,14 +18368,6 @@
   "score_after": 820
  },
  {
-  "function": "func_80209AEC",
-  "text": "Best is 915 (the Entry-struct loop, rechecks at 915; the saved 60 is the same source in another state). Target computes the element offset once per iteration (i*9 words, shifted left by 2) and then each store is `lui at,%hi(base); addu at,at,v0; swc1/sw lo(at)`, with field offsets folded into %lo (base+8, base+0x1C). Our form adds the index with `addu at,at,v1` per store and the loop counter is in a different register. 2-D word array (12x9) with f32 casts scored 1925 (worse). Repairs (unsigned fields, cast index, inline compare, field order) gave no gain. Untried: a loop that keeps a byte pointer advanced by 36 per iteration and stores through fixed field offsets.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794747711.909791,
-  "score_before": 60,
-  "score_after": 60
- },
- {
   "function": "func_80156180",
   "text": "Best is 80 (97.4%), from `u16 s0=(u16)arg0; s32 off; func_8013AE60(s0); off=s0*100; t=*(volatile u16*)(D_8011F32E+off); *(volatile u16*)(D_8011F32E+off)=t+2; if (*(volatile u16*)(D_8011F32E+off) >= 0x80) *(volatile u16*)(D_8011F32E+off)=t-0x7D;`. Instructions match; the only difference left is the prologue: the target stores $ra at 0x14 before $s0 at 0x10, and ours is reversed (plus the andi order). Declaration-order and s32/u32 variants of `off` made no difference. The inherited saved 30 is from a different source (+7, 0x100) and does not match this target. Untried: changing which value of s0 is used by the call (e.g. passing arg0 directly and masking after) to change the save order.",
   "by": "claude-haiku-5-5-20",
@@ -21398,14 +21350,6 @@
   "created_at": 1794754642.595985,
   "score_before": 4307,
   "score_after": 4307
- },
- {
-  "function": "func_80209AEC",
-  "text": "Not matched, best 665 (83.7%, 41 insns each). Loop over 12 records with a 0x24 stride. Stores: D_80221080=0, D_80221084=0, D_80221088=50.0f, D_8022108C/90/94/98=0, D_8022109C=1.0f, D_802210A0=0. Structure matches except the loop tail: target computes off=i<<3 in the bnel delay slot (branch-likely), and mine has an extra 'move $a0,$zero' and a plain bnez; register naming differs (target keeps i in $v1 and off in $v0). Declaring the loop counter before the offset did not change the score. Untried: a for-loop with the (i<<3)+i<<2 offset expression, or a branch-likely-friendly loop with the shift placed after i++.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794754644.272622,
-  "score_before": 60,
-  "score_after": 60
  },
  {
   "function": "func_801513E4",
@@ -26470,5 +26414,109 @@
   "created_at": 1794758994.174956,
   "score_before": 3081,
   "score_after": 3081
+ },
+ {
+  "function": "func_80209AEC",
+  "text": "Saved best 60 (struct Entry[12] with stride 36, f8=50.0f, f1C=1.0f) unmatched at 60. Tried: s32* pointer with i*9 index and cast-to-f32 (2610), nine separate extern arrays indexed [i*9] (5020, compiler hoists per-array bases into registers). Target: v0=(i*8+i)*4 computed once per iter with 'addu at,at,v0' after each lui %hi(sym) for nine distinct symbols D_80221080..D_802210A0 (4-byte spacing), the loop tail is sll v0,v1,3 in delay slot, and f32 constants come from fv0/fv1 preloaded before the loop (lui 0x42480000 / 0x3F800000). Untested: keep the struct-array form (best) and try a single 'Entry *e = D_80221080; e[i]' form or a local f32 preload order; the loop tail arithmetic suggests i*9 as the index, not i*36 bytes.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794706959.989655,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_80209AEC",
+  "text": "Best stays the saved struct version (60, revision 3f149c5a4f5cc100cfd7): Entry{s32 f0,f4; f32 f8; s32 fC,f10,f14,f18; f32 f1C; s32 f20} stride 36, loop i<12, f8=50.0f, f1C=1.0f. Target's per-iteration address is (i*9)<<2 (sll 3; addu; sll 2) with a fresh lui/addu per store, a real loop. Two rewrites were much worse: word-index D[i*9+k] (4510) and byte-offset D+i*36+k (4510); the struct-array form reads as a stride-36 pointer walk, which is the wrong shape. Untried: a loop over a pointer `s32 *p` advanced by 9 words, or keep the struct and index with a computed (i*9) temp.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794721117.884274,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_80209AEC",
+  "text": "Saved best remains 60 (struct Entry{s32 f0,f4; f32 f8; s32 fC,f10,f14,f18; f32 f1C; s32 f20} (36 bytes), loop i<12 writing D_80221080[i].fields = 0 / 50.0f / 1.0f). Current C scored 915 in this session because the saved source differs; restore saved_best. Target computes i*36 each iteration (sll 3; addu; sll 2 with no strength reduction) and then folds field offsets into %lo of D_80221080+k, i.e. the loop index is not an induction pointer. Tried a byte-offset form (u8* + i*36, s32 p[] writes): 2805, much worse. Unexplored: forms that keep the i*36 recomputed each iteration (e.g. index through a non-induction variable, or 12 unrolled stores with the constant offsets), and whether the 0x42480000/0x3F800000 constant loads are emitted before the loop as the target shows.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794729706.2885911,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_80209AEC",
+  "text": "Not matched; move-on budget used. Loop over 12 entries of 36 bytes (0x24): each iteration stores 0 at +0,+4,+0xC,+0x10,+0x14,+0x18,+0x20, f_hi(50.0f) at +8 and f_one(1.0f) at +0x1C, with lui/addu per-symbol addressing against D_80221080..D_802210A0 (the fields are separate symbols at 0x80221080+k*4). Target shape: pre-loop `move v1,0; sll v0,v1,3`, body computes off as `addu v0,v0,v1; sll v0,v0,2` (i*36), loop bottom `addiu v1,1; slti v0,v1,12; bnel ...; sll v0,v1,3` (rotated loop with the offset computed at the bottom). Constants: lui 0x4248 -> mtc1 fv1 (50.0f), lui 0x3F80 -> mtc1 fv0 (1.0f), both loaded before the loop. My forms all scored 915 (77.6%): typedef struct array; char* with off=i*36; off=((i<<3)+i)<<2; do-while. In all of them the compiler strength-reduces to a pointer increment (`addiu v1,v1,0x24` after the loop), which the target does not do. Untried: writing the offset as a separate loop variable updated at the bottom (`off += 36` form is the compiler's own choice, so avoid), or a pointer walk. The saved 60 is from a different source; I did not reproduce it.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794730754.206723,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_80209AEC",
+  "text": "Best 60 (rev 3f149c5a4f5cc100cfd7, rechecked 915 on current inputs). Target is a 12-iteration loop over a 36-byte-stride array at D_80221080 with per-field lui/addu/sw. Key finding: the target emits `sll $v0,$v1,3; addu $v0,$v0,$v1; sll $v0,$v0,2` (strength-reduced index*36) at the loop head, with `bnel` and `sll $v0,$v1,3` in the delay slot; the C form that gets closest is `i = 0; f_hi = 50.0f; f_one = 1.0f; for (; i < 12; i++) { D_80221080[i].f0 = 0; ... }` with `extern Entry D_80221080[]` (Entry = 9 x 4-byte fields, f8 and f1C float). That scored 60 with flags `-O2 -fno-strength-reduce` (default -O2 gives 915/860 because the strength reduction turns the index into `addiu $v1,$v1,0x24`). Remaining diff with -fno-strength-reduce: loop counter allocated to $a0 instead of $v1, and the increment placed before the multiply (target has it after the last store, before slti). Tried: while/do-while forms, separate per-field scalars, u8* base with i*36, Entry* local pointer, u32 index cast, declaration reordering, -O1 (60 but different), -O2 plain. All regressed or tied. Next idea: force the counter into $v1 by making the array index expression use a different pseudo than the counter (e.g. keep `i` only in the loop control and index with a separate `s32 n = i;`), and get the increment scheduled after the stores.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794732964.6859221,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_80209AEC",
+  "text": "Best is 915 (the Entry-struct loop, rechecks at 915; the saved 60 is the same source in another state). Target computes the element offset once per iteration (i*9 words, shifted left by 2) and then each store is `lui at,%hi(base); addu at,at,v0; swc1/sw lo(at)`, with field offsets folded into %lo (base+8, base+0x1C). Our form adds the index with `addu at,at,v1` per store and the loop counter is in a different register. 2-D word array (12x9) with f32 casts scored 1925 (worse). Repairs (unsigned fields, cast index, inline compare, field order) gave no gain. Untried: a loop that keeps a byte pointer advanced by 36 per iteration and stores through fixed field offsets.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794747711.909791,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_80209AEC",
+  "text": "Not matched, best 665 (83.7%, 41 insns each). Loop over 12 records with a 0x24 stride. Stores: D_80221080=0, D_80221084=0, D_80221088=50.0f, D_8022108C/90/94/98=0, D_8022109C=1.0f, D_802210A0=0. Structure matches except the loop tail: target computes off=i<<3 in the bnel delay slot (branch-likely), and mine has an extra 'move $a0,$zero' and a plain bnez; register naming differs (target keeps i in $v1 and off in $v0). Declaring the loop counter before the offset did not change the score. Untried: a for-loop with the (i<<3)+i<<2 offset expression, or a branch-likely-friendly loop with the shift placed after i++.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794754644.272622,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_80209AEC",
+  "text": "EXACT diagnostic match achieved with -O1, function-specific suggest submitted with complete matching source; automatic profile changes off, pending user apply. Critical source is Entry struct same as baseline, s32 i=0; f32 f_hi=50.0f,f_one=1.0f; do{nine same field stores}while(++i<12). O1 for-loop score60 only reordered initial move; do/while score0. Do not tune default O2: it induction-reduces index. Matching full source retained in suggestion.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794758209.841485,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_80209AEC",
+  "text": "MATCHES at KMC -O1 with a plain for loop and constant float stores (suggestion submitted). Waiting for the -O1 profile.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794758325.8679419,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_80209AEC",
+  "text": "Exact O1 match verified and submitted via suggest with source: i=0 before hi=50.f;one=1.f; do{nine member stores;i++;}while(i<12). Counter init ordering repairs historical60. O2 strength reduction prevents exact loop; pending O1 bundle application, no further O2 tuning needed.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794759506.04827,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_80209AEC",
+  "text": "Matches at KMC -O1 (suggestion submitted): i=0 before the float constants, then do{...}while(++i<12). The target can't match at the project's -O2 because the loop has no strength reduction.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794759737.709253,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_80209AEC",
+  "text": "Exact -O1 bundle29ac440cfd4afc9aa035 submitted via suggest; auto changes off. Place i=0 BEFORE f_hi=50 and f_one=1, then for(;i<12;i++). Saved struct and stores otherwise unchanged. O1 old score60 was only initialization instruction order.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794760623.3614452,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_80209AEC",
+  "text": "MATCHES at -O1 using literal 50.0f / 1.0f in the loop (not hoisted locals). Function-only -O1 suggestion filed.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794760906.711551,
+  "score_before": 60,
+  "score_after": 60
  }
 ]
