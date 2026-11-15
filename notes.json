@@ -2704,14 +2704,6 @@
   "score_after": 1627
  },
  {
-  "function": "func_80029938",
-  "text": "Deep permuter: score 997 \u2192 276; 2 improvements; 136 candidates tested; 0 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589934815",
-  "created_at": 1794348522.2570188,
-  "score_before": 997,
-  "score_after": 276
- },
- {
   "function": "func_80211C7C",
   "text": "Deep permuter: score 3760 \u2192 3690; 1 improvements; 85 candidates tested; 0 cached skips; 0 rejected; 7204s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935782",
@@ -4798,22 +4790,6 @@
   "created_at": 1794705760.5312488,
   "score_before": 330,
   "score_after": 330
- },
- {
-  "function": "func_80029938",
-  "text": "Best verified score 569/33 insns (34 emitted). Restore this source and continue:\ntypedef struct Blk { s16 type; s32 *queue; s32 w1; s32 w2; s8 flag; s16 flag16; } Blk;\nextern s32 D_80046D74; extern s32 D_80092BE0;\nvoid osCreateMesgQueue(void*,void*,s32); s32 osRecvMesg(void*,s32,s32); s32 osSendMesg(void*,void*,s32);\ns32 func_80029938(void){ Blk blk; s32 queue[6]; s32 msgbuf[1]; s16 type=0x4000;\n if (D_80046D74 == 0) return -1;\n osCreateMesgQueue(queue, msgbuf, 1);\n blk.type=type; blk.flag=0; blk.w1=0; blk.flag16=0; blk.queue=queue;\n osSendMesg(&D_80092BE0,&blk,1); osRecvMesg(queue,0,1); return blk.w2; }\nRemaining diffs vs target: (a) target emits `bnez $v0,.L / j .L_end / addiu $v0,$zero,-1` (early-return inverted to a forward branch + jump), candidate emits `beqz` with the -1 in a delay slot region \u2014 needs the `if (D_80046D74 == 0) return -1;` shape to fold into a jump; (b) block layout: target queue at sp+0x28, msgbuf at sp+0x40, Blk at sp+0x10; candidate has queue at sp+0x10 and Blk at sp+0x28 (swap declaration order so the Blk is declared first, queue second). (c) s0 holds 0x4000 before the branch (type constant hoisted above the if) \u2014 assigning `s16 type = 0x4000;` before the if already does this. The saved candidate was overwritten by an m2c draft; recompile the source above first.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794705763.094107,
-  "score_before": 997,
-  "score_after": 569
- },
- {
-  "function": "func_80029938",
-  "text": "Best 620 (81%). Structure: Msg {s16 type; s16 pad; s32 *mq; s32 a0; s32 ret; s8 c; s8 pad; s16 d}, locals in order msg, mq[6], buf[2]; `if (D_80046D74 != 0) {...; return msg.ret;} return -1;`. Remaining: target keeps 0x4000 in $s0 before the branch and passes mq as $a0 = sp+0x28 directly (ours uses s0 for mq and move $a0,$s0). Also target's ret slot at 0x1C is never written (we read it uninitialised, same as target). Next: try computing the type constant into a local before the D_80046D74 check, or split the mq address use so it is not held in a saved register.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794705778.290626,
-  "score_before": 569,
-  "score_after": 569
  },
  {
   "function": "func_8002B454",
@@ -8312,14 +8288,6 @@
   "score_after": 55
  },
  {
-  "function": "func_80029938",
-  "text": "Best 620 (81.2%), revision 93bc575a8a1637ba24f5. Frame, struct layout and calls are right: Msg at sp+0x10 (type@0, mq@4, a0@8, ret@0xC, c@0x10, d@0x12), mq[6] at sp+0x28, buf[2] at sp+0x40, ret read from 0x1C. Remaining: target keeps 0x4000 in $s0 across the D_80046D74 test (addiu $s0,$zero,0x4000 before bnez) and reuses $s0 for mq's address later; the draft materialises 0x4000 later into $v0. Tried a `s16 type = 0x4000` local hoisted above the if: worse (648), it moved the constant into $s1 and added a 0x58 frame. Next idea: write `msg.mq = mq` via a separate pointer and store `msg.type` from a value computed before the test.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794718114.1903439,
-  "score_before": 569,
-  "score_after": 569
- },
- {
   "function": "func_80143600",
   "text": "Not attempted in this session (claimed as the only item after the batch limit). The m2c draft still has pointer-arithmetic errors: `&D_8022A770`/`&D_8022A772` arithmetic on incomplete types, and the 0x64-stride table indexing on D_8011F2F0 needs a byte-offset view (as on func_80165BDC). Structure visible: a loop over 7 rows of 8 entries, float tests on fields at 0x18/0x20 of entries indexed by ((arg0&0xFFFF)*0x64) + &D_8011F2F0, then a conditional call to func_801FA30C/func_800DE41C. Start from the draft after fixing the types.",
   "by": "claude-haiku-5-5-24",
@@ -9184,14 +9152,6 @@
   "score_after": 1647
  },
  {
-  "function": "func_80029938",
-  "text": "Best now 468 (revision 56e85712b2c674700b86, terminal_guard_layout variant: `if (!(D_80046D74 == 0)) { ... } else { return -1; }` \u2014 this yields the target's `bnez` + `j .Lend` + `addiu v0,-1` shape). Remaining diffs are all frame size: target 0x50 frame with s0 at 0x48 and ra at 0x4c; ours 0x58 with s1 at 0x4c and ra at 0x50, plus `addiu s0,sp,0x28`/`move a0,s0` vs target's single `addiu a0,sp,0x28` for the create call and a later `addiu s0,sp,0x28`. The 8 extra bytes come from msgbuf: target passes `addiu a1,sp,0x40` and the frame ends at 0x50, so the last local starts at 0x40 and only 4 words remain -> msgbuf is ONE word (declare `s32 msgbuf;` and pass `&msgbuf`), not `s32 msgbuf[1]`+alignment. Untried exact patches: (1) `s32 msgbuf;` + `osCreateMesgQueue(queue, &msgbuf, 1)`; (2) same but pass `&queue[0]` so gcc does not keep the queue base in a callee-saved reg (target computes `addiu a0,sp,0x28` inline for the create call, then `addiu s0,sp,0x28` only after it). Also try keeping `blk.queue = queue;` as-is (target stores s0 into 0x14(sp) in the osSendMesg delay slot).\n\nBest 440 (revision b49f84681cb80b281cbe). Target frame 0x50; ours 0x58 with an extra $s1. Target keeps 0x4000 in $s0 from the top (`addiu $s0,$zero,0x4000` right after `sw $s0,0x48($sp)`, before the bnez), and reuses $s0 for `addiu $s0,$sp,0x28` later; `addiu $a0,$sp,0x28` is re-materialized for the osCreateMesgQueue call rather than `move $a0,$s0`. So the original likely wrote the literal 0x4000 in the sh and the queue address twice syntactically differently. Variants tried and rejected: type local before if (468), literal in blk.type (440), osRecvMesg(blk.queue,...) (528), &queue[0] (468), reordered field stores (723), qp pointer local (1138). Remaining idea: split the store block so blk.type's value comes from a separate `s16`-typed expression and the queue address for the call is `(s32 *)((u8 *)queue)` style, or make msgbuf/queue a single struct so the frame shrinks to 0x50.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794720366.855103,
-  "score_before": 440,
-  "score_after": 440
- },
- {
   "function": "func_801E2E48",
   "text": "func_801E2E48 (124 B, unit code_801E0B98). Best 430 (86.1%): u16 idx = arg0; a 0x30-byte copy loop from D_801E9018 to D_801E97A0 at idx*0x30, then func_801E2E00(idx, D_801E97CC + idx*0x30, idx*0x30, D_801E9018). Target computes the stride once (sll 4 + addu) and keeps the D_801E97CC base in registers; mine reloads %hi/%lo for D_801E97CC and recomputes the stride. The pointer-based copy (src/dst locals) scored 1395, worse. Not tried: the copy loop as a counted loop over a single index with the pointer advanced by 1, and the call's 4th arg as the D_801E9018 address held in a register.",
   "by": "claude-haiku-5-5-22",
@@ -9518,14 +9478,6 @@
   "created_at": 1794721134.241102,
   "score_before": 4200,
   "score_after": 4200
- },
- {
-  "function": "func_80029938",
-  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: stack layout; first differing row 2; 17 differing rows (3 register, 3 stack, 2 branch target, 3 operand, 2 reordered, 3 inserted, 1 deleted; advisory).\nTarget: addiu $sp, $sp, -0x50\nCandidate: addiu $sp, $sp, -0x58\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n  = lui $v0, %hi(D_80046D74)\n  = lw $v0, %lo(D_80046D74)($v0)\ns T: addiu $sp, $sp, -0x50 | C: addiu $sp, $sp, -0x58\ni T: sw $s0, 0x48($sp) | C: sw $s1, 0x4c($sp)\nr T: addiu $s0, $zero, 0x4000 | C: addiu $s1, $zero, 0x4000\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nBest 440 (rev b49f84681cb80b281cbe). Remaining gap: target materializes 0x4000 into $s0 BEFORE the bnez ($s0 = constant, later reused as queue pointer), i.e. `addiu $s0,$zero,0x4000` in the delay slot of bnez and `addiu $a0,$sp,0x28` direct instead of `move $a0,$s0`. Tried: s16/s32/u16 local for 0x4000 (score 468/845), &queue[0] variants, moving blk.type= before the if (845), declaration reorder, member_store_replay/constant_local/allocation_initialization_order families (none applicable). Note the target uses $s0 for two different values (0x4000 then &queue) \u2014 that reuse across the call is what plain C declarations don't reproduce; consider one variable holding the constant first then reassigned to the queue address.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794721141.783659,
-  "score_before": 440,
-  "score_after": 440
  },
  {
   "function": "func_800422C4",
@@ -12222,14 +12174,6 @@
   "created_at": 1794728999.850807,
   "score_before": 5810,
   "score_after": 5810
- },
- {
-  "function": "func_80029938",
-  "text": "Best 440 (same score as saved). Frame must be 0x50: `s32 msgbuf[2];` gives the right frame (msgbuf[1] gives 0x48). osCreateMesgQueue(queue, msgbuf, 1) with the prototype as declared (void*,s32,s32) needs the msgbuf address (passing msgbuf[0] was wrong). Left: target loads `addiu $a0,$sp,0x28` straight into a0 for osSendMesg/osRecvMesg-side queue, and keeps s0=0x4000 for `sh`; mine keeps queue in s0 and moves it to a0 (`move $a0,$s0`). Register allocation issue; the one-line reorder that might fix it is not found yet. Tried: changing the call args (score 554-654, worse). Prototype caveat: brief says osCreateMesgQueue's matched definition is void(void*,s32,s32), so the (void*,void*,s32) form would conflict.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794729014.4014132,
-  "score_before": 440,
-  "score_after": 440
  },
  {
   "function": "func_800338B0",
@@ -18574,5 +18518,117 @@
   "created_at": 1794754896.2401102,
   "score_before": 72,
   "score_after": 72
+ },
+ {
+  "function": "func_80029938",
+  "text": "Deep permuter: score 997 \u2192 276; 2 improvements; 136 candidates tested; 0 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589934815",
+  "created_at": 1794348522.2570188,
+  "score_before": 997,
+  "score_after": 276
+ },
+ {
+  "function": "func_80029938",
+  "text": "Best verified score 569/33 insns (34 emitted). Restore this source and continue:\ntypedef struct Blk { s16 type; s32 *queue; s32 w1; s32 w2; s8 flag; s16 flag16; } Blk;\nextern s32 D_80046D74; extern s32 D_80092BE0;\nvoid osCreateMesgQueue(void*,void*,s32); s32 osRecvMesg(void*,s32,s32); s32 osSendMesg(void*,void*,s32);\ns32 func_80029938(void){ Blk blk; s32 queue[6]; s32 msgbuf[1]; s16 type=0x4000;\n if (D_80046D74 == 0) return -1;\n osCreateMesgQueue(queue, msgbuf, 1);\n blk.type=type; blk.flag=0; blk.w1=0; blk.flag16=0; blk.queue=queue;\n osSendMesg(&D_80092BE0,&blk,1); osRecvMesg(queue,0,1); return blk.w2; }\nRemaining diffs vs target: (a) target emits `bnez $v0,.L / j .L_end / addiu $v0,$zero,-1` (early-return inverted to a forward branch + jump), candidate emits `beqz` with the -1 in a delay slot region \u2014 needs the `if (D_80046D74 == 0) return -1;` shape to fold into a jump; (b) block layout: target queue at sp+0x28, msgbuf at sp+0x40, Blk at sp+0x10; candidate has queue at sp+0x10 and Blk at sp+0x28 (swap declaration order so the Blk is declared first, queue second). (c) s0 holds 0x4000 before the branch (type constant hoisted above the if) \u2014 assigning `s16 type = 0x4000;` before the if already does this. The saved candidate was overwritten by an m2c draft; recompile the source above first.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794705763.094107,
+  "score_before": 997,
+  "score_after": 569
+ },
+ {
+  "function": "func_80029938",
+  "text": "Best 620 (81%). Structure: Msg {s16 type; s16 pad; s32 *mq; s32 a0; s32 ret; s8 c; s8 pad; s16 d}, locals in order msg, mq[6], buf[2]; `if (D_80046D74 != 0) {...; return msg.ret;} return -1;`. Remaining: target keeps 0x4000 in $s0 before the branch and passes mq as $a0 = sp+0x28 directly (ours uses s0 for mq and move $a0,$s0). Also target's ret slot at 0x1C is never written (we read it uninitialised, same as target). Next: try computing the type constant into a local before the D_80046D74 check, or split the mq address use so it is not held in a saved register.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794705778.290626,
+  "score_before": 569,
+  "score_after": 569
+ },
+ {
+  "function": "func_80029938",
+  "text": "Best 620 (81.2%), revision 93bc575a8a1637ba24f5. Frame, struct layout and calls are right: Msg at sp+0x10 (type@0, mq@4, a0@8, ret@0xC, c@0x10, d@0x12), mq[6] at sp+0x28, buf[2] at sp+0x40, ret read from 0x1C. Remaining: target keeps 0x4000 in $s0 across the D_80046D74 test (addiu $s0,$zero,0x4000 before bnez) and reuses $s0 for mq's address later; the draft materialises 0x4000 later into $v0. Tried a `s16 type = 0x4000` local hoisted above the if: worse (648), it moved the constant into $s1 and added a 0x58 frame. Next idea: write `msg.mq = mq` via a separate pointer and store `msg.type` from a value computed before the test.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794718114.1903439,
+  "score_before": 569,
+  "score_after": 569
+ },
+ {
+  "function": "func_80029938",
+  "text": "Best now 468 (revision 56e85712b2c674700b86, terminal_guard_layout variant: `if (!(D_80046D74 == 0)) { ... } else { return -1; }` \u2014 this yields the target's `bnez` + `j .Lend` + `addiu v0,-1` shape). Remaining diffs are all frame size: target 0x50 frame with s0 at 0x48 and ra at 0x4c; ours 0x58 with s1 at 0x4c and ra at 0x50, plus `addiu s0,sp,0x28`/`move a0,s0` vs target's single `addiu a0,sp,0x28` for the create call and a later `addiu s0,sp,0x28`. The 8 extra bytes come from msgbuf: target passes `addiu a1,sp,0x40` and the frame ends at 0x50, so the last local starts at 0x40 and only 4 words remain -> msgbuf is ONE word (declare `s32 msgbuf;` and pass `&msgbuf`), not `s32 msgbuf[1]`+alignment. Untried exact patches: (1) `s32 msgbuf;` + `osCreateMesgQueue(queue, &msgbuf, 1)`; (2) same but pass `&queue[0]` so gcc does not keep the queue base in a callee-saved reg (target computes `addiu a0,sp,0x28` inline for the create call, then `addiu s0,sp,0x28` only after it). Also try keeping `blk.queue = queue;` as-is (target stores s0 into 0x14(sp) in the osSendMesg delay slot).\n\nBest 440 (revision b49f84681cb80b281cbe). Target frame 0x50; ours 0x58 with an extra $s1. Target keeps 0x4000 in $s0 from the top (`addiu $s0,$zero,0x4000` right after `sw $s0,0x48($sp)`, before the bnez), and reuses $s0 for `addiu $s0,$sp,0x28` later; `addiu $a0,$sp,0x28` is re-materialized for the osCreateMesgQueue call rather than `move $a0,$s0`. So the original likely wrote the literal 0x4000 in the sh and the queue address twice syntactically differently. Variants tried and rejected: type local before if (468), literal in blk.type (440), osRecvMesg(blk.queue,...) (528), &queue[0] (468), reordered field stores (723), qp pointer local (1138). Remaining idea: split the store block so blk.type's value comes from a separate `s16`-typed expression and the queue address for the call is `(s32 *)((u8 *)queue)` style, or make msgbuf/queue a single struct so the frame shrinks to 0x50.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794720366.855103,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_80029938",
+  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: stack layout; first differing row 2; 17 differing rows (3 register, 3 stack, 2 branch target, 3 operand, 2 reordered, 3 inserted, 1 deleted; advisory).\nTarget: addiu $sp, $sp, -0x50\nCandidate: addiu $sp, $sp, -0x58\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n  = lui $v0, %hi(D_80046D74)\n  = lw $v0, %lo(D_80046D74)($v0)\ns T: addiu $sp, $sp, -0x50 | C: addiu $sp, $sp, -0x58\ni T: sw $s0, 0x48($sp) | C: sw $s1, 0x4c($sp)\nr T: addiu $s0, $zero, 0x4000 | C: addiu $s1, $zero, 0x4000\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nBest 440 (rev b49f84681cb80b281cbe). Remaining gap: target materializes 0x4000 into $s0 BEFORE the bnez ($s0 = constant, later reused as queue pointer), i.e. `addiu $s0,$zero,0x4000` in the delay slot of bnez and `addiu $a0,$sp,0x28` direct instead of `move $a0,$s0`. Tried: s16/s32/u16 local for 0x4000 (score 468/845), &queue[0] variants, moving blk.type= before the if (845), declaration reorder, member_store_replay/constant_local/allocation_initialization_order families (none applicable). Note the target uses $s0 for two different values (0x4000 then &queue) \u2014 that reuse across the call is what plain C declarations don't reproduce; consider one variable holding the constant first then reassigned to the queue address.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794721141.783659,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_80029938",
+  "text": "Best 440 (same score as saved). Frame must be 0x50: `s32 msgbuf[2];` gives the right frame (msgbuf[1] gives 0x48). osCreateMesgQueue(queue, msgbuf, 1) with the prototype as declared (void*,s32,s32) needs the msgbuf address (passing msgbuf[0] was wrong). Left: target loads `addiu $a0,$sp,0x28` straight into a0 for osSendMesg/osRecvMesg-side queue, and keeps s0=0x4000 for `sh`; mine keeps queue in s0 and moves it to a0 (`move $a0,$s0`). Register allocation issue; the one-line reorder that might fix it is not found yet. Tried: changing the call args (score 554-654, worse). Prototype caveat: brief says osCreateMesgQueue's matched definition is void(void*,s32,s32), so the (void*,void*,s32) form would conflict.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794729014.4014132,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_80029938",
+  "text": "Best score 440 (86.6%, 33 insns), revision b49f84681cb80b281cbe, same source as the saved candidate. It is the sibling of func_800297E8, and the same stack pattern applies: mq[] at sp+0x28, Blk at sp+0x10. Diff: the target stores the 0x4000 constant in $s0 before the call sequence (sw $s0,0x48(sp) at [3], addiu s0,zero,0x4000 at [4], bnez, then sw ra at 0x4c), and it passes &mq as a0 via addiu a0,sp,0x28 directly. The candidate instead computes the queue address into s0 and does move a0,s0, and it emits 0x4000 late (addiu v0, then sh v0). Next: store blk.type from a local `s16 kind = 0x4000` declared before the if, as the sibling needed, and keep the queue address as a direct &queue argument. Not re-tried.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794742446.677351,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_80029938",
+  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794746141.211571,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_80029938",
+  "text": "Best verified 440 on revision 27a0117d8e099a26125e (33 insns both sides; 9 differing rows). Structure confirmed: `if (D_80046D74 != 0) { osCreateMesgQueue(queue, msgbuf, 1); blk.type=0x4000; blk.flag=0; blk.w1=0; blk.flag16=0; blk.queue=queue; osSendMesg(&D_80092BE0,&blk,1); osRecvMesg(queue,0,1); return blk.w2; } else return -1;` with `Blk {s16 type; s32 *queue; s32 w1; s32 w2; s8 flag; s16 flag16;}` (blk at sp+0x10, queue at sp+0x28, msgbuf at sp+0x40, frame 0x50).\n\nRemaining diffs: target hoists `addiu $s0,$zero,0x4000` before the bnez (constant live across branch, s0), and passes `addiu $a0,$sp,0x28` directly to osCreateMesgQueue instead of `move $a0,$s0` (queue address recomputed, not kept in a register). Also target stores `sw $s0,0x48($sp)` before `sw $ra,0x4c($sp)`.\n\nTried: s16/s32 local `type = 0x4000` hoisted (468, extra s1 save), `blk.type = 0x4000` before the if (845, store hoisted too). Move-on budget 3/3 exhausted.\nNext idea: make the 0x4000 constant used in an unconditional context so gcc hoists it into s0 without hoisting the sh, and use a separate queue variable whose address is taken at the call site (e.g. `osCreateMesgQueue(&q, ...)` with q a struct member) so a0 comes from addiu $sp instead of a register copy.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794746456.043732,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_80029938",
+  "text": "Best 440 (86.6%). Layout confirmed: Blk{s16 type @0; s32*queue @4; s32 w1 @8; s32 w2 @12; s8 flag @16; s16 flag16 @18} at sp+0x10, queue[6] at sp+0x28, msgbuf[1] at sp+0x40. Store order matches target (type, flag, w1, flag16, queue). Blocking diff: target holds 0x4000 in $s0 across osCreateMesgQueue (loaded before bnez) and computes queue addr fresh into $a0 for each call; C that puts queue addr in s0 at top gives an extra 'move $a0,$s0' and wrong s0 use. Tried a 'kind' s32 local holding 0x4000: worse (468, extra $s1 save). Unresolved: how to make gcc hoist the 0x4000 constant above the branch without a second callee-saved register. Needs a new idea (maybe the queue array is declared as a separate statement after the constant).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794747937.577439,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_80029938",
+  "text": "Not matched. Saved best 440 is the baseline (restore saved_best first). Two attempts this session scored 1456 and 1365, both worse. Target (37 insns, frame 0x50): the first instruction loads D_80046D74; s0 = 0x4000 is set BEFORE the test (addiu s0,zero,0x4000 sits in the delay region), then bnez v0 jumps over a 'j' that returns -1 (addiu v0,zero,-1 in the delay slot). My C puts the -1 test as beqz and sets s0 after it, so the early-return polarity and the s0 setup order are wrong. Also the target's queue is at sp+0x28 (addiu a0,sp,0x28 for osRecvMesg) and the message at sp+0x10 with sh s0 @0x10, sw queue @0x14, sw zero @0x18, sb zero @0x20, sh zero @0x22; osSendMesg(D_80092BE0, sp+0x10, 1); return lw sp+0x1C. Next: write the test as 'if (D_80046D74 != 0) { ... } return -1;' so the body comes first, and set msg.a = 0x4000 before the test.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794753127.268353,
+  "score_before": 440,
+  "score_after": 440
+ },
+ {
+  "function": "func_80029938",
+  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: stack layout; first differing row 2; 15 differing rows (3 register, 3 stack, 2 branch target, 3 operand, 3 inserted, 1 deleted; advisory).\nTarget: addiu $sp, $sp, -0x50\nCandidate: addiu $sp, $sp, -0x58\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n  = lui $v0, %hi(D_80046D74)\n  = lw $v0, %lo(D_80046D74)($v0)\ns T: addiu $sp, $sp, -0x50 | C: addiu $sp, $sp, -0x58\ni T: sw $s0, 0x48($sp) | C: sw $s1, 0x4c($sp)\nr T: addiu $s0, $zero, 0x4000 | C: addiu $s1, $zero, 0x4000\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nIMPORTANT saved score1 revision8d01550f7833666f1017 is a diagnostic WRONG queue address (+0x14 from blk, target requires +0x18); do not promote it. Correcting +0x18 or padding Blk changes optimizer to valid score468. Current valid d9416fd44e04409aa5df has type initialized before if; compiler holds type in s1 and queue in s0 instead of target reusing s0 sequentially. Simple literal blk.type gives valid440. Equivalent queue casts, volatile blk/queue, register s16 type unchanged468. Explicit enclosing frame with blk,pad,queue,msgbuf also468. Standard flags equal468. Future investigate preventing initial queue address CSE while preserving correct address.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794753853.4513369,
+  "score_before": 440,
+  "score_after": 1
+ },
+ {
+  "function": "func_80029938",
+  "text": "Rechecked score1 saved candidate is WRONG: osCreateMesgQueue receives sp+0x24, target sp+0x28. Three new equivalent valid address expressions (msgbuf-24, blk+24, &blk.flag16+6) all score468; GCC CSE keeps queue address in s0 across first call, adds s1 for type and grows frame. Do not accept score1 as semantic evidence. Need source construct preventing queue-address CSE with correct sp+0x28. Existing extensive trials documented same blocker; no new viable experiment this pass.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794755097.5659468,
+  "score_before": 1,
+  "score_after": 1
  }
 ]
