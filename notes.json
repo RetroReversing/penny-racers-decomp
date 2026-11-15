@@ -7648,14 +7648,6 @@
   "score_after": 1530
  },
  {
-  "function": "func_801AEAB0",
-  "text": "Best 3525 (70.8%), saved. Stopping: the remaining diff is the instruction order of the stack-argument stores around three func_800DE41C calls and the lui/addiu materialisation of D_801B7204, D_80196448, D_801D5A90 relative to the zero stores. A single C statement cannot reorder those stores without changing the argument values, and the variant I tried (separate statements per call) did not change the diff. Also the D_801C7AD0 sb and D_801C7ABD sb order differs. Next agent: compile one call at a time (comment out the other two) to find which call's arg order differs; the first call's stores look like they match except the 0x20 pointer ordering.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794709694.2346802,
-  "score_before": 4535,
-  "score_after": 3525
- },
- {
   "function": "func_801B4B6C",
   "text": "Best this session: 1220 (87.6%) with per-branch recomputed offset `off = (arg0 & 0xFFFF) * 0x64` and direct array-style stores `*(&D_8011F2F0 + off)`, `*(&D_8011F2FC + off)`. Remaining diffs: target computes the index multiply as ((x*3)<<3 + x)<<2 and then forms a base pointer `addu` + `addiu %lo(D_8011F2F0)` and stores via `sb ...,0($v0)` / `sb ...,0xc($v0)`; my versions store with `$at`-relative absolute addressing. Pointer form `u8 *p = (u8*)&D_8011F2F0 + off` with a single shared p gave 5750 when recomputed per-branch, 2445 when the index was recomputed per block. Branch targets are off by 8 bytes (target bne at 0x184 vs mine 0x18c), so the target has 2 fewer insns before the else branch. Not matched; the block_7/block_8 goto structure may be wrong (target looks like a single compare with fallthrough to the inc block).",
   "by": "claude-haiku-5-5-22",
@@ -11638,14 +11630,6 @@
   "created_at": 1794724702.3231082,
   "score_before": 85,
   "score_after": 85
- },
- {
-  "function": "func_801AEAB0",
-  "text": "Best 3525 (70.8%), no match. Restart from revision e9149c10cf292a679775 (also 19bbec7d782be7d1326a, same score). Structure is right: 3 calls to func_800DE41C with 18 args (4 regs + 14 stack words: slots 0x10..0x44), func_800294A0(&D_1B0E50, &D_802D6890, &D_1F9030-&D_1B0E50), func_80203DF8(1,0x1E,0,0,0). Store details: sh 0 to D_8006FAF0+0x20; D_8011F2F4[(u16)ret*100] |= 0x20 via lhu/ori/sh; D_801C7074 = ret; D_8011F32E[D_801C7074*100] = 0 (halfword); sb 0xF0 to D_801C7ABD; sb 0 to D_801C7AD0. Remaining diffs: (1) the target builds the stack-arg words interleaved with the address loads (lui v0,D_801B7204 is loaded between the sw of 0xFF and the sw of 0x20), mine stores all immediates first; (2) the target reloads D_801C7074 from memory (lhu) after the sh rather than reusing the return register; (3) argument-setup order for func_800294A0: target loads D_1F9030 first, then D_1B0E50 into a2 and a0. Tried without effect: pointer subtraction via a local end variable, and writing the first call's return with and without the andi. Untried: a struct for the 14 stack words so the compiler emits them in declaration order; compile_family signedness.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794724721.0549881,
-  "score_before": 3525,
-  "score_after": 3525
  },
  {
   "function": "func_800427B0",
@@ -15712,14 +15696,6 @@
   "score_after": 10
  },
  {
-  "function": "func_801AEAB0",
-  "text": "Best 3210 (73.4%), revision 321176c6e36998bba690. Three func_800DE41C calls with 18 args (stack args at 0x10..0x44 mostly zero-filled). `extern volatile u16 D_801C7074;` forces the target's sh-then-lhu reload (3525 -> 3210). Remaining: our trailing `andi $v1,$v1,0xffff` after the reload should not exist (target uses bare lhu); the D_801C7AD0 sb lands earlier in ours than in the target; the final func_800294A0 argument setup (D_1B0E50/D_1F9030/D_802D6890) is out of order. Next: remove the andi (check index type) and move `D_801C7AD0 = 0` after the 0x7F call's arg setup. Claim lapsed before release, so these notes were added directly.\n\nBest 3210 (73.4%), revision 321176c6e36998bba690 (volatile u16 D_801C7074). Tried: (s32) cast on the index (no effect; andi persists). The andi after the lhu is still unexplained: try compile_family(signedness) per the tool hint. Other diffs: stack-arg stores and the D_801C7AD0 sb placement; func_800294A0 argument setup order (D_1B0E50/D_1F9030/D_802D6890) is out of order. Reclaimed once after an earlier lapse: the m2c draft is worse (3525 and up), always start from 321176c6e36998bba690.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794737124.661516,
-  "score_before": 3525,
-  "score_after": 3210
- },
- {
   "function": "func_801984DC",
   "text": "No match. Best is revision 87749404384a3880ca95 at 2450 (70.8%): a single exit label `END: return a1 & 0xFF;`, early `goto END` for the range/0xFFFF test and the `pl[1]!=5` case, and L1/L2 labels with direct global reads (no locals). Logic derived from asm: a1 = 0; if !(g<0x17) or table16[(g*0x18+t)*2]!=0xFFFF -> END; if *(u8*)(D_801C7AB0+1)!=5 -> a1=1; q0==t && q1==g+1 -> a1=(m==2); q0==t && q1==g-1 -> a1=(m==1||m==3); else if q0 not t+1/t-1 -> a1=1; else if D_801C7063!=g -> a1=1; else a1=(m==0||m==2). Remaining diffs: target loads g (lb D_801C6BB9) into $a0 and keeps t in $a2 for the rest of the function, and the first test is slti on g; the sll/addu index is g*3 then *8 + t, *2. Using s32 locals for g,t (3480) reorders loads and was worse. Next: keep the 2450 structure, try caching g/t in locals only after the slti (so the first lb of g is direct), and the q0 reload of D_801C7062 into a register once (target: lui/addiu v1 then lb (v1), lb 1(v1)).",
   "by": "claude-haiku-5-5-21",
@@ -16374,14 +16350,6 @@
   "created_at": 1794739335.257343,
   "score_before": 2130,
   "score_after": 2130
- },
- {
-  "function": "func_801AEAB0",
-  "text": "Released at the session claim limit, not for lack of ideas. Best 3210 (73.4%) at revision 24a4f7bf09c76bb83536: s32 temp = (func_800DE41C(...) & 0xFFFF) * 0x64; then read-modify-write of D_8011F2F4 + temp (| 0x20). Same 121 instruction count as target. Remaining diff: argument register setup for the first func_800DE41C call (target moves $a1 = 0 earlier, mine zeroes $a0 first) and the order of the second and third calls. Tried: u16 temp with *0x64 (3600, worse: andi moves, base rebuilt with lui/addiu). Next: keep the s32 temp form and move the leading D_8006FAF0+0x20 store after the first call, then check argument moves.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794739355.414117,
-  "score_before": 3210,
-  "score_after": 3210
  },
  {
   "function": "func_80028C68",
@@ -22584,14 +22552,6 @@
   "score_after": 2565
  },
  {
-  "function": "func_801AEAB0",
-  "text": "Best 3210 (73.4%), revision 24a4f7bf09c76bb83536; 121 insns both sides, so the gap is ordering and register choice, not missing code. Confirmed: the 18-arg func_800DE41C prototype (u16 return) places the args right: a0..a3 = 0,0,3,0; stack 0x10=0x40, 0x14=0xFF, 0x18/0x1C=0, 0x20=&D_801B7204, 0x24..0x44 zero. Target order: sh $zero to D_8006FAF0+0x20 first, then stack args, then register args. Tail: target computes D_1F9030 - D_1B0E50 first, then loads D_1B0E50 and D_802D6890 for func_800294A0; mine loads a0/a1 before the size. Tried a separate s32 size local before the call (revision 5cc316da1cd51aa2213d): no effect on the score, so the tail order is not governed by statement order. Untried: check whether the frame (ra saved at 0x48, the stack arg block) comes from a different argument-type shape, e.g. void* vs u8* for the D_801B7204 and D_80196448 args. Stopping at 2 no-improvement compiles after the size-local attempt; the 3210 is the saved best.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794755748.519084,
-  "score_before": 3210,
-  "score_after": 3210
- },
- {
   "function": "func_80198858",
   "text": "Not matched. Best 2380 (65%) at revision 9c702fa4b7c6797e203c (the original n/m-switch chain with a2 result, D_801C6BB9 loaded first into a0 in the target). Pointer variant 's8 *p = D_801C6BB0' scored 4875 (worse). Target shape: n=lb D_801C6BB9 tested first (beqz a0 -> return 0 with a2=0); a2 is the result register (move a2,zero; addiu a2,zero,1); flag m=lbu D_801C7469 then a chain of bnel/beq comparing lb D_801C6BB0[0] with D_801C7068 and lb [1] with n-1. Remaining diffs are register choice (target puts n in a0, result in a2, the table address in a1 via addiu a1,a1,%lo(D_801C6BB0)) and branch order. Next: keep n in a0 by writing 'if (n == 0) return 0;' before the m read, and use an explicit s8 *a1 = D_801C6BB0 only in the branches that read it.",
   "by": "claude-haiku-5-5-24",
@@ -26022,5 +25982,45 @@
   "created_at": 1794762720.4726012,
   "score_before": 10,
   "score_after": 10
+ },
+ {
+  "function": "func_801AEAB0",
+  "text": "Best 3525 (70.8%), saved. Stopping: the remaining diff is the instruction order of the stack-argument stores around three func_800DE41C calls and the lui/addiu materialisation of D_801B7204, D_80196448, D_801D5A90 relative to the zero stores. A single C statement cannot reorder those stores without changing the argument values, and the variant I tried (separate statements per call) did not change the diff. Also the D_801C7AD0 sb and D_801C7ABD sb order differs. Next agent: compile one call at a time (comment out the other two) to find which call's arg order differs; the first call's stores look like they match except the 0x20 pointer ordering.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794709694.2346802,
+  "score_before": 4535,
+  "score_after": 3525
+ },
+ {
+  "function": "func_801AEAB0",
+  "text": "Best 3525 (70.8%), no match. Restart from revision e9149c10cf292a679775 (also 19bbec7d782be7d1326a, same score). Structure is right: 3 calls to func_800DE41C with 18 args (4 regs + 14 stack words: slots 0x10..0x44), func_800294A0(&D_1B0E50, &D_802D6890, &D_1F9030-&D_1B0E50), func_80203DF8(1,0x1E,0,0,0). Store details: sh 0 to D_8006FAF0+0x20; D_8011F2F4[(u16)ret*100] |= 0x20 via lhu/ori/sh; D_801C7074 = ret; D_8011F32E[D_801C7074*100] = 0 (halfword); sb 0xF0 to D_801C7ABD; sb 0 to D_801C7AD0. Remaining diffs: (1) the target builds the stack-arg words interleaved with the address loads (lui v0,D_801B7204 is loaded between the sw of 0xFF and the sw of 0x20), mine stores all immediates first; (2) the target reloads D_801C7074 from memory (lhu) after the sh rather than reusing the return register; (3) argument-setup order for func_800294A0: target loads D_1F9030 first, then D_1B0E50 into a2 and a0. Tried without effect: pointer subtraction via a local end variable, and writing the first call's return with and without the andi. Untried: a struct for the 14 stack words so the compiler emits them in declaration order; compile_family signedness.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794724721.0549881,
+  "score_before": 3525,
+  "score_after": 3525
+ },
+ {
+  "function": "func_801AEAB0",
+  "text": "Best 3210 (73.4%), revision 321176c6e36998bba690. Three func_800DE41C calls with 18 args (stack args at 0x10..0x44 mostly zero-filled). `extern volatile u16 D_801C7074;` forces the target's sh-then-lhu reload (3525 -> 3210). Remaining: our trailing `andi $v1,$v1,0xffff` after the reload should not exist (target uses bare lhu); the D_801C7AD0 sb lands earlier in ours than in the target; the final func_800294A0 argument setup (D_1B0E50/D_1F9030/D_802D6890) is out of order. Next: remove the andi (check index type) and move `D_801C7AD0 = 0` after the 0x7F call's arg setup. Claim lapsed before release, so these notes were added directly.\n\nBest 3210 (73.4%), revision 321176c6e36998bba690 (volatile u16 D_801C7074). Tried: (s32) cast on the index (no effect; andi persists). The andi after the lhu is still unexplained: try compile_family(signedness) per the tool hint. Other diffs: stack-arg stores and the D_801C7AD0 sb placement; func_800294A0 argument setup order (D_1B0E50/D_1F9030/D_802D6890) is out of order. Reclaimed once after an earlier lapse: the m2c draft is worse (3525 and up), always start from 321176c6e36998bba690.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794737124.661516,
+  "score_before": 3525,
+  "score_after": 3210
+ },
+ {
+  "function": "func_801AEAB0",
+  "text": "Released at the session claim limit, not for lack of ideas. Best 3210 (73.4%) at revision 24a4f7bf09c76bb83536: s32 temp = (func_800DE41C(...) & 0xFFFF) * 0x64; then read-modify-write of D_8011F2F4 + temp (| 0x20). Same 121 instruction count as target. Remaining diff: argument register setup for the first func_800DE41C call (target moves $a1 = 0 earlier, mine zeroes $a0 first) and the order of the second and third calls. Tried: u16 temp with *0x64 (3600, worse: andi moves, base rebuilt with lui/addiu). Next: keep the s32 temp form and move the leading D_8006FAF0+0x20 store after the first call, then check argument moves.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794739355.414117,
+  "score_before": 3210,
+  "score_after": 3210
+ },
+ {
+  "function": "func_801AEAB0",
+  "text": "Best 3210 (73.4%), revision 24a4f7bf09c76bb83536; 121 insns both sides, so the gap is ordering and register choice, not missing code. Confirmed: the 18-arg func_800DE41C prototype (u16 return) places the args right: a0..a3 = 0,0,3,0; stack 0x10=0x40, 0x14=0xFF, 0x18/0x1C=0, 0x20=&D_801B7204, 0x24..0x44 zero. Target order: sh $zero to D_8006FAF0+0x20 first, then stack args, then register args. Tail: target computes D_1F9030 - D_1B0E50 first, then loads D_1B0E50 and D_802D6890 for func_800294A0; mine loads a0/a1 before the size. Tried a separate s32 size local before the call (revision 5cc316da1cd51aa2213d): no effect on the score, so the tail order is not governed by statement order. Untried: check whether the frame (ra saved at 0x48, the stack arg block) comes from a different argument-type shape, e.g. void* vs u8* for the D_801B7204 and D_80196448 args. Stopping at 2 no-improvement compiles after the size-local attempt; the 3210 is the saved best.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794755748.519084,
+  "score_before": 3210,
+  "score_after": 3210
  }
 ]

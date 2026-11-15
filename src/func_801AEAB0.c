@@ -9,7 +9,7 @@ extern u8 D_8011F32E[];
 extern u8 D_80196448[];
 extern u8 D_801B63E4[];
 extern u8 D_801B7204[];
-extern volatile u16 D_801C7074;
+extern u16 D_801C7074;
 extern u8 D_801C7ABD;
 extern u8 D_801C7AD0;
 extern u8 D_801D5A90[];
