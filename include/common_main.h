@@ -34,3 +34,7 @@ typedef struct { N_ALPlayerLayout *head; u8 pad04[40]; s32 samples; } N_ALSynthL
 typedef struct { u8 data[0x30]; } N_ALSoundStateLayout;
 typedef struct { u8 pad00[0x3c]; s32 target; N_ALSoundStateLayout *states; } N_ALSoundPlayerLayout;
 typedef struct { s16 type; u16 pad02; N_ALSoundStateLayout *state; union { s8 mix; f32 pitch; } value; u8 extra0c[4]; } N_ALSoundEventLayout;
+
+/* Bank sound relocation fields verified by _bnkfPatchSound. */
+typedef struct { u32 envelope; u32 keymap; u32 wavetable; u8 pad[2]; u8 flags; u8 padf; } N_ALBankSoundLayout;
+f32 alCents2Ratio(s32 cents);
