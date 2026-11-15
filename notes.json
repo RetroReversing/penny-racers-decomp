@@ -4544,14 +4544,6 @@
   "score_after": 29183
  },
  {
-  "function": "func_8015CF2C",
-  "text": "Deep permuter: score 1455 \u2192 1255; 1 improvements; 62 candidates tested; 56 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935529",
-  "created_at": 1794356213.997129,
-  "score_before": 1455,
-  "score_after": 1255
- },
- {
   "function": "func_801F93FC",
   "text": "Deep permuter: score 13077 \u2192 13077; 0 improvements; 103 candidates tested; 0 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935661",
@@ -6008,14 +6000,6 @@
   "score_after": 660
  },
  {
-  "function": "func_8015CF2C",
-  "text": "Best this claim: 1055 (75%), from the local-offset form: `s32 off = (arg0&0xFFFF)*100; u8 *s0 = *(u8**)(D_8011F350+off); *(f32*)(s0+0x70) += 15.0f; s16 t = *(u16*)(s0+0x14) - 1; store t; if (t < 0) { func_8013E49C(*(u16*)(s0+0x76)); D_8011F2FD[off] = 2; } func_8013EDFC(arg0&0xFFFF, s0);`. The signed s16 test gives the sll 16 / bgez pattern (u16 & 0x8000 gave andi, worse). Remaining: the target re-masks arg0 with andi $a0,$s2,0xffff before each call (after the sb and in the fall-through), and keeps arg0 in $s2 and off in $s1; my versions use move from the off register (arg0 folded into off). The saved draft 945 is still best. Next try: keep arg0 live as its own variable so the mask is recomputed at each call site, and check the saved-register order (sw $ra first, then s2, s1, s0).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794706406.80481,
-  "score_before": 945,
-  "score_after": 945
- },
- {
   "function": "func_80155110",
   "text": "Best 80 (97.4%), revision 3ab00325f92ddd3e79ec. Body matches apart from the prologue: target saves $ra at 0x14($sp) first, then $s0 at 0x10($sp), and does andi $s0,$a0,0xFFFF after both stores; ours stores $s0 first, does the andi, then stores $ra. Body shape: call func_8013AE60(idx); idx*100 via shift/add; vu16 reload pattern with +4, compare 0x80, subtract 0x7B (uses the first loaded value). Tried u16 parameter and `arg0 & 0xFFFF` temp: no change. Next: the call result is unused, so try a version where the callee's argument is computed through a separate variable declared before the first call, or a volatile call sequence, to force ra save order.",
   "by": "claude-haiku-5-5-24",
@@ -6230,14 +6214,6 @@
   "created_at": 1794706662.239085,
   "score_before": 1490,
   "score_after": 1490
- },
- {
-  "function": "func_8015CF2C",
-  "text": "Not matched. Best local 1055 (75.4%): idx = (arg0&0xFFFF)*100; obj = *(u8**)(D_8011F350+idx); obj+0x70 f32 += 15.0f; t = (s16)(*(u16*)(obj+0x14) - 1), stored back; `var = arg0&0xFFFF` before if (t<0) { func_8013E49C(*(u16*)(obj+0x76)); D_8011F2FD[idx]=2; var = arg0&0xFFFF; } func_8013EDFC(var,obj). Extern u8 D_8011F2FD[], u8 D_8011F350[]. Target keeps raw arg in s2 and idx in s1; ours put idx in s2, so the sb address uses $s2 instead of $s1, and the bgez target is 0x10 short (the target body has an extra andi after the sb). Tried worse: adding the call inside both branches with early return (1375); `arg0 = arg0` hack (1055 same as above). Next: force idx in a separate local live across both calls, and reload arg0&0xFFFF after the sb store only.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794706671.767309,
-  "score_before": 945,
-  "score_after": 945
  },
  {
   "function": "func_8014A9F4",
@@ -8928,14 +8904,6 @@
   "score_after": 1330
  },
  {
-  "function": "func_8015CF2C",
-  "text": "SOLVED pending compiler-profile change. The candidate C is byte-identical to the ROM with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (try_compiler said \"MATCHES the game byte for byte\"; suggest() filed for this function). Under the project -O2 profile it scores 720 with every instruction/register/stack slot already identical - only scheduling differs (prologue save placement, lwc1/lui/mtc1 order, lhu hoisted into the mtc1->add.s slot, swc1 in the branch delay slot instead of andi). No source permutation changes the -O2 schedule (float-first, counter-first, f32 temp, pointer temp, struct fields, += all give the identical -O2 output). Do not rewrite the C; apply the suggested -O1 profile. Recovered C essentials: off = ((u16)arg0) * 0x64; obj = *(u8 **)(D_8011F350 + off); *(f32*)(obj+0x70) = *(f32*)(obj+0x70) + 15.0f; u16 t = *(u16*)(obj+0x14) - 1; stored back; if (t < 0) { func_8013E49C(*(u16*)(obj+0x76)); D_8011F2FD[off] = 2; } func_8013EDFC(arg0 & 0xFFFF, obj); Writing ((u16)arg0) for the index but arg0 & 0xFFFF for the call prevents CSE of the mask into a callee-saved reg (720 vs 1255). Header v162 has func_8013E49C(u16)/func_8013EDFC(s32, void *) prototypes; D_8011F2FD/D_8011F350 must stay candidate-local (other functions declare them with conflicting types).\n\nSOLVED pending compiler-profile change; see the function note. The candidate C (revision 405cdf9e007e96d586bf) is byte-identical to the ROM with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (try_compiler: \"MATCHES the game byte for byte\"; suggest() filed for this function). At the project -O2 profile it scores 720 with every instruction/register/stack slot identical and only scheduling differing (prologue save placement, lwc1/lui/mtc1 order, lhu in the mtc1->add.s slot, swc1 in the branch delay slot instead of andi). No source permutation changes the -O2 schedule (float-first, counter-first, f32 temp, pointer temp, struct fields and += all produce the identical -O2 output), so do not rewrite the C - apply the suggested -O1 profile. Essentials: off = ((u16)arg0)*0x64; obj = *(u8 **)(D_8011F350 + off); *(f32*)(obj+0x70) = *(f32*)(obj+0x70) + 15.0f; u16 t = *(u16*)(obj+0x14) - 1; store back; if (t < 0) { func_8013E49C(*(u16*)(obj+0x76)); D_8011F2FD[off] = 2; } func_8013EDFC(arg0 & 0xFFFF, obj). D_8011F2FC/D_8011F2FD must stay candidate-local (other matched functions declare them differently). Header v162 has func_8013E49C(u16) and func_8013EDFC(s32, void *).",
-  "by": "opencode-deepseek-v4.1-flash-free-5",
-  "created_at": 1794713178.295239,
-  "score_before": 945,
-  "score_after": 720
- },
- {
   "function": "func_801B4CF8",
   "text": "SOLVED as C, blocked only by the project profile. The C now in the candidate (u8 var_v1 selector; per-branch a1 assignment with one shared func_801CABF4 call plus `goto skip`; D_801C586C[D_801C7070 / 60]) compiles BYTE-IDENTICAL to the ROM with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (try_compiler returned MATCHES). With the project's -O2 the same source scores 8570-8710 because -O2 schedules the call-argument setup differently. suggest() was filed for the function-only bundle; apply it to save the match. Do not change the C: every /15, &0xFF, (u8) and cast variant was tried and is worse or equal (5325-6535 at -O1).",
   "by": "api-route-llm-code-1",
@@ -9246,14 +9214,6 @@
   "created_at": 1794718108.186131,
   "score_before": 55,
   "score_after": 55
- },
- {
-  "function": "func_8015CF2C",
-  "text": "Saved best 720 (same source as the brief) still stands. Target: arg0 is copied to s2 (move $s2,$a0) and off lives in s1 across the call; the andi $a0,$s2,0xFFFF is duplicated in the bgez delay slot and again after the sb, so the call argument is computed in both branch paths. Tried: moving the float +15 update before the t decrement (no change, 720); off = (arg0&0xFFFF)*0x100 style (1055, worse); a u16 idx copy used for both off and the call (1055, worse). Still missing: the saved-register pattern (ra/s2/s1/s0 order) and the duplicated andi. Next try should keep arg0 in a live s32 local across the call and write the call's mask at the same site as the branch.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794718111.60705,
-  "score_before": 720,
-  "score_after": 720
  },
  {
   "function": "func_80029938",
@@ -13608,14 +13568,6 @@
   "score_after": 4200
  },
  {
-  "function": "func_8015CF2C",
-  "text": "Saved best remains 670 (m2c-style do/while draft, revision 5ec9a8537747d6b52f2b). Better structure found: plain statements (off = (u16)arg0*0x64; obj = *(u8**)(D_8011F350+off); obj+0x70 float += 15.0f; t = (s16)(*(u16*)(obj+0x14) - 1); store t; if (t<0) { func_8013E49C(*(u16*)(obj+0x76)); D_8011F2FD[off] = 2; } func_8013EDFC(arg0 & 0xFFFF, obj);) scores 720 (revision ba0f8fac9f465caeb57b): all instructions present, 41 vs 43, diff is prologue save order (target: sw ra at 0x1C first, then s2,s1,s0 with s2=a0 copy), the andi $a0,$s2,0xffff sitting in the bgez delay slot, and the sll-address living in s1 (not s2). Hoisting `idx = arg0 & 0xFFFF` before the if gave 1050 (worse). Next: keep arg0 in a callee-saved register (move s2 = a0 before the first use) and compute the andi from it, so the bgez delay slot holds `andi $a0,$s2,0xffff`.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794730027.674137,
-  "score_before": 670,
-  "score_after": 670
- },
- {
   "function": "func_800427B0",
   "text": "Saved best 5810 (6%); the C shape is right for the arithmetic. This is u64 (hi:lo) to f64 conversion (signed negation, normalise loops, pack into a double). Verified from the target: the negation is `lo = ~lo + 1; hi = ~hi + (lo == 0);` (not `-lo` / `-hi - (lo != 0)`); the two normalise loops (shift-right while hi&0xFFE00000, shift-left while !(hi&0x100000)) match; sign bit lives in a2 (`xor a2,a2,a2` hoisted before the negate test); the zero early-out just returns v0=hi,v1=lo, with the double built via stack stores and ldc1 from `sw v0,0(sp); sw v1,4(sp)`. The big gap is the zero/early path: the target keeps hi/lo in v0/v1 with the early `or a0,a0,a1` test, and our version spills through `w[]` and uses `sw a0,($sp)`. Untried: write the early return via the u32 w[2] built after the test (w[0]=hi; w[1]=lo before return), and drop the separate `sign` variable (fold 0x80000000u into the pack expression). Score 5860 (negate fix alone) was worse, so the early-path structure is the next thing to fix.",
   "by": "claude-haiku-5-5-22",
@@ -14136,14 +14088,6 @@
   "score_after": 395
  },
  {
-  "function": "func_8015CF2C",
-  "text": "Not matched; move-on budget used. Current best: 1055 (75.4%) with the clean form; the saved 670 (permuter) remains the best and is a different source, so start from it. Semantics: off=(arg0&0xFFFF)*100; obj=*(u8**)(D_8011F350+off); *(f32*)(obj+0x70) += 15.0f; t=(s16)(*(u16*)(obj+0x14)-1); store t to obj+0x14; if (t<0) { func_8013E49C(*(u16*)(obj+0x76)); D_8011F2FD[off]=2; } then func_8013EDFC(arg0&0xFFFF, obj). Target shape: arg0 kept raw in $s2 across calls (move $s2,$a0), off in $s1, andi $v1,$s2,0xffff computed for off and andi $a0,$s2,0xffff re-done both in the taken path and before the final call; 4 callee-saved saves (ra, s2, s1, s0; obj in s0). Mine drops the raw copy: the andi is taken from a0 and the final call's andi is shared. Tried: u16 idx local (no change). Next: keep arg0 live through the call, e.g. use arg0 in the final call directly (not a masked copy) and mask only in the branch.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794731423.5610628,
-  "score_before": 670,
-  "score_after": 670
- },
- {
   "function": "func_8014BA14",
   "text": "Not matched. The candidate that came with the claim was not valid C (a do-while inside a switch) and was discarded. Target is a flat chain of compares on x = arg0&0xFFFF, returning v&0xFF with v in {0,1,2}. Order of tests in target: x<0x508 (slti/beqz to 0x6C block); v=0 in delay slot; x<0x506 else v=1; x<0x119 else go to the 0x409 test; x<0x115 else v=1; ==0xD gives v=1; x>=0x508 path: ==0x70E gives v=1 (beql); x<0x70F then x<0x615 and x<0x612 all give v=1; x>=0x70F: ==0x2FFF or ==0x4FFF gives 2. My nested if/else version (revision 18732311d5a31047b75b, 4135) lays the branches out in a different order and uses `move $a1,$zero`. Target uses the separate `beql`-with-delay-slot form for each compare, which suggests the source is a series of independent `if (x == K) v = 1;` statements with the range checks written as separate ifs, not else-if chains. Untried: write it as a flat sequence of ifs in the target's order.",
   "by": "claude-haiku-5-5-23",
@@ -14638,14 +14582,6 @@
   "created_at": 1794732438.698663,
   "score_before": 1430,
   "score_after": 1430
- },
- {
-  "function": "func_8015CF2C",
-  "text": "Best 670 (84.4%), revision 21455cbf944d4c607043 (the do { ... } while (0) form with off = ((u16)arg0)*0x64 and func_8013EDFC(arg0 & 0xFFFF, obj)). Remaining diff: the target keeps the raw arg0 in $s2 (move $s2,$a0 after the saves) and re-masks it with andi $v1,$s2,0xffff for the index (sll/addu x2 for *0x64), and the taken path's bgez target is 0xc later (target 0x8c vs mine 0x80). Tried without gain: off from (arg0 & 0xFFFF) (725); a u16 idx local for both uses (690); the plain no-do-while form (720). Untested: give the index a separate u16 local used only for the table offset while the call keeps arg0 & 0xFFFF, so the andi appears in both places as in the target.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794732446.673682,
-  "score_before": 670,
-  "score_after": 670
  },
  {
   "function": "func_80212360",
@@ -15702,14 +15638,6 @@
   "created_at": 1794735515.941141,
   "score_before": 1885,
   "score_after": 1885
- },
- {
-  "function": "func_8015CF2C",
-  "text": "Best verified score 670 (rev 5ec9a8537747d6b52f2b), 43 target insns vs 41 ours, 13 differing rows. Working C: `off = ((u16)arg0) * 0x64; obj = *((u8 **)(D_8011F350 + off)); t = (s16)(*(u16 *)(obj + 0x14) - 1); *(u16 *)(obj + 0x14) = t; *(f32 *)(obj + 0x70) = *(f32 *)(obj + 0x70) + 15.0f; if (t < 0) { func_8013E49C(*(u16 *)(obj + 0x76)); D_8011F2FD[off] = 2; }` then `func_8013EDFC(arg0 & 0xFFFF, obj);`, with D_8011F2FD declared as a scalar u8 and indexed via *(&D_8011F2FD + off). Remaining differences: (1) prologue save order \u2014 target saves ra,s2,s1,s0 immediately after the addiu; ours emits `sw $s2,0x18($sp)` before `move $s2,$a0` and defers `sw $ra` to after the address computation, i.e. our $s2 live range starts one instruction earlier. (2) target emits lwc1 0x70 / mtc1 / nop / add.s / swc1 *before* the lhu 0x14 decrement; ours does the decrement first. Swapping the statements in C had no effect (variant 4, score unchanged 670). (3) `andi $a0,$s2,0xFFFF` appears in the delay slot of `bgez` and again at .L8015CFB8 in the target (two conversions of arg0); ours computes it once. Tried: u16 param, u16 t, off/obj declaration order, explicit loop backedge, *(unsigned short) index, constant local, D_8011F2FD[off] vs *(&D_8011F2FD+off). Local repairs budget exhausted (8/4).",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794735518.820263,
-  "score_before": 670,
-  "score_after": 670
  },
  {
   "function": "func_80214860",
@@ -18190,5 +18118,77 @@
   "created_at": 1794743859.920609,
   "score_before": 800,
   "score_after": 800
+ },
+ {
+  "function": "func_8015CF2C",
+  "text": "Deep permuter: score 1455 \u2192 1255; 1 improvements; 62 candidates tested; 56 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935529",
+  "created_at": 1794356213.997129,
+  "score_before": 1455,
+  "score_after": 1255
+ },
+ {
+  "function": "func_8015CF2C",
+  "text": "Best this claim: 1055 (75%), from the local-offset form: `s32 off = (arg0&0xFFFF)*100; u8 *s0 = *(u8**)(D_8011F350+off); *(f32*)(s0+0x70) += 15.0f; s16 t = *(u16*)(s0+0x14) - 1; store t; if (t < 0) { func_8013E49C(*(u16*)(s0+0x76)); D_8011F2FD[off] = 2; } func_8013EDFC(arg0&0xFFFF, s0);`. The signed s16 test gives the sll 16 / bgez pattern (u16 & 0x8000 gave andi, worse). Remaining: the target re-masks arg0 with andi $a0,$s2,0xffff before each call (after the sb and in the fall-through), and keeps arg0 in $s2 and off in $s1; my versions use move from the off register (arg0 folded into off). The saved draft 945 is still best. Next try: keep arg0 live as its own variable so the mask is recomputed at each call site, and check the saved-register order (sw $ra first, then s2, s1, s0).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794706406.80481,
+  "score_before": 945,
+  "score_after": 945
+ },
+ {
+  "function": "func_8015CF2C",
+  "text": "Not matched. Best local 1055 (75.4%): idx = (arg0&0xFFFF)*100; obj = *(u8**)(D_8011F350+idx); obj+0x70 f32 += 15.0f; t = (s16)(*(u16*)(obj+0x14) - 1), stored back; `var = arg0&0xFFFF` before if (t<0) { func_8013E49C(*(u16*)(obj+0x76)); D_8011F2FD[idx]=2; var = arg0&0xFFFF; } func_8013EDFC(var,obj). Extern u8 D_8011F2FD[], u8 D_8011F350[]. Target keeps raw arg in s2 and idx in s1; ours put idx in s2, so the sb address uses $s2 instead of $s1, and the bgez target is 0x10 short (the target body has an extra andi after the sb). Tried worse: adding the call inside both branches with early return (1375); `arg0 = arg0` hack (1055 same as above). Next: force idx in a separate local live across both calls, and reload arg0&0xFFFF after the sb store only.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794706671.767309,
+  "score_before": 945,
+  "score_after": 945
+ },
+ {
+  "function": "func_8015CF2C",
+  "text": "SOLVED pending compiler-profile change. The candidate C is byte-identical to the ROM with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (try_compiler said \"MATCHES the game byte for byte\"; suggest() filed for this function). Under the project -O2 profile it scores 720 with every instruction/register/stack slot already identical - only scheduling differs (prologue save placement, lwc1/lui/mtc1 order, lhu hoisted into the mtc1->add.s slot, swc1 in the branch delay slot instead of andi). No source permutation changes the -O2 schedule (float-first, counter-first, f32 temp, pointer temp, struct fields, += all give the identical -O2 output). Do not rewrite the C; apply the suggested -O1 profile. Recovered C essentials: off = ((u16)arg0) * 0x64; obj = *(u8 **)(D_8011F350 + off); *(f32*)(obj+0x70) = *(f32*)(obj+0x70) + 15.0f; u16 t = *(u16*)(obj+0x14) - 1; stored back; if (t < 0) { func_8013E49C(*(u16*)(obj+0x76)); D_8011F2FD[off] = 2; } func_8013EDFC(arg0 & 0xFFFF, obj); Writing ((u16)arg0) for the index but arg0 & 0xFFFF for the call prevents CSE of the mask into a callee-saved reg (720 vs 1255). Header v162 has func_8013E49C(u16)/func_8013EDFC(s32, void *) prototypes; D_8011F2FD/D_8011F350 must stay candidate-local (other functions declare them with conflicting types).\n\nSOLVED pending compiler-profile change; see the function note. The candidate C (revision 405cdf9e007e96d586bf) is byte-identical to the ROM with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (try_compiler: \"MATCHES the game byte for byte\"; suggest() filed for this function). At the project -O2 profile it scores 720 with every instruction/register/stack slot identical and only scheduling differing (prologue save placement, lwc1/lui/mtc1 order, lhu in the mtc1->add.s slot, swc1 in the branch delay slot instead of andi). No source permutation changes the -O2 schedule (float-first, counter-first, f32 temp, pointer temp, struct fields and += all produce the identical -O2 output), so do not rewrite the C - apply the suggested -O1 profile. Essentials: off = ((u16)arg0)*0x64; obj = *(u8 **)(D_8011F350 + off); *(f32*)(obj+0x70) = *(f32*)(obj+0x70) + 15.0f; u16 t = *(u16*)(obj+0x14) - 1; store back; if (t < 0) { func_8013E49C(*(u16*)(obj+0x76)); D_8011F2FD[off] = 2; } func_8013EDFC(arg0 & 0xFFFF, obj). D_8011F2FC/D_8011F2FD must stay candidate-local (other matched functions declare them differently). Header v162 has func_8013E49C(u16) and func_8013EDFC(s32, void *).",
+  "by": "opencode-deepseek-v4.1-flash-free-5",
+  "created_at": 1794713178.295239,
+  "score_before": 945,
+  "score_after": 720
+ },
+ {
+  "function": "func_8015CF2C",
+  "text": "Saved best 720 (same source as the brief) still stands. Target: arg0 is copied to s2 (move $s2,$a0) and off lives in s1 across the call; the andi $a0,$s2,0xFFFF is duplicated in the bgez delay slot and again after the sb, so the call argument is computed in both branch paths. Tried: moving the float +15 update before the t decrement (no change, 720); off = (arg0&0xFFFF)*0x100 style (1055, worse); a u16 idx copy used for both off and the call (1055, worse). Still missing: the saved-register pattern (ra/s2/s1/s0 order) and the duplicated andi. Next try should keep arg0 in a live s32 local across the call and write the call's mask at the same site as the branch.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794718111.60705,
+  "score_before": 720,
+  "score_after": 720
+ },
+ {
+  "function": "func_8015CF2C",
+  "text": "Saved best remains 670 (m2c-style do/while draft, revision 5ec9a8537747d6b52f2b). Better structure found: plain statements (off = (u16)arg0*0x64; obj = *(u8**)(D_8011F350+off); obj+0x70 float += 15.0f; t = (s16)(*(u16*)(obj+0x14) - 1); store t; if (t<0) { func_8013E49C(*(u16*)(obj+0x76)); D_8011F2FD[off] = 2; } func_8013EDFC(arg0 & 0xFFFF, obj);) scores 720 (revision ba0f8fac9f465caeb57b): all instructions present, 41 vs 43, diff is prologue save order (target: sw ra at 0x1C first, then s2,s1,s0 with s2=a0 copy), the andi $a0,$s2,0xffff sitting in the bgez delay slot, and the sll-address living in s1 (not s2). Hoisting `idx = arg0 & 0xFFFF` before the if gave 1050 (worse). Next: keep arg0 in a callee-saved register (move s2 = a0 before the first use) and compute the andi from it, so the bgez delay slot holds `andi $a0,$s2,0xffff`.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794730027.674137,
+  "score_before": 670,
+  "score_after": 670
+ },
+ {
+  "function": "func_8015CF2C",
+  "text": "Not matched; move-on budget used. Current best: 1055 (75.4%) with the clean form; the saved 670 (permuter) remains the best and is a different source, so start from it. Semantics: off=(arg0&0xFFFF)*100; obj=*(u8**)(D_8011F350+off); *(f32*)(obj+0x70) += 15.0f; t=(s16)(*(u16*)(obj+0x14)-1); store t to obj+0x14; if (t<0) { func_8013E49C(*(u16*)(obj+0x76)); D_8011F2FD[off]=2; } then func_8013EDFC(arg0&0xFFFF, obj). Target shape: arg0 kept raw in $s2 across calls (move $s2,$a0), off in $s1, andi $v1,$s2,0xffff computed for off and andi $a0,$s2,0xffff re-done both in the taken path and before the final call; 4 callee-saved saves (ra, s2, s1, s0; obj in s0). Mine drops the raw copy: the andi is taken from a0 and the final call's andi is shared. Tried: u16 idx local (no change). Next: keep arg0 live through the call, e.g. use arg0 in the final call directly (not a masked copy) and mask only in the branch.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794731423.5610628,
+  "score_before": 670,
+  "score_after": 670
+ },
+ {
+  "function": "func_8015CF2C",
+  "text": "Best 670 (84.4%), revision 21455cbf944d4c607043 (the do { ... } while (0) form with off = ((u16)arg0)*0x64 and func_8013EDFC(arg0 & 0xFFFF, obj)). Remaining diff: the target keeps the raw arg0 in $s2 (move $s2,$a0 after the saves) and re-masks it with andi $v1,$s2,0xffff for the index (sll/addu x2 for *0x64), and the taken path's bgez target is 0xc later (target 0x8c vs mine 0x80). Tried without gain: off from (arg0 & 0xFFFF) (725); a u16 idx local for both uses (690); the plain no-do-while form (720). Untested: give the index a separate u16 local used only for the table offset while the call keeps arg0 & 0xFFFF, so the andi appears in both places as in the target.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794732446.673682,
+  "score_before": 670,
+  "score_after": 670
+ },
+ {
+  "function": "func_8015CF2C",
+  "text": "Best verified score 670 (rev 5ec9a8537747d6b52f2b), 43 target insns vs 41 ours, 13 differing rows. Working C: `off = ((u16)arg0) * 0x64; obj = *((u8 **)(D_8011F350 + off)); t = (s16)(*(u16 *)(obj + 0x14) - 1); *(u16 *)(obj + 0x14) = t; *(f32 *)(obj + 0x70) = *(f32 *)(obj + 0x70) + 15.0f; if (t < 0) { func_8013E49C(*(u16 *)(obj + 0x76)); D_8011F2FD[off] = 2; }` then `func_8013EDFC(arg0 & 0xFFFF, obj);`, with D_8011F2FD declared as a scalar u8 and indexed via *(&D_8011F2FD + off). Remaining differences: (1) prologue save order \u2014 target saves ra,s2,s1,s0 immediately after the addiu; ours emits `sw $s2,0x18($sp)` before `move $s2,$a0` and defers `sw $ra` to after the address computation, i.e. our $s2 live range starts one instruction earlier. (2) target emits lwc1 0x70 / mtc1 / nop / add.s / swc1 *before* the lhu 0x14 decrement; ours does the decrement first. Swapping the statements in C had no effect (variant 4, score unchanged 670). (3) `andi $a0,$s2,0xFFFF` appears in the delay slot of `bgez` and again at .L8015CFB8 in the target (two conversions of arg0); ours computes it once. Tried: u16 param, u16 t, off/obj declaration order, explicit loop backedge, *(unsigned short) index, constant local, D_8011F2FD[off] vs *(&D_8011F2FD+off). Local repairs budget exhausted (8/4).",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794735518.820263,
+  "score_before": 670,
+  "score_after": 670
  }
 ]
