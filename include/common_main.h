@@ -29,3 +29,8 @@ void func_80157E30(s32 arg0);
 /* Verified partial layouts used by n_alSynAddPlayer. */
 typedef struct N_ALPlayerLayout { struct N_ALPlayerLayout *next; u8 pad04[12]; s32 samplesLeft; } N_ALPlayerLayout;
 typedef struct { N_ALPlayerLayout *head; u8 pad04[40]; s32 samples; } N_ALSynthLayout;
+
+/* Sound event layouts verified by Stop/SetFXMix/SetPan/SetPitch. */
+typedef struct { u8 data[0x30]; } N_ALSoundStateLayout;
+typedef struct { u8 pad00[0x3c]; s32 target; N_ALSoundStateLayout *states; } N_ALSoundPlayerLayout;
+typedef struct { s16 type; u16 pad02; N_ALSoundStateLayout *state; union { s8 mix; f32 pitch; } value; u8 extra0c[4]; } N_ALSoundEventLayout;
