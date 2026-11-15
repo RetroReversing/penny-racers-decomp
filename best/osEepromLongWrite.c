@@ -1,6 +1,6 @@
 static __inline__ int __repair_inline(s32 a, s32 b) { return a > b; }
 s32 osRecvMesg(s32 *, s32, s32);
-s32 func_8003EF90(s32 arg0, s32 arg1, s32 *);
+s32 func_8003EF90(s32 arg0);
 s32 func_80041410(s32, s32, s32);
 extern s32 D_800DA1B0;
 extern s32 D_800DAE20;
@@ -28,7 +28,7 @@ s32 osEepromLongWrite(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     {
       var_s2 += 1;
       var_s3 += 8;
-      func_8003EF90(arg0, arg1, &D_800DAE20);
+      func_8003EF90(arg0);
       osRecvMesg(&D_800DDEA0, 0, 1);
       if (var_s1 <= 0)
       {

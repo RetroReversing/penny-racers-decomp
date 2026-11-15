@@ -3,7 +3,8 @@ s32 func_801CA468(s32, s32);
 s32 func_801CB74C(s32, s32, s32, s32, s32, s32);
 s32 func_801CBF48(s32, s32, s32, s32, s32, s32, s32);
 extern char D_801D4FC0[];
-extern char D_801D75E0[];
+typedef struct { s32 f0; u8 pad[8]; } Slot_801D75E0;
+extern Slot_801D75E0 D_801D75E0[];
 extern char D_801D7DF4[];
 extern char D_801D7E00[];
 extern char D_801D7E04[];
@@ -55,7 +56,7 @@ void func_801FE364(s32 arg0)
     func_801CB74C(arg0, 0x1E, 0x50, 8, (s32)D_801D4FC0, (s32)D_80203820);
     func_801CB74C(arg0, 0x1E, 0x64, 8, (s32)D_801D4FC0, (s32)D_80203838);
     func_801CBF48(arg0, 0x6E, 0x64, 8, (s32)D_801D4FC0, 2, D_80203ABA);
-    func_801CB74C(arg0, 0x8C, 0x64, 8, (s32)D_801D4FC0, *(s32 *)(D_801D75E0 + D_80203AB8 * 12));
+    func_801CB74C(arg0, 0x8C, 0x64, 8, (s32)D_801D4FC0, D_801D75E0[D_80203AB8].f0);
     func_801CB74C(arg0, 0x1E, 0x6E, 8, (s32)D_801D4FC0, *(s32 *)(D_802025E8 + D_80203ACA * 12));
     func_801CB74C(arg0, 0x28, 0x8C, 8, (s32)D_801D4FC0, (s32)D_8020377C);
     func_801CB74C(arg0, 0x28, 0x96, 8, (s32)D_801D4FC0, (s32)D_80203844);
@@ -74,7 +75,7 @@ void func_801FE364(s32 arg0)
             if (*(s16 *)(D_801D7DF4 + idx * 44) == -1) {
                 func_801CB74C(arg0, y, 0x96, 8, (s32)D_801D4FC0, (s32)D_80203854);
             } else {
-                func_801CB74C(arg0, y, 0x96, 8, (s32)D_801D4FC0, *(s32 *)(D_801D75E0 + *(u16 *)(D_801D7E04 + idx * 44) * 12));
+                func_801CB74C(arg0, y, 0x96, 8, (s32)D_801D4FC0, D_801D75E0[*(u16 *)(D_801D7E04 + idx * 44)].f0);
             }
             y = (((i & 0xFFFF) + 2) * 0x30) & 0xFFFF;
             func_801CBF48(arg0, y, 0xA0, 8, (s32)D_801D4FC0, 5, *(s16 *)(D_801D7E06 + idx * 44));

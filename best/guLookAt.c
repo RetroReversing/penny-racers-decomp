@@ -1,4 +1,3 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 #ifndef M2C_DEFINES
 #define M2C_DEFINES
 typedef s32 M2C_UNK;
@@ -11,10 +10,11 @@ typedef s32 M2C_UNK32;
 #define M2C_CARRY 0
 #define M2C_OVERFLOW(a) (0)
 #endif
+/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 
-M2C_UNK guMtxF2L(f32, f32, f32 *, s32);             /* extern */
-M2C_UNK guMtxIdentF(f32 *);                         /* extern */
-f32 sqrtf(f32);                                     /* extern */
+s32 guMtxF2L();
+s32 guMtxIdentF();
+f32 sqrtf();
 extern f64 D_8004A5A0;
 extern s32 D_8004A5A8;
 

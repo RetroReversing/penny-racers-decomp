@@ -33,7 +33,7 @@ void func_80163A38(s32 arg0) {
     s32 res;
 
     racer = *(void **)(D_8011F350 + (arg0 & 0xFFFF) * 0x64);
-    rec = D_8011F2F0 + *(u16 *)(racer + 2) * 0x64;
+    rec = (char *)(D_8011F2F0); rec += (s32)(*(u16 *)(racer + 2) * 0x64);
     obj = *(void **)(rec + 0x244);
     id = func_8013E364() & 0xFFFF;
     if (id != 0xFFFF) {

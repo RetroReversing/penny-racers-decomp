@@ -52,9 +52,10 @@ int __repair_constant = 0xFF;
     s32 temp_a0_2;
 s32 __repair_phase_temp_a0_2;
     s32 temp_a2;
-    s32 temp_a2_2;
+    
     s32 temp_a3;
     s32 temp_t1;
+s32 __repair_phase_temp_t1;
     s32 temp_v0;
     s32 temp_v0_2;
     s32 temp_v1;
@@ -165,8 +166,9 @@ s32 __repair_phase_temp_a0_2;
             M2C_FIELD(temp_t0_8, s16 *, 0xA) = 0x40;
             M2C_FIELD(temp_t0_8, s8 *, 0xC) = 0;
             M2C_FIELD(temp_t0_8, s8 *, 0xD) = 0x7F;
-            M2C_FIELD(temp_t0_8, s8 *, 0xE) = 0;/*__repair_loop_weight*/__repair_rows_: {
+            M2C_FIELD(temp_t0_8, s8 *, 0xE) = 0;/*__repair_loop_weight*/__repair_rows_: { {
             var_a0 += 1;}
+}
 if (0) goto __repair_rows_;
             M2C_FIELD(temp_t0_8, s8 *, 0xF) = __repair_constant;
         }
@@ -216,53 +218,53 @@ if (var_a0 < 4) goto __repair_rows;
                         if ((M2C_FIELD(temp_s0, u8 *, 0x860) == 0) || (M2C_FIELD(temp_s0, u8 *, 0x8A1) == 4)) {
                             goto block_17;
                         }
-                        temp_v0_2 = (arg0 & 0xFFFF) * 0x64;
-                        *(D_8011F334 + temp_v0_2) = *(D_8011F334 + temp_v0_2) + 1.0f;
+                        temp_v1_3 = (arg0 & 0xFFFF) * 0x64;
+                        *(D_8011F334 + temp_v1_3) = *(D_8011F334 + temp_v1_3) + 1.0f;
                         return;
                     }
 block_17:
                     temp_v1_3 = (func_800DE41C(0, 0, 3, 0, 0x52, 0xAA, 0, &func_8015C838, &func_8015C8A4, 0, 0, 0, 0, 0, 0, 1.0f, 1.0f, 1.0f) & 0xFFFF) * 0x64;
                     *(D_8011F2FB + temp_v1_3) = 0xE;
-                    temp_t1 = temp_a0_2 & 0xFF;
-                    *(D_8011F334 + temp_v1_3) = (f32) temp_t1;
-                    *(D_8011F338 + temp_v1_3) = (f32) *(D_8018D66A + temp_t1);
+                    __repair_phase_temp_t1 = temp_a0_2 & 0xFF;
+                    *(D_8011F334 + temp_v1_3) = (f32) __repair_phase_temp_t1;
+                    *(D_8011F338 + temp_v1_3) = (f32) *(D_8018D66A + __repair_phase_temp_t1);
                     *(D_8011F33C + temp_v1_3) = M2C_FIELD(temp_s0, f32 *, 0x864);
-                    temp_t0_13 = (temp_t1 << 8) + ((*(D_8018D66A + temp_t1) << 6) + D_8018B530);
-                    temp_a2_2 = temp_t1 << 6;
-                    temp_a3_2 = temp_a2_2 + D_80189970;
+                    temp_t0_13 = (__repair_phase_temp_t1 << 8) + ((*(D_8018D66A + __repair_phase_temp_t1) << 6) + D_8018B530);
+                    temp_v1_3 = __repair_phase_temp_t1 << 6;
+                    temp_a3_2 = temp_v1_3 + D_80189970;
                     M2C_FIELD(temp_t0_13, u16 *, 0) = (u16) M2C_FIELD(temp_a3_2, u16 *, 0);
                     M2C_FIELD(temp_t0_13, u16 *, 2) = (u16) M2C_FIELD(temp_a3_2, u16 *, 2);
                     M2C_FIELD(temp_t0_13, u16 *, 4) = (u16) M2C_FIELD(temp_a3_2, u16 *, 4);
-                    temp_t0_14 = (temp_t1 << 8) + (D_8018B530 + 0x10) + (*(D_8018D66A + temp_t1) << 6);
-                    temp_a3_3 = temp_a2_2 + (D_80189970 + 0x10);
+                    temp_t0_14 = (__repair_phase_temp_t1 << 8) + (D_8018B530 + 0x10) + (*(D_8018D66A + __repair_phase_temp_t1) << 6);
+                    temp_a3_3 = temp_v1_3 + (D_80189970 + 0x10);
                     M2C_FIELD(temp_t0_14, u16 *, 0) = (u16) M2C_FIELD(temp_a3_3, u16 *, 0);
                     M2C_FIELD(temp_t0_14, u16 *, 2) = (u16) M2C_FIELD(temp_a3_3, u16 *, 2);
                     M2C_FIELD(temp_t0_14, u16 *, 4) = (u16) M2C_FIELD(temp_a3_3, u16 *, 4);
-                    temp_t0_15 = (temp_t1 << 8) + (D_8018B530 + 0x20) + (*(D_8018D66A + temp_t1) << 6);
-                    temp_a3_4 = temp_a2_2 + (D_80189970 + 0x20);
+                    temp_t0_15 = (__repair_phase_temp_t1 << 8) + (D_8018B530 + 0x20) + (*(D_8018D66A + __repair_phase_temp_t1) << 6);
+                    temp_a3_4 = temp_v1_3 + (D_80189970 + 0x20);
                     M2C_FIELD(temp_t0_15, u16 *, 0) = (u16) M2C_FIELD(temp_a3_4, u16 *, 0);
                     M2C_FIELD(temp_t0_15, u16 *, 2) = (u16) M2C_FIELD(temp_a3_4, u16 *, 2);
                     M2C_FIELD(temp_t0_15, u16 *, 4) = (u16) M2C_FIELD(temp_a3_4, u16 *, 4);
-                    temp_t0_16 = (temp_t1 << 8) + (D_8018B530 + 0x30) + (*(D_8018D66A + temp_t1) << 6);
-                    temp_a3_5 = temp_a2_2 + (D_80189970 + 0x30);
+                    temp_t0_16 = (__repair_phase_temp_t1 << 8) + (D_8018B530 + 0x30) + (*(D_8018D66A + __repair_phase_temp_t1) << 6);
+                    temp_a3_5 = temp_v1_3 + (D_80189970 + 0x30);
                     M2C_FIELD(temp_t0_16, u16 *, 0) = (u16) M2C_FIELD(temp_a3_5, u16 *, 0);
                     M2C_FIELD(temp_t0_16, u16 *, 2) = (u16) M2C_FIELD(temp_a3_5, u16 *, 2);
                     M2C_FIELD(temp_t0_16, u16 *, 4) = (u16) M2C_FIELD(temp_a3_5, u16 *, 4);
-                    if ((u8) *(D_8018D66A + temp_t1) < 3U) {
-                        *(D_8018D66A + temp_t1) = *(D_8018D66A + temp_t1) + 1;
+                    if ((u8) *(D_8018D66A + __repair_phase_temp_t1) < 3U) {
+                        *(D_8018D66A + __repair_phase_temp_t1) = *(D_8018D66A + __repair_phase_temp_t1) + 1;
                         temp_t1 = temp_a0_2 & 0xFF;
                     } else {
                         *(D_8018D66A + (temp_a0_2 & 0xFF)) = 0;
                         temp_t1 = temp_a0_2 & 0xFF;
                     }
                     temp_t0_17 = (temp_t1 << 6) + D_80189990;
-                    __repair_phase_temp_a0_2 = temp_t1 << 6;
-                    temp_a3_6 = __repair_phase_temp_a0_2 + (D_80189990 - 0x20);
+                    temp_a0_2 = temp_t1 << 6;
+                    temp_a3_6 = temp_a0_2 + (D_80189990 - 0x20);
                     M2C_FIELD(temp_t0_17, u16 *, 0) = (u16) M2C_FIELD(temp_a3_6, u16 *, 0);
                     M2C_FIELD(temp_t0_17, u16 *, 2) = (u16) M2C_FIELD(temp_a3_6, u16 *, 2);
                     M2C_FIELD(temp_t0_17, u16 *, 4) = (u16) M2C_FIELD(temp_a3_6, u16 *, 4);
-                    temp_t0_18 = __repair_phase_temp_a0_2 + (D_80189990 + 0x10);
-                    temp_a3_7 = __repair_phase_temp_a0_2 + (D_80189990 - 0x10);
+                    temp_t0_18 = temp_a0_2 + (D_80189990 + 0x10);
+                    temp_a3_7 = temp_a0_2 + (D_80189990 - 0x10);
                     M2C_FIELD(temp_t0_18, u16 *, 0) = (u16) M2C_FIELD(temp_a3_7, u16 *, 0);
                     M2C_FIELD(temp_t0_18, u16 *, 2) = (u16) M2C_FIELD(temp_a3_7, u16 *, 2);
                     M2C_FIELD(temp_t0_18, u16 *, 4) = (u16) M2C_FIELD(temp_a3_7, u16 *, 4);

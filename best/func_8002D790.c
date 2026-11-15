@@ -1,3 +1,15 @@
+#ifndef M2C_DEFINES
+#define M2C_DEFINES
+typedef s32 M2C_UNK;
+typedef s8 M2C_UNK8;
+typedef s16 M2C_UNK16;
+typedef s32 M2C_UNK32;
+#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
+#define M2C_BITWISE(type, expr) ((type)(expr))
+#define M2C_ERROR(desc) (0)
+#define M2C_CARRY 0
+#define M2C_OVERFLOW(a) (0)
+#endif
 typedef struct { s16 kind; s16 pad; s32 val; } Rec;
 typedef struct {
     u32 flags; u32 total; u32 minv;
@@ -6,8 +18,8 @@ typedef struct {
 
 extern double D_8004A3A0;
 extern double D_8004A3A8;
-u32 func_8002DAE0(void **p, s32 idx);
-void func_8002D520(void **p, s32 idx, Rec *r);
+u32 func_8002DAE0();
+void func_8002D520();
 
 void func_8002D790(u8 **arg0, Out *arg1, u32 arg2)
 {
@@ -36,7 +48,7 @@ void func_8002D790(u8 **arg0, Out *arg1, u32 arg2)
         if (((u32 *)tbl)[i]) {
             flags |= 1 << i;
             D[i] = base + ((u32 *)tbl)[i];
-            F[i] = func_8002DAE0(&tbl, i);
+            F[i] = func_8002DAE0(&tbl);
         } else {
             D[i] = 0;
         }

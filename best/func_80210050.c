@@ -179,8 +179,8 @@ void func_80210050(void)
     {
       temp_t1 = *(((D_8021E15F * 0x110) + var_s2_2) + D_8021E231);
       __repair_phase_storage.value = temp_t1 * 2;
-      *(D_80190C98 + (temp_t1 * 2)) = func_800DE41C(0, var_s2_2 & 0xFF, 1, 0, 0x54, 0xFF, (temp_t1 * 0x1A0) + D_8018F5D0, &func_80210D88, &func_80210F70, 0x40200000, 0x404CCC32, 0, 0xC18B3308, 0x43A68000, 0x4059997C, 0x3CCCCCCD, 0x3CCCCCCD);
-      *((void **) (((char *) (*(D_8011F340 + (D_8011F304[*(D_80190C98 + __repair_phase_storage.value)].f0 * 0x64)))) + 4)) = (void *) ((temp_t1 * 0xC) + D_80237DC0);
+      *(u16 *)(D_80190C98 + (temp_t1 * 2)) = func_800DE41C(0, var_s2_2 & 0xFF, 1, 0, 0x54, 0xFF, (temp_t1 * 0x1A0) + D_8018F5D0, &func_80210D88, &func_80210F70, 0x40200000, 0x404CCC32, 0, 0xC18B3308, 0x43A68000, 0x4059997C, 0x3CCCCCCD, 0x3CCCCCCD);
+      *((void **) (((char *) (*(D_8011F340 + (D_8011F304[*(u16 *)(D_80190C98 + __repair_phase_storage.value)].f0 * 0x64)))) + 4)) = (void *) ((temp_t1 * 0xC) + D_80237DC0);
       var_s2_2 += 1;
     }
 
