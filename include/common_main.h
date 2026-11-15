@@ -38,3 +38,7 @@ typedef struct { s16 type; u16 pad02; N_ALSoundStateLayout *state; union { s8 mi
 /* Bank sound relocation fields verified by _bnkfPatchSound. */
 typedef struct { u32 envelope; u32 keymap; u32 wavetable; u8 pad[2]; u8 flags; u8 padf; } N_ALBankSoundLayout;
 f32 alCents2Ratio(s32 cents);
+
+/* Verified waveform relocation and sequence timing layouts. */
+typedef struct { u32 base; s32 len; u8 type,flags; u16 pad; u32 loop,book; } N_ALWaveTableLayout;
+typedef struct { u8 pad[0x18]; s16 division; } N_ALSequenceLayout;
