@@ -4912,14 +4912,6 @@
   "score_after": 2557
  },
  {
-  "function": "func_80027DF0",
-  "text": "Best 160 (97.2%), revision 433eb5309d2a72658f69: a `while (i < *count) D_80046C38[i] = -1; i++` loop with locals count, i, `s16 *p`, `s32 pad[1]` (the extra s16* local is what gives the target's 0x38 frame; pad[1] alone gives 0x30). Remaining diff is loop shape only: target keeps store pointer in a0 (starts from alloc result v0, +2 per iter), index in a1, count pointer in v1/s0 reloaded each iteration, and the blez guard sits 1 insn later (0xcc vs 0xc8). Tried do-while with explicit p++ and guarded `if (*count > 0)`: frame drops to 0x30 and score 212. Untried: a `for`-style loop with count read through `count` pointer (`for (i = 0; i < *count; i++, p++)`), or moving the `D_80046C38` store after the loop-start setup.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794705990.707021,
-  "score_before": 160,
-  "score_after": 160
- },
- {
   "function": "__voiceNeedsNoteKill",
   "text": "Not started. Released so the batch's near-matched func_800297E8 (score 485) can be reclaimed and finished.",
   "by": "api-route-llm-code-1",
@@ -9112,14 +9104,6 @@
   "score_after": 1160
  },
  {
-  "function": "func_80027DF0",
-  "text": "Best 160 (97.2%, 58 target vs 57 mine), revision 82fa0ab58ff3158f5e34: count = &D_8006FEE4; D_80046C34 = alHeapDBAlloc(0,0,D_8006E780,1,arg1); func_800294A0(arg0,D_80046C34,arg1); alBnkfNew(D_80046C34,arg2); D_80046C38 = alHeapDBAlloc(0,0,D_8006E780,1,*count*2); while (i < *count) D_80046C38[i++] = -1. Remaining diff is only the fill loop: target keeps the array pointer in a0 (move a0,v0 after the store, then sh a2,(a0); addiu a0,a0,2 with the index in a1 and count read through v1=s0). Tried a separate short *p pointer loop (360, worse). Next: try the loop with the index in a1 and the array pointer copied from v0 into a0 after the D_80046C38 store, e.g. 'p = D_80046C38;' declared after i and the count as int *.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794720200.8914812,
-  "score_before": 160,
-  "score_after": 160
- },
- {
   "function": "func_800338B0",
   "text": "Cache-maintenance routine; body loops are MIPS `cache` ops (0x15 writeback-invalidate at 0x0/0x10, 0x11 hit-writeback, 0x01 index-invalidate over the KSEG0 0x80000000..0x80001FF0 range), all annotated \"handwritten instruction\" in the target disassembly. gcc-2.7.2-kmc emits no cache opcode from plain C and inline asm is forbidden, so no C can be byte-identical. Shell structure (blez guard on arg1, sltu vs 0x2000, align down with andi 0xF/subu, addiu -0x10 end, sltu/bnez do-while with addiu in the delay slot) is plain but irrelevant. Consistent with notes on func_8003EA40 and func_8003EBF0.",
   "by": "api-route-llm-code-1",
@@ -10102,14 +10086,6 @@
   "created_at": 1794722357.775726,
   "score_before": 500,
   "score_after": 500
- },
- {
-  "function": "func_80027DF0",
-  "text": "Best verified 160 (57 insns vs target 58) at revision 0456716db1e19c4137ca; saved C rechecked 160 too. Everything before row 40 already matches: prologue, three calls (alHeapDBAlloc/func_800294A0/alBnkfNew), the *2 scale and the D_80046C38 store. Only the fill loop differs.\n\nTarget loop (rows 40-51):\n  blez $v1,.L80027EBC ; move $a1,$zero ; addiu $a2,$zero,-1 ; move $v1,$s0 ; move $a0,$v0\n.L80027EA4: sh $a2,($a0) ; lw $v0,($v1) ; addiu $a1,$a1,1 ; slt $v0,$a1,$v0 ; bnez $v0,.L80027EA4 ; addiu $a0,$a0,2\ni.e. i in $a1, -1 in $a2, count pointer (&D_8006FEE4) copied into $v1, allocation result copied into $a0, count re-read from memory each iteration, pointer bumped by 2.\n\nTried and rejected: p[i] with p = allocation result (160, pointer in $v1, i in $a0); separate q=p / cp=count locals used as q[i] and *cp (160, identical diff); *q++ / q++ store form (360); i < D_8006FEE4 direct global (475); for-loop form (160); declaration-order and signedness families (no change); volatile/local pointer variants. The candidate copies (q=p, cp=count) get scheduled BEFORE the D_80046C38 store, so the two target `move`s after blez never appear; that is the single remaining structural gap (branch offset 0xc8 vs 0xcc, one instruction short).\n\nLeft to try: force the loop-pointer copies to be materialised only in the loop preheader after the branch (e.g. declare `s16 *q = p; s32 *cp = count;` as initialised locals at the top of the block, or re-read the allocation result from D_80046C38 inside the loop so no copy is needed and the preheader keeps two moves).",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794722368.510344,
-  "score_before": 160,
-  "score_after": 160
  },
  {
   "function": "func_801E28BC",
@@ -18526,5 +18502,77 @@
   "created_at": 1794754896.2401102,
   "score_before": 30,
   "score_after": 30
+ },
+ {
+  "function": "func_80027DF0",
+  "text": "Best 160 (97.2%), revision 433eb5309d2a72658f69: a `while (i < *count) D_80046C38[i] = -1; i++` loop with locals count, i, `s16 *p`, `s32 pad[1]` (the extra s16* local is what gives the target's 0x38 frame; pad[1] alone gives 0x30). Remaining diff is loop shape only: target keeps store pointer in a0 (starts from alloc result v0, +2 per iter), index in a1, count pointer in v1/s0 reloaded each iteration, and the blez guard sits 1 insn later (0xcc vs 0xc8). Tried do-while with explicit p++ and guarded `if (*count > 0)`: frame drops to 0x30 and score 212. Untried: a `for`-style loop with count read through `count` pointer (`for (i = 0; i < *count; i++, p++)`), or moving the `D_80046C38` store after the loop-start setup.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794705990.707021,
+  "score_before": 160,
+  "score_after": 160
+ },
+ {
+  "function": "func_80027DF0",
+  "text": "Best 160 (97.2%, 58 target vs 57 mine), revision 82fa0ab58ff3158f5e34: count = &D_8006FEE4; D_80046C34 = alHeapDBAlloc(0,0,D_8006E780,1,arg1); func_800294A0(arg0,D_80046C34,arg1); alBnkfNew(D_80046C34,arg2); D_80046C38 = alHeapDBAlloc(0,0,D_8006E780,1,*count*2); while (i < *count) D_80046C38[i++] = -1. Remaining diff is only the fill loop: target keeps the array pointer in a0 (move a0,v0 after the store, then sh a2,(a0); addiu a0,a0,2 with the index in a1 and count read through v1=s0). Tried a separate short *p pointer loop (360, worse). Next: try the loop with the index in a1 and the array pointer copied from v0 into a0 after the D_80046C38 store, e.g. 'p = D_80046C38;' declared after i and the count as int *.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794720200.8914812,
+  "score_before": 160,
+  "score_after": 160
+ },
+ {
+  "function": "func_80027DF0",
+  "text": "Best verified 160 (57 insns vs target 58) at revision 0456716db1e19c4137ca; saved C rechecked 160 too. Everything before row 40 already matches: prologue, three calls (alHeapDBAlloc/func_800294A0/alBnkfNew), the *2 scale and the D_80046C38 store. Only the fill loop differs.\n\nTarget loop (rows 40-51):\n  blez $v1,.L80027EBC ; move $a1,$zero ; addiu $a2,$zero,-1 ; move $v1,$s0 ; move $a0,$v0\n.L80027EA4: sh $a2,($a0) ; lw $v0,($v1) ; addiu $a1,$a1,1 ; slt $v0,$a1,$v0 ; bnez $v0,.L80027EA4 ; addiu $a0,$a0,2\ni.e. i in $a1, -1 in $a2, count pointer (&D_8006FEE4) copied into $v1, allocation result copied into $a0, count re-read from memory each iteration, pointer bumped by 2.\n\nTried and rejected: p[i] with p = allocation result (160, pointer in $v1, i in $a0); separate q=p / cp=count locals used as q[i] and *cp (160, identical diff); *q++ / q++ store form (360); i < D_8006FEE4 direct global (475); for-loop form (160); declaration-order and signedness families (no change); volatile/local pointer variants. The candidate copies (q=p, cp=count) get scheduled BEFORE the D_80046C38 store, so the two target `move`s after blez never appear; that is the single remaining structural gap (branch offset 0xc8 vs 0xcc, one instruction short).\n\nLeft to try: force the loop-pointer copies to be materialised only in the loop preheader after the branch (e.g. declare `s16 *q = p; s32 *cp = count;` as initialised locals at the top of the block, or re-read the allocation result from D_80046C38 inside the loop so no copy is needed and the preheader keeps two moves).",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794722368.510344,
+  "score_before": 160,
+  "score_after": 160
+ },
+ {
+  "function": "func_80027DF0",
+  "text": "Best 160 (97.2%), revision 5e8d2d8957a71186c58d (or 07ae597bfd52c92bf621, same score): count=&D_8006FEE4; D_80046C34=func_80038340(0,0,D_8006E780,1,arg1); func_800294A0; func_80035B50; D_80046C38=func_80038340(...,*count*2); loop filling D_80046C38[i]=-1 for i<*count. Remaining diff is the loop shape: target keeps the fill pointer in $a0 (starts from the returned v0, stored to D_80046C38 and reused), i in $a1, and re-materializes the count pointer into $v1 (move $v1,$s0) before its loop-body load, with the entry test blez $v1 on *count. Mine loads (s0) directly and uses i in a0. Tried: explicit s16 *p walking pointer (360, worse, extra move into a1); for-loop form (160, same). Next: keep p as the pointer variable but write the loop test through count (`while (*count > i)` with count reloaded in the body), or use a second pointer temp so the compare reads through v1.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794739655.207799,
+  "score_before": 160,
+  "score_after": 160
+ },
+ {
+  "function": "func_80027DF0",
+  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 40; 11 differing rows (2 opcode, 7 register, 1 branch target, 1 deleted; advisory).\nTarget: blez $v1, 0xcc\nCandidate: beqz $v1, 0xc8\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n  = lui $at, %hi(D_80046C38)\n  = sw $v0, %lo(D_80046C38)($at)\n| T: blez $v1, 0xcc | C: beqz $v1, 0xc8\nr T: move $a1, $zero | C: move $a0, $zero\nr T: addiu $a2, $zero, -1 | C: addiu $a1, $zero, -1\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nReleased because its agent stopped (stopped by you); its attempts are kept.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794746861.77232,
+  "score_before": 160,
+  "score_after": 160
+ },
+ {
+  "function": "func_80027DF0",
+  "text": "Best saved remains 160 (count-pointer version). Found the loop shape: target loop is for(i=0;i<*count;i++) with a pointer incremented by 2 (`sh a2,0(a0); addiu a0,a0,2` in the delay slot), so `*p++ = -1` with `p = D_80046C38` gives 360 (93.7%): the only leftover is the register choice (target uses $a0 for the pointer and $a1 for the counter, mine swap them) and an extra `move $a1,$v0` after the second alloc, since the target stores $v0 straight into D_80046C38 and copies it into $a0 only later. Declaration reorders and a `p = alloc; D = p;` split did not help. Next: try a loop counter that is a s32 declared before the pointer, or a `while` with the pointer walking and the count checked against *count, to get $a0=ptr and $a1=counter.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794747998.894745,
+  "score_before": 160,
+  "score_after": 160
+ },
+ {
+  "function": "func_80027DF0",
+  "text": "Not matched; 97.2% (score 160, saved best). Current best C is the one in the saved revision 07ae597 (the count pointer `count = &D_8006FEE4`, two func_80038340 calls, func_800294A0, func_80035B50, and the while(i < *count) D_80046C38[i] = -1 loop). Remaining diff is the final loop only: target keeps the array result of the second func_80038340 in $v0, moves it to $a0 (pointer), uses $a1 as the index (move $a1,$zero) and $a2 = -1; it reloads *count through $s0 each iteration (lw v0,(v1) where v1 = $s0) and branches with blez $v1 before the loop. Our build uses $a1 as the pointer and $a0 as index. The pointer-walk rewrite (for loop with s16 *p) scored 360 (worse). Untried: write the index loop with the count in a separate pointer variable `s32 *cp = count` and `D_80046C38[i]` with i declared as s32 before the first call so the loop index lands in $a1; or swap the loop bound to `*count > 0` with a do-while.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794752735.3910341,
+  "score_before": 160,
+  "score_after": 160
+ },
+ {
+  "function": "func_80027DF0",
+  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794754847.9732978,
+  "score_before": 160,
+  "score_after": 72
+ },
+ {
+  "function": "func_80027DF0",
+  "text": "Released because its agent stopped (the app restarted); its attempts are kept.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794754896.2401102,
+  "score_before": 72,
+  "score_after": 72
  }
 ]
