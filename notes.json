@@ -9240,14 +9240,6 @@
   "score_after": 1880
  },
  {
-  "function": "func_80149F40",
-  "text": "Switch on a1 (<8) via jump table at D_801836F8 (not loaded in ROM, so case targets are unknown; read_data says not in a loaded part). Default path: v1=a2 and returns v1&0xFF. Visible tail: case block loads D_80168D38[a2] (lbu, indexed by a2, base lui/addu with a2); if bit 0x80 set, v=(v&0x7F)+a0; else v unchanged. Another block: if a2!=0x5A v+=1 else v=0 (delay-slot addiu runs on both paths). Best attempt scored 1350 (48%) with a guessed 2-case switch that has the wrong control flow. Next step: find the jump table targets (needs D_801836F8 data) before retrying the case structure.",
-  "by": "Ww.claude-haiku-low-1",
-  "created_at": 1794182428.4441001,
-  "score_before": 1350,
-  "score_after": 1350
- },
- {
   "function": "func_801FB300",
   "text": "Deep permuter: score 57360 \u2192 57112; 1 improvements; 87 candidates tested; 49 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935681",
@@ -9302,14 +9294,6 @@
   "created_at": 1794357178.057687,
   "score_before": 655,
   "score_after": 655
- },
- {
-  "function": "func_80149F40",
-  "text": "Deep permuter: score 1205 \u2192 1205; 0 improvements; 62 candidates tested; 5 cached skips; 0 rejected; 7222s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935411",
-  "created_at": 1794357232.940593,
-  "score_before": 1205,
-  "score_after": 1205
  },
  {
   "function": "n_alAdpcmPull",
@@ -9398,14 +9382,6 @@
   "created_at": 1794706515.629447,
   "score_before": 3575,
   "score_after": 3575
- },
- {
-  "function": "func_80149F40",
-  "text": "Claimed but not worked: the session's claim budget ran out. No compiles. Available.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794706542.099135,
-  "score_before": 1250,
-  "score_after": 1250
  },
  {
   "function": "func_8014A134",
@@ -9624,14 +9600,6 @@
   "score_after": 1788
  },
  {
-  "function": "func_80149F40",
-  "text": "Best 1195 (54%). Target is a real 8-entry jump table: sltiu $v0,$a1,8 range check; sll/lui/addu/lw from D_801836F8; jr $v0. Case 0 = lbu D_80168D38[a2], if bit7 then (v&0x7F)+a0. Case 1 = (a2==0x5A)?0:a2+1. Cases 2..7 look like v=a2+1 (shared addiu $v1,$v1,1 entry before the end). Default = return a2. Problem: gcc-2.7.2-kmc -O2 never emits a jump table for my switch; it emits a compare chain (1195/1250/1970). Tried: no default, default:break, s32 arg1 (1970, worse). Untried: search_flags for the switch lowering, or a layout gcc turns into casesi.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794720517.0501251,
-  "score_before": 1250,
-  "score_after": 1195
- },
- {
   "function": "func_8014BA14",
   "text": "No match. Two hand attempts: revision 99ff7b69a0bafac4c0a0 (unsigned a, 4995) and ae60e17f560659241f9b (signed s32 a, 4255); saved best remains 3575 (the switch draft). Decoded target: a=arg0&0xFFFF (andi at entry); v=0 default; if a<0x508 (slti, beqz to .L6C): if a>=0x506 -> v=1 (beql v0==0 with addiu v1,1 in delay); else if a>=0x119 -> compare a==0x409 (v=1 only on match; else j end with nothing); else if a>=0x115 -> v=1; else a==0xD -> v=1. a>=0x508 path (.L6C): a==0x70E -> v=1 (beql); if a>=0x70F -> .LA0: a==0x2FFF or a==0x4FFF -> v=2 (beq delay addiu 2), else end (v=0); if 0x508<=a<0x70F: if a>=0x615 end v=0; if a<0x612 end v=0; else v=1. Return v&0xFF. Lesson: the target uses beql + addiu-in-delay for every set, so an if/else-if chain with explicit v=1 assignments does not reproduce it; the next try should use `if (cond) v = 1;` (no else-chain) nested the same way, with the slti/beqz order (0x508 first, then 0x506, 0x119, 0x115, 0xD). Not worth more compiles this session.",
   "by": "claude-haiku-5-5-20",
@@ -9848,14 +9816,6 @@
   "score_after": 290
  },
  {
-  "function": "func_80149F40",
-  "text": "Not matched. Best: 300 (88.4%) at revision 3b0a4cecad8c87e6fbd3. Key finding: the switch on arg1 (0..7) only becomes the target's jump table (`sltiu v0,a1,8; beqz; sll; lui D_801836F8; lw; jr`) when cases 2..7 are written as six separate `case N: temp_v1 += 1; break;` blocks; a single merged `case 2: case 3: ...` group kept it as a compare chain (1195). Remaining diff: target keeps arg2 in $a2 and does `move $v1,$a2` (temp in $v1), and the table load/`andi v0,v1,0xff` at return is one shared `andi`; ours keeps a u8 temp and adds an extra andi per path (score 300 has andi $v0,$v1,0xff x2 and bne $v1). Using s32 temp_v1 (500) was worse. Untried: `u8 temp_v1` with `arg2` used as the table index and the return written as `return temp_v1;` but with the case-1 0x5A compare written as `arg2 == 0x5A` before the switch. Note the jump table entries at D_801836F8 are for cases 0..7 (the compiler emits them; the .rodata row is in the unit).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794729185.6152399,
-  "score_before": 1195,
-  "score_after": 300
- },
- {
   "function": "func_8022FDF0",
   "text": "Best 30 (98.6%) at revision 3f7e1abc873e406c4f9f: `if ((u16)arg0 >= 10) arg0 = 9; if ((u16)arg1 >= 2) arg1 = 1; func_801D65BC(D_80232868[(u16)(arg0 + ((u16)arg1 * 10))], arg1);`. Only register allocation differs: the target does `andi $v0,$a1,0xffff` first and builds the *10 in $v1 (sll $v1,$v0,2; addu; sll 1); ours uses $v1 for the andi and $v0 for the product. Try a local `u16 t = arg1;` used for both the compare and the *10.\n\nNot matched. Best 30 (98.6%) at revision 018034be040751d9e28d (same source as 3f7e1abc873e406c4f9f). Only 6 register differences remain: the target does `andi $v0,$a1,0xffff` first and builds *10 in $v1 (sll $v1,$v0,2; addu; sll 1), ours uses $v1 for the andi. The attempted `u16 t` variant could not be judged (the judge reported progress changed mid-compile). Next: try_local_repairs on this revision (4 proposals listed), or the `u16 t = arg1` staging.",
   "by": "claude-haiku-5-5-21",
@@ -9934,14 +9894,6 @@
   "created_at": 1794730283.5102441,
   "score_before": 610,
   "score_after": 610
- },
- {
-  "function": "func_80149F40",
-  "text": "Best saved 300 (88%): 8 separate case labels 2..7 each `temp_v1 += 1; break;` with u8 temp_v1. Dense switch emits the jump table (needs all of case 0..7 present; a `default:` or merged 2..7 labels drops the table). Remaining diffs: (a) target keeps temp in $v1 via `move $v1,$a2` in the bnez delay path; the u8 temp forces `andi ...,0xff` at the case-0 add (after `(t&0x7F)+arg0`) and at case-1 add. Target only truncates at return (`andi $v0,$v1,0xff`). Tried s32 temp with `return (u8)temp_v1;` -> 500 (worse, extra andi on arg2 and reg shuffle). Tried merged 2..7 labels -> 1195 (no jump table). Untried: keep u8 temp but compute case-0 result into an s32 local before the store to temp; or `temp_v1 = arg2` replaced by `temp_v1 = (u8)arg2` variants. Jump table at 0x801836F8 is in unloaded rodata, so table contents unverified.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794730291.244513,
-  "score_before": 300,
-  "score_after": 300
  },
  {
   "function": "func_8014A9F4",
@@ -10110,14 +10062,6 @@
   "created_at": 1794732031.769751,
   "score_before": 20,
   "score_after": 10
- },
- {
-  "function": "func_80149F40",
-  "text": "Best verified 55 (97.8%), revision c9585a856719340a4950 / feaa895b1b856277f688. All 26 instructions present and identical; only 11 register-allocation rows differ, so the C is semantically right.\n\nWorking source (score 55):\n  extern u8 D_80168D38[];\n  u8 func_80149F40(s32 arg0, u32 arg1, s32 arg2) {\n      s32 temp_v1 = arg2;\n      switch (arg1) { case 0: temp_v1 = D_80168D38[arg2]; if (temp_v1 & 0x80) temp_v1 = (temp_v1 & 0x7F) + arg0; break;\n                      case 1: if (arg2 == 0x5A) temp_v1 = 0; else temp_v1 += 1; break;\n                      case 2..7: temp_v1 += 1; break; }\n      return temp_v1 & 0xFF; }\n\nKey type facts established: arg2 is a plain s32 (a u8 arg2 adds andi 0xff everywhere, +200..245), the accumulator is s32 (u8 accumulator adds andi 0xff after each case), the return keeps `andi $v0,$v1,0xff` so the return type is u8 with `& 0xFF`, and D_80168D38 must stay declared `u8 []` (s8 costs +195).\nRemaining mismatch: target keeps the accumulator in $v1 and arg2 in $a2; mine swaps them ($a2 accumulator, $v1 = arg2 copy from the switch prologue `addu $v1,$a2,$zero`). The target's `addu $v1,$v1,$a2` for the load address proves arg2 stays in $a2 while the accumulator is $v1.\nTried and worse or equal: increment-before-test in case 1 (790, xori/sltu/negu/and), separate temp for the case-0 load (55, no change), extra `s32 idx = arg2` local (785, switch became a local jump table in .rodata), `*(&D_80168D38 + arg2)` with scalar extern (55, same), `(u16)arg2` index (200), u32 accumulator (55), (arg0)+((temp&0x7F)) operand order (55), loop_weight wrapper (55).\nNext idea: force the accumulator into $v1 by making the switch's prologue copy dead - e.g. keep arg2 in a separate live variable across the whole switch (declare `s32 idx = arg2;` but use idx only in case 0's load and the 0x5A compare, and keep it live to the end so gcc cannot coalesce it), or write case 0 as `temp_v1 = *(&D_80168D38 + arg2);` with the scalar-extern form plus a second use of arg2 after the switch.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794732032.401491,
-  "score_before": 300,
-  "score_after": 55
  },
  {
   "function": "func_8002E9A4",
@@ -10566,5 +10510,61 @@
   "created_at": 1794732614.229534,
   "score_before": 800,
   "score_after": 800
+ },
+ {
+  "function": "func_80149F40",
+  "text": "Switch on a1 (<8) via jump table at D_801836F8 (not loaded in ROM, so case targets are unknown; read_data says not in a loaded part). Default path: v1=a2 and returns v1&0xFF. Visible tail: case block loads D_80168D38[a2] (lbu, indexed by a2, base lui/addu with a2); if bit 0x80 set, v=(v&0x7F)+a0; else v unchanged. Another block: if a2!=0x5A v+=1 else v=0 (delay-slot addiu runs on both paths). Best attempt scored 1350 (48%) with a guessed 2-case switch that has the wrong control flow. Next step: find the jump table targets (needs D_801836F8 data) before retrying the case structure.",
+  "by": "Ww.claude-haiku-low-1",
+  "created_at": 1794182428.4441001,
+  "score_before": 1350,
+  "score_after": 1350
+ },
+ {
+  "function": "func_80149F40",
+  "text": "Deep permuter: score 1205 \u2192 1205; 0 improvements; 62 candidates tested; 5 cached skips; 0 rejected; 7222s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935411",
+  "created_at": 1794357232.940593,
+  "score_before": 1205,
+  "score_after": 1205
+ },
+ {
+  "function": "func_80149F40",
+  "text": "Claimed but not worked: the session's claim budget ran out. No compiles. Available.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794706542.099135,
+  "score_before": 1250,
+  "score_after": 1250
+ },
+ {
+  "function": "func_80149F40",
+  "text": "Best 1195 (54%). Target is a real 8-entry jump table: sltiu $v0,$a1,8 range check; sll/lui/addu/lw from D_801836F8; jr $v0. Case 0 = lbu D_80168D38[a2], if bit7 then (v&0x7F)+a0. Case 1 = (a2==0x5A)?0:a2+1. Cases 2..7 look like v=a2+1 (shared addiu $v1,$v1,1 entry before the end). Default = return a2. Problem: gcc-2.7.2-kmc -O2 never emits a jump table for my switch; it emits a compare chain (1195/1250/1970). Tried: no default, default:break, s32 arg1 (1970, worse). Untried: search_flags for the switch lowering, or a layout gcc turns into casesi.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794720517.0501251,
+  "score_before": 1250,
+  "score_after": 1195
+ },
+ {
+  "function": "func_80149F40",
+  "text": "Not matched. Best: 300 (88.4%) at revision 3b0a4cecad8c87e6fbd3. Key finding: the switch on arg1 (0..7) only becomes the target's jump table (`sltiu v0,a1,8; beqz; sll; lui D_801836F8; lw; jr`) when cases 2..7 are written as six separate `case N: temp_v1 += 1; break;` blocks; a single merged `case 2: case 3: ...` group kept it as a compare chain (1195). Remaining diff: target keeps arg2 in $a2 and does `move $v1,$a2` (temp in $v1), and the table load/`andi v0,v1,0xff` at return is one shared `andi`; ours keeps a u8 temp and adds an extra andi per path (score 300 has andi $v0,$v1,0xff x2 and bne $v1). Using s32 temp_v1 (500) was worse. Untried: `u8 temp_v1` with `arg2` used as the table index and the return written as `return temp_v1;` but with the case-1 0x5A compare written as `arg2 == 0x5A` before the switch. Note the jump table entries at D_801836F8 are for cases 0..7 (the compiler emits them; the .rodata row is in the unit).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794729185.6152399,
+  "score_before": 1195,
+  "score_after": 300
+ },
+ {
+  "function": "func_80149F40",
+  "text": "Best saved 300 (88%): 8 separate case labels 2..7 each `temp_v1 += 1; break;` with u8 temp_v1. Dense switch emits the jump table (needs all of case 0..7 present; a `default:` or merged 2..7 labels drops the table). Remaining diffs: (a) target keeps temp in $v1 via `move $v1,$a2` in the bnez delay path; the u8 temp forces `andi ...,0xff` at the case-0 add (after `(t&0x7F)+arg0`) and at case-1 add. Target only truncates at return (`andi $v0,$v1,0xff`). Tried s32 temp with `return (u8)temp_v1;` -> 500 (worse, extra andi on arg2 and reg shuffle). Tried merged 2..7 labels -> 1195 (no jump table). Untried: keep u8 temp but compute case-0 result into an s32 local before the store to temp; or `temp_v1 = arg2` replaced by `temp_v1 = (u8)arg2` variants. Jump table at 0x801836F8 is in unloaded rodata, so table contents unverified.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794730291.244513,
+  "score_before": 300,
+  "score_after": 300
+ },
+ {
+  "function": "func_80149F40",
+  "text": "Best verified 55 (97.8%), revision c9585a856719340a4950 / feaa895b1b856277f688. All 26 instructions present and identical; only 11 register-allocation rows differ, so the C is semantically right.\n\nWorking source (score 55):\n  extern u8 D_80168D38[];\n  u8 func_80149F40(s32 arg0, u32 arg1, s32 arg2) {\n      s32 temp_v1 = arg2;\n      switch (arg1) { case 0: temp_v1 = D_80168D38[arg2]; if (temp_v1 & 0x80) temp_v1 = (temp_v1 & 0x7F) + arg0; break;\n                      case 1: if (arg2 == 0x5A) temp_v1 = 0; else temp_v1 += 1; break;\n                      case 2..7: temp_v1 += 1; break; }\n      return temp_v1 & 0xFF; }\n\nKey type facts established: arg2 is a plain s32 (a u8 arg2 adds andi 0xff everywhere, +200..245), the accumulator is s32 (u8 accumulator adds andi 0xff after each case), the return keeps `andi $v0,$v1,0xff` so the return type is u8 with `& 0xFF`, and D_80168D38 must stay declared `u8 []` (s8 costs +195).\nRemaining mismatch: target keeps the accumulator in $v1 and arg2 in $a2; mine swaps them ($a2 accumulator, $v1 = arg2 copy from the switch prologue `addu $v1,$a2,$zero`). The target's `addu $v1,$v1,$a2` for the load address proves arg2 stays in $a2 while the accumulator is $v1.\nTried and worse or equal: increment-before-test in case 1 (790, xori/sltu/negu/and), separate temp for the case-0 load (55, no change), extra `s32 idx = arg2` local (785, switch became a local jump table in .rodata), `*(&D_80168D38 + arg2)` with scalar extern (55, same), `(u16)arg2` index (200), u32 accumulator (55), (arg0)+((temp&0x7F)) operand order (55), loop_weight wrapper (55).\nNext idea: force the accumulator into $v1 by making the switch's prologue copy dead - e.g. keep arg2 in a separate live variable across the whole switch (declare `s32 idx = arg2;` but use idx only in case 0's load and the 0x5A compare, and keep it live to the end so gcc cannot coalesce it), or write case 0 as `temp_v1 = *(&D_80168D38 + arg2);` with the scalar-extern form plus a second use of arg2 after the switch.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794732032.401491,
+  "score_before": 300,
+  "score_after": 55
  }
 ]
