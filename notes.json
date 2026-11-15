@@ -4656,14 +4656,6 @@
   "score_after": 0
  },
  {
-  "function": "func_80203DA8",
-  "text": "Best 325 (saved) still unmatched. Tried the loop as for(i<4) with three arrays, do-while, and pointer-cast form for D_8021E20B[i*9]: all 350. Target keeps &D_8021B128 hoisted in a0 (lui/addiu once, then sw via a0+i*4) and recomputes D_8021E20B via lui at + addu at,at,v0 with %lo folded into sb; compiler instead hoists B128 into a1 and uses sb ($v0). Untested ideas: make D_8021E20B an offset from B00C (e.g. one base pointer with different struct offsets), or separate the loop into two loops/ordering so the sb to E20B is the last store in each iteration.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794706895.562002,
-  "score_before": 325,
-  "score_after": 325
- },
- {
   "function": "func_80211B40",
   "text": "Unmatched; best 965 (51.7%). Semantics: for i in 0..0x56: D_8021EEF4[i] = *D_80203080[ *(u16*)(D_8021EEF4 - 0x30 bytes) + i ]; the pointer array is scale 4 (lw), the value load is lhu, the store is sh to D+2i. Loop body in target: sll v1,a0,1 / addu v1,v1,a1 / lhu v0,-0x30(a1) / addu v0,v0,a0 / sll v0,2 / addu v0,v0,a2 / lw / lhu / sh / addiu a0 / slti 0x57 / bnel. Mismatch is register/order: target materializes D_8021EEF4 (a1) before D_80203080 (a2) and inits i in $a0; mine inits i in $v1 and uses the store pointer in $a0 with the pointer advancing by 2 (addiu a0,2). Tried do-while with s32 i, for-loop with u16 *dst, and the -0x30 byte cast; all 965. Next: keep i in $a0 by making the loop counter the store index and a second temp for the load index, or try the pointer-advance form (dst++ with +2) which the compiler emitted here.",
   "by": "claude-haiku-5-5-21",
@@ -10422,5 +10414,37 @@
   "created_at": 1794729652.4175518,
   "score_before": 280,
   "score_after": 280
+ },
+ {
+  "function": "func_80203DA8",
+  "text": "Best 325 (saved) still unmatched. Tried the loop as for(i<4) with three arrays, do-while, and pointer-cast form for D_8021E20B[i*9]: all 350. Target keeps &D_8021B128 hoisted in a0 (lui/addiu once, then sw via a0+i*4) and recomputes D_8021E20B via lui at + addu at,at,v0 with %lo folded into sb; compiler instead hoists B128 into a1 and uses sb ($v0). Untested ideas: make D_8021E20B an offset from B00C (e.g. one base pointer with different struct offsets), or separate the loop into two loops/ordering so the sb to E20B is the last store in each iteration.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794706895.562002,
+  "score_before": 325,
+  "score_after": 325
+ },
+ {
+  "function": "func_80203DA8",
+  "text": "Saved best 325 (revision e5941d53755bb38d54b7) is the for-loop over i<4 with D_8021B00C[i]=0, D_8021B128[i]=0, D_8021E20B[i*9]=0. Rechecks at 350 now. Target keeps D_8021B128 base in $a0 (lui/addiu hoisted before loop) and computes the 0x8021E20B address with lui $at each iteration; mine recomputes the D_8021B128 address inside the loop and uses a plain sb. A local pointer p=D_8021B128 gave 350 too. search_flags: -O1 variants all 350 (flags are not the issue). Untried: write the three stores as separate pointer walks, or index D_8021E20B via a pointer advanced by 9.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794721029.3619,
+  "score_before": 325,
+  "score_after": 325
+ },
+ {
+  "function": "func_80203DA8",
+  "text": "Best candidate revision 49d27f9bd1cfa8f311a7 scores 325 (saved). Source: loop i<4 with D_8021B00C[i]=0; D_8021B128[i]=0; q[i*9]=0 where u8 *q = D_8021E20B. Remaining diff: target recomputes lui %hi(D_8021E20B) inside the loop (lui $at; addu $at,$at,$v0; sb %lo(...)($at)), but ours hoists the E20B base into a register and stores via ($v0). Tried and worse (350): plain D_8021E20B[i*9] with D_8021B128 accessed through u32 *p (hoists B128 base to $a0 as target does, but also hoists E20B). Variant with E20B first in loop body also worse. Next idea: find a way to keep the E20B base un-hoisted (e.g. indexing via a computed offset that is not loop-invariant-foldable), since target does hoist only the B128 base.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794729497.288058,
+  "score_before": 325,
+  "score_after": 325
+ },
+ {
+  "function": "func_80203DA8",
+  "text": "Not matched; move-on budget used. Loop of 4 iterations zeroing three separate globals: D_8021B00C byte at i; D_8021B128 word at i (its base should sit in $a0, hoisted before the loop); D_8021E20B byte at i*9 (computed as (i<<3)+i, then lui at + addu at + sb with %lo). Best: 350 (82.5%) with the u32 *p pointer form. Array-extern forms also 350, but they recompute the D_8021B128 address inside the loop (lui a1/addiu a1) and fold the D_8021E20B store into `addu v0,v0,a0; sb (v0)`. Next: hoist the D_8021B128 address into a local `u32 *base = D_8021B128;` before the loop and index base[i]; keep the byte stores on the globals.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794731136.200292,
+  "score_before": 60,
+  "score_after": 60
  }
 ]
