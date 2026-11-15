@@ -45,3 +45,9 @@ typedef struct { u8 pad[0x18]; s16 division; } N_ALSequenceLayout;
 
 /* Sequence-channel layout: stride and accessed offsets verified by func_80027D00. */
 typedef struct { u8 player[0x7C]; u8 seq[0xF8]; s32 data; s32 pad178; s32 flags; s32 pad180; } PennySeqState;
+
+/* Verified by exact -O1 func_80149FA8: D_800DA26A element stride 0x178. */
+typedef struct { u8 pad00[0x64]; u16 rows[14][9]; u8 tail160[0x18]; } PennyHalfwordRows;
+
+/* Verified bitfield operation in exact -O1 func_80146970. */
+typedef struct { u8 reserved_hi:3; u8 flag10:1; u8 reserved_lo:4; } PennyByteFlags10;

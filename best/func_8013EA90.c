@@ -22,7 +22,7 @@ void func_8013EA90(void *arg0, s32 arg1, s32 arg2, s32 arg3) {
     var_t1 = temp_a1;
     var_v1 = M2C_FIELD(arg0, u8 *, 0x18) + arg2;
     var_t0 = M2C_FIELD(arg0, u8 *, 0x19) + arg3;
-    if (temp_a1 & 0x8000) {
+    if (temp_a1 < 0) {
         var_t1 = 0;
     } else if (var_t1 >= 0x100) {
         var_t1 = 0xFF;

@@ -1,7 +1,8 @@
 f32 __cosf(f32);
 f32 __sinf(f32);
 f32 sqrtf(f32);
-extern u8 D_8011F32E[];
+typedef struct { u16 f0; u8 pad[98]; } Slot_8011F32E;
+extern Slot_8011F32E D_8011F32E[];
 extern f32 D_8011F334[];
 extern f32 D_8011F338[];
 extern f32 D_8011F33C[];
@@ -55,7 +56,7 @@ void func_801FBBFC(s32 arg0) {
     f64 temp_fs2_2;
     f64 temp_fs3;
 
-    temp_v1 = *(u16 *)(D_8011F32E + ((arg0 & 0xFFFF) * 0x64));
+    temp_v1 = D_8011F32E[arg0 & 0xFFFF].f0;
     switch (temp_v1) {
     case 0:
         D_802038A0 = 0.0f;
@@ -82,7 +83,7 @@ void func_801FBBFC(s32 arg0) {
         temp_fs1_2 = __cosf((f32) (((f64) D_802038A0 * temp_fs2) / temp_fs3)) * D_802038A4;
         temp_fs0_2 = __cosf((f32) (((f64) D_802038A0 * temp_fs2) / temp_fs3));
         D_80221088[temp_s0 / 4] = (temp_fs1_2 - (temp_fs0_2 * __sinf((f32) (((f64) D_802038AC * temp_fs2) / temp_fs3)) * D_802038A4)) + D_80221094[temp_s0 / 4];
-        *(u8 *)(D_8011F32E + ((arg0 & 0xFFFF) * 0x64)) = 1;
+        D_8011F32E[arg0 & 0xFFFF].f0 = 1;
         return;
     case 1:
         temp_v0_2 = (1 & 0xFFFF) * 0x24;

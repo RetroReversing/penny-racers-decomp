@@ -1,4 +1,3 @@
-
 extern u8 D_800DB1B8[],D_8006FAF0[];
 extern u8 D_80126FF6,D_8011F2F0,D_8011F2FC,D_8011F308,D_8011F310,D_8011F350;
 extern u8 D_8022A770[],D_8022AD04,D_8022AD0C,D_80220ED8[];
@@ -16,16 +15,18 @@ func_801CC150(arg0,236,Y,0,0,64,64,64,64,64,64,0,0,319,239,D_80182DC8[MODE],D_80
 for (i=5;i>=0;i--) { \
  p=D_8022A770+i*2288; \
  if (*(u16 *)(p+2)!=65535) { \
- switch(MODE) { \
- case 1: x=POSX(*(u16 *)(p+2))*D_80167F30[MODE]; z=-POSZ(*(u16 *)(p+2))*D_80167F30[MODE]; break; \
- case 2: x=-POSX(*(u16 *)(p+2))*D_80167F30[MODE]; z=POSZ(*(u16 *)(p+2))*D_80167F30[MODE]; break; \
- case 3: x=POSX(*(u16 *)(p+2))*D_80167F30[MODE]; z=-POSZ(*(u16 *)(p+2)); z*=D_80167F30[MODE]; break; \
- case 9: z=POSX(*(u16 *)(p+2))*D_80167F30[MODE]; x=POSZ(*(u16 *)(p+2))*D_80167F30[MODE]; break; \
- } \
- func_801CB9EC(arg0,(u16)((u32)z+D_80167F08[MODE]+264),(u16)((u32)x+D_80167F1C[MODE]+Y+28),8,D_80175278,D_80167E40[*(&D_8018D398+i)],0,1,0,8,8,16,8,0); \
+  switch(MODE) { \
+  case 1: x=POSX(*(u16 *)(p+2))*D_80167F30[MODE]; z=-POSZ(*(u16 *)(p+2))*D_80167F30[MODE]; break; \
+  case 2: x=-POSX(*(u16 *)(p+2))*D_80167F30[MODE]; z=POSZ(*(u16 *)(p+2))*D_80167F30[MODE]; break; \
+  case 3: x=POSX(*(u16 *)(p+2))*D_80167F30[MODE]; z=-POSZ(*(u16 *)(p+2)); z*=D_80167F30[MODE]; break; \
+  case 9: z=POSX(*(u16 *)(p+2))*D_80167F30[MODE]; x=POSZ(*(u16 *)(p+2))*D_80167F30[MODE]; break; \
+  } \
+  func_801CB9EC(arg0,(u16)((u32)z+D_80167F08[MODE]+264),(u16)((u32)x+D_80167F1C[MODE]+Y+28),8,D_80175278,D_80167E40[*(&D_8018D398+i)],0,1,0,8,8,16,8,0); \
  } }
 void func_80132004(u32 **arg0,u16 arg1) {
- s32 i,off,t; u8 *p; u32 *dl; f32 x,z; 
+char *__repair_addr;
+
+ s32 i,off,t; u8 *p; u32 *dl; f32 x,z;
  if (D_80126FF6!=COUNT-1) return;
  off=arg1*100;
  p=D_8022A770+*(&D_8011F2F0+off)*2288;
@@ -38,12 +39,14 @@ void func_80132004(u32 **arg0,u16 arg1) {
  }
  if(COUNT==2 && D_80189CC8!=3 && D_80182DC8[MODE]) { DRAW_MAP(88) }
  if(D_80189CC8==3) {
- x=(*(u16 *)(*(u8 **)(&D_8011F350+D_80189C96*100)+12))-2;
- for(i=0;i<COUNT;) {
- t=*(s32 *)(&D_8022AD0C+i*2288);
- if(t<100) t=0; else t-=*(s16 *)(&D_8022AD04+i*2288)*100;
- z=*(u16 *)(*(u8 **)(&D_8011F350+D_80189C96*100)+10)+(t-4);
- func_801CB9EC(arg0,(u16)(u32)z,(u16)(u32)x,8,D_8016EE00,D_80167E50[*(&D_8018D398+i)],0,1,0,8,8,80,8,(u16)++i);
- }
+  x=(*(u16 *)(*(u8 **)(&D_8011F350+D_80189C96*100)+12))-2;
+  for(i=0;i<COUNT;) {
+__repair_addr = (char *)(&D_8022AD0C+i*2288);
+
+   t=*(s32 *)(__repair_addr);
+   if(t<100) t=0; else t-=*(s16 *)(&D_8022AD04+i*2288)*100;
+   z=*(u16 *)(*(u8 **)(&D_8011F350+D_80189C96*100)+10)+(t-4);
+   func_801CB9EC(arg0,(u16)(u32)z,(u16)(u32)x,8,D_8016EE00,D_80167E50[*(&D_8018D398+i)],0,1,0,8,8,80,8,(u16)++i);
+  }
  }
 }

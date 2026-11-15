@@ -1,25 +1,18 @@
-extern u16 D_8011F32E;
-extern s32 D_80221080;
-extern s32 D_80221084;
-extern f32 D_80221088;
-extern s32 D_8022108C;
-extern s32 D_80221090;
-extern s32 D_80221094;
-
+typedef struct {u16 flag; u8 pad[98];} Flag100;
+typedef struct {s32 x,y; f32 z; s32 a,b,c; u8 pad[12];} State36;
+extern Flag100 D_8011F32E[];
+extern State36 D_80221080[];
 void func_801FC2F8(u32 arg0) {
-    s32 off;
-    volatile s32 i;
-
-    i = arg0 & 0xFFFF;
-    if (*(u16 *)((u8 *)&D_8011F32E + i * 0x64) == 0) {
-        i = 2;
-        *(s32 *)((u8 *)&D_8022108C + i * 0x24) = 0;
-        *(s32 *)((u8 *)&D_80221090 + i * 0x24) = 0;
-        *(s32 *)((u8 *)&D_80221094 + i * 0x24) = 0;
-        *(s32 *)((u8 *)&D_80221080 + i * 0x24) = 0;
-        *(s32 *)((u8 *)&D_80221084 + i * 0x24) = 0;
-        *(f32 *)((u8 *)&D_80221088 + i * 0x24) = 1000.0f;
-        off = (arg0 & 0xFFFF) * 0x64;
-        *(u16 *)((u8 *)&D_8011F32E + off) = 1;
-    }
+ u16 i;
+ if(D_8011F32E[arg0&0xFFFF].flag==0) {
+  for(i=2;i<3;i++) {
+   D_80221080[i].a=0;
+   D_80221080[i].b=0;
+   D_80221080[i].c=0;
+   D_80221080[i].x=0;
+   D_80221080[i].y=0;
+   D_80221080[i].z=1000.0f;
+  }
+  D_8011F32E[arg0&0xFFFF].flag=1;
+ }
 }
