@@ -119,7 +119,7 @@ block_43:
             var_v0_2 = temp_s1 & 0x10;
         }
         if (var_v0_2 != 0) {
-            func_8014B854(0x3D);
+            do { func_8014B854(0x3D); } while (0);
             M2C_FIELD(temp_s0, f32 *, 0x1C) = 192.0f;
             M2C_FIELD(temp_s0, f32 *, 0x34) = 0.0f;
             M2C_FIELD(temp_s0, u16 *, 0x3E) = 0xFFU;

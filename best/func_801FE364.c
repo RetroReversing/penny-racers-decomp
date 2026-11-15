@@ -5,10 +5,12 @@ s32 func_801CBF48(s32, s32, s32, s32, s32, s32, s32);
 extern char D_801D4FC0[];
 typedef struct { s32 f0; u8 pad[8]; } Slot_801D75E0;
 extern Slot_801D75E0 D_801D75E0[];
-extern char D_801D7DF4[];
+typedef struct { s16 f0; u8 pad[42]; } Slot_801D7DF4;
+extern Slot_801D7DF4 D_801D7DF4[];
 extern char D_801D7E00[];
 extern char D_801D7E04[];
-extern char D_801D7E06[];
+typedef struct { s16 f0; u8 pad[42]; } Slot_801D7E06;
+extern Slot_801D7E06 D_801D7E06[];
 extern char D_801D7E08[];
 extern char D_801D7E09[];
 extern char D_801D7E16[];
@@ -72,13 +74,13 @@ void func_801FE364(s32 arg0)
         if (idx < 8) {
             y = (((i & 0xFFFF) + 2) * 0x30) & 0xFFFF;
             func_801CBF48(arg0, y, 0x8C, 8, (s32)D_801D4FC0, 5, (s16)s3);
-            if (*(s16 *)(D_801D7DF4 + idx * 44) == -1) {
+            if (D_801D7DF4[idx].f0 == -1) {
                 func_801CB74C(arg0, y, 0x96, 8, (s32)D_801D4FC0, (s32)D_80203854);
             } else {
                 func_801CB74C(arg0, y, 0x96, 8, (s32)D_801D4FC0, D_801D75E0[*(u16 *)(D_801D7E04 + idx * 44)].f0);
             }
             y = (((i & 0xFFFF) + 2) * 0x30) & 0xFFFF;
-            func_801CBF48(arg0, y, 0xA0, 8, (s32)D_801D4FC0, 5, *(s16 *)(D_801D7E06 + idx * 44));
+            func_801CBF48(arg0, y, 0xA0, 8, (s32)D_801D4FC0, 5, D_801D7E06[idx].f0);
             func_801CBF48(arg0, y, 0xAA, 8, (s32)D_801D4FC0, 5, *(u8 *)(D_801D7E08 + idx * 44));
             func_801CBF48(arg0, y, 0xB4, 8, (s32)D_801D4FC0, 5, (s16)(s32)*(f32 *)(D_801D7E00 + idx * 44));
             func_801CBF48(arg0, y, 0xBE, 8, (s32)D_801D4FC0, 5, *(u8 *)(D_801D7E09 + idx * 44));

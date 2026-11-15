@@ -93,7 +93,7 @@ void func_8002D790(u8 **arg0, Out *arg1, u32 arg2)
         minv = mn;
         total += mn;
         if (rec.kind != 0x12) {
-            F[idx] += func_8002DAE0(&tbl, idx);
+            F[idx] += func_8002DAE0(&tbl);
         }
         flag = 1;
     } while (rec.kind != 4 && total < arg2);

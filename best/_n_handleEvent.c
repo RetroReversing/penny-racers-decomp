@@ -32,7 +32,8 @@ void _n_handleEvent(void *arg0) {
     s32 temp_a0_3;
     s32 temp_s5;
     s32 temp_v0;
-    s32 temp_v0_2;
+s32 __repair_phase_temp_v0;
+    
     u16 temp_a0_2;
     u8 temp_a0;
     u8 temp_a1;
@@ -77,12 +78,12 @@ void _n_handleEvent(void *arg0) {
         return;
     case 1:
         if (((*(s32 *)(temp_s0 + 0x28) != 1) | (temp_s3 == 0)) == 0) {
-            temp_v0 = func_8002CD38(*(s32 *)(*(u8 **)temp_s3 + 8), *(f32 *)(temp_s0 + 0x24));
-            func_80030400(temp_s0, 0, temp_v0);
-            if (temp_v0 != 0) {
+            __repair_phase_temp_v0 = func_8002CD38(*(s32 *)(*(u8 **)temp_s3 + 8), *(f32 *)(temp_s0 + 0x24));
+            func_80030400(temp_s0, 0, __repair_phase_temp_v0);
+            if (__repair_phase_temp_v0 != 0) {
                 sp18 = 7;
                 sp1C = temp_s0;
-                alEvtqPostEvent(temp_s5 + 0x14, &sp18, temp_v0);
+                alEvtqPostEvent(temp_s5 + 0x14, &sp18, __repair_phase_temp_v0);
                 *(s32 *)(temp_s0 + 0x28) = 2;
                 return;
             }

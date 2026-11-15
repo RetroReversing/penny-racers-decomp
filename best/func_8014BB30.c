@@ -9,6 +9,11 @@ inline static int inline_fn(s32 *arg0, int arg1)
   return (*arg0) & arg1;
 }
 
+inline static u8 *inline_fn2(s32 *arg0)
+{
+  return (u8 *) arg0;
+}
+
 s32 func_8014BB30(s32 arg0)
 {
   s32 var_a1;
@@ -21,7 +26,7 @@ s32 func_8014BB30(s32 arg0)
   {
     var_a1 |= 1;
   }
-  if (inline_fn((s32 *) (((u8 *) (&D_8018D3A4)) + ((arg0 & 0xFF) << 5)), 0x400000))
+  if (inline_fn((s32 *) (inline_fn2(&D_8018D3A4) + ((arg0 & 0xFF) << 5)), 0x400000))
   {
     var_a1 |= 2;
   }
@@ -29,15 +34,15 @@ s32 func_8014BB30(s32 arg0)
   {
     var_a1 |= 4;
   }
-  if ((*((s32 *) (((u8 *) (&D_8018D3A4)) + ((arg0 & 0xFF) << 5)))) & 0x1000000)
+  if ((*((s32 *) (inline_fn2(&D_8018D3A4) + ((arg0 & 0xFF) << 5)))) & 0x1000000)
   {
     var_a1 |= 8;
   }
-  if (inline_fn((s32 *) (((u8 *) (&D_8018D3B0)) + ((arg0 & 0xFF) << 5)), 0x200))
+  if (inline_fn((s32 *) (inline_fn2(&D_8018D3B0) + ((arg0 & 0xFF) << 5)), 0x200))
   {
     var_a1 |= 0x10;
   }
-  if ((*((s32 *) (((u8 *) (&D_8018D3B4)) + ((arg0 & 0xFF) << 5)))) & 0x40)
+  if ((*((s32 *) (inline_fn2(&D_8018D3B4) + ((arg0 & 0xFF) << 5)))) & 0x40)
   {
     var_a1 |= 0x20;
   }
@@ -49,7 +54,7 @@ s32 func_8014BB30(s32 arg0)
   {
     var_a1 |= 0x80;
   }
-  if (inline_fn((s32 *) (((u8 *) (&D_8018D3B8)) + ((arg0 & 0xFF) << 5)), 0x80000))
+  if (inline_fn((s32 *) (inline_fn2(&D_8018D3B8) + ((arg0 & 0xFF) << 5)), 0x80000))
   {
     var_a1 |= 0x100;
   }
@@ -57,7 +62,7 @@ s32 func_8014BB30(s32 arg0)
   {
     var_a1 |= 0x200;
   }
-  if (inline_fn((s32 *) (((u8 *) (&D_8018D3BC)) + ((arg0 & 0xFF) << 5)), 0x4000))
+  if (inline_fn((s32 *) (inline_fn2(&D_8018D3BC) + ((arg0 & 0xFF) << 5)), 0x4000))
   {
     var_a1 |= 0x400;
   }
