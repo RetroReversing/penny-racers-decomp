@@ -1,69 +1,57 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
-
-extern signed char D_8021E15F;
-extern signed char D_8021E160;
-extern signed char D_8021E162;
-s32 func_8014A4C8();
-s32 func_801CA494();
+void func_8014A4C8(s32, s32, s32, s32, s32);
+void func_801CA494(s32, s32, s32, s32, s32);
+extern s8 D_8021E15F;
+extern s8 D_8021E162;
 extern u8 D_8021E19E;
 
-void func_80204AC8(s32 arg0) {
-    s32 var_a1;
-    s32 var_a2;
-    s32 var_a3;
+void func_80204AC8(s32 arg0)
+{
+    s32 a1;
+    s32 a2;
+    s32 a3;
+    s8 *p;
 
-    if ((D_8021E15F == 2) && (D_8021E160 == 0)) {
-        var_a3 = (0xFF - D_8021E19E) & 0xFFFF;
-        var_a1 = var_a3;
-        var_a2 = var_a3;
+    p = &D_8021E15F;
+    if (p[0] == 2 && p[1] == 0) {
+        a3 = (0xFF - D_8021E19E) & 0xFFFF;
+        a1 = a3;
+        a2 = a3;
     } else {
-        var_a1 = 0x64;
-        var_a2 = 0x64;
-        var_a3 = 0x64;
+        a1 = 0x64;
+        a2 = 0x64;
+        a3 = 0x64;
     }
-    func_801CA494(arg0, var_a1, var_a2, var_a3);
+    func_801CA494(arg0, a1, a2, a3, 0xFF);
     func_8014A4C8(arg0, 0x77, 0x3A, 0xB, 0x61);
     func_8014A4C8(arg0, 0x77, 0x9C, 0xB, 0x62);
     func_8014A4C8(arg0, 0xC0, 0x3A, 0xB, 0x63);
     func_8014A4C8(arg0, 0xC0, 0x9C, 0xB, 0x11);
     func_8014A4C8(arg0, 0x77, 0x2B, 8, 3);
-    if ((D_8021E15F == 2) && (D_8021E160 == 0)) {
+    if (p[0] == 2 && p[1] == 0) {
         func_801CA494(arg0, 0xFF, 0xFF, 0xFF, 0xFF);
     }
-    if ((D_8021E162 != 2) || (M2C_FIELD(&D_8021E162, s8 *, -6) != 1)) {
+    if (p[3] != 2 || p[-3] != 1) {
         func_801CA494(arg0, 0x64, 0x64, 0x64, 0xFF);
     }
     func_8014A4C8(arg0, 0x7F, 0x70, 8, 6);
-    if ((D_8021E15F == 2) && (D_8021E160 == 0)) {
+    if (p[0] == 2 && p[1] == 0) {
         func_801CA494(arg0, 0xFF, 0xFF, 0xFF, 0xFF);
     }
-    if ((D_8021E162 != 1) || (M2C_FIELD(&D_8021E162, s8 *, -6) != D_8021E162)) {
+    if (p[3] != 1 || p[-3] != p[3]) {
         func_801CA494(arg0, 0x64, 0x64, 0x64, 0xFF);
     }
     func_8014A4C8(arg0, 0x7F, 0x59, 8, 5);
-    if ((D_8021E15F == 2) && (D_8021E160 == 0)) {
+    if (p[0] == 2 && p[1] == 0) {
         func_801CA494(arg0, 0xFF, 0xFF, 0xFF, 0xFF);
     }
-    if ((D_8021E162 != 0) || (M2C_FIELD(&D_8021E162, s8 *, -6) != 1)) {
+    if (p[3] != 0 || p[-3] != 1) {
         func_801CA494(arg0, 0x64, 0x64, 0x64, 0xFF);
     }
     func_8014A4C8(arg0, 0x7F, 0x42, 8, 7);
-    if ((D_8021E15F == 2) && (D_8021E160 == 0)) {
+    if (p[0] == 2 && p[1] == 0) {
         func_801CA494(arg0, 0xFF, 0xFF, 0xFF, 0xFF);
     }
-    if ((D_8021E162 != 3) || (M2C_FIELD(&D_8021E162, s8 *, -6) != 1)) {
+    if (p[3] != 3 || p[-3] != 1) {
         func_801CA494(arg0, 0x64, 0x64, 0x64, 0xFF);
     }
     func_8014A4C8(arg0, 0x7F, 0x87, 8, 0xC);

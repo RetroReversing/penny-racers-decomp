@@ -38,14 +38,15 @@ void func_801E2BFC(void) {
     d3 = &D_801F18FB;
     d4 = &D_801F18FC;
     j = 0;
-    do {
-        off = j * 5;
+    __repair_rows: {do{
+        off = j * 5;}while(0);
         d0[off] = (&D_801C7080)[off];
         d1[off] = (&D_801C7081)[off];
         d2[off] = (&D_801C7082)[off];
         d3[off] = (&D_801C7083)[off];
         d4[off] = (&D_801C7084)[off];
         j++;
-    } while (j < 0xC8);
+    }
+if (j < 0xC8) goto __repair_rows;
     *(s32 *)&D_801F18E0 = func_801E2BA4(d4 + off, j);
 }

@@ -37,6 +37,7 @@ void func_801FF37C(void) {
     f32 var_fs0;
     f32 var_fs0_2;
     f32 var_fs1;
+f32 __repair_var_fs1_1;
     f32 var_fv0;
     f32 var_fv0_2;
     f32 var_fv1;
@@ -130,10 +131,11 @@ block_35:
         temp_fv1 = temp_fs1 + 64.0f;
         if (temp_fv1 >= 2.1474836e9f) {
             var_a0 = (s32) (temp_fv1 - 2.1474836e9f) | 0x80000000;
-        } else {
+        
+        n_alSndpSetPan(var_a0 & 0xFF);} else {
             var_a0 = (s32) temp_fv1;
-        }
-        n_alSndpSetPan(var_a0 & 0xFF);
+        
+        n_alSndpSetPan(var_a0 & 0xFF);}
         var_fv1_2 = temp_fs1 + 64.0f;
         var_a1 = D_80203ABC * 0x2C;
         if (var_fv1_2 >= 2.1474836e9f) {
@@ -144,12 +146,12 @@ block_35:
     }
     if (var_fs1 < -10.0f) {
         if (var_fs1 < -74.0f) {
-            var_fs1 = -74.0f;
+            __repair_var_fs1_1 = -74.0f;
         }
-        temp_fs1_2 = var_fs1 + 10.0f;
+        temp_fs1_2 = __repair_var_fs1_1 + 10.0f;
         temp_fv1_2 = temp_fs1_2 + 64.0f;
         if (temp_fv1_2 >= 2.1474836e9f) {
-            var_a0_2 = (s32) (temp_fv1_2 - 2.1474836e9f) | 0x80000000;
+            var_a0_2 = (s32) (temp_fv1_2 - 2.1474836e9f); var_a0_2 = var_a0_2 | 0x80000000;
         } else {
             var_a0_2 = (s32) temp_fv1_2;
         }

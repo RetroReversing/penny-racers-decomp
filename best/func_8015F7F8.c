@@ -18,7 +18,7 @@ s32 func_801FA30C();                                /* extern */
 M2C_UNK guMtxXFMF(void *, M2C_UNK, M2C_UNK, M2C_UNK, f32 *, f32 *, f32 *); /* extern */
 extern u8 D_8011F2F0[];
 extern M2C_UNK D_8011F2FD;
-extern M2C_UNK D_80182E30;
+extern u8 D_80182E30[];
 extern f64 D_80183990;
 extern M2C_UNK D_80238C24;
 extern M2C_UNK D_802390C8;
@@ -57,7 +57,7 @@ void func_8015F7F8(s32 arg0) {
     temp_fv1 = M2C_FIELD(temp_s1, f32 *, 0x44);
     if (temp_fv1 > 0.0f) {
         M2C_FIELD(temp_s1, f32 *, 0x44) = (f32) (temp_fv1 - 1.0f);
-        M2C_FIELD(temp_a1, M2C_UNK **, 4) = (M2C_UNK *) ((*(&D_80182E30 + (M2C_FIELD(temp_s2, u16 *, 0x14) & 0xF)) * 0xC) + &D_80238C24);
+        M2C_FIELD(temp_a1, M2C_UNK **, 4) = (M2C_UNK *) ((*(D_80182E30 + (M2C_FIELD(temp_s2, u16 *, 0x14) & 0xF)) * 0xC) + &D_80238C24);
     } else {
         M2C_FIELD(temp_a1, M2C_UNK **, 4) = &D_80238C24;
         temp_fv0 = ((f32) (M2C_FIELD(temp_s2, u16 *, 0x14) & 1) * 0.3f) + 1.0f;

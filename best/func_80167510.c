@@ -221,6 +221,7 @@ if (var_v1_2 < 7) goto __repair_rows;
             M2C_FIELD(temp_s0_3, f32 *, 0x10) = 0.0f;
             M2C_FIELD(temp_s1, u16 *, 0x3E) = 1U;
         }
-        goto block_34;
+        {
+            func_8013AE60(arg0 & 0xFFFF);return;}
     }
 }

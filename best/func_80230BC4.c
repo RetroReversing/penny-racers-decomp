@@ -55,10 +55,10 @@ void func_80230BC4(s32 arg0, s16 arg1) {
     temp_s2 = arg1 & 0xFFFF;
     temp_a1_2 = temp_s0 + temp_s2;
     *(s8 *)(temp_a1_2 + 0x16A) = func_801FA38C(0, var_a1, D_8006FAF0 + 0x20) % 10;
-    temp_s1 = arg0 & 0xFFFF;
-    func_80149FA8(temp_s1, temp_a1_2);
+    temp_a1 = (u16)(arg0 & 0xFFFF);
+    func_80149FA8(temp_a1, temp_a1_2);
     if (D_801E99C4 != 0) {
-        func_8003DE60(D_80232D34, temp_s1, temp_s2);
+        func_8003DE60(D_80232D34, temp_a1, temp_s2);
         func_8003DE60(D_80232D44, *(u16 *)(temp_s0 + 2));
         func_8003DE60(D_80232D58, *(u16 *)(temp_s0 + 4));
         func_8003DE60(D_80232D6C, *(u16 *)(temp_s0 + 6));

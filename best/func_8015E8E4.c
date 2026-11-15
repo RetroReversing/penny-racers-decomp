@@ -15,7 +15,9 @@ void func_8015E8E4(u8 *arg0) {
         idx = v0 & 0xFFFF;
         if (idx != 0xFFFF) {
             v0_2 = func_800DE41C(0, 0, 3, 0, 0x20, 1, 0, &func_8015F33C, 0, 0, 0.0f, 0, 0, 0, 0, 0.0f, 0.0f, 0.0f);
-            if ((u32)((v0_2 + 2) & 0xFFFF) >= 2U) {
+            if ((u32)((v0_2 + 2) & 0xFFFF) < 2U) {
+                func_8013E49C(idx);
+            } else {
                 off = (v0 & 0xFFFF) * 0x7C;
                 *(u16 *)((u8 *)&D_8018D6D4 + off) = 0x23;
                 *(f32 *)((u8 *)&D_8018D6C8 + off) = 1.0f;
@@ -48,8 +50,6 @@ void func_8015E8E4(u8 *arg0) {
                         *(u8 **)((u8 *)&D_8018D6C4 + s0 * 0x7C) = arg0;
                     }
                 }
-            } else {
-                func_8013E49C(idx);
             }
         }
     }

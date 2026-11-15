@@ -114,8 +114,8 @@ s32 func_8003082C(void *arg0) {
                 var_v1 = (s32) (sp20 - 2.1474836e9f) | 0x80000000;
             }
             M2C_FIELD(temp_s1_3, s8 *, 0x36) = (s8) var_v1;
-            temp_s0_3 = __vsVol(temp_s1_3, arg0);
-            n_alSynSetVol(temp_s1_3 + 4, temp_s0_3, func_80031B94(temp_s1_3, M2C_FIELD(arg0, s32 *, 0x1C)));
+            temp_v0 = (s16)(__vsVol(temp_s1_3, arg0));
+            n_alSynSetVol(temp_s1_3 + 4, temp_v0, func_80031B94(temp_s1_3, M2C_FIELD(arg0, s32 *, 0x1C)));
             sp10 = 0x16;
             sp14 = temp_s1_3;
             sp18 = temp_s4;
