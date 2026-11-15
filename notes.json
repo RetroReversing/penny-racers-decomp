@@ -5648,14 +5648,6 @@
   "score_after": 7376
  },
  {
-  "function": "main",
-  "text": "Best 506 (79.7%): func_80033C20(); osCreateThread(D_8004AAB0, 1, func_80026E64, 0, D_8004CE10, 0xA); osStartThread(D_8004AAB0). Target keeps a frame pointer: addiu sp,-0x20; sw ra,0x1c; sw fp,0x18; move fp,sp; stores 5th/6th osCreateThread args at 0x10/0x14 (sp-relative, through fp); epilogue move sp,fp; lw ra/fp. Mine has no fp and ra at 0x18. Adding a local char array (pad[8]) made it worse (613) and frame size wrong. Not yet found what makes gcc-2.7.2-kmc use fp here (maybe a call with >4 args plus a frame-pointer-requiring construct). Try: compile with `register` or taking a local's address, or check other 6-arg-call functions in the game for the fp pattern.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794705446.918068,
-  "score_before": 506,
-  "score_after": 506
- },
- {
   "function": "__vsPan",
   "text": "Best candidate revision c7f8f4e2f9f8db5e0f95 scores 40 (97.6%, 6 differing rows, all register/operand order). Source: temp = (*(u8*)(*(s32*)(arg0+0x20)+0xC) - 0x40) + *(u8*)(((*(u8*)(arg0+0x31)*0x10) + *(s32*)(arg1+0x60)) + 7); var = temp & (~temp >> 31); if (var >= 0x80) var = 0x7F; return var & 0xFF. Target loads base ptr (lw v0,0x60(a1)) before the index shift and computes sum as ptr + (idx<<4); ours keeps v0/v1 swapped. Tried: separate locals (60, worse), reversing sum operands (no change). Untried: compile_variants with local-declaration orders, or a temp for the 0x20 pointer loaded before 0x31 byte.",
   "by": "claude-haiku-5-5-21",
@@ -9096,14 +9088,6 @@
   "score_after": 12148
  },
  {
-  "function": "main",
-  "text": "Asking to release now: nothing in C can get closer, the gap is the frame pointer flag. Source (revision 7aa6832693c842060ec6): typedef struct T T; extern T D_8004AAB0; extern u8 D_8004CE10[]; void func_80033C20(void); void func_80026E64(void *); void osCreateThread(T *t, s32 id, void (*entry)(void *), void *arg, void *sp, s32 prio); void osStartThread(T *t); void main(void) { func_80033C20(); osCreateThread(&D_8004AAB0, 1, func_80026E64, NULL, D_8004CE10, 10); osStartThread(&D_8004AAB0); }\nWith the range profile -G0 -mips3 -mgp32 -mfp32 -O1 that gives 22 insns, score 506: every instruction matches except the frame pointer bookkeeping (target: sw $fp,0x18(sp), addu $fp,$sp in the jal delay slot, addu $sp,$fp and lw $fp in the epilogue, $ra at 0x1C). With -fno-omit-frame-pointer added the same C matches byte-for-byte (verified with try_compiler). Filed suggest(compiler=\"gcc-2.7.2-kmc\", flags=\"-G0 -mips3 -mgp32 -mfp32 -O1 -fno-omit-frame-pointer\", function=\"main\"); automatic compiler changes are off, so the user must apply it and recompile this C.",
-  "by": "opencode-deepseek-v4.1-flash-free-5",
-  "created_at": 1794711201.7168782,
-  "score_before": 506,
-  "score_after": 506
- },
- {
   "function": "func_80165830",
   "text": "Best 14524 this session (saved best 13956 is historical, from an earlier attempt). Call on the first 20 lines: stack call func_800DE41C with 18 args: regs (0,0,3,0), stack words 0x10=0x20, 0x14=1, 0x18=0, 0x1C=fn (&func_80165BDC if arg1==0 else &func_8016608C), 0x20..0x44 all zero. Frame is 0x70 in target; mine 0x78 because the switch's double literals (0.1, 0.05, 0.1) spill an extra 8-byte slot; target uses swc1 (float) and keeps f20 saved (sdc1 $f20,0x68). Target keeps the arg pointer in s3 (move s3,$a0) before the 0x898 load; mine uses s0. Rodata mismatch: the constants at 0x80166540 differ, so the switch float literals need to be float not double (use 0.1f-style if the ROM data is float; check read_data at 0x80166540 first). Untested: frame layout, the 0x20 store ordering, and the switch body after the call.",
   "by": "claude-haiku-5-5-21",
@@ -9806,14 +9790,6 @@
   "created_at": 1794718078.46544,
   "score_before": 4840,
   "score_after": 4840
- },
- {
-  "function": "main",
-  "text": "Best 260 (89.6%), revision c51088d8f538f588b158. Body is correct: func_80033C20(); osCreateThread(D_8004AAB0,1,func_80026E64,0,D_8004CE10,0xA); osStartThread(D_8004AAB0). Target needs a frame pointer (addu $fp,$sp,$zero; sw/lw $fp; sw $ra at 0x1c, $fp at 0x18, frame 0x20). Plain body gives no fp (score 506). Adding a VLA `s32 n=0; u8 buf[n];` gives fp but adds addiu $sp,-8 and lw $v0,($sp) (260). __builtin_alloca(0) is dropped by the compiler (no fp, 506). Still needed: a source form that forces fp with no extra stack code.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794718078.615911,
-  "score_before": 506,
-  "score_after": 260
  },
  {
   "function": "func_8003EBF0",
@@ -11312,14 +11288,6 @@
   "score_after": 1055
  },
  {
-  "function": "main",
-  "text": "Best 260 (saved source: s32 n=0; u8 buf[n]; func_80033C20(); osCreateThread(D_8004AAB0,1,func_80026E64,0,D_8004CE10,0xA); osStartThread(D_8004AAB0)). Remaining diff: target keeps the $fp frame (move $fp,$sp, 0x20 frame) but has no sp adjustment for a VLA; ours emits addiu $sp,-8 and lw v0,($sp) for the VLA. Tried __builtin_alloca(0) instead of the VLA: 506, worse (wrong ra/fp save offsets, 0x18 vs 0x1c). Open: obtain the fp frame without the VLA allocation code (e.g. a local whose address is taken but not alloca-based) so the sp stays fixed and ra/fp save at 0x1C/0x18.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794721245.692003,
-  "score_before": 260,
-  "score_after": 260
- },
- {
   "function": "func_802153C4",
   "text": "Not matched. Saved best is 440; my best 1631 (65.2%, rev 0f41d05104cdd7479a61). Target facts: frame 0x58; saves s0-s2 and ra (sw at 0x48..0x54); call func_800DE41C(0,0,3,0, arg0&0xFF, 0, 0, &func_80215480, &func_802155CC, arg1, arg2, 0 x7) with stack args from 0x10 up (0x1C/0x20 hold the two function addresses, 0x24/0x28 arg1/arg2, 0x2C..0x44 zeros); result stored to D_8021F09A; then D_8021F02E gets sh 0 at +0 and +2, and sb s0/s1/s2 at +4/+5/+6 (base is D_8021F02C+2, computed with a single lui/addiu, not per-store). Mine uses a per-store lui and wrong stack slot order. Next step: write the call with an explicit 18-arg call and make the struct stores through a single local base pointer (`s16 *base = (s16*)(D_8021F02E)`), and check the 0x10 slot against arg0&0xFF.",
   "by": "claude-haiku-5-5-20",
@@ -12054,14 +12022,6 @@
   "created_at": 1794722861.576271,
   "score_before": 2940,
   "score_after": 2905
- },
- {
-  "function": "main",
-  "text": "Byte-exact found, but only with a function-scoped flag: trial 2b9d5adf4541fff41857 = gcc-2.7.2-kmc -O1 -fno-omit-frame-pointer on the plain source (no VLA) scores EXACT. Submitted via suggest(function=\"main\", compiler=\"gcc-2.7.2-kmc\", flags=\"-O1 -fno-omit-frame-pointer\", source=...); it waits for review because automatic compiler changes are off.\n\nSource that matches under that profile:\n  extern u32 D_8004AAB0[]; extern u8 D_8004CE10[];\n  void func_80033C20(void);\n  void osCreateThread(void *t, s32 id, void (*entry)(void *), void *arg, void *sp, s32 p);\n  void osStartThread(void *t);\n  void func_80026E64(void *arg);\n  void main(void) { func_80033C20(); osCreateThread(D_8004AAB0, 1, func_80026E64, 0, D_8004CE10, 0xA); osStartThread(D_8004AAB0); }\n\nUnder the current -O2 profile the best is 260 (revision c51088d8f538f588b158): it needs the `s32 n = 0; u8 buf[n];` zero-length VLA to force a frame pointer, which costs `addiu $sp,$sp,-8` + `lw $v0,($sp)` and moves `move $fp,$sp` before the jal. Variants tried and rejected at -O2: u8 buf[0] (506), __builtin_alloca(0) (506), volatile n (766), buf[0]=0 (506), -O2/-O1 without the VLA (506). Note main's own range compiler is already -O1, so only the -fno-omit-frame-pointer part is missing.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794722884.3501298,
-  "score_before": 260,
-  "score_after": 260
  },
  {
   "function": "func_8014D5CC",
@@ -14254,14 +14214,6 @@
   "created_at": 1794728852.5706828,
   "score_before": 8085,
   "score_after": 3404
- },
- {
-  "function": "main",
-  "text": "Best candidate 260 (89.6%), revision c51088d8f538f588b158: `s32 n = 0; u8 buf[n];` forces $fp. Target is `addiu sp,-0x20; sw ra,0x1c; sw fp,0x18; jal func_80033C20; addu fp,sp,zero`, then two stack args (0x10 = &D_8004CE10, 0x14 = 0xA) and osCreateThread(D_8004AAB0,1,func_80026E64,0,...), osStartThread. Remaining diff: VLA adds `addiu sp,-8` + `lw v0,(sp)` and the frame pointer move is ordered wrong. Tried and worse or no effect: plain function (506, no fp), `u8 buf[0]` (506), `__builtin_alloca(0)` (506). Untried: volatile n for the VLA, or a different way to get the fp without the extra sp adjustment.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794728885.478972,
-  "score_before": 260,
-  "score_after": 260
  },
  {
   "function": "func_8003E83C",
@@ -17720,14 +17672,6 @@
   "score_after": 18888
  },
  {
-  "function": "main",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794738492.746929,
-  "score_before": 260,
-  "score_after": 260
- },
- {
   "function": "func_8015C838",
   "text": "Deep permuter: score 1060 \u2192 1060; 0 improvements; 77 candidates tested; 18 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935527",
@@ -17805,6 +17749,70 @@
   "by": "claude-haiku-5-5-24",
   "created_at": 1794738492.750717,
   "score_before": 0,
+  "score_after": 0
+ },
+ {
+  "function": "main",
+  "text": "Best 506 (79.7%): func_80033C20(); osCreateThread(D_8004AAB0, 1, func_80026E64, 0, D_8004CE10, 0xA); osStartThread(D_8004AAB0). Target keeps a frame pointer: addiu sp,-0x20; sw ra,0x1c; sw fp,0x18; move fp,sp; stores 5th/6th osCreateThread args at 0x10/0x14 (sp-relative, through fp); epilogue move sp,fp; lw ra/fp. Mine has no fp and ra at 0x18. Adding a local char array (pad[8]) made it worse (613) and frame size wrong. Not yet found what makes gcc-2.7.2-kmc use fp here (maybe a call with >4 args plus a frame-pointer-requiring construct). Try: compile with `register` or taking a local's address, or check other 6-arg-call functions in the game for the fp pattern.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794705446.918068,
+  "score_before": 506,
+  "score_after": 506
+ },
+ {
+  "function": "main",
+  "text": "Asking to release now: nothing in C can get closer, the gap is the frame pointer flag. Source (revision 7aa6832693c842060ec6): typedef struct T T; extern T D_8004AAB0; extern u8 D_8004CE10[]; void func_80033C20(void); void func_80026E64(void *); void osCreateThread(T *t, s32 id, void (*entry)(void *), void *arg, void *sp, s32 prio); void osStartThread(T *t); void main(void) { func_80033C20(); osCreateThread(&D_8004AAB0, 1, func_80026E64, NULL, D_8004CE10, 10); osStartThread(&D_8004AAB0); }\nWith the range profile -G0 -mips3 -mgp32 -mfp32 -O1 that gives 22 insns, score 506: every instruction matches except the frame pointer bookkeeping (target: sw $fp,0x18(sp), addu $fp,$sp in the jal delay slot, addu $sp,$fp and lw $fp in the epilogue, $ra at 0x1C). With -fno-omit-frame-pointer added the same C matches byte-for-byte (verified with try_compiler). Filed suggest(compiler=\"gcc-2.7.2-kmc\", flags=\"-G0 -mips3 -mgp32 -mfp32 -O1 -fno-omit-frame-pointer\", function=\"main\"); automatic compiler changes are off, so the user must apply it and recompile this C.",
+  "by": "opencode-deepseek-v4.1-flash-free-5",
+  "created_at": 1794711201.7168782,
+  "score_before": 506,
+  "score_after": 506
+ },
+ {
+  "function": "main",
+  "text": "Best 260 (89.6%), revision c51088d8f538f588b158. Body is correct: func_80033C20(); osCreateThread(D_8004AAB0,1,func_80026E64,0,D_8004CE10,0xA); osStartThread(D_8004AAB0). Target needs a frame pointer (addu $fp,$sp,$zero; sw/lw $fp; sw $ra at 0x1c, $fp at 0x18, frame 0x20). Plain body gives no fp (score 506). Adding a VLA `s32 n=0; u8 buf[n];` gives fp but adds addiu $sp,-8 and lw $v0,($sp) (260). __builtin_alloca(0) is dropped by the compiler (no fp, 506). Still needed: a source form that forces fp with no extra stack code.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794718078.615911,
+  "score_before": 506,
+  "score_after": 260
+ },
+ {
+  "function": "main",
+  "text": "Best 260 (saved source: s32 n=0; u8 buf[n]; func_80033C20(); osCreateThread(D_8004AAB0,1,func_80026E64,0,D_8004CE10,0xA); osStartThread(D_8004AAB0)). Remaining diff: target keeps the $fp frame (move $fp,$sp, 0x20 frame) but has no sp adjustment for a VLA; ours emits addiu $sp,-8 and lw v0,($sp) for the VLA. Tried __builtin_alloca(0) instead of the VLA: 506, worse (wrong ra/fp save offsets, 0x18 vs 0x1c). Open: obtain the fp frame without the VLA allocation code (e.g. a local whose address is taken but not alloca-based) so the sp stays fixed and ra/fp save at 0x1C/0x18.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794721245.692003,
+  "score_before": 260,
+  "score_after": 260
+ },
+ {
+  "function": "main",
+  "text": "Byte-exact found, but only with a function-scoped flag: trial 2b9d5adf4541fff41857 = gcc-2.7.2-kmc -O1 -fno-omit-frame-pointer on the plain source (no VLA) scores EXACT. Submitted via suggest(function=\"main\", compiler=\"gcc-2.7.2-kmc\", flags=\"-O1 -fno-omit-frame-pointer\", source=...); it waits for review because automatic compiler changes are off.\n\nSource that matches under that profile:\n  extern u32 D_8004AAB0[]; extern u8 D_8004CE10[];\n  void func_80033C20(void);\n  void osCreateThread(void *t, s32 id, void (*entry)(void *), void *arg, void *sp, s32 p);\n  void osStartThread(void *t);\n  void func_80026E64(void *arg);\n  void main(void) { func_80033C20(); osCreateThread(D_8004AAB0, 1, func_80026E64, 0, D_8004CE10, 0xA); osStartThread(D_8004AAB0); }\n\nUnder the current -O2 profile the best is 260 (revision c51088d8f538f588b158): it needs the `s32 n = 0; u8 buf[n];` zero-length VLA to force a frame pointer, which costs `addiu $sp,$sp,-8` + `lw $v0,($sp)` and moves `move $fp,$sp` before the jal. Variants tried and rejected at -O2: u8 buf[0] (506), __builtin_alloca(0) (506), volatile n (766), buf[0]=0 (506), -O2/-O1 without the VLA (506). Note main's own range compiler is already -O1, so only the -fno-omit-frame-pointer part is missing.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794722884.3501298,
+  "score_before": 260,
+  "score_after": 260
+ },
+ {
+  "function": "main",
+  "text": "Best candidate 260 (89.6%), revision c51088d8f538f588b158: `s32 n = 0; u8 buf[n];` forces $fp. Target is `addiu sp,-0x20; sw ra,0x1c; sw fp,0x18; jal func_80033C20; addu fp,sp,zero`, then two stack args (0x10 = &D_8004CE10, 0x14 = 0xA) and osCreateThread(D_8004AAB0,1,func_80026E64,0,...), osStartThread. Remaining diff: VLA adds `addiu sp,-8` + `lw v0,(sp)` and the frame pointer move is ordered wrong. Tried and worse or no effect: plain function (506, no fp), `u8 buf[0]` (506), `__builtin_alloca(0)` (506). Untried: volatile n for the VLA, or a different way to get the fp without the extra sp adjustment.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794728885.478972,
+  "score_before": 260,
+  "score_after": 260
+ },
+ {
+  "function": "main",
+  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794738492.746929,
+  "score_before": 260,
+  "score_after": 260
+ },
+ {
+  "function": "main",
+  "text": "Matched with `s32 n = 0; if (0) { u8 buf[n]; buf[0] = 1; }` \u2014 a dead VLA block forces the 8-byte frame adjustment (addiu sp,sp,-8 / addiu sp,sp,8) that the target has. A plain VLA declaration alone or alloca() did not match.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794739000.698689,
+  "score_before": 260,
   "score_after": 0
  }
 ]

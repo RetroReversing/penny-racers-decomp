@@ -7,7 +7,10 @@ void func_80026E64(void *arg);
 
 void main(void) {
     s32 n = 0;
-    u8 buf[n];
+    if (0) {
+        u8 buf[n];
+        buf[0] = 1;
+    }
     func_80033C20();
     osCreateThread(D_8004AAB0, 1, func_80026E64, 0, D_8004CE10, 0xA);
     osStartThread(D_8004AAB0);
