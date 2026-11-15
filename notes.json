@@ -7072,14 +7072,6 @@
   "score_after": 11482
  },
  {
-  "function": "__voiceNeedsNoteKill",
-  "text": "Deep permuter: score 756 \u2192 536; 1 improvements; 115 candidates tested; 3 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589934937",
-  "created_at": 1794359517.449733,
-  "score_before": 756,
-  "score_after": 536
- },
- {
   "function": "func_801FBBFC",
   "text": "Deep permuter: score 44312 \u2192 44312; 0 improvements; 80 candidates tested; 114 cached skips; 0 rejected; 7203s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935682",
@@ -7088,44 +7080,12 @@
   "score_after": 44312
  },
  {
-  "function": "__voiceNeedsNoteKill",
-  "text": "Not started. Released so the batch's near-matched func_800297E8 (score 485) can be reclaimed and finished.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794705993.9096582,
-  "score_before": 756,
-  "score_after": 756
- },
- {
-  "function": "__voiceNeedsNoteKill",
-  "text": "Claimed as a batch companion and not started; released so another agent can take it.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794706073.7975411,
-  "score_before": 756,
-  "score_after": 756
- },
- {
-  "function": "__voiceNeedsNoteKill",
-  "text": "Best saved 706 (83.9%). Shape: s0 = arg0->0x50 list head; acc=0; s2=1; loop over nodes: delta=node->0x8, next=node->0, acc+=delta; if (node->0xC==5 && node->0x10==arg1) { if (arg2>=acc) {s2=0; break;} if (next) next->8+=delta; alUnlink(node); alLink(node, arg0+0x48); return 1; } return s2. Remaining diff: target saves $ra at 0x1c and $s2 at 0x18, $s0 at 0x10 (frame 0x20); the candidate spills $ra at 0x18. Target also keeps the constant 5 in $t0 and the loop bottom is a bnez (top-tested beqz); a do-while form scored much worse (3156), so keep the while form. Next: try getting the save order/frame right (maybe an extra local or s1 use for arg0+0x48), then register allocation.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794706626.4410958,
-  "score_before": 756,
-  "score_after": 706
- },
- {
   "function": "func_800DE2E0",
   "text": "SOLVED, but needs a compiler-profile change that is not applied automatically. Byte-identical (score 0) with gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O1 (project default kmc -O2 gives 2860). A function-specific suggest() bundle with this exact source is queued; apply it and the function saves as matched.\n\nWinning C (note: no base pointer variable -- the header/tail stores must be written directly off the symbol with constant byte offsets so GCC CSEs the address into v0 and keeps the 0xFFFF constant in v1):\n\nextern s16 D_80126FF0;\nextern s16 D_80126FF4;\nextern u16 func_800E1850;\nextern s16 D_8011F300;\nextern s16 D_8011F302;\nextern s16 D_8011F2F1;\nextern s16 D_80126F9C;\n\nvoid func_800DE2E0(void) {\n    s32 var_a0;\n    u32 temp_v0;\n\n    D_80126FF0 = 0x140;\n    D_80126FF4 = 0;\n    func_800E1850 = 0xFFFF;\n    *(u16 *)((u8 *)&D_8011F300 + 0) = 0xFFFF;\n    *(u16 *)((u8 *)&D_8011F300 + 2) = 1;\n    *(u8 *)((u8 *)&D_8011F300 - 0xF) = 0;\n    var_a0 = 1;\n    do {\n        temp_v0 = (((var_a0 * 2 + var_a0) << 3) + var_a0) * 4;\n        *(u16 *)((u8 *)&D_8011F300 + temp_v0) = var_a0 - 1;\n        *(u16 *)((u8 *)&D_8011F302 + temp_v0) = var_a0 + 1;\n        *(u8 *)((u8 *)&D_8011F2F1 + temp_v0) = 0;\n        var_a0 = var_a0 + 1;\n    } while (var_a0 < 0x13F);\n    *(u16 *)((u8 *)&D_80126F9C + 0) = 0x13E;\n    *(u16 *)((u8 *)&D_80126F9C + 2) = 0xFFFF;\n    *(u8 *)((u8 *)&D_80126F9C - 0xF) = 0;\n}\n\nUse 0xFFFF (not -1) so both 0xFFFF stores share one `ori v1,$zero,0xffff`. The tail needs the third store (`sb $zero,-0xF($v0)` after `sh 0xFFFF,2($v0)`, i.e. `jr $ra` in the delay slot) -- omitting it is a large diff. `u32 temp_v0` and the `((x*2+x)<<3)+x)*4` index shape are required for the loop.\n\nSOLVED under a non-default compiler profile; blocked only on the user applying the queued suggestion. try_compiler confirms byte-identical (score 0) with gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O1; project default kmc -O2 gives 2860. A function-specific suggest() bundle carrying the exact matching source is already queued (automatic compiler changes are off). The exact winning C is in the note on this function.\n\nKey result for future work on this unit (0x800DE2E0..0x800E1700): it is built by gcc-2.8.1-pm-sn-as at -O1, not kmc -O2. Under that profile the remaining trick was to remove the `s16 *base` local and write the header/tail stores directly as `*(u16*)((u8*)&D_8011F300 + 0)`, `+2`, `*(u8*)((u8*)&D_8011F300 - 0xF)` so GCC CSEs the address into v0 and keeps 0xFFFF in v1 (pointer-variable version scores 75, explicit-offset version scores 0). Do not re-derive this under kmc -O2.",
   "by": "opencode-deepseek-v4.1-flash-free-5",
   "created_at": 1794708289.4894269,
   "score_before": 365,
   "score_after": 365
- },
- {
-  "function": "__voiceNeedsNoteKill",
-  "text": "Progress from this session (best revision ab743909a9399d74ef8f, score 1280): the working skeleton is `s32 total=0; s32 ret=1; while (v) { d=v->field08; total+=d; if (v->field0C==5) if (v->field10==arg1) { if (arg2>=total) { ret=0; break; } if (v->next) v->next->field08+=d; alUnlink(v); alLink(v, arg0+0x48); return ret; } v=v->next; } return ret;` where Voice is {Voice *next; u8 pad[4]; s32 field08; s16 field0C; s16 pad; s32 field10;} and arg0+0x50 is the head.\nKey evidence: the success path must `return ret;` (not `return 1;`) \u2014 the ROM emits `addu v0,$s2,$zero` before the j, which took the score 1471 -> 1280. Also the type/time test must be nested ifs or && (bne v0,$t0 plain, then bnel v0,$a1) and `total += d` is unconditional.\nRemaining mismatches at 1280: (a) the `if (arg2>=total) {ret=0;break;}` tail \u2014 ROM emits `slt $v0,$a2,$a0; beql $v0,$zero,exit; addu $s2,$zero,$zero` while gcc emits slt + bnez-to-kill + nop + j exit (3 extra insns); (b) register/save slots: ROM arg0->$s1 (mine $s2), ret->$s2 (mine $s1), total->$a0 and d->$a3 (mine swapped, total in v1/d in a0), and the ROM saves s0,s1,s2 (frame 0x20, ra 0x1c) while mine saves only 2.\nUntested next idea: write the loop as `for (v = *(Voice**)((u8*)arg0+0x50); v != NULL; v = v->next) { ... }` so gcc duplicates the increment into both branch delay slots (the ROM has `addu $s0,$v1,$zero` in two delay slots and a hoisted `lw $v1,($s0)`), which may also fix the branch layout.",
-  "by": "opencode-deepseek-v4.1-flash-free-5",
-  "created_at": 1794709060.009992,
-  "score_before": 706,
-  "score_after": 695
  },
  {
   "function": "func_80211C7C",
@@ -8958,5 +8918,61 @@
   "created_at": 1794719422.231012,
   "score_before": 26479,
   "score_after": 26479
+ },
+ {
+  "function": "__voiceNeedsNoteKill",
+  "text": "Deep permuter: score 756 \u2192 536; 1 improvements; 115 candidates tested; 3 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589934937",
+  "created_at": 1794359517.449733,
+  "score_before": 756,
+  "score_after": 536
+ },
+ {
+  "function": "__voiceNeedsNoteKill",
+  "text": "Not started. Released so the batch's near-matched func_800297E8 (score 485) can be reclaimed and finished.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794705993.9096582,
+  "score_before": 756,
+  "score_after": 756
+ },
+ {
+  "function": "__voiceNeedsNoteKill",
+  "text": "Claimed as a batch companion and not started; released so another agent can take it.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794706073.7975411,
+  "score_before": 756,
+  "score_after": 756
+ },
+ {
+  "function": "__voiceNeedsNoteKill",
+  "text": "Best saved 706 (83.9%). Shape: s0 = arg0->0x50 list head; acc=0; s2=1; loop over nodes: delta=node->0x8, next=node->0, acc+=delta; if (node->0xC==5 && node->0x10==arg1) { if (arg2>=acc) {s2=0; break;} if (next) next->8+=delta; alUnlink(node); alLink(node, arg0+0x48); return 1; } return s2. Remaining diff: target saves $ra at 0x1c and $s2 at 0x18, $s0 at 0x10 (frame 0x20); the candidate spills $ra at 0x18. Target also keeps the constant 5 in $t0 and the loop bottom is a bnez (top-tested beqz); a do-while form scored much worse (3156), so keep the while form. Next: try getting the save order/frame right (maybe an extra local or s1 use for arg0+0x48), then register allocation.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794706626.4410958,
+  "score_before": 756,
+  "score_after": 706
+ },
+ {
+  "function": "__voiceNeedsNoteKill",
+  "text": "Progress from this session (best revision ab743909a9399d74ef8f, score 1280): the working skeleton is `s32 total=0; s32 ret=1; while (v) { d=v->field08; total+=d; if (v->field0C==5) if (v->field10==arg1) { if (arg2>=total) { ret=0; break; } if (v->next) v->next->field08+=d; alUnlink(v); alLink(v, arg0+0x48); return ret; } v=v->next; } return ret;` where Voice is {Voice *next; u8 pad[4]; s32 field08; s16 field0C; s16 pad; s32 field10;} and arg0+0x50 is the head.\nKey evidence: the success path must `return ret;` (not `return 1;`) \u2014 the ROM emits `addu v0,$s2,$zero` before the j, which took the score 1471 -> 1280. Also the type/time test must be nested ifs or && (bne v0,$t0 plain, then bnel v0,$a1) and `total += d` is unconditional.\nRemaining mismatches at 1280: (a) the `if (arg2>=total) {ret=0;break;}` tail \u2014 ROM emits `slt $v0,$a2,$a0; beql $v0,$zero,exit; addu $s2,$zero,$zero` while gcc emits slt + bnez-to-kill + nop + j exit (3 extra insns); (b) register/save slots: ROM arg0->$s1 (mine $s2), ret->$s2 (mine $s1), total->$a0 and d->$a3 (mine swapped, total in v1/d in a0), and the ROM saves s0,s1,s2 (frame 0x20, ra 0x1c) while mine saves only 2.\nUntested next idea: write the loop as `for (v = *(Voice**)((u8*)arg0+0x50); v != NULL; v = v->next) { ... }` so gcc duplicates the increment into both branch delay slots (the ROM has `addu $s0,$v1,$zero` in two delay slots and a hoisted `lw $v1,($s0)`), which may also fix the branch layout.",
+  "by": "opencode-deepseek-v4.1-flash-free-5",
+  "created_at": 1794709060.009992,
+  "score_before": 706,
+  "score_after": 695
+ },
+ {
+  "function": "__voiceNeedsNoteKill",
+  "text": "Score 695 -> 55 with ONE structural change (revision 8fa3576c3c1f7dc7986c, current saved best).\n\nDecisive change: bind the loop successor to a local at the top of the loop and step with it, instead of re-reading v->next:\n    while (v != NULL) {\n        Voice *next;\n        next = v->next;\n        d = v->field08;\n        total += d;\n        if (v->field0C == 5 && v->field10 == arg1) {\n            if (arg2 < total) {\n                if (next != NULL) { next->field08 += d; }\n                alUnlink(v); alLink(v, (Voice **)((u8 *)arg0 + 0x48));\n                return ret;\n            }\n            ret = 0; break;\n        }\n        v = next;\n    }\nThe form `v->next` twice (as `if (v->next) v->next->field08 += d;` and `v = v->next;`) gives score 695 with the next-load sunk to the equal-path and a plain `bne`. With the local, GCC hoists `lw next,($s0)` to the top of the loop, uses `bnel` + delay-slot `move s0,next`, and duplicates `move s0,next` in the two paths \u2014 exactly the target.\n\nWhat is left (9 diff rows, all one allocation choice): target has arg0 in $s1 and the return-value variable `ret` in $s2; the candidate has them swapped (ret=$s1, arg0=$s2), which also swaps the prologue sw $s1/sw $s2 order and every `$s1`/`$s2` use. Everything else (44 insns, incl. addiu t0,zero,5 hoisted, `move a0,zero` = total, bnel/bnez shape) matches.\n\nTried, all no better: ret before total in decls / v-last / total-first (310 or 80); separate decls + assignments in each order (55, identical output); d declared before v (80); hoisting `next` to function scope (55 identical). Declaration order must stay `Voice *v = ...; s32 total = 0; s32 ret = 1; s32 d;` with the assignments inside the loop as above.\n\nUntried next ideas: (a) introduce a `Voice **head`/context-struct pointer for `(u8*)arg0 + 0x48` so arg0's pseudo weight changes; (b) change `ret`'s type or its initialization site; (c) any change that makes arg0's global-alloc priority exceed ret's (arg0: 2 code refs, ret: 4 code refs, so ret currently wins the lower saved register).\n\nUpdate after a second session: still 55 (saved best 8fa3576c3c1f7dc7986c). The one remaining problem is a single coherent allocation choice \u2014 target: arg0 in $s1 and the return-value variable in $s2; candidate: swapped. All 44 instructions, every stack offset (except the $s1/$s2 save order that follows from it) and every branch shape already match.\n\nAdditional experiments (all with the exact source from the earlier note):\n- `Voice **head = (Voice **)((u8 *)arg0 + 0x48);` before the loop + `alLink(v, head)` -> 485 (the addiu moves to the prologue).\n- same but `head` declared with the others and assigned before the loop -> 485.\n- context struct `typedef struct { u8 pad[0x48]; Voice *freeList; Voice *active; } Ctx;` with `Ctx *c = arg0; Voice *v = c->active; alLink(v, &c->freeList);` -> 60 (only 1 diff row shifted, still 9 mismatches) \u2014 closest alternative to the plain form.\n- declaration/initialisation permutations (ret before total, total first, separate decls + assignments, d before v, hoisting `next` to function scope): 55 identical, 80, or 310.\n\nRemaining hypothesis to test: arg0 has 2 code refs and the ret variable 4, so global-alloc gives ret the better saved register. Anything that legitimately adds an arg0 reference in the loop (without adding an instruction) or removes a ret reference would flip s1/s2. Do not add dummy uses (forbidden and would change the code).\n\nMoving on at the budget limit (4 compiles without improvement, best 55). Best source is the saved candidate revision 8fa3576c3c1f7dc7986c (see the function note for the exact C and the full list of failed variants). Everything matches byte-for-byte except one coherent allocation: the target has arg0 in $s1 and the return-value variable in $s2, the candidate has them swapped (9 diff rows, all $s1/$s2, plus the sw $s1/sw $s2 prologue order that follows from it). Last try this session: signedness of field08 (u32) -> identical 55. Next idea: raise arg0's global-alloc priority above the ret variable's (arg0 has 2 code refs, ret has 4) without adding a dummy use.",
+  "by": "opencode-deepseek-v4.1-flash-free-5",
+  "created_at": 1794710726.481438,
+  "score_before": 695,
+  "score_after": 55
+ },
+ {
+  "function": "__voiceNeedsNoteKill",
+  "text": "Structure matches (44 insns, same control flow and calls). Best is the saved 55 (98.7%) source. Remaining diff is register assignment only: target keeps arg0 in $s1 and ret in $s2 (sw $s1 at 0x14, sw $s2 at 0x18), ours has them swapped. Declaring ret before v made it worse (310). Untried: forcing ret's lifetime differently (e.g. return 1 / return 0 paths without a ret variable), or using arg0 via a local copy declared first.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794718108.186131,
+  "score_before": 55,
+  "score_after": 55
  }
 ]
