@@ -1,17 +1,18 @@
 s32 func_800339C0(s32);
 s32 func_80033A90(s32 *, s32 *, s32);
 s32 osRecvMesg(s32 *, void **, s32);
-s32 osViBlack(s32);
+void osViBlack(s32);
 extern s32 (*D_80046D94)(void *);
 extern s32 (*D_80046D98)(void *);
 extern s32 D_8006C300;
 extern s32 D_8006FB30;
-extern s32 D_80092C00;
+extern volatile s32 D_80092C00;
 extern s32 D_800DE0E8;
 
-void nuGfxTaskMgr(void) {
+s32 nuGfxTaskMgr(void) {
     void *sp10;
     s32 temp_a0;
+    s32 ret;
 
     func_80033A90(&D_800DE0E8, &D_8006C300, 8);
     for (;;) {
@@ -35,6 +36,8 @@ void nuGfxTaskMgr(void) {
         }
         temp_a0 = func_800339C0(1);
         D_80092C00 -= 1;
+        ret = D_80092C00;
         func_800339C0(temp_a0);
     }
+    return ret;
 }
