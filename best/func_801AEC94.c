@@ -15,7 +15,7 @@ extern u8 D_801C7068;
 extern u8 D_801C7080[];
 extern u8 D_801C7082[];
 extern s8 D_801C7469;
-extern u16 D_801C7470[];
+extern u8 D_801C7470[];
 extern void *D_801C7AB0;
 extern s8 D_801C7AB6;
 extern s8 D_801C7AB8;
@@ -23,7 +23,7 @@ extern u8 D_801C7AD8[];
 
 void func_801AEC94(void) {
     u16 i;
-    u16 j;
+    u8 j;
     u16 *temp_a1;
     u8 *p;
 
@@ -33,13 +33,11 @@ void func_801AEC94(void) {
         D_801C6BB9 = 0xB;
         D_801C7068 = 0xB;
         D_801C5EA0 = 0;
-        p = D_801C5E9E;
-        p[0] = 0;
-        p[1] = 0;
+        D_801C5E9E[0] = 0;
+        D_801C5E9E[1] = 0;
     } else {
-        p = D_801C7082;
-        D_801C7068 = p[0];
-        D_801C6BB9 = p[1];
+        D_801C7068 = D_801C7082[0];
+        D_801C6BB9 = D_801C7082[1];
     }
     D_801C7AB0 = D_801C5E9C;
     D_801C7AB6 = 0;
@@ -48,7 +46,7 @@ void func_801AEC94(void) {
         D_801C7AD8[i] = 0xFF;
     }
     for (i = 0; i < 0xC8; i++) {
-        temp_a1 = &D_801C7470[i * 4];
+        temp_a1 = (u16 *)(D_801C7470 + i * 8);
         for (j = 0; j < 4; j++) {
             temp_a1[j] = 0xFFFF;
         }

@@ -13,7 +13,7 @@ void func_8014D2B4(s32 arg0) {
     s32 temp_v1;
     s32 off;
 
-    temp_s0 = arg0 & 0xFFFF;
+    temp_s0 = (u16)arg0;
     func_8013AE60(temp_s0);
     off = temp_s0 * 0x64;
     if (*(u16 *)(D_8011F32E + off) == 0) {

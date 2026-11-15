@@ -51,3 +51,7 @@ typedef struct { u8 pad00[0x64]; u16 rows[14][9]; u8 tail160[0x18]; } PennyHalfw
 
 /* Verified bitfield operation in exact -O1 func_80146970. */
 typedef struct { u8 reserved_hi:3; u8 flag10:1; u8 reserved_lo:4; } PennyByteFlags10;
+
+/* Byte color setters: clamp signed 16-bit channel values to 0..255 at offsets 0x17..0x19. */
+void func_8013EA18(u8 *object, s32 red, s32 green, s32 blue);
+void func_8013EA90(u8 *object, s32 redDelta, s32 greenDelta, s32 blueDelta);

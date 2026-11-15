@@ -18,7 +18,7 @@ s32 func_80198CC4(s32 arg0) {
     }
     if (D_801C6BB9 != 0) {
         if (D_801CA130 != ((u8 *)D_801C7AB0)[2]) {
-            if ((u8)(v1 - 0x16) < 0x14) {
+            if ((u32)(v1 - 0x16) < 0x14) {
                 off = (arg0 & 0xFFFF) * 0x64;
                 v0 = D_801C7081[D_801CA130 * 5] + 0x3C;
             } else {

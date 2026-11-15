@@ -1,4 +1,4 @@
-extern s32 D_801FB230;
+extern u16 D_801FB230[];
 s32 func_801F9D8C(s32 arg0, s32 arg1)
 {
   f32 var_fv0;
@@ -6,7 +6,6 @@ s32 func_801F9D8C(s32 arg0, s32 arg1)
   f32 var_fv1;
   f32 var_fv1_2;
   s32 temp_a3;
-  s32 temp_v1;
   s32 temp_v1_2;
   s32 var_a2;
   s32 var_a2_2;
@@ -97,11 +96,11 @@ s32 func_801F9D8C(s32 arg0, s32 arg1)
   }
   if (var_v0_2 < temp_a3)
   {
-    var_v1 = *((&D_801FB230) + ((((s32) (var_v0_2 << 6)) / temp_a3) * 2));
+    var_v1 = D_801FB230[((s32) (var_v0_2 << 6)) / temp_a3];
   }
   else
   {
-    var_v1 = 0x5A - (*((&D_801FB230) + ((((s32) (temp_a3 << 6)) / var_v0_2) * 2)));
+    var_v1 = 0x5A - D_801FB230[((s32) (temp_a3 << 6)) / var_v0_2];
   }
   if (arg1 < 0)
   {
@@ -128,4 +127,3 @@ s32 func_801F9D8C(s32 arg0, s32 arg1)
   }
   return var_v0;
 }
-

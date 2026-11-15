@@ -7,25 +7,28 @@ void func_800E0A00(s32 arg0, s32 arg1, u16 *arg2)
   u8 pivot;
   u16 tmp;
 
+  pivot = D_8011F2FA[arg2[(arg0 + arg1) / 2] * 100];
   i = arg0;
   j = arg1;
-  pivot = D_8011F2FA[arg2[(arg0 + arg1) / 2] * 100];
-  while (1)
+  for (;;)
   {
-    while ((u8) D_8011F2FA[arg2[i] * 100] < pivot)
-    {
-      i++;
+    while (D_8011F2FA[arg2[i] * 100] < pivot)
+    {/*__repair_loop_weight*/do {
+      i++;} while (0);
     }
-    while (pivot < (u8) D_8011F2FA[arg2[j] * 100])
+    while (pivot < D_8011F2FA[arg2[j] * 100])
     {
       j--;
     }
     if (i < j)
     {
       tmp = arg2[i];
-      arg2[i] = arg2[j];
       arg2[j] = tmp;
-      i++;
+      arg2[i] = arg2[j];
+      __repair_rows: {
+        i++;
+      }
+if (0) goto __repair_rows;
       j--;
     }
     else

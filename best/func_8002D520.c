@@ -11,7 +11,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-u8 func_8002DA28(void *, s32, u8);
+u8 pennyReadSequenceByte(void *, s32, u8);
 s32 func_8002DAE0(void *, s32);
 
 s32 func_8002D520(void *arg0, s32 arg1, void *arg2) {
@@ -31,19 +31,19 @@ s32 func_8002D520(void *arg0, s32 arg1, void *arg2) {
     void *temp_a3;
     void *var_v0;
 
-    temp_v0 = func_8002DA28(arg0, arg1, 0);
+    temp_v0 = pennyReadSequenceByte(arg0, arg1, 0);
     temp_s4 = temp_v0 & 0xFF;
     if (temp_s4 == 0xFF) {
-        temp_v0_2 = func_8002DA28(arg0, arg1, 0);
+        temp_v0_2 = pennyReadSequenceByte(arg0, arg1, 0);
         temp_v1 = temp_v0_2 & 0xFF;
         switch (temp_v1) {
         case 0x51:
             M2C_FIELD(arg2, s16 *, 0) = 3;
             M2C_FIELD(arg2, u8 *, 8) = temp_v0;
             M2C_FIELD(arg2, u8 *, 9) = temp_v0_2;
-            M2C_FIELD(arg2, u8 *, 0xB) = func_8002DA28(arg0, arg1, temp_v0_2);
-            M2C_FIELD(arg2, u8 *, 0xC) = func_8002DA28(arg0, arg1, 0);
-            M2C_FIELD(arg2, u8 *, 0xD) = func_8002DA28(arg0, arg1, 0);
+            M2C_FIELD(arg2, u8 *, 0xB) = pennyReadSequenceByte(arg0, arg1, temp_v0_2);
+            M2C_FIELD(arg2, u8 *, 0xC) = pennyReadSequenceByte(arg0, arg1, 0);
+            M2C_FIELD(arg2, u8 *, 0xD) = pennyReadSequenceByte(arg0, arg1, 0);
             M2C_FIELD((arg0 + arg1), s8 *, 0xA8) = 0;
             break;
         case 0x2F:
@@ -56,8 +56,8 @@ s32 func_8002D520(void *arg0, s32 arg1, void *arg2) {
             }
             break;
         case 0x2E:
-            func_8002DA28(arg0, arg1, temp_v0_2);
-            func_8002DA28(arg0, arg1, 0);
+            pennyReadSequenceByte(arg0, arg1, temp_v0_2);
+            pennyReadSequenceByte(arg0, arg1, 0);
             M2C_FIELD((arg0 + arg1), s8 *, 0xA8) = 0;
             M2C_FIELD(arg2, s16 *, 0) = 0x13;
             break;
@@ -88,7 +88,7 @@ s32 func_8002D520(void *arg0, s32 arg1, void *arg2) {
         M2C_FIELD(arg2, s16 *, 0) = 1;
         if (temp_v0 & 0x80) {
             M2C_FIELD(arg2, u8 *, 8) = temp_v0;
-            M2C_FIELD(arg2, u8 *, 9) = func_8002DA28(arg0, arg1, 0);
+            M2C_FIELD(arg2, u8 *, 9) = pennyReadSequenceByte(arg0, arg1, 0);
             M2C_FIELD((arg0 + arg1), u8 *, 0xA8) = temp_v0;
         } else {
             M2C_FIELD(arg2, u8 *, 9) = temp_v0;
@@ -96,7 +96,7 @@ s32 func_8002D520(void *arg0, s32 arg1, void *arg2) {
         }
         temp_v0_4 = M2C_FIELD(arg2, u8 *, 8) & 0xF0;
         if ((temp_v0_4 != 0xC0) & (temp_v0_4 != 0xD0)) {
-            M2C_FIELD(arg2, u8 *, 0xA) = func_8002DA28(arg0, arg1, 0);
+            M2C_FIELD(arg2, u8 *, 0xA) = pennyReadSequenceByte(arg0, arg1, 0);
             if ((M2C_FIELD(arg2, u8 *, 8) & 0xF0) == 0x90) {
                 M2C_FIELD(arg2, u8 *, 0xC) = func_8002DAE0(arg0, arg1);
             }

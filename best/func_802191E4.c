@@ -40,6 +40,19 @@ void func_802191E4(u16 idx) {
             st = 0x10;
         }
         break;
+    case 0x10:
+        if (D_801E9990 == 1) {
+            if (++D_80190CA4 >= 0xB) {
+                D_80190CA6 = 1;
+            }
+        }
+        D_80190CA6--;
+        if ((s16)D_80190CA6 < 0) {
+            func_80028100(0, 0x1E);
+            func_80203DF8(2, 0x2D, 0, 0, 0);
+            st = 0x11;
+        }
+        break;
     default:
         break;
     }

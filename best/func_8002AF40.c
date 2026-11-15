@@ -1,8 +1,12 @@
 typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
 #define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
+
+typedef struct Msg {
+    s16 type;
+    void *a;
+    s32 b;
+    u8 c;
+} Msg;
 
 M2C_UNK __CSPHandleMetaMsg(void *, void *);
 M2C_UNK __initFromBank(void *, M2C_UNK *);
@@ -13,7 +17,7 @@ s32 __voiceNeedsNoteKill(void *, M2C_UNK *, M2C_UNK);
 s16 __vsVol(M2C_UNK *, void *);
 M2C_UNK alEvtqFlushType(s32, M2C_UNK);
 s32 alEvtqNextEvent(void *, void *);
-M2C_UNK alEvtqPostEvent(void *, s16 *, s32);
+M2C_UNK alEvtqPostEvent(void *, void *, s32);
 M2C_UNK func_8002B454(void *);
 M2C_UNK func_8002B534(void *, void *);
 M2C_UNK func_8002BFDC(void *, M2C_UNK);
@@ -26,10 +30,7 @@ M2C_UNK n_alSynSetVol(M2C_UNK *, s16, s32);
 M2C_UNK n_alSynStopVoice(M2C_UNK *);
 
 s32 func_8002AF40(void *arg0) {
-    s16 sp10;
-    M2C_UNK *sp14;
-    s32 sp18;
-    u8 sp1C;
+    Msg msg;
     f32 sp20;
     M2C_UNK *temp_a1;
     M2C_UNK *temp_a1_2;
@@ -70,8 +71,8 @@ s32 func_8002AF40(void *arg0) {
             var_a0 = arg0 + 0x48;
             break;
         case 9:
-            sp10 = 9;
-            alEvtqPostEvent(arg0 + 0x48, &sp10, M2C_FIELD(arg0, s32 *, 0x5C));
+            msg.type = 9;
+            alEvtqPostEvent(arg0 + 0x48, &msg, M2C_FIELD(arg0, s32 *, 0x5C));
             var_a0 = arg0 + 0x48;
             break;
         case 5:
@@ -109,10 +110,10 @@ s32 func_8002AF40(void *arg0) {
             M2C_FIELD(temp_s1_3, s8 *, 0x36) = (s8) var_v1;
             temp_s0_3 = __vsVol(temp_s1_3, arg0);
             n_alSynSetVol(temp_s1_3 + 4, temp_s0_3, func_80031B94(temp_s1_3, M2C_FIELD(arg0, s32 *, 0x1C)));
-            sp10 = 0x16;
-            sp14 = temp_s1_3;
-            sp18 = temp_s4;
-            alEvtqPostEvent(arg0 + 0x48, &sp10, temp_s3_2);
+            msg.type = 0x16;
+            msg.a = temp_s1_3;
+            msg.b = temp_s4;
+            alEvtqPostEvent(arg0 + 0x48, &msg, temp_s3_2);
             var_a0 = arg0 + 0x48;
             break;
         case 23:
@@ -122,11 +123,11 @@ s32 func_8002AF40(void *arg0) {
             temp_v0_2 = M2C_FIELD(arg0, s32 (**)(s32, f32 *), 0x74)(temp_s4_2, &sp20);
             M2C_FIELD(temp_s1_4, f32 *, 0x2C) = sp20;
             n_alSynSetPitch(temp_s1_4 + 4, M2C_FIELD(temp_s1_4, f32 *, 0x28) * sp20 * M2C_FIELD(((temp_s0_4 * 0x10) + M2C_FIELD(arg0, s32 *, 0x60)), f32 *, 0xC));
-            sp10 = 0x17;
-            sp14 = temp_s1_4;
-            sp18 = temp_s4_2;
-            sp1C = temp_s0_4;
-            alEvtqPostEvent(arg0 + 0x48, &sp10, temp_v0_2);
+            msg.type = 0x17;
+            msg.a = temp_s1_4;
+            msg.b = temp_s4_2;
+            msg.c = temp_s0_4;
+            alEvtqPostEvent(arg0 + 0x48, &msg, temp_v0_2);
             var_a0 = arg0 + 0x48;
             break;
         case 2:
@@ -206,8 +207,8 @@ block_50:
                     var_a0_3 = arg0 + 0x48;
                 }
                 M2C_FIELD(arg0, s32 *, 0x2C) = 2;
-                sp10 = 0x10;
-                alEvtqPostEvent(var_a0_3, &sp10, 0x7FFFFFFF);
+                msg.type = 0x10;
+                alEvtqPostEvent(var_a0_3, &msg, 0x7FFFFFFF);
                 var_a0 = arg0 + 0x48;
             }
             break;

@@ -35,7 +35,7 @@ void func_8013E640(s32 arg0, s32 arg1, void *arg2, s16 arg3, f32 arg4, f32 arg5,
     *(s8 *)(s0 + 0x1E) = 0;
     *(s32 *)(s0 + 0x70) = 0;
     for (i = 0; i < 7; i++) {
-        s0[0x67] = 0;
+        s0[i + 0x67] = 0;
         if (D_8022A772[i * 0x478] != 0xFFFF && D_8022AD5C[i * 0x23C] > 0.0f) {
             s0[0x60 + i] = i;
         } else {
