@@ -5944,14 +5944,6 @@
   "score_after": 915
  },
  {
-  "function": "func_8014D740",
-  "text": "Best saved 1490. Tried this claim: (a) direct D_8011F32E[(arg0&0xFFFF)*50] indexing -> 3705; (b) byte offset local off=(arg0&0xFFFF)*100 with *(u16*)(D_8011F32E+off) -> 2670. Target computes the index with shifts/adds (sll 1, addu, sll, addu, sll 2 chain; about 3x*8 style) and loads the table through lui %hi plus addu $at, with a 0x3 start loop. Target's lhu uses lui+lhu %lo on a base computed once, not per-access offset. Remaining: find the scale expression the compiler emits for *50 and keep the 0x15/0xB compare sequence; the loop with D_802DF420 is at a 6-byte stride, so the (D_802DF420, D_8016BA40) loads should use one shared index.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794706662.239085,
-  "score_before": 1490,
-  "score_after": 1490
- },
- {
   "function": "func_8015C838",
   "text": "Not matched. Best 895 (66.8%) with the u16 v / u8 arrays / t = D2FC[idx]-2 / if (t>0) {store t; return;} D2FD[v]=2 form (see prior notes). Signed-char t variant: 1105 (worse). Target puts the andi of arg0 in the bgtzl delay slot and reuses v1 for the D2FD index; the remaining mismatch is that delay-slot placement. Next: try a local v declared after idx and a separate `s32 v2 = arg0 & 0xFFFF` used only in the else store.",
   "by": "claude-haiku-5-5-23",
@@ -9808,14 +9800,6 @@
   "score_after": 2220
  },
  {
-  "function": "func_8014D740",
-  "text": "Not matched. Saved best 1490 (other source). My best was 2260 (`off = (u16)arg0 * 100` computed once, volatile reloads in the two >=0x15 and >=0xB tests). Recomputing the index per access (`(u16)arg0 * 100` inline) scored 3515, so the single computed offset is better. Remaining diffs: the target keeps `andi $v1,$a0,0xFFFF` and builds the offset as `sll $v0,$v1,1; addu; sll 3; addu; sll 2` (x*100 via the ((x*2+x)*8+x)*4 chain), then the table base `lui/addu` in $v0 is reused for the reload; ours reuses $a0 and forms the base with `addiu $v1,%lo(D_8011F32E)`. The fill loop is structurally right (i from 3 to 13, halfword index `sll $v0,$a0,1`, D_802DF420 in $a1/$a2, D_8016BA40 source). Untried: write the base as `u16 *base = (u16 *)D_8011F32E` and index it with `base[off/2]` so the lui is folded into the lhu/sh offsets.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794720779.486658,
-  "score_before": 1490,
-  "score_after": 1490
- },
- {
   "function": "func_80146970",
   "text": "Not matched. Best current candidate revision df3cc4c7fbbfab4adb60: 2602 (55.8%), where temp_v0 is reused as the 0x10-path zero (`temp_v0 = 0;`, then `if (temp_v0 & 0x20)`), which fixed the join. Historical saved best 915 is from a different source. Remaining structural gap: target keeps p=&D_80190CB0 in callee-saved $s1 across the func_80148688 call (lui+addiu once, then lbu 0($s1) and lhu -4($s1)); mine re-materializes lui/%lo at each use and the frame is 0x18 instead of 0x20 (ra, s1, s0 saved). Tried: extern-array form of D_80190CB0 (no effect). Untried: a struct overlay on D_80190CB0 so the base pointer is a non-constant value across the call; then fix the extra nop/branch-target offset (0xd8 vs 0xd0).",
   "by": "claude-haiku-5-5-24",
@@ -12696,14 +12680,6 @@
   "score_after": 30
  },
  {
-  "function": "func_8014D740",
-  "text": "Best saved 1490 (other source); current best 3705 (38%) with candidate d866205d970320c632b6. Finding: the loop indices must be offset. In the 3705 candidate (for i=3..12) the stores land at D_802DF426 / D_8016BA46, i.e. 6 bytes past the target, so the target's element 0 is at D_802DF420 and the loop starts at i=0 for those two arrays. But changing to i=0..9 made it worse (4485): the second-loop pairing then drifts. Suggested fix: index by a pointer `u16 *q = D_802DF420 - 3;` with `q[i]` for i=3..12 (and `D_8016BA40 - 3` for the source), which keeps the 3..13 loop shape while putting element 3 at the target address. First part: the (arg0&0xFFFF)*50 counter update (target: andi v1; sll/addu chain; lui/lhu/sh at D_8011F32E) and the `>= 0x15` reset and `>= 0xB` branch are in the right order; the `lui $v0,%hi(D_8011F32E)` is re-materialised per use in the target, so keep the index reads as separate expressions. Not tried: the pointer form above.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794730232.515112,
-  "score_before": 1490,
-  "score_after": 1490
- },
- {
   "function": "func_8014998C",
   "text": "Not matched. Saved best 2220 is from another agent and is not reproduced by my rewrite (4330). The machine draft in the claim was not usable (it contains invalid repair code: an inline helper and a do/while with a case label inside it), so I started from the assembly. Verified from the target: the first loop writes 0xFF to six bytes of D_8018BC35 (the loop runs 6 times, `slti v1,6`); the D_80189B34==2 path copies six bytes from D_80237632[2*i+1] into D_8018BC35; the D_80189B34==1 path reads D_8021E1A2 as a halfword (`lh`), compares it with 2, then 3 (`slti 3`), and writes D_8018BC38 from D_80237639 on the case-3 path and D_8018BC37 from D_80237637 on the case-2 path; the lui/lbu sequence for D_80237635 and D_80237633 is in the tail (not yet read). Next: read the tail (get_assembly start=52) and write the 1-path case explicitly with the bytes at the right offsets (the store to D_8018BC36 and -1 offsets in the draft were from a bad repair). Check the 0xFF loop bound and whether the first loop stores via a pointer.",
   "by": "claude-haiku-5-5-24",
@@ -12958,14 +12934,6 @@
   "created_at": 1794731702.663177,
   "score_before": 2310,
   "score_after": 2310
- },
- {
-  "function": "func_8014D740",
-  "text": "Best saved 1490 (not beaten). Current best candidate revision 534932f997312786c7ce scores 3510 (41.5%). Pointer form works best so far: `u16 *p = &D_8011F32E[(u16)arg0 * 50]; *p += 1; if (*p >= 0x15) *p = 0; if (*p >= 0xB) {loop D_802DF420[i]=1; return;} loop D_802DF420[i]=D_8016BA40[i];`. Tried and rejected: arg0&0xFFFF index with array form (3705), local u16 idx (no effect). Remaining diffs: target computes the *50 index as sll/addu chain from v1 (x*2 + x) and reuses the base via lui $at + addu for the second store; ours keeps a separate addiu for the base and uses lhu/sh off v1. Unexplored: mixing array form for the increment with pointer form for compare/store, or writing the index as (x*25)*2.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794731702.757579,
-  "score_before": 1490,
-  "score_after": 1490
  },
  {
   "function": "func_8013EA18",
@@ -14574,14 +14542,6 @@
   "created_at": 1794736737.004891,
   "score_before": 1207,
   "score_after": 1207
- },
- {
-  "function": "func_8014D740",
-  "text": "Best rechecked this session 3705 (rev 9385bb401a2dbb1b9664 / d866205d970320c632b6); inherited saved best 1490. Move-on budget exhausted (3/3).\n\nTarget shape (60 insns, 0xF0 bytes):\n- andi $v1,$a0,0xFFFF once; then the *50 index chain sll1/addu/sll3/addu/sll2 built into $v1.\n- Every one of the 4 accesses to D_8011F32E recomputes `lui %hi` + `addu` and reads/writes with %lo(D_8011F32E)(reg); the two stores use $at (`lui $at,%hi; addu $at,$at,$v1; sh $v0,%lo(...)($at)`).\n- Re-read after the store is a real reload (`lhu` again), i.e. non-CSE'd.\n- Loops: constant store loop hoists `lui/addiu $a1,%lo(D_802DF420)` and `addiu $v1,$zero,1`, indexes with sll($a0,1) inside the loop body (`addu $v0,$v0,$a1; sh $v1,($v0)`), counter increment then slti/bnez with the sll in the delay slot.\n- Copy loop: `lui/addiu $a2,%lo(D_802DF420)` and `lui/addiu $a1,%lo(D_8016BA40)` hoisted, body `addu $v1,$v0,$a2; addu $v0,$v0,$a1; lhu; sh; addiu; slti; bnez` with `sll $v0,$a0,1` in the delay slot. Both loops end at a shared `jr $ra; nop`.\n\nWhat I established:\n- Declaring `extern u16 D_8011F32E;` (scalar) and indexing `*(&D_8011F32E + (arg0 & 0xFFFF) * 50)` does NOT reproduce the per-access lui+addu in this compiler: it keeps one base in a register (`addiu $v1,$v1,%lo(D_8011F32E)` then `lhu/sh ($v1)`), score 3705. Adding `vu16` volatile re-reads made it worse (5120).\n- Array form `extern u16 D_8011F32E[]` gives the same 3705 shape.\n- Candidate currently still emits `beql` for the second `if` (target uses plain bnez + separate andi of $a0 in the delay slot) and reuses $v1 as the index without recomputation.\n\nUntested next steps (in order):\n1. Force separate address temporaries per access, e.g. `u16 *a = (u16 *)((u8 *)&D_8011F32E + idx); u16 *b = (u16 *)((u8 *)&D_8011F32E + idx);` with `volatile u16 *` on the reload site only, so GCC cannot CSE the base.\n2. Use the pattern from proposal #339302416422 (byte table as scalar extern, `*(&D_X + i)`) but with a `u8 *` cast base plus `(idx << 1)` byte offsets instead of element scaling, so the sll is explicit.\n3. To kill the `beql`: write the second test as `if (!(... >= 0xB))` / restructure so the andi of $a0 lands in the delay slot (target has `bnez $v0,.L; andi $v0,$a0,0xFFFF`).",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794736739.692925,
-  "score_before": 1490,
-  "score_after": 1490
  },
  {
   "function": "func_8013E49C",
@@ -16808,14 +16768,6 @@
   "score_after": 39262
  },
  {
-  "function": "func_8014D740",
-  "text": "Low progress after 28 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 0; 57 differing rows (3 opcode, 14 register, 4 branch target, 11 operand, 4 inserted, 21 deleted; advisory).\nTarget: andi $v1, $a0, 0xffff\nCandidate: andi $a0, $a0, 0xffff\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\nr T: andi $v1, $a0, 0xffff | C: andi $a0, $a0, 0xffff\nr T: sll $v0, $v1, 1 | C: sll $v0, $a0, 1\nr T: addu $v0, $v0, $v1 | C: addu $v0, $v0, $a0\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nRechecked baseline (candidate d866205d970320c632b6) scores 3025; saved historical best 1490 used a different source and cannot be reproduced. Variants tried this session: volatile u16 *p alias for the D_8011F32E[(arg0&0xFFFF)*50] counter with u16 loop counter (3320, worse), byte-offset (u8*)base+(i<<1) addressing for both loops, while-loop form, and byte-offset only for the copy loop. None improved. Remaining families from handoff: signedness, parameter_width, array_index_width, guard_shape. Suggest trying try_local_repairs on a fresh claim rather than repeating the volatile-pointer alias.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794742245.8136141,
-  "score_before": 1490,
-  "score_after": 1490
- },
- {
   "function": "func_802178B4",
   "text": "Not compiled. Same blocker as func_8013B1BC and func_8021A334: machine draft cannot find the jump table for the jr at line 21 (the table data is not readable from this session). Resolve the table address and contents before writing the switch.",
   "by": "claude-haiku-5-5-23",
@@ -17582,22 +17534,6 @@
   "created_at": 1794748240.483656,
   "score_before": 915,
   "score_after": 915
- },
- {
-  "function": "func_8014D740",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794748240.4846048,
-  "score_before": 1490,
-  "score_after": 1490
- },
- {
-  "function": "func_8014D740",
-  "text": "Saved best 1490 still stands. Tried a byte-offset variant (off=(arg0&0xFFFF)*100 with *(u16*)(D_8011F32E+off) updates): 2670, worse, because the target masks arg0 once into $v1 and reuses it for every index (andi $v1,$a0,0xffff at the top, and at the second index), while mine re-masks per access. Next: keep one masked u16 index local (idx = arg0) and index with idx*50 in u16-element terms, check the 0x802DF420 raw-address mismatch (mine computed D+6 offset, meaning the loop index needs i starting at 3 with a 2-byte stride from a separate pointer).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794748447.090209,
-  "score_before": 1490,
-  "score_after": 1490
  },
  {
   "function": "func_801E2E48",
@@ -27230,5 +27166,77 @@
   "created_at": 1794761860.587592,
   "score_before": 845,
   "score_after": 845
+ },
+ {
+  "function": "func_8014D740",
+  "text": "Best saved 1490. Tried this claim: (a) direct D_8011F32E[(arg0&0xFFFF)*50] indexing -> 3705; (b) byte offset local off=(arg0&0xFFFF)*100 with *(u16*)(D_8011F32E+off) -> 2670. Target computes the index with shifts/adds (sll 1, addu, sll, addu, sll 2 chain; about 3x*8 style) and loads the table through lui %hi plus addu $at, with a 0x3 start loop. Target's lhu uses lui+lhu %lo on a base computed once, not per-access offset. Remaining: find the scale expression the compiler emits for *50 and keep the 0x15/0xB compare sequence; the loop with D_802DF420 is at a 6-byte stride, so the (D_802DF420, D_8016BA40) loads should use one shared index.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794706662.239085,
+  "score_before": 1490,
+  "score_after": 1490
+ },
+ {
+  "function": "func_8014D740",
+  "text": "Not matched. Saved best 1490 (other source). My best was 2260 (`off = (u16)arg0 * 100` computed once, volatile reloads in the two >=0x15 and >=0xB tests). Recomputing the index per access (`(u16)arg0 * 100` inline) scored 3515, so the single computed offset is better. Remaining diffs: the target keeps `andi $v1,$a0,0xFFFF` and builds the offset as `sll $v0,$v1,1; addu; sll 3; addu; sll 2` (x*100 via the ((x*2+x)*8+x)*4 chain), then the table base `lui/addu` in $v0 is reused for the reload; ours reuses $a0 and forms the base with `addiu $v1,%lo(D_8011F32E)`. The fill loop is structurally right (i from 3 to 13, halfword index `sll $v0,$a0,1`, D_802DF420 in $a1/$a2, D_8016BA40 source). Untried: write the base as `u16 *base = (u16 *)D_8011F32E` and index it with `base[off/2]` so the lui is folded into the lhu/sh offsets.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794720779.486658,
+  "score_before": 1490,
+  "score_after": 1490
+ },
+ {
+  "function": "func_8014D740",
+  "text": "Best saved 1490 (other source); current best 3705 (38%) with candidate d866205d970320c632b6. Finding: the loop indices must be offset. In the 3705 candidate (for i=3..12) the stores land at D_802DF426 / D_8016BA46, i.e. 6 bytes past the target, so the target's element 0 is at D_802DF420 and the loop starts at i=0 for those two arrays. But changing to i=0..9 made it worse (4485): the second-loop pairing then drifts. Suggested fix: index by a pointer `u16 *q = D_802DF420 - 3;` with `q[i]` for i=3..12 (and `D_8016BA40 - 3` for the source), which keeps the 3..13 loop shape while putting element 3 at the target address. First part: the (arg0&0xFFFF)*50 counter update (target: andi v1; sll/addu chain; lui/lhu/sh at D_8011F32E) and the `>= 0x15` reset and `>= 0xB` branch are in the right order; the `lui $v0,%hi(D_8011F32E)` is re-materialised per use in the target, so keep the index reads as separate expressions. Not tried: the pointer form above.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794730232.515112,
+  "score_before": 1490,
+  "score_after": 1490
+ },
+ {
+  "function": "func_8014D740",
+  "text": "Best saved 1490 (not beaten). Current best candidate revision 534932f997312786c7ce scores 3510 (41.5%). Pointer form works best so far: `u16 *p = &D_8011F32E[(u16)arg0 * 50]; *p += 1; if (*p >= 0x15) *p = 0; if (*p >= 0xB) {loop D_802DF420[i]=1; return;} loop D_802DF420[i]=D_8016BA40[i];`. Tried and rejected: arg0&0xFFFF index with array form (3705), local u16 idx (no effect). Remaining diffs: target computes the *50 index as sll/addu chain from v1 (x*2 + x) and reuses the base via lui $at + addu for the second store; ours keeps a separate addiu for the base and uses lhu/sh off v1. Unexplored: mixing array form for the increment with pointer form for compare/store, or writing the index as (x*25)*2.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794731702.757579,
+  "score_before": 1490,
+  "score_after": 1490
+ },
+ {
+  "function": "func_8014D740",
+  "text": "Best rechecked this session 3705 (rev 9385bb401a2dbb1b9664 / d866205d970320c632b6); inherited saved best 1490. Move-on budget exhausted (3/3).\n\nTarget shape (60 insns, 0xF0 bytes):\n- andi $v1,$a0,0xFFFF once; then the *50 index chain sll1/addu/sll3/addu/sll2 built into $v1.\n- Every one of the 4 accesses to D_8011F32E recomputes `lui %hi` + `addu` and reads/writes with %lo(D_8011F32E)(reg); the two stores use $at (`lui $at,%hi; addu $at,$at,$v1; sh $v0,%lo(...)($at)`).\n- Re-read after the store is a real reload (`lhu` again), i.e. non-CSE'd.\n- Loops: constant store loop hoists `lui/addiu $a1,%lo(D_802DF420)` and `addiu $v1,$zero,1`, indexes with sll($a0,1) inside the loop body (`addu $v0,$v0,$a1; sh $v1,($v0)`), counter increment then slti/bnez with the sll in the delay slot.\n- Copy loop: `lui/addiu $a2,%lo(D_802DF420)` and `lui/addiu $a1,%lo(D_8016BA40)` hoisted, body `addu $v1,$v0,$a2; addu $v0,$v0,$a1; lhu; sh; addiu; slti; bnez` with `sll $v0,$a0,1` in the delay slot. Both loops end at a shared `jr $ra; nop`.\n\nWhat I established:\n- Declaring `extern u16 D_8011F32E;` (scalar) and indexing `*(&D_8011F32E + (arg0 & 0xFFFF) * 50)` does NOT reproduce the per-access lui+addu in this compiler: it keeps one base in a register (`addiu $v1,$v1,%lo(D_8011F32E)` then `lhu/sh ($v1)`), score 3705. Adding `vu16` volatile re-reads made it worse (5120).\n- Array form `extern u16 D_8011F32E[]` gives the same 3705 shape.\n- Candidate currently still emits `beql` for the second `if` (target uses plain bnez + separate andi of $a0 in the delay slot) and reuses $v1 as the index without recomputation.\n\nUntested next steps (in order):\n1. Force separate address temporaries per access, e.g. `u16 *a = (u16 *)((u8 *)&D_8011F32E + idx); u16 *b = (u16 *)((u8 *)&D_8011F32E + idx);` with `volatile u16 *` on the reload site only, so GCC cannot CSE the base.\n2. Use the pattern from proposal #339302416422 (byte table as scalar extern, `*(&D_X + i)`) but with a `u8 *` cast base plus `(idx << 1)` byte offsets instead of element scaling, so the sll is explicit.\n3. To kill the `beql`: write the second test as `if (!(... >= 0xB))` / restructure so the andi of $a0 lands in the delay slot (target has `bnez $v0,.L; andi $v0,$a0,0xFFFF`).",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794736739.692925,
+  "score_before": 1490,
+  "score_after": 1490
+ },
+ {
+  "function": "func_8014D740",
+  "text": "Low progress after 28 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 0; 57 differing rows (3 opcode, 14 register, 4 branch target, 11 operand, 4 inserted, 21 deleted; advisory).\nTarget: andi $v1, $a0, 0xffff\nCandidate: andi $a0, $a0, 0xffff\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\nr T: andi $v1, $a0, 0xffff | C: andi $a0, $a0, 0xffff\nr T: sll $v0, $v1, 1 | C: sll $v0, $a0, 1\nr T: addu $v0, $v0, $v1 | C: addu $v0, $v0, $a0\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nRechecked baseline (candidate d866205d970320c632b6) scores 3025; saved historical best 1490 used a different source and cannot be reproduced. Variants tried this session: volatile u16 *p alias for the D_8011F32E[(arg0&0xFFFF)*50] counter with u16 loop counter (3320, worse), byte-offset (u8*)base+(i<<1) addressing for both loops, while-loop form, and byte-offset only for the copy loop. None improved. Remaining families from handoff: signedness, parameter_width, array_index_width, guard_shape. Suggest trying try_local_repairs on a fresh claim rather than repeating the volatile-pointer alias.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794742245.8136141,
+  "score_before": 1490,
+  "score_after": 1490
+ },
+ {
+  "function": "func_8014D740",
+  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794748240.4846048,
+  "score_before": 1490,
+  "score_after": 1490
+ },
+ {
+  "function": "func_8014D740",
+  "text": "Saved best 1490 still stands. Tried a byte-offset variant (off=(arg0&0xFFFF)*100 with *(u16*)(D_8011F32E+off) updates): 2670, worse, because the target masks arg0 once into $v1 and reuses it for every index (andi $v1,$a0,0xffff at the top, and at the second index), while mine re-masks per access. Next: keep one masked u16 index local (idx = arg0) and index with idx*50 in u16-element terms, check the 0x802DF420 raw-address mismatch (mine computed D+6 offset, meaning the loop index needs i starting at 3 with a 2-byte stride from a separate pointer).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794748447.090209,
+  "score_before": 1490,
+  "score_after": 1490
+ },
+ {
+  "function": "func_8014D740",
+  "text": "EXACT MATCH at KMC GCC -O1 (suggestion filed): typedef struct{u8 pad[0x3E]; u16 cnt; u8 pad2[0x24];} Ent; extern Ent D_8011F2F0[]; f(u16 arg0){ D_8011F2F0[arg0].cnt++; if(cnt>=21)cnt=0; if(cnt>=11) for(i=3;i<13;i++) D_802DF420[i]=1; else for(...) D_802DF420[i]=D_8016BA40[i]; }. Apply suggestion to save.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794762085.3117938,
+  "score_before": 1490,
+  "score_after": 1490
  }
 ]
