@@ -8688,14 +8688,6 @@
   "score_after": 7649
  },
  {
-  "function": "func_801E3640",
-  "text": "Not compiled. Shape: state word D_8011F32E[idx*100].f0 (u16) switched through an 11-entry jump table at D_801E95F0 (sltiu 0xB, then sll 2 and jr), which m2c could not resolve. Case bodies call func_80029790, func_80029938 (result stored to D_801E9D58), func_800297E8 with a string at D_801F1890, and set D_8011F32E[idx].f0 to small constants. Two branch chains compare the value against 1, 2 and -1 after func_80029938. Next step: read the jump table with read_data(D_801E95F0) to map each case, then write the switch with those cases; the function is 311 instructions, so compile the first few cases before the rest.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794712772.308165,
-  "score_before": null,
-  "score_after": null
- },
- {
   "function": "func_80199AB0",
   "text": "Best verified score 1340 (rev a3fc17a58d4a6a0751ad, 255 target vs 263 insns). Remaining diffs: target computes `addiu $a1,$zero,2` then `andi $v0,$a1,0xff` \u2014 i.e. the final result is masked to a byte (return (u8)a1), and the 4 comparisons against D_801C6BCC (90/180/270) must fold into ONE chain that yields a1=2 without reloading D_801C6BCC: target has no lwc1 for D_801C6BCC at rows 25/26, so cache the value in a local float once and compare the local, letting gcc keep it in a register. Branch targets differ by 8 bytes because of the two extra lwc1 rows. Also `j func_80199AB0+0x3f4` vs `j func_80199EAC+0x18` shows the tail-call/return path layout still differs. Next step: single `f32 a = D_801C6BCC;` local, compare `a` in the 90/180/270 chain, and `return (u8)a1;`.",
   "by": "api-route-llm-code-2",
@@ -12552,14 +12544,6 @@
   "score_after": 13931
  },
  {
-  "function": "func_801E3640",
-  "text": "Not attempted to a score. Blocker: 1188-byte state machine dispatching on D_8011F32E (u16 state at entry base 0x8011F2F0 + idx*100, field offset 0x3E; idx = (u16)arg0). The jump table D_801E95F0 (11 entries, sltiu 0xB guard) is not in the loaded ROM (read_data: not in a loaded part), so case-to-block mapping cannot be recovered; the m2c failure is the same. Struct facts: entry stride 100 ((x*3)*8+x)*4; D_8011F2FD = entry+0xD (sb), D_8011F32E = entry+0x3E (state, lhu/sh); entry byte at +0 is a stack arg 0x20. Block starts: after jr is the state-0 block (func_80029790, state=1, r=func_80029938, D_801E9D58=r; r==1 -> func_800297E8(0x3F,D_801F1890,8) then compare D_801F1890[0..4] vs D_801E9010[0..4]; r<-1 return; r in {-1,0} or r==2 -> state 9). Helper blocks: state=9 at L393C, state=10 at L3964 (after func_801E2EC4(&D_801E9734) and D_801E9760==D_801E9734 test), state=3 at L37EC. func_801DD938 takes 10 args. Next step: recover the jump-table entries (ROM bytes for D_801E95F0) before writing the switch.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794728309.850197,
-  "score_before": null,
-  "score_after": null
- },
- {
   "function": "func_80207EC0",
   "text": "Draft repaired and compiled. Current score 15257 (49.3%), saved best 7212 (same source, historical). Target 301 insns vs mine 291; frame 0x60 with $ra,$s0-$s3 saved vs mine 0x70 with $s0-$s4. Removing the local a0 (folded into func_8021F6A0(D_8021E1A2 == 0 ? 1 : 4)) changed nothing, so the extra saved register does not come from a0. Mismatches start at entry: the target materializes &D_400E00, &D_8030BD90, &D_404F10 with lui/addiu and computes the length with addiu+subu in a different order; the stores to D_8021B128 use $v0 as base where mine rebuilds the address. Loops: the target indexes i*9 as sll 3 + addu (same as mine) but keeps $s0 as the only induction variable, so the two 4-iteration loops and the D_8021E16C loop need to share one counter. Why I stopped: the remaining diffs are a whole-frame and loop-structure mismatch across ~290 instructions, not a local repair; two non-improving compiles already show small local edits do nothing. Next: rewrite the first 4-iteration init loop and the 0x2110 table loop as one loop sharing i (s0), then check the frame size, then the D_8021E16C and D_8021E22F sections. Not tried: the func_800DE41C argument order and the D_8021E22F scan.",
   "by": "claude-haiku-5-5-24",
@@ -15584,14 +15568,6 @@
   "score_after": 2586
  },
  {
-  "function": "func_801E3640",
-  "text": "Saved candidate (score 3081) is structurally right: switch on D_8011F2F0[arg0].unk3E (100-byte struct; u8 unk0, u8 unkD, u16 unk3E), cases 0(fallthrough)1,3,4,5,6,10 (the case numbers are guesses; the jump table is in unloaded data). Remaining diffs are scheduling only: target stores the stack args (200,180,...) BEFORE loading a0-a3 for func_801DD938, and has sw $ra before sw $s0. Untested ideas: declare func_801DD938 without a prototype (`extern void func_801DD938();`), and write `D_801E9D58 = func_80029938(); switch (D_801E9D58)` so v0 gets stored and then moved into v1.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794737769.758232,
-  "score_before": 3081,
-  "score_after": 3081
- },
- {
   "function": "func_800E1728",
   "text": "Best saved 3047 (revision b0800fa2fa4e613e9c5a), the control flow of the do/while over D_8011F068 is right. Remaining differences: (1) frame. Target is 0x30 with ra at 0x2c and s4..s0 at 0x28..0x18, leaving 0x00..0x17 unused by code; mine is 0x28 with s0 at 0x10. The extra 8 bytes look like a local the target keeps but never reads (a gap model like the one in share note #339302416413 may reproduce it: a local struct whose padding fills the gap). (2) Registers: target reloads D_8011F068 via lui/addiu into v0 then v1 for the loop base and computes the `D_8011F068[s0]` after the loop with lui %hi + addu at; mine keeps the pointer in v1 and loads it once. (3) s1 = 0xFFFF is set (ori) after the first lui/lhu of D_800E1850, not before. (4) The s0=0 store sits in the delay slot of jal func_800E1510 in the target. Two compile_and_diff calls this session returned \"Progress changed while this attempt compiled\" and I did not get a fresh score, so the 3047 is the last verified number. Next: try the local-struct gap model for the frame first, then the pointer-load order.",
   "by": "claude-haiku-5-5-23",
@@ -17150,14 +17126,6 @@
   "created_at": 1794741125.143252,
   "score_before": 10235,
   "score_after": 10235
- },
- {
-  "function": "func_801E3640",
-  "text": "Best recorded score 3081 (89.6%), reproduced from the saved candidate at revision 49b22942321414e2cc72; no improvement this session. Target is 297 insns, mine 303. Switch on unk3E (jump table at D_801E95F0) and the case bodies match in control flow. Remaining diff: (1) the sw $ra,0x2c($sp) placement and the register-argument setup for func_801DD938 calls: the target sets the stack args (0xc8 etc.) before a0-a3, mine sets a0-a3 (0x10,0x4c,0xa,2) first, so the call-argument ordering is reversed in the 10-arg call in case 1 and the 8-arg calls in cases 3-6; (2) case 3 error path: target branches to 0x494 where mine goes to 0x4ac, so the shared err block is placed differently. Next experiment: write the 10-argument call in case 1 and the 8-arg calls with explicit temporaries or reorder the err label so the shared block lands at the end; check whether the ra save moves to the top afterwards.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794741191.829747,
-  "score_before": 3081,
-  "score_after": 3081
  },
  {
   "function": "func_801FCD60",
@@ -26454,5 +26422,53 @@
   "created_at": 1794757946.857858,
   "score_before": 15,
   "score_after": 15
+ },
+ {
+  "function": "func_801E3640",
+  "text": "Not compiled. Shape: state word D_8011F32E[idx*100].f0 (u16) switched through an 11-entry jump table at D_801E95F0 (sltiu 0xB, then sll 2 and jr), which m2c could not resolve. Case bodies call func_80029790, func_80029938 (result stored to D_801E9D58), func_800297E8 with a string at D_801F1890, and set D_8011F32E[idx].f0 to small constants. Two branch chains compare the value against 1, 2 and -1 after func_80029938. Next step: read the jump table with read_data(D_801E95F0) to map each case, then write the switch with those cases; the function is 311 instructions, so compile the first few cases before the rest.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794712772.308165,
+  "score_before": null,
+  "score_after": null
+ },
+ {
+  "function": "func_801E3640",
+  "text": "Not attempted to a score. Blocker: 1188-byte state machine dispatching on D_8011F32E (u16 state at entry base 0x8011F2F0 + idx*100, field offset 0x3E; idx = (u16)arg0). The jump table D_801E95F0 (11 entries, sltiu 0xB guard) is not in the loaded ROM (read_data: not in a loaded part), so case-to-block mapping cannot be recovered; the m2c failure is the same. Struct facts: entry stride 100 ((x*3)*8+x)*4; D_8011F2FD = entry+0xD (sb), D_8011F32E = entry+0x3E (state, lhu/sh); entry byte at +0 is a stack arg 0x20. Block starts: after jr is the state-0 block (func_80029790, state=1, r=func_80029938, D_801E9D58=r; r==1 -> func_800297E8(0x3F,D_801F1890,8) then compare D_801F1890[0..4] vs D_801E9010[0..4]; r<-1 return; r in {-1,0} or r==2 -> state 9). Helper blocks: state=9 at L393C, state=10 at L3964 (after func_801E2EC4(&D_801E9734) and D_801E9760==D_801E9734 test), state=3 at L37EC. func_801DD938 takes 10 args. Next step: recover the jump-table entries (ROM bytes for D_801E95F0) before writing the switch.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794728309.850197,
+  "score_before": null,
+  "score_after": null
+ },
+ {
+  "function": "func_801E3640",
+  "text": "Saved candidate (score 3081) is structurally right: switch on D_8011F2F0[arg0].unk3E (100-byte struct; u8 unk0, u8 unkD, u16 unk3E), cases 0(fallthrough)1,3,4,5,6,10 (the case numbers are guesses; the jump table is in unloaded data). Remaining diffs are scheduling only: target stores the stack args (200,180,...) BEFORE loading a0-a3 for func_801DD938, and has sw $ra before sw $s0. Untested ideas: declare func_801DD938 without a prototype (`extern void func_801DD938();`), and write `D_801E9D58 = func_80029938(); switch (D_801E9D58)` so v0 gets stored and then moved into v1.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794737769.758232,
+  "score_before": 3081,
+  "score_after": 3081
+ },
+ {
+  "function": "func_801E3640",
+  "text": "Best recorded score 3081 (89.6%), reproduced from the saved candidate at revision 49b22942321414e2cc72; no improvement this session. Target is 297 insns, mine 303. Switch on unk3E (jump table at D_801E95F0) and the case bodies match in control flow. Remaining diff: (1) the sw $ra,0x2c($sp) placement and the register-argument setup for func_801DD938 calls: the target sets the stack args (0xc8 etc.) before a0-a3, mine sets a0-a3 (0x10,0x4c,0xa,2) first, so the call-argument ordering is reversed in the 10-arg call in case 1 and the 8-arg calls in cases 3-6; (2) case 3 error path: target branches to 0x494 where mine goes to 0x4ac, so the shared err block is placed differently. Next experiment: write the 10-argument call in case 1 and the 8-arg calls with explicit temporaries or reorder the err label so the shared block lands at the end; check whether the ra save moves to the top afterwards.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794741191.829747,
+  "score_before": 3081,
+  "score_after": 3081
+ },
+ {
+  "function": "func_801E3640",
+  "text": "Best 3081 (89.6%), no improvement in 3 compiles; budget exhausted. Target 297 insns vs mine 303. Switch on D_8011F2F0[arg0].unk3E is a jump table (sltiu 0xB, table D_801E95F0), struct stride 0x64. Remaining diffs: (1) func_801DD938 arg setup order: target loads 0xc8 into $v0 first (5th arg on stack) before a0..a3; mine loads a0..a3 first. (2) inner switch on func_80029938 result: target does beq v1,1 then slti/beqz chain; branch targets differ (9 rows). Untried: separate local for the 200 stack arg; restructuring case 3 err-label as a flag instead of goto.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794758039.213451,
+  "score_before": 3081,
+  "score_after": 3081
+ },
+ {
+  "function": "func_801E3640",
+  "text": "Near match, not exact: best 3081 (89.6%), saved candidate revision 49b22942321414e2cc72, 303 insns vs target 297. Structure is right (switch on D_8011F2F0[arg0].unk3E with a jump table, case 1 nested switch on func_80029938, case 3 err-label chain). Remaining diffs are in the case-3 chain: the target's 'err' branch targets are laid out at 0x494 while mine land at 0x4ac, and the target keeps 'move $v1,$v0' after the D_801E9D58 store, while mine stores $v1 from a separate move (so D_801E9D58 = func_801E3010() result is handled differently: try 'v = func_801E3010(); D_801E9D58 = v; if (v != 0) ...' ). The target's error tail is a single jump 'j' to the shared store path (case 3 err block), not a fallthrough; try restructuring the err block as a common goto target placed after the else branch, or as an if/else with the err store duplicated. Also the 0xc8 arg (addiu $v0,$zero,0xc8) ordering in the first func_801DD938 call of case 3 differs: target places it last, mine hoists the args. Untried: those two changes. Released for move-on budget.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794758994.174956,
+  "score_before": 3081,
+  "score_after": 3081
  }
 ]
