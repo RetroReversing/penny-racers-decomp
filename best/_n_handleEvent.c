@@ -1,6 +1,6 @@
 s32 func_8002CC90();
 s32 func_8002CD38(s32, f32);
-s32 func_8002D164();
+s32 alEvtqPostEvent();
 s32 func_8002FFD0();
 s32 func_800301B0();
 s32 func_80030250();
@@ -70,7 +70,7 @@ void _n_handleEvent(void *arg0) {
             func_80030250(temp_s0, temp_s0[0x2F]);
             sp18 = 6;
             sp1C = temp_s0;
-            func_8002D164(temp_s5 + 0x14, &sp18, func_8002CD38(**(s32 **)temp_s3, *(f32 *)(temp_s0 + 0x24)));
+            alEvtqPostEvent(temp_s5 + 0x14, &sp18, func_8002CD38(**(s32 **)temp_s3, *(f32 *)(temp_s0 + 0x24)));
             return;
         }
     default:
@@ -82,7 +82,7 @@ void _n_handleEvent(void *arg0) {
             if (temp_v0 != 0) {
                 sp18 = 7;
                 sp1C = temp_s0;
-                func_8002D164(temp_s5 + 0x14, &sp18, temp_v0);
+                alEvtqPostEvent(temp_s5 + 0x14, &sp18, temp_v0);
                 *(s32 *)(temp_s0 + 0x28) = 2;
                 return;
             }
@@ -142,7 +142,7 @@ void _n_handleEvent(void *arg0) {
             func_80030400(temp_s0, temp_s1, temp_v0);
             sp18 = 1;
             sp1C = temp_s0;
-            func_8002D164(temp_s5 + 0x14, &sp18, temp_v0);
+            alEvtqPostEvent(temp_s5 + 0x14, &sp18, temp_v0);
             return;
         }
         break;

@@ -17,7 +17,7 @@ typedef struct {
     s32 pad14;
     DiskBlock block[2];
 } DiskXfer;
-extern void func_8003D1A0(void*,s32,u32,s32,s32);
+extern void PiRawStartDma(void*,s32,u32,s32,s32);
 extern s32 D_800470C0;
 extern u8 *D_8006FB28;
 extern void __osLeoResume(void),__osLeoAbnormalResume(void);
@@ -83,7 +83,7 @@ s32 __osLeoInterrupt(void) {
         }
         blk->dramAddr += blk->sectorSize;
         xfer->sectorNum++;
-        func_8003D1A0(D_8006FB28, 1, 0x05000400, blk->dramAddr, blk->sectorSize);
+        PiRawStartDma(D_8006FB28, 1, 0x05000400, blk->dramAddr, blk->sectorSize);
         return 1;
     }
     if (xfer->cmdType == 0) {
@@ -130,7 +130,7 @@ s32 __osLeoInterrupt(void) {
                 xfer->cmdType = 2;
                 blk->errStatus = 0;
             }
-            func_8003D1A0(D_8006FB28, 0, 0x05000000, blk->C2Addr, blk->sectorSize * 4);
+            PiRawStartDma(D_8006FB28, 0, 0x05000000, blk->C2Addr, blk->sectorSize * 4);
             return 1;
         }
         if (xfer->sectorNum == -1 && xfer->transferMode == 2 && xfer->blockNum == 1) {
@@ -153,7 +153,7 @@ s32 __osLeoInterrupt(void) {
                 __osLeoAbnormalResume();
                 return 1;
             }
-            func_8003D1A0(D_8006FB28, 0, 0x05000400, blk->dramAddr, blk->sectorSize);
+            PiRawStartDma(D_8006FB28, 0, 0x05000400, blk->dramAddr, blk->sectorSize);
             blk->errStatus = 0;
             return 1;
         }

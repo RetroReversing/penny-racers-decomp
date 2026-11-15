@@ -99,7 +99,7 @@ loop:
     case 0x16:
         func_801B3C74();
         D_8006F9E8 = 0x17;
-        func_8002C410(D_8006FB38);
+        alSeqpStop(D_8006FB38);
         break;
     case 0x17:
         func_80192670();

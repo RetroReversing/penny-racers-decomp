@@ -1,4 +1,4 @@
-extern void func_80028BA0(void);
+extern void nuGfxDisplayOff(void);
 extern void osCreateThread(void *, int, void *, int, void *, int);
 extern void osStartThread(void *);
 extern void *D_8006A140;
@@ -41,7 +41,7 @@ void nuGfxTaskMgrInit(void) {
     D_8006A144 = 8;
     D_8006A146 = 4;
     D_80092C00 = 0;
-    func_80028BA0();
+    nuGfxDisplayOff();
     osCreateThread(D_8006A148, 5, nuGfxTaskMgr, 0, D_8006C300, 0x3C);
     osStartThread(D_8006A148);
     q = D_800DAE98;

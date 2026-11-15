@@ -4,7 +4,7 @@ extern u8 D_8018BC3C[];
 extern u8 D_80190CA4[];
 extern u8 D_80190CA6[];
 extern void *D_8021DF10[];
-void func_8002C410(void *);
+void alSeqpStop(void *);
 void func_801D65BC(s32);
 s32 func_802191E4(u16 arg0)
 {

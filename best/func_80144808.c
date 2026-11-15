@@ -35,7 +35,7 @@ extern signed char D_80189CBF;
 extern unsigned char D_8018994B;
 extern unsigned char D_8018994D;
 s32 func_80028100();
-s32 func_8002C410();
+s32 alSeqpStop();
 s32 func_800DE2E0();
 s32 func_800DE38C();
 u16 func_800DE41C();
@@ -136,7 +136,7 @@ void func_80144808(s32 arg0) {
         if (!(D_80189B36 & 0x80) && ((*(D_8018A44A + (D_8021E1A6 * 2)) & 0x1FF) == 0x1FF)) {
             M2C_FIELD(temp_s2, u16 *, 0x3E) = 0x210U;
         } else {
-            func_8002C410(D_8006FB38);
+            alSeqpStop(D_8006FB38);
             D_80189CC6 = (u16) (D_80189CC6 | 0x100);
             M2C_FIELD(&D_80189CC6, s8 *, -0x2C) = 0;
             func_8014843C();
@@ -368,7 +368,7 @@ block_102:
         break;
     case 0x201:                                     /* switch 1 */
         if (*(s32 *)*(D_8011F350 + (D_8018BC3C * 0x64)) == 0) {
-            func_8002C410(D_8006FB38);
+            alSeqpStop(D_8006FB38);
             func_800DE38C();
             func_800DE2E0();
             func_80231C5C();
@@ -392,7 +392,7 @@ block_116:
         break;
     case 0x211:                                     /* switch 1 */
         if (*(s32 *)*(D_8011F350 + (D_8018BC3C * 0x64)) == 0) {
-            func_8002C410(D_8006FB38);
+            alSeqpStop(D_8006FB38);
             func_800DE38C();
             func_800DE2E0();
             func_80231C5C();

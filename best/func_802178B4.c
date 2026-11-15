@@ -12,7 +12,7 @@ extern s16 D_8006F9E8;
 extern u8 D_8021E144;
 void func_80203DF8(s32, s32, s32, s32, s32);
 void func_80211C7C(s32);
-void func_8002C410(void *);
+void alSeqpStop(void *);
 void func_802319E8(void);
 void func_80231C5C(void);
 void func_801CF468(u16, s32, s32, s32);
@@ -68,7 +68,7 @@ void func_802178B4(u16 arg0) {
             R(u16, D_8011F2F2, arg0) |= 0x20;
             R(u8, D_8011F2FD, D_8018BC3C) = 0;
             if (D_8021C110 >= 2) {
-                func_8002C410(D_8006FB38);
+                alSeqpStop(D_8006FB38);
             }
             R(u16, D_8011F32E, arg0) = 3;
         }

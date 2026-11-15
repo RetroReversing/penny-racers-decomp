@@ -16,7 +16,7 @@ M2C_UNK func_80027D00(s32);                         /* extern */
 s32 func_8002C190(M2C_UNK *);                       /* extern */
 s16 func_8002C1D0(void *);                          /* extern */
 M2C_UNK alSeqpSetVol(void *, s16);                 /* extern */
-M2C_UNK func_8002C410(void *);                      /* extern */
+M2C_UNK alSeqpStop(void *);                      /* extern */
 extern M2C_UNK D_8006FB38;
 extern M2C_UNK D_8006FCB4;
 extern M2C_UNK D_8006FCB8;
@@ -42,7 +42,7 @@ void func_80027584(void) {
             temp_s0 = var_s1 + &D_8006FB38;
             if (*(&D_8006FCB8 + var_s1) == 0) {
                 alSeqpSetVol(temp_s0, 0);
-                func_8002C410(temp_s0);
+                alSeqpStop(temp_s0);
                 *(&D_8006FCB4 + var_s1) = *(&D_8006FCB4 + var_s1) & ~1;
                 do { alSeqpSetVol(temp_s0, 0x7FFF); } while (0);
                 var_s2 += 0x184;

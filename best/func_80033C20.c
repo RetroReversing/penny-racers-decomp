@@ -2,8 +2,8 @@
 extern u32 func_8003EA30(void);
 extern void func_8003EBE0(s32);
 extern u32 func_8003EBD0(u32);
-extern s32 func_8003A490(s32,s32*);
-extern s32 func_8003A520(s32,s32);
+extern s32 si_read_word(s32,s32*);
+extern s32 siWriteWordChecked(s32,s32);
 extern void func_8003EBF0(s32,s32);
 extern void func_8003EA40(s32,s32);
 extern void osMapTLBRdb(void);
@@ -27,8 +27,8 @@ void func_80033C20(void) {
  s32 pifStatus; u32 ramSize=0;
  *(s32*)(D_800D5702+0x7cda)=1; func_8003EBE0(func_8003EA30()|0x20000000);
  func_8003EBD0(0x1000800);
- do {} while(func_8003A490(0x1fc007fc,&pifStatus));
- do {} while(func_8003A520(0x1fc007fc,pifStatus|8));
+ do {} while(si_read_word(0x1fc007fc,&pifStatus));
+ do {} while(siWriteWordChecked(0x1fc007fc,pifStatus|8));
  *(VectorCode*)0x80000000=func_8003E0D0;
  *(VectorCode*)0x80000080=func_8003E0D0;
  *(VectorCode*)0x80000100=func_8003E0D0;

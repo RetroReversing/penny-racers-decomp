@@ -1,4 +1,4 @@
-s32 func_8002D164(void *, s16 *, s32);
+s32 alEvtqPostEvent(void *, s16 *, s32);
 extern void *D_80046DF4;
 void n_alSndpPlay(void)
 {
@@ -13,6 +13,6 @@ void n_alSndpPlay(void)
   {
     sp10 = 0;
     sp14 = temp_a1 + ((*((s32 *) (((char *) temp_a0) + 0x3C))) * 0x30);
-    func_8002D164(temp_a0 + 0x14, &sp10, 0);
+    alEvtqPostEvent(temp_a0 + 0x14, &sp10, 0);
   }
 }

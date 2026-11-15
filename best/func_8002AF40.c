@@ -4,7 +4,7 @@ s32 __CSPHandleMetaMsg(void *, void *);
 s32 func_8002BFDC(void *arg0, void *, s32);
 s32 func_8002C010(void *);
 s32 func_8002D0CC(void *, void *);
-s32 func_8002D164(void *, s16 *, s32);
+s32 alEvtqPostEvent(void *, s16 *, s32);
 s32 func_8002D270(s32, s32);
 s32 func_800301B0(s32 *);
 s32 func_80030370(s32 *, f32);
@@ -12,11 +12,11 @@ s32 func_80030400(s32 *, s16, s32);
 s32 func_80030630(s32 *);
 s32 func_800316EC(void *, s32 *);
 s32 func_80031750(void *, s32 *, s32);
-s32 func_8003186C(void *, s32 *, s32);
-s16 func_80031B24(s32 *, void *);
+s32 __voiceNeedsNoteKill(void *, s32 *, s32);
+s16 __vsVol(s32 *, void *);
 s32 func_80031B94(s32 *, s32);
-s32 func_80031BF4(void *, s32 *);
-s32 func_80031DD8(void *, s32 *);
+s32 __initFromBank(void *, s32 *);
+s32 __seqpStopOsc(void *, s32 *);
 s32 func_800346B0(s32 *, s32 *, s32);
 s32 func_8002AF40(void *arg0)
 {
@@ -67,7 +67,7 @@ s32 func_8002AF40(void *arg0)
 
       case 9:
         sp10 = 9;
-        func_8002D164(arg0 + 0x48, &sp10, *((s32 *) (((char *) arg0) + 0x5C)));
+        alEvtqPostEvent(arg0 + 0x48, &sp10, *((s32 *) (((char *) arg0) + 0x5C)));
         var_a0 = arg0 + 0x48;
         break;
 
@@ -78,7 +78,7 @@ s32 func_8002AF40(void *arg0)
         temp_s1 = *((s32 **) (((char *) temp_s0) + 0x10));
         if ((*((u8 *) (((char *) temp_s1) + 0x37))) != 0)
       {
-        func_80031DD8(arg0, temp_s1);
+        __seqpStopOsc(arg0, temp_s1);
       }
         func_800316EC(arg0, temp_s0);
         var_a0 = arg0 + 0x48;
@@ -96,7 +96,7 @@ s32 func_8002AF40(void *arg0)
         *((u8 *) (((char *) temp_s1_2) + 0x30)) = (u8) (*((u8 *) (((char *) arg0) + 0x44)));
         do
       {
-        func_80030400(temp_s0_2, func_80031B24(temp_s1_2, arg0), temp_s3);
+        func_80030400(temp_s0_2, __vsVol(temp_s1_2, arg0), temp_s3);
       }
       while (0);
         var_a0 = arg0 + 0x48;
@@ -115,12 +115,12 @@ s32 func_8002AF40(void *arg0)
         var_v1 = ((s32) (sp20 - 2.1474836e9f)) | 0x80000000;
       }
         *((s8 *) (((char *) temp_s1_3) + 0x36)) = (s8) var_v1;
-        temp_s0_3 = func_80031B24(temp_s1_3, arg0);
+        temp_s0_3 = __vsVol(temp_s1_3, arg0);
         func_80030400(temp_s1_3 + 4, temp_s0_3, func_80031B94(temp_s1_3, *((s32 *) (((char *) arg0) + 0x1C))));
         sp10 = 0x16;
         sp14 = temp_s1_3;
         sp18 = temp_s4;
-        func_8002D164(arg0 + 0x48, &sp10, temp_s3);
+        alEvtqPostEvent(arg0 + 0x48, &sp10, temp_s3);
         var_a0 = arg0 + 0x48;
         break;
 
@@ -135,7 +135,7 @@ s32 func_8002AF40(void *arg0)
         sp14 = temp_s1_4;
         sp18 = temp_s4;
         sp1C = temp_s0_4;
-        func_8002D164(arg0 + 0x48, &sp10, temp_s3);
+        alEvtqPostEvent(arg0 + 0x48, &sp10, temp_s3);
         var_a0 = arg0 + 0x48;
         break;
 
@@ -159,7 +159,7 @@ s32 func_8002AF40(void *arg0)
         var_a0_2 = var_s1;
         do
         {
-          __repair_phase_temp_s4 = (s16) func_80031B24(var_a0_2, arg0);
+          __repair_phase_temp_s4 = (s16) __vsVol(var_a0_2, arg0);
           func_80030400(var_s1 + 4, __repair_phase_temp_s4, func_80031B94(var_s1, *((s32 *) (((char *) arg0) + 0x1C))));
           var_s1 = *var_s1;
           var_a0_2 = var_s1;
@@ -201,7 +201,7 @@ s32 func_8002AF40(void *arg0)
             func_800301B0(var_s0);
             if ((*((u8 *) (((char *) (*((s32 **) (((char *) arg0) + 0x64)))) + 0x37))) != 0)
             {
-              func_80031DD8(arg0, *((s32 **) (((char *) arg0) + 0x64)));
+              __seqpStopOsc(arg0, *((s32 **) (((char *) arg0) + 0x64)));
             }
             func_800316EC(arg0, var_s0);
             temp_s1_6 = *((s32 **) (((char *) arg0) + 0x64));
@@ -232,7 +232,7 @@ s32 func_8002AF40(void *arg0)
           do
           {
             temp_s0_6 = var_s1_2 + 4;
-            if ((func_8003186C(arg0, temp_s0_6, 0xC350) << 0x18) != 0)
+            if ((__voiceNeedsNoteKill(arg0, temp_s0_6, 0xC350) << 0x18) != 0)
             {
               func_80031750(arg0, temp_s0_6, 0xC350);
             }
@@ -243,7 +243,7 @@ s32 func_8002AF40(void *arg0)
         }
         *((s32 *) (((char *) arg0) + 0x2C)) = 2;
         sp10 = 0x10;
-        func_8002D164(var_a0_3, &sp10, 0x7FFFFFFF);
+        alEvtqPostEvent(var_a0_3, &sp10, 0x7FFFFFFF);
         var_a0 = arg0 + 0x48;
       }
         break;
@@ -267,7 +267,7 @@ s32 func_8002AF40(void *arg0)
         var_a0 = arg0 + 0x48;
         if (temp_a1 != NULL)
       {
-        func_80031BF4(arg0, temp_a1);
+        __initFromBank(arg0, temp_a1);
         var_a0 = arg0 + 0x48;
       }
         break;
@@ -275,7 +275,7 @@ s32 func_8002AF40(void *arg0)
       case 14:
  do { if ((*((s32 *) (((char *) arg0) + 0x2C))) != 0) { func_800346B0("EX", "n_csplayer.c", 0x11B); } temp_a1_2 = *((s32 **) (((char *) arg0) + 0x3C)); } while (0);
         *((s32 **) (((char *) arg0) + 0x20)) = temp_a1_2;
-        func_80031BF4(arg0, temp_a1_2);
+        __initFromBank(arg0, temp_a1_2);
         var_a0 = arg0 + 0x48;
         break;
 

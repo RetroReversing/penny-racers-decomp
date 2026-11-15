@@ -13,7 +13,7 @@ typedef s32 M2C_UNK32;
 #endif
 
 s32 func_80028100();
-s32 func_8002C410();
+s32 alSeqpStop();
 s32 n_alSndpStop();
 extern s8 D_80046C3C;
 extern char D_8006FB38[];
@@ -27,8 +27,8 @@ void func_80028070(s16 arg0, s32 arg1) {
         return;
     case 1:
         if (arg1 == 0x1C) {
-            func_8002C410(&D_8006FB38);
-            func_8002C410(D_8006FB38 + 0x184);
+            alSeqpStop(&D_8006FB38);
+            alSeqpStop(D_8006FB38 + 0x184);
             D_80046C3C = 0;
         }
         return;

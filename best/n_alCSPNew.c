@@ -1,4 +1,4 @@
-s32 func_8002D050();
+s32 alEvtqNew();
 s32 func_8002FF14();
 s32 func_80031CA0();
 s32 *func_80038340();
@@ -38,7 +38,7 @@ void n_alCSPNew(void *arg0, void *arg1)
   }
   *((s32 *) (((char *) arg0) + 0x64)) = 0;
   *((s32 *) (((char *) arg0) + 0x68)) = 0;
-  func_8002D050(arg0 + 0x48, func_80038340(0, 0, temp_s2, (u8) (*((s32 *) (((char *) arg1) + 4)))), *((s32 *) (((char *) arg1) + 4)));
+  alEvtqNew(arg0 + 0x48, func_80038340(0, 0, temp_s2, (u8) (*((s32 *) (((char *) arg1) + 4)))), *((s32 *) (((char *) arg1) + 4)));
   *((s32 *) (((char *) arg0) + 0)) = 0;
   *((s32 **) (((char *) arg0) + 8)) = &func_8002AF40;
   *((void **) (((char *) arg0) + 4)) = arg0;

@@ -7899,14 +7899,14 @@ extern void		osSyncPrintf(const char *fmt, ...);
 
 
 static
-Acmd *func_8003587C(Acmd *ptr, ALLoadFilter *f, s32 tsam, s32 nbytes, s16 outp, s16 inp, u32 flags);
+Acmd *_decodeChunk(Acmd *ptr, ALLoadFilter *f, s32 tsam, s32 nbytes, s16 outp, s16 inp, u32 flags);
 
 
 Acmd *alRaw16Pull(void *filter, s16 *outp, s32 outCount, s32 sampleOffset, Acmd *p);
 
 s32
 alLoadParam(void *filter, s32 paramID, void *param);
-Acmd *func_8003587C(Acmd *ptr, ALLoadFilter *f, s32 tsam, s32 nbytes, s16 outp, s16 inp, u32 flags);
+Acmd *_decodeChunk(Acmd *ptr, ALLoadFilter *f, s32 tsam, s32 nbytes, s16 outp, s16 inp, u32 flags);
 
 
 
@@ -7956,7 +7956,7 @@ Acmd *alAdpcmPull(void *filter, s16 *outp, s32 outCount, s32 sampleOffset, Acmd 
 
     if (looped){
 
-        ptr = func_8003587C(ptr, f, tsam, nbytes, *outp, inp, f->first);
+        ptr = _decodeChunk(ptr, f, tsam, nbytes, *outp, inp, f->first);
 
          
 
@@ -8006,7 +8006,7 @@ Acmd *alAdpcmPull(void *filter, s16 *outp, s32 outCount, s32 sampleOffset, Acmd 
             if (tsam<0) tsam = 0;
             nframes = (tsam+ 16 -1)>> 4 ;
             nbytes =  nframes* 9 ;
-            ptr = func_8003587C(ptr, f, tsam, nbytes, op, inp, f->first | 0x02 );
+            ptr = _decodeChunk(ptr, f, tsam, nbytes, op, inp, f->first | 0x02 );
              
 
 
@@ -8042,7 +8042,7 @@ Acmd *alAdpcmPull(void *filter, s16 *outp, s32 outCount, s32 sampleOffset, Acmd 
 
     if ((nOver - (nOver & 0xf))< outCount){
         decoded = 1;
-        ptr = func_8003587C(ptr, f, nSam - nOver, nbytes, *outp, inp, f->first);
+        ptr = _decodeChunk(ptr, f, nSam - nOver, nbytes, *outp, inp, f->first);
 
         if (f->lastsam)
             *outp += (f->lastsam<<1);

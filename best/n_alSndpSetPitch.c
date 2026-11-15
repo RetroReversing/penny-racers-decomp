@@ -1,4 +1,4 @@
-s32 func_8002D164();
+s32 alEvtqPostEvent();
 extern void *D_80046DF4;
 inline static s32 *inline_fn(void *arg0)
 {
@@ -18,7 +18,7 @@ void n_alSndpSetPitch(f32 arg0)
   sp14 = ((*((s32 *) (((char *) temp_a0) + 0x3C))) * 0x30) + (*inline_fn(temp_a0));
   do
   {
-    func_8002D164(temp_a0 - -0x14, &sp10);
+    alEvtqPostEvent(temp_a0 - -0x14, &sp10);
   }
   while (0);
 }

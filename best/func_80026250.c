@@ -25,9 +25,9 @@ M2C_UNK func_80027BF0(M2C_UNK *);                   /* extern */
 M2C_UNK func_80027DF0(M2C_UNK *, s32, M2C_UNK *);   /* extern */
 M2C_UNK func_800289C0(M2C_UNK *);                   /* extern */
 M2C_UNK func_80028A00();                            /* extern */
-M2C_UNK func_80028AB0(M2C_UNK *);                   /* extern */
+M2C_UNK nuGfxFuncSet(M2C_UNK *);                   /* extern */
 M2C_UNK func_80028BD0();                            /* extern */
-u8 func_80028BE0();                                 /* extern */
+u8 nuContInit();                                 /* extern */
 M2C_UNK func_800294A0(M2C_UNK *, M2C_UNK (*)(), s32); /* extern */
 M2C_UNK func_8003DE60(M2C_UNK *, M2C_UNK *, M2C_UNK (*)(), s32); /* extern */
 M2C_UNK func_800DE2E0();                            /* extern */
@@ -161,7 +161,7 @@ void func_80026250(void) {
     M2C_FIELD(&D_8006FB14, s16 *, 0xA) = 0;
     M2C_FIELD(&D_8006FB14, s16 *, 0xC) = 0;
     M2C_FIELD(&D_8006FB14, s16 *, 0xE) = 0;
-    D_801E4420 = func_80028BE0();
+    D_801E4420 = nuContInit();
     var_v1 = 0;
     var_v0 = (s32) D_801E4420 >> 0;
 loop_1:
@@ -180,7 +180,7 @@ loop_1:
     func_80027B40(&D_42A740, &D_42E8E0 - &D_42A740, &D_42E8E0);
     func_80027BF0(&D_5758D0);
     func_80025C50();
-    func_80028AB0(&func_80025DE0);
+    nuGfxFuncSet(&func_80025DE0);
     func_80028BD0();
     D_8006FE58 = 0;
     if ((s16) D_8006FE58 == (s16) D_8006FE58) {

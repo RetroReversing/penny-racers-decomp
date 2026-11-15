@@ -4,7 +4,7 @@ typedef struct Env {struct Env *input;s32 pad4;s32 (*handler)(struct Env *,s32,s
 #define F(p,t,o) (*(t *)((u8 *)(p)+(o)))
 extern s16 D_800A38A0[];extern u8 D_800A7070[],D_800A7074[];extern void *D_800A2500;
 extern void func_800346B0(void *,void *,s32);extern void func_80039338(void *);extern void _freePVoice(void *,void *);
-extern void *func_80036400(Env *,s16 *,s16 *,s32,s32,void *);extern f32 func_80036A84(f32,s32,s16,u16);
+extern void *_pullSubFrame(Env *,s16 *,s16 *,s32,s32,void *);extern f32 func_80036A84(f32,s32,s16,u16);
 void *alEnvmixerPull(Env *env, s16 *out,s32 count,s32 time,void *cmd){
 s16 left,right;s32 last=time,delta;Param *p,*freeParam,*done;Env *state;
 right=0;left=0;
@@ -25,7 +25,7 @@ else {env->cvolL=(env->volume*D_800A38A0[env->pan])>>15;env->cvolR=(env->volume*
 if(state->input)state->input->handler(state->input,7,p->value);
 break;
 case 11:case 12:case 16:
-cmd=func_80036400(env,&left,&right,delta,time,cmd);
+cmd=_pullSubFrame(env,&left,&right,delta,time,cmd);
 if(env->delta>=env->segEnd){
 env->targetL=(env->volume*D_800A38A0[env->pan])>>15;
 env->targetR=(env->volume*D_800A38A0[127-env->pan])>>15;
@@ -41,11 +41,11 @@ if(env->ctrl->type==16){env->dry=D_800A38A0[env->ctrl->value];env->wet=D_800A38A
 env->first=1;break;
 case 14:
 p=env->ctrl;if(p->reset)env->handler(env,8,0);env->handler(env,5,p->value);env->handler(env,9,0);break;
-case 15:cmd=func_80036400(env,&left,&right,delta,time,cmd);env->handler(env,4,0);break;
+case 15:cmd=_pullSubFrame(env,&left,&right,delta,time,cmd);env->handler(env,4,0);break;
 case 0:{struct Voice {u8 pad[0xd8];s32 offset;};void *synth=D_800A2500;freeParam=env->ctrl;((struct Voice *)freeParam->value)->offset=0;_freePVoice(synth,(void *)freeParam->value);}break;
-default:cmd=func_80036400(env,&left,&right,delta,time,cmd);env->handler(env,env->ctrl->type,env->ctrl->value);break;
+default:cmd=_pullSubFrame(env,&left,&right,delta,time,cmd);env->handler(env,env->ctrl->type,env->ctrl->value);break;
 }
 done=env->ctrl;count-=delta;right+=delta*2;env->ctrl=done->next;if(!env->ctrl)env->tail=0;func_80039338(done);
 }
-cmd=func_80036400(env,&left,&right,count,time,cmd);if(env->delta>env->segEnd)env->delta=env->segEnd;return cmd;
+cmd=_pullSubFrame(env,&left,&right,count,time,cmd);if(env->delta>env->segEnd)env->delta=env->segEnd;return cmd;
 }

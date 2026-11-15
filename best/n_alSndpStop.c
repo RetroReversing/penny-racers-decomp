@@ -1,4 +1,4 @@
-s32 func_8002D164();
+s32 alEvtqPostEvent();
 extern void *D_80046DF4;
 void n_alSndpStop(void)
 {
@@ -11,7 +11,7 @@ void n_alSndpStop(void)
   do
   {
     volatile int pad;
-    func_8002D164(temp_a0 + 0x14, &sp10);
+    alEvtqPostEvent(temp_a0 + 0x14, &sp10);
   }
   while (0);
 }

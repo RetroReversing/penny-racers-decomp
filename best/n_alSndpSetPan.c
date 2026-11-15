@@ -1,4 +1,4 @@
-s32 func_8002D164();
+s32 alEvtqPostEvent();
 extern void *D_80046DF4;
 void n_alSndpSetPan(s8 arg0)
 {
@@ -14,11 +14,11 @@ void n_alSndpSetPan(s8 arg0)
   {
     if (D_80046DF4)
     {
-      func_8002D164(temp_a2 + 0x14, &sp10);
+      alEvtqPostEvent(temp_a2 + 0x14, &sp10);
     }
     else
     {
-      func_8002D164(temp_a2 + 0x14, &sp10);
+      alEvtqPostEvent(temp_a2 + 0x14, &sp10);
     }
   }
   while (0);

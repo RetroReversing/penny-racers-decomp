@@ -1,5 +1,5 @@
 s32 __alCSeqNextDelta(s32, s32 *);
-s32 func_8002D164(void *, s16 *, s32);
+s32 alEvtqPostEvent(void *, s16 *, s32);
 
 void func_8002C010(void *arg0) {
     s16 sp10;
@@ -11,7 +11,7 @@ void func_8002C010(void *arg0) {
         temp_a0 = *(s32 *)((char *)arg0 + 0x18);
         if ((temp_a0 != 0) && ((__alCSeqNextDelta(temp_a0, &sp20) << 0x18) != 0)) {
             sp10 = 0;
-            func_8002D164((char *)arg0 + 0x48, &sp10, sp20 * *(s32 *)((char *)arg0 + 0x24));
+            alEvtqPostEvent((char *)arg0 + 0x48, &sp10, sp20 * *(s32 *)((char *)arg0 + 0x24));
         }
     }
 }

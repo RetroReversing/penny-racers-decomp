@@ -34,7 +34,7 @@ extern s32 D_802038FC[];
 extern u8 D_80203900[];
 extern u8 D_80203901[];
 extern s32 D_802038E0[];
-extern void func_8002C410(void *);
+extern void alSeqpStop(void *);
 extern void func_80027C90(s32, s32);
 extern void func_80027D00(s32);
 extern void func_80028100(s32, s32);
@@ -66,7 +66,7 @@ void func_801FE954(void) {
         D_80203ACC++;
     }
     if (D_801E9990 == 1) {
-        func_8002C410(D_8006FB38);
+        alSeqpStop(D_8006FB38);
         func_80027C90(0, D_80203ACC);
         func_80027D00(0);
         D_802038E0[0] = 0;
@@ -91,7 +91,7 @@ void func_801FE954(void) {
         }
     }
     if (D_801E9994 == 1) {
-        func_8002C410(D_8006FB38);
+        alSeqpStop(D_8006FB38);
         D_80203AC4 = -1;
     }
     if (D_801E99C4 == 1) {

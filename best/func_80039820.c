@@ -5,8 +5,8 @@ void func_8003DAA0(void *,void *,s32);
 u32 osVirtualToPhysical(void *);
 void func_8003EBF0(void *,s32);
 void func_8003F0D0(s32);
-s32 func_8003F0E0(s32);
-s32 func_8003F110(s32,s32,void *,s32);
+s32 rsp_set_pc_if_halted(s32);
+s32 sp_dma_start(s32,s32,void *,s32);
 s32 func_8003F0A0(void);
 void func_80039820(Task8 *arg0) {
 Task8 *p=&D_800AB9A0;
@@ -42,8 +42,8 @@ D_800AB9A0.ucode=*(u32 *)((arg0->yield+0xBFC)|0xA0000000);
 }
 func_8003EBF0(p,64);
 func_8003F0D0(0x2B00);
-do {}while(func_8003F0E0(0x04001000)==-1);
-do {}while(func_8003F110(1,0x04000FC0,p,64)==-1);
+do {}while(rsp_set_pc_if_halted(0x04001000)==-1);
+do {}while(sp_dma_start(1,0x04000FC0,p,64)==-1);
 do {}while(func_8003F0A0()!=0);
-do {}while(func_8003F110(1,0x04001000,(void *)p->boot,p->bootSize)==-1);
+do {}while(sp_dma_start(1,0x04001000,(void *)p->boot,p->bootSize)==-1);
 }

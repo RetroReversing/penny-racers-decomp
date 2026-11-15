@@ -14,7 +14,7 @@ typedef s32 M2C_UNK32;
 
 extern short D_800DD2C0;
 extern unsigned short D_8006FB10;
-s32 func_8002C410();
+s32 alSeqpStop();
 s32 func_801D65BC();
 s32 func_8022FDF0();
 extern char D_8006FAF0[];
@@ -108,7 +108,7 @@ block_52:
                     if (D_8018A244 != 0) {
                         var_a1_2 = 0;
                         if (D_80189C8C != 0xFF) {
-                            func_8002C410(D_8006FB38, 0, 5, var_a3);
+                            alSeqpStop(D_8006FB38, 0, 5, var_a3);
                             D_80189C8C = 0xFF;
                             goto block_67;
                         }

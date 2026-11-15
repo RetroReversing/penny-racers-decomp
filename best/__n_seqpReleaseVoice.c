@@ -1,6 +1,6 @@
 s32 alLink(void *, void *);
 s32 alUnlink(void *);
-s32 func_8002D164(void *, s16 *, s32);
+s32 alEvtqPostEvent(void *, s16 *, s32);
 s32 func_80032300(void *, s32);
 s32 n_alSynSetVol(void *, s32, s32);
 void __n_seqpReleaseVoice(void *arg0, void *arg1, s32 arg2)
@@ -43,6 +43,6 @@ void __n_seqpReleaseVoice(void *arg0, void *arg1, s32 arg2)
   n_alSynSetVol(arg1, 0, arg2);
   sp10 = 5;
   sp14 = arg1;
-  func_8002D164(arg0 + 0x48, &sp10, arg2);
+  alEvtqPostEvent(arg0 + 0x48, &sp10, arg2);
 }
 

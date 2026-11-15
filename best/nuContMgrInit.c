@@ -9,7 +9,7 @@ extern char D_800DE2C8[];
 extern s32 nuContMgr;
 
 void func_80029690();
-void func_8002A3A0();
+void nuContDataUnLock();
 void func_8002A3D0();
 void osCreateMesgQueue();
 
@@ -23,7 +23,7 @@ s32 nuContMgrInit(void) {
     var_v0 = 0;
     p = &D_8006FEF8;
     if (*p == 0) {
-        func_8002A3A0();
+        nuContDataUnLock();
         osCreateMesgQueue(D_8006F970, D_8006C320, 1);
         osCreateMesgQueue(D_800DE2C8, D_8006C324, 1);
         func_80029690(p - 1, &nuContMgr);

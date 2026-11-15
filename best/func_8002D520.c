@@ -1,108 +1,93 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
+typedef struct {
+    /* 0x00 */ s16 type;
+    /* 0x02 */ u8 pad02[6];
+    /* 0x08 */ u8 unk8;
+    /* 0x09 */ u8 unk9;
+    /* 0x0A */ u8 unkA;
+    /* 0x0B */ u8 unkB;
+    /* 0x0C */ u8 unkC;
+    /* 0x0D */ u8 unkD;
+    /* 0x0E */ u8 pad0E[2];
+} Arg2;
+
+typedef struct {
+    /* 0x00 */ u8 pad00[4];
+    /* 0x04 */ s32 mask;
+    /* 0x08 */ u8 pad08[0x10];
+    /* 0x18 */ u8 *ptr[8];
+    /* 0x38 */ u8 pad38[0x70];
+    /* 0xA8 */ u8 state[1];
+} Arg0;
 
 u8 func_8002DA28();
 s32 func_8002DAE0();
 
-s32 func_8002D520(void *arg0, s32 arg1, void *arg2) {
-    s32 temp_s4;
-    s32 temp_v0_4;
-    s32 temp_v1;
-    s32 temp_v1_2;
-    s32 temp_v1_3;
-    u8 temp_v0;
-    u8 temp_v0_2;
-    u8 temp_v0_3;
-    void *temp_a2;
-    void *temp_a2_2;
-    
-    void *temp_a2_4;
-    void *temp_a2_5;
-    void *temp_a3;
-    void *var_v0;
+s32 func_8002D520(Arg0 *arg0, s32 arg1, Arg2 *arg2) {
+    u8 a;
+    u8 b;
+    s32 t;
+    u8 *p;
+    u8 *q;
+    u8 *np;
 
-    temp_v0 = func_8002DA28();
-    temp_s4 = temp_v0 & 0xFF;
-    if (temp_s4 == 0xFF) {
-        temp_v0_2 = func_8002DA28(arg0);
-        temp_v1 = temp_v0_2 & 0xFF;
-        switch (temp_v1) {                          /* irregular */
-        case 0x51:
-            M2C_FIELD(arg2, s16 *, 0) = 3;
-            M2C_FIELD(arg2, u8 *, 8) = temp_v0;
-            M2C_FIELD(arg2, u8 *, 9) = temp_v0_2;
-            M2C_FIELD(arg2, u8 *, 0xB) = func_8002DA28(arg0, arg1);
-            M2C_FIELD(arg2, u8 *, 0xC) = func_8002DA28(arg0, arg1);
-            M2C_FIELD(arg2, u8 *, 0xD) = func_8002DA28(arg0, arg1);
-            M2C_FIELD((arg0 + arg1), s8 *, 0xA8) = 0;
-            break;
-        case 0x2F:
-            temp_v1_2 = M2C_FIELD(arg0, s32 *, 4) ^ (1 << arg1);
-            M2C_FIELD(arg0, s32 *, 4) = temp_v1_2;
-            if (temp_v1_2 != 0) {
-                M2C_FIELD(arg2, s16 *, 0) = 0x12;
+    a = func_8002DA28(arg0, arg1);
+    if (a == 0xFF) {
+        b = func_8002DA28(arg0, arg1);
+        if (b == 0x51) {
+            arg2->type = 3;
+            arg2->unk8 = a;
+            arg2->unk9 = b;
+            arg2->unkB = func_8002DA28(arg0, arg1);
+            arg2->unkC = func_8002DA28(arg0, arg1);
+            arg2->unkD = func_8002DA28(arg0, arg1);
+            arg0->state[arg1] = 0;
+        } else if (b == 0x2F) {
+            t = arg0->mask ^ (1 << arg1);
+            arg0->mask = t;
+            if (t != 0) {
+                arg2->type = 0x12;
             } else {
-                M2C_FIELD(arg2, s16 *, 0) = 4;
+                arg2->type = 4;
             }
-            break;
-        case 0x2E:
-            do { func_8002DA28(arg0, arg1, temp_v0_2); } while (0);
+        } else if (b == 0x2E) {
             func_8002DA28(arg0, arg1);
-            M2C_FIELD((arg0 + arg1), s8 *, 0xA8) = 0;
-            M2C_FIELD(arg2, s16 *, 0) = 0x13;
-            break;
-        case 0x2D:
-            temp_a3 = (arg1 * 4) + arg0;
-            temp_a2 = M2C_FIELD(temp_a3, void **, 0x18);
-            temp_a2_2 = temp_a2 + 1;
-            temp_v0_3 = M2C_FIELD(temp_a2, u8 *, 1);
-            temp_v1_3 = temp_v0_3 & 0xFF;
-            if (temp_v1_3 == 0) {
-                var_v0 = temp_a2_2 + 5;
-                M2C_FIELD(temp_a2, u8 *, 1) = (u8) M2C_FIELD(temp_a2, u8 *, 0);
+            func_8002DA28(arg0, arg1);
+            arg0->state[arg1] = 0;
+            arg2->type = 0x13;
+        } else if (b == 0x2D) {
+            p = arg0->ptr[arg1];
+            q = p + 1;
+            if (*q == 0) {
+                *q = p[0];
+                np = q + 5;
             } else {
-                if (temp_v1_3 != temp_s4) {
-                    M2C_FIELD(temp_a2, u8 *, 1) = (u8) (temp_v0_3 - 1);
+                if (*q != a) {
+                    *q = *q - 1;
                 }
-                temp_a2 = temp_a2_2 + 1;
-                temp_a2_4 = temp_a2 + 1;
-                temp_a2_5 = temp_a2_4 + 1;
-                var_v0 = (temp_a2_5 + 1 + 1) - ((M2C_FIELD(temp_a2_2, u8 *, 1) << 0x18) + (M2C_FIELD(temp_a2, u8 *, 1) << 0x10) + (M2C_FIELD(temp_a2_4, u8 *, 1) << 8) + M2C_FIELD(temp_a2_5, u8 *, 1));
+                np = (q + 5) - ((q[1] << 24) + (q[2] << 16) + (q[3] << 8) + q[4]);
             }
-            M2C_FIELD(temp_a3, void **, 0x18) = var_v0;
-            M2C_FIELD((arg0 + arg1), s8 *, 0xA8) = 0;
-            M2C_FIELD(arg2, s16 *, 0) = 0x14;
-            break;
+            arg0->ptr[arg1] = np;
+            arg0->state[arg1] = 0;
+            arg2->type = 0x14;
         }
     } else {
-        M2C_FIELD(arg2, s16 *, 0) = 1;
-        if (temp_v0 & 0x80) {
-            M2C_FIELD(arg2, u8 *, 8) = temp_v0;
-            M2C_FIELD(arg2, u8 *, 9) = func_8002DA28(arg0, arg1);
-            M2C_FIELD((arg0 + arg1), u8 *, 0xA8) = temp_v0;
+        arg2->type = 1;
+        if (a & 0x80) {
+            arg2->unk8 = a;
+            arg2->unk9 = func_8002DA28(arg0, arg1);
+            arg0->state[arg1] = a;
         } else {
-            M2C_FIELD(arg2, u8 *, 9) = temp_v0;
-            M2C_FIELD(arg2, u8 *, 8) = (u8) M2C_FIELD((arg0 + arg1), u8 *, 0xA8);
+            arg2->unk9 = a;
+            arg2->unk8 = arg0->state[arg1];
         }
-        temp_v0_4 = M2C_FIELD(arg2, u8 *, 8) & 0xF0;
-        if ((temp_v0_4 != 0xC0) & (temp_v0_4 != 0xD0)) {
-            M2C_FIELD(arg2, u8 *, 0xA) = func_8002DA28(arg0, arg1);
-            if ((M2C_FIELD(arg2, u8 *, 8) & 0xF0) == 0x90) {
-                M2C_FIELD(arg2, u8 *, 0xC) = func_8002DAE0(arg0, arg1);
+        t = arg2->unk8 & 0xF0;
+        if ((t != 0xC0) & (t != 0xD0)) {
+            arg2->unkA = func_8002DA28(arg0, arg1);
+            if ((arg2->unk8 & 0xF0) == 0x90) {
+                *(s32 *)&arg2->unkC = func_8002DAE0(arg0, arg1);
             }
         } else {
-            M2C_FIELD(arg2, u8 *, 0xA) = 0U;
+            arg2->unkA = 0;
         }
     }
     return 1;

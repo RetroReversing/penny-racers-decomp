@@ -1,6 +1,6 @@
 typedef s32 M2C_UNK;
 M2C_UNK nuScCreateScheduler(M2C_UNK, M2C_UNK);
-M2C_UNK func_80029470();
+M2C_UNK nuPiInit();
 M2C_UNK osCreateThread(M2C_UNK *, M2C_UNK, M2C_UNK *, M2C_UNK, M2C_UNK *, s32);
 M2C_UNK osSetThreadPri(M2C_UNK *, M2C_UNK);
 M2C_UNK osStartThread(M2C_UNK *);
@@ -17,7 +17,7 @@ void func_80026E64(s32 arg0) {
 
     p = &arg0;
     D_800DA1E0 = NULL;
-    func_80029470();
+    nuPiInit();
     if (D_80000300 == 1) {
         nuScCreateScheduler(2, 1);
     } else {

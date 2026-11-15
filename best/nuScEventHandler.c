@@ -1,4 +1,4 @@
-s32 func_800285D4(void *);
+s32 nuScEventBroadcast(void *);
 s32 osRecvMesg(s32 *, s32 *, s32);
 extern s32 (*D_80046C50)(s32 *);
 extern s32 D_8006FB2C;
@@ -13,14 +13,14 @@ void nuScEventHandler(void)
   if (sp10 == 0x29A)
   {
     D_8006FB2C += 1;
-    func_800285D4((&D_800DD894) - 0x74);
+    nuScEventBroadcast((&D_800DD894) - 0x74);
     goto loop_1;
   }
   if (sp10 != 0x29D)
   {
     goto loop_1;
   }
-  func_800285D4((&D_800DD894) - 0x72);
+  nuScEventBroadcast((&D_800DD894) - 0x72);
   if (D_80046C50 == NULL)
   {
     goto loop_1;
