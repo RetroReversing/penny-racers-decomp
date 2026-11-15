@@ -4320,14 +4320,6 @@
   "score_after": 2
  },
  {
-  "function": "nuScRemoveClient",
-  "text": "Deep permuter: score 290 \u2192 250; 1 improvements; 79 candidates tested; 0 cached skips; 0 rejected; 7207s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589934778",
-  "created_at": 1794357166.557499,
-  "score_before": 290,
-  "score_after": 250
- },
- {
   "function": "func_80209D74",
   "text": "Deep permuter: score 10405 \u2192 10050; 2 improvements; 44 candidates tested; 89 cached skips; 0 rejected; 7205s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935750",
@@ -4758,14 +4750,6 @@
   "created_at": 1794705587.5945249,
   "score_before": 207,
   "score_after": 205
- },
- {
-  "function": "nuScRemoveClient",
-  "text": "Best 1814 (saved; 52%). Target structure: prologue saves s0-s3 + ra (frame 0x28); s3 = &D_800DDE88 kept live (lui/addiu s3 used for head-store via addu v1,s3,zero); s0 = *head loaded BEFORE the call func_800339C0(1) (result -> a0 at end, call again after loop); s1 = NULL; s2 = arg0. Loop: while s0 != arg0 { s1 = s0; s0 = *s0 } ; found: s1 ? *s1 = *s0 : *head = *s0. Tried: head-pointer variant (2038, frame wrong because of call order), s0 loaded after call (1928), and the goto-loop from the draft (1814). Frame/regs still off; the key is getting &D_800DDE88 in a saved register (s3) and s0 = head read before the call. Try: `void **head = &D_800DDE88;` with `s0 = *head;` placed before `temp = func(1);` and keep head live across the loop.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794705610.423232,
-  "score_before": 290,
-  "score_after": 290
  },
  {
   "function": "nuContPakFileDelete",
@@ -9144,14 +9128,6 @@
   "score_after": 160
  },
  {
-  "function": "nuScRemoveClient",
-  "text": "Best score 675 (82.2%, revision a87213eeadf7b17e6b63). Right structure: pp = &D_800DDE88 (target keeps it in s3 and uses it as the head store address at `*pp = *cur`), var_s0 = *pp, var_s1 = 0, temp = func_800339C0(1) after those loads, do/while over the list with `if (cur != arg0) prev = cur; else { if prev *prev = *cur; else *pp = *cur; break; } cur = *cur;`. Remaining diff: target assigns arg0 to s2 and the pointer to s3 (ours swaps them); the first saved register is arg0, the pointer is loaded second. Also the target's frame is 0x28 with ra at 0x20, ours is 0x20. Untried: take the head address through a temp declared after the call, or write `*pp` only in the else branch with a local copy of the head.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794720209.056622,
-  "score_before": 290,
-  "score_after": 290
- },
- {
   "function": "func_800338B0",
   "text": "Cache-maintenance routine; body loops are MIPS `cache` ops (0x15 writeback-invalidate at 0x0/0x10, 0x11 hit-writeback, 0x01 index-invalidate over the KSEG0 0x80000000..0x80001FF0 range), all annotated \"handwritten instruction\" in the target disassembly. gcc-2.7.2-kmc emits no cache opcode from plain C and inline asm is forbidden, so no C can be byte-identical. Shell structure (blez guard on arg1, sltu vs 0x2000, align down with andi 0xF/subu, addiu -0x10 end, sltu/bnez do-while with addiu in the delay slot) is plain but irrelevant. Consistent with notes on func_8003EA40 and func_8003EBF0.",
   "by": "api-route-llm-code-1",
@@ -9422,14 +9398,6 @@
   "created_at": 1794720744.8345048,
   "score_before": 395,
   "score_after": 395
- },
- {
-  "function": "nuScRemoveClient",
-  "text": "Best rechecked: 675 (rev a87213eeadf7b17e6b63), 39 insns vs target 38. Structure is right; remaining diff is register allocation + branch form.\n\nTarget facts: &D_800DDE88 lives in $s3 (lui/addiu, lw $s0,($s3)), arg0 in $s2 (move $s2,$a0 saved at 0x18), and the else-branch store uses a fresh copy $v1 = $s3 (`move $v1,$s3`, `sw $v0,($v1)`). Loop is `bnel $s0,$s2,.L800285A4` with `move $s1,$s0` in the delay slot, i.e. the != path branches out of line to the tail (lw $s0,($s0); bnez $s0,loop). Our candidate emits `beq $s0,$s3,.L` (equal path in-line) plus an extra move/j, and swaps s2/s3.\n\nTried: (1) while-loop with `if (cur==arg0) ... break; prev=cur; cur=*cur;` and direct `D_800DDE88 = *cur` -> 1234 (worse, lost the *pp form). (2) do/while with `if (cur!=arg0) {prev=cur; cur=*cur; continue;} ...` -> 840 (adds insns). (3) plain declarations without pp indirection -> worse. try_local_repairs families on a87213ee are still available (24 proposals: branch_orientation, signedness, declaration_order, single_use_inline + 6 more).\n\nLeft to try: force the bnel/!= orientation with the tail out of line, and get s3=&D_800DDE88 / s2=arg0 by making the global pointer the longer-lived variable (use *pp in both load and store, reference arg0 only inside the loop). Untested variant saved as next_experiment (while-loop, equal-break first, pp indirection kept).",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794720779.196314,
-  "score_before": 290,
-  "score_after": 290
  },
  {
   "function": "func_8014D740",
@@ -12296,14 +12264,6 @@
   "score_after": 5810
  },
  {
-  "function": "nuScRemoveClient",
-  "text": "Best is 675 (rev a87213eeadf7b17e6b63, the saved candidate, 82.2%). Target keeps arg0 in $s2 and &D_800DDE88 in $s3 across the first call, with a 0x28 frame (saves s0-s3, ra). Remaining diff: register/frame allocation (my version gets a 0x18-0x20 frame and puts pp in $s2, arg in $s3), plus the extra `beq s0,s3` compare. Tried this session and worse: direct global D_800DDE88 with no pp local (1619); moving pp assignment after the first call (1553). Untried: force two long-lived callee-saved values by declaring arg0 copy first (s32 *arg = arg0), or a volatile temp for the call result. Possibly needs a different loop shape: target tests `if (s0 != arg0)` inside a bnel and falls through to the advance step.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794729010.6699378,
-  "score_before": 290,
-  "score_after": 290
- },
- {
   "function": "func_80029938",
   "text": "Best 440 (same score as saved). Frame must be 0x50: `s32 msgbuf[2];` gives the right frame (msgbuf[1] gives 0x48). osCreateMesgQueue(queue, msgbuf, 1) with the prototype as declared (void*,s32,s32) needs the msgbuf address (passing msgbuf[0] was wrong). Left: target loads `addiu $a0,$sp,0x28` straight into a0 for osSendMesg/osRecvMesg-side queue, and keeps s0=0x4000 for `sh`; mine keeps queue in s0 and moves it to a0 (`move $a0,$s0`). Register allocation issue; the one-line reorder that might fix it is not found yet. Tried: changing the call args (score 554-654, worse). Prototype caveat: brief says osCreateMesgQueue's matched definition is void(void*,s32,s32), so the (void*,void*,s32) form would conflict.",
   "by": "claude-haiku-5-5-22",
@@ -12534,14 +12494,6 @@
   "created_at": 1794729970.943347,
   "score_before": 9,
   "score_after": 9
- },
- {
-  "function": "nuScRemoveClient",
-  "text": "Best 290 (92.3%), revision 52334d875fefd1b26ac2. Source is the m2c-shaped version: pp = &D_800DDE88; var_s0 = *pp; var_s1 = 0; temp_a0 = func_800339C0(1); while loop with the if (var_s0 == arg0) branch; func_800339C0(temp_a0). Remaining diffs: (1) register swap: target keeps arg0 in $s2 and the &D base in $s3 (so it stores $s2 at 0x18, $s3 at 0x1c and $ra at 0x20); ours has them the other way round. Declaration order did not flip it (same 290). (2) target has `sw $ra` after the s-saves and the loop bnel compares s0 with s2. (3) The target's `move $a0,$v0` (temp_a0) is in the beqz delay slot, not before the loop. Tried: using D_800DDE88 directly (1234, worse, stack frame changed to 0x28 in the target). Next: keep pp, try temp_a0 declared after the loop or try the `func_800339C0(1)` call moved after the first `*pp` read. Not matched.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794729978.641872,
-  "score_before": 290,
-  "score_after": 290
  },
  {
   "function": "func_80026E64",
@@ -12984,14 +12936,6 @@
   "score_after": 60
  },
  {
-  "function": "nuScRemoveClient",
-  "text": "Not matched. Best is 290 (92%): pp=&D_800DDE88, var_s0=*pp, var_s1=0, temp_a0=func_800339C0(1) before the loop, func_800339C0(temp_a0) after. Remaining diff: the target keeps arg0 in $s2 and pp in $s3 (ours swapped) and saves s2 before s3. Tried since: local tgt=arg0 (620); direct D_800DDE88 with no pp (1234, frame size wrong, 0x20 not 0x28). Untried: force the register order with a second local declared before pp.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794731209.1606662,
-  "score_before": 290,
-  "score_after": 290
- },
- {
   "function": "func_800427B0",
   "text": "Target is a soft-float s64 to f64 conversion: hi in $a0, lo in $a1, result words spilled to the stack and loaded with ldc1. Zero input takes an early path that returns the pair unchanged (sw $v0,0($sp); sw $v1,4($sp); ldc1; jr). Negative input: lo = ~lo + 1; carry = (lo < 1); hi = ~hi + carry; sign = 0x80000000. Right-shift loop while hi & 0xFFE00000 (exp++), else left-shift loop while !(hi & 0x100000) (exp--). Result hi = (hi & 0xFFFFF) | sign | ((exp + 0x433) << 20). Best 5810 (6%); the compiler lays out the zero early return and the negate branch differently from the target. Next: restructure the zero early return as a plain separate return of the u32 pair before any sign handling.",
   "by": "claude-haiku-5-5-24",
@@ -13254,14 +13198,6 @@
   "created_at": 1794731909.220562,
   "score_before": 3400,
   "score_after": 3400
- },
- {
-  "function": "nuScRemoveClient",
-  "text": "Best 290 (92.3%), revision 68028feb6188e04067ca (source = m2c shape with pp/var_s0/var_s1/temp_a0). Only remaining diff is register allocation: target holds arg0 in $s2 (saved at 0x18) and &D_800DDE88 in $s3 (saved at 0x1c, lui/addiu at entry); ours is reversed (arg0 in $s3). Target is 38 insns, ours 37 (the extra one is the move/addiu for the base). Tried this session, none better: swapping compare to arg0 == var_s0 (290, tie); storing via D_800DDE88 directly instead of *pp (1234); loading var_s0 from D_800DDE88 directly (950); reordering declarations and moving var_s1 = 0 after the call (variant 4 stopped by a progress change, not scored). Untested: keep pp but declare arg0 use earlier, or split pp into a separate pointer assigned from &D before the loop.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794731916.1129138,
-  "score_before": 290,
-  "score_after": 290
  },
  {
   "function": "func_80207DC8",
@@ -18446,5 +18382,117 @@
   "created_at": 1794749837.534678,
   "score_before": 75,
   "score_after": 75
+ },
+ {
+  "function": "nuScRemoveClient",
+  "text": "Deep permuter: score 290 \u2192 250; 1 improvements; 79 candidates tested; 0 cached skips; 0 rejected; 7207s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589934778",
+  "created_at": 1794357166.557499,
+  "score_before": 290,
+  "score_after": 250
+ },
+ {
+  "function": "nuScRemoveClient",
+  "text": "Best 1814 (saved; 52%). Target structure: prologue saves s0-s3 + ra (frame 0x28); s3 = &D_800DDE88 kept live (lui/addiu s3 used for head-store via addu v1,s3,zero); s0 = *head loaded BEFORE the call func_800339C0(1) (result -> a0 at end, call again after loop); s1 = NULL; s2 = arg0. Loop: while s0 != arg0 { s1 = s0; s0 = *s0 } ; found: s1 ? *s1 = *s0 : *head = *s0. Tried: head-pointer variant (2038, frame wrong because of call order), s0 loaded after call (1928), and the goto-loop from the draft (1814). Frame/regs still off; the key is getting &D_800DDE88 in a saved register (s3) and s0 = head read before the call. Try: `void **head = &D_800DDE88;` with `s0 = *head;` placed before `temp = func(1);` and keep head live across the loop.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794705610.423232,
+  "score_before": 290,
+  "score_after": 290
+ },
+ {
+  "function": "nuScRemoveClient",
+  "text": "Best score 675 (82.2%, revision a87213eeadf7b17e6b63). Right structure: pp = &D_800DDE88 (target keeps it in s3 and uses it as the head store address at `*pp = *cur`), var_s0 = *pp, var_s1 = 0, temp = func_800339C0(1) after those loads, do/while over the list with `if (cur != arg0) prev = cur; else { if prev *prev = *cur; else *pp = *cur; break; } cur = *cur;`. Remaining diff: target assigns arg0 to s2 and the pointer to s3 (ours swaps them); the first saved register is arg0, the pointer is loaded second. Also the target's frame is 0x28 with ra at 0x20, ours is 0x20. Untried: take the head address through a temp declared after the call, or write `*pp` only in the else branch with a local copy of the head.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794720209.056622,
+  "score_before": 290,
+  "score_after": 290
+ },
+ {
+  "function": "nuScRemoveClient",
+  "text": "Best rechecked: 675 (rev a87213eeadf7b17e6b63), 39 insns vs target 38. Structure is right; remaining diff is register allocation + branch form.\n\nTarget facts: &D_800DDE88 lives in $s3 (lui/addiu, lw $s0,($s3)), arg0 in $s2 (move $s2,$a0 saved at 0x18), and the else-branch store uses a fresh copy $v1 = $s3 (`move $v1,$s3`, `sw $v0,($v1)`). Loop is `bnel $s0,$s2,.L800285A4` with `move $s1,$s0` in the delay slot, i.e. the != path branches out of line to the tail (lw $s0,($s0); bnez $s0,loop). Our candidate emits `beq $s0,$s3,.L` (equal path in-line) plus an extra move/j, and swaps s2/s3.\n\nTried: (1) while-loop with `if (cur==arg0) ... break; prev=cur; cur=*cur;` and direct `D_800DDE88 = *cur` -> 1234 (worse, lost the *pp form). (2) do/while with `if (cur!=arg0) {prev=cur; cur=*cur; continue;} ...` -> 840 (adds insns). (3) plain declarations without pp indirection -> worse. try_local_repairs families on a87213ee are still available (24 proposals: branch_orientation, signedness, declaration_order, single_use_inline + 6 more).\n\nLeft to try: force the bnel/!= orientation with the tail out of line, and get s3=&D_800DDE88 / s2=arg0 by making the global pointer the longer-lived variable (use *pp in both load and store, reference arg0 only inside the loop). Untested variant saved as next_experiment (while-loop, equal-break first, pp indirection kept).",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794720779.196314,
+  "score_before": 290,
+  "score_after": 290
+ },
+ {
+  "function": "nuScRemoveClient",
+  "text": "Best is 675 (rev a87213eeadf7b17e6b63, the saved candidate, 82.2%). Target keeps arg0 in $s2 and &D_800DDE88 in $s3 across the first call, with a 0x28 frame (saves s0-s3, ra). Remaining diff: register/frame allocation (my version gets a 0x18-0x20 frame and puts pp in $s2, arg in $s3), plus the extra `beq s0,s3` compare. Tried this session and worse: direct global D_800DDE88 with no pp local (1619); moving pp assignment after the first call (1553). Untried: force two long-lived callee-saved values by declaring arg0 copy first (s32 *arg = arg0), or a volatile temp for the call result. Possibly needs a different loop shape: target tests `if (s0 != arg0)` inside a bnel and falls through to the advance step.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794729010.6699378,
+  "score_before": 290,
+  "score_after": 290
+ },
+ {
+  "function": "nuScRemoveClient",
+  "text": "Best 290 (92.3%), revision 52334d875fefd1b26ac2. Source is the m2c-shaped version: pp = &D_800DDE88; var_s0 = *pp; var_s1 = 0; temp_a0 = func_800339C0(1); while loop with the if (var_s0 == arg0) branch; func_800339C0(temp_a0). Remaining diffs: (1) register swap: target keeps arg0 in $s2 and the &D base in $s3 (so it stores $s2 at 0x18, $s3 at 0x1c and $ra at 0x20); ours has them the other way round. Declaration order did not flip it (same 290). (2) target has `sw $ra` after the s-saves and the loop bnel compares s0 with s2. (3) The target's `move $a0,$v0` (temp_a0) is in the beqz delay slot, not before the loop. Tried: using D_800DDE88 directly (1234, worse, stack frame changed to 0x28 in the target). Next: keep pp, try temp_a0 declared after the loop or try the `func_800339C0(1)` call moved after the first `*pp` read. Not matched.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794729978.641872,
+  "score_before": 290,
+  "score_after": 290
+ },
+ {
+  "function": "nuScRemoveClient",
+  "text": "Not matched. Best is 290 (92%): pp=&D_800DDE88, var_s0=*pp, var_s1=0, temp_a0=func_800339C0(1) before the loop, func_800339C0(temp_a0) after. Remaining diff: the target keeps arg0 in $s2 and pp in $s3 (ours swapped) and saves s2 before s3. Tried since: local tgt=arg0 (620); direct D_800DDE88 with no pp (1234, frame size wrong, 0x20 not 0x28). Untried: force the register order with a second local declared before pp.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794731209.1606662,
+  "score_before": 290,
+  "score_after": 290
+ },
+ {
+  "function": "nuScRemoveClient",
+  "text": "Best 290 (92.3%), revision 68028feb6188e04067ca (source = m2c shape with pp/var_s0/var_s1/temp_a0). Only remaining diff is register allocation: target holds arg0 in $s2 (saved at 0x18) and &D_800DDE88 in $s3 (saved at 0x1c, lui/addiu at entry); ours is reversed (arg0 in $s3). Target is 38 insns, ours 37 (the extra one is the move/addiu for the base). Tried this session, none better: swapping compare to arg0 == var_s0 (290, tie); storing via D_800DDE88 directly instead of *pp (1234); loading var_s0 from D_800DDE88 directly (950); reordering declarations and moving var_s1 = 0 after the call (variant 4 stopped by a progress change, not scored). Untested: keep pp but declare arg0 use earlier, or split pp into a separate pointer assigned from &D before the loop.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794731916.1129138,
+  "score_before": 290,
+  "score_after": 290
+ },
+ {
+  "function": "nuScRemoveClient",
+  "text": "Best = revision 68028feb6188e04067ca (score 290, 92.3%): the classic walk-the-list body with `pp = &D_800DDE88; var_s0 = *pp; var_s1 = 0; temp_a0 = func_800339C0(1); while (var_s0) { if (var_s0 == arg0) { if (var_s1) *var_s1 = *var_s0; else *pp = *var_s0; break; } var_s1 = var_s0; var_s0 = *var_s0; } func_800339C0(temp_a0);` with `extern s32 *D_800DDE88;` and `s32 func_800339C0(s32);`. Instruction count and control flow already identical (bnel/beqz/beqz/bnez all match); the 19 remaining rows are pure allocation/order: target gives s2 = arg0 (saved first at 0x18) and s3 = &D_800DDE88 (0x1c), ours is swapped (s3 = arg0), and the prologue save order differs (target s2,s3,ra,s1,s0 vs ours s3,s2,s1,ra,s0), plus target emits `move $s1,$zero` after `lw $s0,($s3)` while ours sinks it before `sw $ra`. Tried and rejected: `client = arg0` alias (no change, 290), `arg0 = arg0;` (290), declaration reordering of pp/var_s0/var_s1 (290), do/while + `if (var_s0 != 0)` guard (975), inverted `if (arg0 != var_s0) { ...; continue; }` (840), for-loop with separate `cur` (620), direct `var_s0 = D_800DDE88;` / `*(&D_800DDE88)` instead of *pp (1234), a second `head` pointer taken after the call (465), moving `temp_a0 = func(1)` before the list load (1178). Next idea: make arg0's pseudo be numbered before &D_800DDE88, e.g. pass the client through a struct field read first, or hoist a use of arg0 (like `if (arg0 == 0) {}` no-op is risky) so gcc allocates s2 to arg0; alternatively accept 290.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794738917.126422,
+  "score_before": 290,
+  "score_after": 290
+ },
+ {
+  "function": "nuScRemoveClient",
+  "text": "Best 290 (92.3%), revision 68028feb6188e04067ca (the saved m2c-cleaned linked-list remove with pp=&D_800DDE88, var_s0/var_s1 walk, temp_a0 = func_800339C0(1) before the walk and func_800339C0(temp_a0) after). Target keeps &D_800DDE88 in $s3 (pp live), arg0 in $s2, and has a 0x28 frame (sw $ra at 0x20, s1 at 0x14, s0 at 0x10, s3 at 0x1c, s2 at 0x18). Mine has a 0x20 frame, so the callee-saved set is one register short. Tried: global used directly (no pp) -> 1234 (worse, frame and register choice both wrong). Reordering nothing else gave a change. Left: force one extra live value across the first call (e.g. keep temp in a separate s32 that is used after the walk) to reproduce the 0x28 frame; target also has a 'move $a0,$v0' after the first call that mine lacks.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794739571.05791,
+  "score_before": 290,
+  "score_after": 290
+ },
+ {
+  "function": "nuScRemoveClient",
+  "text": "Best 130 (96.5%), revision dc6ceb75e5eb2e91aaf4. Key: D_800DDE88 accessed as head pointer via var_v1 = &D_800DDE88, load *(s32**)var_v1 for start, else-branch store via *(s32 **)&D_800DDE88 = (s32 *)*var_s0; loop as while(var_s0 != NULL) with break. Remaining: target uses $s2 for arg0 and $s3 for &D (move $v1,$s3 before bnel); mine swaps them. Try swapping declaration/use order of arg0 vs head address. Compiler gcc-2.8.1-pm-sn-as. Claim lapsed before final patch; not released by me.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794748172.974633,
+  "score_before": 210,
+  "score_after": 130
+ },
+ {
+  "function": "nuScRemoveClient",
+  "text": "Not matched; 96.5% (score 130, saved best = revision dc6ceb7 C: var_v1=&D_800DDE88, var_s0=*(s32**)var_v1, var_s1=NULL, temp_a0=func_800339C0(1), list walk comparing var_s0 with arg0, unlink via *var_s1 = *var_s0 or *(s32**)&D_800DDE88 = next, then func_800339C0(temp_a0)). The remaining diff is register allocation: target frame is 0x28 saving ra,s3,s2,s1,s0 with arg0 in $s2 (move s2,a0 before the lock call), the list head address in $s3 (lui/addiu s3 before the loop), and the walk pointer in $s0 (lw s0,(s3)); ours puts arg0 in $s1 and the head in $s2 with a 0x20 frame. Tried: moving the func_800339C0(1) call ahead of the head load (1078, worse). Untried: declare arg0 use as `s32 *want = arg0;` first and keep the head as a `s32 **head` local so the address lives in $s3; compare with bnel s0,s2 (the want pointer compare) in the loop.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794752852.045722,
+  "score_before": 130,
+  "score_after": 130
+ },
+ {
+  "function": "nuScRemoveClient",
+  "text": "Reverified best 130 under gcc-2.8.1-pm-sn-as. Only s2/s3 allocation and prologue ordering differ; target arg0 s2 and global address s3, candidate opposite. Pointer use in unlink (*var_v1=*var_s0) removes target's separate v1 move, score290. Declaration/sign/global element variants no effect. Volatile pointer worsens533; do/while guarded form same exact diff130. Need lifetime/allocation change retaining separate post-call v1 rematerialization; don't repeat simple declaration reorder.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794753592.601133,
+  "score_before": 130,
+  "score_after": 130
+ },
+ {
+  "function": "nuScRemoveClient",
+  "text": "Best 130 (96.5%), 100+ prior attempts, no better. Target register layout: arg0 in $s2 (saved first at 0x18(sp)), &D_800DDE88 in $s3 (lui/addiu s3), head in $s0, prev in $s1, $ra at 0x20(sp). Our code puts the arg in $s3 and the global address in $s2. Renaming the address variable to s3-style (var_s3) gave the same 130 and identical asm. Unresolved: how to make the arg the lower-numbered saved register; likely need the address variable declared/used before the arg is copied, or a different use order. Try compile_family(signedness) per the tool hint.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794753829.614104,
+  "score_before": 130,
+  "score_after": 130
  }
 ]

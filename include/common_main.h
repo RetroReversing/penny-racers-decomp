@@ -42,3 +42,6 @@ f32 alCents2Ratio(s32 cents);
 /* Verified waveform relocation and sequence timing layouts. */
 typedef struct { u32 base; s32 len; u8 type,flags; u16 pad; u32 loop,book; } N_ALWaveTableLayout;
 typedef struct { u8 pad[0x18]; s16 division; } N_ALSequenceLayout;
+
+/* Sequence-channel layout: stride and accessed offsets verified by func_80027D00. */
+typedef struct { u8 player[0x7C]; u8 seq[0xF8]; s32 data; s32 pad178; s32 flags; s32 pad180; } PennySeqState;
