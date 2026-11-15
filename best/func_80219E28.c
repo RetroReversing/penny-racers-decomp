@@ -23,7 +23,7 @@ void func_80219E28(s32 arg0) {
         *(u16 *)(temp_s0 + 0x3E) = 1;
         return;
     case 1:
-        temp_fv1 = *(f32 *)(temp_s0 + 0x1C);
+        temp_fv1 = *(f32 *)((D_8011F2F0 + arg0 * 0x64) + 0x1C);
         if ((temp_fv1 > -7.0f) && (D_80190CB0 == 0)) {
             *(f32 *)((D_8011F2F0 + arg0 * 0x64) + 0x1C) = temp_fv1 - 0.04f;
             if (!(temp_s0[0] & 7)) {

@@ -5,9 +5,8 @@ s32 func_80032300(void *, s32);
 s32 n_alSynSetVol(void *, s32, s32);
 void __n_seqpReleaseVoice(void *arg0, void *arg1, s32 arg2)
 {
-  int sp10;
+  volatile unsigned int sp10;
   void *sp14;
-  volatile unsigned long long pad2;
   void *temp_s1;
   void *temp_s2;
   volatile unsigned short pad;
@@ -25,6 +24,7 @@ void __n_seqpReleaseVoice(void *arg0, void *arg1, s32 arg2)
         {
           if (temp_s1 != NULL)
           {
+            volatile unsigned long long pad2;
             *((s32 *) (((char *) temp_s1) + 8)) = (s32) ((*((s32 *) (8 + ((char *) temp_s1)))) + (*((s32 *) (((char *) var_s0) + 8))));
           }
           alUnlink(var_s0);

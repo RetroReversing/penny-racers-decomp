@@ -6,8 +6,9 @@ void func_80205F64(s32 arg0)
     u8 *base;
 
     i = 0;
+    arg0 &= 0xFF;
     base = D_8021F048;
-    base += (arg0 & 0xFF) * 14;
+    base += arg0 * 14;
     do {
         base[i & 0xFF] = 0;
         i++;

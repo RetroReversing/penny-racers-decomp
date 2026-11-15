@@ -57,7 +57,7 @@ blockC:
     func_800DE2E0();
     func_80231C5C();
     func_801CF468(D_8018BC3C, 0, 0, 0);
-    D_80168BB0 = D_8021B060;
+    D_80168BB0 = (s32)&D_8021B060;
     return;
 
 blockA:

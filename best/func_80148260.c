@@ -3,7 +3,7 @@ extern u16 D_8018D140[];
 extern u16 D_8018D26C[];
 extern u8 D_8018D3A0[];
 
-s32 func_80148260(s32 arg0, s32 arg1) {
+s32 func_80148260(u8 arg0, s32 arg1) {
     s32 i;
     s32 j;
     s32 k;
