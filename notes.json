@@ -8328,14 +8328,6 @@
   "score_after": 444
  },
  {
-  "function": "func_80219E28",
-  "text": "Best rechecked: revision 9d3c926beae2aa0aad4a, score 1385 (89.9%) \u2014 switch(*(u16*)(s0+0x3E)) form. Hand-written from target asm. Structure: s0 = D_8011F2F0 + (arg0&0xFFFF)*100; *(u8*)s0 += 1; case 0: s0+0x18 = D_8021CA4C[func_801FA30C()&7] (f32), s0+0x4C = (f32)D_8021CA44[func_801FA30C()&7] (u8 table), state=1, return. case 1: fv1=s0+0x1C; if (fv1 > -7.0f && D_80190CB0==0) { s0+0x1C = fv1-0.04f; if (!(s0[0]&7)) (func_801FA30C()&1 ? 0.01f : -0.01f) -> s0+0x48; if (s0+0x44 > 0.1f) s0+0x48=-0.01f; if (s0+0x44 < -0.1f) s0+0x48=0.01f; fa0 = s0+0x44 + s0+0x48; s0+0x44=fa0; s0+0x18 = __sinf(fa0)+s0+0x18; fv0=s0+0x28+4.0f; s0+0x28=fv0; if (fv0>360.0f) s0+0x28=fv0-360.0f; } else s0[0xD]=2. Remaining diffs: the target dispatches with beqz/beq chain (not a jump table) and the 0x3E test; an if-chain form scored worse (1975), and the saved draft historically scored 1295 (not reproduced). Also register/ordering differences in the case-1 block (target stores 0x44 before reloading for the >0.1 test). Next: keep switch, try a single load of s0+0x44 into a local for the two clamps.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794710567.901919,
-  "score_before": 1295,
-  "score_after": 1295
- },
- {
   "function": "func_8021078C",
   "text": "Not matched. Best revision 22af8d616eda8cf98db4 scores 3233 (78.1%). Dropping the s32 *f local and using D_8021EFA0 directly, plus q = &D_8021EEC2 declared at the top, brought it from 3949 to 3233. Remaining differences that block closer scores: (1) the switch jump table: target loads its table at %lo(D_8021DD28) and ours shows ?local, with the linker note 'your code refers to .rodata+0x0 where the ROM's code has no address', so the jump table is not emitted at the target symbol; this needs a check on the switch form or a table-symbol declaration, not register tuning. (2) target materialises s2 = &D_80190CB6 before the func_80211C7C(0x14) call; ours places it after. Tried: the address_temporary family (6 variants that route p+0x3E through a temp), all 3233 with no change. Next step: find a switch form that emits a jump table referenced as D_8021DD28 (check get_assembly for the table's entry count, 0x22 cases with contiguous values 0..0x21 except gaps), then re-check the s2 placement.",
   "by": "claude-haiku-5-5-23",
@@ -12190,14 +12182,6 @@
   "created_at": 1794725010.43435,
   "score_before": 2950,
   "score_after": 2950
- },
- {
-  "function": "func_80219E28",
-  "text": "Best 1215 (91.1%), not matched. Saved best = revision 87678cfa230bc4306730 (index written as `D_8011F2F0 + (arg0*0x19)*4`, case 1 reads/writes via arg0*0x64 expression). Target computes the index as 25a<<2 and keeps the base in $s0 for the whole body, and case 1 uses 0x1C($s0) directly. Switching case 1 to temp_s0 (rev 12256...) scores 1385: the index is fine but the branch/tail layout changes (target's case-0 exit is `j` to shared epilogue at +0x218; ours tail-merges at +0x20c). `break` instead of `return` in case 0 made no difference. Remaining diffs: prologue register order (target saves $ra then $s0 and uses $v0/$v1 for the base; ours uses $a0/$a1 and writes s0 twice), and the if-chain order in case 1 (target: c.lt.s -7 test, then D_80190CB0 test, then sb/andi-7 block, then the 0x44 comparisons). Untried: separate the 0x19 index into a u32 local before the switch; reorder the two `D_8021CA44`/`D_8021CA4C` loads; try `(u8)` cast on temp_s0[0] increment. Budget spent without improvement.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794725029.082626,
-  "score_before": 1215,
-  "score_after": 1215
  },
  {
   "function": "func_8021078C",
@@ -18142,5 +18126,29 @@
   "created_at": 1794729917.6366751,
   "score_before": 870,
   "score_after": 870
+ },
+ {
+  "function": "func_80219E28",
+  "text": "Best rechecked: revision 9d3c926beae2aa0aad4a, score 1385 (89.9%) \u2014 switch(*(u16*)(s0+0x3E)) form. Hand-written from target asm. Structure: s0 = D_8011F2F0 + (arg0&0xFFFF)*100; *(u8*)s0 += 1; case 0: s0+0x18 = D_8021CA4C[func_801FA30C()&7] (f32), s0+0x4C = (f32)D_8021CA44[func_801FA30C()&7] (u8 table), state=1, return. case 1: fv1=s0+0x1C; if (fv1 > -7.0f && D_80190CB0==0) { s0+0x1C = fv1-0.04f; if (!(s0[0]&7)) (func_801FA30C()&1 ? 0.01f : -0.01f) -> s0+0x48; if (s0+0x44 > 0.1f) s0+0x48=-0.01f; if (s0+0x44 < -0.1f) s0+0x48=0.01f; fa0 = s0+0x44 + s0+0x48; s0+0x44=fa0; s0+0x18 = __sinf(fa0)+s0+0x18; fv0=s0+0x28+4.0f; s0+0x28=fv0; if (fv0>360.0f) s0+0x28=fv0-360.0f; } else s0[0xD]=2. Remaining diffs: the target dispatches with beqz/beq chain (not a jump table) and the 0x3E test; an if-chain form scored worse (1975), and the saved draft historically scored 1295 (not reproduced). Also register/ordering differences in the case-1 block (target stores 0x44 before reloading for the >0.1 test). Next: keep switch, try a single load of s0+0x44 into a local for the two clamps.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794710567.901919,
+  "score_before": 1295,
+  "score_after": 1295
+ },
+ {
+  "function": "func_80219E28",
+  "text": "Best 1215 (91.1%), not matched. Saved best = revision 87678cfa230bc4306730 (index written as `D_8011F2F0 + (arg0*0x19)*4`, case 1 reads/writes via arg0*0x64 expression). Target computes the index as 25a<<2 and keeps the base in $s0 for the whole body, and case 1 uses 0x1C($s0) directly. Switching case 1 to temp_s0 (rev 12256...) scores 1385: the index is fine but the branch/tail layout changes (target's case-0 exit is `j` to shared epilogue at +0x218; ours tail-merges at +0x20c). `break` instead of `return` in case 0 made no difference. Remaining diffs: prologue register order (target saves $ra then $s0 and uses $v0/$v1 for the base; ours uses $a0/$a1 and writes s0 twice), and the if-chain order in case 1 (target: c.lt.s -7 test, then D_80190CB0 test, then sb/andi-7 block, then the 0x44 comparisons). Untried: separate the 0x19 index into a u32 local before the switch; reorder the two `D_8021CA44`/`D_8021CA4C` loads; try `(u8)` cast on temp_s0[0] increment. Budget spent without improvement.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794725029.082626,
+  "score_before": 1215,
+  "score_after": 1215
+ },
+ {
+  "function": "func_80219E28",
+  "text": "Best 1385 in this session (89.9%); saved best 1215 from an earlier source. Not matched. The C matches the target instruction set, so the diff is order and registers only. Remaining: the target saves ra at 0x14 and s0 at 0x10 before the lhu of 0x3E (mine saves s0 twice); the beqz 0x58 branch sits before the lhu in the target, not after. Try reordering the switch-on-state into an if-chain, and load the state halfword before the frame-saving so the prologue order matches.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794739465.482914,
+  "score_before": 1215,
+  "score_after": 1215
  }
 ]
