@@ -21,8 +21,8 @@ void _removeEvents(void *arg0, s32 arg1) {
     void *temp_s1;
     void *var_s0;
 
-    var_s0 = M2C_FIELD(arg0, void **, 8);
     temp_s4 = func_800339C0(1);
+    var_s0 = M2C_FIELD(arg0, void **, 8);
     if (var_s0 != NULL) {
         do {
             temp_s1 = M2C_FIELD(var_s0, void **, 0);
