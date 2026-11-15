@@ -5,11 +5,11 @@ s32 func_80032300(void *, s32);
 s32 n_alSynSetVol(void *, s32, s32);
 void __n_seqpReleaseVoice(void *arg0, void *arg1, s32 arg2)
 {
+  volatile unsigned short pad;
   volatile unsigned int sp10;
   void *sp14;
   void *temp_s1;
   void *temp_s2;
-  volatile unsigned short pad;
   void *var_s0;
   temp_s2 = *((void **) (((char *) arg1) + 0x10));
   if ((*((u8 *) (((char *) temp_s2) + 0x34))) == 0)

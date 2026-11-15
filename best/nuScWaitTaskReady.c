@@ -41,15 +41,18 @@ after:
     saved2 = func_800339C0(1);
     if (cur != NULL) {
 loop_5:
-        if (cur != &node) {
-            prev = cur;
-            cur = cur->next;
-            if (cur != NULL) goto loop_5;
-        } else if (prev != NULL) {
-            prev->next = cur->next;
-        } else {
-            D_800DDE88 = cur->next;
+        if (cur == &node) {
+            if (prev != NULL) {
+                prev->next = cur->next;
+            } else {
+                D_800DDE88 = cur->next;
+            }
+            goto done;
         }
+        prev = cur;
+        cur = cur->next;
+        if (cur != NULL) goto loop_5;
     }
+done:
     func_800339C0(saved2);
 }

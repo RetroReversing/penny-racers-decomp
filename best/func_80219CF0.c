@@ -12,12 +12,16 @@ void func_80219CF0(s32 arg0)
   u8 *p;
   u8 *flag;
   flag = &D_8021E19E;
- do { p = D_8011F2F0 + ((arg0 & 0xFFFF) * 100); } while (0);
+  do
+  {
+    p = D_8011F2F0 + (((arg0 & 0xFFFF) * 10) * 10);
+  }
+  while (0);
   switch (*((u16 *) (p + 0x3E)))
   {
     case 0:
       D_8021E19E = 0;
-      *((u16 *) (p + 0x3E)) = 1;
+ do { *((u16 *) (p + 0x3E)) = 1; } while (0);
       return;
 
     case 1:

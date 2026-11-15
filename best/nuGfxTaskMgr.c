@@ -30,6 +30,8 @@ void nuGfxTaskMgr(void) {
                 D_80046D98(sp10);
             }
             break;
+        default:
+            continue;
         }
         temp_a0 = func_800339C0(1);
         D_80092C00 -= 1;
