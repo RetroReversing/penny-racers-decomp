@@ -6208,14 +6208,6 @@
   "score_after": 280
  },
  {
-  "function": "func_80211E9C",
-  "text": "Unmatched; saved best 1385 (other attempt); my best 2320 (22.6%). Target: j=a1 in 0..13 (do-while, bnel). Per j: src = *(u8**)(D_802030CC + 4*j) via lw; dst base = D_8021F270 + arg0*0xE0 + j*16; inner i in 0..7 (do-while, slti 8) doing sh/lhu at byte offset 2i shared by src and dst. Tried: pointer-indexed dst[i]=((u16*)src)[i] (2320); byte-offset form (2320); base hoisted out of the j loop (2580, worse; the target computes D_802030CC's lui first, which the hoist reversed). Remaining: target loads the table pointer (t1 = D_802030CC) before D_8021F270 (v1), so declare src table before the base in the source, and keep the j*16 folded into the store offset.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794706940.45297,
-  "score_before": 1385,
-  "score_after": 1385
- },
- {
   "function": "func_80211C08",
   "text": "Saved best is the autopilot draft at 380 (not improved). My tries scored ~1005-1015: a shared base pointer `u8 *a1=(u8*)&D_8021EFA0` makes the body close, but the compiler keeps the EEC0 block's base in $v1 and reorders the stores. Target: lui/addiu $a1=&D_8021EFA0 first, lw, and a0=v&~0x1800, sw a0, then byte at -0xDD vs 1, ori v1 after the first branch, and the EEC0 block uses $a0 for its base. The first store is `sw $a0` (not $v1). Next: the first store must be of `a0` from the masked value and the EEC0 base in $a0, not $v1.",
   "by": "claude-haiku-5-5-20",
@@ -10240,14 +10232,6 @@
   "score_after": 325
  },
  {
-  "function": "func_80211E9C",
-  "text": "Semantics: for i in 0..13: src = (u8*)D_802030CC[i] (u32 pointer table); dst = (u8*)D_8021F270 + arg0*0xE0 + i*0x10; copy 8 u16: dst[j]=src[j] for byte offsets 0,2,..,14. Tried this session, all worse than saved best 1380: plain nested for (2320), hoisted base + do-while (2580), byte-offset inner loop with ((arg0*8-arg0)<<5) base (2220). Target hoists D_802030CC/D_8021F270 materialisation to the top and keeps a shared 2*j index for both src and dst. Start from get_candidate(base=\"saved_best\"); none of my forms beat it.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794721046.116239,
-  "score_before": 1380,
-  "score_after": 1380
- },
- {
   "function": "func_80205518",
   "text": "Best 280 (88.8%), revision b6681f5d0d5c4617abdd (m2c-shaped do/while over u16 array with index a1&0xFF, return (0x140-((a1+1)*0xC))>>1). Only control-flow rows remain plus one frame difference: the target allocates an 8-byte frame (addiu sp,-8 / addiu sp,8) with no calls and no visible stack use, and its loop is laid out as an entry test then a beql back-edge with a1 starting at 1. Ours has no frame. Untried: a dead local that forces a frame (e.g. a u16 array whose address is taken by a no-op), or writing the loop with a1 starting at 1 after the first test.",
   "by": "claude-haiku-5-5-22",
@@ -13278,14 +13262,6 @@
   "created_at": 1794730347.1047318,
   "score_before": 610,
   "score_after": 610
- },
- {
-  "function": "func_80211E9C",
-  "text": "Best rechecked 2580; inherited 1380 is from older inputs. Target shape is clear: j=0; t1=&D_802030CC; v1=D_8021F270; t0 = D_8021F270 + arg0*0xE0 (sll 3, subu, sll 5); outer: v0=j*4, addu t1 -> lw a3 = D_802030CC[j]; i=0; a2 = t0 + j*16 (sll 4); inner: v0 = i*2 (sll 1, also in the branch delay slot), addu v1,v0,a2 / addu v0,v0,a3 / lhu / sh / addiu a0,1 / slti 8 / bnez; then addiu a1,1 / slti 0xE / bnel with sll $v0,$a1,2 in the delay slot. Crucial: the target does NOT strength-reduce the inner loop - it recomputes i*2 each iteration and re-adds both bases. Every C form tried (u16* dst[i]=src[i]; inline u8*+i*2; row pointer; byte base + j*0x10 + i*2; u8 arrays with casts; while loop) makes gcc-2.7.2 strength-reduce to pointer increments (addiu a3,+0x10 / addiu a2,+4 / addiu v1,+2) and loses the sll in the delay slot. Scores: 1895 (inline D_8021F270[arg0*0x70+j*8+i] with ((u16*)D_802030CC[j])[i], best of mine), 2320 (u16* locals), 2580 (u8* base + j*0x10 + i*2). Remaining idea: stop gcc's strength reduction by making the inner index expression opaque, e.g. an s32 local off = i << 1 used in both addresses, or a u16 (*row)[8] for the destination row, or a u32 i indexing ((u16*)((u8*)dst + (i << 1))).",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794730359.4394739,
-  "score_before": 1380,
-  "score_after": 1380
  },
  {
   "function": "func_8014A9F4",
@@ -18496,14 +18472,6 @@
   "score_after": 60
  },
  {
-  "function": "func_80211E9C",
-  "text": "Session attempt: saved best 1380 (permuter, volatile short D_8021F270) remains best. Three clean rewrites this session (u16 row pointers with table lookup; s32 table with byte-offset arithmetic; do-while volatile-short form with dst=D+arg0*0x70+i*8) all scored 2300 with identical output: gcc emits 'move $t0,$zero' and a shifted loop, not the target's 'move $a1,$zero' outer-loop start with the row base computed as ((a0<<3)-a0)<<5 and t0=D+that, dst=t0+(i<<4), table load lw a3,(t1+4*i), inner lhu/sh at a2+2j. Target is a do-while nest: outer i in $a1 from 0 to 0xE, inner j from 0 to 8, both bottom-tested. Untried: reproduce the exact (a0*8-a0)<<5 product form and the dst base as a precomputed row pointer with the table pointer loaded before the outer loop.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794747744.3790221,
-  "score_before": 1380,
-  "score_after": 1380
- },
- {
   "function": "func_80156180",
   "text": "Best is 80 (97.4%), from `u16 s0=(u16)arg0; s32 off; func_8013AE60(s0); off=s0*100; t=*(volatile u16*)(D_8011F32E+off); *(volatile u16*)(D_8011F32E+off)=t+2; if (*(volatile u16*)(D_8011F32E+off) >= 0x80) *(volatile u16*)(D_8011F32E+off)=t-0x7D;`. Instructions match; the only difference left is the prologue: the target stores $ra at 0x14 before $s0 at 0x10, and ours is reversed (plus the andi order). Declaration-order and s32/u32 variants of `off` made no difference. The inherited saved 30 is from a different source (+7, 0x100) and does not match this target. Untried: changing which value of s0 is used by the call (e.g. passing arg0 directly and masking after) to change the save order.",
   "by": "claude-haiku-5-5-20",
@@ -21366,14 +21334,6 @@
   "created_at": 1794754497.8930078,
   "score_before": 100,
   "score_after": 100
- },
- {
-  "function": "func_80211E9C",
-  "text": "func_80211E9C (120 B). Not matched; saved best 1380 still stands (I did not beat it). Semantics confirmed from asm: for i in 0..13, src = table[i] where table D_802030CC is an array of pointers (lw from D_802030CC + i*4), dst row = D_8021F270 + arg0*0xE0 + i*16 bytes (target computes arg0*224 as (a0<<3)-a0 then <<5, hoisted out of the loop), inner loop copies 8 halfwords with lhu/sh (volatile short dst). Tried: (1) char-cast table + per-row dst (2320); (2) same with dst base expressed as (char*)D_8021F270 + arg0*0xE0 + i*0x10 (2320); (3) typed table short*D_802030CC[i] with dst base recomputed (2260); (4) base hoisted, src = D_802030CC[i] (2580, worse). Remaining diffs: target hoists lui/addiu of both globals and the dst base out of the loops and computes i*4 for the table load inside the outer loop (sll $v0,$a1,2; addu with table base in $t1), with the inner-loop pointer advancing via $a3/$a2; my versions reload the lui/addiu pairs inside the outer loop. Next try: keep the table base as a hoisted pointer variable (char *tbl = D_802030CC) and index it with i*4 inside the outer loop, and make the inner counter the pointer-advance form.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794754508.9673421,
-  "score_before": 1380,
-  "score_after": 1380
  },
  {
   "function": "func_8013E27C",
@@ -26390,5 +26350,101 @@
   "created_at": 1794759814.497992,
   "score_before": 280,
   "score_after": 280
+ },
+ {
+  "function": "func_80211E9C",
+  "text": "Unmatched; saved best 1385 (other attempt); my best 2320 (22.6%). Target: j=a1 in 0..13 (do-while, bnel). Per j: src = *(u8**)(D_802030CC + 4*j) via lw; dst base = D_8021F270 + arg0*0xE0 + j*16; inner i in 0..7 (do-while, slti 8) doing sh/lhu at byte offset 2i shared by src and dst. Tried: pointer-indexed dst[i]=((u16*)src)[i] (2320); byte-offset form (2320); base hoisted out of the j loop (2580, worse; the target computes D_802030CC's lui first, which the hoist reversed). Remaining: target loads the table pointer (t1 = D_802030CC) before D_8021F270 (v1), so declare src table before the base in the source, and keep the j*16 folded into the store offset.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794706940.45297,
+  "score_before": 1385,
+  "score_after": 1385
+ },
+ {
+  "function": "func_80211E9C",
+  "text": "Semantics: for i in 0..13: src = (u8*)D_802030CC[i] (u32 pointer table); dst = (u8*)D_8021F270 + arg0*0xE0 + i*0x10; copy 8 u16: dst[j]=src[j] for byte offsets 0,2,..,14. Tried this session, all worse than saved best 1380: plain nested for (2320), hoisted base + do-while (2580), byte-offset inner loop with ((arg0*8-arg0)<<5) base (2220). Target hoists D_802030CC/D_8021F270 materialisation to the top and keeps a shared 2*j index for both src and dst. Start from get_candidate(base=\"saved_best\"); none of my forms beat it.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794721046.116239,
+  "score_before": 1380,
+  "score_after": 1380
+ },
+ {
+  "function": "func_80211E9C",
+  "text": "Best rechecked 2580; inherited 1380 is from older inputs. Target shape is clear: j=0; t1=&D_802030CC; v1=D_8021F270; t0 = D_8021F270 + arg0*0xE0 (sll 3, subu, sll 5); outer: v0=j*4, addu t1 -> lw a3 = D_802030CC[j]; i=0; a2 = t0 + j*16 (sll 4); inner: v0 = i*2 (sll 1, also in the branch delay slot), addu v1,v0,a2 / addu v0,v0,a3 / lhu / sh / addiu a0,1 / slti 8 / bnez; then addiu a1,1 / slti 0xE / bnel with sll $v0,$a1,2 in the delay slot. Crucial: the target does NOT strength-reduce the inner loop - it recomputes i*2 each iteration and re-adds both bases. Every C form tried (u16* dst[i]=src[i]; inline u8*+i*2; row pointer; byte base + j*0x10 + i*2; u8 arrays with casts; while loop) makes gcc-2.7.2 strength-reduce to pointer increments (addiu a3,+0x10 / addiu a2,+4 / addiu v1,+2) and loses the sll in the delay slot. Scores: 1895 (inline D_8021F270[arg0*0x70+j*8+i] with ((u16*)D_802030CC[j])[i], best of mine), 2320 (u16* locals), 2580 (u8* base + j*0x10 + i*2). Remaining idea: stop gcc's strength reduction by making the inner index expression opaque, e.g. an s32 local off = i << 1 used in both addresses, or a u16 (*row)[8] for the destination row, or a u32 i indexing ((u16*)((u8*)dst + (i << 1))).",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794730359.4394739,
+  "score_before": 1380,
+  "score_after": 1380
+ },
+ {
+  "function": "func_80211E9C",
+  "text": "Session attempt: saved best 1380 (permuter, volatile short D_8021F270) remains best. Three clean rewrites this session (u16 row pointers with table lookup; s32 table with byte-offset arithmetic; do-while volatile-short form with dst=D+arg0*0x70+i*8) all scored 2300 with identical output: gcc emits 'move $t0,$zero' and a shifted loop, not the target's 'move $a1,$zero' outer-loop start with the row base computed as ((a0<<3)-a0)<<5 and t0=D+that, dst=t0+(i<<4), table load lw a3,(t1+4*i), inner lhu/sh at a2+2j. Target is a do-while nest: outer i in $a1 from 0 to 0xE, inner j from 0 to 8, both bottom-tested. Untried: reproduce the exact (a0*8-a0)<<5 product form and the dst base as a precomputed row pointer with the table pointer loaded before the outer loop.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794747744.3790221,
+  "score_before": 1380,
+  "score_after": 1380
+ },
+ {
+  "function": "func_80211E9C",
+  "text": "func_80211E9C (120 B). Not matched; saved best 1380 still stands (I did not beat it). Semantics confirmed from asm: for i in 0..13, src = table[i] where table D_802030CC is an array of pointers (lw from D_802030CC + i*4), dst row = D_8021F270 + arg0*0xE0 + i*16 bytes (target computes arg0*224 as (a0<<3)-a0 then <<5, hoisted out of the loop), inner loop copies 8 halfwords with lhu/sh (volatile short dst). Tried: (1) char-cast table + per-row dst (2320); (2) same with dst base expressed as (char*)D_8021F270 + arg0*0xE0 + i*0x10 (2320); (3) typed table short*D_802030CC[i] with dst base recomputed (2260); (4) base hoisted, src = D_802030CC[i] (2580, worse). Remaining diffs: target hoists lui/addiu of both globals and the dst base out of the loops and computes i*4 for the table load inside the outer loop (sll $v0,$a1,2; addu with table base in $t1), with the inner-loop pointer advancing via $a3/$a2; my versions reload the lui/addiu pairs inside the outer loop. Next try: keep the table base as a hoisted pointer variable (char *tbl = D_802030CC) and index it with i*4 inside the outer loop, and make the inner counter the pointer-advance form.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794754508.9673421,
+  "score_before": 1380,
+  "score_after": 1380
+ },
+ {
+  "function": "func_80211E9C",
+  "text": "Best current verified 2475 (rev 6a6d02ec7d7ada94d2f1); inherited saved_best 1380 is the raw m2c draft (do-while form, unscored recheck). Budget exhausted (3/3).\n\nTarget shape (30 insns, leaf, no frame):\n  a1 = 0 (j); t1 = &D_802030CC; v1 = &D_8021F270;\n  v0 = arg0*8; v0 -= arg0; v0 <<= 5; t0 = v0 + v1;   // row base = D_8021F270 + arg0*0xE0\n  v0 = j*2;                       // NOTE: sll a1,2 on the back edge feeds the *next* iteration\n.L: v0 += t1; a3 = *(u32*)v0;     // src = ((u32*)D_802030CC)[j]\n  a0 = 0; v0 = a0*1 (i*2); a2 = j*0x10 + t0;\n.L2: v1 = v0 + a2; v0 = v0 + a3; v0 = *(u16*)v0; *(u16*)v1 = v0;\n  a0++; v0 = a0 < 8; bnez .L2; v0 = a0*2 (delay slot)\n  a1++; v0 = a1 < 0xE; bnel .L; v0 = a1*2 (delay slot)\nSo the pointer table is u32 (byte index j*4 with an absolute base in t1), the destination row base is a precomputed u8*/s32 sum kept in t0, and both loop counters are plain s32 with strength-reduced byte offsets (i*2 in v0, j*0x10 via addu a2,v0,t0).\n\nBest C so far (2475): `base = arg0*0xE0;` then `for (j...) { s32 src = *(s32*)(D_802030CC + j*4); for (i...) *(u16*)(D_8021F270 + base + j*0x10 + i*2) = *(u16*)((u8*)src + i*2); }` \u2014 this keeps the sll/subu/sll 5 chain and the sll a1,2 index, but GCC folds D_8021F270 into the store address and emits an extra lhu/addiu per inner iteration (it strength-reduces the inner loop to pointer increments) instead of re-forming v0+a3 each pass.\n\nTried and rejected: u16* dst/row/src pointer forms (2580, all identical instructions \u2014 GCC strength-reduces), u8* row + byte offsets (2580), *(u16*)(row + i*2) (2580). None changed the inner loop shape.\n\nNext experiment: force the inner loop to keep index arithmetic instead of pointer increments, e.g. keep `i` in a variable used only as `i * 2` added to a base s32 (no pointer type), and make the source an s32 address so `*(u16*)(src + i*2)` cannot be strength-reduced; also try declaring `src` as `u32 src` and indexing with `(u16*)(src + i*2)` while keeping the destination as `s32` arithmetic so the D_8021F270 base stays in t0 (precomputed before the outer loop, as the target does).",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794757182.4501388,
+  "score_before": 1380,
+  "score_after": 1380
+ },
+ {
+  "function": "func_80211E9C",
+  "text": "Exact O1 C/profile bundle suggested and reverified. Current source e3f5ccbc41c352b5fdef. Separate table, global address, computed base and row dst temps produce exact O1; source O2 scores2460 due induction optimization. Share knowledge #339302416478 captures separate base lifetime rule.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794757948.102751,
+  "score_before": 1380,
+  "score_after": 1380
+ },
+ {
+  "function": "func_80211E9C",
+  "text": "MATCHES at KMC -O1 (suggestion submitted with exact C): src=D_802030CC[i] in the outer loop; inner D_8021F270[arg0][i][j]=src[j], with D_8021F270 as u16[][14][8]. Hoisting a base pointer outside the loop reorders it (score 360). Waiting for the -O1 profile.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794758166.0936,
+  "score_before": 1380,
+  "score_after": 1380
+ },
+ {
+  "function": "func_80211E9C",
+  "text": "Fresh exact try_compiler -O1 and function-only suggestion. Automatic compiler changes off; pending apply only. Exact C preserved in bundle. Default -O2 cannot reproduce induction loop.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794758926.748141,
+  "score_before": 1380,
+  "score_after": 1380
+ },
+ {
+  "function": "func_80211E9C",
+  "text": "Matches at KMC -O1 (exact C submitted via suggest): src=D_802030CC[i] in the outer loop; D_8021F270 is u16[][14][8]. At -O2 the best is 1380. Waiting on the -O1 profile.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794759612.988951,
+  "score_before": 1380,
+  "score_after": 1380
+ },
+ {
+  "function": "func_80211E9C",
+  "text": "Freshly verified exact KMC O1 source/profile submitted. Current O2 profile unsuitable, pending automatic-changes-off manual application. No further C tuning needed.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794759884.028429,
+  "score_before": 1380,
+  "score_after": 1380
+ },
+ {
+  "function": "func_80211E9C",
+  "text": "MATCHES at -O1 (profile -O2 can't). Source: u16 *src = D_802030CC[i]; nested for i<14, j<8: D_8021F270[arg0][i][j] = src[j] (D_8021F270 is u16[][14][8]). Function-only -O1 suggestion filed.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794760842.620833,
+  "score_before": 1380,
+  "score_after": 1380
  }
 ]
