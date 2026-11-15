@@ -5768,14 +5768,6 @@
   "score_after": 1770
  },
  {
-  "function": "func_80026D40",
-  "text": "Best 2418 (46.2%) from the `for (; tbl->mask != 0; tbl++)` form: frame 0x28 vs target 0x20, one extra saved reg ($s3), and the loop tail differs. The function is a flag printer: three printf-like calls (fmt D_8004A208 with a1 and tbl, then \"<\" with flags), a table {u32 mask; u32 value; char *name} walked to mask==0 with (flags & mask)==value tests, comma separator on each match after the first, and a closing \">\\n\". The target loop uses bnel to skip to a shared loop tail, so the increment sits on both paths. The while-loop rewrite (tbl++ at the bottom) scored 3603, worse. Next: drop the first-printf args and make the loop body a single if/else so the increment is common, or try `u32 *tbl` raw indexing to change the saved-register set.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794706107.925715,
-  "score_before": 2418,
-  "score_after": 2418
- },
- {
   "function": "func_80029890",
   "text": "Not started; released to work one function at a time (batch claim held).",
   "by": "claude-haiku-5-5-22",
@@ -5806,14 +5798,6 @@
   "created_at": 1794706174.0147781,
   "score_before": 695,
   "score_after": 320
- },
- {
-  "function": "func_80026D40",
-  "text": "Correct signature: func_80026D40(u32 flags, char *a1, FlagEntry *tbl) with FlagEntry {u32 mask; u32 value; char *name;}. Calls: func_8003DE60(D_8004A208, a1, flags); func_8003DE60(D_8004A214); loop while tbl->mask != 0 with (flags & mask)==value; separator D_8004A218 printed when !first; then D_8004A21C with name; finally D_8004A220. The saved best (3603) wrongly passed tbl as the first printf arg. Remaining mismatch: gcc gives frame 0x28 with saves s1,s2,s3 (flags kept in s3) while target is frame 0x20 with s0 (tbl), s1 (first), s2 (flags), and ra at 0x1C. Tried: while loop with tbl++, for loop, FlagEntry* copy; all 3893 (13.4%). Untried: forcing flags into a later-declared local, or a separate helper for the separator branch to change liveness; try ordering of param copies.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794706174.063008,
-  "score_before": 2418,
-  "score_after": 2418
  },
  {
   "function": "func_800427B0",
@@ -9992,14 +9976,6 @@
   "score_after": 4200
  },
  {
-  "function": "func_80026D40",
-  "text": "Not matched; best 2033 (54.8%). Read of the target: a debug-print list dumper. Prologue saves ra,s0,s1,s2 (frame 0x20), s2=arg0 (flags), s0=arg2 (table pointer), s1=1 (first flag). Calls: func_8003DE60(D_8004A208 \"%s\\t\\t0x%08x \", arg1 unchanged in a1, arg0 in a2); func_8003DE60(D_8004A214 \"<\"); loop over 12-byte entries {mask, value, name}: while entry.mask != 0: if ((arg0 & mask) == value) { if s1 then s1=0 else print D_8004A218 \",\"; print D_8004A21C \"%s\" with entry[2]; } entry += 12; then print D_8004A220 \">\\n\" and return. Remaining diff: my build saves arg0 in s3 (frame 0x28) instead of s2 (frame 0x20), so the register for arg0 across the first call is the problem; try declaring first-call arguments so arg0 is the only saved value (e.g. reorder so the first flag lives in a separate variable not needed as a live across-call value, or pass `(s32)arg0` through a volatile-free local). Loop shape: target tests the mask at loop bottom with bnez, fallthrough exits; while and do-while forms gave the same score.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794720216.809079,
-  "score_before": 2373,
-  "score_after": 2033
- },
- {
   "function": "nuScEventHandler",
   "text": "Best candidate: revision ff6ad3ac129b5f3f5724, score 200 (95.7%, 47/47 instructions). Structure: while(1){ osRecvMesg(D_800DD894,&msg,1); switch(msg){case 0x29A: D_8006FB2C++; nuScEventBroadcast((u8*)D_800DD894-0x74); break; case 0x29D: nuScEventBroadcast((u8*)D_800DD894-0x72); if (D_80046C50 != NULL) D_80046C50(D_800DD894); break;} }, with D_8006FB2C=0 before the loop. Only difference: target has `jalr $v0; nop; j loop; addu $a0,$s0,$zero` (a0 move in the loop-back j delay slot), candidate puts `move $a0,$s0` in the jalr delay slot. Tried with same score 200: local function-pointer variable, signedness of msg, moving the fn-pointer test before the broadcast call. Untried: compile_variants with a goto-shared tail, or a different loop exit shape.",
   "by": "claude-haiku-5-5-24",
@@ -10438,14 +10414,6 @@
   "created_at": 1794721282.898827,
   "score_before": 820,
   "score_after": 820
- },
- {
-  "function": "func_80026D40",
-  "text": "Best 2033 (saved source; 0x20 frame target with ra/s2/s1/s0 saves). Current C gives a 0x28 frame with an extra s3 save and moves arg0 through s3 for the post-call uses; target instead does `move s2,a0` (arg0) before the first call, `move s0,a2` (p=arg2), and prologue saves ra at 0x1C, s2 0x18, s1 0x14, s0 0x10. Target loop has a branch-likely `bnel v0,v1` whose delay slot is `addiu s0,s0,0xC`, so p+=3 is in the mismatch path, and the match path increments p in the printf delay slot. Holding arg0 in a local `mask` gave 2198 (worse). Open: match the save order and the loop shape (p+=3 in both paths, bnel) before tuning argument order.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794721290.8235898,
-  "score_before": 2033,
-  "score_after": 2033
  },
  {
   "function": "func_80027D00",
@@ -11198,14 +11166,6 @@
   "created_at": 1794723751.3295932,
   "score_before": 2017,
   "score_after": 2017
- },
- {
-  "function": "func_80026D40",
-  "text": "Best 2033/45 insns (rev e3fd88251e4866321b97, unchanged by ~25 variants). Structure is right (two leading func_8003DE60 calls, 12-byte entry loop with mask/val/id, first-flag separator). Remaining: candidate frame 0x28 with 4 saved regs (s0,s1,s2,s3) vs target 0x20 with 3 (s0=p, s1=first, s2=arg0); target loads p[1] into $v1 before the bnel delay slot (`lw $v1,4($s0)` then `bnel $v0,$v1`), candidate loads it in the branch delay slot as `lw $v1,-4($s0)` after pre-biasing the pointer by +8. Tried and rejected: reordering p/first init before the calls (2228), struct Ent with ->mask/->val/->id (equal 2033 or worse), naming the pointer as the parameter (2228), *p instead of p[0], for-loop form, goto join, if(!first) form, s32/u32 arg0, s8* arg1, (m = p[0]) != 0 temp. Next idea: make the loop condition read the mask into a named temp that is live across the compare (so gcc materialises it in $v0 before the branch) while keeping the pointer un-biased, and get the 3-register allocation by having arg0 be a plain parameter used only in the compare (no copy to a local).",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794723810.772783,
-  "score_before": 2033,
-  "score_after": 2033
  },
  {
   "function": "func_8014A2D0",
@@ -12976,14 +12936,6 @@
   "score_after": 170
  },
  {
-  "function": "func_80026D40",
-  "text": "Target (180 bytes, 45 insns): frame 0x20 saving ra,s0,s1,s2; s2=arg0 (kept live across calls, used as 3rd arg of first call), s0=arg2 (p), s1=first=1 set BEFORE the first call (addiu s1,zero,1 is in the first call's setup, not after). Calls: D_8004A208(a0), with a1 = arg1 unchanged, a2 = arg0; then D_8004A214 with no args; loop over p (step 12 bytes, 3 words) tests (arg0 & p[0]) == p[1]; on match: if first then first=0 else call D_8004A218; then call D_8004A21C(p[2]); end: call D_8004A220. Best 1629 (saved) came from an earlier source; my recent rewrites scored 2033 (first-flag-after-call form) and 2228 (first-flag-at-top form). Remaining diff is the frame (0x28 vs 0x20, extra s3 copy of arg0) and the call arg registers. Next step: write arg0 directly into s2 without a separate s3 copy, and make the loop's p advance match the bnel delay-slot (the addiu s0,s0,0xC runs only on the not-taken path).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794728897.640791,
-  "score_before": 1629,
-  "score_after": 1629
- },
- {
   "function": "func_80042630",
   "text": "Hand-written assembly, not C. The target saves $ra in $t5 around each jal (addu t5,ra,zero ... addu ra,t5,zero), passes the 2nd return value through $v1 from $t1 or $a1 (addu v1,t1,zero / addu v1,a1,zero) with v0 set to 0 (xor) or a0 (addu), and fills delay slots with nops. No C expression produces the $ra save/restore around a call, so this is not reachable by compiled C.",
   "by": "claude-haiku-5-5-20",
@@ -13310,14 +13262,6 @@
   "created_at": 1794730027.808811,
   "score_before": 5810,
   "score_after": 5810
- },
- {
-  "function": "func_80026D40",
-  "text": "Saved best 1629 (permuter, historical) is still the best; my direct-call version scored 2033. The target structure is confirmed: 0x20 frame, saves $ra/$s2/$s1/$s0 in that order; $s2 = arg0 (kept for the `and` and the first call as a2), $s0 = arg2 (the table pointer), $s1 = `first` flag; first call is func_8003DE60(D_8004A208, arg1, arg0) with arg1 untouched; then func_8003DE60(D_8004A214); the loop is `lw v0,0(s0); beqz; and v0,s2,v0; loop: lw v1,4(s0); bnel v0,v1 (taken: s0+=12 in delay slot); beqz s1 -> first-flag path; the D_8004A21C call passes lw 8(s0) as a1; then s0+=12; loop test lw 0(s0)`. Our version puts arg0 in $s3 and the saves in a different order, so the frame is 0x28; fix: force arg0 to be the first saved register (declare it used before the first call, or copy into a local `s32 mask = arg0;` used in the `and`). Not matched.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794730052.388513,
-  "score_before": 1629,
-  "score_after": 1629
  },
  {
   "function": "func_8014A134",
@@ -13814,14 +13758,6 @@
   "created_at": 1794731789.751894,
   "score_before": 940,
   "score_after": 940
- },
- {
-  "function": "func_80026D40",
-  "text": "Best 1629 (63.8%), revision bd22f32b35be137f4191, source = do-while-wrapped calls + first/p loop (m2c shape). Target keeps only 4 callee-saved regs and a 0x20 frame: $s2=arg0 (kept for the and and the first call's a2), $s0=p (arg2 moved directly), $s1=first. Ours adds an extra saved reg $s3 holding arg0 (frame 0x28), so the whole allocation shifts. Tried this session, all no better: no do-while (2033); swapping first/p init order, if(!first) branch order, u32 arg0, removing do-while on the second call, and reordering declarations (variants 1-5: 1869-1939, variant 4 tie at 1629). Untested ideas: use a single named local for arg0 copy; check whether `(arg0 & p[0]) == p[1]` should be written as `(p[0] & arg0)`; a bnel in the target shows the p+=3 duplicated in the mismatch delay slot, which m2c's shape does not reproduce. Remaining local repairs are untried this session.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794731832.1991308,
-  "score_before": 1629,
-  "score_after": 1629
  },
  {
   "function": "func_801B3E18",
@@ -16224,14 +16160,6 @@
   "score_after": 444
  },
  {
-  "function": "func_80026D40",
-  "text": "Best = revision be4f30757acb11cefbe6 / bd22f32b35be137f4191, score 1629 (63.8%), target 45 insns vs 49. Matched shape already: prologue/epilogue, both leading func_8003DE60 calls, the `and`+`bnel` compare chain, the beqz/j/addu first-flag dance and the trailing D_8004A220 call are all structurally present.\n\nTwo remaining defects:\n1) We materialise the second call's argument too late: ours emits `lui $a0,%hi(D_8004A214)` / `jal` / `addiu $a0,%lo(D_8004A214)` (addiu in the jal delay slot) plus an extra `addiu $a0,%lo(D_8004A214)`. Target emits lui/addiu BEFORE jal for that call (`lui $a0,%hi(D_8004A214); jal; addiu $a0,$a0,%lo(D_8004A214)`) exactly like the first call. Only the first `do { } while (0);` wrapper produced the lui/addiu-before-jal form, so wrap the second call the same way AND keep it as a separate statement (a plain `func(D_8004A214);` after the first wrapped call gives the addiu-in-delay-slot form).\n2) Extra s3 register: ours keeps arg0 in s3 and copies to a2 (`move $a2,$s3`), target keeps arg0 in s2 (`addu $s2,$a0,$zero`) and uses it directly for both the call arg and the `and $v0,$s2,$v0`. Also ours allocates a separate induction pointer (`addiu $s1,$s0,8` / `lw $v1,-4($s1)` / `lw $a1,($s1)`) where the target indexes off s0 directly (`lw $v1,4($s0)`, `lw $a1,8($s0)`), and ours sinks `addiu $s2,$zero,1` (first=1) after the second call whereas the target sets `addiu $s1,$zero,1` in the prologue right after `move $s0,$a2`.\n\nTried and rejected this session: struct-typed 3-field Ent pointer for arg2 with p++ (2033, worse: gcc then hoists the base into s1), same struct without the do-while wrappers (2033), s32* p with p[0]/p[1]/p[2] and p+=3 plus do-while wrappers (1629, the baseline). Untried ideas: declare arg2 as a 3-field struct but keep explicit `p[0]`-style access via `((s32*)p)[n]`; or make `first` a u32 and initialise it as the first statement of the function body (before the two calls) so the `addiu $s1,$zero,1` lands in the prologue; and try to get arg0 numbered before arg2 so it takes s2 not s3 (e.g. use arg0 once before `p = arg2`).",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794739079.152462,
-  "score_before": 1629,
-  "score_after": 1629
- },
- {
   "function": "func_80198A90",
   "text": "Plateau at 2565 (61.7%). Best source (revision 83f4ec9038dd5eaf6d6b / f539f966293fcb1211a3, same score): if (D_801C6BB9 < 0x17) { if-chain on D_801C7469 ==0, ==1, ==2, ==3 (if-chain, NOT a switch: switch gives 4805). Mode 0: if (B0 != T) a2=1; else if (B1 != A+1) { if (A+1 != B1-1) a2=1; }. Mode 1: if (B0==T) { if (B1 != A+1) a2=1; } else if (B0-1 != T) a2=1. Mode 2: if (B0 != T) a2=1; else if (B1 != A+1) a2=1. Mode 3: if (B0==T) { if (B1 != A+1) a2=1; } else if (B0+1 != T) a2=1. Here A=D_801C6BB9, B0=D_801C6BB0[0], B1=D_801C6BB0[1], T=D_801C7068. Worse variants: local s8* pointer for the whole array plus locals (6740); pointer p with direct globals (5340). Remaining diff: target computes a single base pointer `addiu $a1,$a1,%lo(D_801C6BB0)` and reads 0($a1)/1($a1); gcc here re-materializes %lo(D_801C6BB0) per access and loads BB9 into $a1 instead of $a0. Untried: a single shared pointer declared at file scope or a helper with `s8 *base = &D_801C6BB0[0];` only in the mode-0 block; swapping the operand order of the slti test; cast of the switch selector to u8 in the if.",
   "by": "claude-haiku-5-5-24",
@@ -16598,14 +16526,6 @@
   "created_at": 1794739715.417197,
   "score_before": 2780,
   "score_after": 2780
- },
- {
-  "function": "func_80026D40",
-  "text": "Best 1629 (saved, revision not the latest). The plain-loop draft (no do-while wrappers) scored 2033: frame is 0x20 in target (ra 0x1c, s2 0x18, s1 0x14) while mine is 0x28 with s3 holding arg0 and an extra call sequence. Target: arg0 kept in $s2, arg2 in $s0, a counter $s1=1 (the 'first' flag), func_8003DE60 called with (D_8004A208, arg1, arg0) first, then D_8004A214, then loop over 3-word records {mask, value, arg} with the first flag and D_8004A218 separator, final D_8004A220. Next: match the 0x20 frame by making arg0 and arg2 live across calls (first flag as s32 local), and check the first call's a0 is D_8004A208 (diff row 13 shows a stale %lo(D_8004A214) in mine).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794739735.600872,
-  "score_before": 1629,
-  "score_after": 1629
  },
  {
   "function": "func_801655A8",
@@ -18816,14 +18736,6 @@
   "score_after": 2180
  },
  {
-  "function": "func_80026D40",
-  "text": "Tried a plain while-loop C version (2033, worse than saved 1629). Structure from target asm: prologue saves ra,s0,s1,s2 only (frame 0x20); s2=a0(arg0) used as mask in both the initial func_8003DE60(D_8004A208, a1, arg0) call and in loop (arg0 & p[0]); s0=a2 (p), s1=first flag; loop: lw v0,0(s0); bnez; and; if((mask&p[0])==p[1]) {if(first) first=0 else call D_8004A218; call D_8004A21C with p[2] (a1=lw 8(s0)); } p+=3. Compiler wants an extra save reg (s3) for arg0 in my version: fix by making the mask a separate local copy assigned at top and used both in the first call and loop (so only s2 is needed). Also the final call D_8004A220 is after loop. Compiler gcc-2.7.2-kmc.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794748211.3622332,
-  "score_before": 1629,
-  "score_after": 1629
- },
- {
   "function": "func_80127030",
   "text": "Best is 456 (85.7%): `Vec3f *f(Vec3f *dst, u32 b1, u32 b2, u32 b3, f32 a4, f32 a5, f32 a6)` cross product via a local tmp: tmp.x = b2*a6 - a5*b3, tmp.y = b3*a4 - a6*b1, tmp.z = b1*a5 - a4*b2 (reinterpreted with *(f32*)&bN), then *dst = tmp. Instructions match; the diff is register and stack order (target loads b2 from 0x18 and a6 from 0x28 first and copies tmp with three lw/sw). Tried: float locals for the reinterpreted ints (866), direct per-field writes to dst (1567). Untried: keep a4..a6 as stack reads by declaring them after tmp, or a separate tmp.x/y/z statement order with b2 read once.",
   "by": "claude-haiku-5-5-20",
@@ -20160,14 +20072,6 @@
   "score_after": 87698
  },
  {
-  "function": "func_80026D40",
-  "text": "Not matched. Saved best 1629 (the 2033 variant with the local `p` and `first` declared after the calls). Last attempt moved `p`/`first` declarations before the calls: 2228 (no change in rank). Target structure, read from get_assembly: frame 0x20 saving ra,s2,s1,s0. arg0 is kept in $s2 (move s2,a0 before the first call), arg2 in $s0 (p), first in $s1 (=1, set before the first call). Call 1: func_8003DE60(D_8004A208, arg1 (untouched in $a1), arg0 in $a2). Call 2: func_8003DE60(D_8004A214). Loop: while p[0]!=0 { if ((arg0 & p[0]) == p[1]) { if first: first=0 else call D_8004A218; call D_8004A21C(p[2]); } p += 3 }, then func_8003DE60(D_8004A220). Our build saves an extra register (uses $s3 for arg0, frame 0x28) instead of $s2. Untried: force arg0 into a copy after the first call, or write the first-call argument from a `s32 a = arg0` local; the remaining gap is register allocation for arg0, not the body. Also the machine draft failed (delay-slot label for `bnel`), so this is hand C only.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794752510.8672168,
-  "score_before": 1629,
-  "score_after": 1629
- },
- {
   "function": "func_801545E0",
   "text": "Best C is revision 0586f2047b442644c4e5 at score 58910 (17.7%, 673 vs 716 insns). The 26-call func_800DE41C sequence is structurally right. The main error: the f32 parameters were written as integer hex bit patterns (e.g. 0xC0800000), so they convert to the wrong float values. The target stores them with swc1 and loads them with lui/ori plus mtc1, so each must be the float whose bits equal the hex value (0xC0800000 = -4.0f, 0x43020000 = 129.0f, 0x3F800000 = 1.0f). Convert each constant to its exact float literal, then recheck. The claim lapsed before a release, so this note is the handoff.",
   "by": "claude-haiku-5-5-22",
@@ -21248,14 +21152,6 @@
   "score_after": 30
  },
  {
-  "function": "func_80026D40",
-  "text": "EXACT match obtained via try_compiler gcc-2.7.2-kmc -O1, source and profile captured in function-only suggest. Automatic profile changes are off; user must apply compiler bundle to save match. Normal FlagDesc {u32 mask,value;char *text;} loop first=1 before print calls; no volatile needed. Under -O2 pointer strength reduction is wrong; stop source tuning until applying suggested -O1 profile.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794753947.600501,
-  "score_before": 1629,
-  "score_after": 1065
- },
- {
   "function": "func_8013E364",
   "text": "func_8013E364 (312 bytes, 78 target insns, leaf, no frame). Move-on budget exhausted at 3/3 without improvement. Best current source = saved_best 2585 (revision 1926a0cd4fe53300582f, same as inherited). Tried this session, do NOT repeat: (a) `& 0xFFFF` masks + u32 cur -> 2585 (no change); (b) `u16 a1 = 0xFFFF; return a1` on both paths -> 2590 (worse, regressed rows 2/4); (c) `u32 a1 = 0xFFFF` + `(u16)` returns -> 5065 (much worse, bnel fusion). Current revision bb592b1db84e3bdf8f16 is (c) \u2014 restore saved_best before continuing.\n\nTarget structure (confirmed correct in C already):\n- if (D_80187BE0 == 0) { cur = D_8018F5C2; while (D_8018D738[cur].next != 0xFFFF) cur = D_8018D738[cur].next; return 0xFFFF; }\n- else: a1 = D_8018F5C2; D_8018F5C2 = D_8018D738[a1].next; D_8018D738[a1].next = 0xFFFF; if (D_8018F5C2 != 0xFFFF) D_8018D738[D_8018F5C2].prev = 0xFFFF; D_80187BE0 -= 1; if (D_80187BE0 == 0) D_80189DC2 = 0xFFFF; return a1.\n\nNode stride 0x84 (sll 5 / subu / sll 2), prev at +0, next at +2. D_80189DC2 is stored via `sh` 0xFFFF -> u16 (I changed the extern from s16 to u16; keep u16).\n\nRemaining gap, precisely: target emits 4x `andi $v1,$a0,0xffff` (rows 6, 19, 24, 52) and masks the loop head twice per iteration, i.e. the loop cursor is a 32-bit variable truncated by `(u16)` at each index use, while `a1` (the returned node) stays u16 and is never masked. Target also reloads D_8018F5C2 twice at .L8013E3EC (`lui $a1`+`lhu $a1`, then `lui $v1`+`lhu $v1`), so the head read used as an index and the head read stored back must be two separate loads, not one cached value. The 12-byte `bnez` shortfall (0x88 vs 0x7c) follows from those extra andi/lui/lhu pairs; fixing the mask count should fix branch offsets and register assignment together.\n\nUntested next step: on revision 1926a0cd4fe53300582f change `u32 cur;` to `s32 cur;` and the loop body to use `(u16)cur` as the array index (three sites: initial `cur = (u16)D_8018F5C2;`, `cur = D_8018D738[(u16)cur].next;` twice), keeping `u16 a1` and plain `return 0xFFFF;` / `return a1;`.",
   "by": "api-route-llm-code-2",
@@ -22158,14 +22054,6 @@
   "created_at": 1794755188.150363,
   "score_before": 4140,
   "score_after": 1990
- },
- {
-  "function": "func_80026D40",
-  "text": "Fresh explicit-source try_compiler verifies byte-exact -O1 using normal nonvolatile FlagDesc table loop. Function-only suggest rechecked exact and captured source/profile, but automatic profile changes off. IMPORTANT try_compiler without source uses saved best volatile candidate and scores440; pass nonvolatile source explicitly (current revision23aedb3e4ff40241d354) for score0. Apply captured bundle; no further C search needed.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794755188.3064802,
-  "score_before": 1065,
-  "score_after": 1065
  },
  {
   "function": "func_800422C4",
@@ -26054,5 +25942,173 @@
   "created_at": 1794759883.815327,
   "score_before": 255,
   "score_after": 255
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Best 2418 (46.2%) from the `for (; tbl->mask != 0; tbl++)` form: frame 0x28 vs target 0x20, one extra saved reg ($s3), and the loop tail differs. The function is a flag printer: three printf-like calls (fmt D_8004A208 with a1 and tbl, then \"<\" with flags), a table {u32 mask; u32 value; char *name} walked to mask==0 with (flags & mask)==value tests, comma separator on each match after the first, and a closing \">\\n\". The target loop uses bnel to skip to a shared loop tail, so the increment sits on both paths. The while-loop rewrite (tbl++ at the bottom) scored 3603, worse. Next: drop the first-printf args and make the loop body a single if/else so the increment is common, or try `u32 *tbl` raw indexing to change the saved-register set.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794706107.925715,
+  "score_before": 2418,
+  "score_after": 2418
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Correct signature: func_80026D40(u32 flags, char *a1, FlagEntry *tbl) with FlagEntry {u32 mask; u32 value; char *name;}. Calls: func_8003DE60(D_8004A208, a1, flags); func_8003DE60(D_8004A214); loop while tbl->mask != 0 with (flags & mask)==value; separator D_8004A218 printed when !first; then D_8004A21C with name; finally D_8004A220. The saved best (3603) wrongly passed tbl as the first printf arg. Remaining mismatch: gcc gives frame 0x28 with saves s1,s2,s3 (flags kept in s3) while target is frame 0x20 with s0 (tbl), s1 (first), s2 (flags), and ra at 0x1C. Tried: while loop with tbl++, for loop, FlagEntry* copy; all 3893 (13.4%). Untried: forcing flags into a later-declared local, or a separate helper for the separator branch to change liveness; try ordering of param copies.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794706174.063008,
+  "score_before": 2418,
+  "score_after": 2418
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Not matched; best 2033 (54.8%). Read of the target: a debug-print list dumper. Prologue saves ra,s0,s1,s2 (frame 0x20), s2=arg0 (flags), s0=arg2 (table pointer), s1=1 (first flag). Calls: func_8003DE60(D_8004A208 \"%s\\t\\t0x%08x \", arg1 unchanged in a1, arg0 in a2); func_8003DE60(D_8004A214 \"<\"); loop over 12-byte entries {mask, value, name}: while entry.mask != 0: if ((arg0 & mask) == value) { if s1 then s1=0 else print D_8004A218 \",\"; print D_8004A21C \"%s\" with entry[2]; } entry += 12; then print D_8004A220 \">\\n\" and return. Remaining diff: my build saves arg0 in s3 (frame 0x28) instead of s2 (frame 0x20), so the register for arg0 across the first call is the problem; try declaring first-call arguments so arg0 is the only saved value (e.g. reorder so the first flag lives in a separate variable not needed as a live across-call value, or pass `(s32)arg0` through a volatile-free local). Loop shape: target tests the mask at loop bottom with bnez, fallthrough exits; while and do-while forms gave the same score.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794720216.809079,
+  "score_before": 2373,
+  "score_after": 2033
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Best 2033 (saved source; 0x20 frame target with ra/s2/s1/s0 saves). Current C gives a 0x28 frame with an extra s3 save and moves arg0 through s3 for the post-call uses; target instead does `move s2,a0` (arg0) before the first call, `move s0,a2` (p=arg2), and prologue saves ra at 0x1C, s2 0x18, s1 0x14, s0 0x10. Target loop has a branch-likely `bnel v0,v1` whose delay slot is `addiu s0,s0,0xC`, so p+=3 is in the mismatch path, and the match path increments p in the printf delay slot. Holding arg0 in a local `mask` gave 2198 (worse). Open: match the save order and the loop shape (p+=3 in both paths, bnel) before tuning argument order.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794721290.8235898,
+  "score_before": 2033,
+  "score_after": 2033
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Best 2033/45 insns (rev e3fd88251e4866321b97, unchanged by ~25 variants). Structure is right (two leading func_8003DE60 calls, 12-byte entry loop with mask/val/id, first-flag separator). Remaining: candidate frame 0x28 with 4 saved regs (s0,s1,s2,s3) vs target 0x20 with 3 (s0=p, s1=first, s2=arg0); target loads p[1] into $v1 before the bnel delay slot (`lw $v1,4($s0)` then `bnel $v0,$v1`), candidate loads it in the branch delay slot as `lw $v1,-4($s0)` after pre-biasing the pointer by +8. Tried and rejected: reordering p/first init before the calls (2228), struct Ent with ->mask/->val/->id (equal 2033 or worse), naming the pointer as the parameter (2228), *p instead of p[0], for-loop form, goto join, if(!first) form, s32/u32 arg0, s8* arg1, (m = p[0]) != 0 temp. Next idea: make the loop condition read the mask into a named temp that is live across the compare (so gcc materialises it in $v0 before the branch) while keeping the pointer un-biased, and get the 3-register allocation by having arg0 be a plain parameter used only in the compare (no copy to a local).",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794723810.772783,
+  "score_before": 2033,
+  "score_after": 2033
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Target (180 bytes, 45 insns): frame 0x20 saving ra,s0,s1,s2; s2=arg0 (kept live across calls, used as 3rd arg of first call), s0=arg2 (p), s1=first=1 set BEFORE the first call (addiu s1,zero,1 is in the first call's setup, not after). Calls: D_8004A208(a0), with a1 = arg1 unchanged, a2 = arg0; then D_8004A214 with no args; loop over p (step 12 bytes, 3 words) tests (arg0 & p[0]) == p[1]; on match: if first then first=0 else call D_8004A218; then call D_8004A21C(p[2]); end: call D_8004A220. Best 1629 (saved) came from an earlier source; my recent rewrites scored 2033 (first-flag-after-call form) and 2228 (first-flag-at-top form). Remaining diff is the frame (0x28 vs 0x20, extra s3 copy of arg0) and the call arg registers. Next step: write arg0 directly into s2 without a separate s3 copy, and make the loop's p advance match the bnel delay-slot (the addiu s0,s0,0xC runs only on the not-taken path).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794728897.640791,
+  "score_before": 1629,
+  "score_after": 1629
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Saved best 1629 (permuter, historical) is still the best; my direct-call version scored 2033. The target structure is confirmed: 0x20 frame, saves $ra/$s2/$s1/$s0 in that order; $s2 = arg0 (kept for the `and` and the first call as a2), $s0 = arg2 (the table pointer), $s1 = `first` flag; first call is func_8003DE60(D_8004A208, arg1, arg0) with arg1 untouched; then func_8003DE60(D_8004A214); the loop is `lw v0,0(s0); beqz; and v0,s2,v0; loop: lw v1,4(s0); bnel v0,v1 (taken: s0+=12 in delay slot); beqz s1 -> first-flag path; the D_8004A21C call passes lw 8(s0) as a1; then s0+=12; loop test lw 0(s0)`. Our version puts arg0 in $s3 and the saves in a different order, so the frame is 0x28; fix: force arg0 to be the first saved register (declare it used before the first call, or copy into a local `s32 mask = arg0;` used in the `and`). Not matched.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794730052.388513,
+  "score_before": 1629,
+  "score_after": 1629
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Best 1629 (63.8%), revision bd22f32b35be137f4191, source = do-while-wrapped calls + first/p loop (m2c shape). Target keeps only 4 callee-saved regs and a 0x20 frame: $s2=arg0 (kept for the and and the first call's a2), $s0=p (arg2 moved directly), $s1=first. Ours adds an extra saved reg $s3 holding arg0 (frame 0x28), so the whole allocation shifts. Tried this session, all no better: no do-while (2033); swapping first/p init order, if(!first) branch order, u32 arg0, removing do-while on the second call, and reordering declarations (variants 1-5: 1869-1939, variant 4 tie at 1629). Untested ideas: use a single named local for arg0 copy; check whether `(arg0 & p[0]) == p[1]` should be written as `(p[0] & arg0)`; a bnel in the target shows the p+=3 duplicated in the mismatch delay slot, which m2c's shape does not reproduce. Remaining local repairs are untried this session.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794731832.1991308,
+  "score_before": 1629,
+  "score_after": 1629
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Best = revision be4f30757acb11cefbe6 / bd22f32b35be137f4191, score 1629 (63.8%), target 45 insns vs 49. Matched shape already: prologue/epilogue, both leading func_8003DE60 calls, the `and`+`bnel` compare chain, the beqz/j/addu first-flag dance and the trailing D_8004A220 call are all structurally present.\n\nTwo remaining defects:\n1) We materialise the second call's argument too late: ours emits `lui $a0,%hi(D_8004A214)` / `jal` / `addiu $a0,%lo(D_8004A214)` (addiu in the jal delay slot) plus an extra `addiu $a0,%lo(D_8004A214)`. Target emits lui/addiu BEFORE jal for that call (`lui $a0,%hi(D_8004A214); jal; addiu $a0,$a0,%lo(D_8004A214)`) exactly like the first call. Only the first `do { } while (0);` wrapper produced the lui/addiu-before-jal form, so wrap the second call the same way AND keep it as a separate statement (a plain `func(D_8004A214);` after the first wrapped call gives the addiu-in-delay-slot form).\n2) Extra s3 register: ours keeps arg0 in s3 and copies to a2 (`move $a2,$s3`), target keeps arg0 in s2 (`addu $s2,$a0,$zero`) and uses it directly for both the call arg and the `and $v0,$s2,$v0`. Also ours allocates a separate induction pointer (`addiu $s1,$s0,8` / `lw $v1,-4($s1)` / `lw $a1,($s1)`) where the target indexes off s0 directly (`lw $v1,4($s0)`, `lw $a1,8($s0)`), and ours sinks `addiu $s2,$zero,1` (first=1) after the second call whereas the target sets `addiu $s1,$zero,1` in the prologue right after `move $s0,$a2`.\n\nTried and rejected this session: struct-typed 3-field Ent pointer for arg2 with p++ (2033, worse: gcc then hoists the base into s1), same struct without the do-while wrappers (2033), s32* p with p[0]/p[1]/p[2] and p+=3 plus do-while wrappers (1629, the baseline). Untried ideas: declare arg2 as a 3-field struct but keep explicit `p[0]`-style access via `((s32*)p)[n]`; or make `first` a u32 and initialise it as the first statement of the function body (before the two calls) so the `addiu $s1,$zero,1` lands in the prologue; and try to get arg0 numbered before arg2 so it takes s2 not s3 (e.g. use arg0 once before `p = arg2`).",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794739079.152462,
+  "score_before": 1629,
+  "score_after": 1629
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Best 1629 (saved, revision not the latest). The plain-loop draft (no do-while wrappers) scored 2033: frame is 0x20 in target (ra 0x1c, s2 0x18, s1 0x14) while mine is 0x28 with s3 holding arg0 and an extra call sequence. Target: arg0 kept in $s2, arg2 in $s0, a counter $s1=1 (the 'first' flag), func_8003DE60 called with (D_8004A208, arg1, arg0) first, then D_8004A214, then loop over 3-word records {mask, value, arg} with the first flag and D_8004A218 separator, final D_8004A220. Next: match the 0x20 frame by making arg0 and arg2 live across calls (first flag as s32 local), and check the first call's a0 is D_8004A208 (diff row 13 shows a stale %lo(D_8004A214) in mine).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794739735.600872,
+  "score_before": 1629,
+  "score_after": 1629
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Tried a plain while-loop C version (2033, worse than saved 1629). Structure from target asm: prologue saves ra,s0,s1,s2 only (frame 0x20); s2=a0(arg0) used as mask in both the initial func_8003DE60(D_8004A208, a1, arg0) call and in loop (arg0 & p[0]); s0=a2 (p), s1=first flag; loop: lw v0,0(s0); bnez; and; if((mask&p[0])==p[1]) {if(first) first=0 else call D_8004A218; call D_8004A21C with p[2] (a1=lw 8(s0)); } p+=3. Compiler wants an extra save reg (s3) for arg0 in my version: fix by making the mask a separate local copy assigned at top and used both in the first call and loop (so only s2 is needed). Also the final call D_8004A220 is after loop. Compiler gcc-2.7.2-kmc.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794748211.3622332,
+  "score_before": 1629,
+  "score_after": 1629
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Not matched. Saved best 1629 (the 2033 variant with the local `p` and `first` declared after the calls). Last attempt moved `p`/`first` declarations before the calls: 2228 (no change in rank). Target structure, read from get_assembly: frame 0x20 saving ra,s2,s1,s0. arg0 is kept in $s2 (move s2,a0 before the first call), arg2 in $s0 (p), first in $s1 (=1, set before the first call). Call 1: func_8003DE60(D_8004A208, arg1 (untouched in $a1), arg0 in $a2). Call 2: func_8003DE60(D_8004A214). Loop: while p[0]!=0 { if ((arg0 & p[0]) == p[1]) { if first: first=0 else call D_8004A218; call D_8004A21C(p[2]); } p += 3 }, then func_8003DE60(D_8004A220). Our build saves an extra register (uses $s3 for arg0, frame 0x28) instead of $s2. Untried: force arg0 into a copy after the first call, or write the first-call argument from a `s32 a = arg0` local; the remaining gap is register allocation for arg0, not the body. Also the machine draft failed (delay-slot label for `bnel`), so this is hand C only.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794752510.8672168,
+  "score_before": 1629,
+  "score_after": 1629
+ },
+ {
+  "function": "func_80026D40",
+  "text": "EXACT match obtained via try_compiler gcc-2.7.2-kmc -O1, source and profile captured in function-only suggest. Automatic profile changes are off; user must apply compiler bundle to save match. Normal FlagDesc {u32 mask,value;char *text;} loop first=1 before print calls; no volatile needed. Under -O2 pointer strength reduction is wrong; stop source tuning until applying suggested -O1 profile.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794753947.600501,
+  "score_before": 1629,
+  "score_after": 1065
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Fresh explicit-source try_compiler verifies byte-exact -O1 using normal nonvolatile FlagDesc table loop. Function-only suggest rechecked exact and captured source/profile, but automatic profile changes off. IMPORTANT try_compiler without source uses saved best volatile candidate and scores440; pass nonvolatile source explicitly (current revision23aedb3e4ff40241d354) for score0. Apply captured bundle; no further C search needed.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794755188.3064802,
+  "score_before": 1065,
+  "score_after": 1065
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Can't get closer at -O2: C is verified byte-exact under gcc-2.7.2-kmc -O1 via try_compiler; function-specific compiler suggestion filed. Source: plain `while (rd->mask != 0) { if ((value & rd->mask) == rd->value) { if (first) first = 0; else func_8003DE60(D_8004A218); func_8003DE60(D_8004A21C, rd->string);} rd++; }` with regDesc_t {u32 mask, value; char *string}; first call func_8003DE60(D_8004A208, s, value). Not volatile.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794755976.3631082,
+  "score_before": 1065,
+  "score_after": 1065
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Fresh explicit-source try_compiler again verified byte-exact gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1. Captured exact source/header/profile with function-only suggest; auto compiler changes off. Normal nonvolatile FlagDesc loop matches under O1; O2 current scores2228 and cannot retain target loop shape. No further C tuning warranted until captured profile applied. Plain prototype void func_8003DE60(); first=1 before calls, while mask !=0, compare masked arg0, first/sep print, text print,p++. Source stored in suggestion.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794756211.184635,
+  "score_before": 1065,
+  "score_after": 1065
+ },
+ {
+  "function": "func_80026D40",
+  "text": "No work needed: already byte-exact at gcc-2.7.2-kmc -O1 with the nonvolatile FlagDesc loop; function-only suggestion pending user application.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794756930.825491,
+  "score_before": 1065,
+  "score_after": 1065
+ },
+ {
+  "function": "func_80026D40",
+  "text": "SOLVED exact at gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 using current nonvolatile FlagDesc source revision23aedb3e4ff40241d354. Diagnostic e06f063126c4d9ee995e EXACT; function-only compiler suggestion independently reverified exact, pending application because automatic compiler changes off. Do not tune O2/volatile further; pending suggestion has exact source/header/profile bundle.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794757164.0611851,
+  "score_before": 1065,
+  "score_after": 1065
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Already byte-exact at -O1 (see earlier notes and the pending function-only compiler suggestion). Under the -O2 project profile the plain source scores 2228. Do not tune further; the user needs to apply the -O1 suggestion.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794757846.828532,
+  "score_before": 1065,
+  "score_after": 1065
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Not matched; best 1065 (saved draft with volatile FlagDesc *p, which ties the score). Tried since: a separate volatile q = p local for the loop (same 1065, same instructions); removing volatile (2228). Remaining diff is prologue order (target saves ra at 0x1c, s2 at 0x18, s1 at 0x14, s0 at 0x10, then moves a0->s2 and a2->s0 before any call) and the loop branch being one instruction off (beqz 0x90 target vs 0x94 ours). Next: try moving the first-arg use to after the table-pointer assignment, or a do-while over p with an explicit mask!=0 guard, to shift the loop entry by one instruction.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794761898.0302389,
+  "score_before": 1065,
+  "score_after": 1065
+ },
+ {
+  "function": "func_80026D40",
+  "text": "Fresh exact -O1 diagnostic a0c3a33fe66c266ded79 using nonvolatile source23aedb3e4ff40241d354. Existing identical function-only bundle already submitted many times, pending automatic changes off. O2 normal source2228, volatile1065. Do not repeat source tuning.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794763248.682878,
+  "score_before": 1065,
+  "score_after": 1065
  }
 ]
