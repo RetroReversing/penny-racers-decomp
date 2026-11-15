@@ -42,9 +42,18 @@ void func_80206848(s32 arg0)
       var_v0 = temp_v0 & 2;
       if (temp_v0 & 1)
     {
-      func_8014B854(0x3B);
-      D_8021B0C0 -= 1;
-      var_v0 = temp_v0 & 2;
+      if (var_v0)
+      {
+        func_8014B854(0x3B);
+        D_8021B0C0 -= 1;
+        var_v0 = temp_v0 & 2;
+      }
+      else
+      {
+        func_8014B854(0x3B);
+        D_8021B0C0 -= 1;
+        var_v0 = temp_v0 & 2;
+      }
     }
       if (var_v0 != 0)
     {

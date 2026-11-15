@@ -4,6 +4,7 @@ void n_alSndpSetPan(s8 arg0)
 {
   s16 sp10;
   char sp18;
+  volatile char pad;
   volatile unsigned int sp14;
   void *temp_a2;
   temp_a2 = *((void **) (((char *) D_80046DF4) + 0xC));

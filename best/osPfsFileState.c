@@ -1,15 +1,3 @@
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
 s32 func_800403E0();
 s32 func_800404A4();
 extern s32 func_8003F5B0(s32, s32, s32, u32 *);
@@ -30,7 +18,7 @@ s32 osPfsFileState(void *arg0, u32 arg1, void *arg2)
   u8 page;
   u8 slot;
   result = 5;
-  if ((((s32) arg1) <= ((*((s32 *) (((u8 *) arg0) + 0x50))) - 1)) && (!(arg1 >> 31)))
+  if (((((s32) arg1) + 1) <= (((*((s32 *) (((u8 *) arg0) + 0x50))) - 1) + 1)) && (!(arg1 >> 31)))
   {
     if ((*((s32 *) arg0)) & 1)
     {
