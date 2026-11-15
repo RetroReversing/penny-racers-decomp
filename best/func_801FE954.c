@@ -41,6 +41,8 @@ extern void func_80028100(s32, s32);
 extern u8 D_8006FB38[];
 
 void func_801FE954(void) {
+int __repair_constant = 0x40;
+
     s32 a1;
     s32 a2;
     u16 i;
@@ -73,7 +75,7 @@ void func_801FE954(void) {
         D_802038E0[-1] = 0;
         D_80203AC4 = D_80203ACC;
         for (i = 0; i < 16; i++) {
-            D_802038E8[i * 28] = 0x40;
+            D_802038E8[i * 28] = __repair_constant;
             D_802038E9[i * 28] = 0;
             D_802038EC[i * 7] = 0;
             D_802038F0[i * 28] = 0;
@@ -83,7 +85,7 @@ void func_801FE954(void) {
             D_802038F4[i * 28] = 0;
             D_802038F5[i * 28] = 0;
             D_802038F6[i * 28] = 0;
-            D_802038F7[i * 28] = 0x40;
+            D_802038F7[i * 28] = __repair_constant;
             D_802038F8[i * 28] = 0;
             D_802038FC[i * 7] = 0;
             D_80203900[i * 28] = 0;

@@ -20,7 +20,14 @@ void func_8014B048(volatile int arg0)
       var_v1 = 0xF;
       if (D_80190CB2 & 2)
       {
-        var_v1 = 0x10;
+        if (var_s0)
+        {
+          var_v1 = 0x10;
+        }
+        else
+        {
+          var_v1 = 0x10;
+        }
       }
       func_8014A4C8(arg0, 0xA5, (s16) ((var_s0 * 0x25) + 0x47), 7, var_v1);
     }

@@ -48,7 +48,7 @@ void func_801E3FE8(u8 arg1, s32 arg2, void *arg3)
   }
   for (k = 1; k < 4; k++)
   {
-    p = (D_8022A770 + 0x562) + (k * 5);
+    p = (char *)((D_8022A770 + 0x562)); p += (s32)((k * 5));
     if (((p[1] <= D_801E97A0[off]) && (D_801E97A1[off] >= p[2])) && (p[4] < D_801E97A2[off]))
     {
       func_8003DE60(D_801E96B4, k);

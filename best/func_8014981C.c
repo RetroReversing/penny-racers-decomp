@@ -1,109 +1,49 @@
 extern u8 D_80189CC9[];
 extern u8 D_8018A276;
 extern u8 D_8018A277[];
-extern s32 D_8018D3A0;
-void func_8014981C(s32 arg0)
-{
-  s32 temp_a2;
-  s32 temp_t2;
-  s32 temp_t4;
-  s32 temp_v0;
-  s32 var_a0;
-  s32 var_a1;
-  s32 var_a1_2;
-  s32 var_t0;
-  s32 var_t0_2;
-  s32 var_v0;
-  s32 var_v0_2;
-  s32 var_v1;
-  s32 var_v1_2;
-  s8 var_a3;
-  var_t0 = 0;
-  var_v0 = 0 & 0xFF;
-  __repair_rows:
-  {
-    *((D_80189CC9) + var_v0) = 0;
-    var_t0 += 1;
-    var_v1 = var_t0 & 0xFF;
-    var_v0 = var_v1;
-  }
+extern u32 D_8018D3A0[];
 
-  if (((u32) (var_t0 & 0xFF)) < 3U)
-  {
-    goto __repair_rows;
-  }
-  var_t0_2 = 0;
-  if (D_8018A276 != 0)
-  {
-    temp_t4 = (arg0 & 0xFF) << 5;
-    var_a3 = 0;
-    do
-    {
-      temp_t2 = (*((D_8018A277) + (var_t0_2 & 0xFF))) & 0xF;
-      var_a1 = 0;
-      var_a0 = 1;
-      loop_5:
-      var_a1_2 = var_a1 & 0xFF;
+#define ROW_WORD(row, w) (*(u32 *)((u8 *)D_8018D3A0 + ((row) << 5) + ((w) << 2)))
 
-      temp_v0 = var_a1_2 * 4;
-      var_v1 = 0;
-      do
-      {
-        if (((*(temp_v0 + ((temp_t2 << 5) + (&D_8018D3A0)))) & (~(*(temp_v0 + (temp_t4 + (&D_8018D3A0)))))) & var_a0)
-        {
-          var_a3 += 1;
-        }
-        var_v1 += 1;
-        var_a0 *= 2;
-      }
-      while (((u32) (var_v1 & 0xFF)) < 0x20U);
-      var_a1 += 1;
-      var_a0 = 1;
-      if (((u32) (var_a1 & 0xFF)) < 8U)
-      {
-        goto loop_5;
-      }
-      var_v1_2 = 0;
-      temp_a2 = *((&D_8018D3A0) + (temp_t2 << 5));
-      var_a1_2 = 0;
-      loop_11:
-      if (temp_a2 & var_a0)
-      {
-        var_v1_2 += 1;
-      }
+void func_8014981C(s32 arg0) {
+    u8 t0;
+    u32 t2;
+    u8 a1;
+    u32 mask;
+    u32 bits;
+    u32 a2;
+    u32 a3;
+    u8 k;
+    u8 cnt;
 
-      var_a1_2 += 1;
-      var_a0 *= 2;
-      if (((u32) (var_a1_2 & 0xFF)) < 0x20U)
-      {
-        goto loop_11;
-      }
-      var_v0_2 = var_t0_2 & 0xFF;
-      if ((var_v1_2 & 0xFF) == 1)
-      {
-        if ((!(temp_a2 & (*((&D_8018D3A0) + temp_t4)))) & (var_a3 & 0xFF))
-        {
-          var_a3 -= 1;
-        }
-        var_v0_2 = var_t0_2 & 0xFF;
-      }
-      *((D_80189CC9) - (-var_v0_2)) = var_a3;
-      do
-      {
-        do
-        {
-          do
-          {
-            var_t0_2 += 1;
-          }
-          while (0);
-        }
-        while (0);
-      }
-      while (0);
-      var_a3 = 0;
+    for (t0 = 0; t0 < 3; t0++) {
+        D_80189CC9[t0] = 0;
     }
-    while (((u32) (var_t0_2 & 0xFF)) < ((u8) D_8018A276));
-  }
+    if (D_8018A276 != 0) {
+        for (k = 0; k < D_8018A276; k++) {
+            t2 = D_8018A277[k] & 0xF;
+            a3 = 0;
+            for (a1 = 0; a1 < 8; a1++) {
+                bits = ROW_WORD(t2, a1) & ~ROW_WORD(arg0 & 0xFF, a1);
+                for (mask = 1, cnt = 0; cnt < 32; cnt++, mask <<= 1) {
+                    if (bits & mask) {
+                        a3++;
+                    }
+                }
+            }
+            a2 = ROW_WORD(t2, 0);
+            cnt = 0;
+            for (mask = 1, a1 = 0; a1 < 32; a1++, mask <<= 1) {
+                if (a2 & mask) {
+                    cnt++;
+                }
+            }
+            if (cnt == 1) {
+                if (!(a2 & ROW_WORD(arg0 & 0xFF, 0)) && a3 != 0) {
+                    a3--;
+                }
+            }
+            D_80189CC9[k] = a3;
+        }
+    }
 }
-

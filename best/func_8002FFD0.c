@@ -1,59 +1,48 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
-
+extern u8 *D_80046DF4;
 void *__n_allocParam();
 s32 _allocatePVoice();
 s32 func_8002E6E4();
-extern void *D_80046DF4;
 
-s32 func_8002FFD0(void *arg0, void *arg1) {
-    void *sp10;
+s32 func_8002FFD0(u8 *arg0, u8 *arg1)
+{
+    u8 *sp10;
     s32 temp_v0;
-    void *temp_v0_2;
-    
+    u8 *temp;
+    s32 t1;
 
     sp10 = NULL;
-    M2C_FIELD(arg0, u16 *, 0x16) = (u16) M2C_FIELD(arg1, u16 *, 0);
-    M2C_FIELD(arg0, s32 *, 0xC) = 0;
-    M2C_FIELD(arg0, s16 *, 0x1A) = (s16) M2C_FIELD(arg1, u8 *, 4);
-    M2C_FIELD(arg0, s16 *, 0x14) = 0;
-    M2C_FIELD(arg0, void **, 8) = NULL;
-    M2C_FIELD(arg0, u16 *, 0x18) = (u16) M2C_FIELD(arg1, u16 *, 2);
-    temp_v0 = _allocatePVoice(&sp10, (s16) M2C_FIELD(arg1, u16 *, 0));
+    *(u16 *)(arg0 + 0x16) = *(u16 *)(arg1 + 0);
+    *(s32 *)(arg0 + 0xC) = 0;
+    *(s16 *)(arg0 + 0x1A) = *(u8 *)(arg1 + 4);
+    *(s16 *)(arg0 + 0x14) = 0;
+    *(u8 **)(arg0 + 8) = NULL;
+    *(u16 *)(arg0 + 0x18) = *(u16 *)(arg1 + 2);
+    temp_v0 = _allocatePVoice(&sp10, *(s16 *)arg1);
     if (sp10 != NULL) {
         if (temp_v0 != 0) {
-            M2C_FIELD(sp10, s32 *, 0x88) = 0x200;
-            M2C_FIELD(M2C_FIELD(sp10, void **, 8), s32 *, 8) = 0;
-            M2C_FIELD(sp10, void **, 8) = arg0;
-            M2C_FIELD(arg0, void **, 8) = sp10;
-            temp_v0_2 = __n_allocParam(sp10);
-            M2C_FIELD(temp_v0_2, s16 *, 8) = 0xB;
-            M2C_FIELD(temp_v0_2, s32 *, 0xC) = 0;
-            M2C_FIELD(temp_v0_2, s32 *, 4) = (s32) M2C_FIELD(D_80046DF4, s32 *, 0x28);
-            M2C_FIELD(temp_v0_2, s32 *, 0x10) = (s32) (M2C_FIELD(sp10, s32 *, 0x88) - 0x40);
-            func_8002E6E4(M2C_FIELD(arg0, void **, 8), 3, temp_v0_2);
-            temp_v0_2 = __n_allocParam();
-            if (temp_v0_2 != NULL) {
-                M2C_FIELD(temp_v0_2, s16 *, 8) = 0xF;
-                M2C_FIELD(temp_v0_2, s32 *, 0) = 0;
-                M2C_FIELD(temp_v0_2, s32 *, 4) = (s32) (M2C_FIELD(D_80046DF4, s32 *, 0x28) + M2C_FIELD(sp10, s32 *, 0x88));
-                func_8002E6E4(M2C_FIELD(arg0, void **, 8), 3, temp_v0_2);
+            *(s32 *)(sp10 + 0x88) = 0x200;
+            *(s32 *)(*(u8 **)(sp10 + 8) + 8) = 0;
+            *(u8 **)(sp10 + 8) = arg0;
+            *(u8 **)(arg0 + 8) = sp10;
+            temp = __n_allocParam(sp10);
+            t1 = *(s32 *)(D_80046DF4 + 0x28);
+            *(s16 *)(temp + 8) = 0xB;
+            *(s32 *)(temp + 0xC) = 0;
+            *(s32 *)(temp + 4) = t1;
+            *(s32 *)(temp + 0x10) = *(s32 *)(sp10 + 0x88) - 0x40;
+            func_8002E6E4(*(u8 **)(arg0 + 8), 3, temp);
+            temp = __n_allocParam();
+            if (temp != NULL) {
+                t1 = *(s32 *)(D_80046DF4 + 0x28) + *(s32 *)(sp10 + 0x88);
+                *(s16 *)(temp + 8) = 0xF;
+                *(s32 *)(temp + 0) = 0;
+                *(s32 *)(temp + 4) = t1;
+                func_8002E6E4(*(u8 **)(arg0 + 8), 3, temp);
             }
         } else {
-            M2C_FIELD(sp10, s32 *, 0x88) = 0;
-            M2C_FIELD(sp10, void **, 8) = arg0;
-            M2C_FIELD(arg0, void **, 8) = sp10;
+            *(s32 *)(sp10 + 0x88) = 0;
+            *(u8 **)(sp10 + 8) = arg0;
+            *(u8 **)(arg0 + 8) = sp10;
         }
     }
     return sp10 != NULL;

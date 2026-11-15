@@ -43,7 +43,7 @@ void func_80141C28(s32 arg0)
   u16 temp_v1;
   void *temp_a0;
   void *temp_v0_9;
-  temp_v1 = *(D_8011F32E + ((arg0 & 0xFFFF) * 0x64));
+  temp_v1 = *(u16 *)(D_8011F32E + ((arg0 & 0xFFFF) * 0x64));
   if (temp_v1 != 0)
   {
     var_s1 = 0;
@@ -107,7 +107,7 @@ void func_80141C28(s32 arg0)
     D_8018A448 = 0;
     temp_v1_2 = (arg0 & 0xFFFF) * 0x64;
     *(D_8011F2FC + temp_v1_2) = 0;
-    *(D_8011F32E + temp_v1_2) = 1;
+    *(u16 *)(D_8011F32E + temp_v1_2) = 1;
     var_s1 = 0;
   }
   var_v0 = 0 * 8;

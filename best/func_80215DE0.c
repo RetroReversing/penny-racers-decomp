@@ -10,7 +10,7 @@ extern u8 D_801C5EA1;
 extern u8 D_801CA13C;
 extern s32 D_8021DEB0;
 extern u8 D_8021E19C;
-void func_80215DE0(volatile char arg0)
+void func_80215DE0(volatile unsigned int arg0)
 {
   s32 var_s2;
   u16 *temp_s1;
