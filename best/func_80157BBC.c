@@ -21,14 +21,11 @@ void func_80157BBC(s32 arg0) {
     pa = D_8016D8C0;
     pb = D_8016D8C8;
     for (i = 0; i < 2; i++) {
-        off = i * 2;
-        v = *(u16 *)(pa + off) + *(u16 *)(pb + off);
-        *(u16 *)(pa + off) = v;
-        i++;
-        if (*(u16 *)(pa + off) >= 0x169) {
-            *(u16 *)(pa + off) = v - 0x168;
+        off = (u16)(*(u16 *)(pa + i * 2) + *(u16 *)(pb + i * 2));
+        *(u16 *)(pa + i * 2) = off;
+        if (*(u16 *)(pa + i * 2) >= 0x169) {
+            *(u16 *)(pa + i * 2) = off - 0x168;
         }
-        i--;
     }
     k1 = D_80183840;
     k2 = D_80183848;

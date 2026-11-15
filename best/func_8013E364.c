@@ -6,8 +6,9 @@ extern u16 D_8018F5C2;
 
 u16 func_8013E364(void) {
     u16 a1;
+    u16 cur = 0xFFFF;
     if (D_80187BE0 == 0) {
-        u16 cur = D_8018F5C2;
+        cur = D_8018F5C2;
         if (D_8018D738[cur].next != 0xFFFF) {
             do {
                 cur = D_8018D738[cur].next;
@@ -16,7 +17,7 @@ u16 func_8013E364(void) {
         return 0xFFFF;
     }
     a1 = D_8018F5C2;
-    D_8018F5C2 = D_8018D738[a1].next;
+    D_8018F5C2 = D_8018D738[D_8018F5C2].next;
     D_8018D738[a1].next = 0xFFFF;
     if (D_8018F5C2 != 0xFFFF) {
         D_8018D738[D_8018F5C2].prev = 0xFFFF;

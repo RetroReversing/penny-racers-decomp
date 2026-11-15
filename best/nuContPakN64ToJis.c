@@ -5,7 +5,7 @@ void nuContPakN64ToJis(u8 *arg0, u8 *arg1, u32 arg2)
 {
     u8 *src = arg0;
     u8 *dst = arg1;
-    u8 *dst2 = arg1 + 1;
+    u8 *dst2 = arg1;
     u32 i;
     u8 c;
     u32 off;
@@ -35,15 +35,13 @@ void nuContPakN64ToJis(u8 *arg0, u8 *arg1, u32 arg2)
         } else {
             off = 0;
             n = 0;
-            kp = D_80046DB1;
-            while (*kp != 0) {
-                if (*kp == c)
+            while (D_80046DB1[off] != 0) {
+                if (D_80046DB1[off] == c)
                     break;
-                kp += 2;
                 off += 2;
                 n++;
             }
-            if (*kp != 0)
+            if (D_80046DB1[off] != 0)
                 *dst = D_80046DB0[off];
             if (D_80046DB1[n * 2] != 0)
                 dst2++;
