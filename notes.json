@@ -5824,14 +5824,6 @@
   "score_after": 15
  },
  {
-  "function": "func_801E2D18",
-  "text": "Not matched. Saved best 625 (historical). My candidates stay at 4855-4860 (13%): the rewritten head with local dst/src pointers did not change the score, and the loop shape is still wrong. The target loop is a pointer-stepping loop over 200 iterations (addiu a0 by 1 and sll v1 by 2 with addu, five loads from the F8..FC bases, sb to C7080+off+k), not an index-by-i*5 loop. Next: write the loop as a pointer walk (u8 *p, step 5, or a counter with ptr increments) and keep the 4-byte head as explicit dst[k]=src[k].",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794706283.2933729,
-  "score_before": 625,
-  "score_after": 625
- },
- {
   "function": "func_80167DD4",
   "text": "Best 400 (84%), revision f4312a90d99db6129354, unreleased (claim ended). Form: `u32 idx = arg1 & 0xFFFF; if (D_8011F2FC[idx*100] != 0xFA) { p = *arg0; *arg0 = p + 2; p[0] = 0xFA000000; p[1] = D_8011F2FC[idx*100] | 0xFFFFFF00; }`. Target reloads the byte from the symbol base (lui+addu+lbu %lo), not from a computed pointer; the candidate uses lbu ($a1) instead. Next: keep the symbol as the base in both loads, and recompute the idx*100 for the second load.",
   "by": "claude-haiku-5-5-23",
@@ -10040,14 +10032,6 @@
   "score_after": 2130
  },
  {
-  "function": "func_801E2D18",
-  "text": "Not matched. Best saved is 625 (candidate with src0..src4 pointer locals and loop off=i*5), but the same source recompiled at 4855 today, so the baseline is inconsistent. Tried this session, all worse or equal: (a) dst/src/d pointer locals for both copies (6835); (b) direct global reads in loop with s32 off (4860). Target structure: 4-byte copy D_801F18E4 -> D_801C5E9C first, with dst base in $a0 (lui/addiu) and src base in $v1 (lui/addiu), lbu/sb pairs at offsets 0..3; then src pointers hoisted into t1,t0,a3,a2,a1 before loop with loop index $a0; off = 5*i via sll $v1,$a0,2 at loop bottom and addu $v1,$v1,$a0 at top; dest stores are lui $at,%hi(D_801C7080); addu $at,$at,$v1; sb ...,%lo. Our compiles keep rematerialising the src lui/addiu inside the loop and strength-reduce off into an addiu pointer. Untested: a single shared pointer for the 4-byte copy (dst = D_801C5E9C, src = D_801F18E4) written before the five src pointers, to get the copy's register usage right first.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794720463.396287,
-  "score_before": 625,
-  "score_after": 625
- },
- {
   "function": "func_801FC2F8",
   "text": "Best candidate: revision d1efab1412a0a07eceb5, score 1940 (57.8%). Source: `off = (arg0 & 0xFFFF) * 0x24;` then `if (*(u16*)((u8*)&D_8011F32E + off) == 0)` with six stores (0 to D_8022108C, D_80221090, D_80221094, D_80221080, D_80221084; 1000.0f to D_80221088) at +off, then `*(u16*)((u8*)&D_8011F32E + off) = 1;`. Target facts: the flag lookup uses 100*v (v = arg0&0xFFFF; sll/addu/sll/addu/sll computes 3v, 24v, 25v, 100v), and it tests the flag with lhu/bnez to the end. The stores use a variable holding the constant 2 (addiu $v1,$zero,2; then sll/addu/sll = 2*36 = 72 into $v0, then lui $at,%hi(...) + sw at each address). The flag is then written with value 2 (sh $v1), not 1. Worse attempts: stride 0x64 for stores (4195); value 2 with 100-stride flag and +72 stores (3675); var idx=2 for both (4190 / 4190). Still open: the best revision keeps value 1 and a single 0x24 stride; the target wants 100-stride for the flag and a variable idx=2 for the stores, value 2. Next: the variable-index form with the flag offset computed as 100*v directly (`(arg0&0xFFFF)*0x64`), and the stores written through `idx * 0x24` with idx = 2 declared before the if.",
   "by": "claude-haiku-5-5-24",
@@ -12470,14 +12454,6 @@
   "created_at": 1794727911.038798,
   "score_before": 9342,
   "score_after": 6541
- },
- {
-  "function": "func_801E2D18",
-  "text": "Move-on budget exhausted (best current 4855, historical saved_best 625 with a different header/inputs).\n\nTarget shape (56 insns): 4x lbu/sb header copy using two base pointers ($a0=D_801C5E9C, $v1=D_801F18E4) built once; then i=0 in $a0, five source pointers hoisted into $t1,$t0,$a3,$a2,$a1, loop head .L801E2D78 with `addu $v1,$v1,$a0` (off = i*5 in $v1), per field `addu $v0,$v1,$tN; lbu $v0,($v0)` and store via `lui $at,%hi(D_801C708N); addu $at,$at,$v1; sb $v0,%lo(...)($at)`, tail `addiu $a0,$a0,1; sltiu $v0,$a0,0xC8; bnel $v0,$zero,.L801E2D78; sll $v1,$a0,2`.\n\nConfirmed: dest stores only take the lui/addu$at form when the dest symbols are scalar externs indexed with *(&SYM + off) (attempt with D_801C7080[] array gave a base pointer in a register). That variant (rev b97e95c84ed6a61a7c0c) got the store side right but then gcc strength-reduced the cached source pointers to `lbu $v0,($a3)` + `addiu $a3,$a3,5`, losing the target's `addu $v0,$v1,$tN; lbu $v0,($v0)`. With dest as arrays (saved_best) the loads keep off-based addressing but the stores lose the %hi/%lo form.\n\nAlso confirmed no-effect: s8 dest, s32 i, off declaration order, do{}while(0) scope depth, u8 vs array extern for D_801F18E4.\n\nLeft to try: combine scalar dest externs with load addressing gcc cannot strength-reduce, e.g. *(u8 *)((u32)srcN + off) or a volatile index, to keep `addu $v0,$v1,$tN; lbu $v0,($v0)`.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794727957.0192919,
-  "score_before": 625,
-  "score_after": 625
  },
  {
   "function": "func_8015E8E4",
@@ -18520,14 +18496,6 @@
   "score_after": 15
  },
  {
-  "function": "func_801E2D18",
-  "text": "Saved best remains 625 (src0..src4 pointer form). Four compiles this session, none better: inlined D_801F18F8..FC (4860), pointer-local header copy (4860), single-pointer advance with p/q += 5 (6190). The target keeps the source base in $v1 with a 1-byte header copy through $a0, and computes i*5 as sll $v1,$a0,2 plus addu. Next agent: start from the saved 625 and rewrite the loop so the stride-5 index is one pointer offset per source, not five separate indexes.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794747457.021285,
-  "score_before": 625,
-  "score_after": 625
- },
- {
   "function": "func_80208374",
   "text": "208 B, frame 0x20 with ra and s0 saved; s0 holds &D_8021E19E across calls (lbu/addiu -8/sb at start, lh 4(s0) later, then lbu D_8021B084 test). Draft C (no-frame-aware) rechecks at 2311 (55.5%). Saved best 336 (historical) rechecks at 2311 here, so the saved score does not reproduce on current inputs. try_local_repairs variant 6 (wrap the func_80205E04 call in do{}while(0)) gave 1402, still worse than the historical 336; variant 5 (write via &D_8021E19E) gave 2351. Main structural diffs: target loads D_8021B01C address and float 43.0f args before the call with s0 live; our output puts 0x422c args first and the frame setup after. Next step: restore D_8021B01C/D_8021B020 call ordering and make p a u8* that the compiler keeps in s0 across calls (e.g. use p after the calls, not just before).",
   "by": "claude-haiku-5-5-24",
@@ -18846,14 +18814,6 @@
   "created_at": 1794748563.0375,
   "score_before": 610,
   "score_after": 610
- },
- {
-  "function": "func_801E2D18",
-  "text": "Move-on budget exhausted (4 compiles, best this session 3850; rechecked saved best 4855). Target is 56 insns: (1) an unrolled 4-byte copy D_801C5E9C[0..3] = D_801F18E4[0..3] where the target keeps ONE base pointer in $a0 (`lui $a0,%hi(D_801C5E9C); addiu $a0,$a0,%lo(D_801C5E9C)`) and one source base in $v1, then does lbu/sb with offsets 0,1,2,3 \u2014 no per-store lui $at; (2) a 200-iteration loop with $a0 as the index (move $a0,$zero; sll $v1,$a0,2 at loop head; addu $v1,$v1,$a0 => stride 5), five source base pointers hoisted into $t1,$t0,$a3,$a2,$a1 (D_801F18F8..D_801F18FC), each store as `lui $at,%hi(D_801C708X); addu $at,$at,$v1; sb %lo(D_801C708X)($at)` (i.e. distinct symbol per byte column, NOT one base with +0..+4 offsets), tail `addiu $a0,$a0,1; sltiu $v0,$a0,0xC8; bnel $v0,$zero,loop; sll $v1,$a0,2`. What I tried: unrolled vs for-loop for the 4-byte copy (for-loop with a separate index j scored 3850, best), separate symbol names D_801C7081..84 (no change), i*5 inline (worse 6880), pointer-offset bases D_801F18F8+200*n (worse 5135). What is left: get the 4-byte copy to use a single kept base pointer ($a0) rather than %lo($at) form \u2014 likely needs the destination/source as local u8* initialized once and indexed (my dst[0..3] attempt still emitted lui $at per store, so try `u8 *d = D_801C5E9C; u8 *s = D_801F18E4; d[0]=s[0]; ...` with d/s also used later, or a struct/union copy), and keep the loop index in the same register class as the target ($a0) by using the same variable for the copy index.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794748585.5452921,
-  "score_before": 625,
-  "score_after": 625
  },
  {
   "function": "func_80027584",
@@ -21006,14 +20966,6 @@
   "created_at": 1794753829.614104,
   "score_before": 130,
   "score_after": 130
- },
- {
-  "function": "func_801E2D18",
-  "text": "Not matched. Saved best 625 (revision 1e4993784e95556b35ce, the draft with per-element D_801C5E9C stores and an off = i*5 loop). Re-running that exact source today scores 4855 (13%), so the saved number does not reproduce here; treat 625 as unverified. Pointer-local rewrite (dst/src locals for the first 4-byte copy) also scores 4855 with no change. Target shape: copy 4 bytes from D_801F18E4 to D_801C5E9C first, using one base register for each side (lbu/sb pairs at offsets 0..3); then a loop over i in 0..199 with v1 = i*5 (sll 2 + addu i) reading five source arrays D_801F18F8..FC at v1 and storing to D_801C7080+v1+k. Mismatch: the candidate loses the first copies (rows 0-11 missing) and reloads each lui for each store; the target keeps all five source bases in registers (t1,t0,a3,a2,a1) across the loop. Next step: confirm the compile is actually producing the leading copy stores (check that the function body is not being dropped or merged), then hoist the five source bases into locals before the loop, as in the target.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794753831.5065222,
-  "score_before": 625,
-  "score_after": 625
  },
  {
   "function": "func_80027584",
@@ -26158,5 +26110,101 @@
   "created_at": 1794758992.710847,
   "score_before": 1647,
   "score_after": 1647
+ },
+ {
+  "function": "func_801E2D18",
+  "text": "Not matched. Saved best 625 (historical). My candidates stay at 4855-4860 (13%): the rewritten head with local dst/src pointers did not change the score, and the loop shape is still wrong. The target loop is a pointer-stepping loop over 200 iterations (addiu a0 by 1 and sll v1 by 2 with addu, five loads from the F8..FC bases, sb to C7080+off+k), not an index-by-i*5 loop. Next: write the loop as a pointer walk (u8 *p, step 5, or a counter with ptr increments) and keep the 4-byte head as explicit dst[k]=src[k].",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794706283.2933729,
+  "score_before": 625,
+  "score_after": 625
+ },
+ {
+  "function": "func_801E2D18",
+  "text": "Not matched. Best saved is 625 (candidate with src0..src4 pointer locals and loop off=i*5), but the same source recompiled at 4855 today, so the baseline is inconsistent. Tried this session, all worse or equal: (a) dst/src/d pointer locals for both copies (6835); (b) direct global reads in loop with s32 off (4860). Target structure: 4-byte copy D_801F18E4 -> D_801C5E9C first, with dst base in $a0 (lui/addiu) and src base in $v1 (lui/addiu), lbu/sb pairs at offsets 0..3; then src pointers hoisted into t1,t0,a3,a2,a1 before loop with loop index $a0; off = 5*i via sll $v1,$a0,2 at loop bottom and addu $v1,$v1,$a0 at top; dest stores are lui $at,%hi(D_801C7080); addu $at,$at,$v1; sb ...,%lo. Our compiles keep rematerialising the src lui/addiu inside the loop and strength-reduce off into an addiu pointer. Untested: a single shared pointer for the 4-byte copy (dst = D_801C5E9C, src = D_801F18E4) written before the five src pointers, to get the copy's register usage right first.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794720463.396287,
+  "score_before": 625,
+  "score_after": 625
+ },
+ {
+  "function": "func_801E2D18",
+  "text": "Move-on budget exhausted (best current 4855, historical saved_best 625 with a different header/inputs).\n\nTarget shape (56 insns): 4x lbu/sb header copy using two base pointers ($a0=D_801C5E9C, $v1=D_801F18E4) built once; then i=0 in $a0, five source pointers hoisted into $t1,$t0,$a3,$a2,$a1, loop head .L801E2D78 with `addu $v1,$v1,$a0` (off = i*5 in $v1), per field `addu $v0,$v1,$tN; lbu $v0,($v0)` and store via `lui $at,%hi(D_801C708N); addu $at,$at,$v1; sb $v0,%lo(...)($at)`, tail `addiu $a0,$a0,1; sltiu $v0,$a0,0xC8; bnel $v0,$zero,.L801E2D78; sll $v1,$a0,2`.\n\nConfirmed: dest stores only take the lui/addu$at form when the dest symbols are scalar externs indexed with *(&SYM + off) (attempt with D_801C7080[] array gave a base pointer in a register). That variant (rev b97e95c84ed6a61a7c0c) got the store side right but then gcc strength-reduced the cached source pointers to `lbu $v0,($a3)` + `addiu $a3,$a3,5`, losing the target's `addu $v0,$v1,$tN; lbu $v0,($v0)`. With dest as arrays (saved_best) the loads keep off-based addressing but the stores lose the %hi/%lo form.\n\nAlso confirmed no-effect: s8 dest, s32 i, off declaration order, do{}while(0) scope depth, u8 vs array extern for D_801F18E4.\n\nLeft to try: combine scalar dest externs with load addressing gcc cannot strength-reduce, e.g. *(u8 *)((u32)srcN + off) or a volatile index, to keep `addu $v0,$v1,$tN; lbu $v0,($v0)`.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794727957.0192919,
+  "score_before": 625,
+  "score_after": 625
+ },
+ {
+  "function": "func_801E2D18",
+  "text": "Saved best remains 625 (src0..src4 pointer form). Four compiles this session, none better: inlined D_801F18F8..FC (4860), pointer-local header copy (4860), single-pointer advance with p/q += 5 (6190). The target keeps the source base in $v1 with a 1-byte header copy through $a0, and computes i*5 as sll $v1,$a0,2 plus addu. Next agent: start from the saved 625 and rewrite the loop so the stride-5 index is one pointer offset per source, not five separate indexes.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794747457.021285,
+  "score_before": 625,
+  "score_after": 625
+ },
+ {
+  "function": "func_801E2D18",
+  "text": "Move-on budget exhausted (4 compiles, best this session 3850; rechecked saved best 4855). Target is 56 insns: (1) an unrolled 4-byte copy D_801C5E9C[0..3] = D_801F18E4[0..3] where the target keeps ONE base pointer in $a0 (`lui $a0,%hi(D_801C5E9C); addiu $a0,$a0,%lo(D_801C5E9C)`) and one source base in $v1, then does lbu/sb with offsets 0,1,2,3 \u2014 no per-store lui $at; (2) a 200-iteration loop with $a0 as the index (move $a0,$zero; sll $v1,$a0,2 at loop head; addu $v1,$v1,$a0 => stride 5), five source base pointers hoisted into $t1,$t0,$a3,$a2,$a1 (D_801F18F8..D_801F18FC), each store as `lui $at,%hi(D_801C708X); addu $at,$at,$v1; sb %lo(D_801C708X)($at)` (i.e. distinct symbol per byte column, NOT one base with +0..+4 offsets), tail `addiu $a0,$a0,1; sltiu $v0,$a0,0xC8; bnel $v0,$zero,loop; sll $v1,$a0,2`. What I tried: unrolled vs for-loop for the 4-byte copy (for-loop with a separate index j scored 3850, best), separate symbol names D_801C7081..84 (no change), i*5 inline (worse 6880), pointer-offset bases D_801F18F8+200*n (worse 5135). What is left: get the 4-byte copy to use a single kept base pointer ($a0) rather than %lo($at) form \u2014 likely needs the destination/source as local u8* initialized once and indexed (my dst[0..3] attempt still emitted lui $at per store, so try `u8 *d = D_801C5E9C; u8 *s = D_801F18E4; d[0]=s[0]; ...` with d/s also used later, or a struct/union copy), and keep the loop index in the same register class as the target ($a0) by using the same variable for the copy index.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794748585.5452921,
+  "score_before": 625,
+  "score_after": 625
+ },
+ {
+  "function": "func_801E2D18",
+  "text": "Not matched. Saved best 625 (revision 1e4993784e95556b35ce, the draft with per-element D_801C5E9C stores and an off = i*5 loop). Re-running that exact source today scores 4855 (13%), so the saved number does not reproduce here; treat 625 as unverified. Pointer-local rewrite (dst/src locals for the first 4-byte copy) also scores 4855 with no change. Target shape: copy 4 bytes from D_801F18E4 to D_801C5E9C first, using one base register for each side (lbu/sb pairs at offsets 0..3); then a loop over i in 0..199 with v1 = i*5 (sll 2 + addu i) reading five source arrays D_801F18F8..FC at v1 and storing to D_801C7080+v1+k. Mismatch: the candidate loses the first copies (rows 0-11 missing) and reloads each lui for each store; the target keeps all five source bases in registers (t1,t0,a3,a2,a1) across the loop. Next step: confirm the compile is actually producing the leading copy stores (check that the function body is not being dropped or merged), then hoist the five source bases into locals before the loop, as in the target.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794753831.5065222,
+  "score_before": 625,
+  "score_after": 625
+ },
+ {
+  "function": "func_801E2D18",
+  "text": "Solved byte-exact under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1. Function-only suggestion submitted and reverified EXACT, but auto compiler changes are off, so pending application. Exact source is current revision 8dfc4cd901eaec789f74 and compiler diagnostic trial 99d75eba0a6f13a0c411. Header bytes first, i=0 then src0..4 initializations, loads *(u8 *)(off+(u32)srcN). O2 recompiles score 4855. Do not retune O2: apply pending function-only profile suggestion to save exact pair. Shared reusable operand-order discovery #339302416470.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794756682.048298,
+  "score_before": 625,
+  "score_after": 625
+ },
+ {
+  "function": "func_801E2D18",
+  "text": "No work needed: already solved byte-exact at -O1 by codex agent (rev 8dfc4cd901eaec789f74); pending the user applying the function-only -O1 suggestion. Retuning at -O2 is pointless.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794756776.3060591,
+  "score_before": 625,
+  "score_after": 625
+ },
+ {
+  "function": "func_801E2D18",
+  "text": "Fresh O1 exact verification using current source ee59abc388397462c81b, submitted function-only compiler suggestion. O2 score 4855. Exact source uses direct globals for four header copies, initializes i before src pointers, and *(u8 *)(off+(u32)srcN) for loads. Pending profile application; no further O2 tuning warranted.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794757724.7980359,
+  "score_before": 625,
+  "score_after": 625
+ },
+ {
+  "function": "func_801E2D18",
+  "text": "Byte-exact at -O1 per codex (source ee59abc388397462c81b), with a function-only suggestion pending. Under -O2 the old candidate rechecks at 4855. Nothing more to do until the profile is applied.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794757889.634468,
+  "score_before": 625,
+  "score_after": 625
+ },
+ {
+  "function": "func_801E2D18",
+  "text": "Again VERIFIED EXACT -O1 using source revision 5ffa74c53827bd4bb83e, submitted function-only bundle. Automatic compiler changes disabled; pending apply. Source uses i=0 before five src initializations, scalar destination globals and loads *(u8 *)(off+(u32)srcN). Do not retune -O2 score 4855; apply bundle.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794758837.6265101,
+  "score_before": 625,
+  "score_after": 625
+ },
+ {
+  "function": "func_801E2D18",
+  "text": "Byte-exact at -O1 (try_compiler verified); function-only suggestion submitted. Key: the source bases are staged as u32 after the 4-byte copy, and the loads are written *(u8*)(off+b) for the off-first addu order. At -O2 the best is 625 at most; it needs the suggestion applied.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794759179.868384,
+  "score_before": 625,
+  "score_after": 625
  }
 ]
