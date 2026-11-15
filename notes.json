@@ -5192,14 +5192,6 @@
   "score_after": 35
  },
  {
-  "function": "func_801FC978",
-  "text": "Best 640 (70.9%), revision 4b83e35451a44a8c689b: `idx = arg0 & 0xFFFF; off = idx * 100; if (*(u16 *)(D_8011F32E + off) == 0) *(u16 *)(D_8011F32E + off) = 1;`. Target computes the offset (andi, sll/addu chain for *100) twice: once for the load and again in the store path, with `lui v0; addu v0,v0,v1; lhu v0,%lo(sym)(v0)`. So the store path must recompute from arg0, not reuse `off`. Inline recompute (`(arg0 & 0xFFFF) * 100` written twice) gave 1165 because the base became lui+addiu and the load lost its %lo offset. Try: keep the symbol as the base of the load expression, and recompute the andi in the store branch only. Also try `extern u16 D_8011F32E[]` with byte-offset cast so the lo part folds into lhu.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794706173.962722,
-  "score_before": 640,
-  "score_after": 640
- },
- {
   "function": "func_801E2E48",
   "text": "Best 320 (89.6%), revision a5ecceb22b7d8f39e493: `off = (arg0 & 0xFFFF) * 0x30`, copy loop D_801E97A0[off+i] = D_801E9018[off+i] for i<0x30, then `arg0 &= 0xFFFF; func_801E2E00(arg0, D_801E97CC + arg0 * 0x30)`. Instructions match; remaining diff is statement order and register choice. Target materialises D_801E97A0 and D_801E9018 (lui/addiu) before `andi v1,a0,0xffff`, and the loop uses a2 for off and a1 for i. Pointer locals initialised first scored 455 (worse). Next: try the copy as pointer-offset loop `*dst++ = *src++` with off computed after the addresses, or reorder the lui/addiu pairs by declaring the globals after the offset.",
   "by": "claude-haiku-5-5-24",
@@ -8854,5 +8846,13 @@
   "created_at": 1794718295.5020878,
   "score_before": 18912,
   "score_after": 13620
+ },
+ {
+  "function": "func_801FC978",
+  "text": "Best 640 (70.9%), revision 4b83e35451a44a8c689b: `idx = arg0 & 0xFFFF; off = idx * 100; if (*(u16 *)(D_8011F32E + off) == 0) *(u16 *)(D_8011F32E + off) = 1;`. Target computes the offset (andi, sll/addu chain for *100) twice: once for the load and again in the store path, with `lui v0; addu v0,v0,v1; lhu v0,%lo(sym)(v0)`. So the store path must recompute from arg0, not reuse `off`. Inline recompute (`(arg0 & 0xFFFF) * 100` written twice) gave 1165 because the base became lui+addiu and the load lost its %lo offset. Try: keep the symbol as the base of the load expression, and recompute the andi in the store branch only. Also try `extern u16 D_8011F32E[]` with byte-offset cast so the lo part folds into lhu.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794706173.962722,
+  "score_before": 640,
+  "score_after": 640
  }
 ]
