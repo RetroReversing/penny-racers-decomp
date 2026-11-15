@@ -5064,14 +5064,6 @@
   "score_after": 8623
  },
  {
-  "function": "func_80205D48",
-  "text": "Deep permuter: score 1901 \u2192 1805; 2 improvements; 70 candidates tested; 4 cached skips; 0 rejected; 7228s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935725",
-  "created_at": 1794357224.095315,
-  "score_before": 1901,
-  "score_after": 1805
- },
- {
   "function": "nuScAddClient",
   "text": "Deep permuter: score 235 \u2192 235; 0 improvements; 50 candidates tested; 0 cached skips; 0 rejected; 7229s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934777",
@@ -6254,14 +6246,6 @@
   "created_at": 1794707102.114922,
   "score_before": 900,
   "score_after": 120
- },
- {
-  "function": "func_80205D48",
-  "text": "Best 1010 (78.5%), unmatched. Saved-best 1901 was a permuter variant; my source now reaches 1010 with: half = arg0/2.0f first; d1=(f64)(arg1*30.0f); q=D_8021DBA0/d1; t=(f64)D_8021B098 then sign test via *(volatile s32*)&D_8021B098 < 0 (adds t += D_8021DBA8); r = -__cosf((f32)(q*t))*half + half; D_8021B098 += 1; return (s32)r. Signature: f32 __cosf(f32) (one arg, not (f32,s32)); arg2 as u16 with (arg2&0xFF)==0 check. Remaining diffs: target loads D_8021DBA0 (lui/ldc1) before the cvt.d.s of the product and reads D_8021B098 with a bare %lo lw (no addiu), i.e. the volatile cast adds an addiu; the target also has a nop after bnez, and final add.s writes fs0 (f20) directly. Untested: a plain global read for the sign test placed after q's division, and reordering the cvt.d.s of the product before the ldc1 of DBA8.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794707106.107873,
-  "score_before": 1901,
-  "score_after": 1010
  },
  {
   "function": "func_801C1424",
@@ -10256,14 +10240,6 @@
   "score_after": 120
  },
  {
-  "function": "func_80205D48",
-  "text": "Best saved 740 (historical, rechecks ~1010-1020 now). Target loads D_8021B098 with lwc1 directly into an FPR then cvt.d.w (t=(f64)D_8021B098), and reloads it with lw for the sign test; target has no addiu for the volatile reload. Tried this session: plain `D_8021B098 < 0` (1020, gives mtc1 instead of lwc1); volatile reload `(*(volatile s32*)&D_8021B098)` (1010, emits addiu+lw); volatile on the t-load (1310); both volatile-t and plain-sign (1020). Unexplored: an int->double conversion form that gcc lowers to lwc1+cvt.d.w on the first read only, and the d1 ordering (target computes 30.0f mul and div before the t load).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794721200.7203672,
-  "score_before": 740,
-  "score_after": 740
- },
- {
   "function": "main",
   "text": "Best 260 (saved source: s32 n=0; u8 buf[n]; func_80033C20(); osCreateThread(D_8004AAB0,1,func_80026E64,0,D_8004CE10,0xA); osStartThread(D_8004AAB0)). Remaining diff: target keeps the $fp frame (move $fp,$sp, 0x20 frame) but has no sp adjustment for a VLA; ours emits addiu $sp,-8 and lw v0,($sp) for the VLA. Tried __builtin_alloca(0) instead of the VLA: 506, worse (wrong ra/fp save offsets, 0x18 vs 0x1c). Open: obtain the fp frame without the VLA allocation code (e.g. a local whose address is taken but not alloca-based) so the sp stays fixed and ra/fp save at 0x1C/0x18.",
   "by": "claude-haiku-5-5-21",
@@ -14110,14 +14086,6 @@
   "created_at": 1794733533.8761868,
   "score_before": 3445,
   "score_after": 1280
- },
- {
-  "function": "func_80205D48",
-  "text": "Best current 1010 (rev dc8dbbc8e4906f50898a), 47/47 insns; saved 740 is stale/unverified. Working C: `f32 __cosf(f32); extern s32 D_8021B098; extern f64 D_8021DBA0; extern f64 D_8021DBA8;` body: `if ((arg2 & 0xFF) == 0) D_8021B098 = 0; half = arg0 / 2.0f; d1 = (f64)(arg1 * 30.0f); q = D_8021DBA0 / d1; t = (f64)D_8021B098; if (*(volatile s32 *)&D_8021B098 < 0) t += D_8021DBA8; r = ((-__cosf((f32)(q * t))) * half) + half; D_8021B098 += 1; return (s32)r;`. The volatile re-read of D_8021B098 for the bgez is required (non-volatile CSEs it and drops an instruction: 1020). Remaining diffs: (1) target emits prologue `addiu sp; sw ra,0x10; sdc1 fs0,0x18` BEFORE `andi $a2,$a2,0xff`, ours emits andi first; (2) target loads the double-conversion operand with `lwc1 $f4,%lo(D_8021B098)($at)` while ours uses `lw $v0,%lo; mtc1`; (3) target's bgez compare load is `lui $v0,%hi; lw $v0,%lo($v0)` (macro form) while the volatile-pointer cast forces `addiu $v0,$v0,%lo; lw $v0,($v0)`; (4) final `add.s $f20,$f0,$f20` must write back into the same register as `half` (ours uses $f0). Tried: plain (non-volatile) compare (1020), `extern vs32` (1210), local s32 copy. Next ideas: avoid the pointer cast by reading through a second volatile-declared alias symbol so the address stays a %lo macro; and get the sum written back into `half` by writing `half = half - cos*half;` / `return (s32)half;`.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794733624.768168,
-  "score_before": 740,
-  "score_after": 740
  },
  {
   "function": "func_801FD23C",
@@ -18256,14 +18224,6 @@
   "score_after": 336
  },
  {
-  "function": "func_80205D48",
-  "text": "Best is 740 (84%), the saved-best form with do{}while(0) for d1/q and the volatile s32 sign test. Remaining diffs: target loads the global with `lui`+`lw %lo(D_8021B098)` directly, but `&D_8021B098` in the volatile test forces an `addiu`+`lw`. `*(volatile s32 *)&D_8021B098 < 0` made no change. Also left: nop placement, cvt.d.s order, and the add.s/trunc register choice. Untried: deriving the sign-test address form another way, or try_local_repairs on the saved candidate.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794747534.7226791,
-  "score_before": 740,
-  "score_after": 740
- },
- {
   "function": "func_80206770",
   "text": "Saved best is m2c draft at 420 (its &-address externs and do{}while(0) wrappers) but it rechecks at 1138 now. Target: `sw $ra` is first, then loads D_3EACF0 into $v0 before D_3EA210 into $a2 and then moves $a2 into $a0; the size is `$v0 - $a2` computed last. Tried: local start/end pointers (1258, worse); a local p in the first call (1258). Stack-arg layout is the main gap: target stores the 14 stack args (0x10..0x44) with the first two as 0x40/0 and the fn pointers at 0x1C/0x20, but ours stores `sw $ra` late and orders the arg stores differently. try_local_repairs gave no gain. Untried: a helper wrapper that takes the stack args as one struct, or splitting the last call into separate stores.",
   "by": "claude-haiku-5-5-20",
@@ -21206,14 +21166,6 @@
   "created_at": 1794754595.945585,
   "score_before": 1160,
   "score_after": 985
- },
- {
-  "function": "func_80205D48",
-  "text": "Not matched. Arithmetic order is right (div.s half, mul.s 30, double divide, int->double of D_8021B098, sign-test add of D_8021DBA8, __cosf, neg/mul/add with half). Best saved 740 is not reproduced; my rewrites score 1010 (volatile sign read) to 1020 (plain). Remaining differences: target does an lwc1 int load of D_8021B098 for the cvt.d.w (separate from the lw sign test), the half value lives in $f20 (callee-saved, sdc1 at 0x18 frame), and add.s accumulates into f20 then trunc.w.s from f20. Mine keeps half in f0 and uses f2 for trunc. Untried: keeping half in a separate f32 local that survives the __cosf call so it is saved in $f20.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794754611.5587468,
-  "score_before": 740,
-  "score_after": 740
  },
  {
   "function": "func_801578EC",
@@ -26630,5 +26582,109 @@
   "created_at": 1794761235.205377,
   "score_before": 885,
   "score_after": 885
+ },
+ {
+  "function": "func_80205D48",
+  "text": "Deep permuter: score 1901 \u2192 1805; 2 improvements; 70 candidates tested; 4 cached skips; 0 rejected; 7228s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935725",
+  "created_at": 1794357224.095315,
+  "score_before": 1901,
+  "score_after": 1805
+ },
+ {
+  "function": "func_80205D48",
+  "text": "Best 1010 (78.5%), unmatched. Saved-best 1901 was a permuter variant; my source now reaches 1010 with: half = arg0/2.0f first; d1=(f64)(arg1*30.0f); q=D_8021DBA0/d1; t=(f64)D_8021B098 then sign test via *(volatile s32*)&D_8021B098 < 0 (adds t += D_8021DBA8); r = -__cosf((f32)(q*t))*half + half; D_8021B098 += 1; return (s32)r. Signature: f32 __cosf(f32) (one arg, not (f32,s32)); arg2 as u16 with (arg2&0xFF)==0 check. Remaining diffs: target loads D_8021DBA0 (lui/ldc1) before the cvt.d.s of the product and reads D_8021B098 with a bare %lo lw (no addiu), i.e. the volatile cast adds an addiu; the target also has a nop after bnez, and final add.s writes fs0 (f20) directly. Untested: a plain global read for the sign test placed after q's division, and reordering the cvt.d.s of the product before the ldc1 of DBA8.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794707106.107873,
+  "score_before": 1901,
+  "score_after": 1010
+ },
+ {
+  "function": "func_80205D48",
+  "text": "Best saved 740 (historical, rechecks ~1010-1020 now). Target loads D_8021B098 with lwc1 directly into an FPR then cvt.d.w (t=(f64)D_8021B098), and reloads it with lw for the sign test; target has no addiu for the volatile reload. Tried this session: plain `D_8021B098 < 0` (1020, gives mtc1 instead of lwc1); volatile reload `(*(volatile s32*)&D_8021B098)` (1010, emits addiu+lw); volatile on the t-load (1310); both volatile-t and plain-sign (1020). Unexplored: an int->double conversion form that gcc lowers to lwc1+cvt.d.w on the first read only, and the d1 ordering (target computes 30.0f mul and div before the t load).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794721200.7203672,
+  "score_before": 740,
+  "score_after": 740
+ },
+ {
+  "function": "func_80205D48",
+  "text": "Best current 1010 (rev dc8dbbc8e4906f50898a), 47/47 insns; saved 740 is stale/unverified. Working C: `f32 __cosf(f32); extern s32 D_8021B098; extern f64 D_8021DBA0; extern f64 D_8021DBA8;` body: `if ((arg2 & 0xFF) == 0) D_8021B098 = 0; half = arg0 / 2.0f; d1 = (f64)(arg1 * 30.0f); q = D_8021DBA0 / d1; t = (f64)D_8021B098; if (*(volatile s32 *)&D_8021B098 < 0) t += D_8021DBA8; r = ((-__cosf((f32)(q * t))) * half) + half; D_8021B098 += 1; return (s32)r;`. The volatile re-read of D_8021B098 for the bgez is required (non-volatile CSEs it and drops an instruction: 1020). Remaining diffs: (1) target emits prologue `addiu sp; sw ra,0x10; sdc1 fs0,0x18` BEFORE `andi $a2,$a2,0xff`, ours emits andi first; (2) target loads the double-conversion operand with `lwc1 $f4,%lo(D_8021B098)($at)` while ours uses `lw $v0,%lo; mtc1`; (3) target's bgez compare load is `lui $v0,%hi; lw $v0,%lo($v0)` (macro form) while the volatile-pointer cast forces `addiu $v0,$v0,%lo; lw $v0,($v0)`; (4) final `add.s $f20,$f0,$f20` must write back into the same register as `half` (ours uses $f0). Tried: plain (non-volatile) compare (1020), `extern vs32` (1210), local s32 copy. Next ideas: avoid the pointer cast by reading through a second volatile-declared alias symbol so the address stays a %lo macro; and get the sum written back into `half` by writing `half = half - cos*half;` / `return (s32)half;`.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794733624.768168,
+  "score_before": 740,
+  "score_after": 740
+ },
+ {
+  "function": "func_80205D48",
+  "text": "Best is 740 (84%), the saved-best form with do{}while(0) for d1/q and the volatile s32 sign test. Remaining diffs: target loads the global with `lui`+`lw %lo(D_8021B098)` directly, but `&D_8021B098` in the volatile test forces an `addiu`+`lw`. `*(volatile s32 *)&D_8021B098 < 0` made no change. Also left: nop placement, cvt.d.s order, and the add.s/trunc register choice. Untried: deriving the sign-test address form another way, or try_local_repairs on the saved candidate.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794747534.7226791,
+  "score_before": 740,
+  "score_after": 740
+ },
+ {
+  "function": "func_80205D48",
+  "text": "Not matched. Arithmetic order is right (div.s half, mul.s 30, double divide, int->double of D_8021B098, sign-test add of D_8021DBA8, __cosf, neg/mul/add with half). Best saved 740 is not reproduced; my rewrites score 1010 (volatile sign read) to 1020 (plain). Remaining differences: target does an lwc1 int load of D_8021B098 for the cvt.d.w (separate from the lw sign test), the half value lives in $f20 (callee-saved, sdc1 at 0x18 frame), and add.s accumulates into f20 then trunc.w.s from f20. Mine keeps half in f0 and uses f2 for trunc. Untried: keeping half in a separate f32 local that survives the __cosf call so it is saved in $f20.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794754611.5587468,
+  "score_before": 740,
+  "score_after": 740
+ },
+ {
+  "function": "func_80205D48",
+  "text": "Not matched; saved best 740 (permuter) still better. Closest mine: 1010 (78.5%) with the volatile sign check (`*((volatile s32 *)(&D_8021B098)) < 0`) and the existing candidate body. Remaining diffs: (1) the target reads D_8021B098 as a float load: `lui at; lwc1 f4,%lo(D_8021B098)(at); cvt.d.w` for t = (f64)D_8021B098, while the sign check is a separate `lui v0; lw v0,%lo(...)(v0)`; my code uses an integer load for t and the sign check reuses it. (2) Plain `D_8021B098 < 0` (non-volatile) gives 1020 and changes the sign check to `mtc1` reuse; the volatile form is what produces the separate lw. (3) The target puts the `nop` after the bnez in the if-body and computes add.s f20 from f0 before trunc. Next: keep the volatile check, and try getting t's load to be an lwc1 of the same symbol (e.g. read the int via a float-typed pointer only for the conversion).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794756863.9155798,
+  "score_before": 740,
+  "score_after": 740
+ },
+ {
+  "function": "func_80205D48",
+  "text": "EXACT diagnostic match under O1; complete matching source in function-only suggest pending apply (automatic changes disabled). Declare counter extern u32 D_8021B098, no manual signed correction. half=arg0/2; r=-__cosf((D_8021DBA0/(arg1*30.0f))*D_8021B098)*half+half; half=r; D_8021B098++; return half; u8 arg2 if zero reset. Separate r then half=r critical: direct self assignment reverses add operands score5; r return score15. No more O2 volatile tuning needed.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794758271.5507898,
+  "score_before": 740,
+  "score_after": 740
+ },
+ {
+  "function": "func_80205D48",
+  "text": "Cannot get closer under -O2 (needs MEM operand kept in u32->f64 conversion = no -fforce-mem). MATCHES at -O1 via try_compiler; suggest() filed with source: extern u32 D_8021B098; extern f64 D_8021DBA0; u8 arg2; if(arg2==0)D=0; half=arg0/2.0f; r=-__cosf((f32)((D_8021DBA0/(f64)(arg1*30.0f))*D_8021B098))*half+half; half=r; D_8021B098++; return (s32)half;",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794758462.8622808,
+  "score_before": 740,
+  "score_after": 740
+ },
+ {
+  "function": "func_80205D48",
+  "text": "Exact O1 source/profile bundle submitted via suggest. Core repair: ordinary signed global read t=(f64)D_8021B098; ordinary sign test if(D_8021B098<0) t+=D_8021DBA8. r=-cosf(...)*half; r+=half;half=r; increment global; return(s32)half. Direct half=r+half swaps add operands (score5); temporary += then assign makes exact0.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794759612.542625,
+  "score_before": 740,
+  "score_after": 740
+ },
+ {
+  "function": "func_80205D48",
+  "text": "Matches at KMC -O1 (suggestion submitted): D_8021B098 is u32, arg2 is u8; r = -__cosf(D_8021DBA0/(arg1*30.0f)*D_8021B098)*half+half; half=r; D_8021B098++; return half.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794759742.221204,
+  "score_before": 740,
+  "score_after": 740
+ },
+ {
+  "function": "func_80205D48",
+  "text": "Verified exact -O1 bundle78f5b0a8d1c607ed925a submitted suggest; auto changes off. New signed-global source removes volatile explicit-read cast. half=arg0/2; q=constant/(arg1*30); t=(f64)D; if(D<0)t+=correction; {f32 r=-cos(q*t)*half+half;half=r;} increment global;return half. Scoped temp fixes last add.s operand allocation.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794760695.908205,
+  "score_before": 740,
+  "score_after": 740
+ },
+ {
+  "function": "func_80205D48",
+  "text": "MATCHES at -O1: D_8021B098 is u32 (the DBA8 add is compiler u32->double fixup), u8 arg2; t = -__cosf(D_8021DBA0/(arg1*30.0f)*D_8021B098)*half; t += half; half = t. Function-only -O1 suggestion filed.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794760908.30794,
+  "score_before": 740,
+  "score_after": 740
  }
 ]
