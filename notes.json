@@ -25096,70 +25096,6 @@
   "score_after": 6780
  },
  {
-  "function": "normalize_angle_degrees",
-  "text": "Deep permuter: score 810 \u2192 810; 0 improvements; 69 candidates tested; 12 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935667",
-  "created_at": 1794357120.786191,
-  "score_before": 810,
-  "score_after": 810
- },
- {
-  "function": "normalize_angle_degrees",
-  "text": "Best 875 (78.1%): f32 func_801F9A20(f32 arg0) returning the normalized angle (return value is in $f0, so the function is not void). Body: var=arg0; if (var<0){do var+=360 while(var<0);} else if (var>=360){do var-=360 while(var>=360);} return var. Remaining: target starts with mov.s $f0,$f12 (arg copied into the return reg before the compare), then mtc1 zero->$f2, bc1f, mov.s $f4,$f2 (zero copied into f4 for the loop compare), 360 loaded into $f2 by lui/mtc1 and added; loop compares against f4 (zero). Target is 40 insns, ours 32. Tried: local zero variable (no effect). Untried: a separate limit variable for 360 so the loop reads it from another register, or a 0.0f copy used only in the loop compare.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794706232.3871639,
-  "score_before": 900,
-  "score_after": 875
- },
- {
-  "function": "normalize_angle_degrees",
-  "text": "Best 875 (78%, revision 03e186b4c7b3bac15123). Control flow now matches: x<0 do-while adding 360 with bc1tl; else-if x>=360 do-while subtracting 360. Remaining diff is register/ordering: target keeps 0.0 in $f2 and loads 360.0 into $f2 (mtc1 $at,$f2) in the loop, while mine uses $f4 for both, and the target's first compare/mov block (mov.s $f0,$f12 then c.lt.s $f0,$f2 with nops before bc1f .L5c) is absent in mine. Tried: local constant k (2045, worse), same source again (875). Next idea: swap constant roles (write the 0.0f compare as 0.0f > var or 360 compare first) to shift FP register allocation to $f2.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794720400.223156,
-  "score_before": 875,
-  "score_after": 875
- },
- {
-  "function": "normalize_angle_degrees",
-  "text": "Angle normaliser to [0,360). Best = 550 with the plain while-loop form (saved best, revision 8695d9893ec1efaccd5d): 36 insns vs target 40. do/while rewrite regressed to 875 (32 insns, dropped the duplicated entry checks) \u2014 do not use it.\n\nTarget structure (40 insns):\n  mov.s f0,f12 ; mtc1 zero,f2 ; c.lt.s f0,f2 ; bc1f .L7c ; mov.s f4,f2 (delay) ; c.lt.s f0,f2 ; bc1f .Lb8 ; then 360.0 load, add.s, loop .L60: c.lt.s f0,f4 / bc1tl .L60 / add.s ; j .Lb8\n  .L7c: 360.0 load ; c.le.s f4,f0 ; bc1f .Lb8 ; bc1f .Lb8 ; sub.s f0,f0,f4 ; loop .La4: c.le.s f4,f0 / bc1tl / sub.s\n  .Lb8: jr $ra\n\nKey gaps left: the target keeps 0.0f in $f2 and 360.0f in $f4 as two separate live constants, and emits the *first* comparison twice (once for the if, once for the while condition) with `mov.s $f4,$f2` in the first bc1f delay slot (copying 0.0f into the loop-limit register). The candidate CSEs the second compare away. Ideas not yet tried: name the zero constant in a local `f32 zero = 0.0f;` used in both the if and the while condition, or restructure as `if (x < 0.0f) { if (x < 0.0f) { do { x += 360.0f; } while (x < 0.0f); } }` so the duplicated compare survives; the >= branch likewise shows two bc1f to the exit (if-check then while-check) which suggests the same duplicated-condition shape on that side. Also worth a try: search_flags / try_compiler -O1 on the 550 source (see knowledge #339302416414).",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794725963.0764349,
-  "score_before": 875,
-  "score_after": 550
- },
- {
-  "function": "normalize_angle_degrees",
-  "text": "Best: revision 8695d9893ec1efaccd5d, score 550 (86.2%), a 40-insn target vs 36 mine. Source: f32 func_801F9A20(f32 arg0): if (v < 0.0f) { while (v < 0.0f) v += 360.0f; } else if (v >= 360.0f) { while (v >= 360.0f) v -= 360.0f; } return v. Remaining diffs: the target copies the zero into $f4 with mov.s $f4,$f2 and compares c.lt.s $f0,$f2 before the loop, plus an extra nop; mine has the 360 constant in $f4 and zero in $f2, so the register roles are swapped and the sequence is reordered. Tried: swapping the two if-branches (2550, worse), and reverting to the original order (back to 550). Next: test a do/while form of each loop, or write the zero comparison as a separate test before the loop, so the target's c.lt.s/mov.s pair appears before the first bc1f. Not tried: local constant variables.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794729194.1386611,
-  "score_before": 550,
-  "score_after": 550
- },
- {
-  "function": "normalize_angle_degrees",
-  "text": "Best 550 (rev 8695d9893ec1efaccd5d, 86.2%). Remaining diff is constant register allocation and the order of the zero/360 constants: target loads 0.0f into $f2 (mtc1 $zero,$f2), keeps 360.0f in $f4 via `mov.s $f4,$f2` after an `lui $at,0x43b4; mtc1` (so the 360 constant is loaded into $f2 first, then copied), and compares with c.lt.s $f0,$f2 before the add/sub loops. Tried with zero/k as locals: 1625 (worse, lost the mov.s structure). Untried: swap the roles so the 360 load comes first (e.g. write the >= 360 test before the < 0 test, or use `f32 k = 360.0f;` declared before `zero`).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794730214.5744362,
-  "score_before": 550,
-  "score_after": 550
- },
- {
-  "function": "normalize_angle_degrees",
-  "text": "Not matched; move-on budget used. Wrap-to-[0,360) for an f32 (arg0 in $f12): if x<0 add 360 in a loop until >=0; else if x>=360 subtract 360 until <360; return x. Best: 550 (86.2%) with the plain while-loop form (revision 8695d9893ec1efaccd5d). Diff: the target keeps the 0.0 constant in $f4 (mtc1 $zero,$f2; mov.s $f4,$f2) and uses it for the loop condition `c.lt.s $f0,$f4`, while 360.0 stays in $f2 (`lui 0x43B4; mtc1 $at,$f2`); the target's first compare is `c.lt.s $f0,$f2` against the zero before the mov. Mine loads 0 and 360 the other way round (360 in $f4 for the add, zero in $f2). A local `f32 zero = 0.0f` gives the same 550 (both in the loop and only in the first test). Next: write the loop as `do`/while with `zero` declared after var_fv0, or swap constant roles (add 360 via an explicit local `f32 period`), and check whether the target's extra `mov.s $f0,$f12` copy appears before the first compare.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794731284.089312,
-  "score_before": 550,
-  "score_after": 550
- },
- {
-  "function": "normalize_angle_degrees",
-  "text": "Angle normaliser: wraps arg0 into [0,360). Target shape (46 insns): mov.s $f0,$f12; mtc1 $zero,$f2; c.lt.s $f0,$f2; bc1f .L7C (delay slot mov.s $f4,$f2); c.lt.s $f0,$f2; bc1f .L98; add.s loop vs $f4 with bc1tl; j .L98; .L7C: mtc1 360->$f2; c.le.s $f2,$f0; bc1f .L98; bc1f .L98; sub.s loop with bc1tl.\nBest verified: 520 with `void f(f32)` + `f32 var = arg0;` + duplicated guards `if (var<0){ if(var<0){ do{var+=360;}while(var<0);} } else if (var>=360){ if(var>=360){ do{var-=360;}while(var>=360);} }` (revision 611623bd9ee56134da2a). Changing to f32 return + `return var;` gave 550 (a34eaf163abb0e5618a0) - recovers mov.s $f0,$f12 but shifts the loop constant register. Removing the inner guard on the positive branch scored 710; single `while` loops scored 520.\nRemaining gap is only scheduling/regalloc: target makes a *separate* copy $f4 of the zero constant in the bc1f delay slot and compares the loop against $f4 while the guards use $f2; my C reuses one register. Try the saved next_experiment: a distinct named zero local used in the loop condition, on top of the 550 source (f32 return + duplicated guards).",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794739880.05735,
-  "score_before": 390,
-  "score_after": 390
- },
- {
   "function": "func_800E067C",
   "text": "Stopping: my rewrite (revision 0b599c2b39c9460141bb, score 10525) is a wrong and much shorter version (69 insns vs 142): it dropped the second and third pointer-chain blocks and the D_8011F2F1 stride/branch structure, so the compile budget is not informative here; this needs a full structural rewrite, not register tuning. Start from the m2c draft (revision 031ddcf6762d73e292d4) or the saved best 4605. Target structure: a loop over slot index cur (initial from D_800E1850; next via D_8011F300[i].f0, stop on 0xFFFF or >= D_80233EC0). Per slot with D_8011F2F1[i*100] == 2: walk D_8011F340[i] -> +4 -> +4 -> +4 with NULL checks; three f32 results from s16 fields at +0x40/+0x42/+0x44 minus +0x50/+0x52/+0x54 scaled by D_800E1E70 (f64), stored to D_8011F334/338/33C at stride 100; fallback copies D_8011F308/30C/310 when a link is NULL. Also check the second chain-walk for the other D_8011F2F1 value. Release with that for a fresh pass.",
   "by": "claude-haiku-5-5-23",
@@ -25294,5 +25230,69 @@
   "created_at": 1794754171.290734,
   "score_before": 5,
   "score_after": 5
+ },
+ {
+  "function": "normalize_angle_degrees",
+  "text": "Deep permuter: score 810 \u2192 810; 0 improvements; 69 candidates tested; 12 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935667",
+  "created_at": 1794357120.786191,
+  "score_before": 810,
+  "score_after": 810
+ },
+ {
+  "function": "normalize_angle_degrees",
+  "text": "Best 875 (78.1%): f32 func_801F9A20(f32 arg0) returning the normalized angle (return value is in $f0, so the function is not void). Body: var=arg0; if (var<0){do var+=360 while(var<0);} else if (var>=360){do var-=360 while(var>=360);} return var. Remaining: target starts with mov.s $f0,$f12 (arg copied into the return reg before the compare), then mtc1 zero->$f2, bc1f, mov.s $f4,$f2 (zero copied into f4 for the loop compare), 360 loaded into $f2 by lui/mtc1 and added; loop compares against f4 (zero). Target is 40 insns, ours 32. Tried: local zero variable (no effect). Untried: a separate limit variable for 360 so the loop reads it from another register, or a 0.0f copy used only in the loop compare.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794706232.3871639,
+  "score_before": 900,
+  "score_after": 875
+ },
+ {
+  "function": "normalize_angle_degrees",
+  "text": "Best 875 (78%, revision 03e186b4c7b3bac15123). Control flow now matches: x<0 do-while adding 360 with bc1tl; else-if x>=360 do-while subtracting 360. Remaining diff is register/ordering: target keeps 0.0 in $f2 and loads 360.0 into $f2 (mtc1 $at,$f2) in the loop, while mine uses $f4 for both, and the target's first compare/mov block (mov.s $f0,$f12 then c.lt.s $f0,$f2 with nops before bc1f .L5c) is absent in mine. Tried: local constant k (2045, worse), same source again (875). Next idea: swap constant roles (write the 0.0f compare as 0.0f > var or 360 compare first) to shift FP register allocation to $f2.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794720400.223156,
+  "score_before": 875,
+  "score_after": 875
+ },
+ {
+  "function": "normalize_angle_degrees",
+  "text": "Angle normaliser to [0,360). Best = 550 with the plain while-loop form (saved best, revision 8695d9893ec1efaccd5d): 36 insns vs target 40. do/while rewrite regressed to 875 (32 insns, dropped the duplicated entry checks) \u2014 do not use it.\n\nTarget structure (40 insns):\n  mov.s f0,f12 ; mtc1 zero,f2 ; c.lt.s f0,f2 ; bc1f .L7c ; mov.s f4,f2 (delay) ; c.lt.s f0,f2 ; bc1f .Lb8 ; then 360.0 load, add.s, loop .L60: c.lt.s f0,f4 / bc1tl .L60 / add.s ; j .Lb8\n  .L7c: 360.0 load ; c.le.s f4,f0 ; bc1f .Lb8 ; bc1f .Lb8 ; sub.s f0,f0,f4 ; loop .La4: c.le.s f4,f0 / bc1tl / sub.s\n  .Lb8: jr $ra\n\nKey gaps left: the target keeps 0.0f in $f2 and 360.0f in $f4 as two separate live constants, and emits the *first* comparison twice (once for the if, once for the while condition) with `mov.s $f4,$f2` in the first bc1f delay slot (copying 0.0f into the loop-limit register). The candidate CSEs the second compare away. Ideas not yet tried: name the zero constant in a local `f32 zero = 0.0f;` used in both the if and the while condition, or restructure as `if (x < 0.0f) { if (x < 0.0f) { do { x += 360.0f; } while (x < 0.0f); } }` so the duplicated compare survives; the >= branch likewise shows two bc1f to the exit (if-check then while-check) which suggests the same duplicated-condition shape on that side. Also worth a try: search_flags / try_compiler -O1 on the 550 source (see knowledge #339302416414).",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794725963.0764349,
+  "score_before": 875,
+  "score_after": 550
+ },
+ {
+  "function": "normalize_angle_degrees",
+  "text": "Best: revision 8695d9893ec1efaccd5d, score 550 (86.2%), a 40-insn target vs 36 mine. Source: f32 func_801F9A20(f32 arg0): if (v < 0.0f) { while (v < 0.0f) v += 360.0f; } else if (v >= 360.0f) { while (v >= 360.0f) v -= 360.0f; } return v. Remaining diffs: the target copies the zero into $f4 with mov.s $f4,$f2 and compares c.lt.s $f0,$f2 before the loop, plus an extra nop; mine has the 360 constant in $f4 and zero in $f2, so the register roles are swapped and the sequence is reordered. Tried: swapping the two if-branches (2550, worse), and reverting to the original order (back to 550). Next: test a do/while form of each loop, or write the zero comparison as a separate test before the loop, so the target's c.lt.s/mov.s pair appears before the first bc1f. Not tried: local constant variables.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794729194.1386611,
+  "score_before": 550,
+  "score_after": 550
+ },
+ {
+  "function": "normalize_angle_degrees",
+  "text": "Best 550 (rev 8695d9893ec1efaccd5d, 86.2%). Remaining diff is constant register allocation and the order of the zero/360 constants: target loads 0.0f into $f2 (mtc1 $zero,$f2), keeps 360.0f in $f4 via `mov.s $f4,$f2` after an `lui $at,0x43b4; mtc1` (so the 360 constant is loaded into $f2 first, then copied), and compares with c.lt.s $f0,$f2 before the add/sub loops. Tried with zero/k as locals: 1625 (worse, lost the mov.s structure). Untried: swap the roles so the 360 load comes first (e.g. write the >= 360 test before the < 0 test, or use `f32 k = 360.0f;` declared before `zero`).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794730214.5744362,
+  "score_before": 550,
+  "score_after": 550
+ },
+ {
+  "function": "normalize_angle_degrees",
+  "text": "Not matched; move-on budget used. Wrap-to-[0,360) for an f32 (arg0 in $f12): if x<0 add 360 in a loop until >=0; else if x>=360 subtract 360 until <360; return x. Best: 550 (86.2%) with the plain while-loop form (revision 8695d9893ec1efaccd5d). Diff: the target keeps the 0.0 constant in $f4 (mtc1 $zero,$f2; mov.s $f4,$f2) and uses it for the loop condition `c.lt.s $f0,$f4`, while 360.0 stays in $f2 (`lui 0x43B4; mtc1 $at,$f2`); the target's first compare is `c.lt.s $f0,$f2` against the zero before the mov. Mine loads 0 and 360 the other way round (360 in $f4 for the add, zero in $f2). A local `f32 zero = 0.0f` gives the same 550 (both in the loop and only in the first test). Next: write the loop as `do`/while with `zero` declared after var_fv0, or swap constant roles (add 360 via an explicit local `f32 period`), and check whether the target's extra `mov.s $f0,$f12` copy appears before the first compare.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794731284.089312,
+  "score_before": 550,
+  "score_after": 550
+ },
+ {
+  "function": "normalize_angle_degrees",
+  "text": "Angle normaliser: wraps arg0 into [0,360). Target shape (46 insns): mov.s $f0,$f12; mtc1 $zero,$f2; c.lt.s $f0,$f2; bc1f .L7C (delay slot mov.s $f4,$f2); c.lt.s $f0,$f2; bc1f .L98; add.s loop vs $f4 with bc1tl; j .L98; .L7C: mtc1 360->$f2; c.le.s $f2,$f0; bc1f .L98; bc1f .L98; sub.s loop with bc1tl.\nBest verified: 520 with `void f(f32)` + `f32 var = arg0;` + duplicated guards `if (var<0){ if(var<0){ do{var+=360;}while(var<0);} } else if (var>=360){ if(var>=360){ do{var-=360;}while(var>=360);} }` (revision 611623bd9ee56134da2a). Changing to f32 return + `return var;` gave 550 (a34eaf163abb0e5618a0) - recovers mov.s $f0,$f12 but shifts the loop constant register. Removing the inner guard on the positive branch scored 710; single `while` loops scored 520.\nRemaining gap is only scheduling/regalloc: target makes a *separate* copy $f4 of the zero constant in the bc1f delay slot and compares the loop against $f4 while the guards use $f2; my C reuses one register. Try the saved next_experiment: a distinct named zero local used in the loop condition, on top of the 550 source (f32 return + duplicated guards).",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794739880.05735,
+  "score_before": 390,
+  "score_after": 390
  }
 ]
