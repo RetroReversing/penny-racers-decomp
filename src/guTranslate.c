@@ -9,9 +9,8 @@ void guTranslate(void *arg0, f32 arg1, f32 arg2, f32 arg3)
 
     m = &mtx[0][0];
     guMtxIdentF(m);
-    m[0] = arg1;
-    m[5] = arg2;
-    m[10] = arg3;
-    m[15] = 1.0f;
+    m[12] = arg1;
+    m[13] = arg2;
+    m[14] = arg3;
     guMtxF2L(m, arg0);
 }
