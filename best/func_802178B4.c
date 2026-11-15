@@ -25,6 +25,8 @@ u8 func_80205D48(f32, f32, s32);
 #define PLR (D_8011F350[D_8018BC3C * 25])
 
 void func_802178B4(u16 arg0) {
+int __repair_constant = 4;
+
     u16 i, j;
 
     switch (R(u16, D_8011F32E, arg0)) {
@@ -62,7 +64,7 @@ void func_802178B4(u16 arg0) {
     case 2:
         if (PLR[0] == 0) {
             for (i = D_800E1850; i != 0xFFFF; i = R(u16, D_8011F300, i)) {
-                R(u8, D_8011F2FD, i) = 4;
+                R(u8, D_8011F2FD, i) = __repair_constant;
             }
             R(u8, D_8011F2FD, arg0) = 0;
             R(u16, D_8011F2F2, arg0) |= 0x20;
@@ -76,7 +78,7 @@ void func_802178B4(u16 arg0) {
     case 3:
         R(f32, D_8011F338, arg0) = (u16)((u32)R(f32, D_8011F338, arg0) + 1);
         if ((u16)(u32)R(f32, D_8011F33C, arg0) < (u16)(u32)R(f32, D_8011F338, arg0)) {
-            R(u16, D_8011F32E, arg0) = 4;
+            R(u16, D_8011F32E, arg0) = __repair_constant;
         }
         break;
     case 5:

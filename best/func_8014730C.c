@@ -18,7 +18,7 @@ s32 func_8014BAC0(s32);                             /* extern */
 M2C_UNK func_801DD938(M2C_UNK, M2C_UNK, M2C_UNK, M2C_UNK, s32, s32, s32, s32, s32, s32); /* extern */
 M2C_UNK func_801E1EEC(M2C_UNK, M2C_UNK);            /* extern */
 extern M2C_UNK D_8006FAF0;
-extern M2C_UNK D_8011F2F0;
+extern u8 D_8011F2F0[];
 extern u8 D_80189B34;
 extern u8 D_80189B36;
 extern u8 D_80189C9D;
@@ -48,7 +48,7 @@ void func_8014730C(s32 arg0) {
     void *temp_s0;
 
     var_v0_4 = arg0 & 0xFFFF;
-    temp_s0 = (var_v0_4 * 0x64) + &D_8011F2F0;
+    temp_s0 = (var_v0_4 * 0x64) + D_8011F2F0;
     temp_s1 = func_8014BAC0(var_v0_4);
     temp_v1 = M2C_FIELD(temp_s0, u16 *, 0x3E);
     switch (temp_v1) {                              /* switch 1; irregular */

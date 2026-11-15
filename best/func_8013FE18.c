@@ -1,23 +1,24 @@
 #define F(p, type, off) (*(type *)((u8 *)(p) + (off)))
 
+typedef struct {
+    u8 *p;
+    u8 pad[0x60];
+} Rec64;
+
 s32 func_8013E364();
 void func_800DF1E0(u16, void *);
 void func_8013F44C(u16, void *);
 void func_801D7028(u16, s32);
 void func_8022FE50(s32, s32, s32, s32);
 
-extern u32 D_8006F9E8;
+extern u16 D_8006F9E8;
 extern u8 D_800DA26A[];
 extern u8 D_8011F2F0[];
 extern u8 D_8011F304[];
 extern u8 D_8011F32E[];
 extern u8 D_8011F334[];
 extern u8 D_8011F33C[];
-typedef struct {
-    u8 *p;
-    u8 pad[0x60];
-} Rec100;
-extern Rec100 D_8011F340[];
+extern Rec64 D_8011F340[];
 extern u8 *D_8018A280;
 extern s32 D_8018D674;
 extern u8 D_8018D6C0[];
@@ -31,8 +32,10 @@ extern u8 D_80322A4C[];
 
 void func_8013FE18(s32 arg0) {
     u8 *p;
+    u8 *q;
     s32 r;
     s32 i;
+    u32 u;
 
     if ((D_8006F9E8 & 0xFFFF) != 5) {
         switch (F(D_8011F32E, u16, (arg0 & 0xFFFF) * 0x64)) {
@@ -61,25 +64,26 @@ void func_8013FE18(s32 arg0) {
                 case 2:
                 case 3:
                     F(p, u8 **, 0x8E0) = D_80322A4C;
+                    F(p, s32, 0x5EC) = 0;
+                    break;
                 default:
                     F(p, s32, 0x5EC) = 0;
                     break;
                 }
                 F(D_8011F340[F(D_8011F304, u16, F(p, u16, 2) * 0x64)].p, u8 **, 4) = D_80237980;
                 func_800DF1E0(F(D_8011F304, u16, F(p, u16, 2) * 0x64), p + 0x210);
-                F(D_8011F33C, f32, ((s32) F(D_8011F334, f32, F(p, u16, 2) * 0x64) & 0xFFFF) * 0x64) = 0.4f;
-                F(D_8011F340[(F(p, u16, 2) + 5) * 0x64].p, u8 **, 4) = 0;
-                F(D_8011F340[(F(p, u16, 2) + 6) * 0x64].p, u8 **, 4) = 0;
-                F(D_8011F340[(F(p, u16, 2) + 7) * 0x64].p, u8 **, 4) = 0;
+                u = (u32) F(D_8011F334, f32, F(p, u16, 2) * 0x64);
+                F(D_8011F33C, f32, (u & 0xFFFF) * 0x64) = 0.4f;
+                F(D_8011F340[F(p, u16, 2) + 5].p, s32, 4) = 0;
+                F(D_8011F340[F(p, u16, 2) + 6].p, s32, 4) = 0;
+                F(D_8011F340[F(p, u16, 2) + 7].p, s32, 4) = 0;
                 F(p, s16, 0x8E4) = 0x27;
                 F(p, s16, 0x8E6) = 0x26;
                 F(p, s16, 0x8E8) = 0;
-                F(D_8011F2F0 + F(p, u16, 2) * 0x64, f32, 0x30) =
-                    F(D_8011F2F0 + F(p, u16, 2) * 0x64, f32, 0x30) + F(D_8011F2F0 + F(p, u16, 2) * 0x64, f32, 0x30);
-                F(D_8011F2F0 + F(p, u16, 2) * 0x64, f32, 0x34) =
-                    F(D_8011F2F0 + F(p, u16, 2) * 0x64, f32, 0x34) + F(D_8011F2F0 + F(p, u16, 2) * 0x64, f32, 0x34);
-                F(D_8011F2F0 + F(p, u16, 2) * 0x64, f32, 0x38) =
-                    F(D_8011F2F0 + F(p, u16, 2) * 0x64, f32, 0x38) + F(D_8011F2F0 + F(p, u16, 2) * 0x64, f32, 0x38);
+                q = D_8011F2F0 + F(p, u16, 2) * 0x64;
+                F(q, f32, 0x30) = F(q, f32, 0x30) + F(q, f32, 0x30);
+                F(q, f32, 0x34) = F(q, f32, 0x34) + F(q, f32, 0x34);
+                F(q, f32, 0x38) = F(q, f32, 0x38) + F(q, f32, 0x38);
                 D_8018A280 = D_8018D6C0 + (r & 0xFFFF) * 0x7C;
                 F(D_8018A280, f32, 0x70) = 30.0f;
                 for (i = 0; i < 7; i++) {

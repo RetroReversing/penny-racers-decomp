@@ -1,6 +1,6 @@
 extern u8 D_80189CC9[];
 extern u8 D_8018A276;
-extern s32 D_8018A277;
+extern u8 D_8018A277[];
 extern s32 D_8018D3A0;
 void func_8014981C(s32 arg0)
 {
@@ -39,7 +39,7 @@ void func_8014981C(s32 arg0)
     var_a3 = 0;
     do
     {
-      temp_t2 = (*((&D_8018A277) + (var_t0_2 & 0xFF))) & 0xF;
+      temp_t2 = (*((D_8018A277) + (var_t0_2 & 0xFF))) & 0xF;
       var_a1 = 0;
       var_a0 = 1;
       loop_5:

@@ -118,10 +118,10 @@ void _n_handleEvent(void *arg0) {
         }
         break;
     case 8:
-        temp_a1 = *((u8 *)arg0 + 8);
-        temp_s0[0x2F] = temp_a1;
+        temp_v0 = (u8)(*((u8 *)arg0 + 8));
+        temp_s0[0x2F] = temp_v0;
         if (*(s32 *)(temp_s0 + 0x28) == 1) {
-            func_80030250(temp_s0, temp_a1);
+            func_80030250(temp_s0, temp_v0);
             return;
         }
         break;
