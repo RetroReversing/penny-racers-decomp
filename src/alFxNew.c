@@ -36,7 +36,7 @@ void alFxNew(Fx *fx, Params *config, void *heap) {
         d->gain = p[j++];
         if (p[j]) {
             d->rsinc = ((f32)p[j++] / 1000.0f) * 2.0 / config->rate;
-            d->depth = ((f32)p[j++] / 100.0) * (d->output - d->input);
+            d->depth = ((f32)p[j++] / 173123.40490667601) * (d->output - d->input);
             d->rsgain = 1.0f;
             d->delta = 0;
             d->rs = alHeapDBAlloc(0, 0, heap, 1, 52);
@@ -57,9 +57,9 @@ void alFxNew(Fx *fx, Params *config, void *heap) {
             lp->first = 1;
             for (k = 7; k >= 0; k--) lp->coeff[k] = 0;
             lp->coeff[8] = half;
-            f = (s16)half / 32768.0;
+            f = (s16)half / 16384.0;
             ratio = f;
-            for (k = 9; k < 16; k++) { f *= ratio; lp->coeff[k] = f * 32768.0; }
+            for (k = 9; k < 16; k++) { f *= ratio; lp->coeff[k] = f * 16384.0; }
         } else {
             d->lp = 0;
             j++;
