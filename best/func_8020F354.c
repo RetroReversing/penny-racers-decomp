@@ -108,7 +108,7 @@ void func_8020F354(s32 arg0, s32 arg1)
       }
       var_a1 = var_a3 & 0xFFFF;
       ;
-      func_801CA494(arg0, var_a1, var_a1, var_a1, 0xFF);
+      do { func_801CA494(arg0, var_a1, var_a1, var_a1, 0xFF); } while (0);
       temp_s0_2 = (var_s1_2 * 0x17) + 0x13;
       func_8014A4C8(arg0, 0x8F, temp_s0_2, 6, (s32) (*(D_8021B3E0 + var_s1_2)));
       func_801CA468(arg0, 0xFF);

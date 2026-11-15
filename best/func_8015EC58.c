@@ -15,22 +15,23 @@ extern s32 func_8013AF08;
 extern s32 func_8015FD04;
 unsigned int func_8015EC58(s32 arg0)
 {
-  f32 temp_ft0;
-  f32 temp_ft0_2;
   f32 temp_ft0_3;
+  f32 temp_ft0_2;
+  f32 temp_ft0;
   f32 temp_fv0;
-  f32 temp_fv0_2;
+  register f32 temp_fv0_2;
   f32 temp_fv1;
   f32 temp_fv1_2;
   s32 temp_v0_8;
-  s32 temp_v0_9;
+  
   u16 n;
-  void *s0;
+  register void *s0;
   void *a1;
-  void *a0;
-  void *v1;
   void *s2;
+  void *v1;
+  void *a0;
   s32 off;
+s32 __repair_phase_off;
 
   n = arg0 & 0xFFFF;
   off = n * 0x64;
@@ -120,28 +121,28 @@ unsigned int func_8015EC58(s32 arg0)
     v1 = *((void **) ((char *) s0 + 4));
     *((f32 *) ((char *) v1 + 0x7C0)) = *((f32 *) ((char *) v1 + 0x7B4));
     v1 = *((void **) ((char *) s0 + 4));
-    *((f32 *) ((char *) v1 + 0x7C8)) = *((f32 *) ((char *) v1 + 0x7BC));
+    *((f32 *) ((char *) (short)v1 + 0x7C8)) = *((f32 *) ((char *) v1 + 0x7BC));
   }
   if (!(*((u16 *) ((char *) s0 + 0x14)) & 7) && ((u8) *((u8 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x8A1))) < 2U)
   {
     temp_v0_8 = func_800DE41C(0, 0, 1, 0, 0x5B, 0x7F, &D_802390C8, &func_8013AF08, &func_8015FD04, *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x714)), *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x718)), *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x71C)), 0, 0, 0, 0.08f, 0.08f, 0.08f);
     if (((u32) ((temp_v0_8 + 2) & 0xFFFF)) >= 2U)
     {
-      off = (temp_v0_8 & 0xFFFF) * 0x64;
-      *((s16 *) ((char *) &D_8011F2F0 + off + 8)) = 0x40;
-      *((s16 *) ((char *) &D_8011F2F0 + off + 6)) = 0x40;
-      *((s16 *) ((char *) &D_8011F2F0 + off + 4)) = 0x40;
-      AT(s16, D_8011F2F2, off) = 0x40;
-      AT(f32, D_8011F334, off) = *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x7C0));
-      AT(f32, D_8011F338, off) = (*((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x7C4)) * 0.8f) + 1.0f;
-      AT(f32, D_8011F33C, off) = *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x7C8));
-      AT(s16, D_8011F32E, off) = (s16) *((u8 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x7CC));
-      AT(s16, D_8011F2FE, off) = *((u16 *) ((char *) *((void **) ((char *) s0 + 4)) + 2));
+      __repair_phase_off = (temp_v0_8 & 0xFFFF) * 0x64;
+      *((s16 *) ((char *) &D_8011F2F0 + __repair_phase_off + 8)) = 0x40;
+      *((s16 *) ((char *) &D_8011F2F0 + __repair_phase_off + 6)) = 0x40;
+      *((s16 *) ((char *) &D_8011F2F0 + __repair_phase_off + 4)) = 0x40;
+      AT(s16, D_8011F2F2, __repair_phase_off) = 0x40;
+      AT(f32, D_8011F334, __repair_phase_off) = *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x7C0));
+      AT(f32, D_8011F338, __repair_phase_off) = (*((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x7C4)) * 0.8f) + 1.0f;
+      AT(f32, D_8011F33C, __repair_phase_off) = *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x7C8));
+      AT(s16, D_8011F32E, __repair_phase_off) = (s16) *((u8 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x7CC));
+      AT(s16, D_8011F2FE, __repair_phase_off) = *((u16 *) ((char *) *((void **) ((char *) s0 + 4)) + 2));
     }
-    temp_v0_9 = func_800DE41C(0, 0, 1, 0, 0x5B, 0x7F, &D_802390C8, &func_8013AF08, &func_8015FD04, *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x720)), *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x724)), *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x728)), 0, 0, 0, 0.08f, 0.08f, 0.08f);
-    if (((u32) ((temp_v0_9 + 2) & 0xFFFF)) >= 2U)
+    __repair_phase_off = func_800DE41C(0, 0, 1, 0, 0x5B, 0x7F, &D_802390C8, &func_8013AF08, &func_8015FD04, *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x720)), *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x724)), *((f32 *) ((char *) *((void **) ((char *) s0 + 4)) + 0x728)), 0, 0, 0, 0.08f, 0.08f, 0.08f);
+    if (((u32) ((__repair_phase_off + 2) & 0xFFFF)) >= 2U)
     {
-      temp_v0_8 = (temp_v0_9 & 0xFFFF) * 0x64;
+      temp_v0_8 = (__repair_phase_off & 0xFFFF) * 0x64;
       *((s16 *) ((char *) &D_8011F2F0 + temp_v0_8 + 8)) = 0x40;
       *((s16 *) ((char *) &D_8011F2F0 + temp_v0_8 + 6)) = 0x40;
       *((s16 *) ((char *) &D_8011F2F0 + temp_v0_8 + 4)) = 0x40;
