@@ -5552,14 +5552,6 @@
   "score_after": 7376
  },
  {
-  "function": "__vsPan",
-  "text": "Best candidate revision c7f8f4e2f9f8db5e0f95 scores 40 (97.6%, 6 differing rows, all register/operand order). Source: temp = (*(u8*)(*(s32*)(arg0+0x20)+0xC) - 0x40) + *(u8*)(((*(u8*)(arg0+0x31)*0x10) + *(s32*)(arg1+0x60)) + 7); var = temp & (~temp >> 31); if (var >= 0x80) var = 0x7F; return var & 0xFF. Target loads base ptr (lw v0,0x60(a1)) before the index shift and computes sum as ptr + (idx<<4); ours keeps v0/v1 swapped. Tried: separate locals (60, worse), reversing sum operands (no change). Untried: compile_variants with local-declaration orders, or a temp for the 0x20 pointer loaded before 0x31 byte.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794705449.4829261,
-  "score_before": 35,
-  "score_after": 35
- },
- {
   "function": "func_8003EA40",
   "text": "Not expressible in pure C: the loops are built around MIPS `cache` instructions (cache 0x10 and cache 0x00 on $t0, 32-byte line steps), which the assembly marks as \"handwritten instruction\". Only inline asm or a compiler builtin could emit them; the project's compiler has no such builtin in the draft. Left as hand-written assembly.",
   "by": "claude-haiku-5-5-21",
@@ -6238,14 +6230,6 @@
   "created_at": 1794706533.531764,
   "score_before": 0,
   "score_after": 0
- },
- {
-  "function": "__vsPan",
-  "text": "Claimed in a batch but not worked: the session reached its claim limit. No compiles. Available for the next agent.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794706534.160991,
-  "score_before": 35,
-  "score_after": 35
  },
  {
   "function": "func_801485C8",
@@ -8288,14 +8272,6 @@
   "score_after": 4260
  },
  {
-  "function": "__vsPan",
-  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 0; 9 differing rows (1 opcode, 6 register, 1 inserted, 1 deleted; advisory).\nTarget: \nCandidate: lw $v1, 0x20($a0)\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n> T:  | C: lw $v1, 0x20($a0)\nr T: lbu $v1, 0x31($a0) | C: lbu $v0, 0x31($a0)\nr T: lw $v0, 0x60($a1) | C: lw $a0, 0x60($a1)\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nBest 35 (saved best 1fa1ffe4). Target is 17 insns; every attempt reaches 17 insns, all remaining diffs are register/operand.\n\nTarget semantics (read carefully, the diff masks this):\n  b = arg0[0x31]; w = arg1[0x60]; p = arg0->0x20; idx = (b<<4)+w;\n  c = p[0xC]; d = idx[7]; pan = d + (c - 0x40)   <-- addiu is on the c load (v0), addu dest is d's reg (v1, in place over idx)\nThen pan &= ~pan>>31 (max(pan,0)), if (pan>=0x80) pan=0x7F, return (u8)pan.\n\nKey trap: the judge's textual diff shows rows 7/8 (addiu v0 = c-0x40, addu v1 = d+v0) as MATCHING for any source where GCC reassociated the constant onto d, because the register names come out the same. Semantics of the score-40 candidate with `pan = c - 0x40 + d` are actually pan = c + (d - 0x40). GCC 2.7.2 -O2 canonicalises the constant onto the other term no matter how the source orders `(c - 0x40) + d`.\n\nScore evidence (all 17 insns):\n- 35: two statements `pan = c - 0x40; pan += d;` (any operand order) -> GCC folds constant onto d.\n- 40: single expr `pan = c - 0x40 + d` -> still constant on d; remaining diff rows: lbu v1/v0 0x31, lw v0/v1 0x60, sll v1/v0, and the two loads (c/d) swapped.\n- 45: `pan = d + (c - 0x40)`.\n- 245/430: `pan = d + c - 0x40` and `pan = c; pan -= 0x40; pan = d + pan;` -> extra instructions (addu then addiu).\n- Swapping the idx summands (`w + (b<<4)`) changes nothing (GCC canonicalises): byte still lands in v0, word in v1. Target has byte in v1, word in v0.\n- try_local_repairs families (inline_scalar_shape, signedness, declaration_order, address_temporary, sum_shape, inline_byte_address) all -> identical 35.\n\nUntried idea: make the -0x40 un-foldable by keeping it in a variable that is assigned before the d load and re-read after, i.e. `pan = c; pan = pan - 0x40;` then a *separate* statement `pan = d + pan;` \u2014 variants 3/5 above did this and scored 430 (worse), so the two-statement split alone is not it. A likely-next step is to attack the v0/v1 order of the first block instead (byte->v1, word->v0), e.g. by changing which pseudo is created first, or by making the function return type / parameter types differ (u8 return vs s32 & 0xFF).",
-  "by": "opencode-deepseek-v4.1-flash-free-5",
-  "created_at": 1794710343.743721,
-  "score_before": 35,
-  "score_after": 35
- },
- {
   "function": "func_80143250",
   "text": "Best: revision 6a4b47c2c72dbb5e95eb, score 7346 (53.7%). Hand-written; m2c draft is far worse. Key fixes: func_800DE41C MUST have its real prototype (s32 x6, void*x3, f32x3, s32x3, f32x3) \u2014 unprototyped calls promote f32 args to double (cvt.d.s), which broke everything. Args: arg2 a2->f20(fs4), arg3 a3->f22(fs2), arg4 stack 0xB8 f32 (fs5), arg5 stack 0xBC f32, arg6 u16 at 0xC2, arg7 u16 at 0xC6, arg8 u8 at 0xCB, arg9 u8 at 0xCF. k=360.0f/(f32)(arg6&0xFFFF) hoisted (s4); angle=((f32)i*k+arg5)*0.0174f; sin->fs1, cos->fs0; call func_800DE41C(0,0,1,0,0x5B,arg8&0xFF,&D_802390C8,func_801434CC,func_801435A8, sin*arg4+e->0x18, fs3, cos*arg4+e->0x20, 0,0,0, arg3,arg3,arg3). Element store when (u16)(r+2)>=2: s16 +8,+6,+4,+2 = 0x40; f32 +0x44 = sin*arg2; f32 +0x4C = cos*arg2; s32 +0x48 = arg1; u16 +0x40 = arg7. Remaining gap: target frame is 0xA8 with fp,s7..s0,ra and six doubles fs0-fs5 (sdc1); ours is 0xA0, so the stack-arg offsets are 8 low (we load arg4 from 0xB0, target 0xB8). Try adding one more live callee-saved (e.g. keep arg1 in s7 and arg7 in s6 across the calls by using them after the element test) so gcc saves fp,s7 and the frame reaches 0xA8.",
   "by": "claude-haiku-5-5-21",
@@ -9558,14 +9534,6 @@
   "created_at": 1794718126.499042,
   "score_before": 22805,
   "score_after": 22805
- },
- {
-  "function": "__vsPan",
-  "text": "Score 35 (97.9%): all 17 instructions match; only v0/v1 are swapped throughout. Target: lbu v1,0x31(a0); lw v0,0x60(a1); lw a0,0x20(a0); sll v1,v1,4; addu v1,v1,v0; lbu v0,0xc(a0); lbu v1,7(v1); addiu v0,v0,-0x40; addu v1,v1,v0; then nor/sra/and/slti/beql clamp with addiu v1,0x7F; andi v0,v1,0xff. Tried: a pointer idx local (35), split off/base locals (35). Unsolved: the first byte load must land in v1 and the arg1 word in v0. Possibly a struct-based access to arg0 (the proposal about symbol-relative stores) or swapping which expression is written first. Note the clamp is `pan & (~pan >> 31)` then `if (pan >= 0x80) pan = 0x7F`.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794718126.761028,
-  "score_before": 35,
-  "score_after": 35
  },
  {
   "function": "func_8003EA40",
@@ -11646,14 +11614,6 @@
   "created_at": 1794723037.885955,
   "score_before": 1230,
   "score_after": 1230
- },
- {
-  "function": "__vsPan",
-  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 0; 15 differing rows (1 opcode, 12 register, 1 inserted, 1 deleted; advisory).\nTarget: \nCandidate: lw $v1, 0x20($a0)\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n> T:  | C: lw $v1, 0x20($a0)\nr T: lbu $v1, 0x31($a0) | C: lbu $v0, 0x31($a0)\nr T: lw $v0, 0x60($a1) | C: lw $a0, 0x60($a1)\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794723066.69361,
-  "score_before": 35,
-  "score_after": 35
  },
  {
   "function": "func_80164364",
@@ -18118,5 +18078,45 @@
   "created_at": 1794742515.427681,
   "score_before": 915,
   "score_after": 915
+ },
+ {
+  "function": "__vsPan",
+  "text": "Best candidate revision c7f8f4e2f9f8db5e0f95 scores 40 (97.6%, 6 differing rows, all register/operand order). Source: temp = (*(u8*)(*(s32*)(arg0+0x20)+0xC) - 0x40) + *(u8*)(((*(u8*)(arg0+0x31)*0x10) + *(s32*)(arg1+0x60)) + 7); var = temp & (~temp >> 31); if (var >= 0x80) var = 0x7F; return var & 0xFF. Target loads base ptr (lw v0,0x60(a1)) before the index shift and computes sum as ptr + (idx<<4); ours keeps v0/v1 swapped. Tried: separate locals (60, worse), reversing sum operands (no change). Untried: compile_variants with local-declaration orders, or a temp for the 0x20 pointer loaded before 0x31 byte.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794705449.4829261,
+  "score_before": 35,
+  "score_after": 35
+ },
+ {
+  "function": "__vsPan",
+  "text": "Claimed in a batch but not worked: the session reached its claim limit. No compiles. Available for the next agent.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794706534.160991,
+  "score_before": 35,
+  "score_after": 35
+ },
+ {
+  "function": "__vsPan",
+  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 0; 9 differing rows (1 opcode, 6 register, 1 inserted, 1 deleted; advisory).\nTarget: \nCandidate: lw $v1, 0x20($a0)\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n> T:  | C: lw $v1, 0x20($a0)\nr T: lbu $v1, 0x31($a0) | C: lbu $v0, 0x31($a0)\nr T: lw $v0, 0x60($a1) | C: lw $a0, 0x60($a1)\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nBest 35 (saved best 1fa1ffe4). Target is 17 insns; every attempt reaches 17 insns, all remaining diffs are register/operand.\n\nTarget semantics (read carefully, the diff masks this):\n  b = arg0[0x31]; w = arg1[0x60]; p = arg0->0x20; idx = (b<<4)+w;\n  c = p[0xC]; d = idx[7]; pan = d + (c - 0x40)   <-- addiu is on the c load (v0), addu dest is d's reg (v1, in place over idx)\nThen pan &= ~pan>>31 (max(pan,0)), if (pan>=0x80) pan=0x7F, return (u8)pan.\n\nKey trap: the judge's textual diff shows rows 7/8 (addiu v0 = c-0x40, addu v1 = d+v0) as MATCHING for any source where GCC reassociated the constant onto d, because the register names come out the same. Semantics of the score-40 candidate with `pan = c - 0x40 + d` are actually pan = c + (d - 0x40). GCC 2.7.2 -O2 canonicalises the constant onto the other term no matter how the source orders `(c - 0x40) + d`.\n\nScore evidence (all 17 insns):\n- 35: two statements `pan = c - 0x40; pan += d;` (any operand order) -> GCC folds constant onto d.\n- 40: single expr `pan = c - 0x40 + d` -> still constant on d; remaining diff rows: lbu v1/v0 0x31, lw v0/v1 0x60, sll v1/v0, and the two loads (c/d) swapped.\n- 45: `pan = d + (c - 0x40)`.\n- 245/430: `pan = d + c - 0x40` and `pan = c; pan -= 0x40; pan = d + pan;` -> extra instructions (addu then addiu).\n- Swapping the idx summands (`w + (b<<4)`) changes nothing (GCC canonicalises): byte still lands in v0, word in v1. Target has byte in v1, word in v0.\n- try_local_repairs families (inline_scalar_shape, signedness, declaration_order, address_temporary, sum_shape, inline_byte_address) all -> identical 35.\n\nUntried idea: make the -0x40 un-foldable by keeping it in a variable that is assigned before the d load and re-read after, i.e. `pan = c; pan = pan - 0x40;` then a *separate* statement `pan = d + pan;` \u2014 variants 3/5 above did this and scored 430 (worse), so the two-statement split alone is not it. A likely-next step is to attack the v0/v1 order of the first block instead (byte->v1, word->v0), e.g. by changing which pseudo is created first, or by making the function return type / parameter types differ (u8 return vs s32 & 0xFF).",
+  "by": "opencode-deepseek-v4.1-flash-free-5",
+  "created_at": 1794710343.743721,
+  "score_before": 35,
+  "score_after": 35
+ },
+ {
+  "function": "__vsPan",
+  "text": "Score 35 (97.9%): all 17 instructions match; only v0/v1 are swapped throughout. Target: lbu v1,0x31(a0); lw v0,0x60(a1); lw a0,0x20(a0); sll v1,v1,4; addu v1,v1,v0; lbu v0,0xc(a0); lbu v1,7(v1); addiu v0,v0,-0x40; addu v1,v1,v0; then nor/sra/and/slti/beql clamp with addiu v1,0x7F; andi v0,v1,0xff. Tried: a pointer idx local (35), split off/base locals (35). Unsolved: the first byte load must land in v1 and the arg1 word in v0. Possibly a struct-based access to arg0 (the proposal about symbol-relative stores) or swapping which expression is written first. Note the clamp is `pan & (~pan >> 31)` then `if (pan >= 0x80) pan = 0x7F`.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794718126.761028,
+  "score_before": 35,
+  "score_after": 35
+ },
+ {
+  "function": "__vsPan",
+  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 0; 15 differing rows (1 opcode, 12 register, 1 inserted, 1 deleted; advisory).\nTarget: \nCandidate: lw $v1, 0x20($a0)\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n> T:  | C: lw $v1, 0x20($a0)\nr T: lbu $v1, 0x31($a0) | C: lbu $v0, 0x31($a0)\nr T: lw $v0, 0x60($a1) | C: lw $a0, 0x60($a1)\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794723066.69361,
+  "score_before": 35,
+  "score_after": 35
  }
 ]
