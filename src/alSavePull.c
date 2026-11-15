@@ -7491,7 +7491,7 @@ Acmd *alSavePull(void *filter, s16 *outp, s32 outCount, s32 sampleOffset,
 
 
 
-    (( f->filter.source )?((void)0):func_800346B0("EX", "/Volumes/Data/Codex/libultra-comparison/ultralib/src/audio/save.c", 34)) ;
+    (( f->filter.source )?((void)0):func_800346B0("EX", "save.c", 34)) ;
 
 
     ptr = (*source->handler)(source, outp, outCount, sampleOffset, ptr);
