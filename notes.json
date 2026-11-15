@@ -3680,14 +3680,6 @@
   "score_after": 8315
  },
  {
-  "function": "func_801FA240",
-  "text": "Deep permuter: score 3131 \u2192 2116; 1 improvements; 69 candidates tested; 82 cached skips; 0 rejected; 7213s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935673",
-  "created_at": 1794357279.088855,
-  "score_before": 3131,
-  "score_after": 2116
- },
- {
   "function": "func_8020EE18",
   "text": "Deep permuter: score 32482 \u2192 32358; 1 improvements; 67 candidates tested; 0 cached skips; 0 rejected; 7208s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935762",
@@ -5830,14 +5822,6 @@
   "created_at": 1794706271.2408562,
   "score_before": 210,
   "score_after": 15
- },
- {
-  "function": "func_801FA240",
-  "text": "Tried: (1) m2c draft with sqrtf: 1647 saved best. (2) Split-locals version with sqrtf: 3141; sqrtf is not a known symbol in the link. (3) __builtin_sqrtf: no effect (3141). (4) Using f32 func_80032310(f32) as a plain call: 3686, wrong because the target does an inline sqrt.s and calls func_80032310 only on the NaN path (c.eq.s $fv1,$fv1; bc1t skip; jal; mov.s). Still open: the target stores the three deltas to 0x10/0x14/0x18 and reloads them after sqrt, and keeps the arg4/arg5 stack loads (0x38/0x3C) before the subtractions. The sqrt needs a builtin that gives inline sqrt.s with a libm fallback, and the stack-slot layout needs the deltas kept as separate stored values. Unresolved: which C form gives inline sqrt.s with a NaN-checked jal to func_80032310 (rename_symbol sqrtf -> func_80032310 might help).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794706273.218706,
-  "score_before": 1647,
-  "score_after": 1647
  },
  {
   "function": "func_801E2D18",
@@ -10032,14 +10016,6 @@
   "score_after": 320
  },
  {
-  "function": "func_801FA240",
-  "text": "Not solved. Best source is revision 9dbe0c3972e7be8a14ce (2220) and the saved best is 1647 (different source). Arg mapping confirmed by the target: arg0=f12, arg1=f14, arg2 in a2 (bits, mtc1), arg3 in a3 (bits, mtc1 to f4 or f8), arg4 and arg5 on the caller stack (loaded from 0x38($sp) and 0x3c($sp) of the callee frame, frame -0x28, ra at 0x20). Target computes d.x = arg0 - arg3 and stores it to 0x10($sp) before the sqrt, d.y = arg1 - arg4 stored to 0x14, so the struct local is address-taken (the stores are real, not register-only). The sqrt is sqrt.s with a c.eq.s NaN check and sqrtf fallback. Then if len != 0 it scales the three components and calls func_801F9C8C with two of them (the target's second call arg is the stored d.x / d.y, re-loaded from the stack). Next: make the struct local volatile-free but address-taken (pass &d to a helper or use a pointer), then fix the arg order of the three subtractions to match the target's mtc1 a3 first.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794720358.2863302,
-  "score_before": 1647,
-  "score_after": 1647
- },
- {
   "function": "func_80029938",
   "text": "Best now 468 (revision 56e85712b2c674700b86, terminal_guard_layout variant: `if (!(D_80046D74 == 0)) { ... } else { return -1; }` \u2014 this yields the target's `bnez` + `j .Lend` + `addiu v0,-1` shape). Remaining diffs are all frame size: target 0x50 frame with s0 at 0x48 and ra at 0x4c; ours 0x58 with s1 at 0x4c and ra at 0x50, plus `addiu s0,sp,0x28`/`move a0,s0` vs target's single `addiu a0,sp,0x28` for the create call and a later `addiu s0,sp,0x28`. The 8 extra bytes come from msgbuf: target passes `addiu a1,sp,0x40` and the frame ends at 0x50, so the last local starts at 0x40 and only 4 words remain -> msgbuf is ONE word (declare `s32 msgbuf;` and pass `&msgbuf`), not `s32 msgbuf[1]`+alignment. Untried exact patches: (1) `s32 msgbuf;` + `osCreateMesgQueue(queue, &msgbuf, 1)`; (2) same but pass `&queue[0]` so gcc does not keep the queue base in a callee-saved reg (target computes `addiu a0,sp,0x28` inline for the create call, then `addiu s0,sp,0x28` only after it). Also try keeping `blk.queue = queue;` as-is (target stores s0 into 0x14(sp) in the osSendMesg delay slot).\n\nBest 440 (revision b49f84681cb80b281cbe). Target frame 0x50; ours 0x58 with an extra $s1. Target keeps 0x4000 in $s0 from the top (`addiu $s0,$zero,0x4000` right after `sw $s0,0x48($sp)`, before the bnez), and reuses $s0 for `addiu $s0,$sp,0x28` later; `addiu $a0,$sp,0x28` is re-materialized for the osCreateMesgQueue call rather than `move $a0,$s0`. So the original likely wrote the literal 0x4000 in the sh and the queue address twice syntactically differently. Variants tried and rejected: type local before if (468), literal in blk.type (440), osRecvMesg(blk.queue,...) (528), &queue[0] (468), reordered field stores (723), qp pointer local (1138). Remaining idea: split the store block so blk.type's value comes from a separate `s16`-typed expression and the queue address for the call is `(s32 *)((u8 *)queue)` style, or make msgbuf/queue a single struct so the frame shrinks to 0x50.",
   "by": "api-route-llm-code-2",
@@ -12064,14 +12040,6 @@
   "score_after": 4970
  },
  {
-  "function": "func_801FA240",
-  "text": "Move-on budget exhausted (3/3 without improvement). Target shape: three component diffs spilled to 0x10/0x14/0x18($sp) with swc1 right after each sub.s, squares summed in $f12 (mul.s $f12,$f12,$f12 / nop / mul.s $f14.. / add.s / mul.s $f0.. / add.s), sqrt.s $f2,$f12, then c.eq.s $f2,$f2 / bc1t over `jal sqrtf` + mov.s $f2,$f0 (i.e. sqrtf(dot) written as a plain call, not __builtin_sqrt), zero test against $f0, div.s $f14,$f14,$f2 (inv kept in $f14), then lwc1/mul.s/swc1 per component and jal func_801F9C8C with f12=d0, f14=d2. Crucially the target uses NO callee-saved float regs (no sdc1/ldc1) \u2014 all live values are stack memory, so the source must use real stack storage (f32 d[3] or sp10/sp14/sp18 locals) and the division operand must be reloaded, not kept in $f20/$f22. Tried: array form (2201, extra mov.s $f12,$f0 after jal sqrtf and different mul order), scalar locals (3131, forces sdc1 $f22 spills), m2c draft with sp10/sp14/sp18 (3131), local repair families float_call_staging/float_argument_bits/float_product_intermediate/plain_float_slots/arithmetic_operand_order/expression_placement (no untried proposals), earlier local_storage/single_use_inline/local_declaration_order all worse. Next: keep the stack-slot form but make the sqrtf argument a plain function call result stored in a local before the zero test, and write the inv scaling as three separate statements reading the slots (inv * d[i] with the slot reloaded) so gcc stays in $f0/$f12/$f14; also try declaring sqrtf as `f32 sqrtf();` (K&R, no prototype) to kill the builtin/mov.s difference.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794726233.919007,
-  "score_before": 1647,
-  "score_after": 1647
- },
- {
   "function": "func_800E067C",
   "text": "Not matched. Best from this session is still the saved 4625 (the m2c-style draft with goto loop_1). Three rewrites I tried were all worse: (a) do-while with u16 a1 and per-iteration (a1&0xFFFF)*0x64 recomputed at the top and end: 9650; (b) same with lim = D_80233EC0 hoisted and off computed once before the loop: 9440. Target facts: loop index is a1&0xFFFF held in $v0 (andi at loop top and again in the bne delay slot); the index*100 is computed as ((i*2+i)*8+i)*4 = 100*i and re-derived in each path (the sll/addu chain repeats at the join .L800E0878); D_800E1E70 is loaded once at entry into $ft0 (ldc1) and reused for all six mul.d; D_80233EC0 is loaded once into $a2 and 0xFFFF into $a3 before the loop; the 2 is in $t0. Each if-block walks the chain D_8011F340[off] -> +4 -> +4 -> +4 once in the true branch (lw v0,4(v0) repeated, not CSE'd) and reads p3->0x40/0x42/0x44 and 0x50/0x52/0x54 as s16 with lh. The else path copies D_8011F308/30C/310 into 334/338/33C with lwc1/swc1 through $fv0 and no cvt. The loop end is: a1 = *(u16*)(D_8011F300 + 100*(a1&0xFFFF)); exit if a1 == 0xFFFF or a1 >= D_80233EC0 (unsigned). Start from the saved draft and fix the hoisted constants and the chain re-walk.",
   "by": "claude-haiku-5-5-21",
@@ -13014,14 +12982,6 @@
   "created_at": 1794729115.727751,
   "score_before": 200,
   "score_after": 200
- },
- {
-  "function": "func_801FA240",
-  "text": "Normalize-direction function (204 bytes). Target shape is clear: args arrive in a0..a3 (floats in GPRs) and 0x38/0x3c; three diffs stored to 0x10/0x14/0x18(sp); len = sqrt.s with a NaN check that calls sqrtf on the slow path (jal sqrtf; mov.s); then if len != 0: inv = 1/len; scale x,y,z; jal func_801F9C8C with two f32 args. Problem: any explicit `f32 sqrtf(f32)` prototype makes GCC promote to doubles (sdc1/ldc1, score 3131). Saved-best form (implicit sqrtf, m2c temps) scores 1647 and is the closest. Next: keep implicit sqrtf, and separate the three stored differences (sp10/sp14/sp18) into the m2c temp layout. Note: sqrtf in this build is a bare sqrt.s + jr (see the sqrtf claim notes), and the caller's sqrt.s NaN check is what calls it.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794729163.120966,
-  "score_before": 1647,
-  "score_after": 1647
  },
  {
   "function": "func_801FC2F8",
@@ -18576,14 +18536,6 @@
   "score_after": 336
  },
  {
-  "function": "func_801FA240",
-  "text": "Not matched; move-on budget exhausted (4/4, best current 3131 vs saved historical 1647). Target is a clean 51-insn float normalize: frame 0x28 with only sw $ra,0x20($sp); sp10/sp14/sp18 at 0x10/0x14/0x18 hold arg0-arg3, arg1-arg4, arg2-arg5 diffs; then sqrt.s on dx*dx+dy*dy+dz*dz with the standard c.eq.s NaN guard + jal sqrtf fallback (so sqrtf is genuinely called, keep the call); then c.eq.s against 0.0f, bc1t to the epilogue, 1.0f/sqrtf, mul each sp slot by the reciprocal and store back, then tail-call func_801F9C8C(sp10_result, sp18_result) with the third store in the jal delay slot. Key remaining gap: my candidates keep the sqrt result in a callee-saved FP reg ($f22) and emit sdc1 $f22,0x20($sp)/ldc1, colliding with the target's sw $ra,0x20($sp); the target keeps it in $fv1 (caller-saved) across the branch, so there is no FP callee-save at all. Tried: recomputing the products from sp10/sp14/sp18 (3441), reusing temp_fa1 for the reciprocal and passing sp10/sp18 (3131), adding the m2c define block (3131, no change), declaring `f32 sqrtf(f32);` locally (compile error: the local typedef block redefined s32/u32/f32 already in context.h \u2014 drop the local typedefs, not the prototype). Untried next step is saved as the experiment on the current revision: declare `f32 sqrtf(f32);` so sqrtf is not an implicit builtin (the implicit-declaration warning is the likeliest cause of the extra callee-saved FP register). Also worth trying: separate local for the reciprocal and re-reading the three sp slots so the sqrt result can stay in $fv1.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794747528.442345,
-  "score_before": 1647,
-  "score_after": 1647
- },
- {
   "function": "func_80205D48",
   "text": "Best is 740 (84%), the saved-best form with do{}while(0) for d1/q and the volatile s32 sign test. Remaining diffs: target loads the global with `lui`+`lw %lo(D_8021B098)` directly, but `&D_8021B098` in the volatile test forces an `addiu`+`lw`. `*(volatile s32 *)&D_8021B098 < 0` made no change. Also left: nop placement, cvt.d.s order, and the add.s/trunc register choice. Untried: deriving the sign-test address form another way, or try_local_repairs on the saved candidate.",
   "by": "claude-haiku-5-5-20",
@@ -18846,14 +18798,6 @@
   "created_at": 1794748473.649934,
   "score_before": 1025,
   "score_after": 1025
- },
- {
-  "function": "func_801FA240",
-  "text": "Not matched. Saved best 1647 (m2c-derived with sp10/sp14/sp18 stack temps). Clean rewrite (dx,dy,dz locals, len=sqrtf(...), inv=1/len, scale, call func_801F9C8C(dx,dz)) scores 3131. Target: sqrt.s inline with NaN check (c.eq.s) then jal sqrtf; the differences are stack layout: target stores the three differences to 0x10/0x14/0x18(sp) as f32 and reloads them (lwc1 0x38(sp) for the arg), with an 0x20 frame and ra saved at 0x20. Mine uses sdc1/ldc1 callee-saved f20/f22 pairs because locals are kept in registers. Next: force the dx/dy/dz into stack memory (e.g. take their address or write them through a local array) so GCC spills them to 0x10/0x14/0x18(sp), then scale in place and call func_801F9C8C(sp10, sp18) with the middle component left on the stack.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794748473.67587,
-  "score_before": 1647,
-  "score_after": 1647
  },
  {
   "function": "func_8013E27C",
@@ -21022,14 +20966,6 @@
   "created_at": 1794753782.259386,
   "score_before": 2310,
   "score_after": 2310
- },
- {
-  "function": "func_801FA240",
-  "text": "Best from me: score 2201 (revision c8184d97808bd4efcc27). Key finding: dx/dy/dz must be an f32 array v[3] (lives at sp+0x10..0x18), otherwise gcc keeps them in callee-saved double regs (sdc1 f22) and the score drops to 3131. Target: sqrt.s inline with NaN fallback to sqrtf (c.eq.s / jal sqrtf); args arg4/arg5 come from the stack (0x38/0x3c); the call is func_801F9C8C(v[0], v[2]). Remaining diffs are register choices (target uses f4 for the subtrahend temps and f0 for the squares; mine uses f8/f2/f6) and the ordering of the loads of arg4/arg5. Try reordering the subtraction temps or splitting the sum.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794753782.3034801,
-  "score_before": 1647,
-  "score_after": 1647
  },
  {
   "function": "n_alFxNew",
@@ -26110,5 +26046,117 @@
   "created_at": 1794763248.682878,
   "score_before": 1065,
   "score_after": 1065
+ },
+ {
+  "function": "func_801FA240",
+  "text": "Deep permuter: score 3131 \u2192 2116; 1 improvements; 69 candidates tested; 82 cached skips; 0 rejected; 7213s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935673",
+  "created_at": 1794357279.088855,
+  "score_before": 3131,
+  "score_after": 2116
+ },
+ {
+  "function": "func_801FA240",
+  "text": "Tried: (1) m2c draft with sqrtf: 1647 saved best. (2) Split-locals version with sqrtf: 3141; sqrtf is not a known symbol in the link. (3) __builtin_sqrtf: no effect (3141). (4) Using f32 func_80032310(f32) as a plain call: 3686, wrong because the target does an inline sqrt.s and calls func_80032310 only on the NaN path (c.eq.s $fv1,$fv1; bc1t skip; jal; mov.s). Still open: the target stores the three deltas to 0x10/0x14/0x18 and reloads them after sqrt, and keeps the arg4/arg5 stack loads (0x38/0x3C) before the subtractions. The sqrt needs a builtin that gives inline sqrt.s with a libm fallback, and the stack-slot layout needs the deltas kept as separate stored values. Unresolved: which C form gives inline sqrt.s with a NaN-checked jal to func_80032310 (rename_symbol sqrtf -> func_80032310 might help).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794706273.218706,
+  "score_before": 1647,
+  "score_after": 1647
+ },
+ {
+  "function": "func_801FA240",
+  "text": "Not solved. Best source is revision 9dbe0c3972e7be8a14ce (2220) and the saved best is 1647 (different source). Arg mapping confirmed by the target: arg0=f12, arg1=f14, arg2 in a2 (bits, mtc1), arg3 in a3 (bits, mtc1 to f4 or f8), arg4 and arg5 on the caller stack (loaded from 0x38($sp) and 0x3c($sp) of the callee frame, frame -0x28, ra at 0x20). Target computes d.x = arg0 - arg3 and stores it to 0x10($sp) before the sqrt, d.y = arg1 - arg4 stored to 0x14, so the struct local is address-taken (the stores are real, not register-only). The sqrt is sqrt.s with a c.eq.s NaN check and sqrtf fallback. Then if len != 0 it scales the three components and calls func_801F9C8C with two of them (the target's second call arg is the stored d.x / d.y, re-loaded from the stack). Next: make the struct local volatile-free but address-taken (pass &d to a helper or use a pointer), then fix the arg order of the three subtractions to match the target's mtc1 a3 first.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794720358.2863302,
+  "score_before": 1647,
+  "score_after": 1647
+ },
+ {
+  "function": "func_801FA240",
+  "text": "Move-on budget exhausted (3/3 without improvement). Target shape: three component diffs spilled to 0x10/0x14/0x18($sp) with swc1 right after each sub.s, squares summed in $f12 (mul.s $f12,$f12,$f12 / nop / mul.s $f14.. / add.s / mul.s $f0.. / add.s), sqrt.s $f2,$f12, then c.eq.s $f2,$f2 / bc1t over `jal sqrtf` + mov.s $f2,$f0 (i.e. sqrtf(dot) written as a plain call, not __builtin_sqrt), zero test against $f0, div.s $f14,$f14,$f2 (inv kept in $f14), then lwc1/mul.s/swc1 per component and jal func_801F9C8C with f12=d0, f14=d2. Crucially the target uses NO callee-saved float regs (no sdc1/ldc1) \u2014 all live values are stack memory, so the source must use real stack storage (f32 d[3] or sp10/sp14/sp18 locals) and the division operand must be reloaded, not kept in $f20/$f22. Tried: array form (2201, extra mov.s $f12,$f0 after jal sqrtf and different mul order), scalar locals (3131, forces sdc1 $f22 spills), m2c draft with sp10/sp14/sp18 (3131), local repair families float_call_staging/float_argument_bits/float_product_intermediate/plain_float_slots/arithmetic_operand_order/expression_placement (no untried proposals), earlier local_storage/single_use_inline/local_declaration_order all worse. Next: keep the stack-slot form but make the sqrtf argument a plain function call result stored in a local before the zero test, and write the inv scaling as three separate statements reading the slots (inv * d[i] with the slot reloaded) so gcc stays in $f0/$f12/$f14; also try declaring sqrtf as `f32 sqrtf();` (K&R, no prototype) to kill the builtin/mov.s difference.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794726233.919007,
+  "score_before": 1647,
+  "score_after": 1647
+ },
+ {
+  "function": "func_801FA240",
+  "text": "Normalize-direction function (204 bytes). Target shape is clear: args arrive in a0..a3 (floats in GPRs) and 0x38/0x3c; three diffs stored to 0x10/0x14/0x18(sp); len = sqrt.s with a NaN check that calls sqrtf on the slow path (jal sqrtf; mov.s); then if len != 0: inv = 1/len; scale x,y,z; jal func_801F9C8C with two f32 args. Problem: any explicit `f32 sqrtf(f32)` prototype makes GCC promote to doubles (sdc1/ldc1, score 3131). Saved-best form (implicit sqrtf, m2c temps) scores 1647 and is the closest. Next: keep implicit sqrtf, and separate the three stored differences (sp10/sp14/sp18) into the m2c temp layout. Note: sqrtf in this build is a bare sqrt.s + jr (see the sqrtf claim notes), and the caller's sqrt.s NaN check is what calls it.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794729163.120966,
+  "score_before": 1647,
+  "score_after": 1647
+ },
+ {
+  "function": "func_801FA240",
+  "text": "Not matched; move-on budget exhausted (4/4, best current 3131 vs saved historical 1647). Target is a clean 51-insn float normalize: frame 0x28 with only sw $ra,0x20($sp); sp10/sp14/sp18 at 0x10/0x14/0x18 hold arg0-arg3, arg1-arg4, arg2-arg5 diffs; then sqrt.s on dx*dx+dy*dy+dz*dz with the standard c.eq.s NaN guard + jal sqrtf fallback (so sqrtf is genuinely called, keep the call); then c.eq.s against 0.0f, bc1t to the epilogue, 1.0f/sqrtf, mul each sp slot by the reciprocal and store back, then tail-call func_801F9C8C(sp10_result, sp18_result) with the third store in the jal delay slot. Key remaining gap: my candidates keep the sqrt result in a callee-saved FP reg ($f22) and emit sdc1 $f22,0x20($sp)/ldc1, colliding with the target's sw $ra,0x20($sp); the target keeps it in $fv1 (caller-saved) across the branch, so there is no FP callee-save at all. Tried: recomputing the products from sp10/sp14/sp18 (3441), reusing temp_fa1 for the reciprocal and passing sp10/sp18 (3131), adding the m2c define block (3131, no change), declaring `f32 sqrtf(f32);` locally (compile error: the local typedef block redefined s32/u32/f32 already in context.h \u2014 drop the local typedefs, not the prototype). Untried next step is saved as the experiment on the current revision: declare `f32 sqrtf(f32);` so sqrtf is not an implicit builtin (the implicit-declaration warning is the likeliest cause of the extra callee-saved FP register). Also worth trying: separate local for the reciprocal and re-reading the three sp slots so the sqrt result can stay in $fv1.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794747528.442345,
+  "score_before": 1647,
+  "score_after": 1647
+ },
+ {
+  "function": "func_801FA240",
+  "text": "Not matched. Saved best 1647 (m2c-derived with sp10/sp14/sp18 stack temps). Clean rewrite (dx,dy,dz locals, len=sqrtf(...), inv=1/len, scale, call func_801F9C8C(dx,dz)) scores 3131. Target: sqrt.s inline with NaN check (c.eq.s) then jal sqrtf; the differences are stack layout: target stores the three differences to 0x10/0x14/0x18(sp) as f32 and reloads them (lwc1 0x38(sp) for the arg), with an 0x20 frame and ra saved at 0x20. Mine uses sdc1/ldc1 callee-saved f20/f22 pairs because locals are kept in registers. Next: force the dx/dy/dz into stack memory (e.g. take their address or write them through a local array) so GCC spills them to 0x10/0x14/0x18(sp), then scale in place and call func_801F9C8C(sp10, sp18) with the middle component left on the stack.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794748473.67587,
+  "score_before": 1647,
+  "score_after": 1647
+ },
+ {
+  "function": "func_801FA240",
+  "text": "Best from me: score 2201 (revision c8184d97808bd4efcc27). Key finding: dx/dy/dz must be an f32 array v[3] (lives at sp+0x10..0x18), otherwise gcc keeps them in callee-saved double regs (sdc1 f22) and the score drops to 3131. Target: sqrt.s inline with NaN fallback to sqrtf (c.eq.s / jal sqrtf); args arg4/arg5 come from the stack (0x38/0x3c); the call is func_801F9C8C(v[0], v[2]). Remaining diffs are register choices (target uses f4 for the subtrahend temps and f0 for the squares; mine uses f8/f2/f6) and the ordering of the loads of arg4/arg5. Try reordering the subtraction temps or splitting the sum.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794753782.3034801,
+  "score_before": 1647,
+  "score_after": 1647
+ },
+ {
+  "function": "func_801FA240",
+  "text": "EXACT diagnostic -O1 trial f99ffd0bd5b0e32b6d06, source/profile captured and reverified in function-only suggest; automatic compiler changes off. Current revision ed3e84c844c43f62460c is exact source: f32 return; f32 v[3],len,inv,result; calculate differences and sqrt; result=0.0f; if(len!=0){inv=1/len; multiply all 3 array entries; result=func_801F9C8C(v[0],v[2]);}return result. O2 scores2201; O1 exact51insns. Early return zero version was535 O1; common result local fixes control flow and fv1 allocation. No more C tuning needed; apply captured bundle.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794756288.1564002,
+  "score_before": 1647,
+  "score_after": 1647
+ },
+ {
+  "function": "func_801FA240",
+  "text": "Can't get closer under -O2: the C is already exact under -O1 (try_compiler byte match); suggest bundle submitted for the user to apply. No more C tuning needed.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794756468.16079,
+  "score_before": 1647,
+  "score_after": 1647
+ },
+ {
+  "function": "func_801FA240",
+  "text": "No further meaningful tuning: try_compiler and suggest both independently verified exact target bytes for current rewritten source at -O1. Pending function-specific bundle has exact C and required profile. Default profile's scheduling differs; automatic profile application disabled. Source uses float[3], float sqrtf(float), and two-argument func_801F9C8C.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794757451.9920902,
+  "score_before": 1647,
+  "score_after": 1647
+ },
+ {
+  "function": "func_801FA240",
+  "text": "Already -O1-exact with a function-only suggestion pending (see codex notes). I recompiled the f32 v[3]/result source at -O2: score 2201. No more C tuning is useful until the -O1 profile is applied.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794757860.210239,
+  "score_before": 1647,
+  "score_after": 1647
+ },
+ {
+  "function": "func_801FA240",
+  "text": "Existing exact O1 match reverified, complete source retained in updated suggestion. Current profile still O2; no useful tuning remains. O2 2201; O1 exact. Common result=0 then optional result=angle helper required.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794758400.420216,
+  "score_before": 1647,
+  "score_after": 1647
+ },
+ {
+  "function": "func_801FA240",
+  "text": "Cannot match at project -O2; current candidate C MATCHES byte-for-byte at -O1 (try_compiler); suggest() filed. Apply the -O1 profile to save it.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794758992.710847,
+  "score_before": 1647,
+  "score_after": 1647
  }
 ]
