@@ -5944,14 +5944,6 @@
   "score_after": 915
  },
  {
-  "function": "func_8014A79C",
-  "text": "Best 1625 (69%): `typedef struct { u32 v[8]; } Divs; Divs d = *(Divs*)D_80183718;` (target copies the 8-word table to a stack local with lw/sw pairs, so a struct copy works; element-wise copies scored 3855, pointer copies 3855). Then `if (arg0 > 0x05F5E0FFU) return 0x01234567;` (early return), `var_a3=0; weight=0x10000000; for i<8: var_a3 |= (arg0/d.v[i])*weight; arg0 %= d.v[i]; weight >>= 4; return var_a3;`. Remaining: target's loop is indexed (sll a0,2; addu sp; lw) not pointer-stepped; target's early-return is a shared block at the end (bnez to it, lui a3 0x123 / ori 0x4567 after the loop with j); ours falls through with beqz. Changing |= to += scored worse (1760). Division by zero check (divu; bnez; break 7) is emitted by the compiler from the division.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794706644.215919,
-  "score_before": 4240,
-  "score_after": 1625
- },
- {
   "function": "func_8014D740",
   "text": "Best saved 1490. Tried this claim: (a) direct D_8011F32E[(arg0&0xFFFF)*50] indexing -> 3705; (b) byte offset local off=(arg0&0xFFFF)*100 with *(u16*)(D_8011F32E+off) -> 2670. Target computes the index with shifts/adds (sll 1, addu, sll, addu, sll 2 chain; about 3x*8 style) and loads the table through lui %hi plus addu $at, with a 0x3 start loop. Target's lhu uses lui+lhu %lo on a base computed once, not per-access offset. Remaining: find the scale expression the compiler emits for *50 and keep the 0x15/0xB compare sequence; the loop with D_802DF420 is at a 6-byte stride, so the (D_802DF420, D_8016BA40) loads should use one shared index.",
   "by": "claude-haiku-5-5-20",
@@ -9840,14 +9832,6 @@
   "score_after": 2490
  },
  {
-  "function": "func_8014A79C",
-  "text": "Not matched. Best 1040 (80.3%). Key finding: copying the 8-word global D_80183718 into a local via a struct copy `typedef struct {u32 v[8];} Tbl8; Tbl8 t = *(Tbl8*)D_80183718;` gives the right 0x20-byte frame and lw/sw block (per-element copies and pointer-based copies scored worse, 3210 and 3730). Putting `x = arg0;` before the copy moves the arg first (1345 -> 1040). Remaining diff: register roles and loop shape. Target: x in a2, i in a0 (sll a0,2; addu sp; lw; divu), scale in a1 (lui a1,0x1000), ret in a3 (move a3,$zero before the lui). Mine puts ret in t0 and scale in a3, and the for form becomes a pointer walk (addiu a0,4). Tried: do-while vs for, declaration reorder (no effect). Untried: a bottom-tested loop with ret initialised after scale, or compile_family(signedness).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794720824.0819352,
-  "score_before": 1625,
-  "score_after": 1040
- },
- {
   "function": "func_8014ABD8",
   "text": "Target: 100-byte stride per element (idx*100 = ((idx*3)*8+idx)*4), field 0x3E (u16 state; 0 -> set 1 and OR 0x8000 into the u16 at D_8011F2F2+idx*100; 1 -> float at +0x28 minus 1.0, wrap +360 if negative, gated on *(u8*)(*(u32*)(D_8011F340+idx*100))==0). Best source so far: switch(st){case 0/1} with a1 = D_8011F2F0 + (arg0&0xFFFF)*100, score 1735 (revision a5045aec492384d242b1 or 2adca8150bb6f7214a7f). Remaining diffs: target computes the masked index separately in each arm (andi/sll/addu chain repeated, not CSE'd with a1), and the state test is a beqz/beq pair rather than a switch jump table; if/else form scored worse (2170). The saved historical best 1490 is better than all my current attempts; start from get_candidate(base=\"saved_best\") if it is still the best. Untried: a separate u32 index recomputed in each arm, or a plain if on st==0 with switch-less default.",
   "by": "claude-haiku-5-5-23",
@@ -12704,14 +12688,6 @@
   "score_after": 915
  },
  {
-  "function": "func_8014A79C",
-  "text": "Best 3790 (28%), revision 02f8d63a331dd2ee9bb4: copy of D_80183718[0..7] into a u32 tab[8] local, range check `arg0 > 0x05F5E0FF` returns 0x01234567, then 8 steps of `acc |= (rem/tab[i]) * scale; rem %= tab[i]; scale >>= 4` starting at scale 0x10000000. Target: the copy is done AFTER arg0 is moved to $a2, through one base register $a1 = &D_80183718 with lw offsets 0,4,8,0xc..0x1c and sw to sp offsets 0..0x1c; the divu loop is unrolled into the same register flow. Unrolling the copy as eight `tab[i]=D[i]` statements scored 4065 (worse, gcc reloads lui/lw per element). Next: copy through a pointer `u32 *src = D_80183718;` with src[0..7] (so gcc uses one lui and offsets), and keep the copy before the range check. Not matched.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794730221.896182,
-  "score_before": 1040,
-  "score_after": 1040
- },
- {
   "function": "func_8015FD64",
   "text": "Structure: t = (arg1 & 0xFFFF) * 100 (sll/addu chain). if (D_8011F2FC[t] != 0) { v = D_8011F2F0[t] (lbu); if (v == D_80126FF6) { a = D_8018A264[v] (lbu); if (a == 1) { 3 display-list commands: 0xE7000000,0 ; 0xB6000000,a ; 0xB900031D,0x504340 } } 0xFA000000 command with word2 = D_8011F2FC[t] | 0xFF000000 } where each command = *arg0 then *arg0 += 8. Element bytes MUST be unsigned (lbu): char/s8 arrays produce lb and score 1615. Best: saved 30 (m2c draft, revision e35b6298b40aa46cb882) from a different source; my u8-array version gives 1110 with leftover diffs: target uses a2 (not a3) for arg0 copy, and the 0xB900031D/0x504340 words are built with lui/ori in the store sequence after the 0xB6 command. Next: keep arg0 in the a2 register (`move $a2,$a0` in prologue) and reorder the third command's construction.",
   "by": "claude-haiku-5-5-21",
@@ -12958,14 +12934,6 @@
   "created_at": 1794731453.139294,
   "score_before": 30,
   "score_after": 30
- },
- {
-  "function": "func_8014A79C",
-  "text": "Best 4065 (23.3%), revision 3ed7e8de88859a810a18 (or 0a1ad1a1841805101cba, same score). The algorithm is right in outline: a table of 8 u32 copied to the stack, then `if (arg0 > 0x05F5E0FF) return 0x01234567;`, then a divide/mod loop with scale 0x10000000 >> 4 and OR-accumulate (divu, break 7 on zero). Target copies the table from D_80183718 with a single `addiu $a1,$a1,%lo(D_80183718)` base register and lw at offsets 0,4,8,... (not one lui per element), so the copy is a grouped load of two words at a time, then stores to sp+0xC..sp+0x1C. The copy is stored at the highest offsets first (sw $v0,0xC($sp)) so the 8 elements land in reverse-ish order: check the stack offsets against the table. Using a `u32 *src` pointer still re-reads D_80183718 with lui per element, so the copy needs a different shape. Untried: write the copy as a struct copy, or as two 4-word loads.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794731566.950475,
-  "score_before": 1040,
-  "score_after": 1040
  },
  {
   "function": "func_801B41D8",
@@ -13358,14 +13326,6 @@
   "created_at": 1794732578.921025,
   "score_before": 1723,
   "score_after": 1723
- },
- {
-  "function": "func_8014A79C",
-  "text": "Not matched; best 1630 (69.2%), revision 65b107f8256878756cf8. Source: `rem = arg0;` first, then `tab = *(Tab8 *)D_80183718` (struct copy of u32 v[8]; per-element copies scored 4065 and the struct copy 1925), `acc = 0`, the `rem > 0x05F5E0FF` early return, then `scale = 0x10000000` and `for (s32 i = 0; i < 8; i++) { acc |= (rem / tab.v[i]) * scale; rem = rem % tab.v[i]; scale >>= 4; }`. Tried and no good: `u32 i` (1825, worse); inverting the range check into if/else (same 1630, compiler normalises it). Remaining diffs: the target's early-exit branch is `bnez` to the return block, mine is `beqz`, and the loop body differs in register/order: the target keeps the stack-copy base in $sp with `sll 2 / addu / lw` indexing, and `scale` in $a1 with the `mult` after `mflo`. The lui/ori of the 0x01234567 return constant is also placed differently. Next: try removing the local struct and indexing the copy through a u32 pointer to the stack array (`u32 *p = tab.v;`), and try writing the division result as a separate local before the `or`.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794732581.144717,
-  "score_before": 1040,
-  "score_after": 1040
  },
  {
   "function": "func_80153F74",
@@ -14304,14 +14264,6 @@
   "score_after": 1795
  },
  {
-  "function": "func_8014A79C",
-  "text": "Best 845 (rev 5295dd9b36049c56c51e). Structure is right; remaining diff is pure register allocation: target keeps `out` in $a3 and the shift constant in $a1, candidate uses $t0/$a3. Tried: u32 buf[8] local vs Tbl struct copy (no change), *(Tbl*)buf = D_80183718 (no change). Untried: reordering locals (declare out/shift before buf), making `out` the first-declared local, or computing shift as a multiply. Also untried: `q*shift` vs `out += q << shiftbits` with a separate shift-bit counter.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794735881.587347,
-  "score_before": 1040,
-  "score_after": 845
- },
- {
   "function": "func_80153D40",
   "text": "Best 2305 (74.3%), revision d0ba20cb49509a0af244 (restore with get_candidate saved_best). Same shape as sibling func_8014D458 (best 2720). Structure is right: u16 idx=arg0 kept across func_8013AE60(idx); first if-block indexes with idx*0x64 directly; off=((u16)arg0)*0x64 for the +2.0f / 360 wrap and final store (*8.0f + D_8011F338[off]). Remaining diffs are the same as the sibling: prologue order (target sw $ra first, raw arg in $s1, andi into $s0 across the jal, frame 0x20), and the D_8011F32E address is built as lui $v0 + addu + lhu in the target but lui/addiu $v1 + lhu in ours. The bnel with andi $v1,$s1,0xffff in its delay slot is not reproduced. Rejected this session: passing (u16)arg0 to the call with the table index written as ((u16)arg0)*0x64 inline everywhere (3778, worse); arg0&0xFFFF directly in the call (4078 on sibling, worse). Stuck on prologue/register allocation from C; a block-local off in the first if is the only untried variant.",
   "by": "claude-haiku-5-5-20",
@@ -14342,14 +14294,6 @@
   "created_at": 1794735987.015239,
   "score_before": 7040,
   "score_after": 7040
- },
- {
-  "function": "func_8014A79C",
-  "text": "Score stuck at 845 (52 vs 53 insns). Everything matches except the table-index addressing in the do/while loop. Target recomputes the element address every iteration: `sll $v0,$a0,2; addu $v0,$v0,$sp; lw $v0,($v0)` with the counter incremented by 1 (`addiu $a0,$a0,1; slti $v0,$a0,0x8`). gcc -O2 here strength-reduces the induction: it keeps `$a0 = &buf[i]` and emits `addiu $a0,$a0,4` with no sll/addu, which also shifts the branch offsets. Tried: `buf.v[i]`, `(s32)q*(s32)shift`, and `*(u32*)((u8*)&buf + (i<<2))` for both the div and the mod (gcc folds i<<2 into the counter, same output). Remaining idea: block strength reduction, e.g. declare the local copy `volatile Tbl buf;` (verify gcc 2.7.2 accepts the volatile struct assignment) or read the element once through a `vu32` cast into a temp and use the temp for both div and mod (must stay a single load to keep the target's one `lw`). Also worth trying: keep the counter as a separate `s32 i` incremented in the loop increment expression of a `for` rather than a `do/while`.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794735987.092862,
-  "score_before": 845,
-  "score_after": 845
  },
  {
   "function": "func_8014BB30",
@@ -15318,14 +15262,6 @@
   "created_at": 1794739187.657056,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_8014A79C",
-  "text": "Best = 845 (84%), revision c4e4f25acef8d6fd57a1 / b0b149a12dfdc786c504. Structure (struct copy of D_80183718 to stack, sltu guard vs 0x05F5E0FF, 8-iteration divu/mult/or/srl loop, 0x01234567 fallback) is right; remaining 22 rows are regalloc + one real difference.\n\nThe one real difference: the target re-derives the array address every iteration (`sll $v0,$a0,2; addu $v0,$v0,$sp; lw $v0,($v0)`), with `i` in a0 as a plain element counter (`addiu $a0,$a0,1; slti $v0,$a0,8`). GCC strength-reduces `buf.v[i]` into a pointer induction (`addiu $a0,$a0,4`, `slti $a1,8`) for us. Tried without effect: `*(u32 *)((u8 *)buf.v + (i << 2))` (845, identical code), a `u32 d = buf.v[i]` local (845), `volatile Tbl buf` (3107, plus memcpy symbol error). Also untested-but-rejected earlier by other agents: guard-shape and signedness variants.\n\nAlso register-level: target keeps out in a3 and shift in a1 with `move $a3,$zero` before the loop; ours uses t0/a3 and hoists `move $a0,$sp`. Fixing the address recomputation should let those fall out.\n\nNext experiment saved below (untried): declare the stack copy as a plain `u32 buf[8]` array (copied through a `Tbl *` cast) and index it as `((u32 *)buf)[i]`, which may stop GCC from strength-reducing the local array.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794739216.984666,
-  "score_before": 845,
-  "score_after": 845
  },
  {
   "function": "func_80214504",
@@ -27222,5 +27158,77 @@
   "created_at": 1794761709.324173,
   "score_before": 1585,
   "score_after": 1585
+ },
+ {
+  "function": "func_8014A79C",
+  "text": "Best 1625 (69%): `typedef struct { u32 v[8]; } Divs; Divs d = *(Divs*)D_80183718;` (target copies the 8-word table to a stack local with lw/sw pairs, so a struct copy works; element-wise copies scored 3855, pointer copies 3855). Then `if (arg0 > 0x05F5E0FFU) return 0x01234567;` (early return), `var_a3=0; weight=0x10000000; for i<8: var_a3 |= (arg0/d.v[i])*weight; arg0 %= d.v[i]; weight >>= 4; return var_a3;`. Remaining: target's loop is indexed (sll a0,2; addu sp; lw) not pointer-stepped; target's early-return is a shared block at the end (bnez to it, lui a3 0x123 / ori 0x4567 after the loop with j); ours falls through with beqz. Changing |= to += scored worse (1760). Division by zero check (divu; bnez; break 7) is emitted by the compiler from the division.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794706644.215919,
+  "score_before": 4240,
+  "score_after": 1625
+ },
+ {
+  "function": "func_8014A79C",
+  "text": "Not matched. Best 1040 (80.3%). Key finding: copying the 8-word global D_80183718 into a local via a struct copy `typedef struct {u32 v[8];} Tbl8; Tbl8 t = *(Tbl8*)D_80183718;` gives the right 0x20-byte frame and lw/sw block (per-element copies and pointer-based copies scored worse, 3210 and 3730). Putting `x = arg0;` before the copy moves the arg first (1345 -> 1040). Remaining diff: register roles and loop shape. Target: x in a2, i in a0 (sll a0,2; addu sp; lw; divu), scale in a1 (lui a1,0x1000), ret in a3 (move a3,$zero before the lui). Mine puts ret in t0 and scale in a3, and the for form becomes a pointer walk (addiu a0,4). Tried: do-while vs for, declaration reorder (no effect). Untried: a bottom-tested loop with ret initialised after scale, or compile_family(signedness).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794720824.0819352,
+  "score_before": 1625,
+  "score_after": 1040
+ },
+ {
+  "function": "func_8014A79C",
+  "text": "Best 3790 (28%), revision 02f8d63a331dd2ee9bb4: copy of D_80183718[0..7] into a u32 tab[8] local, range check `arg0 > 0x05F5E0FF` returns 0x01234567, then 8 steps of `acc |= (rem/tab[i]) * scale; rem %= tab[i]; scale >>= 4` starting at scale 0x10000000. Target: the copy is done AFTER arg0 is moved to $a2, through one base register $a1 = &D_80183718 with lw offsets 0,4,8,0xc..0x1c and sw to sp offsets 0..0x1c; the divu loop is unrolled into the same register flow. Unrolling the copy as eight `tab[i]=D[i]` statements scored 4065 (worse, gcc reloads lui/lw per element). Next: copy through a pointer `u32 *src = D_80183718;` with src[0..7] (so gcc uses one lui and offsets), and keep the copy before the range check. Not matched.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794730221.896182,
+  "score_before": 1040,
+  "score_after": 1040
+ },
+ {
+  "function": "func_8014A79C",
+  "text": "Best 4065 (23.3%), revision 3ed7e8de88859a810a18 (or 0a1ad1a1841805101cba, same score). The algorithm is right in outline: a table of 8 u32 copied to the stack, then `if (arg0 > 0x05F5E0FF) return 0x01234567;`, then a divide/mod loop with scale 0x10000000 >> 4 and OR-accumulate (divu, break 7 on zero). Target copies the table from D_80183718 with a single `addiu $a1,$a1,%lo(D_80183718)` base register and lw at offsets 0,4,8,... (not one lui per element), so the copy is a grouped load of two words at a time, then stores to sp+0xC..sp+0x1C. The copy is stored at the highest offsets first (sw $v0,0xC($sp)) so the 8 elements land in reverse-ish order: check the stack offsets against the table. Using a `u32 *src` pointer still re-reads D_80183718 with lui per element, so the copy needs a different shape. Untried: write the copy as a struct copy, or as two 4-word loads.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794731566.950475,
+  "score_before": 1040,
+  "score_after": 1040
+ },
+ {
+  "function": "func_8014A79C",
+  "text": "Not matched; best 1630 (69.2%), revision 65b107f8256878756cf8. Source: `rem = arg0;` first, then `tab = *(Tab8 *)D_80183718` (struct copy of u32 v[8]; per-element copies scored 4065 and the struct copy 1925), `acc = 0`, the `rem > 0x05F5E0FF` early return, then `scale = 0x10000000` and `for (s32 i = 0; i < 8; i++) { acc |= (rem / tab.v[i]) * scale; rem = rem % tab.v[i]; scale >>= 4; }`. Tried and no good: `u32 i` (1825, worse); inverting the range check into if/else (same 1630, compiler normalises it). Remaining diffs: the target's early-exit branch is `bnez` to the return block, mine is `beqz`, and the loop body differs in register/order: the target keeps the stack-copy base in $sp with `sll 2 / addu / lw` indexing, and `scale` in $a1 with the `mult` after `mflo`. The lui/ori of the 0x01234567 return constant is also placed differently. Next: try removing the local struct and indexing the copy through a u32 pointer to the stack array (`u32 *p = tab.v;`), and try writing the division result as a separate local before the `or`.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794732581.144717,
+  "score_before": 1040,
+  "score_after": 1040
+ },
+ {
+  "function": "func_8014A79C",
+  "text": "Best 845 (rev 5295dd9b36049c56c51e). Structure is right; remaining diff is pure register allocation: target keeps `out` in $a3 and the shift constant in $a1, candidate uses $t0/$a3. Tried: u32 buf[8] local vs Tbl struct copy (no change), *(Tbl*)buf = D_80183718 (no change). Untried: reordering locals (declare out/shift before buf), making `out` the first-declared local, or computing shift as a multiply. Also untried: `q*shift` vs `out += q << shiftbits` with a separate shift-bit counter.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794735881.587347,
+  "score_before": 1040,
+  "score_after": 845
+ },
+ {
+  "function": "func_8014A79C",
+  "text": "Score stuck at 845 (52 vs 53 insns). Everything matches except the table-index addressing in the do/while loop. Target recomputes the element address every iteration: `sll $v0,$a0,2; addu $v0,$v0,$sp; lw $v0,($v0)` with the counter incremented by 1 (`addiu $a0,$a0,1; slti $v0,$a0,0x8`). gcc -O2 here strength-reduces the induction: it keeps `$a0 = &buf[i]` and emits `addiu $a0,$a0,4` with no sll/addu, which also shifts the branch offsets. Tried: `buf.v[i]`, `(s32)q*(s32)shift`, and `*(u32*)((u8*)&buf + (i<<2))` for both the div and the mod (gcc folds i<<2 into the counter, same output). Remaining idea: block strength reduction, e.g. declare the local copy `volatile Tbl buf;` (verify gcc 2.7.2 accepts the volatile struct assignment) or read the element once through a `vu32` cast into a temp and use the temp for both div and mod (must stay a single load to keep the target's one `lw`). Also worth trying: keep the counter as a separate `s32 i` incremented in the loop increment expression of a `for` rather than a `do/while`.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794735987.092862,
+  "score_before": 845,
+  "score_after": 845
+ },
+ {
+  "function": "func_8014A79C",
+  "text": "Best = 845 (84%), revision c4e4f25acef8d6fd57a1 / b0b149a12dfdc786c504. Structure (struct copy of D_80183718 to stack, sltu guard vs 0x05F5E0FF, 8-iteration divu/mult/or/srl loop, 0x01234567 fallback) is right; remaining 22 rows are regalloc + one real difference.\n\nThe one real difference: the target re-derives the array address every iteration (`sll $v0,$a0,2; addu $v0,$v0,$sp; lw $v0,($v0)`), with `i` in a0 as a plain element counter (`addiu $a0,$a0,1; slti $v0,$a0,8`). GCC strength-reduces `buf.v[i]` into a pointer induction (`addiu $a0,$a0,4`, `slti $a1,8`) for us. Tried without effect: `*(u32 *)((u8 *)buf.v + (i << 2))` (845, identical code), a `u32 d = buf.v[i]` local (845), `volatile Tbl buf` (3107, plus memcpy symbol error). Also untested-but-rejected earlier by other agents: guard-shape and signedness variants.\n\nAlso register-level: target keeps out in a3 and shift in a1 with `move $a3,$zero` before the loop; ours uses t0/a3 and hoists `move $a0,$sp`. Fixing the address recomputation should let those fall out.\n\nNext experiment saved below (untried): declare the stack copy as a plain `u32 buf[8]` array (copied through a `Tbl *` cast) and index it as `((u32 *)buf)[i]`, which may stop GCC from strength-reducing the local array.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794739216.984666,
+  "score_before": 845,
+  "score_after": 845
+ },
+ {
+  "function": "func_8014A79C",
+  "text": "EXACT MATCH at KMC GCC -O1, suggestion filed: Tbl buf=D_80183718 (struct u32 v[8]); out=0; if(arg0<100000000){shift=0x10000000; for(i=0;i<8;i++){out|=(arg0/buf.v[i])*shift; arg0%=buf.v[i]; shift>>=4;}} else out=0x01234567; return out. Apply suggestion to save.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794761860.587592,
+  "score_before": 845,
+  "score_after": 845
  }
 ]
