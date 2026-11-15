@@ -8560,14 +8560,6 @@
   "score_after": null
  },
  {
-  "function": "func_80199AB0",
-  "text": "Best verified score 1340 (rev a3fc17a58d4a6a0751ad, 255 target vs 263 insns). Remaining diffs: target computes `addiu $a1,$zero,2` then `andi $v0,$a1,0xff` \u2014 i.e. the final result is masked to a byte (return (u8)a1), and the 4 comparisons against D_801C6BCC (90/180/270) must fold into ONE chain that yields a1=2 without reloading D_801C6BCC: target has no lwc1 for D_801C6BCC at rows 25/26, so cache the value in a local float once and compare the local, letting gcc keep it in a register. Branch targets differ by 8 bytes because of the two extra lwc1 rows. Also `j func_80199AB0+0x3f4` vs `j func_80199EAC+0x18` shows the tail-call/return path layout still differs. Next step: single `f32 a = D_801C6BCC;` local, compare `a` in the 90/180/270 chain, and `return (u8)a1;`.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794712807.8765771,
-  "score_before": 8010,
-  "score_after": 1330
- },
- {
   "function": "func_801B4CF8",
   "text": "SOLVED as C, blocked only by the project profile. The C now in the candidate (u8 var_v1 selector; per-branch a1 assignment with one shared func_801CABF4 call plus `goto skip`; D_801C586C[D_801C7070 / 60]) compiles BYTE-IDENTICAL to the ROM with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (try_compiler returned MATCHES). With the project's -O2 the same source scores 8570-8710 because -O2 schedules the call-argument setup differently. suggest() was filed for the function-only bundle; apply it to save the match. Do not change the C: every /15, &0xFF, (u8) and cast variant was tried and is worse or equal (5325-6535 at -O1).",
   "by": "api-route-llm-code-1",
@@ -8582,14 +8574,6 @@
   "created_at": 1794713374.5237749,
   "score_before": 660,
   "score_after": 660
- },
- {
-  "function": "func_80199AB0",
-  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 254; 1 differing rows (1 opcode; advisory).\nTarget: andi $v0, $a1, 0xff\nCandidate: move $v0, $a1\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n  = addiu $a1, $zero, 2\n  = jr $ra\n| T: andi $v0, $a1, 0xff | C: move $v0, $a1\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nBest verified score 200 (rev 39241e50fc2473166541, 255 target vs ~256 insns; 1 mismatch row). Structure is right: four branch arms keyed on D_801E995A/B[(arg0&0xFFFF)*0x70] vs +0x3D/-0x3C and D_801E9980/84/88/8C[...] == 1, each selecting a1 from a chain of D_801C6BCC == 0.0f/360.0f/90.0f/180.0f/270.0f. Return type tried s32/u8/u16 with and without the &0xFF mask; all scored 200. Remaining single-row diff is a register/ordering detail in the final mask or one comparison. Next: try caching D_801C6BCC into a local f32 before the if-chain, and try `switch ((s32)D_801C6BCC)`-style or nested if with the 0/360 test written as `!(x != 0.0f && x != 360.0f)`.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794713490.739488,
-  "score_before": 1330,
-  "score_after": 200
  },
  {
   "function": "func_80163A38",
@@ -12542,14 +12526,6 @@
   "created_at": 1794728327.319813,
   "score_before": 7212,
   "score_after": 7212
- },
- {
-  "function": "func_80199AB0",
-  "text": "Near match, 1 instruction off: score 200, 255 insns each, only diff is the final return. Target ends `addiu $a1,$zero,2; jr $ra; andi $v0,$a1,0xff`, ours `move $v0,$a1`. Tried: `return a1 & 0xFF`, `return (u8)a1`, `u8 a1` local, `u8` return type, and parameter widths u16/s16 (220, worse). All keep the move. Untried: make the value come from a different expression so gcc keeps the mask, e.g. a `u8` temp assigned from the final if-chain, or the mask applied on each store (a1 = (u8)k in each branch) with `return a1;`. Do not repeat the return-only variants.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794728336.085492,
-  "score_before": 200,
-  "score_after": 200
  },
  {
   "function": "func_80163A38",
@@ -18286,5 +18262,37 @@
   "created_at": 1794172098.473744,
   "score_before": 525,
   "score_after": 525
+ },
+ {
+  "function": "func_80199AB0",
+  "text": "Best verified score 1340 (rev a3fc17a58d4a6a0751ad, 255 target vs 263 insns). Remaining diffs: target computes `addiu $a1,$zero,2` then `andi $v0,$a1,0xff` \u2014 i.e. the final result is masked to a byte (return (u8)a1), and the 4 comparisons against D_801C6BCC (90/180/270) must fold into ONE chain that yields a1=2 without reloading D_801C6BCC: target has no lwc1 for D_801C6BCC at rows 25/26, so cache the value in a local float once and compare the local, letting gcc keep it in a register. Branch targets differ by 8 bytes because of the two extra lwc1 rows. Also `j func_80199AB0+0x3f4` vs `j func_80199EAC+0x18` shows the tail-call/return path layout still differs. Next step: single `f32 a = D_801C6BCC;` local, compare `a` in the 90/180/270 chain, and `return (u8)a1;`.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794712807.8765771,
+  "score_before": 8010,
+  "score_after": 1330
+ },
+ {
+  "function": "func_80199AB0",
+  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 254; 1 differing rows (1 opcode; advisory).\nTarget: andi $v0, $a1, 0xff\nCandidate: move $v0, $a1\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n  = addiu $a1, $zero, 2\n  = jr $ra\n| T: andi $v0, $a1, 0xff | C: move $v0, $a1\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nBest verified score 200 (rev 39241e50fc2473166541, 255 target vs ~256 insns; 1 mismatch row). Structure is right: four branch arms keyed on D_801E995A/B[(arg0&0xFFFF)*0x70] vs +0x3D/-0x3C and D_801E9980/84/88/8C[...] == 1, each selecting a1 from a chain of D_801C6BCC == 0.0f/360.0f/90.0f/180.0f/270.0f. Return type tried s32/u8/u16 with and without the &0xFF mask; all scored 200. Remaining single-row diff is a register/ordering detail in the final mask or one comparison. Next: try caching D_801C6BCC into a local f32 before the if-chain, and try `switch ((s32)D_801C6BCC)`-style or nested if with the 0/360 test written as `!(x != 0.0f && x != 360.0f)`.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794713490.739488,
+  "score_before": 1330,
+  "score_after": 200
+ },
+ {
+  "function": "func_80199AB0",
+  "text": "Near match, 1 instruction off: score 200, 255 insns each, only diff is the final return. Target ends `addiu $a1,$zero,2; jr $ra; andi $v0,$a1,0xff`, ours `move $v0,$a1`. Tried: `return a1 & 0xFF`, `return (u8)a1`, `u8 a1` local, `u8` return type, and parameter widths u16/s16 (220, worse). All keep the move. Untried: make the value come from a different expression so gcc keeps the mask, e.g. a `u8` temp assigned from the final if-chain, or the mask applied on each store (a1 = (u8)k in each branch) with `return a1;`. Do not repeat the return-only variants.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794728336.085492,
+  "score_before": 200,
+  "score_after": 200
+ },
+ {
+  "function": "func_80199AB0",
+  "text": "Reached 86.0% (score 3570) before my claim lapsed. The logic is an if-chain, not a switch: four blocks, each gated by (s8 field >= 0x3D or < -0x3C) && (s32 field == 1) on index (arg0&0xFFFF)*0x70. Inside each block, an if/else-if chain compares D_801C6BCC against 0.0f, 360.0f, 90.0f, 180.0f, 270.0f. Results: block1 gives 0,0,1,2,3; block2 gives 2,2,3,0,1; block3 gives 1,1,2,3,0; block4 gives 3,3,0,1,2. Default a1=4, return a1&0xFF. Remaining diff: the target recomputes andi/offset in each else-branch and uses bnel fall-throughs. Next try: recompute off inside each else block, as in a nested-else version.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794749865.4597461,
+  "score_before": 0,
+  "score_after": 0
  }
 ]
