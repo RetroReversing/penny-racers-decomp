@@ -1,0 +1,83 @@
+#include "common.h"
+
+typedef struct AlFxParam
+{
+  s32 start;
+  s32 end;
+  s16 v8;
+  s16 vA;
+  s16 vC;
+  s16 vE;
+  f32 rate;
+  s32 p14;
+  s32 p18;
+  f32 decay;
+  void *buf;
+  s32 p24;
+} AlFxParam;
+typedef struct AlFxBank
+{
+  u8 pad00[0x20];
+  AlFxParam *params;
+} AlFxBank;
+extern u8 *D_80046DF4;
+extern f64 D_8004A490;
+extern f64 D_8004A498;
+void func_800346C0(void *);
+s32 n_alFxParamHdl(AlFxBank *bank, s32 id, s32 *src)
+{
+  s32 n = id - 2;
+  s32 field = n % 8;
+  s32 val;
+  id = n / 8;
+  val = *src;
+  switch (field)
+  {
+    case 0:
+      bank->params[id].start = val & (~7);
+      break;
+
+    case 1:
+      bank->params[id].end = val & (~7);
+      break;
+
+    case 2:
+      bank->params[id].v8 = val;
+      break;
+
+    case 3:
+      bank->params[id].vA = val;
+      break;
+
+    case 4:
+      bank->params[id].vC = val;
+      break;
+
+    case 5:
+      bank->params[id].rate = (f32)((((f64)(((f32)val) / 1000.0f)) * 2.0) / ((f64)(*((s32 *)(D_80046DF4 + 0x4c)))));
+      break;
+
+    case 6:
+    {
+      f64 t = ((f64)((f32)val)) / D_8004A490;
+      unsigned int diff = bank->params[id].end - bank->params[id].start;
+      f64 d = (f64)diff;
+      if (diff < 0)
+      {
+        d += D_8004A498;
+      }
+      bank->params[id].decay = (f32)(t * d);
+      break;
+    }
+
+    case 7:
+      if (bank->params[id].buf != NULL)
+      {
+        *((s16 *)bank->params[id].buf) = val;
+        func_800346C0(bank->params[id].buf);
+      }
+      break;
+  }
+
+  return 0;
+}

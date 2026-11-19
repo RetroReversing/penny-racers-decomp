@@ -1,0 +1,66 @@
+#include "common_local_source_339302416544.h"
+
+extern void func_8003DE60();
+extern void func_80026D40();
+extern char D_80046850[];
+extern char D_800469A0[];
+extern char D_80046B14[];
+extern char D_80049ED4[];
+extern char D_80049EEC[];
+extern char D_80049EFC[];
+extern char D_80049F04[];
+extern char D_80049F08[];
+extern char D_80049F1C[];
+extern char D_80049F44[];
+extern char D_80049F6C[];
+extern char D_80049F94[];
+extern char D_80049FBC[];
+extern char D_80049FE4[];
+extern char D_8004A00C[];
+extern char D_8004A034[];
+extern char D_8004A05C[];
+extern char D_8004A084[];
+extern char D_8004A0A0[];
+extern char D_8004A0A8[];
+extern char D_8004A0D0[];
+extern char D_8004A0F8[];
+extern char D_8004A120[];
+extern char D_8004A148[];
+extern char D_8004A160[];
+extern char D_8004A178[];
+extern char D_8004A190[];
+extern char D_8004A1A8[];
+extern char D_8004A1C0[];
+extern char D_8004A1D8[];
+extern char D_8004A1F0[];
+
+void func_800268C0(u8 *arg0) {
+    do { func_8003DE60(D_80049ED4, *(s32 *)(arg0 + 0x14)); } while (0);
+    func_8003DE60(D_80049EEC, *(s32 *)(arg0 + 0x11C));
+    func_80026D40(*(s32 *)(arg0 + 0x120), D_80049EFC, D_80046850);
+    func_80026D40(*(s32 *)(arg0 + 0x118), D_80049F04, D_800469A0);
+    func_8003DE60(D_80049F08, *(s32 *)(arg0 + 0x124));
+    func_8003DE60(D_80049F1C, *(s64 *)(arg0 + 0x20), *(s64 *)(arg0 + 0x28), *(s64 *)(arg0 + 0x30));
+    func_8003DE60(D_80049F44, *(s64 *)(arg0 + 0x38), *(s64 *)(arg0 + 0x40), *(s64 *)(arg0 + 0x48));
+    func_8003DE60(D_80049F6C, *(s64 *)(arg0 + 0x50), *(s64 *)(arg0 + 0x58), *(s64 *)(arg0 + 0x60));
+    func_8003DE60(D_80049F94, *(s64 *)(arg0 + 0x68), *(s64 *)(arg0 + 0x70), *(s64 *)(arg0 + 0x78));
+    func_8003DE60(D_80049FBC, *(s64 *)(arg0 + 0x80), *(s64 *)(arg0 + 0x88), *(s64 *)(arg0 + 0x90));
+    func_8003DE60(D_80049FE4, *(s64 *)(arg0 + 0x98), *(s64 *)(arg0 + 0xA0), *(s64 *)(arg0 + 0xA8));
+    func_8003DE60(D_8004A00C, *(s64 *)(arg0 + 0xB0), *(s64 *)(arg0 + 0xB8), *(s64 *)(arg0 + 0xC0));
+    func_8003DE60(D_8004A034, *(s64 *)(arg0 + 0xC8), *(s64 *)(arg0 + 0xD0), *(s64 *)(arg0 + 0xD8));
+    func_8003DE60(D_8004A05C, *(s64 *)(arg0 + 0xE0), *(s64 *)(arg0 + 0xE8), *(s64 *)(arg0 + 0xF0));
+    func_8003DE60(D_8004A084, *(s64 *)(arg0 + 0xF8), *(s64 *)(arg0 + 0x100));
+    func_80026D40(*(s32 *)(arg0 + 0x12C), D_8004A0A0, D_80046B14);
+    func_8003DE60(D_8004A0A8, (f64)*(f32 *)(arg0 + 0x134), (f64)*(f32 *)(arg0 + 0x13C), (f64)*(f32 *)(arg0 + 0x144), (f64)*(f32 *)(arg0 + 0x14C));
+    func_8003DE60(D_8004A0D0, (f64)*(f32 *)(arg0 + 0x154), (f64)*(f32 *)(arg0 + 0x15C), (f64)*(f32 *)(arg0 + 0x164), (f64)*(f32 *)(arg0 + 0x16C));
+    func_8003DE60(D_8004A0F8, (f64)*(f32 *)(arg0 + 0x174), (f64)*(f32 *)(arg0 + 0x17C), (f64)*(f32 *)(arg0 + 0x184), (f64)*(f32 *)(arg0 + 0x18C));
+    func_8003DE60(D_8004A120, (f64)*(f32 *)(arg0 + 0x194), (f64)*(f32 *)(arg0 + 0x19C), (f64)*(f32 *)(arg0 + 0x1A4), (f64)*(f32 *)(arg0 + 0x1AC));
+    func_8003DE60(D_8004A148, *(s64 *)(arg0 + 0x130), *(f64 *)(arg0 + 0x138));
+    func_8003DE60(D_8004A160, *(s64 *)(arg0 + 0x140), *(f64 *)(arg0 + 0x148));
+    func_8003DE60(D_8004A178, *(s64 *)(arg0 + 0x150), *(f64 *)(arg0 + 0x158));
+    func_8003DE60(D_8004A190, *(s64 *)(arg0 + 0x160), *(f64 *)(arg0 + 0x168));
+    func_8003DE60(D_8004A1A8, *(s64 *)(arg0 + 0x170), *(f64 *)(arg0 + 0x178));
+    func_8003DE60(D_8004A1C0, *(s64 *)(arg0 + 0x180), *(f64 *)(arg0 + 0x188));
+    func_8003DE60(D_8004A1D8, *(s64 *)(arg0 + 0x190), *(f64 *)(arg0 + 0x198));
+    func_8003DE60(D_8004A1F0, *(s64 *)(arg0 + 0x1A0), *(f64 *)(arg0 + 0x1A8));
+}
