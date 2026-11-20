@@ -1,0 +1,12 @@
+#include "common_local_source_339302417279.h"
+
+u8 func_8014BA14(u16 arg0){s32 v=0;
+switch(arg0){
+case 0x2FFF:case 0x4FFF:v=2;break;
+case 0xD:
+case 0x115:case 0x116:case 0x117:case 0x118:
+case 0x409:
+case 0x506:case 0x507:
+case 0x612:case 0x613:case 0x614:
+case 0x70E:v=1;break;
+}return v;}

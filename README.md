@@ -1,53 +1,44 @@
-# PENNY RACERS: decompdecomp progress
+# PENNY RACERS (decompilation)
 
-This is a saved decompilation project created with [decompdecomp](https://github.com/n-delic/decompdecomp).
-AI agents were used during the decompilation; their C attempts were kept only when decompdecomp's byte-for-byte
-judge accepted them as matches.
+A matching decompilation of PENNY RACERS for the Nintendo 64, started with [decompdecomp](https://github.com/RetroReversing/decompdecomp).
+654 of 1298 functions are C that compiles to exactly the original code; the rest are still assembly.
+`build.py` rebuilds the game from this tree and checks it against your original, byte for byte.
 
-## Project details
+Want to start your own decompilation? Follow [RetroReversing's AI-assisted N64 decompilation guide](https://www.retroreversing.com/ai-assisted-n64-decompilation).
 
-<!-- decompdecomp:details:start -->
-- **Game:** PENNY RACERS
-- **Platform:** n64
-- **Compiler:** gcc-2.7.2-kmc
-<!-- decompdecomp:details:end -->
-<!-- decompdecomp:progress:start -->
-- **Progress:** 654 matching function(s), 446 best attempt(s)
-- **Completion:** 654 / 1,074 functions (60.9%). 51 set aside, excluded from completion.
-<!-- decompdecomp:progress:end -->
+## Build
 
-## What's in this folder
+1. Put your own copy of the game here as `baserom.z64` (it is in `.gitignore`; never commit it).
+2. `python3 build.py` (it uses decompdecomp's period compiler and assembler, so decompdecomp must be installed).
 
-This folder is the whole of the work, and the only part of the project to share or keep in git. It holds no game
-data: everything else in the project's folder was made from the game (the ROM, `asm/`, `assets/`, the build files)
-and stays on your computer.
+## Layout
 
-```
-src/<function>.c      each matched function's C, byte for byte
-best/<function>.c     the closest attempt so far at each function that doesn't match yet
-include/common.h      the shared header every function is compiled with (common_<part>.h: a part's own)
-decompdecomp.json     the game's fingerprint (its SHA-1, never the game), the compiler and its flags, the
-                      functions' layout and names, notes, instructions, what agents learned, who matched what
-README.md             this file
-```
+| Path | What it is |
+| :-- | :-- |
+| `src/<segment>/<function>.c` | Decompiled functions, one per file, each matching the original. |
+| `asm/nonmatchings/` | Assembly of every function (the target for the decompiled ones). |
+| `asm/data/`, `asm/*.s`, `assets/` | Data, start-up code and binary parts, still as assembly or binary. |
+| `include/common.h` | Types, structs and prototypes worked out so far. |
+| `game.ld` | Places every function and data block at its original address. |
+| `build.json`, `build.py` | How each file is built, and the build. |
+| `objdiff.json` | Per-function units for [objdiff](https://github.com/encounter/objdiff) (`python3 build.py targets` makes their targets). |
 
-## Continue on another computer
+Keep going with any tool: write a function in C under `src/`, add it to `build.json` (see the existing entries),
+run `build.py`. When it says *identical*, the function matches. This is the base for ports and mods: once
+everything is C, the game can be rebuilt, changed and moved to other platforms.
 
-Open decompdecomp, choose **New project → Open a saved project**, then pick this folder (or paste its git
-repository's address) and your own copy of the game. decompdecomp checks it's the same game and judges every saved
-function again: a match counts because it matches, not because a file says so.
+The game's code and data belong to their rights holder: keep this tree to yourself unless you have the right to
+share it.
 
-## Collaborate
+## Notes
+- `func_8002B454`: kept as assembly, no longer matches
+- `n_alFxParamHdl`: kept as assembly, no longer matches
+- `__setInstChanState`: kept as assembly, its C also defines other functions; split their bodies into separate source files
+- `_decodeChunk`: kept as assembly, its C also defines other functions; split their bodies into separate source files
+- `alFxParamHdl`: kept as assembly, no longer matches
+- `__osClearPage`: kept as assembly, its C also defines other functions; split their bodies into separate source files
+- `__osPfsSelectBank`: kept as assembly, its C also defines other functions; split their bodies into separate source files
 
-This folder is the source of truth. Edit its C, headers, names, notes or settings and pull or merge contributions
-here. decompdecomp picks up changes automatically and judges changed code again. Deleted sources reopen their
-functions. Keep git conflict markers out of these files; unresolved conflicts pause synchronization.
+## Open in decompdecomp
 
-<!-- decompdecomp:visuals:start -->
-## Progress map
-
-![Decompilation completion and function map](decompdecomp-progress.svg)
-
-Green: matched. Gold: attempted. Grey: open. Red: set aside. Functions follow address, then source unit and name order.
-The image and tagged counts update on save. Keep project notes outside the hidden `decompdecomp` comment pairs to preserve them.
-<!-- decompdecomp:visuals:end -->
+Open this repository with **New project → Open a saved project** and supply your own game copy. The `progress/` folder retains matches, drafts, names, notes, headers and compiler settings. Build files and sources live at the repository root; ROMs and extracted files are excluded by `.gitignore`.

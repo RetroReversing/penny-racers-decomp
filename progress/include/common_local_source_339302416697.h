@@ -1,0 +1,103 @@
+typedef unsigned char u8;
+typedef signed short s16;
+typedef unsigned short u16;
+typedef signed int s32;
+typedef unsigned int u32;
+typedef float f32;
+typedef struct ALLink_s {
+    struct ALLink_s *next;
+    struct ALLink_s *prev;
+} ALLink;
+typedef struct ALParam_s {
+    struct ALParam_s *next;     
+    s32 delta;
+    s16 type;
+    union { f32 f; s32 i; } data;
+    union { f32 f; s32 i; } moredata;
+    union { f32 f; s32 i; } stillmoredata;
+    union { f32 f; s32 i; } yetstillmoredata;
+} ALParam;
+typedef struct {
+    u32 start;
+    u32 end;
+    u32 count;
+} ALRawLoop;
+typedef struct N_PVoice_s {
+    ALLink node;                
+    struct N_ALVoice_s *vvoice;  
+    void *dc_state;             
+    void *dc_lstate;            
+    ALRawLoop dc_loop;          
+    struct ALWaveTable_s *dc_table;  
+    s32 dc_bookSize;            
+    void *dc_dma;               
+    void *dc_dmaState;          
+    s32 dc_sample;              
+    s32 dc_lastsam;             
+    s32 dc_first;               
+    s32 dc_memin;               
+    void *rs_state;             
+    f32 rs_ratio;               
+    s32 rs_upitch;              
+    f32 rs_delta;               
+    s32 rs_first;               
+    void *em_state;             
+    s16 em_pan;                 
+    s16 em_volume;              
+    s16 em_cvolL;               
+    s16 em_cvolR;               
+    s16 em_dryamt;              
+    s16 em_wetamt;              
+    u16 em_lratl;               
+    s16 em_lratm;               
+    s16 em_ltgt;                
+    u16 em_rratl;               
+    s16 em_rratm;               
+    s16 em_rtgt;                
+    s32 em_delta;               
+    s32 em_segEnd;              
+    s32 em_first;               
+    struct ALParam_s *em_ctrlList;  
+    struct ALParam_s *em_ctrlTail;  
+    s32 em_motion;              
+    s32 offset;                 
+} N_PVoice;
+typedef struct N_ALVoice_s {
+    ALLink node;                
+    N_PVoice *pvoice;           
+    void *table;                
+    void *clientPrivate;        
+    s16 state;                  
+    s16 priority;               
+    s16 fxBus;                  
+    s16 unityPitch;             
+} N_ALVoice;
+typedef struct {
+    u32 start;
+    u32 end;
+    u32 count;
+    s16 state[16];              
+} ALADPCMloop;
+typedef struct {
+    s32 order;
+    s32 npredictors;
+    s16 book[1];                
+} ALADPCMBook;
+typedef struct {
+    ALADPCMloop *loop;          
+    ALADPCMBook *book;          
+} ALADPCMWaveInfo;
+typedef struct {
+    ALRawLoop *loop;            
+} ALRAWWaveInfo;
+typedef struct ALWaveTable_s {
+    u8 *base;                   
+    s32 len;                    
+    u8 type;                    
+    u8 flags;                   
+    union {
+        ALADPCMWaveInfo adpcmWave;
+        ALRAWWaveInfo rawWave;
+    } waveInfo;                 
+} ALWaveTable;
+extern void alCopy(void *src, void *dest, s32 len);
