@@ -13848,14 +13848,6 @@
   "score_after": 395
  },
  {
-  "function": "func_8003F464",
-  "text": "Not matched, 95.5% (27 vs 27 insns). Source, revision 7e908f6abd4eddc4b9ef: `if (D_80048200 == 0) { D_80048200 = 1; osCreateMesgQueue(D_800DE2B0, D_8006E770, 1); osSendMesg(D_800DE2B0, NULL, 0); } osRecvMesg(D_800DE2B0, &sp10, 1);` with `s32 sp10`. Only remaining diff: the target places the flag test (lui/lw D_80048200, bnez) before the frame setup, so its branch is one byte further (bnez 0x4c encodes 0x0f vs mine 0x0e). In my compile the addiu sp / sw ra come first. Tried: goto-based early exit (no change), u32 vs s32 sp10 (no change). search_flags: -O2 and -O3 score 60 (better than the 120 of the project compile in this run), -O1 scores 180. So a scheduling/flag difference is likely; suggest checking the -O2 variant against the stored compile history. Note: the machine draft's comment cited another game's function (V-RALLY-PAL); I did not use it, I wrote the C from this target's assembly.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794728637.4706838,
-  "score_before": 60,
-  "score_after": 60
- },
- {
   "function": "func_801525C4",
   "text": "Not matched. Saved best is 3145 (older source; get_candidate(base=\"saved_best\") restores it). Current source scores 4220 (45.8%) in three compiles; the raw-arg local (`raw = arg0`) changed nothing, so the frame is not a liveness issue at this level. Remaining diffs: target frame 0x28 (ra@0x18, s1@0x14, s0@0x10, $f20@0x20) vs mine 0x20; target has no `bc1f` (the `if (D_801837E8 <= temp_fv1)` compare is laid out differently, possibly as a branch-around on the negated compare or with the store moved into the delay slot), and the f64 chain order (cvt.d.s, add.d, cvt.s.d) differs. Next: compile the comparison as `if (!(temp_fv1 < D_801837E8))`, and try a double local for the f32 result of the first add.",
   "by": "claude-haiku-5-5-20",
@@ -22072,14 +22064,6 @@
   "score_after": 3145
  },
  {
-  "function": "func_8003F464",
-  "text": "Own C (not copied): if (D_80048200 == 0) { D_80048200 = 1; osCreateMesgQueue(D_800DE2B0, D_8006E770, 1); osSendMesg(D_800DE2B0, NULL, 0); } osRecvMesg(D_800DE2B0, &sp10, 1); with s32 sp10. Score 120 (96% insns match). Only difference: target puts `sw $ra,0x18($sp)` in the bnez delay slot (order: lui, lw, addiu sp, bnez, sw ra), while ours hoists sw ra and addiu sp above the lui/lw load, so bnez encodes 0x0e instead of 0x0f. Untried: alternative control shapes (e.g. inverted test with the recv in the else path) and whether the flag load should be typed u32. Note: the candidate offered at claim time carried a V-RALLY-PAL identity note; that was not used.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794752852.263959,
-  "score_before": 60,
-  "score_after": 60
- },
- {
   "function": "func_80038010",
   "text": "Best 1157 (83.2%, 69 insns each), using the m2c draft with fixed types and a do/while loop (candidate revision b4d1a9bc61e4009354e1). Remaining gap is the frame: target is addiu -0x50, saves s0 at 0x28, s1 0x2c, s2 0x30, s3 0x34, s4 0x38, s5 0x3c, s6 0x40, s7 0x44, fp 0x48, ra 0x4C, and spills sp26 (u16) at 0x26. Mine is -0x48 with saves starting at 0x20. So the target has about 8 more bytes of locals below 0x28 (sp10 at 0x10, sp26 at 0x26). Not identified which extra local it is. Next step: find a local that takes 8 bytes (a 2-word temporary or a second address-taken s16) and check the saved-reg order. Score path for the loop control also still differs (target exits via the sp10==4 early path with the lw $v0 at 4($s0) store).",
   "by": "claude-haiku-5-5-22",
@@ -22238,14 +22222,6 @@
   "created_at": 1794753006.936322,
   "score_before": 3404,
   "score_after": 3404
- },
- {
-  "function": "func_8003F464",
-  "text": "Best 120 (95.5%, 27 insns both sides); saved best 60 remains baseline. Restore saved_best before any work. Remaining difference: target's bnez offset is 15 words (0x1440000f), mine 14. The target's then-block has one more instruction, and the frame setup comes after the flag load (lui/lw D_80048200, then addiu sp). My C puts the frame first. Source-level variants (u32 vs s32 sp10, reorder of the create/set) did not change the output. Next step: try a version where the then-block contains one extra statement or a different osSendMesg argument form (e.g. a NULL-typed pointer), or compare with find_similar for a matching frame layout.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794753014.513889,
-  "score_before": 60,
-  "score_after": 60
  },
  {
   "function": "func_80038010",
@@ -28912,14 +28888,6 @@
   "score_after": 52929
  },
  {
-  "function": "func_8003F464",
-  "text": "Not matched; best this session 120 (saved best 60, restore via get_candidate(base=\"saved_best\")). Draft's extern names were wrong: flag is D_80048200 (s32), queue is D_800DE2B0, message buffer D_8006E770 (osCreateMesgQueue(q, buf, 1)). With those externs the only remaining diff is scheduling: target loads flag and branches before adjusting $sp, with sw $ra in the bnez delay slot (order: lui/lw flag, addiu sp, bnez, sw ra). Ours hoists addiu sp and sw ra to the top. Tried: != form with early return, local copy of flag, sp10 signedness. None changed the instructions. Next: try forms that keep the flag load as the first statement, e.g. an explicit flag local read before any call, or restructure so the osRecvMesg tail is shared with a separate early path.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794761697.137392,
-  "score_before": 60,
-  "score_after": 60
- },
- {
   "function": "func_80158424",
   "text": "Best candidate 2db1276f8cdac2a4d368 scores 65328 (27% match; 797 of 896 target insns). It is a straight-line sequence of about 40 calls to func_800DE41C(a0..a3, 0x10..0x38 words, 0x3C..0x44 floats), with the first 12 calls sharing (0x54, 0x96, D_8016D748+k*0x10, func_801574DC, func_80157568). The machine draft in the claim is not a match and does not compile as written (it needs the func_800DE41C prototype: 4 reg args, then 14 stack words where the last three are f32, and func_80157E30 conflicts with context.h's void func_80157E30(s32)).\n\nRemaining diff, in order of importance:\n1. Frame and saves: the target uses frame 0x80, saves ra(0x60), s5(0x5C), s4(0x58), s3(0x54), s2(0x50), s1(0x4C), s0(0x48), and sdc1 fs0..fs2 (0x68..0x78). Mine saves only s1 at 0x4C. The target keeps f20 (1.0f) live as a register and stores it to 0x3C/0x40/0x44 before every call (60 swc1 $f20). Using a float local set to 1.0f before the calls may reproduce it.\n2. Calls at the end: target calls func_80152720 (raw 0x80152720) and func_801580F4 in the last two calls, and calls 0x80157490 as the second pointer of the 0x53 call. Mine swapped these: the first 0x53 call's second pointer and the final two calls need checking against the assembly with last_diff.\n3. Constant reloads: the target does mtc1/lui 50 times, so each float literal is reloaded per call, and the repeated 0x51/0xFF/0x80 words are not kept in registers.\n\nNot tried: the local-variable change (c54/c96/fa/fb/base) gave no change (65328 again). Next steps: compare the assembly for the call order in the last 6 calls and the first 0x53 call; then try float locals for the 1.0f/2.0f literals.",
   "by": "claude-haiku-5-5-22",
@@ -30704,14 +30672,6 @@
   "score_after": 898
  },
  {
-  "function": "func_8003F464",
-  "text": "Near match, not saved: own C scores 120 (27/27 insns). The only mismatch is prologue order. The target starts with lui/lw of D_80048200 before addiu $sp, then bnez in the delay slot position of sw $ra, while -O2 emits addiu $sp and sw $ra first. Tried: a local flag copy (no effect), and search_flags (-O2 and -O3 best; -O1 gives 180). Untried next: restructure the test so the load is hoisted, or check whether the target was built with a different -O level/scheduling. Note: the saved best in this function's history is a copy of another game's decomp (V-RALLY-PAL func_800946B4) and must NOT be reused; a match must come from this project's own C.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794764442.4324522,
-  "score_before": 60,
-  "score_after": 60
- },
- {
   "function": "func_801E0F10",
   "text": "Best candidate revision cf6dfb621eea16a9468c scored 48850 (15.0%). Target is 575 insns with a 0x78 frame (ra, s0, s1 saved); the candidate covers only about 137 insns. It is the switch-on-state sketch from the machine draft and misses most of the body. The draft's warnings (void* dereference at lines 128/135, int-from-pointer at 183) show the D_8006FAF0/D_800DA26A/D_801CE928 pointer externs are typed wrong. Next step: rewrite from the assembly rather than patching. Start by identifying the 0x78-frame prologue (s0 = arg0 & 0xFFFF index, s1 = saved index), then the repeated D_8011F2F0[base] / D_8011F2FC[base] / D_8011F32E[idx*50] table reads, which the target recomputes each time. Also check whether -O1 fits better, since the target reloads lui/addu each iteration.",
   "by": "claude-haiku-5-5-23",
@@ -31784,14 +31744,6 @@
   "score_after": 0
  },
  {
-  "function": "func_8003F464",
-  "text": "byte match with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns2; review compiler settings before accepting\nCandidate C:\ns32 func_80033A90();\ns32 osRecvMesg();\ns32 osSendMesg();\nextern s32 D_800A39A0;\nextern char D_80067C70[];\nextern char D_800677A8[];\nextern char D_800B6FF8[];\n\nextern s32 D_80048200;\nextern char D_800DE2B0[];\nextern char D_8006E770[];\n\nvoid func_8003F464(void)\n{\n    s32 sp10;\n\n    if (D_80048200 == 0) {\n        D_80048200 = 1;\n        osCreateMesgQueue(D_800DE2B0, D_8006E770, 1);\n        osSendMesg(D_800DE2B0, 0, 0);\n    }\n    osRecvMesg(D_800DE2B0, &sp10, 1);\n}",
-  "by": "autopilot",
-  "created_at": 1795134838.8861701,
-  "score_before": 180,
-  "score_after": 120
- },
- {
   "function": "f64ToFixed60",
   "text": "exact relocation-normalized SDK signature. Exact relocation-normalized 284-byte function fingerprint f64ec533751ca2ae4112612fcab3415d83edc29a; one name across selected SDK signatures, unique target fingerprint. Libraries: built in / n64-runtime-assembly 1. Name inferred from library code; not a verified C match.",
   "by": "autopilot",
@@ -31808,14 +31760,6 @@
   "score_after": 5610
  },
  {
-  "function": "func_8003F464",
-  "text": "byte match with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns2; review compiler settings before accepting\nCandidate C:\ns32 func_80033A90();\ns32 osRecvMesg();\ns32 osSendMesg();\nextern s32 D_800A39A0;\nextern char D_80067C70[];\nextern char D_800677A8[];\nextern char D_800B6FF8[];\n\nextern s32 D_80048200;\nextern char D_800DE2B0[];\nextern char D_8006E770[];\n\nvoid func_8003F464(void)\n{\n    s32 sp10;\n\n    if (D_80048200 == 0) {\n        D_80048200 = 1;\n        osCreateMesgQueue(D_800DE2B0, D_8006E770, 1);\n        osSendMesg(D_800DE2B0, 0, 0);\n    }\n    osRecvMesg(D_800DE2B0, &sp10, 1);\n}",
-  "by": "autopilot",
-  "created_at": 1794768116.264052,
-  "score_before": 60,
-  "score_after": 60
- },
- {
   "function": "func_80139F14",
   "text": "Not attempted. 3732 bytes / 933 instructions, and the machine draft fails because the jump table at jtbl_801830D8 (0x801830D8) has no bytes in the imported data. Needs the table added to the project data before any draft is possible. Too large to work by hand in one session. Next step: read the jump table, then split the function (split_function) or draft case by case.",
   "by": "claude-haiku-5-5-22",
@@ -31830,14 +31774,6 @@
   "created_at": 1794765786.5705972,
   "score_before": 450,
   "score_after": 450
- },
- {
-  "function": "func_8003F464",
-  "text": "Own clean source3fc87aba6252d58e3d95 corrected stale wrong-game symbol references: D_80048200 flag, D_800DE2B0 queue for both send/recv, D_8006E770 buffer. try_compiler explicit source exact with -O1 -fschedule-insns2; submitted suggest verified bundle. Plain -O1=120, O2=626. Automatic profile changes disabled; apply pending exact bundle.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794765798.377054,
-  "score_before": 60,
-  "score_after": 60
  },
  {
   "function": "func_8002D520",
@@ -32470,14 +32406,6 @@
   "created_at": 1794766733.470548,
   "score_before": 285,
   "score_after": 285
- },
- {
-  "function": "func_8003F464",
-  "text": "Own C with typed osCreateMesgQueue/osSendMesg/osRecvMesg prototypes, correct D_80048200,D_800DE2B0,D_8006E770 reverified. Exact -O1 -fschedule-insns2; prior source3fc87aba6252d58e3d95 verified suggest bundle already awaits automatic-disabled profile application. Avoid inherited wrong-game symbol references. No new O2 tuning needed.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794766738.22766,
-  "score_before": 60,
-  "score_after": 60
  },
  {
   "function": "func_80157A54",
@@ -34510,5 +34438,77 @@
   "created_at": 1794768127.247495,
   "score_before": 65,
   "score_after": 65
+ },
+ {
+  "function": "func_8003F464",
+  "text": "Not matched, 95.5% (27 vs 27 insns). Source, revision 7e908f6abd4eddc4b9ef: `if (D_80048200 == 0) { D_80048200 = 1; osCreateMesgQueue(D_800DE2B0, D_8006E770, 1); osSendMesg(D_800DE2B0, NULL, 0); } osRecvMesg(D_800DE2B0, &sp10, 1);` with `s32 sp10`. Only remaining diff: the target places the flag test (lui/lw D_80048200, bnez) before the frame setup, so its branch is one byte further (bnez 0x4c encodes 0x0f vs mine 0x0e). In my compile the addiu sp / sw ra come first. Tried: goto-based early exit (no change), u32 vs s32 sp10 (no change). search_flags: -O2 and -O3 score 60 (better than the 120 of the project compile in this run), -O1 scores 180. So a scheduling/flag difference is likely; suggest checking the -O2 variant against the stored compile history. Note: the machine draft's comment cited another game's function (V-RALLY-PAL); I did not use it, I wrote the C from this target's assembly.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794728637.4706838,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_8003F464",
+  "text": "Own C (not copied): if (D_80048200 == 0) { D_80048200 = 1; osCreateMesgQueue(D_800DE2B0, D_8006E770, 1); osSendMesg(D_800DE2B0, NULL, 0); } osRecvMesg(D_800DE2B0, &sp10, 1); with s32 sp10. Score 120 (96% insns match). Only difference: target puts `sw $ra,0x18($sp)` in the bnez delay slot (order: lui, lw, addiu sp, bnez, sw ra), while ours hoists sw ra and addiu sp above the lui/lw load, so bnez encodes 0x0e instead of 0x0f. Untried: alternative control shapes (e.g. inverted test with the recv in the else path) and whether the flag load should be typed u32. Note: the candidate offered at claim time carried a V-RALLY-PAL identity note; that was not used.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794752852.263959,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_8003F464",
+  "text": "Best 120 (95.5%, 27 insns both sides); saved best 60 remains baseline. Restore saved_best before any work. Remaining difference: target's bnez offset is 15 words (0x1440000f), mine 14. The target's then-block has one more instruction, and the frame setup comes after the flag load (lui/lw D_80048200, then addiu sp). My C puts the frame first. Source-level variants (u32 vs s32 sp10, reorder of the create/set) did not change the output. Next step: try a version where the then-block contains one extra statement or a different osSendMesg argument form (e.g. a NULL-typed pointer), or compare with find_similar for a matching frame layout.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794753014.513889,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_8003F464",
+  "text": "Not matched; best this session 120 (saved best 60, restore via get_candidate(base=\"saved_best\")). Draft's extern names were wrong: flag is D_80048200 (s32), queue is D_800DE2B0, message buffer D_8006E770 (osCreateMesgQueue(q, buf, 1)). With those externs the only remaining diff is scheduling: target loads flag and branches before adjusting $sp, with sw $ra in the bnez delay slot (order: lui/lw flag, addiu sp, bnez, sw ra). Ours hoists addiu sp and sw ra to the top. Tried: != form with early return, local copy of flag, sp10 signedness. None changed the instructions. Next: try forms that keep the flag load as the first statement, e.g. an explicit flag local read before any call, or restructure so the osRecvMesg tail is shared with a separate early path.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794761697.137392,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_8003F464",
+  "text": "Near match, not saved: own C scores 120 (27/27 insns). The only mismatch is prologue order. The target starts with lui/lw of D_80048200 before addiu $sp, then bnez in the delay slot position of sw $ra, while -O2 emits addiu $sp and sw $ra first. Tried: a local flag copy (no effect), and search_flags (-O2 and -O3 best; -O1 gives 180). Untried next: restructure the test so the load is hoisted, or check whether the target was built with a different -O level/scheduling. Note: the saved best in this function's history is a copy of another game's decomp (V-RALLY-PAL func_800946B4) and must NOT be reused; a match must come from this project's own C.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794764442.4324522,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_8003F464",
+  "text": "byte match with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns2; review compiler settings before accepting\nCandidate C:\ns32 func_80033A90();\ns32 osRecvMesg();\ns32 osSendMesg();\nextern s32 D_800A39A0;\nextern char D_80067C70[];\nextern char D_800677A8[];\nextern char D_800B6FF8[];\n\nextern s32 D_80048200;\nextern char D_800DE2B0[];\nextern char D_8006E770[];\n\nvoid func_8003F464(void)\n{\n    s32 sp10;\n\n    if (D_80048200 == 0) {\n        D_80048200 = 1;\n        osCreateMesgQueue(D_800DE2B0, D_8006E770, 1);\n        osSendMesg(D_800DE2B0, 0, 0);\n    }\n    osRecvMesg(D_800DE2B0, &sp10, 1);\n}",
+  "by": "autopilot",
+  "created_at": 1795134838.8861701,
+  "score_before": 180,
+  "score_after": 120
+ },
+ {
+  "function": "func_8003F464",
+  "text": "byte match with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns2; review compiler settings before accepting\nCandidate C:\ns32 func_80033A90();\ns32 osRecvMesg();\ns32 osSendMesg();\nextern s32 D_800A39A0;\nextern char D_80067C70[];\nextern char D_800677A8[];\nextern char D_800B6FF8[];\n\nextern s32 D_80048200;\nextern char D_800DE2B0[];\nextern char D_8006E770[];\n\nvoid func_8003F464(void)\n{\n    s32 sp10;\n\n    if (D_80048200 == 0) {\n        D_80048200 = 1;\n        osCreateMesgQueue(D_800DE2B0, D_8006E770, 1);\n        osSendMesg(D_800DE2B0, 0, 0);\n    }\n    osRecvMesg(D_800DE2B0, &sp10, 1);\n}",
+  "by": "autopilot",
+  "created_at": 1794768116.264052,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_8003F464",
+  "text": "Own clean source3fc87aba6252d58e3d95 corrected stale wrong-game symbol references: D_80048200 flag, D_800DE2B0 queue for both send/recv, D_8006E770 buffer. try_compiler explicit source exact with -O1 -fschedule-insns2; submitted suggest verified bundle. Plain -O1=120, O2=626. Automatic profile changes disabled; apply pending exact bundle.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794765798.377054,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_8003F464",
+  "text": "Own C with typed osCreateMesgQueue/osSendMesg/osRecvMesg prototypes, correct D_80048200,D_800DE2B0,D_8006E770 reverified. Exact -O1 -fschedule-insns2; prior source3fc87aba6252d58e3d95 verified suggest bundle already awaits automatic-disabled profile application. Avoid inherited wrong-game symbol references. No new O2 tuning needed.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794766738.22766,
+  "score_before": 60,
+  "score_after": 60
  }
 ]
