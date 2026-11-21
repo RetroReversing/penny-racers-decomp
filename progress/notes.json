@@ -4896,14 +4896,6 @@
   "score_after": 1080
  },
  {
-  "function": "func_80157F6C",
-  "text": "Deep permuter: score 2330 \u2192 1805; 3 improvements; 66 candidates tested; 63 cached skips; 0 rejected; 7204s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935515",
-  "created_at": 1794356283.504311,
-  "score_before": 2330,
-  "score_after": 1805
- },
- {
   "function": "func_80027EE0",
   "text": "Deep permuter: score 724 \u2192 710; 1 improvements; 103 candidates tested; 64 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934769",
@@ -7766,14 +7758,6 @@
   "created_at": 1794708911.7222059,
   "score_before": 1455,
   "score_after": 1455
- },
- {
-  "function": "func_80157F6C",
-  "text": "Best current source (rev 2cf9513e3e479691ff57, score 1521/80.9%, 75 vs 80 insns) is the shape to keep:\n  s32 a = arg0; s32 b = a; u32 idx = b & 0xFFFF; u8 *p; f32 ang;\n  func_8013AE60(idx); p = D_8011F2F0 + idx*0x64;\n  if (*(f32*)(p+0x1C) < -50.0f) { *(f32*)(p+0x1C) += 1.4f; ang = *(f32*)(p+0x44)+0.05f; *(f32*)(p+0x44)=ang;\n    if (a & 1) { *(f32*)(p+0x18) = __sinf(ang) + *(f32*)(p+0x18); *(f32*)(p+0x20) = __cosf(*(f32*)(p+0x44)) + *(f32*)(p+0x20); }\n    else { *(f32*)(p+0x18) = *(f32*)(p+0x18) - __cosf(*(f32*)(p+0x44)); *(f32*)(p+0x20) = *(f32*)(p+0x20) - __sinf(*(f32*)(p+0x44)); } }\n  else D_8011F2FD[(u16) b * 0x64] = 2;\nKey findings: (1) the `(u16) b * 0x64` index for the D_8011F2FD store is what produces the target's `andi $v0,$s1,0xffff; sll 1; addu; sll 3; addu; sll 2` multiply chain \u2014 `(arg0 & 0xFFFF) * 0x64` instead gives a single `sll 2` and loses 12 rows (2141). (2) `s32 b = a;` (a copy of the arg) is required for the target prologue `move $s2,$a0; move $s1,$s2; andi $s0,$s1,0xffff`; writing `idx = arg0 & 0xFFFF` directly drops the copies. Remaining diffs: the target keeps a 3rd callee-saved reg ($s0 frame slot at 0x10) and does `lw $ra,0x1c($sp)`/frame save order; ours saves only 2 (frame layout differs: target sw ra@0x1c,s2@0x18,s1@0x14,s0@0x10). Also f44 is reloaded *after* the jal __cosf in the target (ours loads it before the call), and the two `j` targets are 0x10 short. Tried and no better: struct-typed Rec* access (1915), volatile/f32 pointer (1896), register/s32/u16 variants of idx (no change or worse), extra pad locals (no change), s16 idx (1761), arg0-vs-a in the `& 1` test (no change). Next idea: make the third saved register live by materialising the record base or the 0x64 multiplier in a third callee-saved temp, and reorder the __cosf argument load to after the call.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794708918.797809,
-  "score_before": 596,
-  "score_after": 596
  },
  {
   "function": "func_80205C00",
@@ -11870,14 +11854,6 @@
   "created_at": 1794722549.698376,
   "score_before": 220,
   "score_after": 220
- },
- {
-  "function": "func_80157F6C",
-  "text": "Not matched. Best current candidate: revision a7feec4c93d15bd40ed0 (or 6b2bad45249ee37b34e0, same score), score 2141 (73%). Structure is right: `if (f->0x1C < -50.0f)` branch with +1.4f and +0.05f updates, then sin/cos on `arg0 & 1`, else `D_8011F2FD[(arg0&0xFFFF)*100] = 2`. Target keeps THREE callee-saved values: s2 = arg0 (saved, used for `& 1` after the call), s1 = copy of s2 (used for the else-path index andi), s0 = s1 & 0xFFFF (idx, passed to func_8013AE60). Frame 0x20, ra at 0x1C, s2 at 0x18, s1 at 0x14, s0 at 0x10. Attempts that merged the copies (`a`/`b` locals, `idx` vs `arg0 & 0xFFFF`, b as u32) all scored 2141 with identical insns: gcc CSEs the copies. Signedness family (s32->u32 on b) also no change. Next: find a source form that keeps s2 and s1 distinct across the call, then fix float ordering: target loads 0x1C before `bc1f`, computes sin before cos in each branch.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794722561.1881468,
-  "score_before": 596,
-  "score_after": 596
  },
  {
   "function": "func_80157E30",
@@ -21280,14 +21256,6 @@
   "score_after": 4025
  },
  {
-  "function": "func_80157F6C",
-  "text": "Not matched. Current best on baseline 2141 (saved historical 596). Target: stride 100 (idx*100 via shifts/adds), base D_8011F2F0, offsets 0x18/0x1C/0x20/0x44, calls func_8013AE60(idx) first then __sinf/__cosf. Blocking diff is prologue register allocation: target saves ra(0x1c), s2(0x18), s1(0x14), s0(0x10) and does `move s2,a0; move s1,s2; andi s0,s1,0xffff; jal func_8013AE60` with a0=s0. Every candidate so far saves s1 first and drops the s2 copy. Three variants tried with no change in score: a local copy `a = arg0`, `idx=(u16)arg0`, and the signed-copy form; all compile to the same instructions. Next step if retried: find a source form that forces arg0 to stay live in a callee-saved reg across the call while the idx copy is separate (e.g. derive idx from a volatile-free second variable assigned after a use of arg0), or try compile_family(signedness). Branch sense looks right (bc1f goes to the else path).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794749802.3039958,
-  "score_before": 596,
-  "score_after": 596
- },
- {
   "function": "func_8014B890",
   "text": "Not matched. Best mine 4200 (56.7%, revision 9816788b5ef0823ee9d9), saved best still 3385. Structure that works: state==0x11 block first (decrement D_80190CB2, if <0 call func_801D65BC(6) and set 0xF0); then `if (state < 0x12) { if (state != 0) return; <loop over D_8018BC35 idx, idx<3 branch A (0x12/0x14 calls, 0xB4) else branch B (0x13 call, 0xC8)>; set 0x11; if s0[0]==2 set 0xF0; return; }`; then `if (state==0xF0) s0[0xD]=2`. Remaining gap: target keeps &D_80190CB2 in s1 (saves ra, s1, s0 with 0x20 frame) and loads it once up front (`lui s1; addiu s1` before the state load); my frame is 0x18 and I use the global directly in the 0x11 block, which breaks ordering. Next: force a pointer local `u16 *pc = &D_80190CB2;` declared before state load and used in all three places, and check the state==0x11 test order (target: beq 0x11 right after lhu state, then slti 0x12). Tried: plain switch (5557/4240), pc-local with switch (4240), if-chain with pc-local (4200), global without pc (5117).",
   "by": "claude-haiku-5-5-20",
@@ -23376,14 +23344,6 @@
   "score_after": 6255
  },
  {
-  "function": "func_80157F6C",
-  "text": "Not matched. Best rechecked 2161 (72.9%); saved best 596 is an older source. Own C structure is right (idx=arg0&0xFFFF; func_8013AE60(idx); p=&D_8011F2F0+idx*100 as f32*; if (p[7] < -50.0f) {p[7]+=1.4f; p[17]+=0.05f; if (arg0&1) {p[6]+=__sinf(p[17]); p[8]+=__cosf(p[17]);} else {p[6]-=__cosf(p[17]); p[8]-=__sinf(p[17]);}} else *(u8*)(&D_8011F2FD+idx*100)=2). Blocker: target frame is 0x20 with four saved regs (ra, s2, s1, s0); every candidate saves three, because the compiler folds the raw arg0 copy and the masked copy into one register. Tried: s2/s1 copy locals, s0 from arg0 directly, s1 from arg0 with masking at each use (all 2161), and branch_orientation family (4015, worse). Target stride x100 is computed as ((x*2+x)*8+x)*4; ours is not reproduced. Next experiment: keep arg0 live past the call through a second use that the compiler can't fold (e.g. read arg0 after the else-store path), and check the 0xFFFF mask placement. Why stopping: four compiles without improvement after the claim, the frame issue is structural and the variant tool schema differs from what I assumed.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794753989.55501,
-  "score_before": 596,
-  "score_after": 596
- },
- {
   "function": "func_801FC4E0",
   "text": "Not matched. Saved best 20 (recorded source, identical to the one in the revision 09c65922d34194e238b1) does not reproduce: it scores 4410 now. Target facts from assembly: prologue saves ra, s2, s1, s0 (frame 0x38); the first check is lhu D_80203AC8 with beqz to the end; s2 = arg0; each D_8011F330 access recomputes the index as (v*2+v)*8+v)*4 (100-byte Slot stride) and indexes the array directly (lui at / addu at / lhu %lo(at)), not through a cached pointer. Tried a cached Slot* pointer: worse (5370). Remaining diffs: register set (s0/s1 for arg1 and a second value, not reproduced), the scheduling of the D_80203AC8 check, and the call/argument layout at the end (the target's last two calls use D_801FFD30/D_801FFD40 after the D_8006FAF0 lhu). Next: find what needs s0 and s1 (likely arg1 and the t pointer). Try the direct-index version again with an s32 index local (arg1 & 0xFFFF) held across the calls, then reorder the final calls.",
   "by": "claude-haiku-5-5-24",
@@ -24326,14 +24286,6 @@
   "created_at": 1794755251.892662,
   "score_before": 1365,
   "score_after": 1365
- },
- {
-  "function": "func_80157F6C",
-  "text": "No match. Best rechecked 2141 (73.2%); saved best 596 from an older source. Target keeps 4 callee-saved regs (ra, s2, s1, s0; frame 0x20): s1 holds full arg0, s0 holds (arg0 & 0xFFFF) index, s2 holds an extra copy of arg0 (move s2,a0; move s1,s2). Our version saves only s1/s0/ra, so the second live copy of arg0 is missing. Copies via a local `copy` or reassigning arg0 are optimized into one register (no change). Next: find what consumes s2 (probably the arg0 & 1 test after the call, or the 0xFFFF index used later), and make that a separate use. Also the target computes the index as addu s0,v0,v1 twice (two indexed stores); our array index shape differs. Untested: compile_family(signedness) suggested by the tool.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794755256.569053,
-  "score_before": 596,
-  "score_after": 596
  },
  {
   "function": "func_80205FB0",
@@ -25718,14 +25670,6 @@
   "created_at": 1794756904.745576,
   "score_before": 595,
   "score_after": 595
- },
- {
-  "function": "func_80157F6C",
-  "text": "Not matched. Saved best is 596 (m2c draft plus local repairs). My rewrites this session: the m2c-style rewrite scored 3386, a version with `u32 keep = arg0` and `u8 *p = D_8011F2F0 + idx*0x64` scored 2141, and local repairs on that (prototype, declaration order, signedness, address temp, sum shape) gave no gain. Target frame is 0x20 and saves ra, s2, s1, s0: arg0 is held in s2 (`move $s2,$a0`), copied to s1 (`move $s1,$s2`), and idx=`andi $s0,$s1,0xffff`. Our build saves only s1, s0, ra, so the source needs arg0 to stay live across two calls (func_8013AE60 and the __sinf/__cosf calls) in a separate variable. Next try: keep arg0 in an s32 used after the first call and a second copy for the idx. Target then calls __cosf/__sinf with 0x44 loaded via lwc1 right before each call; the else branch stores 2 to D_8011F2FD[idx*0x64]. Float constants -50.0f, 1.4f, 0.05f. Local repair batch ran cleanly but did not change the score.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794756906.287495,
-  "score_before": 596,
-  "score_after": 596
  },
  {
   "function": "func_800DE2E0",
@@ -32928,14 +32872,6 @@
   "score_after": 1550
  },
  {
-  "function": "func_80157F6C",
-  "text": "Not matched. Current clean draft scores 2141 (73%); saved best 596 is a different source. Target keeps arg0 in s2 and the masked index in s1/s0 (move s2,a0; move s1,s2; andi s0,s1,0xffff), saves ra at 0x1c and s0..s2 (frame 0x20). Index is idx*100 via sll/addu chain (x*3<<3 + x <<2). Our draft computes idx once and keeps only s0,s1, so the save set and ra slot differ. Next: keep the raw arg0 live across func_8013AE60 (use arg0 in the later D_8011F2FD store and in the arg0&1 test) so the compiler keeps s2 = arg0 and s1 = masked value.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794766617.8557749,
-  "score_before": 596,
-  "score_after": 596
- },
- {
   "function": "func_80149110",
   "text": "Not matched. Best current score 1470 (78.3%, revision b2661b7807e8b671a6a6). The saved historical best of 898 is a different source and was not reproduced.\n\nStructure is right: `if (func_801FA30C() & 1)` selects the MAX loop (best starts at 0, update when cc[i] >= best), and the else branch is the MIN loop (best starts at 0xFF, update when cc[i] <= best). Both skip when D_8018A277[i] & 0x10. The loop is do { ... i++ } while (i <= D_8018A276), and the index is idx = i. Returns idx.\n\nRemaining diffs are register allocation and branch layout. The target keeps D_8018A276 in a3 (reloaded per path, as `lui a3; lbu a3` before the loop). Target has best in a2 with `andi v1,a2,0xff` for compares, and the flag test follows the compare as a bnel that skips the increment. Attempts that did NOT help: hoisting D_8018A276 to a local before the if (2093); swapping the if so the min path comes first (4270, wrong layout); a skip-with-continue form (2050); s32 i with (u8) casts (no effect). Next idea: keep the 1470 layout, but make the flag test the first check in the loop body, or try best as s32 and compare with (u8) casts only in the compare.",
   "by": "claude-haiku-5-5-22",
@@ -34510,5 +34446,69 @@
   "created_at": 1794759080.0410051,
   "score_before": 0,
   "score_after": 0
+ },
+ {
+  "function": "func_80157F6C",
+  "text": "Deep permuter: score 2330 \u2192 1805; 3 improvements; 66 candidates tested; 63 cached skips; 0 rejected; 7204s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935515",
+  "created_at": 1794356283.504311,
+  "score_before": 2330,
+  "score_after": 1805
+ },
+ {
+  "function": "func_80157F6C",
+  "text": "Best current source (rev 2cf9513e3e479691ff57, score 1521/80.9%, 75 vs 80 insns) is the shape to keep:\n  s32 a = arg0; s32 b = a; u32 idx = b & 0xFFFF; u8 *p; f32 ang;\n  func_8013AE60(idx); p = D_8011F2F0 + idx*0x64;\n  if (*(f32*)(p+0x1C) < -50.0f) { *(f32*)(p+0x1C) += 1.4f; ang = *(f32*)(p+0x44)+0.05f; *(f32*)(p+0x44)=ang;\n    if (a & 1) { *(f32*)(p+0x18) = __sinf(ang) + *(f32*)(p+0x18); *(f32*)(p+0x20) = __cosf(*(f32*)(p+0x44)) + *(f32*)(p+0x20); }\n    else { *(f32*)(p+0x18) = *(f32*)(p+0x18) - __cosf(*(f32*)(p+0x44)); *(f32*)(p+0x20) = *(f32*)(p+0x20) - __sinf(*(f32*)(p+0x44)); } }\n  else D_8011F2FD[(u16) b * 0x64] = 2;\nKey findings: (1) the `(u16) b * 0x64` index for the D_8011F2FD store is what produces the target's `andi $v0,$s1,0xffff; sll 1; addu; sll 3; addu; sll 2` multiply chain \u2014 `(arg0 & 0xFFFF) * 0x64` instead gives a single `sll 2` and loses 12 rows (2141). (2) `s32 b = a;` (a copy of the arg) is required for the target prologue `move $s2,$a0; move $s1,$s2; andi $s0,$s1,0xffff`; writing `idx = arg0 & 0xFFFF` directly drops the copies. Remaining diffs: the target keeps a 3rd callee-saved reg ($s0 frame slot at 0x10) and does `lw $ra,0x1c($sp)`/frame save order; ours saves only 2 (frame layout differs: target sw ra@0x1c,s2@0x18,s1@0x14,s0@0x10). Also f44 is reloaded *after* the jal __cosf in the target (ours loads it before the call), and the two `j` targets are 0x10 short. Tried and no better: struct-typed Rec* access (1915), volatile/f32 pointer (1896), register/s32/u16 variants of idx (no change or worse), extra pad locals (no change), s16 idx (1761), arg0-vs-a in the `& 1` test (no change). Next idea: make the third saved register live by materialising the record base or the 0x64 multiplier in a third callee-saved temp, and reorder the __cosf argument load to after the call.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794708918.797809,
+  "score_before": 596,
+  "score_after": 596
+ },
+ {
+  "function": "func_80157F6C",
+  "text": "Not matched. Best current candidate: revision a7feec4c93d15bd40ed0 (or 6b2bad45249ee37b34e0, same score), score 2141 (73%). Structure is right: `if (f->0x1C < -50.0f)` branch with +1.4f and +0.05f updates, then sin/cos on `arg0 & 1`, else `D_8011F2FD[(arg0&0xFFFF)*100] = 2`. Target keeps THREE callee-saved values: s2 = arg0 (saved, used for `& 1` after the call), s1 = copy of s2 (used for the else-path index andi), s0 = s1 & 0xFFFF (idx, passed to func_8013AE60). Frame 0x20, ra at 0x1C, s2 at 0x18, s1 at 0x14, s0 at 0x10. Attempts that merged the copies (`a`/`b` locals, `idx` vs `arg0 & 0xFFFF`, b as u32) all scored 2141 with identical insns: gcc CSEs the copies. Signedness family (s32->u32 on b) also no change. Next: find a source form that keeps s2 and s1 distinct across the call, then fix float ordering: target loads 0x1C before `bc1f`, computes sin before cos in each branch.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794722561.1881468,
+  "score_before": 596,
+  "score_after": 596
+ },
+ {
+  "function": "func_80157F6C",
+  "text": "Not matched. Current best on baseline 2141 (saved historical 596). Target: stride 100 (idx*100 via shifts/adds), base D_8011F2F0, offsets 0x18/0x1C/0x20/0x44, calls func_8013AE60(idx) first then __sinf/__cosf. Blocking diff is prologue register allocation: target saves ra(0x1c), s2(0x18), s1(0x14), s0(0x10) and does `move s2,a0; move s1,s2; andi s0,s1,0xffff; jal func_8013AE60` with a0=s0. Every candidate so far saves s1 first and drops the s2 copy. Three variants tried with no change in score: a local copy `a = arg0`, `idx=(u16)arg0`, and the signed-copy form; all compile to the same instructions. Next step if retried: find a source form that forces arg0 to stay live in a callee-saved reg across the call while the idx copy is separate (e.g. derive idx from a volatile-free second variable assigned after a use of arg0), or try compile_family(signedness). Branch sense looks right (bc1f goes to the else path).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794749802.3039958,
+  "score_before": 596,
+  "score_after": 596
+ },
+ {
+  "function": "func_80157F6C",
+  "text": "Not matched. Best rechecked 2161 (72.9%); saved best 596 is an older source. Own C structure is right (idx=arg0&0xFFFF; func_8013AE60(idx); p=&D_8011F2F0+idx*100 as f32*; if (p[7] < -50.0f) {p[7]+=1.4f; p[17]+=0.05f; if (arg0&1) {p[6]+=__sinf(p[17]); p[8]+=__cosf(p[17]);} else {p[6]-=__cosf(p[17]); p[8]-=__sinf(p[17]);}} else *(u8*)(&D_8011F2FD+idx*100)=2). Blocker: target frame is 0x20 with four saved regs (ra, s2, s1, s0); every candidate saves three, because the compiler folds the raw arg0 copy and the masked copy into one register. Tried: s2/s1 copy locals, s0 from arg0 directly, s1 from arg0 with masking at each use (all 2161), and branch_orientation family (4015, worse). Target stride x100 is computed as ((x*2+x)*8+x)*4; ours is not reproduced. Next experiment: keep arg0 live past the call through a second use that the compiler can't fold (e.g. read arg0 after the else-store path), and check the 0xFFFF mask placement. Why stopping: four compiles without improvement after the claim, the frame issue is structural and the variant tool schema differs from what I assumed.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794753989.55501,
+  "score_before": 596,
+  "score_after": 596
+ },
+ {
+  "function": "func_80157F6C",
+  "text": "No match. Best rechecked 2141 (73.2%); saved best 596 from an older source. Target keeps 4 callee-saved regs (ra, s2, s1, s0; frame 0x20): s1 holds full arg0, s0 holds (arg0 & 0xFFFF) index, s2 holds an extra copy of arg0 (move s2,a0; move s1,s2). Our version saves only s1/s0/ra, so the second live copy of arg0 is missing. Copies via a local `copy` or reassigning arg0 are optimized into one register (no change). Next: find what consumes s2 (probably the arg0 & 1 test after the call, or the 0xFFFF index used later), and make that a separate use. Also the target computes the index as addu s0,v0,v1 twice (two indexed stores); our array index shape differs. Untested: compile_family(signedness) suggested by the tool.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794755256.569053,
+  "score_before": 596,
+  "score_after": 596
+ },
+ {
+  "function": "func_80157F6C",
+  "text": "Not matched. Saved best is 596 (m2c draft plus local repairs). My rewrites this session: the m2c-style rewrite scored 3386, a version with `u32 keep = arg0` and `u8 *p = D_8011F2F0 + idx*0x64` scored 2141, and local repairs on that (prototype, declaration order, signedness, address temp, sum shape) gave no gain. Target frame is 0x20 and saves ra, s2, s1, s0: arg0 is held in s2 (`move $s2,$a0`), copied to s1 (`move $s1,$s2`), and idx=`andi $s0,$s1,0xffff`. Our build saves only s1, s0, ra, so the source needs arg0 to stay live across two calls (func_8013AE60 and the __sinf/__cosf calls) in a separate variable. Next try: keep arg0 in an s32 used after the first call and a second copy for the idx. Target then calls __cosf/__sinf with 0x44 loaded via lwc1 right before each call; the else branch stores 2 to D_8011F2FD[idx*0x64]. Float constants -50.0f, 1.4f, 0.05f. Local repair batch ran cleanly but did not change the score.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794756906.287495,
+  "score_before": 596,
+  "score_after": 596
+ },
+ {
+  "function": "func_80157F6C",
+  "text": "Not matched. Current clean draft scores 2141 (73%); saved best 596 is a different source. Target keeps arg0 in s2 and the masked index in s1/s0 (move s2,a0; move s1,s2; andi s0,s1,0xffff), saves ra at 0x1c and s0..s2 (frame 0x20). Index is idx*100 via sll/addu chain (x*3<<3 + x <<2). Our draft computes idx once and keeps only s0,s1, so the save set and ra slot differ. Next: keep the raw arg0 live across func_8013AE60 (use arg0 in the later D_8011F2FD store and in the arg0&1 test) so the compiler keeps s2 = arg0 and s1 = masked value.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794766617.8557749,
+  "score_before": 596,
+  "score_after": 596
  }
 ]

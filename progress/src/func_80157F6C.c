@@ -15,10 +15,10 @@ typedef s32 M2C_UNK32;
 f32 __cosf(f32);                                    /* extern */
 f32 __sinf(f32);                                    /* extern */
 M2C_UNK func_8013AE60(s32);                         /* extern */
-extern M2C_UNK D_8011F2F0;
+extern u8 D_8011F2F0[];
 extern M2C_UNK D_8011F2FD;
 
-void func_80157F6C(s32 arg0) {
+void func_80157F6C(u16 arg0) {
     f32 temp_fa0;
     f32 temp_fv1;
     u32 temp_s0;
@@ -26,7 +26,7 @@ void func_80157F6C(s32 arg0) {
 
     temp_s0 = arg0 & 0xFFFF;
     func_8013AE60(temp_s0);
-    temp_s0_2 = (temp_s0 * 0x64) + &D_8011F2F0;
+    temp_s0_2 = (temp_s0 * 0x64) + D_8011F2F0;
     temp_fv1 = M2C_FIELD(temp_s0_2, f32 *, 0x1C);
     if (temp_fv1 < -50.0f) {
         M2C_FIELD(temp_s0_2, f32 *, 0x1C) = (f32) (temp_fv1 + 1.4f);
@@ -41,5 +41,5 @@ void func_80157F6C(s32 arg0) {
         M2C_FIELD(temp_s0_2, f32 *, 0x20) = (f32) (M2C_FIELD(temp_s0_2, f32 *, 0x20) - __sinf(M2C_FIELD(temp_s0_2, f32 *, 0x44)));
         return;
     }
-    *(&D_8011F2FD + ((arg0 & 0xFFFF) * 0x64)) = 2;
+    *((s8 *)((s8 *)&D_8011F2FD + ((arg0 & 0xFFFF) * 0x64))) = 2;
 }
