@@ -18,7 +18,7 @@ void func_801CF468(s32 arg0, s8 arg1, s8 arg2, s8 arg3) {
     s32 temp_v0;
 
     temp_v0 = (arg0 & 0xFFFF) * 0x64;
-    M2C_FIELD(*(D_8011F350 + temp_v0), s8 *, 6) = arg1;
-    M2C_FIELD(*(D_8011F350 + temp_v0), s8 *, 7) = arg2;
-    M2C_FIELD(*(D_8011F350 + temp_v0), s8 *, 8) = arg3;
+    M2C_FIELD(*(s32 *)(D_8011F350 + temp_v0), s8 *, 6) = arg1;
+    M2C_FIELD(*(s32 *)(D_8011F350 + temp_v0), s8 *, 7) = arg2;
+    M2C_FIELD(*(s32 *)(D_8011F350 + temp_v0), s8 *, 8) = arg3;
 }
