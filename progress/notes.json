@@ -6816,14 +6816,6 @@
   "score_after": 185
  },
  {
-  "function": "func_801270B0",
-  "text": "Best 1435 (62%) with a struct Args{s32 a0..a3} filled from arg0..arg3 and passed as &args.a0, &args.a3 to func_80127000. Target spills a0..a3 to 0x18..0x24 of the caller frame (no separate struct frame) and saves s0/ra at 0x10/0x14. Logic is x>0 ? 1 : -1 with a branch-likely chain (bc1tl) per compare; no var init. Still differs in frame size (-0x18 target vs -0x28 mine) and reload of mtc1 $zero,$f0 twice.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794707365.4597912,
-  "score_before": 1290,
-  "score_after": 1290
- },
- {
   "function": "func_800DF094",
   "text": "Best 910 (66.2%). Loop shape right (x100 index via sll/addu chain, lhu/andi 0xFFEF store, lhu of D_8011F300 with 0xFFFF terminator). Mismatch: target re-masks the loaded value with andi $v1,$a0,0xFFFF before each compare (3 times) and tests against $v1; candidate compares the raw $a0. Untried: make the masked value an explicit u16 local reused for both the loop test and next index, e.g. `u16 idx = func_800E1850; ... idx = temp; while (idx != 0xFFFF)`. Extern type change s16->u16 had no effect.",
   "by": "claude-haiku-5-5-21",
@@ -6894,14 +6886,6 @@
   "created_at": 1794707486.914569,
   "score_before": 185,
   "score_after": 120
- },
- {
-  "function": "func_801270B0",
-  "text": "Best so far is the inherited 1435 (not beaten). Target: 152-byte function, frame 0x18, saves ra at 0x14 and s0 at 0x10, spills all four incoming args into the caller's home area (sp+0x18..0x24), passes &arg0 (sp+0x18) and &arg3 (sp+0x24) to func_80127000 (returns f32), then computes sign as s8 with three float compares (c.lt.s / c.eq.s / c.lt.s with bc1tl and delay-slot addiu s0). Tried: local Args struct (2152, frame 0x28, wrong); taking &arg0/&arg3 directly (1665, spills only a0/a3 and loses the 4-arg spill); K&R-style params (1665, no change). Untried: spilling all four args (e.g. taking address of arg1/arg2 in a way that does not add code), and the float compare ladder written as `if (t < 0) s=-1; else if (t == 0) s=-1; else s=1`-style reorderings to match the bc1tl sequence.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794707495.807213,
-  "score_before": 1290,
-  "score_after": 1290
  },
  {
   "function": "func_8013E958",
@@ -7070,14 +7054,6 @@
   "created_at": 1794707649.644504,
   "score_before": 2205,
   "score_after": 2205
- },
- {
-  "function": "func_801270B0",
-  "text": "Best is 1290 (66%): the args are address-taken so the callee sees them in the caller home area. Source: `s8 f(s32 arg0, s32 arg1, s32 arg2, s32 arg3) { f32 r; s8 s; r = func_80127000(&arg0, &arg3); if (0.0f < r) s = 1; if (r == 0.0f) s = -1; if (r < 0.0f) s = -1; return s; }`. Still missing: the target saves $ra and $s0 (frame 0x18), does `mov.s $f2,$f0` after the call, and reloads zero into $f0 before each compare, so the result is kept in a second FP register. Also missing: stores of arg1 and arg2 into 0x1c/0x20 ($a1,$a2 spilled). Tried and worse: `p = &arg0; p[1]=arg1; p[2]=arg2` (1300); `s = 0` init with `r > 0.0f` (1665, the compiler drops the s0 save). Untried: keep the sign in a variable live across the call, or make the if-chain use a different compare form.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794707651.9387,
-  "score_before": 1290,
-  "score_after": 1290
  },
  {
   "function": "func_80127148",
@@ -11320,14 +11296,6 @@
   "score_after": 15
  },
  {
-  "function": "func_801270B0",
-  "text": "Not matched (best saved 1250; my retries 1290/1300). Target spills all four args to 0x18..0x24 in a0..a3 order before the call, and calls func_80127000(&arg0,&arg3) using sp+0x18 and sp+0x24. Target never initialises s (s0 is only written in the three bc1tl delay slots), so s stays uninitialised on NaN. Adding address-taken homes for arg1/arg2 (__h1/__h2) reorders the spills but still lacks the mtc1 $zero reload before each compare (the target reloads fv0=0 before each c.* compare, my code keeps one zero in f2). Untried: write the three compares as separate if/else-chains with an explicit zero local, and check whether the spills need arg0..arg3 used after the call to keep them live.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794721370.907094,
-  "score_before": 1250,
-  "score_after": 1250
- },
- {
   "function": "func_8013AE60",
   "text": "Not matched. Best revision abd62d722fc2c7178683: 770 (81.6%), 42 target insns vs 40 mine. Current shape: `i=0; k=D_80233EC0; off=(arg0&0xFFFF)*100; base=D_8011F2F2; dst=base+off; do { src=(u16*)(base+(k+D_8011F2F0[off])*100); if (src[i]&8) dst[i]|=8 else dst[i]&=0xFFF7; i++; } while (i<4);`. Remaining: the target has two extra `addu $a2,$a3,$t0` (dst = base+off recomputed in the loop) and one extra `sll $v1,$v0,1`, so my code is 2 insns short and the bnez offset differs by 2 bytes. Tried inline `base+off+i*2` stores (no change) and byte-pointer dst (no change). Next: compute the two loop-invariant base+off sums inside the loop body rather than once outside, and keep k loaded via the same index chain (lbu of D_8011F2F0[off] then k+ that) as separate statement.",
   "by": "claude-haiku-5-5-24",
@@ -14736,14 +14704,6 @@
   "score_after": 1380
  },
  {
-  "function": "func_801270B0",
-  "text": "Best score 880 (76.8%), claim lapsed before release. Source: extern f32 func_80127000(void*,void*); s8 func_801270B0(volatile long long arg0, s32 arg1, s32 arg2) { f32 r; s8 s; r = func_80127000(&arg0, &arg2); if (0.0f < r) s=1; if (r == 0.0f) s=-1; if (r < 0.0f) s=-1; return s; }. The call's second pointer is &a3 (sp+0x24), so it is arg2; arg0 is the 8-byte a0:a1 at sp+0x18. Target keeps sw $ra at 0x14 and sw $s0 at 0x10 and reloads mtc1 $zero,$f0 twice; mine CSEs the zero and has no sw $ra. Reordering the comparisons did not change the score. Next: try a 4-arg signature with the spill order, or compile_family(family=\"signedness\").",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794730484.105806,
-  "score_before": 1010,
-  "score_after": 880
- },
- {
   "function": "func_8015E484",
   "text": "Best verified this session 1185 (42/42 insns) with: `off = (arg1 & 0xFFFF) * 0x64; a1 = *(u8 **)((u8 *)&D_8011F350 + off); if (*((u8 *)&D_8011F2FC + off) != 0xFF) { p = *pp; *pp = p+2; p[0]=0xB6000000; p[1]=0x3000; q = *pp; *pp = q+2; q[0]=0xFA000000; q[1]= bytes at a1+0x17/0x18/0x19 shifted 24/16/8 OR'd with *((u8*)&D_8011F2FC+off); }`. Historical saved best 660 uses `extern s32` scalars with `*((&D_8011F350) + off)` \u2014 index scaled by 4 \u2014 and m2c's do/while(0) form; it is a different source and scores 1240 when recompiled now, so treat 1185 as the real baseline. Remaining 28 rows: (1) target emits `move $a2,$a0` in the beq delay slot and does all pointer loads/stores through $a2, ours keeps $a0 \u2014 tried `pp = arg0;` before/after the if, `(u32 **)arg0`, `arg0 + 0`, `&arg0[0]`, `void *arg0` cast: all identical, GCC folds the copy. (2) target loads D_8011F350 (lui/addu/lw) before D_8011F2FC (lui/addu/lbu); ours reverses them \u2014 the C already computes a1 first, so this is scheduler order, not source order. Next idea: force the $a2 copy by making arg0's use non-trivial (e.g. a struct field store through a pointer that GCC must keep live across the branch), or run search_flags/try_compiler for -O1 on this function.",
   "by": "api-route-llm-code-1",
@@ -14854,14 +14814,6 @@
   "created_at": 1794730805.375019,
   "score_before": 2810,
   "score_after": 2810
- },
- {
-  "function": "func_801270B0",
-  "text": "Best 880 (76.8%), restore with get_candidate(base=saved_best): s8 f(long long arg0, s32 arg1, s32 arg2) { r = func_80127000(&arg0, &arg2); if (0.0f < r) s=1; if (r==0.0f) s=-1; if (r<0.0f) s=-1; return s; }. Target: saves ra,s0 and spills a0..a3 (arg0 at 0x18/0x1C, arg1 at 0x20, arg2 at 0x24) before the call; mtc1 $zero,$f0 reloaded before each compare; mov.s $f2,$f0 copies r. Tried: volatile arg0 (880); non-volatile (880); s8 s = 0 initialiser (1170, worse). Not tried: forcing arg1 to be spilled (e.g. address-taken) and a switch-style compare.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794730861.1844559,
-  "score_before": 880,
-  "score_after": 880
  },
  {
   "function": "func_801B3E18",
@@ -15190,14 +15142,6 @@
   "created_at": 1794731867.284437,
   "score_before": 1435,
   "score_after": 1435
- },
- {
-  "function": "func_801270B0",
-  "text": "Best 880 (76.8%), revision 6b60fedc6533f13ef76d: three sequential ifs on r (0<r\u21921, r==0\u2192-1, r<0\u2192-1), s8 s uninitialised, `return s`. Rejected: s32 s with s=0 init and (s8) cast return, 1580; else-if chain, 1460. Target: spills a0..a3 at sp+0x18..0x24, saves ra and s0 (frame 0x18), calls func_80127000(&arg0,&arg2), keeps the result in f2 (mov.s), and returns via sll/sra 24 from s0. Ours never keeps the value in s0, so the save/restore pair and the register roles are missing. Unexplored: a version where the call result is copied into a local before the compares, to force the mov.s into $f2.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794731867.461369,
-  "score_before": 880,
-  "score_after": 880
  },
  {
   "function": "auDmaCallBack",
@@ -25944,14 +25888,6 @@
   "score_after": 255
  },
  {
-  "function": "func_801270B0",
-  "text": "Best verified 880 (rev 6b60fedc6533f13ef76d). Move-on budget exhausted (7/4).\n\nTarget shape (38 insns, frame 0x18, saves ra@0x14 and s0@0x10 FIRST, then spills a0..a3 to 0x18/0x1C/0x20/0x24, then addiu a0,sp,0x18; jal func_80127000 with a1=sp+0x24 in the delay slot). After the call: mov.s f2,f0 (result copied to f2), mtc1 zero,f0, c.lt.s f0,f2, bc1tl +1 (addiu s0,1); then zero is re-materialized (mtc1 zero,f0; nop) before c.eq.s f2,f0, bc1tl (addiu s0,-1); then again mtc1 zero,f0 before c.lt.s f2,f0, bc1tl (addiu s0,-1); tail sll/sra 24 and epilogue. So: result in f2, constant 0.0f in f0, and the constant is NOT shared between the three compares (fresh literal per compare). s0 holds the s8 return and is uninitialized on the no-take path (target has no default store).\n\nCurrent C (880) emits the right instruction multiset but: spills a0/a1 before saving ra/s0, hoists addiu a0/a1 before jal, and puts the zero constant in f2 with r in f0.\n\nTried: `0.0f < r` vs `r > 0.0f` (identical 880), if/else-if chain (1460), temp `f32 t = call(); r = t;` (1170), `0.0f > r` for third compare (880), explicit `f32 zero = 0.0f;` local (1362), pre-initializing `s = -1` before the compares (1585). All equal or worse.\n\nNext experiment (saved): give the callee arguments as addresses of a real stack struct so the arg spills are scheduled after the register saves, e.g.\n  struct { long long a; s32 b; s32 c; } args;\n  args.a = arg0; args.b = arg1; args.c = arg2;\n  r = func_80127000(&args.a, &args.c);\nand keep the three independent `if` compares with fresh 0.0f literals. Also worth one try: declare the result `register f32 r` or read the call result twice through a `f32` volatile local to force the mov.s f2,f0 copy.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794757359.8757582,
-  "score_before": 880,
-  "score_after": 880
- },
- {
   "function": "func_800E15CC",
   "text": "Cannot improve meaningfully with default O2 because exact original compiler profile proven O1: try_compiler returned MATCHES byte for byte for explicit source and suggest rechecked it. Pending function-only profile bundle contains verified exact source, header/profile, automatic application is off. Default O2 is scheduling/removing redundant masks; no C defect remains. Release to allow new work while profile correction awaits application.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -30832,14 +30768,6 @@
   "score_after": 23267
  },
  {
-  "function": "func_801270B0",
-  "text": "Solved with natural by-value Vec3f arguments under -O1; suggestion submitted and rechecked byte exact, but automatic compiler changes disabled. Exact source/header/profile bundle pending application. Compiler trial 21c08d1307d4f7054590. Source: extern f32 func_80127000(void*,void*); typedef struct {f32 x,y,z;} Vec3f; s8 func_801270B0(Vec3f a, Vec3f c) { f32 r; s8 s; r=func_80127000(&a,&c); if(0.0f<r)s=1; if(r==0.0f)s=-1; if(r<0.0f)s=-1; return s; }. -O1 flags -G0 -mips3 -mgp32 -mfp32 -O1. Do not tune the invalid volatile long long surrogate further.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794764247.140071,
-  "score_before": 880,
-  "score_after": 880
- },
- {
   "function": "func_8022F300",
   "text": "Best score 2190 (79.9%), revision 4374a090abfdf02b9c40. Key finding: the target addresses D_801E99A0 and D_801E99A4 as separate globals (lui/addiu $a0 per block, then lw/sw through $a0), not as a cast offset from &D_801E99A0; using `s32 *p = &D_801E99A0;` then `p = &D_801E99A4;` per block gave the big gain (2740 -> 2190). Remaining diffs: (1) prologue order: target emits `addiu sp` and `sw ra` before `lui a0,%hi(D_801E99A0)`; ours hoists the lui above the frame setup (-O2 scheduling). (2) Target reloads D_802330A0 into $v0 for each use (lui v0/lhu v0); ours reuses $v1. (3) Target has a third `lui v0,%hi(D_802330A0)` for the `+= 1` block. Tried: signedness family on `u16 v` (no change, 2190). Not tried: a local `u16 idx = D_802330A0` read once per block, or one shared `s32 *p` for D_801E99AC/D_801E99A8. Switch body (jump table in original) not yet compared; check it once the prologue matches.",
   "by": "claude-haiku-5-5-24",
@@ -32574,14 +32502,6 @@
   "created_at": 1794766409.262362,
   "score_before": 25,
   "score_after": 25
- },
- {
-  "function": "func_801270B0",
-  "text": "Reverified natural two Vec3-by-value source byte exact under O1 this session; function-specific suggest resubmitted with exact source. O2 current revision 3e779a7e185be4f90909 scores 1300. Await compiler profile application, do not tune invalid long long surrogate. Shared reusable O1 diagnostic.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794766410.815665,
-  "score_before": 880,
-  "score_after": 880
  },
  {
   "function": "func_80205C00",
@@ -34510,5 +34430,85 @@
   "created_at": 1794762063.585423,
   "score_before": 4269,
   "score_after": 4269
+ },
+ {
+  "function": "func_801270B0",
+  "text": "Best 1435 (62%) with a struct Args{s32 a0..a3} filled from arg0..arg3 and passed as &args.a0, &args.a3 to func_80127000. Target spills a0..a3 to 0x18..0x24 of the caller frame (no separate struct frame) and saves s0/ra at 0x10/0x14. Logic is x>0 ? 1 : -1 with a branch-likely chain (bc1tl) per compare; no var init. Still differs in frame size (-0x18 target vs -0x28 mine) and reload of mtc1 $zero,$f0 twice.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794707365.4597912,
+  "score_before": 1290,
+  "score_after": 1290
+ },
+ {
+  "function": "func_801270B0",
+  "text": "Best so far is the inherited 1435 (not beaten). Target: 152-byte function, frame 0x18, saves ra at 0x14 and s0 at 0x10, spills all four incoming args into the caller's home area (sp+0x18..0x24), passes &arg0 (sp+0x18) and &arg3 (sp+0x24) to func_80127000 (returns f32), then computes sign as s8 with three float compares (c.lt.s / c.eq.s / c.lt.s with bc1tl and delay-slot addiu s0). Tried: local Args struct (2152, frame 0x28, wrong); taking &arg0/&arg3 directly (1665, spills only a0/a3 and loses the 4-arg spill); K&R-style params (1665, no change). Untried: spilling all four args (e.g. taking address of arg1/arg2 in a way that does not add code), and the float compare ladder written as `if (t < 0) s=-1; else if (t == 0) s=-1; else s=1`-style reorderings to match the bc1tl sequence.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794707495.807213,
+  "score_before": 1290,
+  "score_after": 1290
+ },
+ {
+  "function": "func_801270B0",
+  "text": "Best is 1290 (66%): the args are address-taken so the callee sees them in the caller home area. Source: `s8 f(s32 arg0, s32 arg1, s32 arg2, s32 arg3) { f32 r; s8 s; r = func_80127000(&arg0, &arg3); if (0.0f < r) s = 1; if (r == 0.0f) s = -1; if (r < 0.0f) s = -1; return s; }`. Still missing: the target saves $ra and $s0 (frame 0x18), does `mov.s $f2,$f0` after the call, and reloads zero into $f0 before each compare, so the result is kept in a second FP register. Also missing: stores of arg1 and arg2 into 0x1c/0x20 ($a1,$a2 spilled). Tried and worse: `p = &arg0; p[1]=arg1; p[2]=arg2` (1300); `s = 0` init with `r > 0.0f` (1665, the compiler drops the s0 save). Untried: keep the sign in a variable live across the call, or make the if-chain use a different compare form.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794707651.9387,
+  "score_before": 1290,
+  "score_after": 1290
+ },
+ {
+  "function": "func_801270B0",
+  "text": "Not matched (best saved 1250; my retries 1290/1300). Target spills all four args to 0x18..0x24 in a0..a3 order before the call, and calls func_80127000(&arg0,&arg3) using sp+0x18 and sp+0x24. Target never initialises s (s0 is only written in the three bc1tl delay slots), so s stays uninitialised on NaN. Adding address-taken homes for arg1/arg2 (__h1/__h2) reorders the spills but still lacks the mtc1 $zero reload before each compare (the target reloads fv0=0 before each c.* compare, my code keeps one zero in f2). Untried: write the three compares as separate if/else-chains with an explicit zero local, and check whether the spills need arg0..arg3 used after the call to keep them live.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794721370.907094,
+  "score_before": 1250,
+  "score_after": 1250
+ },
+ {
+  "function": "func_801270B0",
+  "text": "Best score 880 (76.8%), claim lapsed before release. Source: extern f32 func_80127000(void*,void*); s8 func_801270B0(volatile long long arg0, s32 arg1, s32 arg2) { f32 r; s8 s; r = func_80127000(&arg0, &arg2); if (0.0f < r) s=1; if (r == 0.0f) s=-1; if (r < 0.0f) s=-1; return s; }. The call's second pointer is &a3 (sp+0x24), so it is arg2; arg0 is the 8-byte a0:a1 at sp+0x18. Target keeps sw $ra at 0x14 and sw $s0 at 0x10 and reloads mtc1 $zero,$f0 twice; mine CSEs the zero and has no sw $ra. Reordering the comparisons did not change the score. Next: try a 4-arg signature with the spill order, or compile_family(family=\"signedness\").",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794730484.105806,
+  "score_before": 1010,
+  "score_after": 880
+ },
+ {
+  "function": "func_801270B0",
+  "text": "Best 880 (76.8%), restore with get_candidate(base=saved_best): s8 f(long long arg0, s32 arg1, s32 arg2) { r = func_80127000(&arg0, &arg2); if (0.0f < r) s=1; if (r==0.0f) s=-1; if (r<0.0f) s=-1; return s; }. Target: saves ra,s0 and spills a0..a3 (arg0 at 0x18/0x1C, arg1 at 0x20, arg2 at 0x24) before the call; mtc1 $zero,$f0 reloaded before each compare; mov.s $f2,$f0 copies r. Tried: volatile arg0 (880); non-volatile (880); s8 s = 0 initialiser (1170, worse). Not tried: forcing arg1 to be spilled (e.g. address-taken) and a switch-style compare.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794730861.1844559,
+  "score_before": 880,
+  "score_after": 880
+ },
+ {
+  "function": "func_801270B0",
+  "text": "Best 880 (76.8%), revision 6b60fedc6533f13ef76d: three sequential ifs on r (0<r\u21921, r==0\u2192-1, r<0\u2192-1), s8 s uninitialised, `return s`. Rejected: s32 s with s=0 init and (s8) cast return, 1580; else-if chain, 1460. Target: spills a0..a3 at sp+0x18..0x24, saves ra and s0 (frame 0x18), calls func_80127000(&arg0,&arg2), keeps the result in f2 (mov.s), and returns via sll/sra 24 from s0. Ours never keeps the value in s0, so the save/restore pair and the register roles are missing. Unexplored: a version where the call result is copied into a local before the compares, to force the mov.s into $f2.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794731867.461369,
+  "score_before": 880,
+  "score_after": 880
+ },
+ {
+  "function": "func_801270B0",
+  "text": "Best verified 880 (rev 6b60fedc6533f13ef76d). Move-on budget exhausted (7/4).\n\nTarget shape (38 insns, frame 0x18, saves ra@0x14 and s0@0x10 FIRST, then spills a0..a3 to 0x18/0x1C/0x20/0x24, then addiu a0,sp,0x18; jal func_80127000 with a1=sp+0x24 in the delay slot). After the call: mov.s f2,f0 (result copied to f2), mtc1 zero,f0, c.lt.s f0,f2, bc1tl +1 (addiu s0,1); then zero is re-materialized (mtc1 zero,f0; nop) before c.eq.s f2,f0, bc1tl (addiu s0,-1); then again mtc1 zero,f0 before c.lt.s f2,f0, bc1tl (addiu s0,-1); tail sll/sra 24 and epilogue. So: result in f2, constant 0.0f in f0, and the constant is NOT shared between the three compares (fresh literal per compare). s0 holds the s8 return and is uninitialized on the no-take path (target has no default store).\n\nCurrent C (880) emits the right instruction multiset but: spills a0/a1 before saving ra/s0, hoists addiu a0/a1 before jal, and puts the zero constant in f2 with r in f0.\n\nTried: `0.0f < r` vs `r > 0.0f` (identical 880), if/else-if chain (1460), temp `f32 t = call(); r = t;` (1170), `0.0f > r` for third compare (880), explicit `f32 zero = 0.0f;` local (1362), pre-initializing `s = -1` before the compares (1585). All equal or worse.\n\nNext experiment (saved): give the callee arguments as addresses of a real stack struct so the arg spills are scheduled after the register saves, e.g.\n  struct { long long a; s32 b; s32 c; } args;\n  args.a = arg0; args.b = arg1; args.c = arg2;\n  r = func_80127000(&args.a, &args.c);\nand keep the three independent `if` compares with fresh 0.0f literals. Also worth one try: declare the result `register f32 r` or read the call result twice through a `f32` volatile local to force the mov.s f2,f0 copy.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794757359.8757582,
+  "score_before": 880,
+  "score_after": 880
+ },
+ {
+  "function": "func_801270B0",
+  "text": "Solved with natural by-value Vec3f arguments under -O1; suggestion submitted and rechecked byte exact, but automatic compiler changes disabled. Exact source/header/profile bundle pending application. Compiler trial 21c08d1307d4f7054590. Source: extern f32 func_80127000(void*,void*); typedef struct {f32 x,y,z;} Vec3f; s8 func_801270B0(Vec3f a, Vec3f c) { f32 r; s8 s; r=func_80127000(&a,&c); if(0.0f<r)s=1; if(r==0.0f)s=-1; if(r<0.0f)s=-1; return s; }. -O1 flags -G0 -mips3 -mgp32 -mfp32 -O1. Do not tune the invalid volatile long long surrogate further.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794764247.140071,
+  "score_before": 880,
+  "score_after": 880
+ },
+ {
+  "function": "func_801270B0",
+  "text": "Reverified natural two Vec3-by-value source byte exact under O1 this session; function-specific suggest resubmitted with exact source. O2 current revision 3e779a7e185be4f90909 scores 1300. Await compiler profile application, do not tune invalid long long surrogate. Shared reusable O1 diagnostic.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794766410.815665,
+  "score_before": 880,
+  "score_after": 880
  }
 ]
