@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 func_80224030(s16 arg0) {
+s32 func_80224030(s32 arg0) {
     s16 var_v1;
 
     var_v1 = arg0;
