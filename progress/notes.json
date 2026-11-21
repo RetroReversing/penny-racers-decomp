@@ -2000,7 +2000,7 @@
   "score_after": 320
  },
  {
-  "function": "func_800427B0",
+  "function": "fixed60ToF64",
   "text": "Deep permuter: score 10856 \u2192 10856; 0 improvements; 434 candidates tested; 0 cached skips; 0 rejected; 3000s elapsed. Time limit reached.",
   "by": "W5.permuter-8589935227",
   "created_at": 1794175941.3395252,
@@ -2944,7 +2944,7 @@
   "score_after": 60
  },
  {
-  "function": "func_80042690",
+  "function": "f64ToFixed60",
   "text": "Deep permuter: score 7680 \u2192 7590; 1 improvements; 19 candidates tested; 11 cached skips; 0 rejected; 7222s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935226",
   "created_at": 1794357229.96592,
@@ -6048,7 +6048,7 @@
   "score_after": 2418
  },
  {
-  "function": "func_800427B0",
+  "function": "fixed60ToF64",
   "text": "Target: signed 64-bit integer (hi:lo in a0:a1) to f64, returned in $fv0. Logic is understood: zero test on (hi|lo) returns the bits unchanged; if hi's sign bit is set, negate the 64-bit value; normalise by a right-shift loop when vh & 0xFFE00000, else a left-shift loop until bit 20 of vh is set; hi word = (vh & 0xFFFFF) | sign | ((exp + 0x433) << 20), lo word = vl. Best saved is 5860 (candidate 5a35b07877c83f071275): writing the result through `u32 buf[2]` and returning `*(f64 *)buf` gives the sw/ldc1 stack round-trip; a union return gives mtc1 and scored 6515. Still differing: the target copies hi/lo into v0/v1 before the zero test, keeps the sign in a2 (repeated `xor a2,a2,a2`), and places the constant 0x80000000 in a0; my variants keep the parameter registers and use different registers for the loops. Negation as `xor -1; +1; sltiu; addu` and a separate zero-path epilogue did not change the score. Stopping because the register assignment is controlled by the copies at the top, which I could not reproduce; a next try should force the copies into v0/v1 explicitly (e.g. via volatile-free locals declared in that order) before tuning anything else.",
   "by": "claude-haiku-5-5-21",
   "created_at": 1794706201.7395651,
@@ -7312,7 +7312,7 @@
   "score_after": 770
  },
  {
-  "function": "func_80042690",
+  "function": "f64ToFixed60",
   "text": "Soft-float f64 -> s64 (__fixdfdi-like, hand-tuned). Target spills $f12 with sdc1 and reloads hi (word 0) / lo (word 1). Best saved: 7155 (revision d27350837b7c9b7ad8a9). Recovered: e=exp-0x3FF; early return 0 when exp<0x3FF; return 0x80000000:0 when e>=0x40; mh=(hi&0xFFFFF)|0x100000; e<0x34 right shift by r=0x34-e (r<32: lo=(lo>>r)|(mh<<(32-r)), mh>>=r; else lo=mh>>(r-32), mh=0); else left shift by s=e-0x34 if s!=0; negate 64-bit if hi sign set. Structure that helped: nesting the e>=0x3FF / e<0x40 checks so the zero return falls out last (7685 to 7155). Remaining diff: target keeps hi/lo copies in a2/a3/v0 before computing mh, and its sign-negate is xor -1 plus sltiu carry, not -lo. Tried copying the sign word into a separate variable: worse (7255). Not matched; the layout of the tail blocks and register copies is the open problem.",
   "by": "claude-haiku-5-5-24",
   "created_at": 1794708097.1997252,
@@ -10808,7 +10808,7 @@
   "score_after": 1770
  },
  {
-  "function": "func_800427B0",
+  "function": "fixed60ToF64",
   "text": "func_800427B0 (248 bytes, 62 insns). Signature: u64 -> f64 normalisation; args are hi in $a0, lo in $a1, 3rd arg unused (a2 is zeroed). Result is packed bits via stack sw/ldc1, so return through a u32[2] buffer cast to f64. Best 5860 (5.4%) from u32 hi/lo locals; the m2c draft is wrong on types (f32, unused arg2). Target keeps 0x80000000 in $a0 across the negate branch and reuses it as the sign mask, and the negate uses a -1 kept in a register (addiu a3,zero,-1; xor), not gcc's nor. Register diffs are the main gap. A sign-mask-as-local variant scored worse (6175). Untried: a u64 local split into halves, and forcing -1 into a variable used by both xors.",
   "by": "claude-haiku-5-5-23",
   "created_at": 1794720293.304723,
@@ -11696,7 +11696,7 @@
   "score_after": 3400
  },
  {
-  "function": "func_80042690",
+  "function": "f64ToFixed60",
   "text": "Not matched; releasing early. Best revision f6252a62af9dc669b966 scores 7615 (0% match); saved best 6820 is from a different source. Target is a double-to-s64 conversion. Its prologue is addiu sp,-8; sdc1 $f12,(sp); lw a0,(sp); lw a1,4(sp); addiu sp,8. My C instead uses mfc1 from $f12, so the f64 must be spilled through memory (union u32 w[2] copy did not force sdc1). Also the early exit is sltiu $t9,$a0,0x3ff; bnez to a return-0 block, and that shape needs e as u32; changing e to u32 made it worse (7745). The rest of the target is the 0x34/0x20 shift ladder, with xor v0 zeroing and negu for sign. Next: get gcc to spill the double with sdc1 (try a volatile or address-taken f64 that is copied only via a u32 pointer read), then restructure the early-return and tail to match. Low expected yield in this session.",
   "by": "claude-haiku-5-5-20",
   "created_at": 1794721950.4516218,
@@ -12664,7 +12664,7 @@
   "score_after": 3525
  },
  {
-  "function": "func_800427B0",
+  "function": "fixed60ToF64",
   "text": "double->u64/u32 pair conversion (soft-float helper, no calls). Best saved 5810 at revision 6a40b7bd639c67c8842e (w[2] array + *(f64*)w, two's complement via -lo/-hi-(lo!=0)). Move-on budget 3/3 exhausted: variants tried this session = (a) union DblBits + ~lo+1 style 6565, (b) explicit 0xFFFFFFFFu mask XOR (all-local `all` variable) 5860, (c) explicit masks on the 0xFFE00000/0x100000 tests 5860. All worse than 5810; baseline retained.\n\nTarget shape (62 insns):\n- entry: move $v1,$a1 ; move $v0,$a0 ; or $a0,$a0,$a1 ; bnez $a0,+0x2c ; nop \u2014 i.e. the zero test is on the *parameters* while hi/lo are already copied into v0/v1, and the taken path (nonzero) is out of line. Writing `hi=arg0; lo=arg1; if ((hi|lo)==0){...return}` gave extra moves/j; try testing (arg0|arg1)==0 directly but keep the copies first (my 6565 attempt did this together with a union and regressed elsewhere \u2014 retry the test change alone on the 5810 base).\n- zero path: addiu sp,-8 / sw v0 / sw v1 / ldc1 f0 / jr ra / addiu sp,8 (stack pair store, not mtc1).\n- sign block: xor a2,a2,a2 (sign=0 zeroed with xor) ; lui a0,0x8000 ; and t9,a0,v0 ; beqz ; nop ; addiu a3,zero,-1 ; xor v1,v1,a3 ; xor v0,v0,a3 ; addiu v1,v1,1 ; sltiu t9,v1,1 ; addu v0,v0,t9 ; addu a2,a0,zero (sign = the already-loaded 0x80000000 register). So sign must be assigned the constant 0x80000000 (addu from the mask register), not a separate lui.\n- exp zeroed with xor a0,a0,a0 after the sign block; masks tested with lui t9,%hi / and t9,t9,v0 / beqz|bnez (explicit != 0 / == 0 forms keep the lui+and; `!(hi & 0x100000)` also produced lui+and so that is not the issue).\n- normalise loop: sll t9,v0,31 ; srl v1,v1,1 ; or v1,v1,t9 ; srl v0,v0,1 ; addiu a0,a0,1 ; re-test ; bnez ; nop ; j .L80042874 with nop delay.\n- denormal loop at .L8004284C: test 0x100000, bnez exit, then srl t9,v1,31 ; sll v0,v0,1 ; or v0,v0,t9 ; sll v1,v1,1 ; j .L8004284C ; addiu a0,a0,-1 (exp-- in the delay slot of the backedge \u2014 needs the decrement as the loop's third statement so it lands in the delay slot).\n- tail: lui t9,0xf ; ori t9,t9,0xffff ; and v0,v0,t9 ; or v0,v0,a2 ; addiu a0,a0,0x433 ; sll a0,a0,20 ; or v0,v0,a0 ; then the same sp/sw/sw/ldc1/jr/addiu return. Note the 0xFFFFF mask is lui+ori (0xF/0xFFFF), so keep the literal 0xFFFFF.\nRemaining unknown: getting hi in $v0 / lo in $v1 with the parameter-based zero test and no extra moves; the sign=0x80000000-via-addu form; and the union/array choice that keeps the pair store.",
   "by": "api-route-llm-code-1",
   "created_at": 1794724726.8887491,
@@ -14296,7 +14296,7 @@
   "score_after": 1510
  },
  {
-  "function": "func_800427B0",
+  "function": "fixed60ToF64",
   "text": "u64/s64-to-f64 conversion (soft-float). The C draft's control flow is right: zero check returns the raw pair; negate when hi sign bit set; right-shift loop while hi & 0xFFE00000 (exp++); else left-shift loop while !(hi & 0x100000) (exp--); pack (hi & 0xFFFFF) | sign | ((exp+0x433)<<20), then lo. Score 5810 (6%). Difference: the compiler emits negu/nor for the negate, but the target negates as xor with -1 then addiu 1, and carries with sltiu (hi = ~hi + (lo_new==0)); that rewrite scored 5860 (worse), so the negate is not the only gap. Also target keeps args in v0/v1 via move, with the sign constant lui 0x8000 in $a2 (xor a2,a2,a2 then the 0x80000000 is put in a2 only on the negative path), and the early zero test is `or a0,a0,a1; bnez`. Next steps: keep sign in a2 as a separate value, and check the exp loop: target shifts v1/v0 in place with `sll t9,v0,31; srl v1; or` (the exp count is in a0, and the final adds 0x433 with addiu then sll 20). Not yet tried: writing the two shift loops with u32 temporaries to force the same register flow.",
   "by": "claude-haiku-5-5-20",
   "created_at": 1794728999.850807,
@@ -14640,7 +14640,7 @@
   "score_after": 670
  },
  {
-  "function": "func_800427B0",
+  "function": "fixed60ToF64",
   "text": "Saved best 5810 (6%); the C shape is right for the arithmetic. This is u64 (hi:lo) to f64 conversion (signed negation, normalise loops, pack into a double). Verified from the target: the negation is `lo = ~lo + 1; hi = ~hi + (lo == 0);` (not `-lo` / `-hi - (lo != 0)`); the two normalise loops (shift-right while hi&0xFFE00000, shift-left while !(hi&0x100000)) match; sign bit lives in a2 (`xor a2,a2,a2` hoisted before the negate test); the zero early-out just returns v0=hi,v1=lo, with the double built via stack stores and ldc1 from `sw v0,0(sp); sw v1,4(sp)`. The big gap is the zero/early path: the target keeps hi/lo in v0/v1 with the early `or a0,a0,a1` test, and our version spills through `w[]` and uses `sw a0,($sp)`. Untried: write the early return via the u32 w[2] built after the test (w[0]=hi; w[1]=lo before return), and drop the separate `sign` variable (fold 0x80000000u into the pack expression). Score 5860 (negate fix alone) was worse, so the early-path structure is the next thing to fix.",
   "by": "claude-haiku-5-5-22",
   "created_at": 1794730027.808811,
@@ -15072,7 +15072,7 @@
   "score_after": 290
  },
  {
-  "function": "func_800427B0",
+  "function": "fixed60ToF64",
   "text": "Target is a soft-float s64 to f64 conversion: hi in $a0, lo in $a1, result words spilled to the stack and loaded with ldc1. Zero input takes an early path that returns the pair unchanged (sw $v0,0($sp); sw $v1,4($sp); ldc1; jr). Negative input: lo = ~lo + 1; carry = (lo < 1); hi = ~hi + carry; sign = 0x80000000. Right-shift loop while hi & 0xFFE00000 (exp++), else left-shift loop while !(hi & 0x100000) (exp--). Result hi = (hi & 0xFFFFF) | sign | ((exp + 0x433) << 20). Best 5810 (6%); the compiler lays out the zero early return and the negate branch differently from the target. Next: restructure the zero early return as a plain separate return of the u32 pair before any sign handling.",
   "by": "claude-haiku-5-5-24",
   "created_at": 1794731209.5719638,
@@ -15080,7 +15080,7 @@
   "score_after": 5810
  },
  {
-  "function": "func_800427B0",
+  "function": "fixed60ToF64",
   "text": "Still 5810 saved best (rechecked 5860 for current revision). Target zero-input path is `move $v1,$a1; move $v0,$a0; or $a0,$a0,$a1` style with hi/lo spilled via sw to 0($sp)/4($sp) then ldc1; my draft computes the OR first and returns through a different register order. Negative path target: `xor $a2,$a2,$a2` x4 setup, `addiu $a3,$zero,-1` used as the NOT mask, `sltiu` for carry, sign kept in $a2 via `addu $a2,$a0,$zero`. Right-shift loop uses sll $t9,$v0,31 / srl / or; left-shift loop tests `lui 0x10` mask. Remaining diffs are mostly register allocation and the early-return block ordering; sign/exp logic appears structurally right. Next step: restructure the zero-check so hi/lo are copied to w[] before the OR test, and try sign as a separate u32 rather than folded into w[0]. Unresolved after 3 non-improving compiles.",
   "by": "claude-haiku-5-5-24",
   "created_at": 1794731266.50625,
@@ -15448,7 +15448,7 @@
   "score_after": 55
  },
  {
-  "function": "func_80042690",
+  "function": "f64ToFixed60",
   "text": "Releasing as move-on: two structural attempts (7490, 7640) are at 0% and the control-flow shape (three return points: return 0, saturate, normal with negate) is not yet reproduced; more compiles here would be guesses. Notes above stand: double->s64 truncation, hi at offset 0 in a0, lo in a1, returns v0=hi/v1=lo; next step is to give each early return its own block in the target order and keep the negate block last.",
   "by": "claude-haiku-5-5-22",
   "created_at": 1794732052.227842,
@@ -16064,7 +16064,7 @@
   "score_after": 770
  },
  {
-  "function": "func_80042690",
+  "function": "f64ToFixed60",
   "text": "Function is a double -> s64 conversion (f64 arg in $f12; result hi in $v0, lo in $v1). Logic read from the asm: hi/lo are the two words of the double; e=(hi>>20)&0x7FF; e<0x3FF returns 0; e-=0x3FF; e>=0x40 returns 0x8000000000000000; mh=(hi&0xFFFFF)|0x100000; if e<0x34 shift right by r=0x34-e (r>=32: lo=mh>>(r-32), mh=0; else two-word shift); else shift left by s=e-0x34 (s==0 no shift); if hi sign bit set, 64-bit negate. The C follows this logic but scores 7490 (0%), worse than the saved 6820 candidate (which has a corrupted line, so it cannot be the right source). Structural mismatch: the target does `addiu sp,-8; sdc1; lw hi($a0); lw lo($a1); addiu sp,8` at entry, i.e. both words loaded into fixed regs immediately; ours loads lo into $a1/$a3 late. Reordering the two word loads and aliasing hi=e made no difference. Untried: a union/struct view of the parameter, and the signedness family via compile_family. Move-on reached.",
   "by": "claude-haiku-5-5-23",
   "created_at": 1794733507.83058,
@@ -18304,7 +18304,7 @@
   "score_after": 2665
  },
  {
-  "function": "func_800427B0",
+  "function": "fixed60ToF64",
   "text": "Double->? no: u64 (hi,lo) -> f64 conversion (unsigned magnitude + exponent). Move-on budget exhausted (3/3, best 5810 historical, my rechecked 5860).\n\nTarget structure confirmed from assembly:\n- entry: `addu $v1,$a1,$zero` / `addu $v0,$a0,$zero` \u2014 the two args are copied into fresh locals BEFORE `or $a0,$a0,$a1` tests them, so the C must copy arg0/arg1 into locals (hi/lo) and the zero test must read those locals, and the `or` must target a third value (candidate's `(hi|lo)==0` folds to `or $v0,$a0,$a1`). A form like `if ((arg0 | arg1) == 0)` after the copies, or an explicit `t = hi | lo; if (t == 0)`, is what to try; the zero path then stores hi/lo to an 8-byte stack slot and does `ldc1` there (single shared stack slot reused by the tail too, `addiu $sp,-8` twice).\n- negation block: `xor $v1,$v1,-1; xor $v0,$v0,-1; addiu $v1,$v1,1; sltiu $t9,$v1,1; addu $v0,$v0,$t9; addu $a2,$a0,$zero` \u2014 i.e. lo = ~lo + 1; hi = ~hi + (lo == 0); sign = 0x80000000. gcc-2.7.2-kmc turns `~x + 1` into `nor` + addiu (see diff), so the xor-with--1 must be produced differently: try splitting into separate statements (`lo = ~lo; hi = ~hi; lo += 1; hi += (lo == 0);`) \u2014 that is the saved next_experiment.\n- normalise: `lui 0xFFE00000 / and / beqz` then do-while shifting right with `exp++`; else branch is a rotated while with `sll $v0,1 / or / sll $v1,1 / j` and `addiu $a0,$a0,-1` in the delay slot (i.e. `exp--` after the shift, loop back to the test).\n- tail: `and 0xFFFFF`, `or sign`, `addiu exp,0x433`, `sll 20`, `or`, then sw/sw/ldc1/jr with `addiu $sp,$sp,8` in the delay slot. Returning via a stack u32[2] reinterpret is right; keep the same local array for both returns so one slot is reused.\n\nUntested next step saved as next_experiment (xor form). After that, the remaining gap is the entry copy/or ordering and the `ldc1` slot reuse.",
   "by": "api-route-llm-code-2",
   "created_at": 1794739550.3258219,
@@ -24184,7 +24184,7 @@
   "score_after": 2310
  },
  {
-  "function": "func_80042690",
+  "function": "f64ToFixed60",
   "text": "Not matched. It is a double-to-s64 conversion (libgcc __fixdfdi style): input in $f12 spilled via sdc1 to 0(sp) then lw a0=hi, a1=lo; returns s64 in $v0:$v1 (v0 = high). Structure from the asm: e=(hi>>20)&0x7FF, e<0x3FF returns 0, e-=0x3FF, e>=0x40 returns 0x8000000000000000, mh=(hi&0xFFFFF)|0x100000, e<0x34 is a right shift by r=0x34-e (r<0x20 split, else lo=mh>>(r-0x20), mh=0), else left shift by s=e-0x34 when s!=0, then negate the 64-bit value if hi<0. My C rewrite scores 7685 (saved best 6820 from an earlier source). Main differences: the target spills the arg with addiu sp,-8 / sdc1 / lw a0,a1 / addiu sp,8 (a0 is hi), mine reads a1 as hi. The target uses xor v0,v0,v0 for zero returns and negu for shift amounts, which C is unlikely to reproduce. Possibly hand-written SDK code; consider not_c after checking the other candidates. Untried: swapping which word is hi (lw a0 from offset 0) and the stack spill layout.",
   "by": "claude-haiku-5-5-21",
   "created_at": 1794754714.653336,
@@ -24816,7 +24816,7 @@
   "score_after": 1230
  },
  {
-  "function": "func_800427B0",
+  "function": "fixed60ToF64",
   "text": "Complete62instruction signed64-to-double software helper verified. Executed prior pending split complement/carry proposal:5860, same as all explicit variants for arg-based zero check, aligned union result and xor-with-all-ones syntax. Target manually spills two words to a temporary stack only at each return, uses xor self-zero, addiu a3,-1 then xor both words (GCC canonicalizes to nor even from explicit xor), repeated t9 masks and explicit64-bit shift macros. Those artifacts and absent compiler-like scheduling indicate handwritten runtime assembly; no inline asm used. Saved5810 source retained; current tested962b4235b567e403bf78 score5860.",
   "by": "codex-gpt-6.1-sol-medium-4",
   "created_at": 1794755711.535389,
@@ -25360,7 +25360,7 @@
   "score_after": 4403
  },
  {
-  "function": "func_800427B0",
+  "function": "fixed60ToF64",
   "text": "This is a hand-written KMC libgcc 64-bit-int to double conversion (__floatdidf-style), from the same asm family as func_800422C4/func_800423F4/func_80042630. Signs: a mid-function `addiu sp,-8` frame only on the zero path, `xor reg,reg,reg` zeroing, $t9 scratch, negation done as xor -1 plus sltiu carry, and nop-filled delay slots. GCC wouldn't allocate a stack frame inside one branch.",
   "by": "claude-opus-medium-1",
   "created_at": 1794756300.923274,
@@ -28616,7 +28616,7 @@
   "score_after": 941
  },
  {
-  "function": "func_80042690",
+  "function": "f64ToFixed60",
   "text": "func_80042690 = float64 -> 64-bit fixed conversion (frexp-style mantissa shift). Inherited best 6820 (a94c43272ad8b998d517); my two rewrites scored 7340 (3a3104ad7d28d89ad5e0) and 7065 (fd3650b46cd91777c720). Budget 3/3 exhausted.\n\nFULL TARGET STRUCTURE (71 insns, 8-byte frame, no saved regs, no calls):\n- prologue: addiu sp,-8; sdc1 fa0,0(sp); lw a0,0(sp); lw a1,4(sp); addiu sp,8  => arg0 is an f64 passed in fa0 and immediately spilled/reloaded as two u32 (a0=hi, a1=lo). So the C must take `f64 arg0` and read the bits through a union/pointer, exactly as the saved-best does.\n- addu v1,a0,zero (v1=hi); srl a0,a0,20; andi a0,a0,0x7FF; sltiu t9,a0,0x3FF; bnez t9,.L800427A0; addiu a0,a0,-0x3FF (delay slot). .L800427A0: xor v0,v0,v0; jr ra; xor v1,v1,v1  => `if (e < 0x3FF) return 0;`.\n- sltiu t9,a0,0x40; beqz t9,.L80042794; nop  => `if (e >= 0x40) return 0x80000000;` and .L80042794 is `addiu v1,zero,0; jr ra; lui v0,0x8000` \u2014 i.e. v0=0x80000000, v1=0. THE SAVED BEST RETURNS 0x8000000000000000ULL HERE, which is wrong; use `return 0x80000000;` (next_experiment above). The `nop` in that delay slot is real (branch not filled) \u2014 a sign the source has a plain `return` with a constant that gcc materialises after the branch.\n- addu a2,v1,zero (a2=hi, kept for the sign test); addu a3,a1,zero (a3=lo); addu v0,v1,zero; and v0,v0,0xFFFFF; or v0,v0,0x100000  => mh = (hi & 0xFFFFF) | 0x100000 in v0, lo in a3.\n- sltiu t9,a0,0x34; bnez t9,.L80042724; addiu a0,a0,-0x34 (delay slot, a0 = e-0x34 = -r). So the `e < 0x34` test comes first and the r=0x34-e form is produced by negating e-0x34 inside the branch target \u2014 write `r = 0x34 - e;` and let gcc fold it, or `if (0x34 - e >= 0x20)`.\n- .L80042724 (r path): negu a0,a0 (r); addu v1,a0,zero; sltiu t9,a0,0x20; bnez t9,.L80042748; addiu a0,a0,-0x20. Fall-through (r>=0x20): addu a3,v0,zero (lo=mh); xor v0,v0,v0 (mh=0); j .L80042764; srlv a3,a3,a0 (lo = mh_old >> (r-0x20)).\n- .L80042748 (r<0x20): negu a0,a0 (0x20-r); addu a1,v0,zero; sllv a1,a1,a0 (mh<<(0x20-r)); addu a0,v1,zero (r); srlv a3,a3,a0 (lo>>r); or a3,a3,a1; srlv v0,v0,a0 (mh>>r).\n- e>=0x34 path: beqz a0,.L80042764 (a0==0, i.e. e==0x34, skips); nop; addu v1,a0,zero (s); addiu a0,a0,-0x20; negu a0,a0 (0x20-s); addu a1,a3,zero (lo); srlv a1,a1,a0 (lo>>(0x20-s)); addu a0,v1,zero (s); sllv v0,v0,a0 (mh<<s); or v0,v0,a1; j .L80042764; sllv a3,a3,a0 (lo<<s).\n- .L80042764 sign fix: lui t9,0x8000; and t9,t9,a2; beqz t9,.L8004278C; nop; addiu v1,zero,-1; xor a3,a3,v1; xor v0,v0,v1; addiu a3,a3,1; sltiu t9,a3,1; addu v0,v0,t9  => mh = ~mh + (lo==0) AFTER lo = ~lo + 1 (note the `addiu v1,zero,-1` / xor-with-minus-1 shape, not `nor`: writing `~x` as `x ^ -1` via a local `s32 minus1 = -1;` or just `~lo` should be checked; gcc produced `nor` in my attempts, so try `lo = ~lo + 1; mh = ~mh + (lo == 0);` with the ~ on lo first).\n- .L8004278C: jr ra; addu v1,a3,zero  => 64-bit return in v0=lo, v1=mh, i.e. `return ((u64)mh << 32) | lo;`.\n\nRemaining blockers (from last_diff): my builds use `subu a0,v0,a0` where target has `negu a0,a0` + `addu v1,a0,zero` (target negates the already-subtracted e-0x34 rather than computing 0x34-e), use `or a2,v0,v1` instead of the two-step `addu a2,v1,zero`/`addu a3,a1,zero` copies, and use `nor v0,zero,a2` instead of `addiu v1,zero,-1; xor`. Also the target's early-return constant path emits the nop delay slot. Try declaring the locals in the order hi, lo, mh, e, r, s and keep `hi` in a separate u32 that is read twice (target keeps hi in both v1 and a2). try_local_repairs families declaration_order/signedness/cfg_integer_lifetimes on fd3650b46cd91777c720 may close the rest.",
   "by": "api-route-llm-code-1",
   "created_at": 1794760302.598138,
@@ -32502,5 +32502,21 @@
   "created_at": 1795134838.8861701,
   "score_before": 180,
   "score_after": 120
+ },
+ {
+  "function": "f64ToFixed60",
+  "text": "exact relocation-normalized SDK signature. Exact relocation-normalized 284-byte function fingerprint f64ec533751ca2ae4112612fcab3415d83edc29a; one name across selected SDK signatures, unique target fingerprint. Libraries: built in / n64-runtime-assembly 1. Name inferred from library code; not a verified C match.",
+  "by": "autopilot",
+  "created_at": 1795282941.237942,
+  "score_before": 5835,
+  "score_after": 5670
+ },
+ {
+  "function": "fixed60ToF64",
+  "text": "exact relocation-normalized SDK signature. Exact relocation-normalized 248-byte function fingerprint c946e308e7007deb0f26cd36113fa76ee470b897; one name across selected SDK signatures, unique target fingerprint. Libraries: built in / n64-runtime-assembly 1. Name inferred from library code; not a verified C match.",
+  "by": "autopilot",
+  "created_at": 1795282941.919679,
+  "score_before": 5610,
+  "score_after": 5610
  }
 ]

@@ -1,4 +1,4 @@
-s64 func_80042690(f64 arg0) {
+s64 f64ToFixed60(f64 arg0) {
 int __repair_literal;
 
     f64 d;
