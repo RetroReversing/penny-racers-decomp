@@ -20,10 +20,12 @@ extern M2C_UNK D_8006FB38;
 extern u8 D_8021F028;
 
 void func_801D65BC(s32 arg0) {
+    u8 *__base_D_8021F028;
     alSeqpStop(&D_8006FB38);
-    if (D_8021F028 != 0) {
+    __base_D_8021F028 = &D_8021F028;
+    if ((*__base_D_8021F028) != 0) {
         func_80027C90(0, arg0);
         func_80027D00(0);
-        alSeqpSetVol(&D_8006FB38, (s16) (D_8021F028 * 0x43E));
+        alSeqpSetVol(&D_8006FB38, (s16) ((*__base_D_8021F028) * 0x43E));
     }
 }
