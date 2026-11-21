@@ -7864,14 +7864,6 @@
   "score_after": 2017
  },
  {
-  "function": "func_80203DF8",
-  "text": "func_80203DF8 (352 B). Best 180 (97.9%): all instructions match; only the first two target instructions differ in order (target: `move $t1,$a0` then `lbu $t0,0x13($sp)`; ours does lbu first, move later). The key was the struct form: `typedef struct { u8 *p; u8 pad[96]; } Ent; extern Ent D_8011F350[];` with `#define ENT_PTR (D_8011F350[D_8018BC3C].p)`; stores like `ENT_PTR[0]=0`, `*(s16*)(ENT_PTR+2)=arg1`, `*(s16*)(ENT_PTR+4)=0`, `if ((u8)arg0==2){ *(s8*)(ENT_PTR+6)=arg2; *(s8*)(ENT_PTR+7)=arg3; *(u8*)(ENT_PTR+8)=arg4; }`, then +0xA,+0xC =0, +0xE=0x140, +0x10=0xF0, `ENT_PTR[0]=arg0`. Signature: (s8 arg0, s16 arg1, s8 arg2, s8 arg3, u8 arg4). Tried: u8 arg0, a local copy of arg0/arg4 (all still 180). Untried: a compile_family with address_temporary, or a different order for the first two statements (e.g. read arg0 into a local before the first store and keep arg4 read in the if). The claim lapsed once mid-session, so the 180 version is the saved best.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794709096.8447092,
-  "score_before": 6790,
-  "score_after": 180
- },
- {
   "function": "func_80231130",
   "text": "No match; best 1765 (revision 3839724ad67b02f5917f). Outer loop i=0..6 (u16), off=i*0x178, call func_80025DBC(D_800DA260+off) first, then zero stores at fixed offsets from D_800DA260 (u16 +0..+16 with i at +0; u32 +20..+32; u8 +36,+37), inner j loop 0..6 storing u32 zeros at D_800DA260+40+idx and +44 (idx=j*8+off), then five u16 zero stores at +100..+108 for row i. Remaining diffs: the tail stores should recompute i*0x178 in fresh registers (target recomputes off in v1; ours reuses s0). Inline i*0x178 in tail (4842) was worse. Target frame 0x20 saves ra,s0,s1,s2. The queued candidate 0c4ce8d was a broken draft with a goto label; ignore it.\n\nNo match; best 1580 (revision 3abc809f380213e19240, saved). Source: outer do-loop over u16 i=0..6, off=i*0x178; `char *base` assigned D_800DA260 before the loop; call func_80025DBC(base+off) first; u16 zero stores at off+0..+16 (off+0 holds i), u32 zeros at off+20/24/28/32, u8 zeros at off+36/37; inner do-loop over u16 j=0..6 storing u32 zeros at D_800DA260+40+idx and +44 (idx=j*8+off); then idx=i*0x178 and five u16 zero stores at +100..+108; i++. Remaining diffs are register allocation and prologue order: target saves ra at 0x1c, s2 at 0x18, s1 at 0x14, s0 at 0x10 with `lui/addiu s2` (base) before `move s1,zero`; ours differs in that order. Tried and worse: moving base assignment after i=0 (1770); idx=i*0x178 inline (4842); idx=(i&0xFFFF)*0x178 (1765). Loop-tail recompute of off in v1 with sltiu/bnez is not reproduced. Next attempt would be a different loop shape (while-loop over u16 with the tail recomputed from i).",
   "by": "claude-haiku-5-5-22",
@@ -12312,14 +12304,6 @@
   "score_after": 1390
  },
  {
-  "function": "func_80203DF8",
-  "text": "Not matched (best 3715, 57.7%). Structure is right: stores through a pointer read from the table at D_8011F350 with stride 100 bytes, index D_8018BC3C (u16, reloaded each use). Source: extern s32 D_8011F350; #define ENT(i) (*(u8 **)((u8 *)&D_8011F350 + (i)*100)); *ENT(idx)=0; s16@2=arg1; s16@4=0; if((u8)arg0==2){[6]=arg2;[7]=arg3;[8]=arg4;} s16@10=0; @12=0; @14=0x140; @16=0xF0; *ENT(idx)=arg0. Remaining diff: target has no stack frame and reads arg4 from 0x13($sp) directly; candidate adds addiu $sp,-8 and reads 0x1b($sp), and computes the table address differently (addiu into $t0, pointer kept in $a0). parameter_width variants (arg0 as u8 or s8) gave no change. Untried: a different spill-free way to take the 5th arg, and a single-temp arrangement that keeps arg0 in $t1 from entry. Moving on.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794724030.773665,
-  "score_before": 180,
-  "score_after": 180
- },
- {
   "function": "func_80214860",
   "text": "Not attempted to a score. Target 121 insns, 460 bytes, frame 0x18.\n\nShape: switch (D_80168BB0 - 1) with 36 cases (sltiu 0x24), jump table at ROM D_8021DE00 (lw $v0,%lo(D_8021DE00)($at); jr $v0). Default goes to .L80214A20 (return). Each case block sets D_8021B680 = value (sw at .L80214A18) except cases that call func_801D65BC or alSeqpStop first.\n\nKnown case bodies from the assembly:\n- case A: alSeqpStop(&D_8006FB38) then v = 0x22.\n- case B: if (D_8021E678 == 1 && D_8021B680 != 2) { func_801D65BC(0); D_8021E678 = 2; return; } else v = 2 (the lbu/bne/beq path).\n- a block that tests D_8021B680 against 0x1C and 0x4 (xori/sltiu) and calls func_801D65BC(0), v = 2.\n- block: func_801D65BC(2) with v = 0xC; block: func_801D65BC(3), v = 6; block: func_801D65BC(4), v = 0x1C; block: v = 0x1E, 0x20, 0x24; block: if D_8021AFDC == 0x18 then v = 0x1C else 0x1C path.\n- Many single-value blocks: 0x2, 0x4, 0x6, 0xA, 0xC, 0xE, 0x10, 0x12, 0x14, 0x16, 0x18, 0x1A.\n\nNot yet done: the table at D_8021DE00 (36 words) must be read to map case index to block. Use read_data on D_8021DE00 to get the 36 targets. The table lives in ROM, so a compiler-generated jump table will likely produce the same \".rodata reference\" mismatch seen on func_8022F300 (see that note) unless a table placement trick works.\n\nLeft to try: read D_8021DE00 table, then write one case per block in table order; accept the rodata note if the instruction diff is otherwise small.",
   "by": "claude-haiku-5-5-24",
@@ -15664,14 +15648,6 @@
   "score_after": 160
  },
  {
-  "function": "func_80203DF8",
-  "text": "Best 710 (91.9%), revision 59e1097f678fc0fc1d4e. Key finding: D_8011F350 is a base of pointer slots (each 100-byte entry holds a u8* at +0), so use `#define ENT_PTR(o) (*(u8 **)(D_8011F350 + (o)))` and store fields via *(s16*)(ENT_PTR(off)+k). Recomputing `off = D_8018BC3C * 0x64;` before every store (fresh load of the u16 each time) matches the target's repeated lhu/sll chain; using a single shared off was worse (2105). Copying arg0 into `u8 keep` and using `keep` for the compare and final store is what got 2105 -> 710. Remaining diff: target starts `move $t1,$a0; lbu $t0,0x13($sp)`, i.e. it copies arg0 into a callee-free temp and loads stack arg arg4 into t0 before the first store; ours loads arg4 late into t1 and keeps arg0 in a0. Untried: a local `u8 a4 = arg4;` declared first (read before the first store) to force the early stack load, and a second `keep` declaration order variants. Note the andi on the compare uses t1 in target, a0 in ours.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794732508.3586218,
-  "score_before": 180,
-  "score_after": 180
- },
- {
   "function": "func_80214860",
   "text": "Claimed but not attempted. The machine draft fails: jr at line 13 needs a jump table (jtbl/jpt_ read before the jr). Next step: read get_function(section=\"brief\") and the jump-table data, then write the switch with its case bodies. Holding it longer would block others, so releasing now.",
   "by": "claude-haiku-5-5-22",
@@ -16248,14 +16224,6 @@
   "score_after": 220
  },
  {
-  "function": "func_80203DF8",
-  "text": "Best 180 (97.9%), revision 7b03ea18310d80abfdfb. Source: typedef struct { u8 *p; u8 pad[96]; } Ent; extern Ent D_8011F350[]; each store reloads D_8018BC3C and indexes D_8011F350[idx].p (idx*100 is the stride). The compare must be `(u8)arg0 == 2` (gives andi $v1,$t1,0xff on the saved arg0). Remaining 6 diff rows are all reordering at the top: target does `move $t1,$a0` (saves arg0) and `lbu $t0,0x13($sp)` (loads stack arg4) BEFORE the first `sb $zero,0($v0)`; ours does both later. Tried `s8 saved = arg0;` at top: local pass produced 1180, worse. Next ideas: `u8 a4 = arg4;` at the top to force the early stack load; or read arg0 into a local at the top before the first store.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794734314.242862,
-  "score_before": 180,
-  "score_after": 180
- },
- {
   "function": "func_80157A54",
   "text": "Not matched; best 3910 (56.5%) this session (saved 4356 for the indexed-temp variant). Same family as func_80157BBC: func_8013AE60(arg0&0xFFFF); loop i=0..4 over u16 D_8016D8A8: old=a[i]; a[i]=old+0xC; if (a[i]>=0x169) a[i]=old-0x15C; then loop i=0..4: D_802B27C4[D_8016D898[i]*16] (s16) = (s16)(s32)(__sinf((f32)((f64)a[i]*D_80183830/D_80183838)) * (f32)D_8016D8B4[i]); D_802B27C4[D_8016D8A0[i]*16] = D_802B27C4[D_8016D898[i]*16]. Frame 0x38 with ra 0x24, s4 0x20, s3 0x1C, s2 0x18 (index), s1 0x14, s0 0x10, fs1 0x30, fs0 0x28. Ours used an extra s5 save and 0x40 frame when a dst temp was introduced; dropping that temp helped (4356 -> 3910). Remaining diffs: the target keeps the loop index in s2 and computes byte offsets `sll v0,s2,1; addu v1,v0,a1` for the u16 loads (ours uses element access with andi), the base pointers are held in s4/s3 across the sinf call, and the second loop has `sll v0,s2,1` before the reset `move s2,$zero`. Next: express both loops with a shared byte-offset `off = i*2` and a `u16 *base = D_8016D8A8` local so the 0x38 frame and s4/s3 saves appear; the same tactic may apply to func_80157BBC (its best is 3125).",
   "by": "claude-haiku-5-5-22",
@@ -16326,14 +16294,6 @@
   "created_at": 1794734550.769661,
   "score_before": 2750,
   "score_after": 2750
- },
- {
-  "function": "func_80203DF8",
-  "text": "Best 180 (97.9%) at revision 102520afc6a1697fdb4a: struct Ent {u8 *p; u8 pad[96];} with D_8011F350[idx].p, and `u8 mode = (u8)arg0;` tested as `if (mode == 2)`. Only 6 reordered rows remain: the target starts with `move $t1,$a0` (arg0 saved to $t1) and `lbu $t0,0x13($sp)` (arg4 read from the stack early), and the second stack-arg load comes before the first store. Tried and worse: moving the mode==2 block first (2230); repeated-index form without struct (3715); local repair variants (630, 1190). Next: force arg4 to be read before the stores (e.g. `u8 a4 = arg4;` at the top used in the if), or try the mode variable typed s32.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794734556.18023,
-  "score_before": 180,
-  "score_after": 180
  },
  {
   "function": "func_8014D5CC",
@@ -16726,14 +16686,6 @@
   "created_at": 1794735539.073066,
   "score_before": 8585,
   "score_after": 8585
- },
- {
-  "function": "func_80203DF8",
-  "text": "Rebuilt from the assembly (rev 0003595c...) at 3715 (57.7%). The previous session's 180 source (rev 7b03ea18) is not retrievable (get_candidate saved_best returns no source), so start from the notes in the earlier handoff. Target shape: the store order is sb zero at entry; sh a1 at +2; sh zero at +4; if ((u8)a0==2) then sb a2 at +6, sb a3 at +7, sb (stack arg, 0x13($sp)) at +8; then sh zero +0xA, sh zero +0xC, sh 0x140 +0xE, sh 0xF0 +0x10; finally sb a0 at +0. Our build adds an 8-byte frame and reads arg4 from 0x1b($sp), the target reads it from 0x13($sp) with no frame, so the stack-arg layout is the first diff: the arguments must be laid out so that arg4 is the only stack arg and no spill is needed (try fewer locals; the table entry must be re-derived from D_8018BC3C per store, as in func_80231C5C). Target copies arg0 to $t1 first and keeps it live to the last store.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794735545.061048,
-  "score_before": 60,
-  "score_after": 60
  },
  {
   "function": "func_8014D2B4",
@@ -30992,14 +30944,6 @@
   "score_after": 87698
  },
  {
-  "function": "func_80203DF8",
-  "text": "Best 3195 (63.6%), revision 6ce16f29401f4f67c5bc: `extern s8 D_8011F350[]; extern u16 D_8018BC3C;` with macro ENT(off) = (*(s8 **)(D_8011F350 + D_8018BC3C*0x64) + off), eight stores, param `u8 arg0`. Target is 88 insns vs our 78: the target re-derives the global base and idx*100 for every store (repeated lui/lw pairs, idx via sll/addu chain then lhu D_8018BC3C + andi 0xffff); our compiler CSEs them into one a0. Tried without gain: u16 cast of index (f2a20a4c, still 3195), per-store full expressions on s8 array (3640), volatile globals (6041), search_flags (project -O1 already best). Target also stores arg4 from stack 0x13($sp) (lbu) and moves arg0 to $t1 first; ours uses 0x1b/0x4b sp slots, so the frame size (target -0? no addiu sp at start) differs. Next: try a helper-free form that makes the index a u16 local per store ((u16)D_8018BC3C*100 inside each expression with a distinct pointer name) or accept as not reachable from C.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794764140.589654,
-  "score_before": 0,
-  "score_after": 0
- },
- {
   "function": "func_8002E120",
   "text": "1476-byte (369-insn) note-sequencer function, not matched. Best 205 (99.4%) = the current candidate (revision e5521c720747b945028e): full struct layouts for Note and Voice, switch on arg0->p7C->type with cases 13/11/12/16/14/15/0/7/8/5/default, `tbl=(s16*)D_80046F90` at top of loop, and the /184 magic divides. Only register allocation and constant placement differ. Target: `sw s3,0x2c` is the first save (so arg2 lives in s3 from the start and is saved first); `lui $fp,0xb216; ori $fp,0x42c9` (the /184 magic) is hoisted before `addiu $s4,$zero,1` and `lui $s5,%hi(D_80046F90)`; ours does lui s5/addiu s5 first, then fp, then s4. Tried: adding a NULL guard on tbl (1375, worse, reverted). Next steps: (1) move `tbl` out of the loop into a declaration with init (`s16 *tbl = (s16 *)D_80046F90;` at function entry) so its lui/addiu is hoisted before the magic; (2) declare the loop-local `s32 k = 1` before the while so `addiu $s4,$zero,1` lands before the lui; (3) if still swapped, swap the order of `arg1` vs `arg2` use in the initial assignments (`res = arg2` vs `rem = 0xB8`).",
   "by": "claude-haiku-5-5-23",
@@ -32888,14 +32832,6 @@
   "score_after": 1804
  },
  {
-  "function": "func_80203DF8",
-  "text": "Not matched. Best: revision 9f053557b8d526e6945d, score 3195 (63.6%): ENT(off) macro = (*(u8 **)(D_8011F350 + D_8018BC3C * 100) + (off)) with each store through *(s16 *)ENT(n) / *ENT(n). Target facts: D_8011F350 is an array of 100-byte entries whose first word is a pointer; the index D_8018BC3C*100 is computed by shifts (x*2+x)*8+x)*4; target recomputes the entry (lui/addu/lw) for each store rather than sharing it; arg4 is read from the stack (0x13($sp)) and the target has no frame. Remaining diffs: register allocation and the per-store address recompute. Tried: volatile D_8018BC3C (6041, worse: it reloads D_8018BC3C and recomputes the index, and adds a frame). Not tried: a per-store helper or a local u8 **pp = (u8**)(D_8011F350 + ...) recomputed per block; arg4 declared u8 to match the stack slot.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794766462.324756,
-  "score_before": 0,
-  "score_after": 0
- },
- {
   "function": "func_80231130",
   "text": "Not matched. Current draft 4103 (64%), saved best 2105 is a different source. Target: frame 0x20 (not 0x28), saves s0..s3 and ra at 0x1c; loop variable s1 is u16 and every index is andi s1,0xffff (five uses), so write the index as (u16) in each access. Record stride 0x178 is computed as s0 = (x*...) with sll 3 chains and addu, and the inner 7-iteration loop uses j*8 offsets from the record base at +0x28. Next: pass &D_800DA260 + off into func_80025DBC as the first statement, and compute off with u16 s1 in each use.",
   "by": "claude-haiku-5-5-23",
@@ -34508,6 +34444,70 @@
   "text": "Best 240 (98.1%, revision 00b4cdb59a941553254d; the a97243 variant adds a default: return and is the same score). Target is 132 insns, mine 133. The remaining diff: the first switch bound check (sltiu 5) exits to the epilogue at 0x208 in the target, but mine exits to 0x20c, so mine has one extra instruction before the shared epilogue: a nop at row 95 where the target has `andi $v0,$a0,0xffff` in a delay slot. Structure notes: the target's case 0 (D_80203AC8=0, D_802038C8=0) jumps to the shared L918 tail (sb 1 to D_8011F350 deref, sh 1 to D_8011F32E[idx*100]); the default exit goes to the epilogue. Duplicating the L918 body into case 0 gave 2860 (worse). Local repair families gave no better result (best equal 240; byte_table_signedness, address_temporary, parameter_mask, record_slot_table equal; global_scalar_type 840; shared_store_constant 515). Next: make case 3's `if (D_802038C8 < 0xB) return;` plus the case-4 fallthrough produce the delay-slot andi (try the `if (D_802038C8 >= 0xB)` form with case 4 kept separate and returns before the shared tail), or try moving the `idx*100` computation into a local u16 used only in case 4.",
   "by": "claude-haiku-5-5-21",
   "created_at": 1794767396.740708,
+  "score_before": 0,
+  "score_after": 0
+ },
+ {
+  "function": "func_80203DF8",
+  "text": "func_80203DF8 (352 B). Best 180 (97.9%): all instructions match; only the first two target instructions differ in order (target: `move $t1,$a0` then `lbu $t0,0x13($sp)`; ours does lbu first, move later). The key was the struct form: `typedef struct { u8 *p; u8 pad[96]; } Ent; extern Ent D_8011F350[];` with `#define ENT_PTR (D_8011F350[D_8018BC3C].p)`; stores like `ENT_PTR[0]=0`, `*(s16*)(ENT_PTR+2)=arg1`, `*(s16*)(ENT_PTR+4)=0`, `if ((u8)arg0==2){ *(s8*)(ENT_PTR+6)=arg2; *(s8*)(ENT_PTR+7)=arg3; *(u8*)(ENT_PTR+8)=arg4; }`, then +0xA,+0xC =0, +0xE=0x140, +0x10=0xF0, `ENT_PTR[0]=arg0`. Signature: (s8 arg0, s16 arg1, s8 arg2, s8 arg3, u8 arg4). Tried: u8 arg0, a local copy of arg0/arg4 (all still 180). Untried: a compile_family with address_temporary, or a different order for the first two statements (e.g. read arg0 into a local before the first store and keep arg4 read in the if). The claim lapsed once mid-session, so the 180 version is the saved best.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794709096.8447092,
+  "score_before": 6790,
+  "score_after": 180
+ },
+ {
+  "function": "func_80203DF8",
+  "text": "Not matched (best 3715, 57.7%). Structure is right: stores through a pointer read from the table at D_8011F350 with stride 100 bytes, index D_8018BC3C (u16, reloaded each use). Source: extern s32 D_8011F350; #define ENT(i) (*(u8 **)((u8 *)&D_8011F350 + (i)*100)); *ENT(idx)=0; s16@2=arg1; s16@4=0; if((u8)arg0==2){[6]=arg2;[7]=arg3;[8]=arg4;} s16@10=0; @12=0; @14=0x140; @16=0xF0; *ENT(idx)=arg0. Remaining diff: target has no stack frame and reads arg4 from 0x13($sp) directly; candidate adds addiu $sp,-8 and reads 0x1b($sp), and computes the table address differently (addiu into $t0, pointer kept in $a0). parameter_width variants (arg0 as u8 or s8) gave no change. Untried: a different spill-free way to take the 5th arg, and a single-temp arrangement that keeps arg0 in $t1 from entry. Moving on.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794724030.773665,
+  "score_before": 180,
+  "score_after": 180
+ },
+ {
+  "function": "func_80203DF8",
+  "text": "Best 710 (91.9%), revision 59e1097f678fc0fc1d4e. Key finding: D_8011F350 is a base of pointer slots (each 100-byte entry holds a u8* at +0), so use `#define ENT_PTR(o) (*(u8 **)(D_8011F350 + (o)))` and store fields via *(s16*)(ENT_PTR(off)+k). Recomputing `off = D_8018BC3C * 0x64;` before every store (fresh load of the u16 each time) matches the target's repeated lhu/sll chain; using a single shared off was worse (2105). Copying arg0 into `u8 keep` and using `keep` for the compare and final store is what got 2105 -> 710. Remaining diff: target starts `move $t1,$a0; lbu $t0,0x13($sp)`, i.e. it copies arg0 into a callee-free temp and loads stack arg arg4 into t0 before the first store; ours loads arg4 late into t1 and keeps arg0 in a0. Untried: a local `u8 a4 = arg4;` declared first (read before the first store) to force the early stack load, and a second `keep` declaration order variants. Note the andi on the compare uses t1 in target, a0 in ours.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794732508.3586218,
+  "score_before": 180,
+  "score_after": 180
+ },
+ {
+  "function": "func_80203DF8",
+  "text": "Best 180 (97.9%), revision 7b03ea18310d80abfdfb. Source: typedef struct { u8 *p; u8 pad[96]; } Ent; extern Ent D_8011F350[]; each store reloads D_8018BC3C and indexes D_8011F350[idx].p (idx*100 is the stride). The compare must be `(u8)arg0 == 2` (gives andi $v1,$t1,0xff on the saved arg0). Remaining 6 diff rows are all reordering at the top: target does `move $t1,$a0` (saves arg0) and `lbu $t0,0x13($sp)` (loads stack arg4) BEFORE the first `sb $zero,0($v0)`; ours does both later. Tried `s8 saved = arg0;` at top: local pass produced 1180, worse. Next ideas: `u8 a4 = arg4;` at the top to force the early stack load; or read arg0 into a local at the top before the first store.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794734314.242862,
+  "score_before": 180,
+  "score_after": 180
+ },
+ {
+  "function": "func_80203DF8",
+  "text": "Best 180 (97.9%) at revision 102520afc6a1697fdb4a: struct Ent {u8 *p; u8 pad[96];} with D_8011F350[idx].p, and `u8 mode = (u8)arg0;` tested as `if (mode == 2)`. Only 6 reordered rows remain: the target starts with `move $t1,$a0` (arg0 saved to $t1) and `lbu $t0,0x13($sp)` (arg4 read from the stack early), and the second stack-arg load comes before the first store. Tried and worse: moving the mode==2 block first (2230); repeated-index form without struct (3715); local repair variants (630, 1190). Next: force arg4 to be read before the stores (e.g. `u8 a4 = arg4;` at the top used in the if), or try the mode variable typed s32.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794734556.18023,
+  "score_before": 180,
+  "score_after": 180
+ },
+ {
+  "function": "func_80203DF8",
+  "text": "Rebuilt from the assembly (rev 0003595c...) at 3715 (57.7%). The previous session's 180 source (rev 7b03ea18) is not retrievable (get_candidate saved_best returns no source), so start from the notes in the earlier handoff. Target shape: the store order is sb zero at entry; sh a1 at +2; sh zero at +4; if ((u8)a0==2) then sb a2 at +6, sb a3 at +7, sb (stack arg, 0x13($sp)) at +8; then sh zero +0xA, sh zero +0xC, sh 0x140 +0xE, sh 0xF0 +0x10; finally sb a0 at +0. Our build adds an 8-byte frame and reads arg4 from 0x1b($sp), the target reads it from 0x13($sp) with no frame, so the stack-arg layout is the first diff: the arguments must be laid out so that arg4 is the only stack arg and no spill is needed (try fewer locals; the table entry must be re-derived from D_8018BC3C per store, as in func_80231C5C). Target copies arg0 to $t1 first and keeps it live to the last store.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794735545.061048,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_80203DF8",
+  "text": "Best 3195 (63.6%), revision 6ce16f29401f4f67c5bc: `extern s8 D_8011F350[]; extern u16 D_8018BC3C;` with macro ENT(off) = (*(s8 **)(D_8011F350 + D_8018BC3C*0x64) + off), eight stores, param `u8 arg0`. Target is 88 insns vs our 78: the target re-derives the global base and idx*100 for every store (repeated lui/lw pairs, idx via sll/addu chain then lhu D_8018BC3C + andi 0xffff); our compiler CSEs them into one a0. Tried without gain: u16 cast of index (f2a20a4c, still 3195), per-store full expressions on s8 array (3640), volatile globals (6041), search_flags (project -O1 already best). Target also stores arg4 from stack 0x13($sp) (lbu) and moves arg0 to $t1 first; ours uses 0x1b/0x4b sp slots, so the frame size (target -0? no addiu sp at start) differs. Next: try a helper-free form that makes the index a u16 local per store ((u16)D_8018BC3C*100 inside each expression with a distinct pointer name) or accept as not reachable from C.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794764140.589654,
+  "score_before": 0,
+  "score_after": 0
+ },
+ {
+  "function": "func_80203DF8",
+  "text": "Not matched. Best: revision 9f053557b8d526e6945d, score 3195 (63.6%): ENT(off) macro = (*(u8 **)(D_8011F350 + D_8018BC3C * 100) + (off)) with each store through *(s16 *)ENT(n) / *ENT(n). Target facts: D_8011F350 is an array of 100-byte entries whose first word is a pointer; the index D_8018BC3C*100 is computed by shifts (x*2+x)*8+x)*4; target recomputes the entry (lui/addu/lw) for each store rather than sharing it; arg4 is read from the stack (0x13($sp)) and the target has no frame. Remaining diffs: register allocation and the per-store address recompute. Tried: volatile D_8018BC3C (6041, worse: it reloads D_8018BC3C and recomputes the index, and adds a frame). Not tried: a per-store helper or a local u8 **pp = (u8**)(D_8011F350 + ...) recomputed per block; arg4 declared u8 to match the stack slot.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794766462.324756,
   "score_before": 0,
   "score_after": 0
  }
