@@ -6,18 +6,18 @@ extern u8 D_8021E19E;
 
 void func_80204AC8(s32 arg0)
 {
-    int a1;
+    s32 a1;
     s32 a2;
-    s8 *p;
     s32 a3;
+    s8 *p;
 
     p = &D_8021E15F;
     if (p[0] == 2 && p[1] == 0) {
-        a1 = a3;
         a3 = (0xFF - D_8021E19E) & 0xFFFF;
+        a1 = a3;
         a2 = a3;
     
-    func_801CA494(arg0, a1, a2, a3, 0xFF);} else {
+    do { func_801CA494(arg0, a1, a2, a3, 0xFF); } while (0);} else {
         a1 = 0x64;
         a2 = 0x64;
         a3 = 0x64;

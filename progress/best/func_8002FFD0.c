@@ -9,6 +9,7 @@ s32 func_8002FFD0(u8 *arg0, u8 *arg1)
     s32 temp_v0;
     u8 *temp;
     s32 t1;
+s32 __repair_phase_t1;
 
     *(u16 *)(arg0 + 0x16) = *(u16 *)(arg1 + 0);
     *(s32 *)(arg0 + 0xC) = 0;
@@ -33,10 +34,10 @@ s32 func_8002FFD0(u8 *arg0, u8 *arg1)
             func_8002E6E4(*(u8 **)(arg0 + 8), 3, temp);
             temp = __n_allocParam();
             if (temp != NULL) {
-                t1 = *(s32 *)(D_80046DF4 + 0x28) + *(s32 *)(sp10 + 0x88);
+                __repair_phase_t1 = *(s32 *)(D_80046DF4 + 0x28) + *(s32 *)(sp10 + 0x88);
                 *(s16 *)(temp + 8) = 0xF;
                 *(s32 *)(temp + 0) = 0;
-                *(s32 *)(temp + 4) = t1;
+                *(s32 *)(temp + 4) = __repair_phase_t1;
                 func_8002E6E4(*(u8 **)(arg0 + 8), 3, temp);
             }
         } else {

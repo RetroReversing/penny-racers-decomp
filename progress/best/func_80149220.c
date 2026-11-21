@@ -19,6 +19,7 @@ extern u16 D_8018A288;
 extern M2C_UNK D_8018D140;
 
 s32 func_80149220(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
+int __repair_literal;
 
     s32 temp_v1_2;
     s32 var_a0;
@@ -43,8 +44,9 @@ s32 func_80149220(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     if ((var_s2 & 0xFF) == 8) {
         var_s1 = 0;
         var_s0 = 0;
+__repair_literal = 0;
 
-        if ((arg2 & 0xFF) > 0) {
+        if ((arg2 & 0xFF) > __repair_literal) {
             var_v0_2 = 0 * 2;
             do {
                 temp_v1 = *(var_v0_2 + ((arg3 * 0x12C) + &D_8018D140));

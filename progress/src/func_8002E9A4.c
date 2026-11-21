@@ -34,13 +34,8 @@ s16 func_8002E9A4(f64 arg0, f64 arg1, s32 arg4, u16 *arg5)
     e = (d - (f64) (s16) i0) + D_8004A438;
     i1 = (s32) e;
     f = (e - (f64) (s16) i1) * D_8004A448;
-    ret = (s16) ((i0 - 1) + i1);
-    if (!(D_8004A450 <= f)) {
-        *arg5 = (s16) ((s32) f);
-    } else {
-        t = (s32) (f - D_8004A450);
-        *(u32 *) arg5 = t | 0x80000000;
-        *arg5 = (u16) t;
-    }
+    i0--;
+    ret = (s16) (i0 + i1);
+    *arg5 = (u32) f;
     return ret;
 }

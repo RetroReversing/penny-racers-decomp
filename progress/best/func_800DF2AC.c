@@ -19,7 +19,9 @@ void func_800DF2AC(unsigned char arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f
   *arg8 = temp_fv1;
   if (arg0 & 0xFF)
   {
-    if (arg5)
+    do
+    {
+      if (arg5)
       {
         temp_fv1_2 = (s32) (temp_fv1 + 45.0f);
         var_a0 = temp_fv1_2;
@@ -57,6 +59,8 @@ void func_800DF2AC(unsigned char arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f
         var_fv0 = arg1 - arg4;
         goto block_11;
       }
+    }
+    while (0);
     if (((u32) ((var_a0 - 0xB4) & 0xFFFF)) < 0x5AU)
     {
       var_fv0 = arg6 - arg3;

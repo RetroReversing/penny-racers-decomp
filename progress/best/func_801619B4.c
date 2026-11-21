@@ -1,4 +1,3 @@
-static __inline__ u16 __repair_inline(u16 a) { return a; }
 s32 func_80129918(void *, s32, s32, s32, f32, f32, f32);
 s32 func_8013E49C(u16);
 s32 func_8013F050(void *, void *);
@@ -14,7 +13,7 @@ void func_801619B4(s16 arg0) {
     u8 *obj;
     u8 *o;
     u8 *p;
-    register f32 f;
+    f32 f;
     u16 v;
     s32 i;
 
@@ -27,7 +26,7 @@ void func_801619B4(s16 arg0) {
             p = obj;
             do {
                 *(u8 *)(p + 0x67) = 0;
-                i += 1;
+                i++;
                 p = obj + i;
             } while (i < 7);
         }
@@ -35,9 +34,9 @@ void func_801619B4(s16 arg0) {
     f = *(f32 *)(obj + 0xC);
     if (f != 0.0f) {
         *(f32 *)(obj + 0xC) = f - 0.1f;
-        func_80129918(obj + 0x1C, *(s32 *)(racer + 0x18), *(s32 *)(racer + 0x1C),
+        do { func_80129918(obj + 0x1C, *(s32 *)(racer + 0x18), *(s32 *)(racer + 0x1C),
                       *(s32 *)(racer + 0x20), *(f32 *)(obj + 8), *(f32 *)(obj + 0xC),
-                      *(f32 *)(obj + 0x10));
+                      *(f32 *)(obj + 0x10)); } while (0);
         *(f32 *)(racer + 0x18) = *(f32 *)(obj + 0x24);
         *(f32 *)(racer + 0x1C) = *(f32 *)(obj + 0x28);
         *(f32 *)(racer + 0x20) = *(f32 *)(obj + 0x2C);
@@ -47,7 +46,7 @@ void func_801619B4(s16 arg0) {
         }
         if (*(f32 *)(racer + 0x1C) < D_80168574[*(u16 *)(D_8006FAF0 + 0x20)]) {
             o = *(u8 **)(obj + 4);
-            v = __repair_inline(*(u16 *)(o + 0x560));
+            v = *(u16 *)(o + 0x560);
             *(u16 *)(o + 0x560) = v & 0xF8;
             o = *(u8 **)(obj + 4);
             *(u16 *)(o + 0x560) = *(u16 *)(o + 0x560) | ((v & 7) - 1);
@@ -58,8 +57,8 @@ void func_801619B4(s16 arg0) {
         if (func_8013F050(arg0 & 0xFFFF, obj) & 0xFF) {
             o = *(u8 **)(obj + 4);
             v = *(u16 *)(o + 0x560);
-            o = *(u8 **)(obj + 4);
             *(u16 *)(o + 0x560) = v & 0xF8;
+            o = *(u8 **)(obj + 4);
             *(u16 *)(o + 0x560) = *(u16 *)(o + 0x560) | ((v & 7) - 1);
             func_8013E49C(*(u16 *)(obj + 0x76));
             func_8015CB40(arg0 & 0xFFFF);

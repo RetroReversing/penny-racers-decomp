@@ -13,10 +13,9 @@ extern char D_8018BC40[];
 extern char D_80190CB8[];
 void func_80162BB0(void **arg0, s32 arg1)
 {
-    char *__base_D_8011F2F0;
-  char sp20[0x40];
-  char sp60[0x40];
-  char spA0[0x40];
+  s32 sp20;
+  s32 sp60;
+  s32 spA0;
   f32 spE0;
   f32 spE4;
   f32 spE8;
@@ -55,8 +54,7 @@ void func_80162BB0(void **arg0, s32 arg1)
   void *temp_v1_8;
   void *temp_v1_9;
   void *var_s1;
-  __base_D_8011F2F0 = D_8011F2F0;
-  temp_a0 = ((arg1 & 0xFFFF) * 0x64) + __base_D_8011F2F0;
+  temp_a0 = ((arg1 & 0xFFFF) * 0x64) + D_8011F2F0;
   temp_t0 = *((void **) (((char *) temp_a0) + 0x60));
   spF4 = temp_t0;
   var_s4 = 0;
@@ -68,9 +66,13 @@ void func_80162BB0(void **arg0, s32 arg1)
     spFC = (temp_a2 * 0x24C) + ((temp_s0_2 * 0xC4) + D_8018A460);
     var_s1 = (temp_a2 * 0x300) + ((temp_s0_2 << 8) + D_8018BC40);
     sp104 = var_s1;
-    sp114 = spA0;
-    sp10C = sp60;
-    temp_s0_2 = 0 * 4;
+    sp114 = &spA0;
+    sp10C = &sp60;
+    do
+    {
+      temp_s0_2 = 0 * 4;
+    }
+    while (0);
     do
     {
       temp_s0 = temp_s0_2 + spFC;
@@ -80,37 +82,37 @@ void func_80162BB0(void **arg0, s32 arg1)
         {
           if (((unsigned long) sp10C) & 0x100)
           {
-            guRotateF(sp20, *((s32 *) (((char *) temp_s0) + 0x64)), 0x3F800000, 0, 0.0f);
+            guRotateF(&sp20, *((s32 *) (((char *) temp_s0) + 0x64)), 0x3F800000, 0, 0.0f);
           }
           else
           {
-            guRotateF(sp20, *((s32 *) (((char *) temp_s0) + 0x64)), 0x3F800000, 0, 0.0f);
+            guRotateF(&sp20, *((s32 *) (((char *) temp_s0) + 0x64)), 0x3F800000, 0, 0.0f);
           }
         }
         else
           if (((unsigned long) sp10C) & 0x100)
         {
-          guRotateF(sp20, *((s32 *) (((char *) temp_s0) + 0x64)), 0x3F800000, 0, 0.0f);
+          guRotateF(&sp20, *((s32 *) (((char *) temp_s0) + 0x64)), 0x3F800000, 0, 0.0f);
         }
         else
         {
-          guRotateF(sp20, *((s32 *) (((char *) temp_s0) + 0x64)), 0x3F800000, 0, 0.0f);
+          guRotateF(&sp20, *((s32 *) (((char *) temp_s0) + 0x64)), 0x3F800000, 0, 0.0f);
         }
       }
       else
       {
-        guRotateF(sp20, *((s32 *) (((char *) temp_s0) + 0x64)), 0x3F800000, 0, 0.0f);
+        guRotateF(&sp20, *((s32 *) (((char *) temp_s0) + 0x64)), 0x3F800000, 0, 0.0f);
       }
       var_s6 = 0;
       guRotateF(sp10C, *((s32 *) (((char *) temp_s0) + 0x84)), 0, 0x3F800000, 0.0f);
       guRotateF(sp114, *((s32 *) (((char *) temp_s0) + 0xA4)), 0, 0, 1.0f);
-      guMtxCatF(sp10C, sp20, sp20);
-      guMtxCatF(sp20);
+      guMtxCatF(sp10C, &sp20, &sp20);
+      guMtxCatF(&sp20);
       temp_s7 = (var_s4 * 4) + spFC;
       loop_3:
       temp_s0_2 = (var_s4 + (*((s16 *) (((char *) spF4) + 0x14)))) & 7;
 
-      guMtxXFMF(spA0, *(D_80182E40 + (((var_s4 * 2) + var_s6) * 4)), 0, 0, &spE0, &spE4, &spE8);
+      guMtxXFMF(&spA0, *(D_80182E40 + (((var_s4 * 2) + var_s6) * 4)), 0, 0, &spE0, &spE4, &spE8);
       *((s16 *) (((char *) var_s1) + 0)) = (s16) ((s32) (spE0 + (*((f32 *) (((char *) temp_s7) + 4)))));
       *((s16 *) (((char *) var_s1) + 2)) = (s16) ((s32) (spE4 + (*((f32 *) (((char *) temp_s7) + 0x24)))));
       *((s16 *) (((char *) var_s1) + 4)) = (s16) ((s32) (spE8 + (*((f32 *) (((char *) temp_s7) + 0x44)))));
