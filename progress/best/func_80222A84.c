@@ -77,8 +77,7 @@ block_11:
                 (*(s8 *)((char *)(arg0) + 0x8D0)) = 0x78;
                 if ((func_80148230() & 0xFF) != 2) {
                     if ((*(s32 *)((char *)(arg0) + 0x59C)) < 0x64) {
-                        temp_fv1 = (*(f32 *)((char *)(arg0) + 0x748));
-                        if ((temp_fv1 > 2800.0f) && (temp_fv1 < 3200.0f)) {
+                        if (((temp_fv1 = (*(f32 *)((char *)(arg0) + 0x748))) > 2800.0f) && (temp_fv1 < 3200.0f)) {
                             (*(u8 *)((char *)(arg0) + 0x74C)) = 4U;
                             temp_fv1_2 = (*(f32 *)((char *)(arg0) + 0x748));
                             if ((temp_fv1_2 > 2900.0f)) {

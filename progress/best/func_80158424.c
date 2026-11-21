@@ -18,11 +18,11 @@ void func_801580F4(void);
 void func_800DE41C(int, int, int, int, int, int, void *, void *, void *, float, float, float, float, float, float, float, float, float);
 
 void func_80158424(void) {
-    void *temp_s0;
-    void *temp_s1_2;
     void *temp_s1;
+    void *temp_s1_2;
+    register void *temp_s0;
     s32 k54 = 0x54;
-    unsigned long k96 = 0x96;
+    long k96 = 0x96;
     void *base = D_8016D748;
     register void *f1 = &func_801574DC;
     void *f2 = &func_80157568;
@@ -36,8 +36,8 @@ void func_80158424(void) {
     do { func_800DE41C(0, 0x10, 2, 0, k54, k96, base + 0x60, f1, f2, 0.0f, -15.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f); } while (0);
     func_800DE41C(0, 0x1F, 2, 0, k54, k96, base + 0x70, &func_8015769C, &func_80157728, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
     func_800DE41C(0, 0x22, 2, 0, k54, k96, base + 0x80, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0x23, 2, 0, k54, k96, base + 0x90, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
     func_800DE41C(0, 0x24, 2, 0, k54, k96, base + 0xA0, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+    func_800DE41C(0, 0x23, 2, 0, k54, k96, base + 0x90, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
     func_800DE41C(0, 0x25, 2, 0, k54, k96, base + 0xB0, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
     temp_s1 = base + 0xC0;
     func_800DE41C(0, 0, 2, 0x80, 0x51, 0xFF, temp_s1, &func_8013AE60, NULL, 605.0f, 58.0f, 3992.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);

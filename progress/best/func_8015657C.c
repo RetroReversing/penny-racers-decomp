@@ -12,6 +12,12 @@ extern s32 func_801561FC;
 extern s32 func_80156338;
 void func_8015657C(void)
 {
-  func_800DE41C(0, 0, 2, 0x80, 0x51, 0xFF, D_8016D588, &func_8013AE60, NULL, 1396.0f, 58.0f, -1196.0f, 0, 0, 0, 1.0f, 1.0f, (unsigned long) 1.0f);
+    s32 *__base_func_8013AE60;
+  __base_func_8013AE60 = &func_8013AE60;
+  /*__repair_pointer_balance*/if ((unsigned long)__base_func_8013AE60 & 0x100) {
+func_800DE41C(0, 0, 2, 0x80, 0x51, 0xFF, D_8016D588, __base_func_8013AE60, NULL, 1396.0f, 58.0f, -1196.0f, 0, 0, 0, 1.0f, 1.0f, (unsigned long) 1.0f);
+} else {
+func_800DE41C(0, 0, 2, 0x80, 0x51, 0xFF, D_8016D588, __base_func_8013AE60, NULL, 1396.0f, 58.0f, -1196.0f, 0, 0, 0, 1.0f, 1.0f, (unsigned long) 1.0f);
+}
 }
 

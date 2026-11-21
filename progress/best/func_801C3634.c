@@ -73,13 +73,13 @@ void func_801C3634(s32 arg0, u8 *arg1, u8 *arg2) {
     }
     temp_s0 = arg0 & 0xFF;
     if (var_v0 < 5U) {
-        func_801C407C(temp_s0, &sp10, &sp11, &sp12);
-        var_a0 = temp_s0;
+        func_801C407C((arg0 & 0xFF), &sp10, &sp11, &sp12);
+        var_a0 = (arg0 & 0xFF);
         goto block_31;
     }
     if ((u32) ((var_a1 - 5) & 0xFF) < 5U) {
-        func_801C3DC8(temp_s0, &sp10, &sp11, &sp12);
-        var_a0_2 = temp_s0;
+        func_801C3DC8((arg0 & 0xFF), &sp10, &sp11, &sp12);
+        var_a0_2 = (arg0 & 0xFF);
         goto block_26;
     }
     temp_s0_2 = arg0 & 0xFF;
@@ -123,7 +123,9 @@ block_15:
                 func_801C3DC8(temp_s0_5, &sp10, &sp11, &sp12);
                 func_801C4EF4(temp_s0_5, &sp13, &sp14, &sp15);
             } else {
-                switch ((s8) var_a1) {              /* irregular */
+                switch ((s8) var_a1) {
+case 0: break;
+              /* irregular */
                 case 42:
                     var_a0_2 = arg0 & 0xFF;
 block_26:
@@ -144,7 +146,7 @@ block_31:
             }
         }
     }
-    if ((sp10 != 0x18) && (sp11 != 0x18) && ((sp10 != 0x7F) || (sp11 != sp10)) && (*(D_801C6BE0 + (((sp11 * 0x18) + sp10) * 2)) != 0xFFFF)) {
+    if ((sp10 != 0x18) && (sp11 != 0x18) && ((sp10 != 0x7F) || (sp11 != sp10)) && (*(u16 *)(D_801C6BE0 + (((sp11 * 0x18) + sp10) * 2)) != 0xFFFF)) {
         if ((sp10 == D_801C7068) && (sp11 == D_801C6BB9)) {
             *arg1 = *(D_801C7AD8 + ((sp14 * 0x18) + sp13));
         } else if ((sp10 == D_801C6BB0) && (sp11 == D_801C6BB1)) {
@@ -174,7 +176,7 @@ block_31:
 block_57:
         *arg1 = var_v0_2;
     }
-    if ((sp13 != 0x18) && (sp14 != 0x18) && ((sp13 != 0x7F) || (sp14 != sp13)) && (*(D_801C6BE0 + (((sp14 * 0x18) + sp13) * 2)) != 0xFFFF)) {
+    if ((sp13 != 0x18) && (sp14 != 0x18) && ((sp13 != 0x7F) || (sp14 != sp13)) && (*(u16 *)(D_801C6BE0 + (((sp14 * 0x18) + sp13) * 2)) != 0xFFFF)) {
         if ((sp13 == D_801C7068) && (sp14 == D_801C6BB9)) {
             *arg2 = *(D_801C7AD8 + ((sp11 * 0x18) + sp10));
             return;

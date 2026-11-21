@@ -31,7 +31,8 @@ extern s16 D_80233EC0;
 extern u8 D_8031445C[];
 
 void func_801B36F8(void *arg0) {
-    s16 temp_v0;
+    M2C_UNK *__base_D_8011F308;
+    u16 temp_v0;
     s16 temp_v0_3;
     s16 temp_v0_4;
     s32 temp_s0;
@@ -55,13 +56,14 @@ void func_801B36F8(void *arg0) {
     D_802330BC = 0xFFFF;
     D_802330BE = 0xFFFF;
     temp_v0_2 = (temp_v0 & 0xFFFF) * 0x64;
-    *(&D_8011F334 + temp_v0_2) = *(&D_8011F308 + temp_v0_2);
+    __base_D_8011F308 = &D_8011F308;
+    *(&D_8011F334 + temp_v0_2) = *(__base_D_8011F308 + temp_v0_2);
     *(&D_8011F338 + temp_v0_2) = *(&D_8011F30C + temp_v0_2);
     *(&D_8011F33C + temp_v0_2) = *(&D_8011F310 + temp_v0_2);
     var_s1 = 1;
     if ((M2C_FIELD(D_801C7AB0, u8 *, 2) - 1) > 1) {
         var_v1 = 1 & 0xFFFF;
-        __repair_rows: {
+        do {
             temp_s0 = var_v1 * 0x10;
             *(&D_802330B0 + temp_s0) = 0;
             *(&D_802330B1 + temp_s0) = 1;
@@ -73,13 +75,12 @@ void func_801B36F8(void *arg0) {
             *(&D_802330BC + temp_s0) = 0xFFFF;
             *(&D_802330BE + temp_s0) = 0xFFFF;
             temp_v1 = (temp_s0_2 & 0xFFFF) * 0x64;
-            *(&D_8011F334 + temp_v1) = *(&D_8011F308 + temp_v1);
+            *(&D_8011F334 + temp_v1) = *(__base_D_8011F308 + temp_v1);
             *(&D_8011F338 + temp_v1) = *(&D_8011F30C + temp_v1);
-            *(&D_8011F33C + temp_v1) = *(&D_8011F310 + temp_v1);/*__repair_loop_weight*/do {
+            *(&D_8011F33C + temp_v1) = *(&D_8011F310 + temp_v1);do {
             var_s1 += 1;} while (0);
             var_v1 = var_s1 & 0xFFFF;
-        }
-if ((var_s1 & 0xFFFF) < (M2C_FIELD(D_801C7AB0, u8 *, 2) - 1)) goto __repair_rows;
+        } while ((var_s1 & 0xFFFF) < (M2C_FIELD(D_801C7AB0, u8 *, 2) - 1));
     }
     temp_v1_2 = var_s1 & 0xFFFF;
     temp_s0_2 = temp_v1_2 * 0x10;
@@ -93,7 +94,7 @@ if ((var_s1 & 0xFFFF) < (M2C_FIELD(D_801C7AB0, u8 *, 2) - 1)) goto __repair_rows
     *(&D_802330BC + temp_s0_2) = 0xFFFF;
     *(&D_802330BE + temp_s0_2) = 0xFFFF;
     temp_v1_3 = (temp_s0 & 0xFFFF) * 0x64;
-    *(&D_8011F334 + temp_v1_3) = *(&D_8011F308 + temp_v1_3);
+    *(&D_8011F334 + temp_v1_3) = *(__base_D_8011F308 + temp_v1_3);
     *(&D_8011F338 + temp_v1_3) = *(&D_8011F30C + temp_v1_3);
     *(&D_8011F33C + temp_v1_3) = *(&D_8011F310 + temp_v1_3);
 }

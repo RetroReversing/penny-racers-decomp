@@ -47,7 +47,7 @@ void func_801C5204(s32 arg0, s8 *arg1, u8 *arg2, s8 *arg3) {
     var_v0 = temp_v1;
     }
     temp_a0 = arg0 & 0xFF;
-    if ((var_v0 < 5U) || (temp_a0 = arg0 & 0xFF, ((((u32) ((var_a0 - 0x1B) & 0xFF) < 5U) | ((s8) var_a0 == 0x2D)) != 0))) {
+    if ((var_v0 < 5U) || (temp_a0 = arg0 & 0xFF, ((((u32) ((unsigned char)(var_a0 - 0x1B)) < 5U) | ((s8) var_a0 == 0x2D)) != 0))) {
         var_v1 = arg0 & 0xFF;
         if (((*(D_801C7081 + (temp_a0 * 5)) == 0) && (var_v1 = arg0 & 0xFF, (*(D_801C7081 + ((temp_a1 & 0xFF) * 5)) == 0x3C))) || ((*(D_801C7081 + (var_v1 * 5)) == 0x3C) && (*(D_801C7081 + ((temp_a1 & 0xFF) * 5)) == 0x78))) {
             temp_v1 = (arg0 & 0xFF) * 5;

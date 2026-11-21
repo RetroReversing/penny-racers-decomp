@@ -17,15 +17,13 @@ void func_80224508(void *arg0) {
     f32 temp_fv1;
     f32 temp_fv1_2;
     f32 temp_fv1_3;
-    f32 var_fv0;
     f32 var_fv1;
 
     if (M2C_FIELD(arg0, u8 *, 0x8A1) == 2) {
-        var_fv0 = M2C_FIELD(arg0, f32 *, 0x744) * 0.02f;
+        M2C_FIELD(arg0, f32 *, 0x748) = (f32) (M2C_FIELD(arg0, f32 *, 0x744) * 0.02f + M2C_FIELD(arg0, f32 *, 0x748));
     } else {
-        var_fv0 = M2C_FIELD(arg0, f32 *, 0x744) * 0.04f;
+        M2C_FIELD(arg0, f32 *, 0x748) = (f32) (M2C_FIELD(arg0, f32 *, 0x744) * 0.04f + M2C_FIELD(arg0, f32 *, 0x748));
     }
-    M2C_FIELD(arg0, f32 *, 0x748) = (f32) (var_fv0 + M2C_FIELD(arg0, f32 *, 0x748));
     if (M2C_FIELD(arg0, u8 *, 0x74D) != 0) {
         M2C_FIELD(arg0, u8 *, 0x74D) -= 1;
         temp_fv1 = M2C_FIELD(arg0, f32 *, 0x748);

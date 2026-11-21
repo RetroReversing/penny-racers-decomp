@@ -23,6 +23,7 @@ extern M2C_UNK D_8006FCB8;
 extern M2C_UNK D_8006FCBA;
 
 void func_80027584(void) {
+    M2C_UNK *__base_D_8006FCB8;
     M2C_UNK *var_s4;
     s32 *var_s2;
     s32 var_s1;
@@ -35,27 +36,30 @@ void func_80027584(void) {
     var_s4 = &D_8006FB38;
     do {
         if ((*var_s2 & 2) && (func_8002C190(var_s4) == 0)) {
-            func_80027D00(var_s3);
+            __repair_rows: { func_80027D00(var_s3); }
+if (0) goto __repair_rows;
             *var_s2 &= ~2;
         }
         if (*var_s2 & 1) {
             temp_s0 = var_s1 + &D_8006FB38;
-            if (*(&D_8006FCB8 + var_s1) == 0) {
-                do {/*__repair_call_balance*/if(var_s3){ alSeqpSetVol(temp_s0, 0);}else{ alSeqpSetVol(temp_s0, 0);} } while (0);
+            __base_D_8006FCB8 = &D_8006FCB8;
+            if (*(__base_D_8006FCB8 + var_s1) == 0) {
+                alSeqpSetVol(temp_s0, 0);
                 alSeqpStop(temp_s0);
                 *(&D_8006FCB4 + var_s1) = *(&D_8006FCB4 + var_s1) & ~1;
-                alSeqpSetVol(temp_s0, 0x7FFF);
+                do { alSeqpSetVol(temp_s0, 0x7FFF); } while (0);
                 var_s2 += 0x184;
             } else {
-                alSeqpSetVol(temp_s0, (s16) (func_8002C1D0(temp_s0) - *(&D_8006FCBA + var_s1)));
-                M2C_FIELD(temp_s0, s16 *, 0x180) = (s16) (*(&D_8006FCB8 + var_s1) - 1);
-                var_s2 += 0x184;
+                do { alSeqpSetVol(temp_s0, (s16) (func_8002C1D0(temp_s0) - *(&D_8006FCBA + var_s1))); } while (0);
+                M2C_FIELD(temp_s0, s16 *, 0x180) = (s16) (*(__base_D_8006FCB8 + var_s1) - 1);
+                goto block_8;
             }
         } else {
+block_8:
             var_s2 += 0x184;
         }
-        var_s1 += 0x184;
-        var_s3 += 1;
-        var_s4 += 97;
+        var_s1 += 0x184;/*__repair_loop_weight*/do {do {do {
+        var_s3 += 1;} while (0);} while (0);} while (0);
+        var_s4 += 0x184;
     } while (var_s3 < 2);
 }

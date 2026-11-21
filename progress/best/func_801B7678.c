@@ -12,11 +12,10 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-extern unsigned short D_800DD2F0;
-s32 osVirtualToPhysical();
+s32 osVirtualToPhysical(s32, M2C_UNK, void *, void *); /* extern */
 extern s32 D_8006F9D0;
 extern s32 D_800DB1B0;
-extern char D_800DB1B8[];
+extern M2C_UNK D_800DB1B8;
 
 void func_801B7678(void **arg0) {
     void *temp_a1;
@@ -52,9 +51,9 @@ void func_801B7678(void **arg0) {
     M2C_FIELD(temp_v1_4, s32 *, 4) = 0xFFFCFFFC;
     temp_a3 = *arg0;
     *arg0 = temp_a3 + 8;
-    temp_a2 = D_800DB1B8 + 0x2138;
-    M2C_FIELD(temp_a3, s32 *, 0) = (s32) (((((D_800DD2F0 + M2C_FIELD(temp_a2, u16 *, 4)) - 1) & 0x3FF) << 0xE) | (((((M2C_FIELD(temp_a2, u16 *, 2) + M2C_FIELD(temp_a2, u16 *, 6)) - 1) & 0x3FF) * 4) | 0xF6000000));
-    M2C_FIELD(temp_a3, s32 *, 4) = (s32) (((D_800DD2F0 & 0x3FF) << 0xE) | ((M2C_FIELD(temp_a2, u16 *, 2) & 0x3FF) * 4));
+    temp_a2 = (char *)&D_800DB1B8 + 0x2138;
+    M2C_FIELD(temp_a3, s32 *, 0) = (s32) (((((M2C_FIELD(&D_800DB1B8, u16 *, 0x2138) + M2C_FIELD(temp_a2, u16 *, 4)) - 1) & 0x3FF) << 0xE) | (((((M2C_FIELD(temp_a2, u16 *, 2) + M2C_FIELD(temp_a2, u16 *, 6)) - 1) & 0x3FF) * 4) | 0xF6000000));
+    M2C_FIELD(temp_a3, s32 *, 4) = (s32) (((M2C_FIELD(&D_800DB1B8, u16 *, 0x2138) & 0x3FF) << 0xE) | ((M2C_FIELD(temp_a2, u16 *, 2) & 0x3FF) * 4));
     temp_v0 = *arg0;
     *arg0 = temp_v0 + 8;
     M2C_FIELD(temp_v0, s32 *, 0) = 0xE7000000;

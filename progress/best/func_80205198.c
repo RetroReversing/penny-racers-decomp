@@ -15,11 +15,11 @@ short __repair_constant = 0x64;
     s32 a1, a2, a3;
     if (E15F == 4 && D_8021B06B == 0 && D_8021B06C == 0 && E160 == 0) {
         a3 = (0xFF - D_8021E19E) & 0xFFFF;
-        a2 = a3;
         a1 = a3;
+        a2 = a3;
     } else {
         a1 = 0x64;
-        a2 = __repair_constant;
+        a2 = 0x64;
         a3 = __repair_constant;
     }
     func_801CA494(arg0, a1, a2, a3, 0);

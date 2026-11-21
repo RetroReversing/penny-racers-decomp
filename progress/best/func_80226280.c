@@ -47,7 +47,6 @@ void func_80226280(void *arg0) {
     f32 var_fs4;
     f32 var_fs4_2;
     f32 var_ft0;
-    f32 var_fv0;
     f32 var_fv1;
     f32 var_fv1_2;
     s32 var_v0;
@@ -81,17 +80,16 @@ void func_80226280(void *arg0) {
     if (temp_fv0_9 != temp_fv0_9) {
         var_ft0 = sqrtf(temp_fa0_3);
     }
-    if (var_fs0 == 0.0f) {
-        M2C_FIELD(arg0, f32 *, 0x868) = 0.0f;
-    } else {
+    if (var_fs0 != 0.0f) {
         M2C_FIELD(arg0, f32 *, 0x868) = (f32) ((var_ft0 / var_fs0) * 100.0f);
+    } else {
+        M2C_FIELD(arg0, f32 *, 0x868) = 0.0f;
     }
     if (var_fs4 != 0.0f) {
-        var_fv0 = (var_fs0 / var_fs4) * 100.0f;
+        M2C_FIELD(arg0, f32 *, 0x86C) = (var_fs0 / var_fs4) * 100.0f;
     } else {
-        var_fv0 = 100.0f;
+        M2C_FIELD(arg0, f32 *, 0x86C) = 100.0f;
     }
-    M2C_FIELD(arg0, f32 *, 0x86C) = var_fv0;
     var_fv1 = 0.0f;
     if ((M2C_FIELD(arg0, f32 *, 0x868) < 0.0f) || (var_fv1 = 100.0f, (M2C_FIELD(arg0, f32 *, 0x868) > 100.0f))) {
         M2C_FIELD(arg0, f32 *, 0x868) = var_fv1;

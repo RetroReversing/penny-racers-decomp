@@ -1,22 +1,10 @@
 /* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
 
-M2C_UNK func_8013EC14(s32, f32, f32, f32);          /* extern */
+s32 func_8013EC14(s32, f32, f32, f32);          /* extern */
 s32 func_801FA30C();                                /* extern */
-extern M2C_UNK D_8011F2F0;
-extern M2C_UNK D_8011F2FD;
-extern M2C_UNK D_8011F32E;
+extern s32 D_8011F2F0;
+extern s32 D_8011F2FD;
+extern s32 D_8011F32E;
 
 void func_8015DD80(s32 arg0) {
     f32 temp_ft0;
@@ -47,37 +35,37 @@ void func_8015DD80(s32 arg0) {
 
     temp_v0 = (arg0 & 0xFFFF) * 0x64;
     temp_s0 = temp_v0 + &D_8011F2F0;
-    temp_s2 = M2C_FIELD(temp_s0, u8 **, 0x60);
-    M2C_FIELD(temp_s0, f32 *, 0x28) = (f32) (M2C_FIELD(temp_s0, f32 *, 0x28) + 10.0f);
+    temp_s2 = (*(u8 **)((char *)(temp_s0) + 0x60));
+    (*(f32 *)((char *)(temp_s0) + 0x28)) = (f32) ((*(f32 *)((char *)(temp_s0) + 0x28)) + 10.0f);
     temp_v1 = *(&D_8011F32E + temp_v0);
     if (temp_v1 != 0) {
         temp_s1 = arg0 & 0xFFFF;
         if (temp_v1 != 1) {
 
         } else {
-            temp_ft0 = M2C_FIELD(temp_s2, f32 *, 8);
-            temp_fv1 = M2C_FIELD(temp_s0, f32 *, 0x30);
+            temp_ft0 = (*(f32 *)((char *)(temp_s2) + 8));
+            temp_fv1 = (*(f32 *)((char *)(temp_s0) + 0x30));
             temp_fv0 = (((temp_ft0 * 6.0f) - temp_fv1) * 0.3f) + temp_fv1;
-            temp_fv1_2 = M2C_FIELD(temp_s0, f32 *, 0x34);
+            temp_fv1_2 = (*(f32 *)((char *)(temp_s0) + 0x34));
             func_8013EC14(temp_s1, temp_fv0, (((temp_ft0 * 12.0f) - temp_fv1_2) * 0.3f) + temp_fv1_2, temp_fv0);
-            M2C_FIELD(temp_s0, u8 *, 0xC) = (u8) (M2C_FIELD(temp_s0, u8 *, 0xC) - 4);
-            if ((u8) M2C_FIELD(temp_s0, u8 *, 0xC) < 5U) {
-                func_8013E49C(M2C_FIELD(temp_s2, u16 *, 0x76));
+            (*(u8 *)((char *)(temp_s0) + 0xC)) = (u8) ((*(u8 *)((char *)(temp_s0) + 0xC)) - 4);
+            if ((u8) (*(u8 *)((char *)(temp_s0) + 0xC)) < 5U) {
+                func_8013E49C((*(u16 *)((char *)(temp_s2) + 0x76)));
                 *(&D_8011F2FD + (temp_s1 * 0x64)) = 2;
             }
         }
     } else {
         temp_s1_2 = arg0 & 0xFFFF;
-        temp_ft0_2 = M2C_FIELD(temp_s2, f32 *, 8);
-        temp_fv1_3 = M2C_FIELD(temp_s0, f32 *, 0x30);
-        temp_fv0_2 = (((temp_ft0_2 * 6.0f) - temp_fv1_3) * 0.3f) + temp_fv1_3;
-        temp_fv1_4 = M2C_FIELD(temp_s0, f32 *, 0x34);
+        temp_ft0_2 = (*(f32 *)((char *)(temp_s2) + 8));
+        temp_fv1_3 = (*(f32 *)((char *)(temp_s0) + 0x30));
+        temp_fv0_2 = (((temp_ft0_2 * 6.0f) - temp_fv1_3) * 0.3f) + (s32)temp_fv1_3;
+        temp_fv1_4 = (*(f32 *)((char *)(temp_s0) + 0x34));
         func_8013EC14(temp_s1_2, temp_fv0_2, (((temp_ft0_2 * 12.0f) - temp_fv1_4) * 0.3f) + temp_fv1_4, temp_fv0_2);
-        if ((M2C_FIELD(temp_s2, f32 *, 8) * 4.2f) < M2C_FIELD(temp_s0, f32 *, 0x30)) {
+        if (((*(f32 *)((char *)(temp_s2) + 8)) * 4.2f) < (*(f32 *)((char *)(temp_s0) + 0x30))) {
             *(&D_8011F32E + (temp_s1_2 * 0x64)) = 1;
         }
     }
-    temp_v1_2 = M2C_FIELD(temp_s2, u8 *, 0x16);
+    temp_v1_2 = (*(u8 *)((char *)(temp_s2) + 0x16));
     switch (temp_v1_2) {                            /* irregular */
     case 0:
         var_a1 = 0xFF;
@@ -90,12 +78,14 @@ block_40:
         var_a1 = 0xFF;
         var_a2 = 0;
         var_a3 = (func_801FA30C() & 0xF) + 0x40;
-        goto block_40;
+        {
+        func_8013EA18(temp_s2, var_a1, var_a2, var_a3);return;}
     case 2:
         var_a1 = 0;
         var_a2 = (func_801FA30C() & 0xF) + 0x40;
         var_a3 = 0xFF;
-        goto block_40;
+        {
+        func_8013EA18(temp_s2, var_a1, var_a2, var_a3);return;}
     case 3:
         var_a1 = (func_801FA30C() & 0xF) + 0x40;
         var_a2 = 0;
@@ -110,12 +100,14 @@ block_40:
         var_a1 = 0;
         var_a2 = 0xFF;
         var_a3 = (func_801FA30C() & 0xF) + 0x40;
-        goto block_40;
+        {
+        func_8013EA18(temp_s2, var_a1, var_a2, var_a3);return;}
     case 6:
         var_a1 = 0xFF;
         var_a2 = 0xFF;
         var_a3 = (func_801FA30C() & 0xF) + 0x40;
-        goto block_40;
+        {
+        func_8013EA18(temp_s2, var_a1, var_a2, var_a3);return;}
     case 7:
         var_a1 = 0xFF;
         var_a2 = (func_801FA30C() & 0xF) + 0x40;
@@ -147,8 +139,7 @@ block_40:
     case 12:
         temp_s0_5 = (func_801FA30C() & 0xF) + 0x40;
         temp_s1_3 = (func_801FA30C() & 0xF) + 0x40;
-        var_a1 = temp_s0_5;
-        var_a2 = temp_s1_3;
+var_a2 = temp_s1_3; var_a1 = temp_s0_5;
         var_a3 = (func_801FA30C() & 0xF) + 0x40;
         goto block_40;
     default:

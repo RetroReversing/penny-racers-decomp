@@ -4656,6 +4656,14 @@
   "score_after": 4868
  },
  {
+  "function": "func_8015A728",
+  "text": "Deep permuter: score 7675 \u2192 6130; 2 improvements; 44 candidates tested; 73 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935520",
+  "created_at": 1794356207.676824,
+  "score_before": 7675,
+  "score_after": 6130
+ },
+ {
   "function": "func_80134C68",
   "text": "Deep permuter: score 16922 \u2192 16922; 0 improvements; 136 candidates tested; 17 cached skips; 0 rejected; 7202s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935302",
@@ -7888,14 +7896,6 @@
   "score_after": 180
  },
  {
-  "function": "func_8022976C",
-  "text": "Released because its agent stopped (provider.free-limit: Free usage limit reached. Connect a provider or subscribe to OpenCode Go to keep going, or switch models. Review the agent settings and resolve this error before restarting.); its attempts are kept.",
-  "by": "opencode-flint-40b-free-1",
-  "created_at": 1794709106.089337,
-  "score_before": 4256,
-  "score_after": 4256
- },
- {
   "function": "func_80231130",
   "text": "No match; best 1765 (revision 3839724ad67b02f5917f). Outer loop i=0..6 (u16), off=i*0x178, call func_80025DBC(D_800DA260+off) first, then zero stores at fixed offsets from D_800DA260 (u16 +0..+16 with i at +0; u32 +20..+32; u8 +36,+37), inner j loop 0..6 storing u32 zeros at D_800DA260+40+idx and +44 (idx=j*8+off), then five u16 zero stores at +100..+108 for row i. Remaining diffs: the tail stores should recompute i*0x178 in fresh registers (target recomputes off in v1; ours reuses s0). Inline i*0x178 in tail (4842) was worse. Target frame 0x20 saves ra,s0,s1,s2. The queued candidate 0c4ce8d was a broken draft with a goto label; ignore it.\n\nNo match; best 1580 (revision 3abc809f380213e19240, saved). Source: outer do-loop over u16 i=0..6, off=i*0x178; `char *base` assigned D_800DA260 before the loop; call func_80025DBC(base+off) first; u16 zero stores at off+0..+16 (off+0 holds i), u32 zeros at off+20/24/28/32, u8 zeros at off+36/37; inner do-loop over u16 j=0..6 storing u32 zeros at D_800DA260+40+idx and +44 (idx=j*8+off); then idx=i*0x178 and five u16 zero stores at +100..+108; i++. Remaining diffs are register allocation and prologue order: target saves ra at 0x1c, s2 at 0x18, s1 at 0x14, s0 at 0x10 with `lui/addiu s2` (base) before `move s1,zero`; ours differs in that order. Tried and worse: moving base assignment after i=0 (1770); idx=i*0x178 inline (4842); idx=(i&0xFFFF)*0x178 (1765). Loop-tail recompute of off in v1 with sltiu/bnez is not reproduced. Next attempt would be a different loop shape (while-loop over u16 with the tail recomputed from i).",
   "by": "claude-haiku-5-5-22",
@@ -8286,6 +8286,14 @@
   "created_at": 1794709851.8428311,
   "score_before": 1150,
   "score_after": 1150
+ },
+ {
+  "function": "func_8015A728",
+  "text": "Switch on the u16 at D_8011F32E + idx*0x64 (cases 0,1,2). Case 1 and case 2 each test four s32 fields of D_801E99C0 / D_801E9994 at offsets 0,0x70,0xE0,0x150 for ==1; then walk a linked list starting at func_800E1850 via the u16 at D_8011F300 + cur*0x64 until 0xFFFF; case 1 sets 0x10 in D_8011F2F2[cur].f0 unless the byte at D_8011F2F0 + cur*0x64 is 0x63 (and cur != idx); case 2 clears 0x10. Then store the next state (2, 1, or 1 for case 0, which also zeros D_80187CF0). Candidate written as a clean switch scored 6120, worse than the saved 5820. The target loads the state into a0 before the switch, computes the address with lui/addiu of D_8011F32E once and reuses it, and uses beq against constants 1 and 2 in an order that differs from the C switch. Next: write the case 1 / case 2 bodies as the if chains in the target order (beq 1 first, then slti 2), keep the idx in a2 (move a2,a0) rather than a0. Not matched.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794709855.7199528,
+  "score_before": 5820,
+  "score_after": 5820
  },
  {
   "function": "func_801E1C38",
@@ -12918,6 +12926,14 @@
   "created_at": 1794725347.561975,
   "score_before": 4850,
   "score_after": 4850
+ },
+ {
+  "function": "func_8015A728",
+  "text": "Best 4165 (70.2%), not matched; improved from saved 5065 by rewriting the m2c draft as a clean switch on the state halfword (case 0 sets D_80187CF0=0 and state=1; case 1 and case 2 test four D_801E99C0 / D_801E9994 words at 0,0x70,0xE0,0x150 for ==1, then walk the func_800E1850 linked list through D_8011F300 with stride 0x64). Remaining: target computes arg0&0xFFFF once and reuses it (ours re-masks into a2 and reloads the base with lui/addiu each time); target materialises &D_801E99C0 in $a1 once and loads with lw 0(a1)/0x70(a1)/0xE0(a1)/0x150(a1); the case-1 loop body in the target has the `D_8011F2F2[idx].f0 |= 0x10` store in the branch delay path, so the branch shape differs. Tried: writing the state address as `(u8*)&D_8011F32E + self*0x64` (no change). Next: hoist &D_801E99C0 into a local pointer, and compare the loop body block layout with last_diff.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794725361.9580429,
+  "score_before": 5065,
+  "score_after": 4165
  },
  {
   "function": "func_8020FC20",
@@ -17632,14 +17648,6 @@
   "score_after": 30
  },
  {
-  "function": "func_800DE41C",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794738492.7263098,
-  "score_before": 25604,
-  "score_after": 25064
- },
- {
   "function": "func_801497AC",
   "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
   "by": "api-route-llm-code-1",
@@ -17670,14 +17678,6 @@
   "created_at": 1794738492.739556,
   "score_before": 885,
   "score_after": 885
- },
- {
-  "function": "func_8022FE50",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794738492.744132,
-  "score_before": 18888,
-  "score_after": 18888
  },
  {
   "function": "main",
@@ -18390,6 +18390,14 @@
   "created_at": 1794739657.443058,
   "score_before": 1495,
   "score_after": 1495
+ },
+ {
+  "function": "func_8015A728",
+  "text": "Best 6545 (53%), my own rewrite (the m2c draft doesn't compile as written). Semantics recovered from the target: state halfword at base+0x3E, record stride 0x64, next-index at +0x10, flags at +2 (0x10 bit), sentinel 0xFFFF, list head func_800E1850, four-way OR tests on D_801E99C0 (state 1) and D_801E9994 (state 2) at offsets 0,0x70,0xE0,0x150. State 1: if any test is 1, walk the list setting flags|=0x10 on non-self records whose byte+0 != 0x63, then state=2. State 0: D_80187CF0=0, state=1. State 2: if a test is 1, walk the list clearing flags&=~0x10, then state=1. Still differing: the target dispatch is `beq st,1; slti v0,st,2; beql v0,0 (delay v0=2); beqz st -> case0; beq st,v0 -> case2`, and it reloads the state halfword after each store and recomputes `arg0&0xFFFF` at each use. s32 st gave 6655 (worse), inline arg0&0xFFFF gave 6545 (same). Stopping: the remaining gap is control-flow shape, and the variants I tried all sit at 6545 or worse. Next agent: try a direct switch on the state, or reproduce the target's dispatch order with separate conditions.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794739662.95882,
+  "score_before": 4070,
+  "score_after": 4070
  },
  {
   "function": "func_80027D00",
@@ -20488,30 +20496,6 @@
   "score_after": 65328
  },
  {
-  "function": "func_801AFB94",
-  "text": "Released because its agent stopped (3 consecutive sessions ended without a build or investigation. Automatic retries paused.); its attempts are kept.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794743762.9370508,
-  "score_before": 87698,
-  "score_after": 87698
- },
- {
-  "function": "func_8015A9CC",
-  "text": "Released because its agent stopped (3 consecutive sessions ended without a build or investigation. Automatic retries paused.); its attempts are kept.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794743848.516114,
-  "score_before": 34153,
-  "score_after": 34153
- },
- {
-  "function": "func_801478F0",
-  "text": "Released because its agent stopped (3 consecutive sessions ended without a build or investigation. Automatic retries paused.); its attempts are kept.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794743853.233828,
-  "score_before": 58403,
-  "score_after": 58403
- },
- {
   "function": "func_800DE38C",
   "text": "BLOCKED: every compile_patch/compile_and_diff call fails with \"toolchain 'gcc-2.7.2-kmc' is not installed: install it in decompdecomp, under Compilers & tools\". No judging possible with the project compiler; try_compiler with sn-n64-272-0001 still runs (score 3515), so only the default profile is missing. Nothing was verified this session.\n\nTarget shape (36 insns) fully read: sh 0x140 -> D_800E1ED0; sh 0 -> D_80126FF2; $v1 = &D_800E2660 via lui+addiu, sh -1 at 0($v1), sh 1 at 2($v1); a0=1; sll v0,a0,1 hoisted before .L800DE3C0; loop: addu v0,v0,a0; sll 5; addu v0,v0,a0; sll 3 (= idx = ((i*3)<<5 + i)<<3, i.e. i*0x64 bytes); v1=a0-1; lui $at,%hi(D_800E2660); addu $at,$at,$v0; sh %lo(D_800E2660)($at); v1=a0+1; same recompute for D_800E2662; a0=v1 (i++ reuses the i+1 register); slti v0,a0,0x13F; bnez with delay slot sll v0,a0,1. Tail: $v0=&D_8011ED58 (lui+addiu into a register, not $at), sh 0x13E at 0, sh -1 at 2 in the jr delay slot.\n\nUntested next step: the saved best (score 3275) already has the right skeleton; the remaining deltas are the store address recompute (lui $at + addu $at,$at,$v0 per store, i.e. use *(&D_800E2660 + idx) style rather than a cached base pointer) and `i = i + 1` feeding slti through $a0. Apply: keep `*(s16 *)((u8 *)&D_800E2660 + idx)` form, and write the increment as a separate `i = i + 1;` then `} while (i < 0x13F);` (already so). Also try idx computed with `<< 3` instead of `* 8` so no extra shift appears.",
   "by": "api-route-llm-code-2",
@@ -20520,28 +20504,12 @@
   "score_after": 800
  },
  {
-  "function": "func_8013BB54",
-  "text": "Released because its agent stopped (3 consecutive sessions ended without a build or investigation. Automatic retries paused.); its attempts are kept.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794743867.761436,
-  "score_before": 23132,
-  "score_after": 23132
- },
- {
   "function": "func_800DEFF8",
   "text": "BLOCKED by missing toolchain: every compile_patch/compile_and_diff fails with \"toolchain 'gcc-2.7.2-kmc' is not installed: install it in decompdecomp, under Compilers & tools\". Not worked at all this session; released so it can be picked up once the compiler is installed. No candidate tuning attempted, no score verified.",
   "by": "api-route-llm-code-2",
   "created_at": 1794743868.739491,
   "score_before": 595,
   "score_after": 595
- },
- {
-  "function": "func_80132AB0",
-  "text": "Released because its agent stopped (3 consecutive sessions ended without a build or investigation. Automatic retries paused.); its attempts are kept.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794743873.730676,
-  "score_before": 52142,
-  "score_after": 52142
  },
  {
   "function": "func_800DE2E0",
@@ -20598,14 +20566,6 @@
   "created_at": 1794746141.211571,
   "score_before": 440,
   "score_after": 440
- },
- {
-  "function": "func_8003E83C",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794746141.215939,
-  "score_before": 170,
-  "score_after": 170
  },
  {
   "function": "func_8003E83C",
@@ -21056,14 +21016,6 @@
   "score_after": 350
  },
  {
-  "function": "func_800423F4",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794748240.478892,
-  "score_before": 1770,
-  "score_after": 1770
- },
- {
   "function": "func_800DEFF8",
   "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
   "by": "api-route-llm-code-1",
@@ -21086,14 +21038,6 @@
   "created_at": 1794748240.482645,
   "score_before": 15,
   "score_after": 15
- },
- {
-  "function": "func_80146970",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794748240.483656,
-  "score_before": 915,
-  "score_after": 915
  },
  {
   "function": "func_8014D740",
@@ -21416,14 +21360,6 @@
   "score_after": 445
  },
  {
-  "function": "auDmaCallBack",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794749082.754028,
-  "score_before": 3400,
-  "score_after": 3400
- },
- {
   "function": "func_800DE2E0",
   "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
   "by": "api-route-llm-code-1",
@@ -21664,54 +21600,6 @@
   "score_after": 20
  },
  {
-  "function": "func_800DFD64",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794750995.802093,
-  "score_before": 30756,
-  "score_after": 30756
- },
- {
-  "function": "func_80165BDC",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794750995.8055198,
-  "score_before": 4260,
-  "score_after": 4260
- },
- {
-  "function": "func_801FE364",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794750995.810697,
-  "score_before": 12701,
-  "score_after": 12701
- },
- {
-  "function": "func_801FF37C",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794750995.8134038,
-  "score_before": 7727,
-  "score_after": 7727
- },
- {
-  "function": "func_80208DEC",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794750995.8158941,
-  "score_before": 13677,
-  "score_after": 13677
- },
- {
-  "function": "func_80219488",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794750995.8169138,
-  "score_before": 7846,
-  "score_after": 7846
- },
- {
   "function": "guTranslate",
   "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -21918,38 +21806,6 @@
   "created_at": 1794751640.0290308,
   "score_before": 431,
   "score_after": 431
- },
- {
-  "function": "func_800DFD64",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794751640.030914,
-  "score_before": 11877,
-  "score_after": 11806
- },
- {
-  "function": "func_80129348",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794751640.037596,
-  "score_before": 10325,
-  "score_after": 10325
- },
- {
-  "function": "func_8014730C",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794751640.040353,
-  "score_before": 10574,
-  "score_after": 10574
- },
- {
-  "function": "func_80165BDC",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794751640.0419,
-  "score_before": 4260,
-  "score_after": 4260
  },
  {
   "function": "n_alSynFreeVoice",
@@ -22830,14 +22686,6 @@
   "created_at": 1794752956.283156,
   "score_before": 89053,
   "score_after": 89053
- },
- {
-  "function": "func_8003F464",
-  "text": "byte match with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns2; review compiler settings before accepting\nCandidate C:\ns32 func_80033A90();\ns32 osRecvMesg();\ns32 osSendMesg();\nextern s32 D_800A39A0;\nextern char D_80067C70[];\nextern char D_800677A8[];\nextern char D_800B6FF8[];\n\nextern s32 D_80048200;\nextern char D_800DE2B0[];\nextern char D_8006E770[];\n\nvoid func_8003F464(void)\n{\n    s32 sp10;\n\n    if (D_80048200 == 0) {\n        D_80048200 = 1;\n        osCreateMesgQueue(D_800DE2B0, D_8006E770, 1);\n        osSendMesg(D_800DE2B0, 0, 0);\n    }\n    osRecvMesg(D_800DE2B0, &sp10, 1);\n}",
-  "by": "autopilot",
-  "created_at": 1794763362.2271621,
-  "score_before": 60,
-  "score_after": 60
  },
  {
   "function": "func_8012AD9C",
@@ -23952,6 +23800,14 @@
   "score_after": 2607
  },
  {
+  "function": "func_8015A728",
+  "text": "Best 4855 (65.3%), revision eca0b50ba934ed6f07fe. Key: struct array Rec { u8 type; u8 pad0; u16 flags; u8 pad1[0x0C]; u16 next; u8 pad2[0x2C]; u16 state; u8 pad3[0x24]; } (size 0x64; state at 0x3E, next at 0x10) indexed D_8011F2F0[idx].state; plus byte-offset reads of D_801E99C0/D_801E9994 at +0,+0x70,+0xE0,+0x150. Scores: u8-base form 6545; struct with wrong next offset 5720; struct with fixed offsets 4855. No gain from: a local base pointer; an s32 idx (5440); a typed s32 base array with [off/4] indexing (4855, same). The arithmetic for idx*100 already matches (sll/addu chain). Remaining diff is register allocation and the first st==1 branch layout (target: andi $v0 then $v1 chain; target keeps idx in $v0, mine swaps). Untried: write the idx*100 product explicitly as a u8 pointer offset, and check the st==1 / st==2 branch sense with a switch.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794754332.2125251,
+  "score_before": 4070,
+  "score_after": 4070
+ },
+ {
   "function": "func_801644F0",
   "text": "Not attempted in this session; released unworked to free the claim. The machine draft is not usable as is: it references undeclared D_8011F2F0, D_8016850C, func_80164740, D_8018D727/D730/D6C4, and uses float arguments to func_800DE41C that need a checked signature. Start from the assembly: arg0 is a struct pointer (u16 at +2, u16 at +0x560, s32 at +0x898, float block at +0x7C0..+0x7C8), it calls func_8013E364, func_800DE41C (with a function address &func_80164740 and float args), func_8013E49C, func_8013E640, func_801D7028. Check guess_struct on arg0 before drafting.",
   "by": "claude-haiku-5-5-24",
@@ -24454,38 +24310,6 @@
   "created_at": 1794754847.9732978,
   "score_before": 160,
   "score_after": 72
- },
- {
-  "function": "func_800DF2AC",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794754847.975751,
-  "score_before": 60,
-  "score_after": 60
- },
- {
-  "function": "func_80135108",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794754847.978521,
-  "score_before": 4140,
-  "score_after": 4140
- },
- {
-  "function": "func_8013E188",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794754847.980135,
-  "score_before": 1200,
-  "score_after": 1200
- },
- {
-  "function": "func_8013E640",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794754847.981666,
-  "score_before": 2595,
-  "score_after": 2595
  },
  {
   "function": "func_8013EA18",
@@ -25208,14 +25032,6 @@
   "score_after": 65
  },
  {
-  "function": "func_8003F464",
-  "text": "byte match with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns2; review compiler settings before accepting\nCandidate C:\ns32 func_80033A90();\ns32 osRecvMesg();\ns32 osSendMesg();\nextern s32 D_800A39A0;\nextern char D_80067C70[];\nextern char D_800677A8[];\nextern char D_800B6FF8[];\n\nextern s32 D_80048200;\nextern char D_800DE2B0[];\nextern char D_8006E770[];\n\nvoid func_8003F464(void)\n{\n    s32 sp10;\n\n    if (D_80048200 == 0) {\n        D_80048200 = 1;\n        osCreateMesgQueue(D_800DE2B0, D_8006E770, 1);\n        osSendMesg(D_800DE2B0, 0, 0);\n    }\n    osRecvMesg(D_800DE2B0, &sp10, 1);\n}",
-  "by": "autopilot",
-  "created_at": 1794763362.2271621,
-  "score_before": 60,
-  "score_after": 60
- },
- {
   "function": "func_80164D00",
   "text": "Not matched. My hand C (revision 7587d63427a3b59309a0) scores 5278 (70%), worse than the saved best 649 from the earlier draft; start from saved_best. Compile note: the draft's undeclared D_8011F308/D_8011F30C/D_8011F310/D_8011F318/D_8018D6C4 and func_80164FC0 need extern declarations; func_8013E49C is already in context.h (do not redeclare it). Remaining differences in my version: target frame 0x88 (mine 0x98); target saves s0-s3, ra, f20-f26; target uses direct symbol loads `lwc1 $f12, %lo(D_8011F318)` for the sin/cos input rather than base+index*0x64 (so index base and offset should be split); target has `move $s2, $a0` as the saved arg and `andi $s0,$v0,0xffff` after func_8013E364. Next: use s2 = arg0 saved, s0 = masked return, and the direct-symbol form for D_8011F318 and D_8011F308 to reduce the extra frame words.",
   "by": "claude-haiku-5-5-22",
@@ -25470,6 +25286,14 @@
   "created_at": 1794756254.452586,
   "score_before": 6093,
   "score_after": 5826
+ },
+ {
+  "function": "func_8015A728",
+  "text": "Best saved 3275 (76.6%), revision dfece4675d4131720d0e: a `switch (D_8011F2F0[idx].state)` with case order 0,1,2 (case 0 sets D_80187CF0=0 and state=1; case 1 runs the four-flag check over D_801E99C0 then the list loop setting flags|=0x10 and state=2; case 2 uses D_801E9994, the list loop clearing flags&=0xFFEF, state=1). Record: stride 100 bytes, type u8 @0, flags u16 @2, next u16 @0x10, state u16 @0x3E (target uses lhu, so keep state u16 \u2014 s16 made it worse at 3470). Target's dispatch is a compare tree: beq st,1 -> case1; slti st,2 (SIGNED) ; beqz st -> case0; beq st,2 -> case2. Ours emits sltiu, which is the state signedness issue to chase: try a comparison that yields slti on an unsigned value (e.g. (s32)st < 2 with st declared u16 but promoted via s32). Tried and worse: if/else-if chain (5135), 1,0,2 switch order (4125), local pointer p for the D_801E99C0 base (no change, 4125). Still open: target reloads base as addiu a1 once and reuses it (lw 0x70(a1) etc.), and the 0x58/0x68 branch shapes. Target 140 insns, ours 143.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794756254.5547168,
+  "score_before": 4070,
+  "score_after": 3275
  },
  {
   "function": "func_80214260",
@@ -28824,14 +28648,6 @@
   "score_after": 1092
  },
  {
-  "function": "func_8003F464",
-  "text": "byte match with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns2; review compiler settings before accepting\nCandidate C:\ns32 func_80033A90();\ns32 osRecvMesg();\ns32 osSendMesg();\nextern s32 D_800A39A0;\nextern char D_80067C70[];\nextern char D_800677A8[];\nextern char D_800B6FF8[];\n\nextern s32 D_80048200;\nextern char D_800DE2B0[];\nextern char D_8006E770[];\n\nvoid func_8003F464(void)\n{\n    s32 sp10;\n\n    if (D_80048200 == 0) {\n        D_80048200 = 1;\n        osCreateMesgQueue(D_800DE2B0, D_8006E770, 1);\n        osSendMesg(D_800DE2B0, 0, 0);\n    }\n    osRecvMesg(D_800DE2B0, &sp10, 1);\n}",
-  "by": "autopilot",
-  "created_at": 1794763362.2271621,
-  "score_before": 60,
-  "score_after": 60
- },
- {
   "function": "func_80146E4C",
   "text": "Best 55: u16 f(u16 arg0), `u8 r = 0`, if ((arg0&0xF00)<0x800){r=tbl[(arg0>>8)&7]; r+=arg0&0x1F;} else switch(arg0){case 0x2FFF: case 0x4FFF: r=0xA;break; case 0x3FFF: r=0x12;break;} return r. Case order (0xA cases first) fixed branch layout. Remaining: target uses v0 for the &0xF00 temp (keeps a0 alive; &0x1F reads a0, >>8 and switch read copy v1), and final andi 0xffff vs our andi 0xff (r needs HImode with unknown upper bits). u16/s16/s32/u32 r \u2192 final move (210); s8 r \u2192 855. s32 return type equal. Untried: explicit local copies of arg0 for switch/shift, r as int with a non-trackable source.",
   "by": "claude-opus-medium-1",
@@ -31104,14 +30920,6 @@
   "score_after": 1065
  },
  {
-  "function": "func_8003F464",
-  "text": "byte match with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns2; review compiler settings before accepting\nCandidate C:\ns32 func_80033A90();\ns32 osRecvMesg();\ns32 osSendMesg();\nextern s32 D_800A39A0;\nextern char D_80067C70[];\nextern char D_800677A8[];\nextern char D_800B6FF8[];\n\nextern s32 D_80048200;\nextern char D_800DE2B0[];\nextern char D_8006E770[];\n\nvoid func_8003F464(void)\n{\n    s32 sp10;\n\n    if (D_80048200 == 0) {\n        D_80048200 = 1;\n        osCreateMesgQueue(D_800DE2B0, D_8006E770, 1);\n        osSendMesg(D_800DE2B0, 0, 0);\n    }\n    osRecvMesg(D_800DE2B0, &sp10, 1);\n}",
-  "by": "autopilot",
-  "created_at": 1794763362.2271621,
-  "score_before": 60,
-  "score_after": 60
- },
- {
   "function": "func_80026E64",
   "text": "Fresh normal O1 judge score1887; exact same plausible C byte-exact under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O0 (try_compiler). Function-only suggest bundle refiled and verified; automatic changes off. Source has no locals, nonvolatile callback ptr, u8[] thread/stack symbols, while(1) callback loop. Apply pending bundle; further O1 C tuning cannot yield unused arg spill/fp frame/dead jumps.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -32694,53 +32502,5 @@
   "created_at": 1795134838.8861701,
   "score_before": 180,
   "score_after": 120
- },
- {
-  "function": "func_8015A728",
-  "text": "Deep permuter: score 7675 \u2192 6130; 2 improvements; 44 candidates tested; 73 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935520",
-  "created_at": 1794356207.676824,
-  "score_before": 7675,
-  "score_after": 6130
- },
- {
-  "function": "func_8015A728",
-  "text": "Switch on the u16 at D_8011F32E + idx*0x64 (cases 0,1,2). Case 1 and case 2 each test four s32 fields of D_801E99C0 / D_801E9994 at offsets 0,0x70,0xE0,0x150 for ==1; then walk a linked list starting at func_800E1850 via the u16 at D_8011F300 + cur*0x64 until 0xFFFF; case 1 sets 0x10 in D_8011F2F2[cur].f0 unless the byte at D_8011F2F0 + cur*0x64 is 0x63 (and cur != idx); case 2 clears 0x10. Then store the next state (2, 1, or 1 for case 0, which also zeros D_80187CF0). Candidate written as a clean switch scored 6120, worse than the saved 5820. The target loads the state into a0 before the switch, computes the address with lui/addiu of D_8011F32E once and reuses it, and uses beq against constants 1 and 2 in an order that differs from the C switch. Next: write the case 1 / case 2 bodies as the if chains in the target order (beq 1 first, then slti 2), keep the idx in a2 (move a2,a0) rather than a0. Not matched.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794709855.7199528,
-  "score_before": 5820,
-  "score_after": 5820
- },
- {
-  "function": "func_8015A728",
-  "text": "Best 4165 (70.2%), not matched; improved from saved 5065 by rewriting the m2c draft as a clean switch on the state halfword (case 0 sets D_80187CF0=0 and state=1; case 1 and case 2 test four D_801E99C0 / D_801E9994 words at 0,0x70,0xE0,0x150 for ==1, then walk the func_800E1850 linked list through D_8011F300 with stride 0x64). Remaining: target computes arg0&0xFFFF once and reuses it (ours re-masks into a2 and reloads the base with lui/addiu each time); target materialises &D_801E99C0 in $a1 once and loads with lw 0(a1)/0x70(a1)/0xE0(a1)/0x150(a1); the case-1 loop body in the target has the `D_8011F2F2[idx].f0 |= 0x10` store in the branch delay path, so the branch shape differs. Tried: writing the state address as `(u8*)&D_8011F32E + self*0x64` (no change). Next: hoist &D_801E99C0 into a local pointer, and compare the loop body block layout with last_diff.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794725361.9580429,
-  "score_before": 5065,
-  "score_after": 4165
- },
- {
-  "function": "func_8015A728",
-  "text": "Best 6545 (53%), my own rewrite (the m2c draft doesn't compile as written). Semantics recovered from the target: state halfword at base+0x3E, record stride 0x64, next-index at +0x10, flags at +2 (0x10 bit), sentinel 0xFFFF, list head func_800E1850, four-way OR tests on D_801E99C0 (state 1) and D_801E9994 (state 2) at offsets 0,0x70,0xE0,0x150. State 1: if any test is 1, walk the list setting flags|=0x10 on non-self records whose byte+0 != 0x63, then state=2. State 0: D_80187CF0=0, state=1. State 2: if a test is 1, walk the list clearing flags&=~0x10, then state=1. Still differing: the target dispatch is `beq st,1; slti v0,st,2; beql v0,0 (delay v0=2); beqz st -> case0; beq st,v0 -> case2`, and it reloads the state halfword after each store and recomputes `arg0&0xFFFF` at each use. s32 st gave 6655 (worse), inline arg0&0xFFFF gave 6545 (same). Stopping: the remaining gap is control-flow shape, and the variants I tried all sit at 6545 or worse. Next agent: try a direct switch on the state, or reproduce the target's dispatch order with separate conditions.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794739662.95882,
-  "score_before": 4070,
-  "score_after": 4070
- },
- {
-  "function": "func_8015A728",
-  "text": "Best 4855 (65.3%), revision eca0b50ba934ed6f07fe. Key: struct array Rec { u8 type; u8 pad0; u16 flags; u8 pad1[0x0C]; u16 next; u8 pad2[0x2C]; u16 state; u8 pad3[0x24]; } (size 0x64; state at 0x3E, next at 0x10) indexed D_8011F2F0[idx].state; plus byte-offset reads of D_801E99C0/D_801E9994 at +0,+0x70,+0xE0,+0x150. Scores: u8-base form 6545; struct with wrong next offset 5720; struct with fixed offsets 4855. No gain from: a local base pointer; an s32 idx (5440); a typed s32 base array with [off/4] indexing (4855, same). The arithmetic for idx*100 already matches (sll/addu chain). Remaining diff is register allocation and the first st==1 branch layout (target: andi $v0 then $v1 chain; target keeps idx in $v0, mine swaps). Untried: write the idx*100 product explicitly as a u8 pointer offset, and check the st==1 / st==2 branch sense with a switch.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794754332.2125251,
-  "score_before": 4070,
-  "score_after": 4070
- },
- {
-  "function": "func_8015A728",
-  "text": "Best saved 3275 (76.6%), revision dfece4675d4131720d0e: a `switch (D_8011F2F0[idx].state)` with case order 0,1,2 (case 0 sets D_80187CF0=0 and state=1; case 1 runs the four-flag check over D_801E99C0 then the list loop setting flags|=0x10 and state=2; case 2 uses D_801E9994, the list loop clearing flags&=0xFFEF, state=1). Record: stride 100 bytes, type u8 @0, flags u16 @2, next u16 @0x10, state u16 @0x3E (target uses lhu, so keep state u16 \u2014 s16 made it worse at 3470). Target's dispatch is a compare tree: beq st,1 -> case1; slti st,2 (SIGNED) ; beqz st -> case0; beq st,2 -> case2. Ours emits sltiu, which is the state signedness issue to chase: try a comparison that yields slti on an unsigned value (e.g. (s32)st < 2 with st declared u16 but promoted via s32). Tried and worse: if/else-if chain (5135), 1,0,2 switch order (4125), local pointer p for the D_801E99C0 base (no change, 4125). Still open: target reloads base as addiu a1 once and reuses it (lw 0x70(a1) etc.), and the 0x58/0x68 branch shapes. Target 140 insns, ours 143.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794756254.5547168,
-  "score_before": 4070,
-  "score_after": 3275
  }
 ]
