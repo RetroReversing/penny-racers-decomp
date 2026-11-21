@@ -8200,14 +8200,6 @@
   "score_after": 10
  },
  {
-  "function": "func_801FC768",
-  "text": "Saved candidate (score 1045, 92%) rechecked; still 1045 after trying the `D_802038C8 = D_802038C8 + 1` form. Tried `volatile u16 D_802038C8` (worse, 1145). Remaining diff: target re-loads D_802038C8 from memory (lui v0/lhu v0) after the case-1 increment before the `< 0x12D` compare, and no andi; ours compares the register value with andi 0xffff. Also target stores D_802038C8=0 before the D_8011F32E store, ordering differs. Target's case-0/3 branch layout and the D_8018BC3C load order (target loads it after the D_8011F32E store) also differ. Next idea: a form where the increment's result is not the compare operand (e.g. int-typed temp, or compare via a separate reload), and try reordering the case-1 reset store before the Elem store.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794709805.647736,
-  "score_before": 1045,
-  "score_after": 1045
- },
- {
   "function": "nuContMgr",
   "text": "Best 140 (99.0%), revision 17ca9d36412287882eb7. Structure is correct: goto-dispatch on *(s16*)arg0 (0x1000 -> a228, <0x1001 then ==1 -> a168, ==0x1001 -> a284, ==0x1002 -> a314, else 0). Only the a228 block differs: target does `jal osContStartReadData` with `lw s0,8(arg0)` in the delay slot (load after the call, before osRecvMesg); the current C already puts that load after the call, and the remaining 6 differing rows (2 operands, 4 reordered) sit around that first call's arg setup. Next: try reordering so the a0 lui/addiu for D_800DE058 sits after the lw, or express the first call's arg via a temp. Frame and save order (s1 at 0x14, ra at 0x18, s0 at 0x10) already match.",
   "by": "claude-haiku-5-5-23",
@@ -12670,14 +12662,6 @@
   "created_at": 1794724808.038362,
   "score_before": 6255,
   "score_after": 6255
- },
- {
-  "function": "func_801FC768",
-  "text": "Best 1950 (85.2%) at revision ee6d60b55248c1096806; cc835a1 is the same score. Why it stalls: the target reloads D_802038C8 from memory at the join after the `if (D_80203AC8 == 0)` in case 3 (lui/lhu), and in the case-0 shared tail it stores D_802038C8=0 with a different order than mine; GCC reuses the register value from the increment (andi on it), and rewriting the increment as `= x + 1` or `++` gives the same stream. Everything else matches in structure: stride 100, 5-entry jump table over st (cases 0..4 all written), shared tail via goto L918. Untried: move the `D_802038C8 = 0` store of case 0 to before the `D_80203AC8 = 0` store, and test whether writing case 3 with `if (D_80203AC8) {} else D_802038C8++;` reorders the join.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794724840.5516648,
-  "score_before": 1045,
-  "score_after": 1045
  },
  {
   "function": "func_801FA028",
@@ -18168,14 +18152,6 @@
   "score_after": 6780
  },
  {
-  "function": "func_801FC768",
-  "text": "Best 1045 (92.0%) at revision a87bd7bce07af7f50b3c (the claimed candidate). Keep the `goto L918` shared tail: the target has `j func_801FC768+0x1b0` to a shared tail, and inlining the tail scored 4800 (do not repeat). Remaining diff: target reloads D_802038C8 from memory with lui/lhu (rows 27-28, before the bnez) where ours uses andi on the register value; the `D_802038C8 = D_802038C8 + 1` rewrite did not change it. Also the D_8018BC3C read is placed after the case-3 test in the target. Untried: a `(u16)` cast on the `< 0xB` compare in case 3, and writing case 1's increment as a separate statement before the compare.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794739441.4910898,
-  "score_before": 1045,
-  "score_after": 1045
- },
- {
   "function": "func_80198CC4",
   "text": "Best stays 240 (96.8%), revision 63f65f18a45316c3afa2 or 732a8cc5b8327758e520 (same score). Source: u8 a1=0; s32 v1; u8 v0; u32 off; ifs on D_801C7AB0[0]==3 and D_801C6BB9; `if (D_801CA130 != ((u8*)D_801C7AB0)[2])` plus `(u8)(v1-0x16)<0x14` branch; returns a1. Remaining diff: target loads D_801CA130 into $v0 first (lui/lbu $v0), mine into $v1, which reorders the idx*5 sll/addu and the D_801C7084 load; target has no extra andi on return in the best form. Tried this session: s32 a1 + return a1 -> 440 (diff: target has andi $v0,$a1,0xff on return, mine move); u32 idx = D_801CA130 local -> 1010 (worse, reloads D_801CA130 into a1 register). Budget 3/3 non-improving exhausted. Next ideas: try andi on return with s32 a1 via `return (u8)a1;` and vary which local holds the index (use D_801CA130 twice in expressions vs one local), keeping the 240 structure.",
   "by": "claude-haiku-5-5-21",
@@ -23464,14 +23440,6 @@
   "score_after": 980
  },
  {
-  "function": "func_801FC768",
-  "text": "Not matched; draft at revision a61bc5688408736bf7e8 scores 3725 (71.7%). Function is a 5-case state machine (sltiu 5, jump table at D_80203540 indexed by state*4, jr). Records are 100 bytes at D_8011F32E + idx*100; state is u16 at +0. Shared globals: D_80203AC8 (u16 flag), D_802038C8 (u16 counter; compared with 0x12D in case 1 and 0xB on another path), D_8018BC3C (u16 index into D_8011F350 record pointers; a u8 flag is written through it). The draft is missing most case bodies, and the switch shape doesn't yet reproduce the jump table. Next: write each case body from get_assembly lines 12-137 and keep idx u16.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794753978.775341,
-  "score_before": 0,
-  "score_after": 0
- },
- {
   "function": "func_80152720",
   "text": "Not matched. Best unmatched source scores 6230 (38%) vs saved best 4025 (different source). Layout: base D_8011F2FC, stride 100 per index (index = arg0 & 0xFFFF; x100 via sll1/addu/sll3/addu/sll2). Fields: u8 at +0 (-0xA when >=0x33 on flag==0 path; +0xA when <0xFF on flag!=0 path; flag!=0 at >=0xFF clears flag), u16 at +0x32 (counter +1, reset to 0 when >=0x15), u16 at +0x34 (flag: set 1 / cleared 0). Final D_802B22D4 = ((a<<8)&0xF800)|1. Remaining diff: target recomputes index*100 separately in each block (101 insns vs my 67); gcc CSEs within a block, and inline (u16)arg0 indexing gave the same score. Register assignment is swapped ($v0/$v1). Tried and rejected: char-array offset form (9320), s8 for the byte field (6505). Next idea: find C whose per-block index recomputation matches the target's four repeated sll/addu chains, probably by splitting the statements into separate arrays/pointers or by a different control-flow nesting for the flag==0 branch.",
   "by": "claude-haiku-5-5-22",
@@ -23502,14 +23470,6 @@
   "created_at": 1794754000.098579,
   "score_before": 20,
   "score_after": 20
- },
- {
-  "function": "func_801FC768",
-  "text": "Not matched. Stopping this session at low effort, so this is not a verdict that the function cannot match. 528-byte state machine on the u16 state at D_8011F32E[idx*100]. The m2c draft failed (jump table not found). My switch version (revision a61bc5688408736bf7e8) scored 3725, 71.7%. Target is 132 insns and mine is 96, so the target is not a jump table: it has chains of `lui/lhu/bnez` reads of D_80203AC8 (about 7) and D_802038C8 (about 6). Next: rewrite as if/else chains on s (0..4), reading the globals at each test as the target does, and check the bound before the first branch (target's first branch is beqz at insn 10). Start from the saved best.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794754011.685268,
-  "score_before": 0,
-  "score_after": 0
  },
  {
   "function": "func_801FA028",
@@ -24830,14 +24790,6 @@
   "created_at": 1794755865.745164,
   "score_before": 1520,
   "score_after": 1520
- },
- {
-  "function": "func_801FC768",
-  "text": "Best rechecked score 240 (98.1%), revision 00b4cdb59a941553254d. Target structure decoded: case 0 sets D_80203AC8=0, D_802038C8=0 then goes to L918 (*(u8*)(*(u8**)(D_8011F350+bc3c*100))=1; state[idx]=1). case 1: D_802038C8++, if <0x12D return, else reset, state=2, ptr byte=2. case 2: if ptr byte==0 -> state=3, D_80203AC8=1. case 3: if (!D_80203AC8) D_802038C8++; if (D_802038C8 < 0xB) return; else falls into case 4 (D_802038C8=0; state=4). The 0xB check and the 'return' form match. Remaining diff: target puts `andi $v0,$a0,0xffff` in the delay slot of the case-3 `bnez` to the epilogue (and the target's epilogue is one instruction earlier, so mine has one extra nop). Tried: swapping store/reset order in case 4 (450, worse); restructuring case 3 as `if (>=0xB) {...}` (still 240, same residual). Next experiments: force the idx zero-extension earlier (e.g. a local u16 copy of idx used only in the case 3/4 store), or try compile at -O1 to see if the delay-slot filling changes.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794755865.856805,
-  "score_before": 0,
-  "score_after": 0
  },
  {
   "function": "func_801C1424",
@@ -31976,14 +31928,6 @@
   "score_after": 20
  },
  {
-  "function": "func_801FC768",
-  "text": "Best: revision 00b4cdb59a941553254d, score 240 (98.1%). Target 132 insns, ours 133. Target jump table: the switch on s (sltiu v0,v1,5, then jump-table dispatch) is right. Remaining diff: branch targets (target beqz to +0x208 vs ours +0x1b4, bnez to +0x208 vs ours +0x20c), so the end of the switch and the L918 block are laid out one instruction apart. The target has `andi $v0,$a0,0xffff` at the end of the switch, where ours has a nop delay slot. Tried: swapping the two stores in L918 (1295, worse), `(u16)idx` in the first index (240, no change), swapping D_802038C8=0 with D_80203AC8=0 in case 0 (280, worse). Untried: write case 3 without the fall-through into case 4 (duplicate the case 4 body), or move `D_80203AC8 = 1` into the case 2 body differently; the extra instruction likely comes from the case-3 fall-through placement.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794765275.987419,
-  "score_before": 0,
-  "score_after": 0
- },
- {
   "function": "func_801E1C38",
   "text": "Not matched. First compile of the hand-fixed draft (revision fe7d3af2aa1f8088799d) scored 8825 (48.9%); saved best 8675 is still better. Structure differences seen in the diff: (1) the target's prologue and the first call are scheduled differently (target: sw ra/s0 early, lui/addiu for D_801E94EC before the first call with a2 set via move); (2) the 8 copies of D_800DA26A+0xA3E..0xA4C are written as separate lui/at + sh, where the target shares one base register across them (write them as one u8* base plus offsets, e.g. `u8 *b = D_800DA26A + 0xA3E;` then b[0], b[2], ..., b[14] stores). (3) The first call sends D_801F18E4 through lbu lui/addiu, so the draft's function-pointer cast to func_8003DE60 is likely wrong (it passes 3 args; the target passes 3 args too: D_801E94EC, D_801E973C, 0 \u2014 check the third arg). The loop-with-terminator (0xEE/0xFF pairs, 0x1-bit RLE expansion) is the bulk of the code and was not compared yet. Next: fix the D_800DA26A base sharing, then compare the loop body alone.",
   "by": "claude-haiku-5-5-20",
@@ -33656,14 +33600,6 @@
   "score_after": 2375
  },
  {
-  "function": "func_801FC768",
-  "text": "Best 240 (98.1%, revision 00b4cdb59a941553254d; the a97243 variant adds a default: return and is the same score). Target is 132 insns, mine 133. The remaining diff: the first switch bound check (sltiu 5) exits to the epilogue at 0x208 in the target, but mine exits to 0x20c, so mine has one extra instruction before the shared epilogue: a nop at row 95 where the target has `andi $v0,$a0,0xffff` in a delay slot. Structure notes: the target's case 0 (D_80203AC8=0, D_802038C8=0) jumps to the shared L918 tail (sb 1 to D_8011F350 deref, sh 1 to D_8011F32E[idx*100]); the default exit goes to the epilogue. Duplicating the L918 body into case 0 gave 2860 (worse). Local repair families gave no better result (best equal 240; byte_table_signedness, address_temporary, parameter_mask, record_slot_table equal; global_scalar_type 840; shared_store_constant 515). Next: make case 3's `if (D_802038C8 < 0xB) return;` plus the case-4 fallthrough produce the delay-slot andi (try the `if (D_802038C8 >= 0xB)` form with case 4 kept separate and returns before the shared tail), or try moving the `idx*100` computation into a local u16 used only in case 4.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794767396.740708,
-  "score_before": 0,
-  "score_after": 0
- },
- {
   "function": "func_800E067C",
   "text": "No match. Saved best 4605 is an older m2c-style draft. My best rewrite this session scored 6530 (54%, revision a2d5a14e872d68caa1c3). It is structurally close: loop index i = a1 & 0xFFFF with off = i*100 (asm builds it as ((i*3)<<3 + i)<<2); D_8011F2F1[off]==2 gate; p=*(void**)(&D_8011F340+off), q=p->4, r=q->4, t=r->4; three float blocks, each re-walking the chain from the root (the asm reloads after each store); fields 0x40/0x50, 0x42/0x52, 0x44/0x54 with inputs D308/D30C/D310 and outputs D334/D338/D33C; else branch copies D308/D30C/D310 to D334/D338/D33C; tail a1 = u16 at D300+off, stop on 0xFFFF, loop when a1 >= D80233EC0. Remaining diffs are register allocation (the target keeps the loop value in $v0 and a1 in $a1, plus hoisted 2 and lui/ldc1 of D_800E1E70 before the loop) and the mtc1/cvt.d.w pair going through $f2 instead of $f0. Three further compiles (else-branch index, hoisted lim) gave no change. Asking to move on: the remaining gap is in register choice and constant hoisting, which I could not steer from C.",
   "by": "claude-haiku-5-5-24",
@@ -34509,6 +34445,70 @@
   "by": "codex-gpt-6.1-sol-medium-4",
   "created_at": 1794768101.058491,
   "score_before": 185,
+  "score_after": 0
+ },
+ {
+  "function": "func_801FC768",
+  "text": "Saved candidate (score 1045, 92%) rechecked; still 1045 after trying the `D_802038C8 = D_802038C8 + 1` form. Tried `volatile u16 D_802038C8` (worse, 1145). Remaining diff: target re-loads D_802038C8 from memory (lui v0/lhu v0) after the case-1 increment before the `< 0x12D` compare, and no andi; ours compares the register value with andi 0xffff. Also target stores D_802038C8=0 before the D_8011F32E store, ordering differs. Target's case-0/3 branch layout and the D_8018BC3C load order (target loads it after the D_8011F32E store) also differ. Next idea: a form where the increment's result is not the compare operand (e.g. int-typed temp, or compare via a separate reload), and try reordering the case-1 reset store before the Elem store.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794709805.647736,
+  "score_before": 1045,
+  "score_after": 1045
+ },
+ {
+  "function": "func_801FC768",
+  "text": "Best 1950 (85.2%) at revision ee6d60b55248c1096806; cc835a1 is the same score. Why it stalls: the target reloads D_802038C8 from memory at the join after the `if (D_80203AC8 == 0)` in case 3 (lui/lhu), and in the case-0 shared tail it stores D_802038C8=0 with a different order than mine; GCC reuses the register value from the increment (andi on it), and rewriting the increment as `= x + 1` or `++` gives the same stream. Everything else matches in structure: stride 100, 5-entry jump table over st (cases 0..4 all written), shared tail via goto L918. Untried: move the `D_802038C8 = 0` store of case 0 to before the `D_80203AC8 = 0` store, and test whether writing case 3 with `if (D_80203AC8) {} else D_802038C8++;` reorders the join.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794724840.5516648,
+  "score_before": 1045,
+  "score_after": 1045
+ },
+ {
+  "function": "func_801FC768",
+  "text": "Best 1045 (92.0%) at revision a87bd7bce07af7f50b3c (the claimed candidate). Keep the `goto L918` shared tail: the target has `j func_801FC768+0x1b0` to a shared tail, and inlining the tail scored 4800 (do not repeat). Remaining diff: target reloads D_802038C8 from memory with lui/lhu (rows 27-28, before the bnez) where ours uses andi on the register value; the `D_802038C8 = D_802038C8 + 1` rewrite did not change it. Also the D_8018BC3C read is placed after the case-3 test in the target. Untried: a `(u16)` cast on the `< 0xB` compare in case 3, and writing case 1's increment as a separate statement before the compare.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794739441.4910898,
+  "score_before": 1045,
+  "score_after": 1045
+ },
+ {
+  "function": "func_801FC768",
+  "text": "Not matched; draft at revision a61bc5688408736bf7e8 scores 3725 (71.7%). Function is a 5-case state machine (sltiu 5, jump table at D_80203540 indexed by state*4, jr). Records are 100 bytes at D_8011F32E + idx*100; state is u16 at +0. Shared globals: D_80203AC8 (u16 flag), D_802038C8 (u16 counter; compared with 0x12D in case 1 and 0xB on another path), D_8018BC3C (u16 index into D_8011F350 record pointers; a u8 flag is written through it). The draft is missing most case bodies, and the switch shape doesn't yet reproduce the jump table. Next: write each case body from get_assembly lines 12-137 and keep idx u16.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794753978.775341,
+  "score_before": 0,
+  "score_after": 0
+ },
+ {
+  "function": "func_801FC768",
+  "text": "Not matched. Stopping this session at low effort, so this is not a verdict that the function cannot match. 528-byte state machine on the u16 state at D_8011F32E[idx*100]. The m2c draft failed (jump table not found). My switch version (revision a61bc5688408736bf7e8) scored 3725, 71.7%. Target is 132 insns and mine is 96, so the target is not a jump table: it has chains of `lui/lhu/bnez` reads of D_80203AC8 (about 7) and D_802038C8 (about 6). Next: rewrite as if/else chains on s (0..4), reading the globals at each test as the target does, and check the bound before the first branch (target's first branch is beqz at insn 10). Start from the saved best.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794754011.685268,
+  "score_before": 0,
+  "score_after": 0
+ },
+ {
+  "function": "func_801FC768",
+  "text": "Best rechecked score 240 (98.1%), revision 00b4cdb59a941553254d. Target structure decoded: case 0 sets D_80203AC8=0, D_802038C8=0 then goes to L918 (*(u8*)(*(u8**)(D_8011F350+bc3c*100))=1; state[idx]=1). case 1: D_802038C8++, if <0x12D return, else reset, state=2, ptr byte=2. case 2: if ptr byte==0 -> state=3, D_80203AC8=1. case 3: if (!D_80203AC8) D_802038C8++; if (D_802038C8 < 0xB) return; else falls into case 4 (D_802038C8=0; state=4). The 0xB check and the 'return' form match. Remaining diff: target puts `andi $v0,$a0,0xffff` in the delay slot of the case-3 `bnez` to the epilogue (and the target's epilogue is one instruction earlier, so mine has one extra nop). Tried: swapping store/reset order in case 4 (450, worse); restructuring case 3 as `if (>=0xB) {...}` (still 240, same residual). Next experiments: force the idx zero-extension earlier (e.g. a local u16 copy of idx used only in the case 3/4 store), or try compile at -O1 to see if the delay-slot filling changes.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794755865.856805,
+  "score_before": 0,
+  "score_after": 0
+ },
+ {
+  "function": "func_801FC768",
+  "text": "Best: revision 00b4cdb59a941553254d, score 240 (98.1%). Target 132 insns, ours 133. Target jump table: the switch on s (sltiu v0,v1,5, then jump-table dispatch) is right. Remaining diff: branch targets (target beqz to +0x208 vs ours +0x1b4, bnez to +0x208 vs ours +0x20c), so the end of the switch and the L918 block are laid out one instruction apart. The target has `andi $v0,$a0,0xffff` at the end of the switch, where ours has a nop delay slot. Tried: swapping the two stores in L918 (1295, worse), `(u16)idx` in the first index (240, no change), swapping D_802038C8=0 with D_80203AC8=0 in case 0 (280, worse). Untried: write case 3 without the fall-through into case 4 (duplicate the case 4 body), or move `D_80203AC8 = 1` into the case 2 body differently; the extra instruction likely comes from the case-3 fall-through placement.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794765275.987419,
+  "score_before": 0,
+  "score_after": 0
+ },
+ {
+  "function": "func_801FC768",
+  "text": "Best 240 (98.1%, revision 00b4cdb59a941553254d; the a97243 variant adds a default: return and is the same score). Target is 132 insns, mine 133. The remaining diff: the first switch bound check (sltiu 5) exits to the epilogue at 0x208 in the target, but mine exits to 0x20c, so mine has one extra instruction before the shared epilogue: a nop at row 95 where the target has `andi $v0,$a0,0xffff` in a delay slot. Structure notes: the target's case 0 (D_80203AC8=0, D_802038C8=0) jumps to the shared L918 tail (sb 1 to D_8011F350 deref, sh 1 to D_8011F32E[idx*100]); the default exit goes to the epilogue. Duplicating the L918 body into case 0 gave 2860 (worse). Local repair families gave no better result (best equal 240; byte_table_signedness, address_temporary, parameter_mask, record_slot_table equal; global_scalar_type 840; shared_store_constant 515). Next: make case 3's `if (D_802038C8 < 0xB) return;` plus the case-4 fallthrough produce the delay-slot andi (try the `if (D_802038C8 >= 0xB)` form with case 4 kept separate and returns before the shared tail), or try moving the `idx*100` computation into a local u16 used only in case 4.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794767396.740708,
+  "score_before": 0,
   "score_after": 0
  }
 ]
