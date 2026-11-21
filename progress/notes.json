@@ -13784,14 +13784,6 @@
   "score_after": 2515
  },
  {
-  "function": "func_80215850",
-  "text": "Tried: m2c draft repaired (func_80203DF8 called with 4 and 5 args, so declare it unprototyped; D_8011F350[i].f0 is a plain u32, not a pointer; index D_8011F2FD directly). Compiled once: score 14618 (49%), worse than saved best 13558. Shape is close at the root: an 11-case sparse switch on the state word at +0x3E (cases 0,0x10,0x18,0x20,0x28,0x30,0x38,0xF0,0xF8,0xFA,0xFB) gives root beq 0x30 then slti 0x31, as in the target. Differences: frame 0x50 vs 0x58 (target keeps $ra,$s0,$s1,$s2 live and s2 = &D_80190C98+0x18 used by the sb/sh stores), the fallthrough/goto structure of the 0x10/0x18/0x20/0x28/0x30/0x38 group, and nested switch on D_801C5EA2. Next: write the 0x10..0x38 group with a shared store block that uses s2 for the sb/sh pair, then check the frame. Not attempted beyond one compile, so the remaining work is open.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794728268.727756,
-  "score_before": 13558,
-  "score_after": 13558
- },
- {
   "function": "func_801FD560",
   "text": "Best 13233 (54.6%), revision 6d98fcfdcf16ff67c6c0; not matched. Two compiles this claim gave the same score (the k=0xFF local and the single idx for the |=0x20 updates both produced identical instructions, so the compiler folds them). Why it can't get closer from here: the instruction diff is ordering and register assignment inside the 18-arg call setup and the 0x1C/0x2C table loops (the target emits `sw $zero,0x10` before `move $a0`; the target uses `andi $v1,$a0,0xffff` six times, mine uses `move`), not a missing operation. Those orders depend on how the call arguments are written, which my forms do not reproduce. Next agent: try writing the first call's arguments as explicit stack-slot stores through a local struct, or try compile_family(signedness) on revision 6d98fcfdcf16ff67c6c0.",
   "by": "claude-haiku-5-5-20",
@@ -19222,14 +19214,6 @@
   "created_at": 1794741368.663552,
   "score_before": 7649,
   "score_after": 7649
- },
- {
-  "function": "func_80215850",
-  "text": "Stopping at 2 compiles. Best so far is the saved 13558; my revisions a1ce291bdcb40cae0e73 and 9ec488d9117151c4547d both score 14978. Switching the D_80190C98 block to a struct (id@0, nxt@2, ca8@0x10, flag@0x18, cb2@0x1A) gave an identical score, so the struct form alone does not move it. Target frame is 0x58 and saves ra,s2,s1,s0. Both candidates use frame 0x50 and no s2, so the remaining gap is prologue/register allocation: the compiler is not keeping s1=&D_80190C98 and s2=s1+0x18 live across calls. Next idea: force the base pointer as a local (`u8 *base = (u8*)&D_80190C98;`) and index base+0x18 for the flag, then check the frame size. The switch body is probably right (target branches 0x30/0x18/0x10 come first). Not tried: the signedness and call-argument families from compile_family.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794741368.6814332,
-  "score_before": 13558,
-  "score_after": 13558
  },
  {
   "function": "func_801604F0",
@@ -26344,14 +26328,6 @@
   "score_after": 2955
  },
  {
-  "function": "func_80215850",
-  "text": "Not matched. Best saved 13558 (m2c permuter). My rewrite using a byte block base at D_80190C98 (blk[0]=C98, blk[2..3]=C9A as u16, blk[0x10]=CA8, blk[0x18]=CB0, blk[0x1A]=CB2) scored 14206, worse. Findings: the target sets $s1 = &D_80190C98 once at entry and computes $s2 = $s1+0x18 (so CB0 is used as a base-plus-offset pointer, probably a struct field pointer); the switch is a compare chain (slti/beqz/beql ladder), not a jump table, with case order 0x30,0x18,0x28,0x20... mismatched by my case ordering. Next try: keep the compare-chain ordering by writing explicit if-else on the state value and take &blk[0x18] into a local before the calls. Compiler gcc-2.7.2-kmc -O2 as set; no flag check done.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794758176.659735,
-  "score_before": 13558,
-  "score_after": 13558
- },
- {
   "function": "func_802040C4",
   "text": "Best saved score 7225 (m2c-style, with the float-to-u32 conversion split at 2.1474836e9f). My flattened version scored 18130 at 82 insns vs 211 target: the unsigned-float conversion branches are gone and the display-list words are reordered. Next step: restart from the saved m2c draft, keep the command words 0xE7000000/0xBA001402/0xF7000000/0xF64FC3BC, and fix the operand order of the packed fields. The target uses addu for the packing (13 times), so write the packing as masked sums of the conversion results. Released on a reasoned ask: the conversion-branch structure is the first thing to recover, and the session is at low effort; a restart from the saved draft needs a fresh claim.",
   "by": "claude-haiku-5-5-24",
@@ -27438,14 +27414,6 @@
   "created_at": 1794759362.532715,
   "score_before": 435,
   "score_after": 435
- },
- {
-  "function": "func_80215850",
-  "text": "Best 4269 (85.1%, rev 982ab33145cb5e9208f6; same score as c420363d87c166352d31). Not matched. Frame 0x58 and the ra,s2,s1,s0 saves now match. Wins: s1 = &D_80190C98 (u16) and s2 = (u8*)s1 + 0x18 (the D_80190CB0 flag) took it 6912 -> 4269. Remaining diffs are in the switch dispatch and the delay-slot placement: target uses beql for the case 0xF0 check with the 5th-arg store in the delay slot, and its case 0 block keeps the state store ahead of the D_801C5EA2 compare; reordering the CB2/state stores and the signedness family (s0 s8) both gave no change. The `*s2 = 1` stores are folded to 0x18(s1) in mine while the target keeps s2 live. Next: express the case 0xF0 block as an explicit if around the func_80203DF8 call and retry case order, and keep s2 live with an explicit use after each call.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794759378.192309,
-  "score_before": 13558,
-  "score_after": 4269
  },
  {
   "function": "func_801AEC94",
@@ -29622,14 +29590,6 @@
   "created_at": 1794762056.2112582,
   "score_before": 60,
   "score_after": 60
- },
- {
-  "function": "func_80215850",
-  "text": "Best: revision c420363d87c166352d31, score 4269 (85.1%), 287 insns both sides, compiles. Remaining differences: (1) prologue saves ra/s2/s1/s0 at 0x54/0x50/0x4c/0x48 in target, while ours stores s0/s1/s2/ra in a different order (scheduling; try declaring s1/s2 differently or moving the s2 computation); (2) target writes the flag as sb to ($s2) directly, ours folds to 0x18($s1), so s2 is probably a separate live pointer in the target: try s2 = (u8 *)&D_80190C98 + 0x18 as the only use site of s2; (3) target has one beql (branch-likely) near instruction 51, which ours emits as beq; likely the `if (D_801C5EA2 == 2)` inside case 0x0 or a short-circuit check. Tried splitting the else-if on D_801C5EA2 into a separate if: worse (4879), do not repeat. Not yet tried: reordering case 0x0 check versus D_801C5EA2 test.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794762063.585423,
-  "score_before": 4269,
-  "score_after": 4269
  },
  {
   "function": "func_8015CFD8",
@@ -34510,5 +34470,45 @@
   "created_at": 1794766062.412576,
   "score_before": 940,
   "score_after": 940
+ },
+ {
+  "function": "func_80215850",
+  "text": "Tried: m2c draft repaired (func_80203DF8 called with 4 and 5 args, so declare it unprototyped; D_8011F350[i].f0 is a plain u32, not a pointer; index D_8011F2FD directly). Compiled once: score 14618 (49%), worse than saved best 13558. Shape is close at the root: an 11-case sparse switch on the state word at +0x3E (cases 0,0x10,0x18,0x20,0x28,0x30,0x38,0xF0,0xF8,0xFA,0xFB) gives root beq 0x30 then slti 0x31, as in the target. Differences: frame 0x50 vs 0x58 (target keeps $ra,$s0,$s1,$s2 live and s2 = &D_80190C98+0x18 used by the sb/sh stores), the fallthrough/goto structure of the 0x10/0x18/0x20/0x28/0x30/0x38 group, and nested switch on D_801C5EA2. Next: write the 0x10..0x38 group with a shared store block that uses s2 for the sb/sh pair, then check the frame. Not attempted beyond one compile, so the remaining work is open.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794728268.727756,
+  "score_before": 13558,
+  "score_after": 13558
+ },
+ {
+  "function": "func_80215850",
+  "text": "Stopping at 2 compiles. Best so far is the saved 13558; my revisions a1ce291bdcb40cae0e73 and 9ec488d9117151c4547d both score 14978. Switching the D_80190C98 block to a struct (id@0, nxt@2, ca8@0x10, flag@0x18, cb2@0x1A) gave an identical score, so the struct form alone does not move it. Target frame is 0x58 and saves ra,s2,s1,s0. Both candidates use frame 0x50 and no s2, so the remaining gap is prologue/register allocation: the compiler is not keeping s1=&D_80190C98 and s2=s1+0x18 live across calls. Next idea: force the base pointer as a local (`u8 *base = (u8*)&D_80190C98;`) and index base+0x18 for the flag, then check the frame size. The switch body is probably right (target branches 0x30/0x18/0x10 come first). Not tried: the signedness and call-argument families from compile_family.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794741368.6814332,
+  "score_before": 13558,
+  "score_after": 13558
+ },
+ {
+  "function": "func_80215850",
+  "text": "Not matched. Best saved 13558 (m2c permuter). My rewrite using a byte block base at D_80190C98 (blk[0]=C98, blk[2..3]=C9A as u16, blk[0x10]=CA8, blk[0x18]=CB0, blk[0x1A]=CB2) scored 14206, worse. Findings: the target sets $s1 = &D_80190C98 once at entry and computes $s2 = $s1+0x18 (so CB0 is used as a base-plus-offset pointer, probably a struct field pointer); the switch is a compare chain (slti/beqz/beql ladder), not a jump table, with case order 0x30,0x18,0x28,0x20... mismatched by my case ordering. Next try: keep the compare-chain ordering by writing explicit if-else on the state value and take &blk[0x18] into a local before the calls. Compiler gcc-2.7.2-kmc -O2 as set; no flag check done.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794758176.659735,
+  "score_before": 13558,
+  "score_after": 13558
+ },
+ {
+  "function": "func_80215850",
+  "text": "Best 4269 (85.1%, rev 982ab33145cb5e9208f6; same score as c420363d87c166352d31). Not matched. Frame 0x58 and the ra,s2,s1,s0 saves now match. Wins: s1 = &D_80190C98 (u16) and s2 = (u8*)s1 + 0x18 (the D_80190CB0 flag) took it 6912 -> 4269. Remaining diffs are in the switch dispatch and the delay-slot placement: target uses beql for the case 0xF0 check with the 5th-arg store in the delay slot, and its case 0 block keeps the state store ahead of the D_801C5EA2 compare; reordering the CB2/state stores and the signedness family (s0 s8) both gave no change. The `*s2 = 1` stores are folded to 0x18(s1) in mine while the target keeps s2 live. Next: express the case 0xF0 block as an explicit if around the func_80203DF8 call and retry case order, and keep s2 live with an explicit use after each call.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794759378.192309,
+  "score_before": 13558,
+  "score_after": 4269
+ },
+ {
+  "function": "func_80215850",
+  "text": "Best: revision c420363d87c166352d31, score 4269 (85.1%), 287 insns both sides, compiles. Remaining differences: (1) prologue saves ra/s2/s1/s0 at 0x54/0x50/0x4c/0x48 in target, while ours stores s0/s1/s2/ra in a different order (scheduling; try declaring s1/s2 differently or moving the s2 computation); (2) target writes the flag as sb to ($s2) directly, ours folds to 0x18($s1), so s2 is probably a separate live pointer in the target: try s2 = (u8 *)&D_80190C98 + 0x18 as the only use site of s2; (3) target has one beql (branch-likely) near instruction 51, which ours emits as beq; likely the `if (D_801C5EA2 == 2)` inside case 0x0 or a short-circuit check. Tried splitting the else-if on D_801C5EA2 into a separate if: worse (4879), do not repeat. Not yet tried: reordering case 0x0 check versus D_801C5EA2 test.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794762063.585423,
+  "score_before": 4269,
+  "score_after": 4269
  }
 ]
