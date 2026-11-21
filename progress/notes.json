@@ -8560,14 +8560,6 @@
   "score_after": 13233
  },
  {
-  "function": "func_80135108",
-  "text": "Not attempted (no compiles). The m2c draft is built around float-to-unsigned conversions (the 2.1474836e9f >= test with | 0x80000000 and & 0xFFFF) which gcc-2.7.2 emits as a branch on the 2^31 threshold; get the exact cvt sequence from the target assembly before writing the C. Structure visible: entry off = (u16)a0*100; if (*(u8*)(D_8022A776 + D_8011F2F0[off]*0x8F0) & 2): update D_8011F334[off] (float, +1 with wrap via the threshold), then if the u16 value < 0x10 zero D_8011F2FC[idx] and return; else if >= 0x21 zero D_8011F334[idx]; set D_8011F2FC[idx]=1. Else branch zeroes D_8011F2FC[off] and D_8011F334[off].",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794710749.7560709,
-  "score_before": 4140,
-  "score_after": 4140
- },
- {
   "function": "func_8013EDFC",
   "text": "Not matched. Current source (revision 2262da5bcb40dc562415) scores 8324 (44.1%); the saved best 4905 is historical from a different source. Structure: p = D_8011F2F0 + (arg0&0xFFFF)*100; s4/fs5/fs4 = p+0x18/0x1C/0x20 (s4 is loaded with lw and moved with mtc1, so it is an integer-carried float); loop over 7 rows with row[0x60] (s8) != -1 selecting s0 = D_8022A770 + idx*0x8F0; j = D_8022A772[s1].f0 (u16, stride 0x8F0) indexes D_8011F308/30C/310 at j*100; dist = sqrt(dx*dx+dy*dy+dz*dz) compared with arg1+0x70; row[0x67] guard. Remaining diffs: the target frame is 0x58 with ra, s0..s4 and six doubles fs0..fs5 saved; ours is 0x60 with an extra loop counter. The target loads the 360.0f and 0.025f constants through $at into $f26. Why not closer now: the register pressure (six callee-saved float pairs) depends on how the integer s4 float is carried, and that needs a few structural experiments (float local vs bit-carried int) that I did not reach in this session. Next: try s4 as an f32 local held across the loop, hoist the 0.025f constant to a local, and drop the extra s5 counter.",
   "by": "claude-haiku-5-5-23",
@@ -13014,14 +13006,6 @@
   "created_at": 1794726690.864845,
   "score_before": 4403,
   "score_after": 4403
- },
- {
-  "function": "func_80135108",
-  "text": "Best saved is 4140 (the m2c-style draft with s32 externs and &D_sym arithmetic scored 5620 in my attempt; a u8/u16/f32 typed rewrite scored 10460, worse). Target facts: the table stride is 100 bytes per entry, computed as ((idx*3)<<3 + idx)*4 = 25*idx<<2 (sll 1/addu/sll 3/addu/sll 2). D_8011F2F0 is read as a byte (lbu), indexed by idx*100. D_8022A776 is a halfword table indexed by byte*0x8F0 with &2 test. Float to u16 conversion goes through the `>= 2^31` branch with bc1tl, then trunc.w.s/mfc1 and andi 0xFFFF. Unresolved: the compiler emits the 25*idx multiply as a shift/add chain only when the index is first masked to u16 into a separate local; my attempts kept index*0x64 as one multiply. Not tried: an explicit `(idx*25)<<2` form with the u16 mask kept as its own local, and splitting the float conversions into helper-free inline blocks that mirror the two bc1tl paths.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794726769.901438,
-  "score_before": 4140,
-  "score_after": 4140
  },
  {
   "function": "func_8013EDFC",
@@ -18294,14 +18278,6 @@
   "created_at": 1794740203.569134,
   "score_before": 1615,
   "score_after": 1615
- },
- {
-  "function": "func_80135108",
-  "text": "Unmatched. Best of my attempts: 5965 (rev ff35410f7d95), vs saved 4140 from earlier draft-based work (start from saved if preferred). Decoded semantics: unit = arg0*100 (stride 100 bytes across D_8011F2F0 (u8 kind), D_8011F334 (f32 counter), D_8011F2FC (u8 flag)); if (u16 at D_8022A776 + kind*0x8F0) & 2: f = D_8011F334[unit]; f = (f32)(u16)(CONV32(f)+1) where CONV32(f) = (f >= 2^31 ? ((s32)(f-2^31) | 0x80000000) : (s32)f); store; w = u16(CONV32(reloaded f)); if (w < 0x10) {F2FC=0; return;} if (u16(CONV32(reload)) >= 0x21) {F334 = 0 (sw $zero)}; F2FC=1; return. Else F2FC=0 and F334=0. Diffs: target keeps the offset in $a2 (move $a2,$a1) and tests `bc1tl` (ternary-like with sub in delay slot) before the trunc path; my ternary form emits bc1f. Using a local s32 off made it worse (8255), so don't keep that. Next: write the 2^31 test as an if/else with the subtract inside the taken branch, and keep the unit offset in a variable used by the first store.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794740206.7919118,
-  "score_before": 4140,
-  "score_after": 4140
  },
  {
   "function": "func_8013EDFC",
@@ -23944,14 +23920,6 @@
   "score_after": 30
  },
  {
-  "function": "func_80135108",
-  "text": "Best 1990 (86.9%), revision d1b5925ab071b1b20606: extern u8 D_8011F2F0[], D_8011F2FC[], D_8011F334[], D_8022A776[]; body: if (*(u16*)(D_8022A776 + D_8011F2F0[(arg0&0xFFFF)*100]*0x8F0) & 2) { store (f32)(u16)((u32)f+1) to D_8011F334+(arg0&0xFFFF)*100; if ((u16)(u32)f < 0x10) {D_8011F2FC[..]=0; return;} if ((u16)(u32)f >= 0x21) *(s32*)(D_8011F334+..)=0; D_8011F2FC[..]=1; return; } D_8011F2FC[..]=0; *(s32*)(D_8011F334+..)=0. Key: spell (arg0&0xFFFF)*100 inline at every access (a local off gave 7855). Remaining diff: target re-materialises the D_8011F334 symbol with lui $at + addu $at,$at,off + lwc1 %lo(D_8011F334)($at) for each access and keeps the offset in $a2 (move $a2,$a1); mine uses the pointer form (lwc1 ($a1)). Typed f32 D_8011F334[(arg0&0xFFFF)*25] (identical score, same instructions). Also target's (u32) conversion uses the 0x4F000000 sub/or path, with the 2^31 constant reloaded per use. Next: try writing the f32 store/reload via a separate symbol expression so GCC keeps the symbol in $at; try the saved-register order (target has no s-reg save here, function is a leaf in the non-call paths).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794755188.150363,
-  "score_before": 4140,
-  "score_after": 1990
- },
- {
   "function": "func_80026D40",
   "text": "Fresh explicit-source try_compiler verifies byte-exact -O1 using normal nonvolatile FlagDesc table loop. Function-only suggest rechecked exact and captured source/profile, but automatic profile changes off. IMPORTANT try_compiler without source uses saved best volatile candidate and scores440; pass nonvolatile source explicitly (current revision23aedb3e4ff40241d354) for score0. Apply captured bundle; no further C search needed.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -26222,14 +26190,6 @@
   "created_at": 1794758294.573358,
   "score_before": 8990,
   "score_after": 8990
- },
- {
-  "function": "func_80135108",
-  "text": "Saved best is 1990 (86.9%), from the machine-draft source (`(arg0 & 0xFFFF) * 100` repeated in each access, `(u16)(u32)` float-to-int casts). Target has `lui $at,0x4f00; mtc1` in the unsigned float-to-int path, which means the source must do an unsigned f32->u32 conversion (the 0x4f00 constant is 2^31 as a float), not a plain cast. Tried and worse: a shared idx local (7855), u8* pointers (9805), (s32) casts in place of (u32) (10215). Remaining diff in 1990: the target holds the D_8011F334 base in $at and adds the index held in $a2 before the lwc1 (`lui $at,%hi; addu $at,$at,$a2; lwc1 %lo($at)`), while mine uses a separate addiu and stores through $a1. Next: keep 1990, write the float-to-u32 conversion explicitly for the value compared against 0x10 and 0x21, and try the index hoist only after that.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794758294.924217,
-  "score_before": 1990,
-  "score_after": 1990
  },
  {
   "function": "func_80214FD8",
@@ -33480,14 +33440,6 @@
   "score_after": 1330
  },
  {
-  "function": "func_80135108",
-  "text": "Best remains the inherited 1990 (86.9%, revision d1b5925ab071b1b20606, same text as saved). Semantics: rec index idx=arg0&0xFFFF, stride 100; D_8011F2F0[idx*100] byte selects an entry in D_8022A776 (stride 0x8F0) whose u16 flags tested with &2; float timer at D_8011F334+idx*100 is incremented as (u16)((u32)f+1), compared against 0x10 and 0x21; D_8011F2FC[idx*100] byte is the active flag. Remaining diff: the target keeps idx*100 in a2 and addresses D_8011F334 via lui %hi + addu + %lo (per-use andi and recomputation), where mine uses lui/addiu/addu with the full address. Hoisting off=idx*100 into a local (revision ab9971c0e18bf360f36a) scored 7855: it caches andi/shift results in a0 instead of recomputing andi $v1,$a0,0xffff each time, so the per-use recomputation must stay. Next: keep recomputing (arg0&0xFFFF) per access and vary only the float-to-u16 conversion path.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794767924.006641,
-  "score_before": 1990,
-  "score_after": 1990
- },
- {
   "function": "func_8013F638",
   "text": "Best 2930 (80.0%) at revision 42723a57af413224d37f: the switch version with the `*(u16*)(s1+0x3E)` state check and the two switches on (*(u16*)(s0+0x53A)-1). Not matched. Blocker: the target's first switch (15 cases, sltiu 0xF, jr through the ROM's table at D_80183428 via lui/lw %lo) uses a global ROM jump table; our switch emits a local table, so the diff shows `?local` for the table address and reports our code refers to .rodata+0x0 and +0x40 where the ROM has no address. Converting to if-chains loses the table (6630). Writing the table as an extern array does not compile to the same jr sequence in this compiler. Target's first state check also compiles as `beq v1,1; slti v1,2; bnez` (a 0/1/>=2 test) while ours is `!=1` then `!=0`; reordering those tests and removing the jump-table-local mismatch would be the next experiment. Unresolved: the jump-table reference is the likely limit.",
   "by": "claude-haiku-5-5-23",
@@ -34510,5 +34462,53 @@
   "created_at": 1794766573.3678029,
   "score_before": 2115,
   "score_after": 2115
+ },
+ {
+  "function": "func_80135108",
+  "text": "Not attempted (no compiles). The m2c draft is built around float-to-unsigned conversions (the 2.1474836e9f >= test with | 0x80000000 and & 0xFFFF) which gcc-2.7.2 emits as a branch on the 2^31 threshold; get the exact cvt sequence from the target assembly before writing the C. Structure visible: entry off = (u16)a0*100; if (*(u8*)(D_8022A776 + D_8011F2F0[off]*0x8F0) & 2): update D_8011F334[off] (float, +1 with wrap via the threshold), then if the u16 value < 0x10 zero D_8011F2FC[idx] and return; else if >= 0x21 zero D_8011F334[idx]; set D_8011F2FC[idx]=1. Else branch zeroes D_8011F2FC[off] and D_8011F334[off].",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794710749.7560709,
+  "score_before": 4140,
+  "score_after": 4140
+ },
+ {
+  "function": "func_80135108",
+  "text": "Best saved is 4140 (the m2c-style draft with s32 externs and &D_sym arithmetic scored 5620 in my attempt; a u8/u16/f32 typed rewrite scored 10460, worse). Target facts: the table stride is 100 bytes per entry, computed as ((idx*3)<<3 + idx)*4 = 25*idx<<2 (sll 1/addu/sll 3/addu/sll 2). D_8011F2F0 is read as a byte (lbu), indexed by idx*100. D_8022A776 is a halfword table indexed by byte*0x8F0 with &2 test. Float to u16 conversion goes through the `>= 2^31` branch with bc1tl, then trunc.w.s/mfc1 and andi 0xFFFF. Unresolved: the compiler emits the 25*idx multiply as a shift/add chain only when the index is first masked to u16 into a separate local; my attempts kept index*0x64 as one multiply. Not tried: an explicit `(idx*25)<<2` form with the u16 mask kept as its own local, and splitting the float conversions into helper-free inline blocks that mirror the two bc1tl paths.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794726769.901438,
+  "score_before": 4140,
+  "score_after": 4140
+ },
+ {
+  "function": "func_80135108",
+  "text": "Unmatched. Best of my attempts: 5965 (rev ff35410f7d95), vs saved 4140 from earlier draft-based work (start from saved if preferred). Decoded semantics: unit = arg0*100 (stride 100 bytes across D_8011F2F0 (u8 kind), D_8011F334 (f32 counter), D_8011F2FC (u8 flag)); if (u16 at D_8022A776 + kind*0x8F0) & 2: f = D_8011F334[unit]; f = (f32)(u16)(CONV32(f)+1) where CONV32(f) = (f >= 2^31 ? ((s32)(f-2^31) | 0x80000000) : (s32)f); store; w = u16(CONV32(reloaded f)); if (w < 0x10) {F2FC=0; return;} if (u16(CONV32(reload)) >= 0x21) {F334 = 0 (sw $zero)}; F2FC=1; return. Else F2FC=0 and F334=0. Diffs: target keeps the offset in $a2 (move $a2,$a1) and tests `bc1tl` (ternary-like with sub in delay slot) before the trunc path; my ternary form emits bc1f. Using a local s32 off made it worse (8255), so don't keep that. Next: write the 2^31 test as an if/else with the subtract inside the taken branch, and keep the unit offset in a variable used by the first store.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794740206.7919118,
+  "score_before": 4140,
+  "score_after": 4140
+ },
+ {
+  "function": "func_80135108",
+  "text": "Best 1990 (86.9%), revision d1b5925ab071b1b20606: extern u8 D_8011F2F0[], D_8011F2FC[], D_8011F334[], D_8022A776[]; body: if (*(u16*)(D_8022A776 + D_8011F2F0[(arg0&0xFFFF)*100]*0x8F0) & 2) { store (f32)(u16)((u32)f+1) to D_8011F334+(arg0&0xFFFF)*100; if ((u16)(u32)f < 0x10) {D_8011F2FC[..]=0; return;} if ((u16)(u32)f >= 0x21) *(s32*)(D_8011F334+..)=0; D_8011F2FC[..]=1; return; } D_8011F2FC[..]=0; *(s32*)(D_8011F334+..)=0. Key: spell (arg0&0xFFFF)*100 inline at every access (a local off gave 7855). Remaining diff: target re-materialises the D_8011F334 symbol with lui $at + addu $at,$at,off + lwc1 %lo(D_8011F334)($at) for each access and keeps the offset in $a2 (move $a2,$a1); mine uses the pointer form (lwc1 ($a1)). Typed f32 D_8011F334[(arg0&0xFFFF)*25] (identical score, same instructions). Also target's (u32) conversion uses the 0x4F000000 sub/or path, with the 2^31 constant reloaded per use. Next: try writing the f32 store/reload via a separate symbol expression so GCC keeps the symbol in $at; try the saved-register order (target has no s-reg save here, function is a leaf in the non-call paths).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794755188.150363,
+  "score_before": 4140,
+  "score_after": 1990
+ },
+ {
+  "function": "func_80135108",
+  "text": "Saved best is 1990 (86.9%), from the machine-draft source (`(arg0 & 0xFFFF) * 100` repeated in each access, `(u16)(u32)` float-to-int casts). Target has `lui $at,0x4f00; mtc1` in the unsigned float-to-int path, which means the source must do an unsigned f32->u32 conversion (the 0x4f00 constant is 2^31 as a float), not a plain cast. Tried and worse: a shared idx local (7855), u8* pointers (9805), (s32) casts in place of (u32) (10215). Remaining diff in 1990: the target holds the D_8011F334 base in $at and adds the index held in $a2 before the lwc1 (`lui $at,%hi; addu $at,$at,$a2; lwc1 %lo($at)`), while mine uses a separate addiu and stores through $a1. Next: keep 1990, write the float-to-u32 conversion explicitly for the value compared against 0x10 and 0x21, and try the index hoist only after that.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794758294.924217,
+  "score_before": 1990,
+  "score_after": 1990
+ },
+ {
+  "function": "func_80135108",
+  "text": "Best remains the inherited 1990 (86.9%, revision d1b5925ab071b1b20606, same text as saved). Semantics: rec index idx=arg0&0xFFFF, stride 100; D_8011F2F0[idx*100] byte selects an entry in D_8022A776 (stride 0x8F0) whose u16 flags tested with &2; float timer at D_8011F334+idx*100 is incremented as (u16)((u32)f+1), compared against 0x10 and 0x21; D_8011F2FC[idx*100] byte is the active flag. Remaining diff: the target keeps idx*100 in a2 and addresses D_8011F334 via lui %hi + addu + %lo (per-use andi and recomputation), where mine uses lui/addiu/addu with the full address. Hoisting off=idx*100 into a local (revision ab9971c0e18bf360f36a) scored 7855: it caches andi/shift results in a0 instead of recomputing andi $v1,$a0,0xffff each time, so the per-use recomputation must stay. Next: keep recomputing (arg0&0xFFFF) per access and vary only the float-to-u16 conversion path.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794767924.006641,
+  "score_before": 1990,
+  "score_after": 1990
  }
 ]
