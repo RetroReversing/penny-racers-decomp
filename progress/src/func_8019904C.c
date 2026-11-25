@@ -8,7 +8,7 @@ s32 func_8019904C(s32 arg0)
 {
   s32 var_a1;
   s32 var_v1;
-  s32 temp_v0;
+  u16 temp_v0;
   s32 off;
   var_a1 = 0;
   if (D_801C7AB0[0] == 3)
