@@ -5512,14 +5512,6 @@
   "score_after": 27843
  },
  {
-  "function": "func_80150FF8",
-  "text": "Not matched; releasing after 4 non-improving compiles. Saved best 815 (historical); current candidates score 4175. Target: frame 0x28, saves ra/s0/s1 and $fs0 at 0x20; s1 = arg0 copied before the call, s0 = s1&0xFFFF, the second andi of s1 is recomputed. Every candidate gets a 0x20 frame with $a0 used directly, so the s1 copy and 8 extra bytes of frame are not reproduced by simple local rewrites (temp_s1 copy, andi inline in the call). Untried: a different local/ordering structure that forces s1 to stay live across the call (e.g. a local whose address is taken, or a separate extra 8-byte local for the frame), or compile_variants over alternatives.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794705123.802851,
-  "score_before": 815,
-  "score_after": 815
- },
- {
   "function": "func_80031FA0",
   "text": "MATCHED (score 0). Two-arg message parser: temp=func_80032230(arg0) (arg0 forwarded); arg0->0xC += temp; c=func_8003221C(arg0) (stream byte reader, u8). c==0xFF -> sub-command byte: 0x51 = 6-byte payload (stores 0/4/8/9/A/B/C/D), 0x2F = 3-byte payload (0/4/8/9/A); both end with arg0->0x1A=0 then return. Else command word: arg1->0=1, arg1->4=temp, if (c&0x80) {arg1->8=c; arg1->9=next byte; arg0->0x1A=c;} else {arg1->9=c; arg1->8=arg0->0x1A;} then arg1->0xA = ((arg1->8&0xF0)==0xC0||==0xD0) ? 0 : next byte. Matching gotcha: the else-branch load MUST be hoisted above `arg1->9 = c` via an explicit `u16 t = *(u16*)(arg0+0x1A);` temp (plain inline load gets scheduled after the store -> 1 reorder row). arg1 layout so far: s16 op@0, s32 temp@4, u8 @8,9,A,B,C,D.",
   "by": "opencode-deepseek-v4.1-flash-free-5",
@@ -6718,14 +6710,6 @@
   "created_at": 1794707156.730495,
   "score_before": 1900,
   "score_after": 1900
- },
- {
-  "function": "func_80150FF8",
-  "text": "Best revision ae8d475eb23b449521f4 = score 725 (this session improved 705 -> 725; 78/78 insns, only order/regalloc differs: 17 reordered, 3 operand, 3 regalloc, 1 deleted).\n\nWorking shape (start from this exact C):\n  temp_s0 = arg0 & 0xFFFF; func_8013AE60(temp_s0); temp_v1 = temp_s0*0x64;\n  temp_fv0 = (f32)(((f64)*(f32 *)(D_8011F334 + temp_v1)) + D_80183798);\n  *(f32 *)(D_8011F334 + temp_v1) = temp_fv0;\n  temp_fv1 = (f64)temp_fv0;\n  if (D_801837A0 <= temp_fv1) *(f32 *)(D_8011F334 + temp_v1) = (f32)(D_801837A0 - temp_fv1);\n  temp_s0_2 = ((u16)arg0) * 0x64;\n  temp_fv0 = __sinf(*(f32 *)(D_8011F334 + temp_s0_2));\n  temp_fs0 = D_801837A8;        /* MUST stay after the first __sinf statement */\n  *(f32 *)(D_8011F320 + temp_s0_2) = (f32)(((f64)temp_fv0 * temp_fs0) + D_801837B0);\n  temp_fv0 = __sinf(*(f32 *)(D_8011F334 + temp_s0_2));\n  *(f32 *)(D_8011F324 + temp_s0_2) = (f32)(((f64)temp_fv0 * temp_fs0) + D_801837B8);\n\nWhat remains, all pure instruction ORDER (semantics identical everywhere):\n1. Prologue: target = sw $ra,0x18 / sw $s1,0x14 / sw $s0,0x10 / sdc1 $f20,0x20, then body (move $s1,$a0 / andi $s0,$s1). Ours interleaves body into the saves and emits sw $ra third.\n2. Three sites where target emits `cvt.d.s` of the float BEFORE the `ldc1` of the double global (D_80183798, D_801837A0, D_801837A8-after-jal); ours hoists the independent ldc1 above the cvt. Target looks like unscheduled expand order.\n3. Tail: ours hoists the 2nd __sinf address (lui/addu D_8011F334 + lwc1 $f12) above the first cvt.s.d/swc1; target emits it after the swc1, with `lwc1 $f12` in the jal delay slot.\n\nExhausted / negative experiments (all on record): inline D_801837A8 instead of the temp = 962 and 1102 (loses f20, reloads the constant); double-typed sin temp = 750; cvt in its own statement = 740; combined = 915; `if (temp_fv1 >= D_801837A0)` = identical 725; declaration_order/scalar_storage_reuse local families = 725/1055; compiler flags are definitively right (-fno-schedule-insns2 3725, -fno-schedule-insns 3960, -O1 3230).\n\nDo not \"fix\" the bug in the taken branch: the game stores there with $v0 = plain `andi $s1,0xFFFF` (unscaled index); current C already reproduces it.",
-  "by": "opencode-deepseek-v4.1-flash-free-5",
-  "created_at": 1794707163.073282,
-  "score_before": 705,
-  "score_after": 705
  },
  {
   "function": "func_8020FFD0",
@@ -11824,14 +11808,6 @@
   "score_after": 400
  },
  {
-  "function": "func_80150FF8",
-  "text": "Best saved score 500 (93.5%, 78 insns each). Tried this session: (1) saved candidate, 500; (2) removing the duplicated if(D_8011F324) / else branches so the body is single, 725 (worse). Target shape: frame 0x28, saves $ra at 0x18, $s1 at 0x14, $s0 at 0x10, $fs0 at 0x20; body starts `move $s1,$a0; andi $s0,$s1,0xFFFF; jal func_8013AE60`, then the float update of D_8011F334+s0*0x64 with cvt.d.s / add.d / cvt.s.d, then clamp `c.le.d` against D_801837A0. The remaining diff is register and order: the target keeps arg0 in $s1 across the call and the andi temp in $s0, and the ra/s1/s0 save order is ra-first. Next steps: get the saved-register order right by making the arg copy a separate local before the call (so the saved $s1 is the raw arg), then fix the clamp operand order (target does c.le.d $f0,$f2 with D_801837A0 loaded into $f0). Not yet tried: declaring the clamp as `D_801837A0 <= temp` vs `temp >= D_801837A0`.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794722357.775726,
-  "score_before": 500,
-  "score_after": 500
- },
- {
   "function": "func_80027DF0",
   "text": "Best verified 160 (57 insns vs target 58) at revision 0456716db1e19c4137ca; saved C rechecked 160 too. Everything before row 40 already matches: prologue, three calls (alHeapDBAlloc/func_800294A0/alBnkfNew), the *2 scale and the D_80046C38 store. Only the fill loop differs.\n\nTarget loop (rows 40-51):\n  blez $v1,.L80027EBC ; move $a1,$zero ; addiu $a2,$zero,-1 ; move $v1,$s0 ; move $a0,$v0\n.L80027EA4: sh $a2,($a0) ; lw $v0,($v1) ; addiu $a1,$a1,1 ; slt $v0,$a1,$v0 ; bnez $v0,.L80027EA4 ; addiu $a0,$a0,2\ni.e. i in $a1, -1 in $a2, count pointer (&D_8006FEE4) copied into $v1, allocation result copied into $a0, count re-read from memory each iteration, pointer bumped by 2.\n\nTried and rejected: p[i] with p = allocation result (160, pointer in $v1, i in $a0); separate q=p / cp=count locals used as q[i] and *cp (160, identical diff); *q++ / q++ store form (360); i < D_8006FEE4 direct global (475); for-loop form (160); declaration-order and signedness families (no change); volatile/local pointer variants. The candidate copies (q=p, cp=count) get scheduled BEFORE the D_80046C38 store, so the two target `move`s after blez never appear; that is the single remaining structural gap (branch offset 0xc8 vs 0xcc, one instruction short).\n\nLeft to try: force the loop-pointer copies to be materialised only in the loop preheader after the branch (e.g. declare `s16 *q = p; s32 *cp = count;` as initialised locals at the top of the block, or re-read the allocation result from D_80046C38 inside the loop so no copy is needed and the preheader keeps two moves).",
   "by": "api-route-llm-code-1",
@@ -15784,14 +15760,6 @@
   "score_after": 265
  },
  {
-  "function": "func_80150FF8",
-  "text": "Not matched. Best 500 (93.5%, 78 insns, same length as target); the 500 candidate was the first compile of the claimed source with two identical if/else arms calling func_8013AE60(temp_s0), index temp_v1 = temp_s0*0x64, then the two __sinf stores via temp_s0_2 = ((u16)arg0)*0x64. Remaining diffs are order-only: target stores $ra (0x18) before $s1 (0x14), and does 'move $s1,$a0' just before the first call. Frame size 0x28 with f20 saved is already correct in the 500 version. Tried (worse, 1155): index as (u16)arg0 in both arms, which shrinks the frame to 0x20. Stopping here: the remaining diff is prologue ordering that did not respond to statement-level changes. Next idea: try compile_family signedness, or move the arg0 copy into a callee-saved local before the first call.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794732659.2999349,
-  "score_before": 500,
-  "score_after": 500
- },
- {
   "function": "func_8014A080",
   "text": "Best this session 1960 (revision aee819bfa465560ecbac); inherited best 1895. Target 45 insns, mine 42.\n\nTarget decoded (verified from assembly): rotate-left-by-n / rotate-right-by-n of arg0 within a field mask.\n  n = arg1 & 0x1F; t2 = 1 << n; t0 = (-2) << n; t1 = arg0 & t0;\n  if ((arg3 & 0xFF) == 1) { if ((arg2&0xFF) > 0) { lim=arg2&0xFF; mask=~t0; i=0; bit=v&t2;\n      do { v = (((v<<1)|(bit!=0)) & mask) | t1; i++; bit = v & t2; } while (i < lim); } return v; }\n  else { same with v = ((((u32)(v&mask))>>1) | ((-bit)&t2)) | t1; bit = v & 1; }\nBoth loops end with `j end; addu $v0,$a0,$zero` (return copy in the delay slot) and the epilogue is `jr $ra; addiu $sp,$sp,0x10`.\n\nMissing in all my attempts: the target's `addiu $sp,$sp,-0x10` prologue / `addiu $sp,$sp,0x10` epilogue with nothing stored in the frame \u2014 the original evidently had a frame (a stack local or an inlined call) that gcc still allocated. Reproducing that frame is the first thing to solve; everything else (sllv t2/t0, and t1, blez/move a3, sltu, negu, srl, or, slt/bnez, jr) then follows.\nAlso still differing: target `sltu $v1,$zero,$v0` (unsigned compare of bit) vs my `ori $v0,$v0,1` when using `bit != 0` on a signed int, and target keeps t2/t0/t1 in $t2/$t0/$t1 while mine shuffles them.\nTried and worse/equal: do/while with mask/~t0 hoisted (1960), lim=cnt copy (2415), u32 bit (2415, no change), (u16)arg2 bound + declaration reorder (2815), for-loops, inline_fn helper, goto-based loop, -O1 profile (2545).",
   "by": "api-route-llm-code-1",
@@ -16206,14 +16174,6 @@
   "created_at": 1794734106.053694,
   "score_before": 2170,
   "score_after": 2170
- },
- {
-  "function": "func_80150FF8",
-  "text": "Not matched; best current C scores 1055 (86.4%), saved best 500 (different source, not reverified). Semantics: t=arg0&0xFFFF; func_8013AE60(t); idx=t*100 (25*4*... = 100 bytes per record); v=(f32)((f64)D_8011F334[idx] + D_80183798); store; if (D_801837A0 <= v) store (f32)(D_801837A0 - v) to same slot; then idx=((u16)arg0)*100; D_8011F320[idx] = (f32)(sinf(D_8011F334[idx])*scale + D_801837B0); D_8011F324[idx] = (f32)(sinf(D_8011F334[idx])*scale + D_801837B8); scale=D_801837A8 held in $f20 (frame 0x28, sdc1 $f20 at 0x20, ra 0x18, s1 0x14, s0 0x10). Key findings: the arg is kept live in $s1 across the first call (use `t = arg0 & 0xFFFF` then `(u16)arg0` for the second index); a `f64 scale` local for D_801837A8 reproduces the $f20 save and frame size. Remaining diffs: target uses `bc1fl` (branch-likely, delay slot `andi $v0,$s1,0xffff`) where ours uses `bc1f`; the whole-function store order/register assignment differs. Tried variants: the `>=` form of the compare (same score); the draft's duplicated if/else branches are wrong (target has one path, no D_8011F324 branch). Next step: find the source form that makes gcc emit the likely branch (e.g. make the if body's store the last statement before the andi join, or test the compare as `!(v < D_801837A0)`).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794734109.5648708,
-  "score_before": 500,
-  "score_after": 500
  },
  {
   "function": "func_80205C00",
@@ -26096,14 +26056,6 @@
   "score_after": 3257
  },
  {
-  "function": "func_80150FF8",
-  "text": "Saved best 500 (permuter; from another source). Best local compile here: 1055 (86.4%) with this shape: `u32/s32 idx = arg0 & 0xFFFF; func_8013AE60(idx); off = idx*0x64; v = (f32)((f64)*(f32*)(D_8011F334+off) + D_80183798); store v; if (D_801837A0 <= (f64)v) store (f32)(D_801837A0 - (f64)v) at same off; f64 k = D_801837A8 (held in fs0 across the two __sinf calls); off = ((u16)arg0)*0x64; F320[off] = (f32)((f64)__sinf(F334[off]) * k + D_801837B0); F324[off] = (f32)((f64)__sinf(F334[off]) * k + D_801837B8)`. Remaining diff: target keeps arg0 in s1 (move s1,a0 first, andi s0,s1,0xffff, then sw ra at 0x18, s1 at 0x14, s0 at 0x10, sdc1 f20 at 0x20, frame 0x28), and uses `bc1fl` (branch-likely) with `andi v0,s1,0xffff` in the delay slot for the if. Recomputing `(arg0&0xFFFF)*0x64` inside the if made it worse (4175).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794757260.103359,
-  "score_before": 500,
-  "score_after": 500
- },
- {
   "function": "func_800DE2E0",
   "text": "Independently verified natural Entity struct-array initializer byte-exact under KMC -O1; source/profile submitted via function-only suggest. Automatic compiler changes disabled, so pending user application. Entity stride 0x64: u8 id @0, active @1, u16 flags @2, prev @0x10,next @0x12. Do not tune current -O2 source.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -33000,14 +32952,6 @@
   "score_after": 2115
  },
  {
-  "function": "func_80150FF8",
-  "text": "Not matched. Saved best 500 (historical, different source; start from get_candidate(base=\"saved_best\")). The two drafts I tried this session were worse (3693, 4175). Target facts: frame 0x28 saving ra(0x18), s1(0x14), s0(0x10) and f20 (sdc1 at 0x20); s1 = arg0 kept across the first call, s0 = arg0&0xFFFF; the call func_8013AE60(s0) comes before the float work; off = s0*100 is computed with sll/addu chains (x*3, <<3, +x, <<2); the if (D_801837A0 <= v) block stores A0 - v at D_8011F334+off; afterwards s0 = (s1 & 0xFFFF)*100 is recomputed for two __sinf calls, and f20 holds D_801837A8 across both. The branch from the if uses bc1fl (delay slot is andi v0,s1,0xffff), so the source likely re-masks arg0 in that branch. Next: keep arg0 live (s1) and write the second index from (arg0 & 0xFFFF) so the callee-saved set matches.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794766574.066796,
-  "score_before": 500,
-  "score_after": 500
- },
- {
   "function": "func_8014B714",
   "text": "Not attempted this session. The machine draft is goto-heavy and does not compile cleanly (void* dereferences, bad pointer assignment). Read the assembly, then write a clean loop: idx = arg0 & 0xFF; if idx < 4, fill D_8021F048[idx*14 + i] from D_80189B38[i+4] for i < 14, copy 8 halfwords per row into D_8021F270 + idx*0xE0 + i*0x10 from D_80189B38 + i*0x10 + 0x1C, then build dst = D_8018D3A0 + idx*0x20 with 8 words and call func_80149CC4(idx, 1, dst, D_8021F270 + idx*0xE0). Verify the loop bounds in the target before compiling.",
   "by": "claude-haiku-5-5-23",
@@ -34417,14 +34361,6 @@
   "score_after": 60
  },
  {
-  "function": "func_80150FF8",
-  "text": "Compiler detection: func_80150FF8's saved C scores 80 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1, 260 under its own settings. Evidence: 9 of 12 matched neighbours were judged with it. Suggested on the project page for review; nothing was applied. Try its C with that compiler (try_compiler) before more source spellings.",
-  "by": "permuter-30064771296",
-  "created_at": 1795643842.762114,
-  "score_before": 260,
-  "score_after": 80
- },
- {
   "function": "_getRate",
   "text": "exact relocation-normalized SDK signature. Exact relocation-normalized 640-byte function fingerprint 4be132750f63d0214d5dfcf436e2d8ea2f851afe; one name across selected SDK signatures, unique target fingerprint. Libraries: LIB 2.0H / LIBGULTR.A / sha256:a208d80b8f279749e2aa2b155bbd9ccbb101e9f5175787dbaf10b0d372fd7413; libultra 2.0H / LIBGULTRA.A / sha256:a208d80b8f279749e2aa2b155bbd9ccbb101e9f5175787dbaf10b0d372fd7413; libultra 2.0H / LIBGULTRA_ROM.A / sha256:57ddc0a4d24548bbf301ad8bb9de60a69e9e79f84fc1024d8e634cac5c048629; libultra 2.0H / libgultra.a / sha256:a208d80b8f279749e2aa2b155bbd9ccbb101e9f5175787dbaf10b0d372fd7413; libultra 2.0H / libgultra_rom.a / sha256:57ddc0a4d24548bbf301ad8bb9de60a69e9e79f84fc1024d8e634cac5c048629; libultra 2.0I / reconstructed libgultra.a / source:df8815e75f3d79618466e01e0827c6165b93d11c / sha256:79a07c325942f3cb56c072e0b11450b704f3382e341134ac6f1110a2b79c233e; libultra 2.0I / reconstructed libgultra_rom.a / source:df8815e75f3d79618466e01e0827c6165b93d11c / sha256:6922774fa3af1afd71ac2e4b0abaf4ce2b0fa076032539c65af7e1ee0c3b6a95; libultra 2.0J / libgultra.a / sha256:df7319dc4f53f93d7c1e324594dcba8d7b6fe9d930cfeeb829dc1fca5ca10567; libultra 2.0J / libgultra_rom.a / sha256:11bce1194d237a810a7ca05298d327b14589d9239920888fba953a8f6f262f89; libultra 2.0J / reconstructed libgultra.a / source:df8815e75f3d79618466e01e0827c6165b93d11c / sha256:6c6f29839475e969eb00d91d7c8cbc6a28f87d1df4cc14760c2b3c8dd3ccfcad; libultra 2.0J / reconstructed libgultra_rom.a / source:df8815e75f3d79618466e01e0827c6165b93d11c / sha256:075ac171af348a198b567d0f0b1ec71010e0516ce0d664d9b60e8fcffa63cc2f; libultra 2.0K / libgultra.a / sha256:a2aa29673f558daffb1c024d7a23556601dff14315abb8b83df1f7f99b0eef39; libultra 2.0K / libgultra_rom.a / sha256:9cd54a1c3d5bc39dc82efd59011c7aa8b7dd8c1a7b00103f616b542e824ee805; libultra 2.0K / reconstructed libgultra.a (original initialize.o retained) / source:df8815e75f3d79618466e01e0827c6165b93d11c / sha256:db193c6dd185ad6eaeb9b1967bc95aeb11df0dd43e041573711eed3923d3ff48; libultra 2.0K / reconstructed libgultra_rom.a (original initialize.o retained) / source:df8815e75f3d79618466e01e0827c6165b93d11c / sha256:0798e39d8f02140bff0d0755610c53b0d821d84ca0662e17ff6b3f702edb4f44; libultra 2.0L / libgultra.a / sha256:08bb1328256054e5094de0b5d0ef04189ddd9aad149c753321ef3f28f604f2e8; libultra 2.0L / libgultra_rom.a / sha256:3e2fa309308ceaad6d1a6c20b80699f483233c2a54c0d3771d5b42e2d3ed6912. Name inferred from library code; not a verified C match.",
   "by": "autopilot",
@@ -34583,5 +34519,93 @@
   "created_at": 1794780450.533081,
   "score_before": null,
   "score_after": null
+ },
+ {
+  "function": "func_80150FF8",
+  "text": "Not matched; releasing after 4 non-improving compiles. Saved best 815 (historical); current candidates score 4175. Target: frame 0x28, saves ra/s0/s1 and $fs0 at 0x20; s1 = arg0 copied before the call, s0 = s1&0xFFFF, the second andi of s1 is recomputed. Every candidate gets a 0x20 frame with $a0 used directly, so the s1 copy and 8 extra bytes of frame are not reproduced by simple local rewrites (temp_s1 copy, andi inline in the call). Untried: a different local/ordering structure that forces s1 to stay live across the call (e.g. a local whose address is taken, or a separate extra 8-byte local for the frame), or compile_variants over alternatives.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794705123.802851,
+  "score_before": 815,
+  "score_after": 815
+ },
+ {
+  "function": "func_80150FF8",
+  "text": "Best revision ae8d475eb23b449521f4 = score 725 (this session improved 705 -> 725; 78/78 insns, only order/regalloc differs: 17 reordered, 3 operand, 3 regalloc, 1 deleted).\n\nWorking shape (start from this exact C):\n  temp_s0 = arg0 & 0xFFFF; func_8013AE60(temp_s0); temp_v1 = temp_s0*0x64;\n  temp_fv0 = (f32)(((f64)*(f32 *)(D_8011F334 + temp_v1)) + D_80183798);\n  *(f32 *)(D_8011F334 + temp_v1) = temp_fv0;\n  temp_fv1 = (f64)temp_fv0;\n  if (D_801837A0 <= temp_fv1) *(f32 *)(D_8011F334 + temp_v1) = (f32)(D_801837A0 - temp_fv1);\n  temp_s0_2 = ((u16)arg0) * 0x64;\n  temp_fv0 = __sinf(*(f32 *)(D_8011F334 + temp_s0_2));\n  temp_fs0 = D_801837A8;        /* MUST stay after the first __sinf statement */\n  *(f32 *)(D_8011F320 + temp_s0_2) = (f32)(((f64)temp_fv0 * temp_fs0) + D_801837B0);\n  temp_fv0 = __sinf(*(f32 *)(D_8011F334 + temp_s0_2));\n  *(f32 *)(D_8011F324 + temp_s0_2) = (f32)(((f64)temp_fv0 * temp_fs0) + D_801837B8);\n\nWhat remains, all pure instruction ORDER (semantics identical everywhere):\n1. Prologue: target = sw $ra,0x18 / sw $s1,0x14 / sw $s0,0x10 / sdc1 $f20,0x20, then body (move $s1,$a0 / andi $s0,$s1). Ours interleaves body into the saves and emits sw $ra third.\n2. Three sites where target emits `cvt.d.s` of the float BEFORE the `ldc1` of the double global (D_80183798, D_801837A0, D_801837A8-after-jal); ours hoists the independent ldc1 above the cvt. Target looks like unscheduled expand order.\n3. Tail: ours hoists the 2nd __sinf address (lui/addu D_8011F334 + lwc1 $f12) above the first cvt.s.d/swc1; target emits it after the swc1, with `lwc1 $f12` in the jal delay slot.\n\nExhausted / negative experiments (all on record): inline D_801837A8 instead of the temp = 962 and 1102 (loses f20, reloads the constant); double-typed sin temp = 750; cvt in its own statement = 740; combined = 915; `if (temp_fv1 >= D_801837A0)` = identical 725; declaration_order/scalar_storage_reuse local families = 725/1055; compiler flags are definitively right (-fno-schedule-insns2 3725, -fno-schedule-insns 3960, -O1 3230).\n\nDo not \"fix\" the bug in the taken branch: the game stores there with $v0 = plain `andi $s1,0xFFFF` (unscaled index); current C already reproduces it.",
+  "by": "opencode-deepseek-v4.1-flash-free-5",
+  "created_at": 1794707163.073282,
+  "score_before": 705,
+  "score_after": 705
+ },
+ {
+  "function": "func_80150FF8",
+  "text": "Best saved score 500 (93.5%, 78 insns each). Tried this session: (1) saved candidate, 500; (2) removing the duplicated if(D_8011F324) / else branches so the body is single, 725 (worse). Target shape: frame 0x28, saves $ra at 0x18, $s1 at 0x14, $s0 at 0x10, $fs0 at 0x20; body starts `move $s1,$a0; andi $s0,$s1,0xFFFF; jal func_8013AE60`, then the float update of D_8011F334+s0*0x64 with cvt.d.s / add.d / cvt.s.d, then clamp `c.le.d` against D_801837A0. The remaining diff is register and order: the target keeps arg0 in $s1 across the call and the andi temp in $s0, and the ra/s1/s0 save order is ra-first. Next steps: get the saved-register order right by making the arg copy a separate local before the call (so the saved $s1 is the raw arg), then fix the clamp operand order (target does c.le.d $f0,$f2 with D_801837A0 loaded into $f0). Not yet tried: declaring the clamp as `D_801837A0 <= temp` vs `temp >= D_801837A0`.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794722357.775726,
+  "score_before": 500,
+  "score_after": 500
+ },
+ {
+  "function": "func_80150FF8",
+  "text": "Not matched. Best 500 (93.5%, 78 insns, same length as target); the 500 candidate was the first compile of the claimed source with two identical if/else arms calling func_8013AE60(temp_s0), index temp_v1 = temp_s0*0x64, then the two __sinf stores via temp_s0_2 = ((u16)arg0)*0x64. Remaining diffs are order-only: target stores $ra (0x18) before $s1 (0x14), and does 'move $s1,$a0' just before the first call. Frame size 0x28 with f20 saved is already correct in the 500 version. Tried (worse, 1155): index as (u16)arg0 in both arms, which shrinks the frame to 0x20. Stopping here: the remaining diff is prologue ordering that did not respond to statement-level changes. Next idea: try compile_family signedness, or move the arg0 copy into a callee-saved local before the first call.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794732659.2999349,
+  "score_before": 500,
+  "score_after": 500
+ },
+ {
+  "function": "func_80150FF8",
+  "text": "Not matched; best current C scores 1055 (86.4%), saved best 500 (different source, not reverified). Semantics: t=arg0&0xFFFF; func_8013AE60(t); idx=t*100 (25*4*... = 100 bytes per record); v=(f32)((f64)D_8011F334[idx] + D_80183798); store; if (D_801837A0 <= v) store (f32)(D_801837A0 - v) to same slot; then idx=((u16)arg0)*100; D_8011F320[idx] = (f32)(sinf(D_8011F334[idx])*scale + D_801837B0); D_8011F324[idx] = (f32)(sinf(D_8011F334[idx])*scale + D_801837B8); scale=D_801837A8 held in $f20 (frame 0x28, sdc1 $f20 at 0x20, ra 0x18, s1 0x14, s0 0x10). Key findings: the arg is kept live in $s1 across the first call (use `t = arg0 & 0xFFFF` then `(u16)arg0` for the second index); a `f64 scale` local for D_801837A8 reproduces the $f20 save and frame size. Remaining diffs: target uses `bc1fl` (branch-likely, delay slot `andi $v0,$s1,0xffff`) where ours uses `bc1f`; the whole-function store order/register assignment differs. Tried variants: the `>=` form of the compare (same score); the draft's duplicated if/else branches are wrong (target has one path, no D_8011F324 branch). Next step: find the source form that makes gcc emit the likely branch (e.g. make the if body's store the last statement before the andi join, or test the compare as `!(v < D_801837A0)`).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794734109.5648708,
+  "score_before": 500,
+  "score_after": 500
+ },
+ {
+  "function": "func_80150FF8",
+  "text": "Saved best 500 (permuter; from another source). Best local compile here: 1055 (86.4%) with this shape: `u32/s32 idx = arg0 & 0xFFFF; func_8013AE60(idx); off = idx*0x64; v = (f32)((f64)*(f32*)(D_8011F334+off) + D_80183798); store v; if (D_801837A0 <= (f64)v) store (f32)(D_801837A0 - (f64)v) at same off; f64 k = D_801837A8 (held in fs0 across the two __sinf calls); off = ((u16)arg0)*0x64; F320[off] = (f32)((f64)__sinf(F334[off]) * k + D_801837B0); F324[off] = (f32)((f64)__sinf(F334[off]) * k + D_801837B8)`. Remaining diff: target keeps arg0 in s1 (move s1,a0 first, andi s0,s1,0xffff, then sw ra at 0x18, s1 at 0x14, s0 at 0x10, sdc1 f20 at 0x20, frame 0x28), and uses `bc1fl` (branch-likely) with `andi v0,s1,0xffff` in the delay slot for the if. Recomputing `(arg0&0xFFFF)*0x64` inside the if made it worse (4175).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794757260.103359,
+  "score_before": 500,
+  "score_after": 500
+ },
+ {
+  "function": "func_80150FF8",
+  "text": "Not matched. Saved best 500 (historical, different source; start from get_candidate(base=\"saved_best\")). The two drafts I tried this session were worse (3693, 4175). Target facts: frame 0x28 saving ra(0x18), s1(0x14), s0(0x10) and f20 (sdc1 at 0x20); s1 = arg0 kept across the first call, s0 = arg0&0xFFFF; the call func_8013AE60(s0) comes before the float work; off = s0*100 is computed with sll/addu chains (x*3, <<3, +x, <<2); the if (D_801837A0 <= v) block stores A0 - v at D_8011F334+off; afterwards s0 = (s1 & 0xFFFF)*100 is recomputed for two __sinf calls, and f20 holds D_801837A8 across both. The branch from the if uses bc1fl (delay slot is andi v0,s1,0xffff), so the source likely re-masks arg0 in that branch. Next: keep arg0 live (s1) and write the second index from (arg0 & 0xFFFF) so the callee-saved set matches.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794766574.066796,
+  "score_before": 500,
+  "score_after": 500
+ },
+ {
+  "function": "func_80150FF8",
+  "text": "Compiler detection: func_80150FF8's saved C scores 80 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1, 260 under its own settings. Evidence: 9 of 12 matched neighbours were judged with it. Suggested on the project page for review; nothing was applied. Try its C with that compiler (try_compiler) before more source spellings.",
+  "by": "permuter-30064771296",
+  "created_at": 1795643842.762114,
+  "score_before": 260,
+  "score_after": 80
+ },
+ {
+  "function": "func_80150FF8",
+  "text": "Compiler detection: func_80150FF8's saved C scores 80 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1, 220 under its own settings. Evidence: 9 of 12 matched neighbours were judged with it. Suggested on the project page for review; nothing was applied. Try its C with that compiler (try_compiler) before more source spellings.",
+  "by": "permuter-30064771296",
+  "created_at": 1795645628.256594,
+  "score_before": 220,
+  "score_after": 80
+ },
+ {
+  "function": "func_80150FF8",
+  "text": "Compiler detection: func_80150FF8's saved C scores 60 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1, 200 under its own settings. Evidence: 9 of 12 matched neighbours were judged with it. Suggested on the project page for review; nothing was applied. Try its C with that compiler (try_compiler) before more source spellings.",
+  "by": "permuter-30064771296",
+  "created_at": 1795647483.8888261,
+  "score_before": 200,
+  "score_after": 60
+ },
+ {
+  "function": "func_80150FF8",
+  "text": "Profile probe: this saved C scores 60 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (9 of its 12 nearest matched neighbours were built with it), 200 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "permuter-30064771296",
+  "created_at": 1795647484.418067,
+  "score_before": 200,
+  "score_after": 60
  }
 ]
