@@ -5536,14 +5536,6 @@
   "score_after": 0
  },
  {
-  "function": "func_80198F1C",
-  "text": "Best score 160 (97.8%), 32 register-only diffs; control flow and arithmetic match. Source: u8 *D_801C7AB0 (byte 0 compare ==3, byte 2 compare with D_801CA130); D_801C7084/D_801C7081 as u8 arrays indexed idx*5; D_801C6BB9 s8; off = t*100 computed separately in both branches of the ?: (needed for matching); v is s32 (else-branch subtraction not truncated); t = arg0 & 0xFFFF. Remaining diffs: target keeps idx in v0 at top and reloads D_801CA130 in the else path; t lands in v0 in target but a0 in mine. Tried: local idx variable (worse, 1170), (u16) cast for t (no change), u32 t (no change), reordered decls (no change). Next idea: try a different pattern for the 100*t term or the idx load to push register choice; or compile_family signedness.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794705201.324694,
-  "score_before": 620,
-  "score_after": 160
- },
- {
   "function": "func_801C1424",
   "text": "Best score 7501 (50.3%), from the source with tbl copy as struct, flag u16 at D_8011F32E+off, fixup loop over D_801C6B60, and the sin loop using src/tp pointers. Remaining diff: stack frame 0x58 vs target 0x60 (target saves s0-s6 plus ra and fs0/fs1; s5 = &D_801C6B60, s6 = &D_80167FB8 base pointers, s4 = &tbl, s2 = i<<4 used for the D_80167FBC stores). Compiler folds the D_80167FB8 base into constant offsets (lui/addiu then sh 0x84(s3)), so a pointer held across the __sinf call is needed to keep s6 live. Also the target's 'if (1) {}' and 'do {} while(0)' artifacts from the machine draft are not present in the real code; ignore them. Untried: a pointer local for D_80167FB8 that is used after the call (before the loop) so it survives; a per-iteration reload of tbl via s4.",
   "by": "claude-haiku-5-5-24",
@@ -6294,14 +6286,6 @@
   "created_at": 1794706527.4196632,
   "score_before": 0,
   "score_after": 0
- },
- {
-  "function": "func_80198F1C",
-  "text": "Tried: rewrote m2c draft into plain C (externs for D_801C7AB0/D_801CA130/D_801C7084/D_801C7081/D_8011F30C/D_801C6BB9; float store (f32)var_v0*0.5f at D_8011F30C + (arg0&0xFFFF)*100). Compile error first (duplicate var_v1), fixed; scored 4330/76 insns (58 emitted, control flow drifted). Left: not solved; -O1 unit compiler and float/mul.s codegen diverge. Next: revisit with float-typed locals and re-check branch structure.",
-  "by": "opencode-flint-40b-free-1",
-  "created_at": 1794706528.259506,
-  "score_before": 160,
-  "score_after": 160
  },
  {
   "function": "func_80028A00",
@@ -12608,14 +12592,6 @@
   "score_after": 3860
  },
  {
-  "function": "func_80198F1C",
-  "text": "Best 2080 (72.6%, revision bfa51488abc304501b12). Own C, not the m2c draft: globals D_801C7AB0 (u8 *, reads [0] and [2]), D_801C7084, D_801C7081 (u8 arrays indexed by D_801CA130*5), D_801CA130 (u8), D_801C6BB9 (s8), D_8011F30C (f32 array, index (arg0&0xFFFF)*0x64/4). Structure matches; the target is 76 insns vs ours 69. Remaining diffs are register allocation and re-materialisation: the target computes lui+addu+lbu of D_801C7084 separately in each branch arm and again after the join, and holds a1 as zero-initialised in $a1 while ours uses $a2. Target also computes D_801CA130*5 as sll 2 + addu (x*4+x) and reuses the byte in $v1. Also the target has one more `beqz $v0,0xcc` and an extra index pattern before the store (check whether the store's base is D_8011F30C directly or via a temp). Next: rewrite the two v1 arms to compute the D_801C7084 lookup separately in each arm, and keep the return variable in a s32 declared before the first `if`.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794724592.185144,
-  "score_before": 160,
-  "score_after": 160
- },
- {
   "function": "func_8019862C",
   "text": "Saved best is 2050 from an earlier attempt; my rewrite this claim scored 7085 (13.5%), so do not start from it. Verified logic from the asm (use it to write a new candidate): N=D_801C6BB9 (s8), P=D_801C7068 (s8), mode=D_801C7469 (u8), A=D_801C7062[0], B=D_801C7062[1], cell=*(u16*)(D_801C6BE2 + (N*24+P)*2), gate = (P < 0x17 signed) && cell == 0xFFFF; then if D_801C7AB0->byte1 (lbu at 1 from the pointer loaded from D_801C7AB0) != 5 -> flag 1; else: if A==P { if B==N+1 || B==N-1 -> flag = (mode==1 || mode==3) else flag 1 } else if A==P+1 { if B==N -> flag = (mode==3) else flag 1 } else if A==P-1 { if B!=N -> flag 1 else flag = (mode==0 || mode==2) } else flag 1. Return flag & 0xFF. The target loads P first (lui a1,%hi(D_801C7068)) and keeps it in a1 across the whole function; N is loaded later (a0). My rewrite got the logic right in outline but the register/branch order differs (I loaded N first into a3 and the cell index in v0), giving 93 differing rows. Next: write the gate with P loaded first and the cell address computed as (N*3*8+P)*2 with N in a0, and use the same bnel/beq shapes as the target (the target uses bnel/bne with the \"addiu a2,zero,1\" in the delay slot, so write a2=1 as the last statement of each branch). Untried: compile_family signedness.",
   "by": "claude-haiku-5-5-20",
@@ -17504,14 +17480,6 @@
   "score_after": 3005
  },
  {
-  "function": "func_80198F1C",
-  "text": "Saved best 1595 (79.0%) uses `if (D_801C6BB9 != 0)` with D_801C7AB0 as u8*, an a1 accumulator and `return a1 & 0xFF`. Changing that condition to `< 0x17` gave 1870 (worse). The target's `beql $a1,$v0` (a1=1 in the delay slot on the equal path) matches the sibling func_80198CC4's shape. Unresolved: the target reloads D_801C7084 into $v0 after D_801CA130 is in $v1.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794737604.481503,
-  "score_before": 160,
-  "score_after": 160
- },
- {
   "function": "func_8014D2B4",
   "text": "Best saved 4090 (61%) from a prior session; the current C (revision ee38f98d12b136972bda) scores 4990 and is worse, so restore the 4090 source. Three variants this session did not improve on 4990: f32 `ang` temp for the sin/cos argument; `arg0 & 0xFFFF` recomputed at each use with no temp; the signature change to a mov.s argument. Target facts: frame 0x28, saves ra, s0, s1 (and f20 is used for the angle, cvt.s.d into f20 then mov.s $f12). The target keeps arg0 alive in s1 across func_8013AE60 and reruns `andi s0,s1,0xffff` four times, so arg0 must live across the call; my build lacks s1 and has a 0x20 frame. Target also has about 16 extra instructions (sll/addu index chains for *100 are repeated per use), so the body has more work than my C. Next: count the target instructions after the first sinf/cosf call to see whether there is a second loop or branch I am missing, and compare with the 4090 source before changing anything.",
   "by": "claude-haiku-5-5-23",
@@ -17998,14 +17966,6 @@
   "created_at": 1794739084.377335,
   "score_before": 2565,
   "score_after": 2565
- },
- {
-  "function": "func_80198F1C",
-  "text": "Best 1595 (79.0%) at revision 86bf9c91ce805f20fde2 (same as saved). Target 76 insns, mine 71. Two-branch shape is right: load D_801C7AB0 and test [0]==3; each branch reloads D_801C7084[D_801CA130*5] (raw, or raw-0x2E). Failed variants: hoisting the raw load before the if (3435); testing raw D<0x17 in the +0x3C branch (3950). Both change the load order and the compiler reloads D_801C7AB0 in every path. Not closed: the target keeps a1=1 in the join via beql with addiu in the slot, and mine uses beq; register roles are swapped ($v0/$v1 for D_801CA130). Next: write the join as `if (...) a1 = 1;` after the outer block (not inside) and try the `(u8)` cast on the raw value once more.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794739084.458009,
-  "score_before": 160,
-  "score_after": 160
  },
  {
   "function": "func_800297E8",
@@ -24616,14 +24576,6 @@
   "score_after": 1999
  },
  {
-  "function": "func_80198F1C",
-  "text": "Best rechecked 1595 (79.0%, revision f56f29e463950f3bff12): the source is in the saved best. Shape: `if (D_801C7AB0[0]==3) v1=D7084[idx] else v1=D7084[idx]-0x2E` with idx=D_801CA130*5; then `if (D_801C6BB9 != 0) { if (D_801CA130 != D_801C7AB0[2]) { off=(arg0&0xFFFF)*0x64; cond ? v0=D7081[idx]+0x3C : v0=D7081[idx]; D_8011F30C+off = (f32)v0*0.5f } a1=1 }; return a1&0xFF`. Remaining diff is the condition on the table byte: target does slti 0x17 on the raw D_801C7084[idx] (the same byte used for v1), emitted before the sll/addu index math, while the 1595 version reads (u8)(v1-0x16) < 0x14. Two rewrites tried and both worse: hoisting raw into a local (3435), and replacing the cond with raw<0x17 (3950). Remaining ideas: index math order (target computes idx=D_801CA130*5 as sll 2 + addu, reusing the lbu result), and the cond being `(u8)(v1-0x16) < 0x14` vs a different threshold; the 4 remaining mismatched rows are mostly register/order.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794755422.659668,
-  "score_before": 160,
-  "score_after": 160
- },
- {
   "function": "func_8015E240",
   "text": "Not matched. Saved best 695 (old macro-based source with temp/GCMD writes; the 'temp = *dl' form). Fresh best 5770 (48.9%) at revision c4d4f1cc9d8dd74f9032: Gfx macro GCMD(w0,w1) { Gfx *g = *dl; *dl = g + 1; g->w0 = w0; g->w1 = w1; } with dl as Gfx**, idx=(arg1&0xFFFF)*100, obj=*(u8**)(D_8011F350+idx), and the 0xF2000000|(obj->ptr4[0x778]*4) term: the byte at 0x778 is read through a second pointer loaded from obj+4 (lw v0,4(a3); lbu v0,0x778(v0)). Instruction count now matches (113). Remaining diffs: gcc hoists the constants 0x0731F19A, 0xF2000000 and 0x9C09C into a0/a1 and reuses them, while the target materialises F5880A00/0x18060 etc. in v0 each time; also the target keeps dl in a2 (move a2,a0) and the idx in t0 with the lui/addu at the top, mine uses t0 for dl. Try: keep dl as a local copy 'Gfx **d = dl', drop the macro's temporary to a separate Gfx *g declared per block, and try ordering the F3/E7 pair so the constant 0x731F19A is not hoisted (e.g. write its w1 through a u32 local set after the E6 command).",
   "by": "claude-haiku-5-5-24",
@@ -26006,14 +25958,6 @@
   "created_at": 1794757007.513803,
   "score_before": 2425,
   "score_after": 2425
- },
- {
-  "function": "func_80198F1C",
-  "text": "Best 1595 (79%) is the saved C with the six undeclared globals added. Tried this session: a raw-byte variant (3435, worse), and `if (v1 < 0x17)` in place of `(u8)(v1-0x16) < 0x14` (1910, worse). The target's 0x17 compare is on the raw byte D_801C7084[idx] (slti on the loaded value), while the -0x2e branch feeds v1. Score-moving steps left: put the `a1 = 0` init after the D_801C7AB0[0]==3 test, and make the first lbu happen once (the target reloads D_801C7084 twice via lui/lbu). Not matched; the remaining diff is structural (load CSE and the branch shape around `beql a1,v0`), not registers.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794757011.586127,
-  "score_before": 160,
-  "score_after": 160
  },
  {
   "function": "func_80219B58",
@@ -33544,14 +33488,6 @@
   "score_after": 3080
  },
  {
-  "function": "func_80198F1C",
-  "text": "Best saved score 1595 (79.0%, revision 86bf9c91ce805f20fde2, source uses `D_801C6BB9 != 0`). Target: `move $a1,$zero` init; v1 = D_801C7084[idx*5] (minus 0x2E unless D_801C7AB0[0]==3); outer test is signed `lb D_801C6BB9; slti 0x17; beqz`, i.e. body when (s8)D_801C6BB9 < 0x17; inner `beql a1, D_801C7AB0[2]` jumps to end with a1=1 from the delay slot. Tried and worse: `< 0x17` with the original inner order (1870); `< 0x17` with equality-first if/else (2175); signedness family on v1 (no change, 2175). Unresolved: candidates allocate the zero var to $a2 instead of $a1, and the idx*5 chain is recomputed per use with fresh lui/lbu in the target. Suggest a different C form for the idx*5 chain (e.g. a shared index computed once vs per-branch) and a check of how the zero-init var is scheduled.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794767187.782911,
-  "score_before": 160,
-  "score_after": 160
- },
- {
   "function": "func_801FC2F8",
   "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 9; 18 differing rows (9 register, 1 branch target, 1 operand, 2 reordered, 4 inserted, 1 deleted; advisory).\nTarget: bnez $v0, 0xb0\nCandidate: bnez $v0, 0xbc\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n  = addu $v0, $v0, $v1\n  = lhu $v0, %lo(D_8011F32E)($v0)\ni T: bnez $v0, 0xb0 | C: bnez $v0, 0xbc\n  = addiu $v1, $zero, 2\n> T:  | C: lui $at, 0x447a\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nImproved1035 ->625 using s32 i; for(i=2;i!=0;i=i&1). Current best35266121db2d58153620. Mask/shift steps retain runtime index but extra backedge and float hoist remain. i>>2,i&4,i==0 tie625; i&0 folds multiply and worsens3680. search_flags current source O1/O2/O3/no-strength-reduce/no-schedule all625. Automatic low-progress handoff ended claim; no exact match.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -34583,5 +34519,69 @@
   "created_at": 1794753645.179777,
   "score_before": 220,
   "score_after": 220
+ },
+ {
+  "function": "func_80198F1C",
+  "text": "Best score 160 (97.8%), 32 register-only diffs; control flow and arithmetic match. Source: u8 *D_801C7AB0 (byte 0 compare ==3, byte 2 compare with D_801CA130); D_801C7084/D_801C7081 as u8 arrays indexed idx*5; D_801C6BB9 s8; off = t*100 computed separately in both branches of the ?: (needed for matching); v is s32 (else-branch subtraction not truncated); t = arg0 & 0xFFFF. Remaining diffs: target keeps idx in v0 at top and reloads D_801CA130 in the else path; t lands in v0 in target but a0 in mine. Tried: local idx variable (worse, 1170), (u16) cast for t (no change), u32 t (no change), reordered decls (no change). Next idea: try a different pattern for the 100*t term or the idx load to push register choice; or compile_family signedness.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794705201.324694,
+  "score_before": 620,
+  "score_after": 160
+ },
+ {
+  "function": "func_80198F1C",
+  "text": "Tried: rewrote m2c draft into plain C (externs for D_801C7AB0/D_801CA130/D_801C7084/D_801C7081/D_8011F30C/D_801C6BB9; float store (f32)var_v0*0.5f at D_8011F30C + (arg0&0xFFFF)*100). Compile error first (duplicate var_v1), fixed; scored 4330/76 insns (58 emitted, control flow drifted). Left: not solved; -O1 unit compiler and float/mul.s codegen diverge. Next: revisit with float-typed locals and re-check branch structure.",
+  "by": "opencode-flint-40b-free-1",
+  "created_at": 1794706528.259506,
+  "score_before": 160,
+  "score_after": 160
+ },
+ {
+  "function": "func_80198F1C",
+  "text": "Best 2080 (72.6%, revision bfa51488abc304501b12). Own C, not the m2c draft: globals D_801C7AB0 (u8 *, reads [0] and [2]), D_801C7084, D_801C7081 (u8 arrays indexed by D_801CA130*5), D_801CA130 (u8), D_801C6BB9 (s8), D_8011F30C (f32 array, index (arg0&0xFFFF)*0x64/4). Structure matches; the target is 76 insns vs ours 69. Remaining diffs are register allocation and re-materialisation: the target computes lui+addu+lbu of D_801C7084 separately in each branch arm and again after the join, and holds a1 as zero-initialised in $a1 while ours uses $a2. Target also computes D_801CA130*5 as sll 2 + addu (x*4+x) and reuses the byte in $v1. Also the target has one more `beqz $v0,0xcc` and an extra index pattern before the store (check whether the store's base is D_8011F30C directly or via a temp). Next: rewrite the two v1 arms to compute the D_801C7084 lookup separately in each arm, and keep the return variable in a s32 declared before the first `if`.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794724592.185144,
+  "score_before": 160,
+  "score_after": 160
+ },
+ {
+  "function": "func_80198F1C",
+  "text": "Saved best 1595 (79.0%) uses `if (D_801C6BB9 != 0)` with D_801C7AB0 as u8*, an a1 accumulator and `return a1 & 0xFF`. Changing that condition to `< 0x17` gave 1870 (worse). The target's `beql $a1,$v0` (a1=1 in the delay slot on the equal path) matches the sibling func_80198CC4's shape. Unresolved: the target reloads D_801C7084 into $v0 after D_801CA130 is in $v1.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794737604.481503,
+  "score_before": 160,
+  "score_after": 160
+ },
+ {
+  "function": "func_80198F1C",
+  "text": "Best 1595 (79.0%) at revision 86bf9c91ce805f20fde2 (same as saved). Target 76 insns, mine 71. Two-branch shape is right: load D_801C7AB0 and test [0]==3; each branch reloads D_801C7084[D_801CA130*5] (raw, or raw-0x2E). Failed variants: hoisting the raw load before the if (3435); testing raw D<0x17 in the +0x3C branch (3950). Both change the load order and the compiler reloads D_801C7AB0 in every path. Not closed: the target keeps a1=1 in the join via beql with addiu in the slot, and mine uses beq; register roles are swapped ($v0/$v1 for D_801CA130). Next: write the join as `if (...) a1 = 1;` after the outer block (not inside) and try the `(u8)` cast on the raw value once more.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794739084.458009,
+  "score_before": 160,
+  "score_after": 160
+ },
+ {
+  "function": "func_80198F1C",
+  "text": "Best rechecked 1595 (79.0%, revision f56f29e463950f3bff12): the source is in the saved best. Shape: `if (D_801C7AB0[0]==3) v1=D7084[idx] else v1=D7084[idx]-0x2E` with idx=D_801CA130*5; then `if (D_801C6BB9 != 0) { if (D_801CA130 != D_801C7AB0[2]) { off=(arg0&0xFFFF)*0x64; cond ? v0=D7081[idx]+0x3C : v0=D7081[idx]; D_8011F30C+off = (f32)v0*0.5f } a1=1 }; return a1&0xFF`. Remaining diff is the condition on the table byte: target does slti 0x17 on the raw D_801C7084[idx] (the same byte used for v1), emitted before the sll/addu index math, while the 1595 version reads (u8)(v1-0x16) < 0x14. Two rewrites tried and both worse: hoisting raw into a local (3435), and replacing the cond with raw<0x17 (3950). Remaining ideas: index math order (target computes idx=D_801CA130*5 as sll 2 + addu, reusing the lbu result), and the cond being `(u8)(v1-0x16) < 0x14` vs a different threshold; the 4 remaining mismatched rows are mostly register/order.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794755422.659668,
+  "score_before": 160,
+  "score_after": 160
+ },
+ {
+  "function": "func_80198F1C",
+  "text": "Best 1595 (79%) is the saved C with the six undeclared globals added. Tried this session: a raw-byte variant (3435, worse), and `if (v1 < 0x17)` in place of `(u8)(v1-0x16) < 0x14` (1910, worse). The target's 0x17 compare is on the raw byte D_801C7084[idx] (slti on the loaded value), while the -0x2e branch feeds v1. Score-moving steps left: put the `a1 = 0` init after the D_801C7AB0[0]==3 test, and make the first lbu happen once (the target reloads D_801C7084 twice via lui/lbu). Not matched; the remaining diff is structural (load CSE and the branch shape around `beql a1,v0`), not registers.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794757011.586127,
+  "score_before": 160,
+  "score_after": 160
+ },
+ {
+  "function": "func_80198F1C",
+  "text": "Best saved score 1595 (79.0%, revision 86bf9c91ce805f20fde2, source uses `D_801C6BB9 != 0`). Target: `move $a1,$zero` init; v1 = D_801C7084[idx*5] (minus 0x2E unless D_801C7AB0[0]==3); outer test is signed `lb D_801C6BB9; slti 0x17; beqz`, i.e. body when (s8)D_801C6BB9 < 0x17; inner `beql a1, D_801C7AB0[2]` jumps to end with a1=1 from the delay slot. Tried and worse: `< 0x17` with the original inner order (1870); `< 0x17` with equality-first if/else (2175); signedness family on v1 (no change, 2175). Unresolved: candidates allocate the zero var to $a2 instead of $a1, and the idx*5 chain is recomputed per use with fresh lui/lbu in the target. Suggest a different C form for the idx*5 chain (e.g. a shared index computed once vs per-branch) and a check of how the zero-init var is scheduled.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794767187.782911,
+  "score_before": 160,
+  "score_after": 160
  }
 ]
