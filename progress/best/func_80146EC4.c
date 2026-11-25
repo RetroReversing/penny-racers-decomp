@@ -10,18 +10,19 @@ s32 func_8014A870();
 s32 func_8014B854();
 s32 func_8014BAC0();
 s32 func_80148754();
-s32 func_801485C8();
+s32 func_801485C8(void);
 
 void func_80146EC4(s32 arg0)
 {
-int __repair_constant = 2;
+int __repair_constant;
 
-    u8 *s0;
+    register u8 *s0;
+    long s1;
     u8 *s2;
-    s32 s1;
 
     s2 = D_80189CC6;
-    s0 = (void *)(D_8011F2F0); s0 = (void *)((char *)s0 + (s32)((arg0 & 0xFFFF) * 100));
+    do { s0 = D_8011F2F0 + (arg0 & 0xFFFF) * 100; } while (0);
+__repair_constant = 2;
     if (*(u16 *)s2 & 0x800) {
         s1 = func_8014A870(0x14, 3, s2[-8]);
         if (s1 & 8) {
@@ -37,7 +38,7 @@ int __repair_constant = 2;
             }
         }
     } else {
-        s1 = func_8014BAC0() & 0x10;
+        register s1 = func_8014BAC0() & 0x10;
         s0[0]++;
         if (s0[0] >= 0x29) {
             s1 = 0x10;
@@ -50,8 +51,9 @@ int __repair_constant = 2;
         if (!(*(u16 *)s2 & 0x8000)) {
             D_8011F2FD[*(u16 *)D_80190CA0 * 100] = 2;
             D_8011F2FD[*(u16 *)(D_80190CA0 + 2) * 100] = __repair_constant;
-            *(u16 *)s2 = *(u16 *)s2 | 0x3000;
-            func_8014B854(0x3D, D_80190CA0);
+            *(u16 *)s2 = *(u16 *)s2 | 0x3000;/*__repair_call_balance*/if(__repair_constant){
+            func_8014B854(0x3D, D_80190CA0);}else{
+            func_8014B854(0x3D, D_80190CA0);}
             func_80148754(s2[-0x10], s2[-8]);
             if (func_801485C8() == 0) {
                 *(s16 *)(s2 - 0x2E) = 0x100;
@@ -67,6 +69,7 @@ int __repair_constant = 2;
     } else if (s1 & 0x20) {
         func_8014B854(0x3A);
         D_80189B36[0] &= 0xEF;
-        *(s16 *)D_80189C98 = 0x41;
+        do { {*(s16 *)D_80189C98 = 0x41;}
+} while (0);
     }
 }

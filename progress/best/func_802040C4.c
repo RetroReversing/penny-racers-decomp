@@ -11,12 +11,13 @@ extern u8 D_8011F310[];
 void func_802040C4(void **arg0, s32 arg1)
 {
     u8 *p;
+u8 *__repair_phase_p;
     s32 w1;
 
-    p = *arg0;
-    *arg0 = p + 8;
-    *((s32 *) (p + 0)) = 0xE7000000;
-    *((s32 *) (p + 4)) = 0;
+    __repair_phase_p = *arg0;
+    *arg0 = __repair_phase_p + 8;
+    *((s32 *) (__repair_phase_p + 0)) = 0xE7000000;
+    *((s32 *) (__repair_phase_p + 4)) = 0;
 
     p = *arg0;
     *((s32 *) (p + 0)) = 0xBA001402;
@@ -26,11 +27,13 @@ void func_802040C4(void **arg0, s32 arg1)
     p = *arg0;
     *arg0 = p + 8;
     *((s32 *) (p + 0)) = 0xF7000000;
-    w1 = (((XA | XB | XC) | 1) << 16) | 1;
-    *((s32 *) (p + 4)) = w1 | (XA | XB | XC);
+    do {
+        w1 = (((XA | XB | XC) | 1) << 16) | 1;
+        *((s32 *) (p + 4)) = w1 | (XA | XB | XC);
 
-    p = *arg0;
-    *((s32 *) (p + 0)) = 0xF64FC3BC;
-    *arg0 = p + 8;
-    *((s32 *) (p + 4)) = 0;
+        p = *arg0;
+        *((s32 *) (p + 0)) = 0xF64FC3BC;
+        *arg0 = p + 8;
+        *((s32 *) (p + 4)) = 0;
+    } while (0);
 }

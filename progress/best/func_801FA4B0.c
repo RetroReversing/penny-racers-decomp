@@ -6,6 +6,7 @@ f32 func_801FA4B0(f32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f3
   f32 temp_fv1_2;
   f32 var_ft1;
   f32 var_ft2;
+  f32 __repair_var_ft2_1;
   var_ft1 = arg6;
   var_ft2 = arg7;
   if (!(var_ft1 > 0.0f))
@@ -22,19 +23,19 @@ f32 func_801FA4B0(f32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f3
     var_ft1 = 0.0f;
 
   }
-  if (!(var_ft2 > 0.0f))
+  if (var_ft2 > 0.0f)
   {
-    if ((-var_ft2) < 0.00001f)
+    if (var_ft2 < 0.00001f)
     {
-      goto block_13;
+      block_13:
+      __repair_var_ft2_1 = 0.0f;
+
     }
   }
   else
-    if (var_ft2 < 0.00001f)
+    if ((-var_ft2) < 0.00001f)
   {
-    block_13:
-    var_ft2 = 0.0f;
-
+    goto block_13;
   }
   if (var_ft1 == 0.0f)
   {
@@ -45,15 +46,35 @@ f32 func_801FA4B0(f32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f3
       {
         return temp_fv1_2 / (arg2 - arg0);
       }
-      goto block_18;
+      return 0.5f;
     }
-    goto block_18;
+    if (arg4 || var_ft1)
+    {
+      return 0.5f;
+    }
+    else
+    {
+      return 0.5f;
+    }
   }
-  if (var_ft2 != 0.0f)
+  if (__repair_var_ft2_1 != 0.0f)
   {
-    temp_ft1 = 1.0f / var_ft1;
-    ;
-    return (((arg1 - arg5) * (1.0f / var_ft2)) - ((arg0 - arg4) * temp_ft1)) / (((arg2 - arg0) * temp_ft1) - ((arg3 - arg1) * (1.0f / var_ft2)));
+    do
+    {
+      if (arg6)
+      {
+        temp_ft1 = 1.0f / var_ft1;
+        ;
+        return (((arg1 - arg5) * (1.0f / __repair_var_ft2_1)) - ((arg0 - arg4) * temp_ft1)) / (((arg2 - arg0) * temp_ft1) - ((arg3 - arg1) * (1.0f / __repair_var_ft2_1)));
+      }
+      else
+      {
+        temp_ft1 = 1.0f / var_ft1;
+        ;
+        return (((arg1 - arg5) * (1.0f / __repair_var_ft2_1)) - ((arg0 - arg4) * temp_ft1)) / (((arg2 - arg0) * temp_ft1) - ((arg3 - arg1) * (1.0f / __repair_var_ft2_1)));
+      }
+    }
+    while (0);
   }
   if (arg0 == arg2)
   {
@@ -63,8 +84,6 @@ f32 func_801FA4B0(f32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f3
       return temp_fv1 / (arg3 - arg1);
     }
   }
-  block_18:
   return 0.5f;
-
 }
 

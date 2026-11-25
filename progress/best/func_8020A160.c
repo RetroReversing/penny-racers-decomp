@@ -57,15 +57,17 @@ void func_8020A160(s32 arg0) {
     void *var_v0_2;
 
     *(&D_8021EFF0 + (arg0 * 2)) = func_800DE41C(0, arg0 & 0xFF, 3, 0, 0x6E, 0, NULL, &func_8020AAB0, &func_8020B3CC, 0, 0.0f, 0, 0, 0, 0, 0, 0, 0);
+    do {
+        var_t0 = 0;
+    } while (0);
     if (D_8021E1A2 == 0) {
         var_t2 = 0;
-        var_t0 = 0;
         do {
             var_v0 = 0 * 2;
 loop_3:
-            temp_v0 = (((var_v0 + var_t0) * 4) + var_t0) * 4;
-            var_a3 = temp_v0 + ((var_t2 * 0x1A0) + &D_8021E680);
-            var_a2 = temp_v0 + &D_80238EC0;
+            temp_s0 = (((var_v0 + var_t0) * 4) + var_t0) * 4;
+            var_a3 = temp_s0 + ((var_t2 * 0x1A0) + &D_8021E680);
+            var_a2 = temp_s0 + &D_80238EC0;
             temp_t1 = var_a2 + 0x30;
 loop_4:
             M2C_FIELD(var_a3, s32 *, 0) = M2C_FIELD(var_a2, s32 *, 0);
@@ -77,8 +79,8 @@ loop_4:
             if (var_a2 != temp_t1) {
                 goto loop_4;
             }
-            *var_a3 = *var_a2;
-            var_t0 += 1;
+            *var_a3 = *var_a2;/*__repair_loop_weight*/do {
+            var_t0 += 1;} while (0);
             var_v0 = var_t0 * 2;
             if (var_t0 < 8) {
                 goto loop_3;
@@ -108,8 +110,8 @@ loop_4:
         var_v0_3 = 0 * 2;
         do {
             temp_v0_2 = (((var_v0_3 + var_t0_2) * 4) + var_t0_2) * 4;
-            var_a3_2 = temp_v0_2 + ((arg0 * 0x1A0) + &D_8021E680);
             var_a2_2 = temp_v0_2 + &D_80238EC0;
+            var_a3_2 = temp_v0_2 + ((arg0 * 0x1A0) + &D_8021E680);
             temp_t1_2 = var_a2_2 + 0x30;
 loop_12:
             M2C_FIELD(var_a3_2, s32 *, 0) = M2C_FIELD(var_a2_2, s32 *, 0);

@@ -36,7 +36,8 @@ extern u16 D_80126FF0;
 extern u16 D_80126FF2;
 extern u16 D_80126FF4;
 extern u16 func_800E1850;
-
-s32 func_800DE41C(s32 arg0, s8 arg1, s8 arg2, s16 arg3, u8 arg4, u8 arg5, s32 arg6, s32 arg7, s32 arg8, s32 arg9, s32 arg10, s32 arg11, f32 arg12, f32 arg13, f32 arg14, f32 arg15, f32 arg16, f32 arg17) {
-    return 0;
+volatile unsigned long func_800DE41C(volatile short arg0, volatile unsigned short arg1, volatile unsigned short arg2, volatile unsigned short arg3, u8 arg4, volatile char arg5, s32 arg6, volatile char arg7, s32 arg8, s32 arg9, s32 arg10, s32 arg11, f32 arg12, f32 arg13, f32 arg14, f32 arg15, f32 arg16, f32 arg17)
+{
+  return 0;
 }
+

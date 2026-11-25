@@ -1,53 +1,88 @@
+#define ROW_WORD(row, w) (*(u32 *)((u8 *)D_8018D3A0 + ((row) << 5) + ((w) << 2)))
 extern u8 D_80189CC9[];
 extern u8 D_8018A276;
 extern u8 D_8018A277[];
 extern u32 D_8018D3A0[];
+void func_8014981C(s32 arg0)
+{
+  u32 t2;
+  u8 k;
+  u8 w;
+  u8 cnt;
+  s32 mask;
+  u32 bits;
+  u32 __repair_result_bits;
+  u8 a3;
+  u8 n;
+  for (k = 0; k < 3; k++)
+  {
+    do { D_80189CC9[k] = 0; } while (0);
+  }
 
-#define ROW_WORD(row, w) (*(u32 *)((u8 *)D_8018D3A0 + ((row) << 5) + ((w) << 2)))
-
-void func_8014981C(s32 arg0) {
-    u32 t2;
-    u8 k;
-    u8 w;
-    u8 cnt;
-    s32 mask;
-    u32 bits;
-u32 __repair_result_bits;
-    u8 a3;
-    u8 n;
-
-    for (k = 0; k < 3; k++) {
-        D_80189CC9[k] = 0;
-    }
-    if (D_8018A276 != 0) {
-        for (k = 0; k < D_8018A276; k++) {
-            a3 = 0;
-            t2 = D_8018A277[k] & 0xF;
-            for (w = 0; w < 8; w++) {
-                __repair_result_bits = ROW_WORD(t2, w) & ~ROW_WORD(arg0 & 0xFF, w);
-                mask = 1;
-                for (cnt = 0; cnt < 32; cnt++) {
-                    if (__repair_result_bits & mask) {
-                        a3++;
-                    }
-                    mask <<= 1;
-                }
-            }
-            n = 0;
-            bits = ROW_WORD(t2, 0);
+  if (D_8018A276 != 0)
+  {
+    for (k = 0; k < D_8018A276; k++)
+    {
+      {
+        a3 = 0; t2 = D_8018A277[k] & 0xF;
+        for (w = 0; w < 8; w++)
+        {
+          if (cnt)
+          {
+            __repair_result_bits = ROW_WORD(t2, w) & ((unsigned short) (~ROW_WORD(arg0 & 0xFF, w)));
             mask = 1;
-            for (w = 0; w < 32; w++) {
-                if (bits & mask) {
-                    n++;
-                }
-                mask <<= 1;
+          }
+          else
+          {
+            __repair_result_bits = ROW_WORD(t2, w) & ((unsigned short) (~ROW_WORD(arg0 & 0xFF, w)));
+            mask = 1;
+          }
+          for (cnt = 0; cnt < 32; cnt++)
+          {
+            if (__repair_result_bits & mask)
+            {
+              a3++;
             }
-            if (n == 1) {
-                if (!(bits & ROW_WORD(arg0 & 0xFF, 0)) && a3 != 0) {
-                    a3--;
-                }
+            if (k)
+            {
+              mask <<= 1;
             }
-            D_80189CC9[k] = a3;
+            else
+            {
+              mask <<= 1;
+            }
+          }
+
         }
+
+        n = 0; bits = ROW_WORD(t2, 0); mask = 1;
+        for (w = 0; w < 32; w++)
+        {
+          if (bits & mask)
+          {
+            if (t2)
+            {
+              n++;
+            }
+            else
+            {
+              n++;
+            }
+          }
+          mask <<= 1;
+        }
+
+        if (n == 1)
+        {
+          if ((!(bits & ROW_WORD(arg0 & 0xFF, 0))) && (a3 != 0))
+          {
+            a3--;
+          }
+        }
+        do { D_80189CC9[k] = a3; } while (0);
+      }
     }
+
+  }
 }
+

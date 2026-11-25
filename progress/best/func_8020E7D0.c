@@ -11,14 +11,14 @@ extern M2C_UNK D_40A890;
 extern M2C_UNK D_8011F308;
 extern M2C_UNK D_8011F30C;
 extern M2C_UNK D_8011F310;
-extern M2C_UNK D_8018F5D0;
+extern u8 D_8018F5D0[];
 extern M2C_UNK D_801D5A90;
 extern s32 D_8021AFDC;
 extern s16 D_8021E120;
 extern s8 D_8021E15F;
 extern u8 D_8021E200;
 extern M2C_UNK D_8021E204;
-extern M2C_UNK D_8021E22F;
+extern u8 D_8021E22F[];
 extern M2C_UNK D_8021E231;
 extern M2C_UNK D_8021EEA4;
 extern M2C_UNK D_8021EEA7;
@@ -40,6 +40,8 @@ extern M2C_UNK func_8020FC20;
 extern M2C_UNK func_8020FED8;
 
 void func_8020E7D0(void) {
+    u8 *__base_D_8018F5D0;
+    M2C_UNK *__base_D_40A890;
     s32 *var_a2;
     s32 *var_a3;
     s32 temp_v0;
@@ -53,7 +55,7 @@ void func_8020E7D0(void) {
     u8 temp_v1;
     void *temp_t0;
 
-    temp_v0 = D_8021EEB8 * 0x64;
+    temp_v0 = D_8021EEB8 * 25;
     *(&D_8011F308 + temp_v0) = 0;
     *(&D_8011F30C + temp_v0) = 0;
     *(&D_8011F310 + temp_v0) = 255.0f;
@@ -64,15 +66,15 @@ void func_8020E7D0(void) {
     *(s8 *)(&D_8021E204 - 0x7B) = 0;
     *(s8 *)(&D_8021E204 + 5) = 2;
     *(s8 *)(&D_8021E204 - 2) = 1;
-    func_800294A0(&D_404F10, &D_8030BD90, &D_40A890 - &D_404F10);
+    do { __base_D_40A890 = &D_40A890;
+ func_800294A0(&D_404F10, &D_8030BD90, __base_D_40A890 - &D_404F10); } while (0);
     var_s2 = 0;
     if (D_8021AFDC == 0x1C) {
-        var_v1 = 0;
-        do {
-            *(&D_8021EEA8 + var_s2) = *(&D_8021E22F + (((var_v1 + var_s2) * 2) + (D_8021E15F * 0x110)));
+__repair_rows: {
+            *(&D_8021EEA8 + var_s2) = *(D_8021E22F + ((((var_s2 * 0x10) + var_s2) * 2) + (D_8021E15F * 0x110)));
             var_s2 += 1;
-            var_v1 = var_s2 * 0x10;
-        } while (var_s2 < 8);
+        }
+if (var_s2 < 8) goto __repair_rows;
         *(s8 *)(&D_8021EEA4) = 0;
         *(s8 *)(&D_8021EEA4 + 0xC) = 1;
         *(s8 *)(&D_8021EEA4 + 1) = 1;
@@ -82,7 +84,7 @@ void func_8020E7D0(void) {
     *(u8 *)(&D_8021EEA7 - 1) = 0;
     var_s2_2 = 0;
     do {
-        temp_v1 = *(u8 *)(&D_8021EEA7 - 1) + func_8020FFD0(*(u8 *)(&D_8021EEA7), var_s2_2 & 0xFF, *(&D_8021EEA8 + var_s2_2));var_s2_2 += 1;
+        temp_v1 = *(u8 *)(&D_8021EEA7 - 1) + func_8020FFD0(*(u8 *)(&D_8021EEA7), var_s2_2 & 0xFF, *(&D_8021EEA8 + var_s2_2));/*__repair_loop_weight*/do {var_s2_2 += 1;} while (0);
         *(u8 *)(&D_8021EEA7 - 1) = temp_v1;
     } while (var_s2_2 < 8);
     *(s8 *)(&D_8021F260) = 0;
@@ -101,10 +103,10 @@ void func_8020E7D0(void) {
     var_s2_3 = 0;
     do {
         var_v0 = 0 * 2;
-loop_10:
-        temp_v0_2 = (((var_v0 + var_s2_3) * 4) + var_s2_3) * 4;
-        var_a3 = temp_v0_2 + ((var_t1 * 0x1A0) + &D_8018F5D0);
-        var_a2 = temp_v0_2 + &D_80238EC0;
+do {
+        var_a3 = (void *)(((((var_v0 + var_s2_3) * 4) + var_s2_3) * 4)); __base_D_8018F5D0 = D_8018F5D0;
+ var_a3 = (void *)((char *)var_a3 + (s32)(((var_t1 * 0x1A0) + __base_D_8018F5D0)));
+        var_a2 = ((((var_v0 + var_s2_3) * 4) + var_s2_3) * 4) + &D_80238EC0;
         temp_t0 = (s8 *) var_a2 + 0x30;
 loop_11:
         *(var_a3) = *(var_a2);
@@ -119,14 +121,12 @@ loop_11:
         *var_a3 = *var_a2;
         var_s2_3 += 1;
         var_v0 = var_s2_3 * 2;
-        if (var_s2_3 < 8) {
-            goto loop_10;
-        }
+        } while (var_s2_3 < 8);
         var_t1 += 1;
         var_s2_3 = 0;
     } while (var_t1 < 0xE);
-    D_8021E120 = func_800DE41C(0, 0, 1, 0, 0x54, 0xFF, (*(&D_8021E231 + ((*(u8 *)(&D_8021EEA7) * 0x110) + *(u8 *)(&D_8021EEA7 + 1))) * 0x1A0) + &D_8018F5D0, &func_8020FC20, &func_8020FED8, -2.799999f, 0.35f, 0, 0, 360.0f, 0.0f, 0.03f, 0.03f, 0.03f);
+    D_8021E120 = func_800DE41C(0, 0, 1, 0, 0x54, 0xFF, (*(&D_8021E231 + ((*(u8 *)(&D_8021EEA7) * 0x110) + *(u8 *)(&D_8021EEA7 + 1))) * 0x1A0) + __base_D_8018F5D0, &func_8020FC20, &func_8020FED8, -2.799999f, 0.35f, 0, 0, 360.0f, 0.0f, 0.03f, 0.03f, 0.03f);
     func_800DE41C(0, 0, 3, 0, 0x54, 0, NULL, &func_8020FAFC, &func_8020FBA8, 0.0f, 0.0f, 0, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     func_800DE41C(0, 0, 3, 0, 0xA1, 0xFF, NULL, NULL, &func_8013DD2C, 0.0f, 0.0f, 0, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-    func_80203DF8(1, 6, 0, 0, 0);
+    do { func_80203DF8(1, 6, 0, 0, 0); } while (0);
 }

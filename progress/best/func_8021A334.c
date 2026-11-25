@@ -11,26 +11,50 @@ extern u8 D_8021CA82[];
 extern u8 D_8021C994[];
 extern u8 D_80203080[];
 extern u8 D_8018D140[];
-void *func_801CA140(s32 a0, s32 a1, s32 a2);
-void func_801CA494(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4);
-void func_801CABF4(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5, s32 a6, s32 a7);
-void func_8021A334(s32 arg0)
+void *func_801CA140();
+void func_801CA494();
+void func_801CABF4();
+void func_8021A334(volatile unsigned long long arg0)
 {
-    u8 *__base_D_800DE080;
-  u32 *dl;
+  volatile long long a1;
+  u8 *__base_D_800DE080;
+  register u8 *s1;
   u16 a2;
-  u8 *s1;
-  s32 s4;
+  u32 *dl;
+  volatile unsigned long long s4;
   s32 s0;
-  s32 s3;
-  unsigned long s5;
-  u16 a1;
-  __base_D_800DE080 = D_800DE080;
-  *((u32 **) (__base_D_800DE080 + 0x64)) = dl + 2;
-  dl = *((u32 **) (__base_D_800DE080 + 0x64));
- dl[0] = 0xED000000; dl[1] = 0x005003C0; s5 = 0;
-  s3 = 0;
-  s4 = 0xFF;
+  register volatile unsigned long s5;
+  unsigned int s3;
+  volatile int pad;
+  do
+  {
+    *((u32 **) (__base_D_800DE080 + 0x64)) = dl + 2;
+    __base_D_800DE080 = (int) D_800DE080;
+    do
+    {
+      if (dl)
+      {
+        dl = *((u32 **) (__base_D_800DE080 + 0x64));
+        dl[0] = 0xED000000;
+      }
+      else
+      {
+        dl = *((u32 **) (__base_D_800DE080 + 0x64));
+        dl[0] = 0xED000000;
+      }
+      do
+      {
+        dl[1] = 0x005003C0;
+      }
+      while (0);
+    }
+    while (0);
+  }
+  while (0);
+  s5 = (unsigned short) 0;
   a1 = 0;
-  s1 = (u8 *) func_801CA140(0, 0, 0);
+  s3 = 0;
+  s1 = (u8 *) func_801CA140(0, (float) 0);
+  s4 = 0xFF;
 }
+

@@ -15,19 +15,22 @@ typedef s32 M2C_UNK32;
 M2C_UNK func_801CA778(s32 *, s32, s32, s32, M2C_UNK *, s32); /* extern */
 extern M2C_UNK D_801D43B8;
 
-void func_801CB74C(s32 *arg0, s32 arg1, u16 arg2, s32 arg3, s32 arg4, u8 *arg5) {
+void func_801CB74C(s32 *arg0_in, s32 arg1, u16 arg2, s32 arg3, s32 arg4, u8 *arg5_in) {
+  s32 * arg0;
+  u8 * arg5;
     s32 sp18;
     s32 var_s0;
-    s32 var_s1;
+    
 
     sp18 = *arg0;
+  arg0 = arg0_in;
+  arg5 = arg5_in;
     var_s0 = 0;
-    var_s1 = arg1;
     if (*arg5 != 0) {
         do {
-            func_801CA778(&sp18, var_s1 & 0xFFFF, arg2 & 0xFFFF, (*(arg5 + (var_s0 & 0xFFFF)) - 0x20) & 0xFFFF, &D_801D43B8, arg4);/*__repair_loop_weight*/do {
+            func_801CA778(&sp18, arg1 & 0xFFFF, arg2 & 0xFFFF, (*(arg5 + (var_s0 & 0xFFFF)) - 0x20) & 0xFFFF, &D_801D43B8, arg4);/*__repair_loop_weight*/do {
             var_s0 += 1;} while (0);
-            var_s1 += arg3;
+            arg1 += arg3;
         } while (*(arg5 + (var_s0 & 0xFFFF)) != 0);
     }
     *arg0 = sp18;

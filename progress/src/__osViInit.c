@@ -12,10 +12,10 @@ extern V *D_800481F4;
 extern u8 D_80048260[];
 extern u8 D_800482B0[];
 extern u8 D_80048210[];
-extern s32 func_8003A140(void);
+extern s32 __osViSwapContext(void);
 extern void func_8003DDC0(void *, s32);
 
-void func_8003F210(void) {
+void __osViInit(void) {
     func_8003DDC0(D_80048190, 0x60);
     D_800481F0 = D_80048190;
     D_800481F4 = (V *)(D_80048190 + 0x30);
@@ -34,5 +34,5 @@ void func_8003F210(void) {
     D_800481F4->unkC = D_800481F4->unk8->unk4;
     while (*(volatile u32 *)0xA4400010 >= 0xB) {}
     *(volatile u32 *)0xA4400000 = 0;
-    func_8003A140();
+    __osViSwapContext();
 }

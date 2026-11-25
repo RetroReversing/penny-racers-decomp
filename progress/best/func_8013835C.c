@@ -15,6 +15,8 @@ extern s32 D_8022AF40[];
 f32 func_801F9AC0(f32);
 f32 func_801F9C8C(f32, f32);
 void func_80129C1C();
-void func_8013835C(s32 arg0)
+void func_8013835C(volatile long long arg0)
 {
+  volatile u64 scratch[8];
 }
+

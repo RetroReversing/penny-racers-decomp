@@ -27,7 +27,7 @@ s32 rsp_set_pc_if_halted(u32);
 s32 sp_dma_start(s32, u32, void *, u32);
 s32 func_8003F0A0(void);
 
-void func_80039820(RspTask *arg0) {
+void osSpTaskLoad(RspTask *arg0) {
     RspTask *p;
 
     p = &D_8006C330;

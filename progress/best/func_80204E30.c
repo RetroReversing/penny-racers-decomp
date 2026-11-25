@@ -7,14 +7,14 @@ void func_80204E30(s32 arg0)
 {
   unsigned var_a2;
   register int var_a3;
-  s8 *p;
+  const s8 *p;
   register u32 var_a1;
   p = D_8021E15F;
   if ((p[0] == 3) && (p[1] == 0))
   {
     var_a3 = (0xFF - D_8021E19E) & 0xFFFF;
-    var_a1 = var_a3;
     var_a2 = var_a3;
+    var_a1 = var_a3;
     do
     {
       func_801CA494(arg0, var_a1, var_a2, var_a3, 0xFF);
@@ -24,8 +24,8 @@ void func_80204E30(s32 arg0)
   else
   {
     register var_a1 = 0x64;
-    var_a2 = 0x64;
     var_a3 = 0x64;
+    var_a2 = 0x64;
     func_801CA494(arg0, var_a1, var_a2, var_a3, 0xFF);
   }
   func_8014A4C8(arg0, 0xEC, 0x38, 0xB, 0x69);

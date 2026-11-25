@@ -2,7 +2,7 @@ extern void func_8003F464(void);
 extern void func_8003F4D0(void);
 extern void __osPackEepReadData(u8);
 extern s32 __osEepStatus(s32, u16 *);
-extern void func_8003F350(s32, void *);
+extern void __osSiRawStartDma(s32, void *);
 extern s32 osRecvMesg(s32, void *, s32);
 extern u8 D_80092C04;
 extern u8 D_8006FF10[];
@@ -36,9 +36,9 @@ u32 osEepromRead(s32 arg0, u8 arg1, u8 *arg2) {
         __osEepStatus(arg0, (u16 *)work);
     }
     __osPackEepReadData(arg1);
-    func_8003F350(1, D_8006FF10);
+    __osSiRawStartDma(1, D_8006FF10);
     osRecvMesg(arg0, 0, 1);
-    func_8003F350(0, D_8006FF10);
+    __osSiRawStartDma(0, D_8006FF10);
     D_80092C04 = 4;
     osRecvMesg(arg0, 0, 1);
     for (i = 3; i >= 0; i--) s++;

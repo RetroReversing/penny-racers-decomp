@@ -38,8 +38,7 @@ s32 __repair_result_t;
         *(s32 *)(D_80046DF4 + 0x28) &= ~0xF;
         if (s1 > 0)
         {
-            do
-            {
+            __repair_rows: {
                 s0 = *(s32 *)(D_80046DF4 + 0x50);
                 if (s1 < s0)
                 {
@@ -50,7 +49,8 @@ s32 __repair_result_t;
                 s2 = n_alSavePull(*(s32 *)(D_80046DF4 + 0x2C), s2);
                 s3 += s0 * 4;
                 *(s32 *)(D_80046DF4 + 0x2C) += s0;
-            } while (s1 > 0);
+            }
+if (s1 > 0) goto __repair_rows;
         }
         *arg1 = (s32)(s2 - arg0) >> 3;
         _n_collectPVoices();

@@ -7,7 +7,7 @@ void osRecvMesg(s32, s32, s32);
 u8 __osContDataCrc(void *);
 void func_8003F464(void);
 void func_8003F4D0(void);
-void func_8003F350(s32, void *);
+void __osSiRawStartDma(s32, void *);
 void *memcpy(void *, const void *, u32);
 
 u32 func_8003C8E0(s32 *a)
@@ -21,9 +21,9 @@ u32 func_8003C8E0(s32 *a)
     return 5;
   func_8003F464();
   D_80092C04 = 3;
-  func_8003F350(1, D_8006F9F0 + (a[2] << 6));
+  __osSiRawStartDma(1, D_8006F9F0 + (a[2] << 6));
   osRecvMesg(a[1], 0, 1);
-  func_8003F350(0, p);
+  __osSiRawStartDma(0, p);
   osRecvMesg(a[1], 0, 1);
   if (a[2] != 0)
   {

@@ -1,46 +1,82 @@
 extern u8 D_8011F2FA[];
-
-void func_800E0A00(s32 arg0, s32 arg1, u16 *arg2)
+inline static u8 inline_fn(u16 *arg0, int arg1)
 {
-  s32 i;
+  return D_8011F2FA[arg0[arg1] * 100];
+}
+
+void func_800E0A00(s32 arg0_in, s32 arg1_in, u16 *arg2)
+{
+  unsigned short arg0;
+  s32 arg1;
+  unsigned short i;
   s32 j;
   u8 pivot;
   u16 tmp;
-
-  pivot = D_8011F2FA[arg2[(arg0 + arg1) / 2] * 100];
-  j = arg1;
+  do
+  {
+    arg1 = arg1_in; arg0 = arg0_in;
+  }
+  while (0);
+  do
+  {
+    pivot = inline_fn(arg2, (arg0 + arg1) / 2);
+  }
+  while (0);
   i = arg0;
+  j = arg1;
   for (;;)
   {
-    while (D_8011F2FA[arg2[i] * 100] < pivot)
-    {/*__repair_loop_weight*/do {
-      i++;} while (0);
-    }
-    while (pivot < D_8011F2FA[arg2[j] * 100])
+    while (pivot > inline_fn(arg2, i))
     {
-      j--;
+      {
+        i++;
+      }
     }
+
+    while (pivot < inline_fn(arg2, j))
+    {
+      if (j)
+      {
+        j--;
+      }
+      else
+      {
+ do { j--; } while (0);
+      }
+    }
+
     if (i < j)
     {
       tmp = arg2[i];
       arg2[j] = tmp;
       arg2[i] = arg2[j];
-      do { {
-        i++;
+      {
+        {
+          do
+          {
+            i++;
+          }
+          while (0);
+        }
       }
-} while (0);
       j -= 1;
+    }
+    else
+      if (j)
+    {
+      break;
     }
     else
     {
       break;
     }
   }
-  if (arg0 < i - 1)
+
+  if ((arg0 - 1) < ((i - 1) - 1))
   {
     func_800E0A00(arg0, i - 1, arg2);
   }
-  if (j + 1 < arg1)
+  if ((j + 1) < arg1)
   {
     func_800E0A00(j + 1, arg1, arg2);
   }

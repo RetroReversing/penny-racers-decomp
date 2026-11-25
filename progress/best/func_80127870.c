@@ -18,11 +18,20 @@ void func_80127870(void *arg0, void *arg1, void *arg2, void *arg3, void *arg4)
   f32 temp_fv1_7;
   f32 temp_fv1_8;
   f32 temp_fv1_9;
-  temp_fv0 = *((f32 *) (((char *) arg1) + 0));
+  f32 temp;
+  temp = *((f32 *) (((char *) arg1) + 0));
+  temp_fv0 = temp;
   temp_fv1 = *((f32 *) (((char *) arg0) + 0));
   if (temp_fv1 < (*((f32 *) (((char *) arg1) + 0))))
   {
-    temp_fv0_2 = *((f32 *) (((char *) arg2) + 0));
+    if (arg0)
+    {
+      temp_fv0_2 = *((f32 *) (((char *) arg2) + 0));
+    }
+    else
+    {
+      temp_fv0_2 = *((f32 *) (((char *) arg2) + 0));
+    }
     if (temp_fv0_2 < temp_fv1)
     {
       *((f32 *) (((char *) arg3) + 0)) = temp_fv0_2;
@@ -44,13 +53,28 @@ void func_80127870(void *arg0, void *arg1, void *arg2, void *arg3, void *arg4)
   }
   else
   {
-    temp_fv1_3 = *((f32 *) (((char *) arg2) + 0));
-    if (temp_fv1_3 < (*((f32 *) (((char *) arg1) + 0))))
+    if (arg4)
     {
-      *((f32 *) (((char *) arg3) + 0)) = temp_fv1_3;
-      goto block_12;
+      temp_fv1_3 = *((f32 *) (((char *) arg2) + 0));
     }
-    *((f32 *) (((char *) arg3) + 0)) = (f32) (*((f32 *) (((char *) arg1) + 0)));
+    else
+    {
+      temp_fv1_3 = *((f32 *) (((char *) arg2) + 0));
+    }
+    do
+    {
+      if (temp_fv1_3 < (*((f32 *) (((char *) arg1) + 0))))
+      {
+        do
+        {
+          *((f32 *) (((char *) arg3) + 0)) = temp_fv1_3;
+          goto block_12;
+        }
+        while (0);
+      }
+      *((f32 *) (((char *) arg3) + 0)) = (f32) (*((f32 *) (((char *) arg1) + 0)));
+    }
+    while (0);
     temp_fv1_4 = *((f32 *) (((char *) arg2) + 0));
     if ((*((f32 *) (((char *) arg0) + 0))) < temp_fv1_4)
     {
@@ -74,7 +98,18 @@ void func_80127870(void *arg0, void *arg1, void *arg2, void *arg3, void *arg4)
   temp_fv1_5 = *((f32 *) (((char *) arg0) + 4));
   if (temp_fv1_5 < temp_fv0_3)
   {
- do { temp_fv0_4 = *((f32 *) (((char *) arg2) + 4)); } while (0);
+    do
+    {
+      if (temp_fv1_9)
+      {
+        temp_fv0_4 = *((f32 *) (((char *) arg2) + 4));
+      }
+      else
+      {
+        temp_fv0_4 = *((f32 *) (((char *) arg2) + 4));
+      }
+    }
+    while (0);
     if (temp_fv0_4 < temp_fv1_5)
     {
       *((f32 *) (((char *) arg3) + 4)) = temp_fv0_4;
@@ -114,25 +149,32 @@ void func_80127870(void *arg0, void *arg1, void *arg2, void *arg3, void *arg4)
       *((f32 *) (((char *) arg4) + 4)) = *((f32 *) (((char *) arg0) + 4));
 
     }
+    if (1)
+    {
+    }
   }
   temp_fv0_5 = *((f32 *) (((char *) arg1) + 8));
   temp_fv1_9 = *((f32 *) (((char *) arg0) + 8));
   if (temp_fv1_9 < (*((f32 *) (((char *) arg1) + 8))))
   {
     temp_fv0_6 = *((f32 *) (((char *) arg2) + 8));
-    if (temp_fv0_6 < temp_fv1_9)
+    do { if (temp_fv0_6 < temp_fv1_9)
     {
       *((f32 *) (((char *) arg3) + 8)) = temp_fv0_6;
       *((f32 *) (((char *) arg4) + 8)) = (f32) (*((f32 *) (((char *) arg1) + 8)));
       return;
-    }
+    } } while (0);
     *((f32 *) (((char *) arg3) + 8)) = (f32) (*((f32 *) (((char *) arg0) + 8)));
     temp_fv1_10 = *((f32 *) (((char *) arg2) + 8));
-    if ((*((f32 *) (((char *) arg1) + 8))) < temp_fv1_10)
+    do
     {
-      *((f32 *) (((char *) arg4) + 8)) = temp_fv1_10;
-      return;
+      if ((*((f32 *) (((char *) arg1) + 8))) < temp_fv1_10)
+      {
+        *((f32 *) (((char *) arg4) + 8)) = temp_fv1_10;
+        return;
+      }
     }
+    while (0);
     *((f32 *) (((char *) arg4) + 8)) = (f32) (*((f32 *) (((char *) arg1) + 8)));
     return;
   }
@@ -142,8 +184,16 @@ void func_80127870(void *arg0, void *arg1, void *arg2, void *arg3, void *arg4)
     *((f32 *) (((char *) arg3) + 8)) = temp_fv1_11;
     goto block_38;
   }
-  *((f32 *) (((char *) arg3) + 8)) = (f32) (*((f32 *) (((char *) arg1) + 8)));
-  temp_fv1_12 = *((f32 *) (((char *) arg2) + 8));
+  if (arg2)
+  {
+    *((f32 *) (((char *) arg3) + 8)) = (f32) (*((f32 *) (((char *) arg1) + 8)));
+    temp_fv1_12 = *((f32 *) (((char *) arg2) + 8));
+  }
+  else
+  {
+    *((f32 *) (((char *) arg3) + 8)) = (f32) (*((f32 *) (((char *) arg1) + 8)));
+    temp_fv1_12 = *((f32 *) (((char *) arg2) + 8));
+  }
   if ((*((f32 *) (((char *) arg0) + 8))) < temp_fv1_12)
   {
     *((f32 *) (((char *) arg4) + 8)) = temp_fv1_12;
@@ -153,3 +203,4 @@ void func_80127870(void *arg0, void *arg1, void *arg2, void *arg3, void *arg4)
   *((f32 *) (((char *) arg4) + 8)) = *((f32 *) (((char *) arg0) + 8));
 
 }
+

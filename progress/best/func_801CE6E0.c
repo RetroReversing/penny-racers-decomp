@@ -36,13 +36,12 @@ void func_801CE6E0(s32 *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u8 arg5, u
     sp38 = *arg0;
     var_a0 = 8;
     sp30 = 0;
-    __repair_rows: {
+    do {
         var_a0 -= 1;
         *(&sp28 + var_a0) = *(&sp18 + (var_t1 & 0xF));
         var_t0 -= 1;
         var_t1 = var_t1 >> 4;
-    }
-if (var_t0 & 0xFF) goto __repair_rows;
+    } while (var_t0 & 0xFF);
     func_801CB74C(&sp38, arg1 & 0xFFFF, arg2 & 0xFFFF, arg3 & 0xFFFF, arg4, &sp28 + var_a0);
     *arg0 = sp38;
 }

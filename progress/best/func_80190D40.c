@@ -93,7 +93,10 @@ block_12:
     }
     if ((u32) ((var_a1 - 0x10) & 0xFF) < 3U) {
         var_a0 = D_801C7068 - 1;
-        goto block_17;
+        {var_a2 = D_801C6BB9;
+        var_t2 = D_801C7068;
+        var_t1 = var_a2 - 1;
+        goto block_27;}
     }
     if ((u32) ((var_a1 - 0x13) & 0xFF) < 3U) {
         var_a0 = D_801C7068 + 1;
@@ -137,23 +140,23 @@ block_26:
         goto block_27;
     }
     if ((((var_v0_6 >= 0x18U) | ((u32) (s8) var_a2 >> 0x1F)) == 0) && ((s8) var_a2 < 0x18) && (var_v0_7 = var_t2 & 0xFF, (*(u16 *)(D_801C6BE0 + ((((s8) var_a2 * 0x18) + (s8) var_a0) * 2)) != 0xFFFF))) {
-        var_t0 = *(D_801C7AD8 + (((s8) var_a2 * 0x18) + (s8) var_a0));
+        var_t0 = *(u16 *)(D_801C7AD8 + (((s8) var_a2 * 0x18) + (s8) var_a0));
     } else {
         var_t0 = (*(u8 *)((char *)(D_801C7AB0) + 2));
         var_v0_7 = var_t2 & 0xFF;
     }
     if ((((0x18U <= var_v0_7) | ((u32) (s8) var_t1 >> 0x1F)) == 0) && ((s8) var_t1 < 0x18) && ((*(u16 *)(D_801C6BE0 + ((((s8) var_t1 * 0x18) + (s8) var_t2) * 2)) != 0xFFFF))) {
-        var_t1_2 = *(D_801C7AD8 + (((s8) var_t1 * 0x18) + (s8) var_t2));
+        var_t1_2 = *(u16 *)(D_801C7AD8 + (((s8) var_t1 * 0x18) + (s8) var_t2));
     } else {
         var_t1_2 = (*(u8 *)((char *)(D_801C7AB0) + 2));
     }
     temp_v1 = var_t0 & 0xFF;
     if ((*(u8 *)((char *)(D_801C7AB0) + 0)) == 3) {
-        var_a2_2 = *(D_801C7084 + ((var_t0 & 0xFF) * 5));
-        var_a3 = *(D_801C7084 + ((var_t1_2 & 0xFF) * 5));
+        var_a2_2 = *(u16 *)(D_801C7084 + ((var_t0 & 0xFF) * 5));
+        var_a3 = *(u16 *)(D_801C7084 + ((var_t1_2 & 0xFF) * 5));
     } else {
-        var_a2_2 = *(D_801C7084 + ((var_t0 & 0xFF) * 5)) - 0x2E;
-        var_a3 = *(D_801C7084 + ((var_t1_2 & 0xFF) * 5)) - 0x2E;
+        var_a2_2 = *(u16 *)(D_801C7084 + ((var_t0 & 0xFF) * 5)) - 0x2E;
+        var_a3 = *(u16 *)(D_801C7084 + ((var_t1_2 & 0xFF) * 5)) - 0x2E;
     }
     var_v1_4 = var_t0 & 0xFF;
     var_v0_8 = var_a1 & 0xFF;
@@ -290,7 +293,7 @@ block_108:
                     goto block_366;
                 }
                 if ((u32) ((var_a1 - 0x16) & 0xFF) < 5U) {
-                    if ((var_t4 & 0xFF) && (*(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0)) {
+                    if ((var_t4 & 0xFF) && (*(u16 *)(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0)) {
                         var_v1 = var_t0 & 0xFF;
                         if ((u32) ((var_a2_2 - 0x1B) & 0xFF) < 5U) {
                             var_v0_2 = var_v1 * 4;
@@ -301,11 +304,11 @@ block_108:
                     goto block_366;
                 }
                 if ((u32) ((var_a1 - 0x1B) & 0xFF) < 5U) {
-                    if ((var_t4 & 0xFF) && (*(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0x78)) {
+                    if ((var_t4 & 0xFF) && (*(u16 *)(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0x78)) {
                         var_v1 = var_t0 & 0xFF;
                         if ((u32) ((var_a2_2 - 0x1B) & 0xFF) < 5U) {
-                            var_v0_4 = *(D_801C7081 + (var_v1 * 5)) == 0;
-                            goto block_339;
+                            var_v0_4 = *(u16 *)(D_801C7081 + (var_v1 * 5)) == 0;
+                            return -var_v0_4 & 0x3C;
                         }
                         var_v0_2 = var_v1 * 4;
                         goto block_365;
@@ -313,7 +316,7 @@ block_108:
                     goto block_366;
                 }
                 if ((u32) ((var_a1 - 0x20) & 0xFF) < 5U) {
-                    if ((var_t4 & 0xFF) && (*(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0)) {
+                    if ((var_t4 & 0xFF) && (*(u16 *)(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0)) {
                         var_v1 = var_t0 & 0xFF;
                         if ((u32) ((var_a2_2 - 0x25) & 0xFF) >= 5U) {
 block_174:
@@ -324,11 +327,11 @@ block_174:
                     }
                     goto block_366;
                 }
-                if (((u32) ((var_a1 - 0x25) & 0xFF) < 5U) && (var_t4 & 0xFF) && (*(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0x78)) {
+                if (((u32) ((var_a1 - 0x25) & 0xFF) < 5U) && (var_t4 & 0xFF) && (*(u16 *)(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0x78)) {
                     var_v1 = var_t0 & 0xFF;
                     if ((u32) ((var_a2_2 - 0x25) & 0xFF) < 5U) {
-                        var_v0_4 = *(D_801C7081 + (var_v1 * 5)) == 0;
-                        goto block_339;
+                        var_v0_4 = *(u16 *)(D_801C7081 + (var_v1 * 5)) == 0;
+                        return -var_v0_4 & 0x3C;
                     }
                     var_v0_2 = var_v1 * 4;
                     goto block_365;
@@ -336,7 +339,7 @@ block_174:
                 goto block_366;
             }
             if (var_t3 & var_t4) {
-                if (*(D_801C7081 + ((var_t0 & 0xFF) * 5)) == *(D_801C7081 + ((var_t1_2 & 0xFF) * 5))) {
+                if (*(u16 *)(D_801C7081 + ((var_t0 & 0xFF) * 5)) == *(u16 *)(D_801C7081 + ((var_t1_2 & 0xFF) * 5))) {
                     if (((u32) ((var_a2_2 - 0x1B) & 0xFF) < 5U) && ((u32) ((var_a3 - 0x16) & 0xFF) < 5U)) {
                         var_v0_5 = var_t0 & 0xFF;
                         if ((u32) (var_a1 & 0xFF) >= 5U) {
@@ -344,11 +347,11 @@ block_174:
                             if ((u32) ((var_a1 - 0xA) & 0xFF) >= 0xCU) {
                                 if (((u32) ((var_a1 - 0x16) & 0xFF) < 5U) || (var_v0 = 0, (((u32) ((var_a1 - 0x1B) & 0xFF) < 5U) != 0))) {
                                     var_v1 = var_t0 & 0xFF;
-                                    if (*(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0x78) {
+                                    if (*(u16 *)(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0x78) {
                                         var_v0_2 = var_v1 * 4;
                                         goto block_365;
                                     }
-                                    goto block_294;
+                                    return 0x3CU;
                                 }
                                 /* Duplicate return node #367. Try simplifying control flow for better match */
                                 return var_v0;
@@ -361,11 +364,11 @@ block_174:
                         if ((u32) ((var_a1 - 5) & 0xFF) >= 0x11U) {
                             if (((u32) ((var_a1 - 0x20) & 0xFF) < 5U) || (var_v0 = 0, (((u32) ((var_a1 - 0x25) & 0xFF) < 5U) != 0))) {
                                 var_v1 = var_t0 & 0xFF;
-                                if (*(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0x78) {
+                                if (*(u16 *)(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0x78) {
                                     var_v0_2 = var_v1 * 4;
                                     goto block_365;
                                 }
-                                goto block_294;
+                                return 0x3CU;
                             }
                             /* Duplicate return node #367. Try simplifying control flow for better match */
                             return var_v0;
@@ -377,11 +380,11 @@ block_174:
                         if ((u32) (var_a1 & 0xFF) >= 0x13U) {
                             if (((u32) ((var_a1 - 0x16) & 0xFF) < 5U) || (var_v0 = 0, (((u32) ((var_a1 - 0x25) & 0xFF) < 5U) != 0))) {
                                 var_v1 = var_t0 & 0xFF;
-                                if (*(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0x78) {
+                                if (*(u16 *)(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0x78) {
                                     var_v0_2 = var_v1 * 4;
                                     goto block_365;
                                 }
-                                goto block_294;
+                                return 0x3CU;
                             }
                             /* Duplicate return node #367. Try simplifying control flow for better match */
                             return var_v0;
@@ -395,11 +398,11 @@ block_174:
                             if ((u32) ((var_a1 - 0xD) & 0xFF) >= 3U) {
                                 if (((u32) ((var_a1 - 0x1B) & 0xFF) < 5U) || (var_v0 = 0, (((u32) ((var_a1 - 0x25) & 0xFF) < 5U) != 0))) {
                                     var_v1 = var_t0 & 0xFF;
-                                    if (*(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0x78) {
+                                    if (*(u16 *)(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0x78) {
                                         var_v0_2 = var_v1 * 4;
                                         goto block_365;
                                     }
-                                    goto block_294;
+                                    return 0x3CU;
                                 }
                                 /* Duplicate return node #367. Try simplifying control flow for better match */
                                 return var_v0;
@@ -414,11 +417,11 @@ block_174:
                             if ((u32) ((var_a1 - 0x10) & 0xFF) >= 3U) {
                                 if (((u32) ((var_a1 - 0x16) & 0xFF) < 5U) || (var_v0 = 0, (((u32) ((var_a1 - 0x20) & 0xFF) < 5U) != 0))) {
                                     var_v1 = var_t0 & 0xFF;
-                                    if (*(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0x78) {
+                                    if (*(u16 *)(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0x78) {
                                         var_v0_2 = var_v1 * 4;
                                         goto block_365;
                                     }
-                                    goto block_294;
+                                    return 0x3CU;
                                 }
                                 /* Duplicate return node #367. Try simplifying control flow for better match */
                                 return var_v0;
@@ -433,11 +436,11 @@ block_174:
                             if ((u32) ((var_a1 - 0x13) & 0xFF) >= 3U) {
                                 if (((u32) ((var_a2_2 - 0x1B) & 0xFF) < 5U) && ((u32) ((var_a3 - 0x20) & 0xFF) < 5U)) {
                                     var_v1 = var_t0 & 0xFF;
-                                    if (*(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0x78) {
+                                    if (*(u16 *)(D_801C7081 + ((var_t0 & 0xFF) * 5)) != 0x78) {
                                         var_v0_2 = var_v1 * 4;
                                         goto block_365;
                                     }
-                                    goto block_294;
+                                    return 0x3CU;
                                 }
                                 goto block_366;
                             }
@@ -448,8 +451,8 @@ block_174:
                     goto block_364;
                 }
                 var_v1_4 = var_t0 & 0xFF;
-                if (*(D_801C7081 + ((var_t0 & 0xFF) * 5)) == 0) {
-                    if (*(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) != 0x78) {
+                if (*(u16 *)(D_801C7081 + ((var_t0 & 0xFF) * 5)) == 0) {
+                    if (*(u16 *)(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) != 0x78) {
                         var_v1_4 = var_t0 & 0xFF;
                         goto block_244;
                     }
@@ -483,9 +486,9 @@ block_174:
                 }
 block_244:
                 var_v0_15 = var_t0 & 0xFF;
-                if (*(D_801C7081 + (var_v1_4 * 5)) == 0x78) {
+                if (*(u16 *)(D_801C7081 + (var_v1_4 * 5)) == 0x78) {
                     var_v0_15 = var_t0 & 0xFF;
-                    if (*(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) == 0) {
+                    if (*(u16 *)(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) == 0) {
                         var_v0_13 = var_a3 - 0x16;
                         if ((u32) (var_a1 & 0xFF) >= 5U) {
                             var_v0_13 = var_a3 - 0x16;
@@ -516,8 +519,8 @@ block_244:
                     }
                 }
                 var_v1_5 = var_t0 & 0xFF;
-                if (*(D_801C7081 + (var_v0_15 * 5)) == 0) {
-                    if (*(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) != 0x3C) {
+                if (*(u16 *)(D_801C7081 + (var_v0_15 * 5)) == 0) {
+                    if (*(u16 *)(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) != 0x3C) {
                         var_v1_5 = var_t0 & 0xFF;
                         goto block_277;
                     }
@@ -536,7 +539,7 @@ block_244:
                                             if ((u32) ((var_a1 - 0x16) & 0xFF) < 5U) {
                                                 if ((u32) ((var_a2_2 - 0x1B) & 0xFF) >= 5U) {
                                                     var_v0_4 = (u32) ((var_a3 - 0x16) & 0xFF) >= 5U;
-                                                    goto block_339;
+                                                    return -var_v0_4 & 0x3C;
                                                 }
                                                 goto block_366;
                                             }
@@ -552,7 +555,7 @@ block_244:
                                             if ((u32) ((var_a1 - 0x20) & 0xFF) < 5U) {
                                                 if ((u32) ((var_a2_2 - 0x25) & 0xFF) >= 5U) {
                                                     var_v0_4 = (u32) ((var_a3 - 0x20) & 0xFF) >= 5U;
-                                                    goto block_339;
+                                                    return -var_v0_4 & 0x3C;
                                                 }
                                                 goto block_366;
                                             }
@@ -576,8 +579,8 @@ block_244:
                 }
 block_277:
                 var_v1_6 = var_t0 & 0xFF;
-                if (*(D_801C7081 + (var_v1_5 * 5)) == 0x3C) {
-                    if (*(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) != 0x78) {
+                if (*(u16 *)(D_801C7081 + (var_v1_5 * 5)) == 0x3C) {
+                    if (*(u16 *)(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) != 0x78) {
                         var_v1_6 = var_t0 & 0xFF;
                         goto block_295;
                     }
@@ -596,7 +599,6 @@ block_277:
                                             if ((u32) ((var_a1 - 0x20) & 0xFF) >= 5U) {
                                                 var_v0 = 0;
                                                 if ((u32) ((var_a1 - 0x25) & 0xFF) < 5U) {
-block_294:
                                                     return 0x3CU;
                                                 }
                                                 /* Duplicate return node #367. Try simplifying control flow for better match */
@@ -618,8 +620,8 @@ block_294:
                 }
 block_295:
                 var_v1_9 = var_t0 & 0xFF;
-                if (*(D_801C7081 + (var_v1_6 * 5)) == 0x3C) {
-                    if (*(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) != 0) {
+                if (*(u16 *)(D_801C7081 + (var_v1_6 * 5)) == 0x3C) {
+                    if (*(u16 *)(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) != 0) {
                         var_v1_9 = var_t0 & 0xFF;
                         goto block_317;
                     }
@@ -647,7 +649,7 @@ block_295:
                                             if ((u32) ((var_a1 - 0x1B) & 0xFF) < 5U) {
                                                 if ((u32) ((var_a3 - 0x16) & 0xFF) >= 5U) {
                                                     var_v0_4 = (u32) ((var_a2_2 - 0x1B) & 0xFF) >= 5U;
-                                                    goto block_339;
+                                                    return -var_v0_4 & 0x3C;
                                                 }
                                                 goto block_366;
                                             }
@@ -662,7 +664,7 @@ block_295:
                                             }
                                             if (((u32) ((var_a1 - 0x25) & 0xFF) < 5U) && ((u32) ((var_a3 - 0x20) & 0xFF) >= 5U)) {
                                                 var_v0_4 = (u32) ((var_a2_2 - 0x25) & 0xFF) >= 5U;
-                                                goto block_339;
+                                                return -var_v0_4 & 0x3C;
                                             }
                                             goto block_366;
                                         }
@@ -675,9 +677,9 @@ block_295:
                 }
 block_317:
                 var_v0 = 0;
-                if (*(D_801C7081 + (var_v1_9 * 5)) == 0x78) {
+                if (*(u16 *)(D_801C7081 + (var_v1_9 * 5)) == 0x78) {
                     var_v0 = 0;
-                    if (*(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) == 0x3C) {
+                    if (*(u16 *)(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) == 0x3C) {
                         var_v1_7 = var_a3 - 0x16;
                         if ((u32) (var_a1 & 0xFF) >= 5U) {
                             var_v1_7 = var_a3 - 0x20;
@@ -705,7 +707,7 @@ block_337:
                                                 var_v0_14 = var_v0_13 & 0xFF;
 block_338:
                                                 var_v0_4 = var_v0_14 < 5U;
-                                                goto block_339;
+                                                return -var_v0_4 & 0x3C;
                                             }
                                             /* Duplicate return node #367. Try simplifying control flow for better match */
                                             return var_v0;
@@ -829,15 +831,15 @@ block_115:
                     goto block_364;
                 }
 block_360:
-                return (*(D_801C7081 + (var_v0_5 * 5)) + 0x3C) & 0xFF;
+                return (*(u16 *)(D_801C7081 + (var_v0_5 * 5)) + 0x3C) & 0xFF;
             }
             goto block_366;
         }
         if ((u32) ((var_a1 - 0x16) & 0xFF) < 5U) {
-            if ((var_t3 & 0xFF) && (*(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) != 0x78)) {
+            if ((var_t3 & 0xFF) && (*(u16 *)(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) != 0x78)) {
                 if ((u32) ((var_a3 - 0x16) & 0xFF) < 5U) {
-                    var_v0_4 = *(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) == 0;
-                    goto block_339;
+                    var_v0_4 = *(u16 *)(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) == 0;
+                    return -var_v0_4 & 0x3C;
                 }
                 {var_v1 = var_t1_2 & 0xFF;
                 goto block_364;}
@@ -845,7 +847,7 @@ block_360:
             goto block_366;
         }
         if ((u32) ((var_a1 - 0x1B) & 0xFF) < 5U) {
-            if ((var_t3 & 0xFF) && (*(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) != 0)) {
+            if ((var_t3 & 0xFF) && (*(u16 *)(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) != 0)) {
                 var_v1 = var_t1_2 & 0xFF;
                 if ((u32) ((var_a3 - 0x16) & 0xFF) >= 5U) {
                     var_v0_3 = var_t1_2 & 0xFF;
@@ -856,10 +858,9 @@ block_360:
             goto block_366;
         }
         if ((u32) ((var_a1 - 0x20) & 0xFF) < 5U) {
-            if ((var_t3 & 0xFF) && (*(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) != 0x78)) {
+            if ((var_t3 & 0xFF) && (*(u16 *)(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) != 0x78)) {
                 if ((u32) ((var_a3 - 0x20) & 0xFF) < 5U) {
-                    var_v0_4 = *(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) == 0;
-block_339:
+                    var_v0_4 = *(u16 *)(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) == 0;
                     return -var_v0_4 & 0x3C;
                 }
 block_363:
@@ -868,12 +869,12 @@ block_363:
             }
             goto block_366;
         }
-        if (((u32) ((var_a1 - 0x25) & 0xFF) < 5U) && (var_t3 & 0xFF) && (*(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) != 0)) {
+        if (((u32) ((var_a1 - 0x25) & 0xFF) < 5U) && (var_t3 & 0xFF) && (*(u16 *)(D_801C7081 + ((var_t1_2 & 0xFF) * 5)) != 0)) {
             var_v1 = var_t1_2 & 0xFF;
             if ((u32) ((var_a3 - 0x20) & 0xFF) >= 5U) {
                 var_v0_3 = var_t1_2 & 0xFF;
 block_175:
-                return (*(D_801C7081 + (var_v0_3 * 5)) - 0x3C) & 0xFF;
+                return (*(u16 *)(D_801C7081 + (var_v0_3 * 5)) - 0x3C) & 0xFF;
             }
 block_364:
             var_v0_2 = var_v1 * 4;

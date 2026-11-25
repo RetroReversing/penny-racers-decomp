@@ -22,11 +22,16 @@ extern M2C_UNK D_8020379C;
 extern M2C_UNK D_802037A4;
 extern s16 D_802038DE;
 extern s16 D_802038E4;
-extern M2C_UNK D_802038E8;
-extern M2C_UNK D_802038E9;
-extern M2C_UNK D_802038EE;
-extern M2C_UNK D_802038F0;
-extern M2C_UNK D_802038F1;
+typedef struct { u8 f0; u8 pad[27]; } Slot_802038E8;
+extern Slot_802038E8 D_802038E8[];
+typedef struct { u8 f0; u8 pad[27]; } Slot_802038E9;
+extern Slot_802038E9 D_802038E9[];
+typedef struct { u8 f0; u8 pad[27]; } Slot_802038EE;
+extern Slot_802038EE D_802038EE[];
+typedef struct { u16 f0; u8 pad[26]; } Slot_802038F0;
+extern Slot_802038F0 D_802038F0[];
+typedef struct { u16 f0; u8 pad[26]; } Slot_802038F1;
+extern Slot_802038F1 D_802038F1[];
 extern M2C_UNK D_802038F2;
 extern M2C_UNK D_802038F3;
 extern M2C_UNK D_802038F4;
@@ -44,6 +49,7 @@ extern u16 D_80203ACE;
 void func_801FDA44(void **arg0) {
     s32 i;
 s32 __repair_phase_i;
+s32 __repair_phase___repair_phase_i;
     s32 a2;
     s32 a3;
     
@@ -67,29 +73,29 @@ s32 __repair_phase_s1;
     }
     GW(arg0, 0xF7000000, 0x80218021);
     for (i = 0; i < 5; i++) {
-        idx = (D_80203AB6 + i) & 0xFFFF;
+        __repair_phase_s1 = (D_80203AB6 + i); idx = __repair_phase_s1 & 0xFFFF;
         if (idx < 0x10) {
-            if (*(&D_802038F4 + idx * 0x1C) != 0) {
+            if (*((u8 *)((s8 *)&D_802038F4 + idx * 0x7)) != 0) {
                 GW(arg0, (((i * 0x28 + 0x6F) & 0x3FF) << 0xE) | 0xF600027C, (((i * 0x28 + 0x58) & 0x3FF) << 0xE) | 0x260);
             }
-            if (*(&D_802038F3 + idx * 0x1C) != 0) {
+            if (*((M2C_UNK *)((s8 *)&D_802038F3 + idx * 0x7)) != 0) {
                 GW(arg0, (((i * 0x28 + 0x6F) & 0x3FF) << 0xE) | 0xF6000B5C, (((i * 0x28 + 0x58) & 0x3FF) << 0xE) | 0x280);
             }
-            if (*(&D_802038F2 + idx * 0x1C) != 0) {
+            if (*((M2C_UNK *)((s8 *)&D_802038F2 + idx * 0x7)) != 0) {
                 GW(arg0, (((i * 0x28 + 0x6F) & 0x3FF) << 0xE) | 0xF60002BC, (((i * 0x28 + 0x58) & 0x3FF) << 0xE) | 0x2A0);
             }
-            if (*(&D_802038F5 + idx * 0x1C) != 0) {
+            if (*((M2C_UNK *)((s8 *)&D_802038F5 + idx * 0x7)) != 0) {
                 GW(arg0, (((i * 0x28 + 0x6F) & 0x3FF) << 0xE) | 0xF60002DC, (((i * 0x28 + 0x58) & 0x3FF) << 0xE) | 0x2C0);
             }
-            if (*(&D_802038F6 + idx * 0x1C) != 0) {
+            if (*((M2C_UNK *)((s8 *)&D_802038F6 + idx * 0x7)) != 0) {
                 GW(arg0, (((i * 0x28 + 0x6F) & 0x3FF) << 0xE) | 0xF60002FC, (((i * 0x28 + 0x58) & 0x3FF) << 0xE) | 0x2E0);
             }
         }
     }
     GW(arg0, 0xE7000000, 0);
     __repair_phase_i = D_80202624 * 2;
-    a2 = ((u32) (__repair_phase_i + 0x40) >> 2) & 0x1E;
     a3 = ((__repair_phase_i - 0x80) * 8) & 0x3C0;
+    a2 = ((u32) (__repair_phase_i + 0x40) >> 2) & 0x1E;
     GW(arg0, 0xF7000000,
        (((((__repair_phase_i << 8) & 0x7800) | (((__repair_phase_i + 0x20) * 8) & 0x3C0) | a2 | 1) << 0x10) | 1
         | ((((__repair_phase_i + 0x60) << 8) & 0x7800) | a3 | (((u32) (__repair_phase_i - 0x60) >> 2) & 0x1E))));
@@ -106,17 +112,17 @@ s32 __repair_phase_s1;
     for (i = 0; i < 5; i++) {
         s1 = (i + D_80203ACE) & 0xFFFF;
         if (s1 < 0x1A) {
-            __repair_phase_i = (((i & 0xFFFF) + 7) * 8) & 0xFFFF;
-            func_801CBF48(arg0, 0x88, __repair_phase_i, 8, &D_801D4FC0, 2, (s32) (i + D_80203ACE));
-            func_801CB74C(arg0, 0xA0, __repair_phase_i, 8, &D_801D4FC0, *(&D_80202580 + s1 * 4));
+            __repair_phase___repair_phase_i = (((i & 0xFFFF) + 7) * 8) & 0xFFFF;
+            func_801CBF48(arg0, 0x88, __repair_phase___repair_phase_i, 8, &D_801D4FC0, 2, (s32) (i + D_80203ACE));
+            func_801CB74C(arg0, 0xA0, __repair_phase___repair_phase_i, 8, &D_801D4FC0, *((M2C_UNK *)((s8 *)&D_80202580 + s1)));
         }
     }
     func_801CB74C(arg0, 0x28, 0x68, 8, &D_801D4FC0, &D_80203760);
     if (D_80203AC4 != -1) {
         func_801CBF48(arg0, 0x88, 0x68, 8, &D_801D4FC0, 2, (s32) D_80203AC6);
-        func_801CB74C(arg0, 0xA0, 0x68, 8, &D_801D4FC0, *(&D_80202580 + (D_80203AC4 * 4)));
+        func_801CB74C(arg0, 0xA0, 0x68, 8, &D_801D4FC0, *((M2C_UNK *)((s8 *)&D_80202580 + D_80203AC4)));
     }
-    func_801CB74C(arg0, 0x28, 0x78, 8, &D_801D4FC0, &D_8020376C);
+    do { func_801CB74C(arg0, 0x28, 0x78, 8, &D_801D4FC0, &D_8020376C); } while (0);
     func_801CBF48(arg0, 0x70, 0x78, 8, &D_801D4FC0, 5, (s32) D_802038DE);
     func_801CB74C(arg0, 0x28, 0x80, 8, &D_801D4FC0, &D_80203774);
     func_801CBF48(arg0, 0x70, 0x80, 8, &D_801D4FC0, 5, (s32) D_802038E4);
@@ -132,11 +138,11 @@ s32 __repair_phase_s1;
             __repair_phase_s1 = ((i & 0xFFFF) * 0x28 + 0x48) & 0xFFFF;
             func_801CBF48(arg0, __repair_phase_s1, 0x90, 8, &D_801D4FC0, 5, (s32) (i + D_80203AB6));
             __repair_phase_i = idx * 0x1C;
-            func_801CBF48(arg0, __repair_phase_s1, 0x98, 8, &D_801D4FC0, 5, (s32) *(&D_802038EE + __repair_phase_i));
-            func_801CBF48(arg0, __repair_phase_s1, 0xA0, 8, &D_801D4FC0, 5, (s32) *(&D_802038E9 + __repair_phase_i));
-            func_801CBF48(arg0, __repair_phase_s1, 0xA8, 8, &D_801D4FC0, 5, (s32) *(&D_802038E8 + __repair_phase_i));
-            func_801CBF48(arg0, __repair_phase_s1, 0xB0, 8, &D_801D4FC0, 5, (s32) *(&D_802038F0 + __repair_phase_i));
-            func_801CBF48(arg0, __repair_phase_s1, 0xB8, 8, &D_801D4FC0, 5, (s32) *(&D_802038F1 + __repair_phase_i));
+            func_801CBF48(arg0, __repair_phase_s1, 0x98, 8, &D_801D4FC0, 5, (s32) D_802038EE[idx].f0);
+            func_801CBF48(arg0, __repair_phase_s1, 0xA0, 8, &D_801D4FC0, 5, (s32) D_802038E9[idx].f0);
+            func_801CBF48(arg0, __repair_phase_s1, 0xA8, 8, &D_801D4FC0, 5, (s32) D_802038E8[idx].f0);
+            func_801CBF48(arg0, __repair_phase_s1, 0xB0, 8, &D_801D4FC0, 5, (s32) D_802038F0[idx].f0);
+            func_801CBF48(arg0, __repair_phase_s1, 0xB8, 8, &D_801D4FC0, 5, (s32) D_802038F1[idx].f0);
         }
     }
 }

@@ -1,12 +1,20 @@
-extern void func_80149CC4(s32, s32, void *, void *);
+extern void func_80149CC4(s32, s32);
 extern u8 D_80189B38[];
 extern u8 D_8018D3A0[];
 extern u8 D_8021E22F[];
-extern u8 D_8021F048[];
+extern int D_8021F048[];
 extern u8 D_8021F270[];
-s32 func_8014B714(s32 arg0)
+inline static int inline_fn(s32 arg0, s8 arg1)
 {
-  s32 i;
+  return (arg0 * 0x22) + ((arg1 & 0xFF) * 0x110);
+}
+
+s32 func_8014B714(s8 arg0)
+{
+    u8 *__base_D_8018D3A0;
+  u8 *__base_D_80189B38;
+  s32 __index_D_80189B38;
+  
   s32 __repair_phase_i;
   u8 *dst;
   u32 idx = arg0 & 0xFF;
@@ -14,14 +22,14 @@ s32 func_8014B714(s32 arg0)
   if (idx < 4)
   {
     ret = 0;
-    i = 0;
+    __index_D_80189B38 = 0;
     __repair_rows:
     {
       __repair_phase_i = 0;
-      D_8021F048[(idx * 0xE) + i] = D_80189B38[i + 4];
+      D_8021F048[((arg0 & 0xFF) * 0xE) + __index_D_80189B38] = D_80189B38[__index_D_80189B38 + 4];
       do
       {
-        *((u16 *) (((D_8021F270 + (idx * 0xE0)) + (i * 0x10)) + (__repair_phase_i * 2))) = *((u16 *) (((D_80189B38 + (i * 0x10)) + 0x1C) + (__repair_phase_i * 2)));
+        *((u16 *) (((D_8021F270 + (idx * 0xE0)) + (__index_D_80189B38 * 0x10)) + (__repair_phase_i * 2))) = *((u16 *) (((D_80189B38 + (__index_D_80189B38 * 0x10)) + 0x1C) + (__repair_phase_i * 2)));
         __repair_phase_i += 1;
       }
       while ((__repair_phase_i - 1) < (8 - 1));
@@ -31,7 +39,7 @@ s32 func_8014B714(s32 arg0)
         {
           do
           {
-            i++;
+            __index_D_80189B38++;
           }
           while (0);
         }
@@ -40,24 +48,27 @@ s32 func_8014B714(s32 arg0)
       while (0);
     }
 
-    if (i < 0xE)
+    if (__index_D_80189B38 < 0xE)
     {
       goto __repair_rows;
     }
-    dst = D_8018D3A0 + (idx * 0x20);
+    __base_D_8018D3A0 = D_8018D3A0;
+    dst = __base_D_8018D3A0 + ((arg0 & 0xFF) * 0x20);
     __repair_phase_i = 0;
-    do {
+    do
     {
-      do
       {
-        *((s32 *) (dst + (__repair_phase_i * 4))) = *((s32 *) ((D_80189B38 + (__repair_phase_i * 4)) + 0x11C)); D_8021E22F[(__repair_phase_i * 0x22) + ((arg0 & 0xFF) * 0x110)] = D_80189B38[__repair_phase_i + 0x14];
+        __index_D_80189B38 = __repair_phase_i * 4;
+        do
+        {
+          *((s32 *) (dst + (__repair_phase_i * 4))) = *((s32 *) (((__base_D_80189B38 = D_80189B38) + __index_D_80189B38) + 0x11C)); D_8021E22F[inline_fn(__repair_phase_i, arg0)] = D_80189B38[__repair_phase_i + 0x14];
+        }
+        while (0);
+        ++__repair_phase_i;
       }
-      while (0);
-      ++__repair_phase_i;
     }
-
-    } while (__repair_phase_i < 8);
-    func_80149CC4(idx, 1, dst, D_8021F270 + (idx * 0xE0));
+    while ((__index_D_80189B38 = __repair_phase_i) < 8);
+    func_80149CC4((arg0 & 0xFF), 1);
   }
   return ret;
 }

@@ -30,72 +30,93 @@ extern f64 D_8021DB80;
 extern f64 D_8021DB88;
 extern f64 D_8021DB90;
 extern f64 D_8021DB98;
-void func_802055F8(s32 *arg0)
+inline static s32 inline_fn(s32 *arg0)
 {
-    s32 *__base_D_8021AFFC;
-  register f32 *a = D_8021B024;
-  register f32 *b = D_8021B038;
-  f32 *c = D_8021B04C;
-  f32 *d = D_8021B028;
+  return *arg0;
+}
 
-  if ((*(u8 *)&D_8021B07E) == 2)
+unsigned int func_802055F8(s32 *arg0)
+{
+  s32 *__base_D_8021AFFC;
+  f32 *d = D_8021B028;
+  f32 *c = D_8021B04C;
+  register f32 *b = D_8021B038;
+  register f32 *a = D_8021B024;
+  if (inline_fn((u8 *) (&D_8021B07E)) == 2)
   {
-    a[0] = 0.0f;
-    b[0] = -10.0f;
+    do
+    {
+      do
+      {
+        a[0] = 0.0f;
+      }
+      while (0);
+      b[0] = -10.0f;
+    }
+    while (0);
     c[0] = 0.0f;
-    a[1] = -60.0f;
+    D_8021B024[1] = -60.0f;
     b[1] = 15.0f;
     c[1] = -70.0f;
-    a[2] = 60.0f;
+    D_8021B024[2] = 60.0f;
     b[2] = 15.0f;
     c[2] = -70.0f;
-    a[3] = -158.0f;
+    D_8021B024[3] = -158.0f;
     b[3] = 15.0f;
     c[3] = -70.0f;
-    a[4] = 158.0f;
+    D_8021B024[4] = 158.0f;
     b[4] = 15.0f;
-    c[4] = -70.0f;
-    D_8021B019 = 0;
-    (*(u8 *)&D_8021B07E) = 0;
+    do
+    {
+      c[4] = -70.0f; D_8021B019 = 0;
+      *((u8 *) (&D_8021B07E)) = 0;
+    }
+    while (0);
   }
   if ((((D_8021B02C[0] <= D_8021DB10) && (D_8021DB10 >= D_8021B040)) && (D_8021DB18 <= D_8021B054)) || (((D_8021DB20 <= d[0]) && (D_8021B03C <= D_8021DB28)) && (D_8021DB20 <= D_8021B050)))
   {
-    switch (D_8021B019)
+    do
     {
-      __base_D_8021AFFC = &D_8021AFFC;
-      case 1:
-        (*__base_D_8021AFFC) = (*__base_D_8021AFFC) + 1;
-        break;
-      case 2:
-        (*__base_D_8021AFFC) = (*__base_D_8021AFFC) - 1;
-        break;
-    }
+      switch (D_8021B019)
+      {
+        __base_D_8021AFFC = &D_8021AFFC;
+        case 2:
+          *__base_D_8021AFFC = inline_fn(__base_D_8021AFFC) - 1;
+          break;
 
-    if ((D_8021B06A) < (*__base_D_8021AFFC))
-    {
-      (*__base_D_8021AFFC) = 0;
+        case 1:
+          *__base_D_8021AFFC = inline_fn(__base_D_8021AFFC) + 1;
+          break;
+
+      }
+
+      if (D_8021B06A < (*__base_D_8021AFFC))
+      {
+        *__base_D_8021AFFC = 0;
+      }
+      else
+        if (inline_fn(__base_D_8021AFFC) < 0)
+      {
+        *__base_D_8021AFFC = D_8021B06A;
+      }
+      D_8021B019 = 3;
     }
-    else
-      if ((*__base_D_8021AFFC) < 0)
-    {
-      (*__base_D_8021AFFC) = D_8021B06A;
-    }
-    D_8021B019 = 3;
-    (*(u8 *)&D_8021B07E) += 1;
+    while (0);
+    *((u8 *) (&D_8021B07E)) += 1;
     return;
   }
   switch (D_8021B019)
   {
     case 1:
-      d[0] = (f32) (((f64) d[0]) - D_8021DB30);
+      D_8021B028[0] = (f32) (((f64) D_8021B028[0]) - D_8021DB30);
       D_8021B050 = -70.0f;
       D_8021B03C = 15.0f;
-      d[1] = (f32) (((f64) sqrtf()) * D_8021DB38);
+      D_8021B028[1] = (f32) (((f64) sqrtf()) * D_8021DB38);
       D_8021B054 = (f32) (-(((f64) sqrtf()) * D_8021DB48));
       D_8021B040 = (f32) (((f64) sqrtf()) * D_8021DB40);
       D_8021B024[0] = (f32) (-(D_8021DB50 - ((f64) a[2])));
       b[0] = (f32) (5.0f - D_8021B038[2]);
-      a[4] = (f32) (((f64) D_8021B024[4]) - (int)D_8021DB60);
+      a[4] = (f32) (((f64) D_8021B024[4]) - ((int) D_8021DB60));
       b[4] = 15.0f;
       D_8021B04C[0] = (f32) (-(((f64) c[2]) + D_8021DB58));
       c[4] = -70.0f;
@@ -106,12 +127,15 @@ void func_802055F8(s32 *arg0)
       D_8021B040 = 15.0f;
       D_8021B054 = -70.0f;
       D_8021B03C = (f32) (sqrtf() * D_8021DB78);
-      D_8021B02C[-1] = (f32) (-(((f64) sqrtf()) * D_8021DB70));
-      D_8021B050 = (f32) (-(((f64) sqrtf()) * D_8021DB80));
+      do
+    {
+      D_8021B02C[-1] = (f32) (-(((f64) sqrtf()) * D_8021DB70)); D_8021B050 = (f32) (-(((f64) sqrtf()) * D_8021DB80));
+    }
+    while (0);
       b[0] = (f32) (5.0f - b[1]);
       a[0] = (f32) (((f64) a[1]) + D_8021DB88);
-      c[0] = (f32) (-(((f64) c[1]) + (u32)D_8021DB90));
-      a[3] = (f32) (D_8021DB98 + ((f64) a[3]));
+      c[0] = (f32) (-(((u32) D_8021DB90) + ((f64) c[1])));
+      a[3] = (f32) (((f64) a[3]) + D_8021DB98);
       b[3] = 15.0f;
       c[3] = -70.0f;
       return;
@@ -119,3 +143,4 @@ void func_802055F8(s32 *arg0)
   }
 
 }
+

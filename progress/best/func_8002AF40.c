@@ -20,7 +20,7 @@ s32 alEvtqNextEvent(void *, void *);
 M2C_UNK alEvtqPostEvent(void *, void *, s32);
 M2C_UNK func_8002B454(void *);
 M2C_UNK func_8002B534(void *, void *);
-M2C_UNK __n_setUsptFromTempo(void *, M2C_UNK);
+M2C_UNK __n_setUsptFromTempo(void *, f32);
 M2C_UNK __CSPPostNextSeqEvent(void *);
 s32 func_80031B94(M2C_UNK *, s32);
 M2C_UNK func_800346B0(M2C_UNK *, M2C_UNK *, M2C_UNK);
@@ -29,7 +29,11 @@ M2C_UNK n_alSynSetPitch(M2C_UNK *, f32);
 M2C_UNK n_alSynSetVol(M2C_UNK *, s16, s32);
 M2C_UNK n_alSynStopVoice(M2C_UNK *);
 
+extern const char D_8004A270[];
+extern const char D_8004A274[];
 s32 func_8002AF40(void *arg0) {
+    M2C_UNK * __repair_hoisted;
+
     Msg msg;
     f32 sp20;
     M2C_UNK *temp_a1;
@@ -47,10 +51,12 @@ s32 func_8002AF40(void *arg0) {
     M2C_UNK *var_s0;
     M2C_UNK *var_s1;
     M2C_UNK *var_s1_2;
-    s16 temp_s0_3;
+    s32 temp_s0_3;
+    s32 temp_s0_3_arm;
     s16 temp_s0_5;
-    s16 temp_v1;
+    
     s32 temp_s3;
+s32 __repair_phase_temp_s3;
     s32 temp_s3_2;
     
     s32 temp_s4_2;
@@ -64,16 +70,16 @@ s32 func_8002AF40(void *arg0) {
 
     temp_s6 = arg0 + 0x48;
     do {
-        temp_v1 = M2C_FIELD(arg0, s16 *, 0x38);
-        switch (temp_v1) {
+        temp_s0_3 = M2C_FIELD(arg0, s16 *, 0x38);
+        switch (temp_s0_3) {
         case 0:
             func_8002B454(arg0);
-            var_a0 = arg0 + 0x48;
+            var_a0 = (void *) ((0x48) + (s32) arg0);
             break;
         case 9:
             msg.type = 9;
             alEvtqPostEvent(arg0 + 0x48, &msg, M2C_FIELD(arg0, s32 *, 0x5C));
-            var_a0 = arg0 + 0x48;
+            var_a0 = (void *) ((0x48) + (s32) arg0);
             break;
         case 5:
             temp_s0 = M2C_FIELD(arg0, M2C_UNK **, 0x3C);
@@ -84,7 +90,7 @@ s32 func_8002AF40(void *arg0) {
                 __seqpStopOsc(arg0, temp_s1);
             }
             __unmapVoice(arg0, temp_s0);
-            var_a0 = arg0 + 0x48;
+            var_a0 = (void *) ((0x48) + (s32) arg0);
             break;
         case 6:
             temp_s0_2 = M2C_FIELD(arg0, M2C_UNK **, 0x3C);
@@ -95,8 +101,9 @@ s32 func_8002AF40(void *arg0) {
             temp_s3 = M2C_FIELD(arg0, s32 *, 0x40);
             M2C_FIELD(temp_s1_2, s32 *, 0x24) = (s32) (M2C_FIELD(arg0, s32 *, 0x1C) + temp_s3);
             M2C_FIELD(temp_s1_2, u8 *, 0x30) = (u8) M2C_FIELD(arg0, u8 *, 0x44);
-            do { n_alSynSetVol(temp_s0_2, __vsVol(temp_s1_2, arg0), temp_s3); } while (0);
-            var_a0 = arg0 + 0x48;
+            __repair_rows: { n_alSynSetVol(temp_s0_2, __vsVol(temp_s1_2, arg0), temp_s3); }
+if (0) goto __repair_rows;
+            var_a0 = (void *) ((0x48) + (s32) arg0);
             break;
         case 22:
             temp_s1_3 = M2C_FIELD(arg0, M2C_UNK **, 0x3C);
@@ -108,36 +115,36 @@ s32 func_8002AF40(void *arg0) {
                 var_v1 = (s32) (sp20 - 2.1474836e9f) | 0x80000000;
             }
             M2C_FIELD(temp_s1_3, s8 *, 0x36) = (s8) var_v1;
-            temp_s0_3 = __vsVol(temp_s1_3, arg0);
-            n_alSynSetVol(temp_s1_3 + 4, temp_s0_3, func_80031B94(temp_s1_3, M2C_FIELD(arg0, s32 *, 0x1C)));
-            msg.type = 0x16;
+            temp_s0_3_arm = __vsVol(temp_s1_3, arg0);
+            n_alSynSetVol(temp_s1_3 + 4, temp_s0_3_arm, func_80031B94(temp_s1_3, M2C_FIELD(arg0, s32 *, 0x1C)));
             msg.a = temp_s1_3;
             msg.b = temp_s3;
+            msg.type = 0x16;
             alEvtqPostEvent(arg0 + 0x48, &msg, temp_s3_2);
-            var_a0 = arg0 + 0x48;
+            var_a0 = (void *) ((0x48) + (s32) arg0);
             break;
         case 23:
             temp_s1_4 = M2C_FIELD(arg0, M2C_UNK **, 0x3C);
-            temp_s4_2 = M2C_FIELD(arg0, s32 *, 0x40);
+            temp_s3_2 = M2C_FIELD(arg0, s32 *, 0x40);
             temp_s0_4 = M2C_FIELD(arg0, u8 *, 0x44);
-            temp_v0_2 = M2C_FIELD(arg0, s32 (**)(s32, f32 *), 0x74)(temp_s4_2, &sp20);
+            temp_s3 = M2C_FIELD(arg0, s32 (**)(s32, f32 *), 0x74)(temp_s3_2, &sp20);
             M2C_FIELD(temp_s1_4, f32 *, 0x2C) = sp20;
             n_alSynSetPitch(temp_s1_4 + 4, M2C_FIELD(temp_s1_4, f32 *, 0x28) * sp20 * M2C_FIELD(((temp_s0_4 * 0x10) + M2C_FIELD(arg0, s32 *, 0x60)), f32 *, 0xC));
             msg.type = 0x17;
             msg.a = temp_s1_4;
-            msg.b = temp_s4_2;
+            msg.b = temp_s3_2;
             msg.c = temp_s0_4;
-            alEvtqPostEvent(arg0 + 0x48, &msg, temp_v0_2);
-            var_a0 = arg0 + 0x48;
+            alEvtqPostEvent(arg0 + 0x48, &msg, temp_s3);
+            var_a0 = (void *) ((0x48) + (s32) arg0);
             break;
         case 2:
         case 21:
             func_8002B534(arg0, arg0 + 0x38);
-            var_a0 = arg0 + 0x48;
+            var_a0 = (void *) ((0x48) + (s32) arg0);
             break;
         case 7:
             __CSPHandleMetaMsg(arg0, arg0 + 0x38);
-            var_a0 = arg0 + 0x48;
+            var_a0 = (void *) ((0x48) + (s32) arg0);
             break;
         case 10:
             var_s1 = M2C_FIELD(arg0, M2C_UNK **, 0x64);
@@ -145,102 +152,99 @@ s32 func_8002AF40(void *arg0) {
             if (var_s1 != NULL) {
                 var_a0_2 = var_s1;
                 do {
-                    temp_s0_5 = __vsVol(var_a0_2, arg0);
-                    n_alSynSetVol(var_s1 + 4, temp_s0_5, func_80031B94(var_s1, M2C_FIELD(arg0, s32 *, 0x1C)));
+                    __repair_phase_temp_s3 = (s16)(__vsVol(var_a0_2, arg0));
+                    n_alSynSetVol(var_s1 + 4, __repair_phase_temp_s3, func_80031B94(var_s1, M2C_FIELD(arg0, s32 *, 0x1C)));
                     var_s1 = *var_s1;
                     var_a0_2 = var_s1;
                 } while (var_s1 != NULL);
-                var_a0 = arg0 + 0x48;
+                var_a0 = (void *) ((0x48) + (s32) arg0);
             } else {
             default:
 block_50:
-                var_a0 = arg0 + 0x48;
+                var_a0 = (void *) ((0x48) + (s32) arg0);
             }
             break;
         case 15:
-            var_a0 = arg0 + 0x48;
             if (M2C_FIELD(arg0, s32 *, 0x2C) != 1) {
                 M2C_FIELD(arg0, s32 *, 0x2C) = 1;
                 __CSPPostNextSeqEvent(arg0);
-                var_a0 = arg0 + 0x48;
             }
+            var_a0 = (void *) ((0x48) + (s32) arg0);
             break;
         case 16:
-            var_a0 = arg0 + 0x48;
+            var_a0 = (void *) ((0x48) + (s32) arg0);
             if (M2C_FIELD(arg0, s32 *, 0x2C) == 2) {
                 temp_s1_5 = M2C_FIELD(arg0, M2C_UNK **, 0x64);
-                if (temp_s1_5 == NULL) {
-                    M2C_FIELD(arg0, s32 *, 0x2C) = 0;
-                } else {
-                    var_s0 = temp_s1_5 + 4;
+                __repair_hoisted = M2C_FIELD(arg0, M2C_UNK **, 0x64);
+                if (temp_s1_5 != NULL) {
+                    var_s0 = (void *) ((4) + (s32) temp_s1_5);
                     do {
                         n_alSynStopVoice(var_s0);
                         n_alSynFreeVoice(var_s0);
-                        if (M2C_FIELD(M2C_FIELD(arg0, M2C_UNK **, 0x64), u8 *, 0x37) != 0) {
+                        if (M2C_FIELD(__repair_hoisted, u8 *, 0x37) != 0) {
                             __seqpStopOsc(arg0, M2C_FIELD(arg0, M2C_UNK **, 0x64));
                         }
                         __unmapVoice(arg0, var_s0);
                         temp_s1_6 = M2C_FIELD(arg0, M2C_UNK **, 0x64);
-                        var_s0 = temp_s1_6 + 4;
+                        var_s0 = (void *) ((4) + (s32) temp_s1_6);
                     } while (temp_s1_6 != NULL);
                     M2C_FIELD(arg0, s32 *, 0x2C) = 0;
                     goto block_50;
+                } else {
+                    M2C_FIELD(arg0, s32 *, 0x2C) = 0;
                 }
             }
             break;
         case 17:
-            var_a0 = arg0 + 0x48;
             if (M2C_FIELD(arg0, s32 *, 0x2C) == 1) {
                 alEvtqFlushType((arg0 + 0x48), 0);
                 alEvtqFlushType((arg0 + 0x48), 0x15);
                 alEvtqFlushType((arg0 + 0x48), 2);
                 var_s1_2 = M2C_FIELD(arg0, M2C_UNK **, 0x64);
-                var_a0_3 = arg0 + 0x48;
                 if (var_s1_2 != NULL) {
                     do {
-                        temp_s0_6 = var_s1_2 + 4;
+                        temp_s0_6 = (void *) ((4) + (s32) var_s1_2);
                         if ((__voiceNeedsNoteKill(arg0, temp_s0_6, 0xC350) << 0x18) != 0) {
                             __n_seqpReleaseVoice(arg0, temp_s0_6, 0xC350);
                         }
                         var_s1_2 = *var_s1_2;
                     } while (var_s1_2 != NULL);
-                    var_a0_3 = arg0 + 0x48;
                 }
+                var_a0_3 = (void *) ((0x48) + (s32) arg0);
                 M2C_FIELD(arg0, s32 *, 0x2C) = 2;
                 msg.type = 0x10;
                 alEvtqPostEvent(var_a0_3, &msg, 0x7FFFFFFF);
-                var_a0 = arg0 + 0x48;
             }
+            var_a0 = (void *) ((0x48) + (s32) arg0);
             break;
         case 12:
             M2C_FIELD((((u8) M2C_FIELD(arg0, M2C_UNK **, 0x3C) * 0x10) + M2C_FIELD(arg0, s32 *, 0x60)), u8 *, 8) = (u8) M2C_FIELD(arg0, u8 *, 0x3D);
             goto block_50;
         case 13:
             if (M2C_FIELD(arg0, s32 *, 0x2C) == 1) {
-                func_800346B0("EX", "n_csplayer.c", 0x111);
+                func_800346B0(D_8004A270, D_8004A274, 0x111);
             }
             M2C_FIELD(arg0, M2C_UNK **, 0x18) = (M2C_UNK *) M2C_FIELD(arg0, M2C_UNK **, 0x3C);
-            __n_setUsptFromTempo(arg0, 0x48F42400);
+            __n_setUsptFromTempo(arg0, 500000.0f);
             temp_a1 = M2C_FIELD(arg0, M2C_UNK **, 0x20);
-            var_a0 = arg0 + 0x48;
             if (temp_a1 != NULL) {
                 __initFromBank(arg0, temp_a1);
-                var_a0 = arg0 + 0x48;
             }
+            var_a0 = (void *) ((0x48) + (s32) arg0);
             break;
         case 14:
             if (M2C_FIELD(arg0, s32 *, 0x2C) != 0) {
-                func_800346B0("EX", "n_csplayer.c", 0x11B);
+                func_800346B0(D_8004A270, D_8004A274, 0x11B);
             }
             temp_a1_2 = M2C_FIELD(arg0, M2C_UNK **, 0x3C);
             M2C_FIELD(arg0, M2C_UNK **, 0x20) = temp_a1_2;
             __initFromBank(arg0, temp_a1_2);
-            var_a0 = arg0 + 0x48;
+            var_a0 = (void *) ((0x48) + (s32) arg0);
             break;
         case 1:
         case 3:
         case 4:
-            func_800346B0("EX", "n_csplayer.c", 0x128);
+            func_800346B0(D_8004A270, D_8004A274, 0x128);
             goto block_50;
         }
         temp_v0 = alEvtqNextEvent(var_a0, arg0 + 0x38);

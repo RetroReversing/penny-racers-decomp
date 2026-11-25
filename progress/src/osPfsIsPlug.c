@@ -6,7 +6,7 @@ s32 __osPfsRequestData(s32);
 void func_80041100();
 void func_8003F464();
 void func_8003F4D0();
-s32 func_8003F350();
+s32 __osSiRawStartDma();
 s32 osRecvMesg(s32, s32 *, s32);
 
 s32 osPfsIsPlug(s32 queue, u8 *pattern) {
@@ -22,9 +22,9 @@ s32 osPfsIsPlug(s32 queue, u8 *pattern) {
     pif = (u8*)(D_800D555E + 0x7E82);
     do {
         __osPfsRequestData(0);
-        func_8003F350(1, pif);
+        __osSiRawStartDma(1, pif);
         osRecvMesg(queue, &dummy, 1);
-        ret = func_8003F350(0, pif);
+        ret = __osSiRawStartDma(0, pif);
         osRecvMesg(queue, &dummy, 1);
         func_80041100(&bitpattern, data);
         for (channel = 0; channel < D_8006FE78; channel++) {

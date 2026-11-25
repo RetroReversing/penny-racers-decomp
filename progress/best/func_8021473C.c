@@ -1,18 +1,25 @@
 s32 func_8014A4C8();
 s32 func_801CA140();
 s32 func_801CA468();
-extern unsigned long long D_8011F330[];
+extern unsigned short D_8011F330[];
 extern s32 D_8021E130;
 extern u8 D_8021E19E;
-void func_8021473C(s32 arg0, s32 arg1)
+void func_8021473C(s32 arg0, unsigned int arg1)
 {
   s32 var_a1;
-  u16 temp_v1;
-  temp_v1 = *(D_8011F330 + ((arg1 & 0xFFFF) * 0x64));
+  s32 temp_v1;
+  if (arg0)
+  {
+    temp_v1 = *(D_8011F330 + ((arg1 & 0xFFFF) * 0x64));
+  }
+  else
+  {
+    temp_v1 = *(D_8011F330 + ((arg1 & 0xFFFF) * 0x64));
+  }
   switch (temp_v1)
   {
     case 0:
-      *(D_8011F330 + ((arg1 & 0xFFFF) * 0x64)) = 1;
+      *(D_8011F330 - (-((arg1 & 0xFFFF) * 0x64))) = 1;
       D_8021E19E = 0;
       return;
 

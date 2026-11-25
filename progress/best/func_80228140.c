@@ -1,57 +1,76 @@
-/* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
-
 s32 func_801D7028();
 s32 func_80221AD0();
 extern char D_801E9D80[];
 extern char D_801E9D81[];
 extern s32 D_801F1884;
+inline static char *inline_fn(char *arg0, int arg1)
+{
+  return arg0 + arg1;
+}
 
-void func_80228140(s32 arg0, void *arg1) {
-    u8 *temp_a1;
-
-    temp_a1 = D_801F1884 + D_801E9D80;
-    if (*temp_a1 != 0xFF) {
-        if (!(*temp_a1 & 2)) {
-            M2C_FIELD(arg1, s32 *, 0x890) = 0;
-        } else {
-            M2C_FIELD(arg1, s32 *, 0x890) += 1;
-        }
-        if (!(*(D_801E9D80 + D_801F1884) & 4)) {
-            M2C_FIELD(arg1, s32 *, 0x894) = 0;
-        } else {
-            M2C_FIELD(arg1, s32 *, 0x894) += 1;
-        }
-        if (!(*(D_801E9D80 + D_801F1884) & 0x10)) {
-            M2C_FIELD(arg1, s32 *, 0x898) = 0;
-        } else {
-            M2C_FIELD(arg1, s32 *, 0x898) += 1;
-        }
-        if (!(*(D_801E9D80 + D_801F1884) & 8)) {
-            M2C_FIELD(arg1, s32 *, 0x89C) = 0;
-        } else {
-            M2C_FIELD(arg1, s32 *, 0x89C) += 1;
-        }
-        if (*(D_801E9D80 + D_801F1884) & 1) {
-            M2C_FIELD(arg1, s8 *, 0x87C) = -0x40;
-        } else {
-            M2C_FIELD(arg1, s8 *, 0x87C) = 0;
-        }
-        M2C_FIELD(arg1, u8 *, 0x87B) = (u8) *(D_801E9D81 + D_801F1884);
-        if (M2C_FIELD(arg1, s32 *, 0x89C) == 1) {
-            func_801D7028(arg0 & 0xFFFF, 0x37);
-        }
-        func_80221AD0(arg1);
+unsigned short func_80228140(s32 arg0, void *arg1)
+{
+  s32 __repair_operand;
+  u8 *temp_a1;
+  if (D_801E9D81)
+    {
+      __repair_operand = (s32) (&D_801F1884);
     }
+  else
+    {
+      __repair_operand = (s32) (&D_801F1884);
+    }
+  if (D_801E9D81)
+    {
+      temp_a1 = __repair_operand + D_801E9D80;
+    }
+  else
+    {
+      temp_a1 = __repair_operand + D_801E9D80;
+    }
+  if ((*temp_a1) != 0xFF)
+  {
+    if ((*temp_a1) & 2)
+    {
+      *((s32 *) (((char *) arg1) + 0x890)) += 1;
+    }
+    else
+    {
+      *((s32 *) (((char *) arg1) + 0x890)) = 0;
+    }
+    if ((*(D_801E9D80 + D_801F1884)) & 4)
+    {
+      *((s32 *) (((char *) arg1) + 0x894)) += 1;
+    }
+    else
+    {
+      *((s32 *) (((char *) arg1) + 0x894)) = 0;
+    }
+    if (0x10 & (*(D_801E9D80 + D_801F1884)))
+    {
+      *((s32 *) (((char *) arg1) + 0x898)) += 1;
+    }
+    else
+    {
+      *((s32 *) (((char *) arg1) + 0x898)) = 0;
+    }
+    if ((*(D_801E9D80 + D_801F1884)) & 8)
+    {
+      *((s32 *) (((char *) arg1) + 0x89C)) += 1;
+    }
+    else
+    {
+      *((s32 *) (((char *) arg1) + 0x89C)) = 0;
+    }
+    if ((*(D_801E9D80 + D_801F1884)) & 1)
+    {
+      *((s8 *) inline_fn((char *) arg1, 0x87C)) = -0x40;
+    }
+    else
+    {
+      *((s8 *) (((char *) arg1) + 0x87C)) = 0;
+    }
+    *((u8 *) (((char *) arg1) + 0x87B)) = (u8) (*(D_801E9D81 + D_801F1884));
+ do { if ((*((s32 *) (((char *) arg1) + 0x89C))) == 1) { func_801D7028(arg0 & 0xFFFF, 0x37); } func_80221AD0(arg1); } while (0);
+  }
 }

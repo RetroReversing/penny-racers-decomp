@@ -51,12 +51,13 @@ inline static f32 inline_fn2()
 
 void func_8012A384(u8 *arg0, s32 arg1)
 {
-    Vec3 *__base_D_8012AB7C;
-    Vec3 *__base_D_8012AB4C;
-  Group *g;
+  Vec3 *__base_D_8012AB7C;
+  Vec3 *__base_D_8012AB4C;
+  volatile unsigned long pad;
   Group **gp;
   Mesh *m;
   u8 *t;
+  Group *g;
   char *msg;
   s32 bad;
   s32 i;
@@ -79,8 +80,8 @@ void func_8012A384(u8 *arg0, s32 arg1)
       for (v = 0; v < m->nverts; v++)
       {
         D_8012AB98[m->base + v].x = (*((f32 *) (arg0 + 0x18))) + m->verts[v].x;
-        D_8012AB98[inline_fn(m) + v].y = ((*((f32 *) (arg0 + 0x1C)))) + (m->verts[v].y);
-        D_8012AB98[inline_fn(m) + v].z = ((*((f32 *) (arg0 + 0x20)))) + (m->verts[v].z);
+        i = m->verts[v].y; D_8012AB98[inline_fn(m) + v].y = (*((f32 *) (arg0 + 0x1C))) + i;
+        D_8012AB98[inline_fn(m) + v].z = ((long) (*((f32 *) (arg0 + 0x20)))) + m->verts[v].z;
       }
 
       for (k = 0; 0 < m->n; k++)
@@ -88,17 +89,24 @@ void func_8012A384(u8 *arg0, s32 arg1)
         t = &m->tris[k * 3];
         D_8012AB64 = D_8012AB98[t[0]];
         __base_D_8012AB4C = &D_8012AB4C;
-        (*__base_D_8012AB4C) = D_8012AB98[t[1]];
+        *__base_D_8012AB4C = D_8012AB98[t[1]];
         __base_D_8012AB7C = &D_8012AB7C;
-        (*__base_D_8012AB7C) = D_8012AB98[t[2]];
+        *__base_D_8012AB7C = D_8012AB98[t[2]];
         do
         {
-          bad++;
+          if (D_8012AB64.y || g->meshes)
+          {
+            bad++;
+          }
+          else
+          {
+            bad++;
+          }
         }
         while (0);
         if (((((D_8012AB64.x == (*__base_D_8012AB4C).x) && (D_8012AB64.y == (*__base_D_8012AB4C).y)) && (D_8012AB64.z == (*__base_D_8012AB4C).z)) || (((D_8012AB64.x == (*__base_D_8012AB7C).x) && (D_8012AB64.y == (*__base_D_8012AB7C).y)) && (D_8012AB64.z == (*__base_D_8012AB7C).z))) || ((((*__base_D_8012AB7C).x == inline_fn2()) && ((*__base_D_8012AB7C).y == (*__base_D_8012AB4C).y)) && ((*__base_D_8012AB7C).z == (*__base_D_8012AB4C).z)))
         {
-          if ((((((D_8012AB64.x == (*__base_D_8012AB7C).x) && (D_8012AB64.y == (*__base_D_8012AB7C).y)) && (D_8012AB64.z == (*__base_D_8012AB7C).z)) && (D_8012AB64.x == inline_fn2())) && (D_8012AB64.y == (*__base_D_8012AB4C).y)) && (D_8012AB64.z == (*__base_D_8012AB4C).z))
+          if ((((((D_8012AB64.x == (*__base_D_8012AB7C).x) && (D_8012AB64.y == (*__base_D_8012AB7C).y)) && (D_8012AB64.z == (*__base_D_8012AB7C).z)) && (inline_fn2() == D_8012AB64.x)) && (D_8012AB64.y == (*__base_D_8012AB4C).y)) && (D_8012AB64.z == (*__base_D_8012AB4C).z))
           {
             msg = D_8012AA68;
           }

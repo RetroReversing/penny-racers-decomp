@@ -36,8 +36,8 @@ s32 func_8012913C(s32 arg0, f32 arg1, s32 arg2, f32 arg3)
   loop_1:
   temp_a0 = var_v1 * 0x64;
 
-  temp_v1 = *((void **) (((char *) (*((void **) (((char *) (*((void **) (((char *) (*((&D_8011F340) + temp_a0))) + 4)))) + 4)))) + 4));
   temp_fv1 = *((&D_8011F308) - (-temp_a0));
+  temp_v1 = *((void **) (((char *) (*((void **) (((char *) (*((void **) (((char *) (*((&D_8011F340) + temp_a0))) + 4)))) + 4)))) + 4));
   var_v0 = var_a1 & 0xFFFF;
   if ((((!(arg1 < (((f32) (*((s16 *) (((char *) temp_v1) + 0x40)))) + (*((&D_8011F308) - (-temp_a0)))))) || ((var_v0 = var_a1 & 0xFFFF, !((((f32) (*((s16 *) (((char *) temp_v1) + 0x50)))) + (*((&D_8011F308) - (-temp_a0)))) < arg1)))) || ((var_v0 = var_a1 & 0xFFFF, !(arg3 < (((f32) (*((s16 *) (((char *) temp_v1) + 0x44)))) + (*((&D_8011F310) + temp_a0))))))) || ((var_v0 = var_a1 & 0xFFFF, !((((f32) (*((s16 *) (((char *) temp_v1) + 0x54)))) + (*((&D_8011F310) + temp_a0))) < arg3))))
   {

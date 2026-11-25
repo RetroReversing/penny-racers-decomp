@@ -1,4 +1,4 @@
-extern u8 D_8011F2FC[];
+extern unsigned int D_8011F2FC[];
 extern u8 D_8011F2FD[];
 extern u16 D_8011F2FE[];
 extern float D_8011F308[];
@@ -12,14 +12,50 @@ extern float D_8011F334[];
 extern float D_8011F338[];
 extern float D_8011F33C[];
 extern void *D_8011F350[];
-
-void func_8013B1BC(u16 a0) {
-    u32 off = (u32)a0 * 100;
-    u32 st;
-    if (D_8011F2FC[off] < 0x33) {
-        D_8011F2FD[off] = 2;
-        return;
-    }
-    st = D_8011F32E[off] - 0xB;
-    (void)st;
+inline static int inline_fn(s32 arg0)
+{
+  return ((u32) (arg0 & 0xFFFF)) * 10;
 }
+
+void func_8013B1BC(s32 a0)
+{
+  int __repair_constant = 2;
+  u32 off = inline_fn(a0) * 10;
+  u32 st;
+  if (D_8011F2FC[off] < 0x33)
+  {
+    if (!off)
+    {
+      if (a0)
+      {
+        D_8011F2FD[off] = __repair_constant;
+        return;
+      }
+      else
+      {
+        D_8011F2FD[off] = __repair_constant;
+        return;
+      }
+    }
+    else
+      if (off || (a0 & 0xFFFF))
+    {
+      D_8011F2FD[off] = __repair_constant;
+      return;
+    }
+    else
+      if (off)
+    {
+      D_8011F2FD[off] = __repair_constant;
+      return;
+    }
+    else
+    {
+      D_8011F2FD[off] = __repair_constant;
+      return;
+    }
+  }
+  st = D_8011F32E[off] - 0xB;
+  (void) st;
+}
+

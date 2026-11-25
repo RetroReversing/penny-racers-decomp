@@ -1,5 +1,34 @@
 # PENNY RACERS (decompilation)
 
+<!-- decompdecomp:details:start -->
+- **Game:** PENNY RACERS
+- **Platform:** n64
+- **Compiler:** gcc-2.7.2-kmc
+<!-- decompdecomp:details:end -->
+<!-- decompdecomp:progress:start -->
+- **Progress:** 693 matching function(s), 544 best attempt(s)
+- **Completion:** 693 / 1,220 functions (56.8%). 72 set aside, excluded from completion.
+<!-- decompdecomp:progress:end -->
+<!-- decompdecomp:visuals:start -->
+![Decompilation completion and function map](progress/decompdecomp-progress.svg)
+
+Green: matched. Gold: attempted. Grey: open. Red: set aside.
+<!-- decompdecomp:visuals:end -->
+<!-- decompdecomp:port:start -->
+## Porting progress
+
+A native build of the game (Windows, Linux, macOS) needs these steps. The game's own data is never in this repository: each person's port is built from their own copy.
+
+| Step | Status | Detail |
+| :-- | :-- | :-- |
+| The game's code in C | ⬜ in progress | 693 of 1,292 functions in C |
+| Compiles for a PC | ⬜ in progress | not checked yet |
+| Links for a PC | ⬜ in progress | not checked yet |
+| Assets extracted | ⬜ in progress | 24 resources mapped |
+
+**Runtimes:** WebAssembly: ready to play; libultraship: needs the game's code in c, compiles for a pc, links for a pc; N64ModernRuntime: needs the game's code in c, compiles for a pc, links for a pc
+<!-- decompdecomp:port:end -->
+
 A matching decompilation of PENNY RACERS for the Nintendo 64, started with [decompdecomp](https://github.com/RetroReversing/decompdecomp).
 654 of 1298 functions are C that compiles to exactly the original code; the rest are still assembly.
 `build.py` rebuilds the game from this tree and checks it against your original, byte for byte.

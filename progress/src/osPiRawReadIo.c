@@ -7,7 +7,7 @@ s32 func_800346B0(void *, void *, s32);
 /* Reads one 32-bit word from the cartridge (ROM) at romOffset, relative to D_80000308,
  * through the uncached cart window, into *dst. Waits until the PI DMA/IO is idle first.
  * Asserts when dst is NULL. Always returns 0. */
-s32 func_8003CF70(s32 romOffsetArg, s32 *dstArg)
+s32 osPiRawReadIo(s32 romOffsetArg, s32 *dstArg)
 {
   s32 *dst;
   s32 romOffset;

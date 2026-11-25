@@ -29,18 +29,25 @@ typedef struct
 extern G *D_80046DF4;
 extern E D_801D75E6[];
 extern u8 D_8021F029[];
-s32 func_8002C508(u8 *arg0, s32 arg1)
+inline static S *inline_fn(u8 *arg0)
 {
+  return (S *) arg0;
+}
+
+s32 func_8002C508(u8 *arg0_in, s32 arg1)
+{
+  u8 * arg0;
   T *t = D_80046DF4->t;
   u8 *tab = t->tab;
   s16 i;
+  arg0 = arg0_in;
   for (i = 0; i < t->n; i++)
   {
-    S *s = (S *) ((i * 0x30) + tab);
+    S *s = inline_fn((i * 0x30) + tab);
     if (s->o == 0)
     {
-      s->vol = (((s32) ((((f32) D_801D75E6[arg1].v) * ((f32) D_8021F029[0])) * 0.047619f)) * arg0[0xD]) / 127;
       s->o = arg0;
+      s->vol = (((s32) ((((f32) D_801D75E6[arg1].v) * ((f32) D_8021F029[0])) * 0.047619f)) * arg0[0xD]) / 127;
       s->a = 5;
       s->z = 0;
       s->f = 0.5f;
@@ -52,3 +59,4 @@ s32 func_8002C508(u8 *arg0, s32 arg1)
 
   return -1;
 }
+

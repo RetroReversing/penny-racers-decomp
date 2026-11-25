@@ -1,22 +1,10 @@
-#ifndef M2C_DEFINES
-#define M2C_DEFINES
-typedef s32 M2C_UNK;
-typedef s8 M2C_UNK8;
-typedef s16 M2C_UNK16;
-typedef s32 M2C_UNK32;
-#define M2C_FIELD(expr, type_ptr, offset) (*(type_ptr)((s8 *)(expr) + (offset)))
-#define M2C_BITWISE(type, expr) ((type)(expr))
-#define M2C_ERROR(desc) (0)
-#define M2C_CARRY 0
-#define M2C_OVERFLOW(a) (0)
-#endif
 s32 func_80029E84();
 s32 func_800346B0();
 s32 func_801F97E0();
 s32 osVirtualToPhysical(s32);
 extern s32 D_2D62D8;
 extern s32 D_2D6308;
-extern s32 D_8006F9D0;
+extern long long D_8006F9D0;
 extern s32 D_8006FB14;
 extern s32 D_800DB1B0;
 extern s32 D_800DE080;
@@ -29,11 +17,16 @@ inline static char *inline_fn(void *arg0)
   return (char *) arg0;
 }
 
+inline static int inline_fn2(void *arg0, void *arg1)
+{
+  return arg0 - arg1;
+}
+
 void func_801F93FC(void *arg0)
 {
+  void *temp_v0_2;
   volatile unsigned short temp_v1;
   void *temp_v0;
-  void *temp_v0_2;
   *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x848);
   *((s32 *) (inline_fn(arg0) + 0x840)) = 0xBC000006;
   *((s32 *) (inline_fn(arg0) + 0x844)) = 0;
@@ -49,32 +42,7 @@ void func_801F93FC(void *arg0)
   *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x868);
   *((s32 *) (inline_fn(arg0) + 0x860)) = 0xBC000404;
   *((s32 *) (inline_fn(arg0) + 0x864)) = 1;
-  *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x870);
-  *((s32 *) (inline_fn(arg0) + 0x868)) = 0xBC000C04;
-  *((s32 *) (inline_fn(arg0) + 0x86C)) = 1;
-  *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x878);
-  *((s32 *) (inline_fn(arg0) + 0x870)) = 0xBC001404;
-  *((s32 *) (inline_fn(arg0) + 0x874)) = 0xFFFF;
-  *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x880);
-  *((s32 *) (inline_fn(arg0) + 0x878)) = 0xBC001C04;
-  *((s32 *) (inline_fn(arg0) + 0x87C)) = 0xFFFF;
-  *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x888);
-  *((s32 *) (inline_fn(arg0) + 0x880)) = 0xFE000000;
-  temp_v1 = D_8006F9D0 - 0x80000000;
-  *((s32 *) (inline_fn(arg0) + 0x884)) = temp_v1;
-  *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x890);
-  *((s32 *) (inline_fn(arg0) + 0x888)) = 0xBA001402;
-  *((s32 *) (inline_fn(arg0) + 0x88C)) = 0x300000;
-  *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x898);
-  *((s32 *) (inline_fn(arg0) + 0x890)) = 0xFF10013F;
-  *((s32 *) (inline_fn(arg0) + 0x894)) = temp_v1;
-  *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x8A0);
-  *((s32 *) (inline_fn(arg0) + 0x898)) = 0xF7000000;
-  *((s32 *) (inline_fn(arg0) + 0x89C)) = 0xFFFCFFFC;
-  *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x8A8);
-  *((s32 *) (inline_fn(arg0) + 0x8A0)) = 0xF64FC3BC;
-  *((s32 *) (inline_fn(arg0) + 0x8A4)) = 0;
-  *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x8B0);
+ do { *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x870); *((s32 *) (inline_fn(arg0) + 0x868)) = 0xBC000C04; *((s32 *) (inline_fn(arg0) + 0x86C)) = 1; *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x878); *((s32 *) (inline_fn(arg0) + 0x870)) = 0xBC001404; *((s32 *) (inline_fn(arg0) + 0x874)) = 0xFFFF; *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x880); *((s32 *) (inline_fn(arg0) + 0x878)) = 0xBC001C04; *((s32 *) (inline_fn(arg0) + 0x87C)) = 0xFFFF; *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x888); *((s32 *) (inline_fn(arg0) + 0x880)) = 0xFE000000; temp_v1 = D_8006F9D0 - 0x80000000; *((s32 *) (inline_fn(arg0) + 0x884)) = temp_v1; *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x890); *((s32 *) (inline_fn(arg0) + 0x888)) = 0xBA001402; *((s32 *) (inline_fn(arg0) + 0x88C)) = 0x300000; *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x898); *((s32 *) (inline_fn(arg0) + 0x890)) = 0xFF10013F; *((s32 *) (inline_fn(arg0) + 0x894)) = temp_v1; *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x8A0); *((s32 *) (inline_fn(arg0) + 0x898)) = 0xF7000000; *((s32 *) (inline_fn(arg0) + 0x89C)) = 0xFFFCFFFC; *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x8A8); *((s32 *) (inline_fn(arg0) + 0x8A0)) = 0xF64FC3BC; *((s32 *) (inline_fn(arg0) + 0x8A4)) = 0; *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x8B0); } while (0);
   *((s32 *) (inline_fn(arg0) + 0x8A8)) = 0xE7000000;
   *((s32 *) (inline_fn(arg0) + 0x8AC)) = 0;
   *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (arg0 + 0x8B8);
@@ -126,11 +94,10 @@ void func_801F93FC(void *arg0)
   *((void **) (inline_fn(&D_800DE080) + 0x64)) = (void *) (temp_v0_2 + 0x10);
   *((s32 *) (inline_fn(temp_v0_2) + 8)) = 0xB8000000;
   *((s32 *) (inline_fn(temp_v0_2) + 0xC)) = 0;
-  if ((((s32) ((temp_v0_2 - 0x830) - arg0)) >> 3) >= 0x4650)
+  if ((((s32) inline_fn2(temp_v0_2 - 0x830, arg0)) >> 3) >= 0x4650)
   {
     func_800346B0(&D_801F9970);
   }
-  func_80029E84(arg0 + 0x840, (((s32) (((*((void **) (inline_fn(&D_800DE080) + 0x64))) - 0x840) - arg0)) >> 3) * 8, D_8006FB14);
+  func_80029E84(arg0 + 0x840, 4 * (2 * (((s32) inline_fn2((*((void **) (inline_fn(&D_800DE080) + 0x64))) - 0x840, arg0)) >> 3)), D_8006FB14);
   D_801F9980 += 1;
 }
-

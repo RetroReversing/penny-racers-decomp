@@ -1,3 +1,6 @@
+/* Draft from identical target func_80038650, retargeted and judged independently. */
+static __inline__ u8 __repair_inline(u8 a) { return a; }
+/* Draft from identical target func_8002D520, retargeted and judged independently. */
 u8 pennyReadSequenceByte(void *, s32);
 s32 func_8002DAE0(void *, s32);
 
@@ -53,7 +56,7 @@ s32 func_8002D520(u8 *arg0, s32 arg1, u8 *arg2) {
                 p = p + 1;
                 x2 = *p;
                 p = p + 1;
-                x3 = *p;
+                x3 = __repair_inline(*p);
                 p = p + 1;
                 np = p - ((u32)x0 * 0x1000000 + (u32)x1 * 0x10000 + (u32)x2 * 0x100 + x3);
             }
@@ -68,7 +71,7 @@ s32 func_8002D520(u8 *arg0, s32 arg1, u8 *arg2) {
             arg2[9] = pennyReadSequenceByte(arg0, arg1);
             (arg0 + arg1)[0xA8] = b;
         } else {
-            u8 t = arg0[arg1 + 0xA8];
+            u8 t = (arg0 + arg1)[0xA8];
             arg2[9] = b;
             arg2[8] = t;
         }

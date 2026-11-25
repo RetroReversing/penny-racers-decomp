@@ -23,6 +23,7 @@ extern u8 D_801F18EC;
 extern u8 D_801F18ED;
 
 s32 func_801E189C(void) {
+    volatile u64 scratch;
     s32 var_t2 = 0;
     s32 var_s1;
     s32 i;

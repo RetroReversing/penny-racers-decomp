@@ -45,7 +45,7 @@ extern s32 D_8023764A;
 extern s32 D_80237694;
 void func_80234484(s32 arg0)
 {
-  u8 sp2F;
+  s32 sp2F;
   u8 sp37;
   s16 temp_a0_2;
   s16 temp_v0;
@@ -345,12 +345,11 @@ if (temp_v1 < (var_s7 - 1)) goto __repair_rows_;
       {
         do
         {
-          var_v0_11 = var_s0_5 + 1;
           if ((*((&D_8022AFE9) + ((*((&D_80237648) + (var_s2_6 * 0xC))) * 0x8F0))) == 5)
           {
             func_80235074(var_s2_6 & 0xFFFF, var_s0_5 & 0xFFFF);
-            var_v0_11 = var_s0_5 + 1;
           }
+          var_v0_11 = var_s0_5 + 1;
           var_s0_5 = var_v0_11;
         }
         while (var_v0_11 < var_s7);

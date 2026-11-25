@@ -40,6 +40,7 @@ void func_800276E0(void)
   s32 sp84;
   s32 sp8C;
   s32 var_fp;
+  s32 var_fp_arm;
   s32 var_s2;
   s32 var_s3;
   s32 var_s5;
@@ -47,30 +48,41 @@ void func_800276E0(void)
   s32 temp_s7;
   s32 temp_a3;
   u32 temp_s0;
+u32 __repair_phase_temp_s0;
   void *var_s0;
   void *temp_s1;
   s32 *var_s4;
-  s32 var_v0;
+  
   osCreateMesgQueue(sp20, sp38, 8);
   osCreateMesgQueue(sp58, sp70, 1);
   nuScAddClient(sp10, sp20, 3);
-  var_s2 = 0;
   var_s5 = 0;
+  var_s2 = 0;
   var_s6 = D_8005CFC0;
   var_s3 = 0;
   var_s4 = &D_8005CFC8;
   sp78 = 0;
   sp8C = D_8005D078;
   {
-    u32 tq = (u32)((D_800DDE98 * D_80072BCC) + 0x3B);
-    s32 tq2 = (s32)(tq / 60);
-    /*__repair_loop_weight*/do {
-    do {
-    do {
-    temp_s7 = ((tq2 / 184) + 1) * 0xB8;
-    } while (0);
-    } while (0);
-    } while (0);
+    u32 tq = (u32) ((D_800DDE98 * D_80072BCC) + 0x3B);
+    s32 tq2 = (s32) (tq / 60);
+    {
+      do
+      {
+        do
+        {
+          do
+          {
+            /*__repair_loop_weight*/do {
+            temp_s7 = ((tq2 / 184) + 1) * 0xB8;
+            } while (0);
+          }
+          while (0);
+        }
+        while (0);
+      }
+      while (0);
+    }
   }
   sp84 = temp_s7 - 0xB8;
   var_fp = 0;
@@ -82,28 +94,27 @@ void func_800276E0(void)
       case 1:
         if (func_80039640() < 0)
       {
-        var_fp = 0;
+        var_fp_arm = 0;
         continue;
       }
         temp_s0 = func_80039630() >> 2;
-        var_v0 = ((s32) temp_s0) < 0x170;
         if ((sp78 != 0) && (D_80046C3C == 1))
       {
         ai_dma_start(sp8C, var_s5 * 4);
         var_s4 = (s32 *) (((u8 *) (&D_8005CFC8)) + (var_s3 * 0x58));
         var_s6 = ((s32 *) (&D_8005CFC0))[var_s3];
         sp8C = ((s32 *) (&D_8005D078))[var_s2];
-        var_v0 = ((s32) temp_s0) < 0x170;
       }
+        temp_a3 = ((s32) temp_s0) < 0x170;
         var_s5 = temp_s7;
-        if (inline_fn(var_v0, var_fp != 0))
+        if (inline_fn(temp_a3, var_fp_arm != 0))
       {
-        var_fp = 0;
+        var_fp_arm = 0;
       }
       else
       {
         var_s5 = sp84;
-        var_fp = 1;
+        var_fp_arm = 1;
       }
         temp_a3 = n_alAudioFrame(var_s6, &sp78, osVirtualToPhysical((void *) sp8C), var_s5);
         if ((sp78 != 0) && (D_80046C3C == 1))
@@ -128,6 +139,15 @@ void func_800276E0(void)
               alLink(var_s0, D_8005D7A8);
             }
             else
+              if (sp38)
+            {
+              D_8005D7A8 = var_s0;
+              *((void **) var_s0) = NULL;
+              *((s32 *) (((u8 *) var_s0) + 4)) = 0;
+              var_s0 = temp_s1;
+              continue;
+            }
+            else
             {
               D_8005D7A8 = var_s0;
               *((void **) var_s0) = NULL;
@@ -143,7 +163,7 @@ void func_800276E0(void)
         D_80046C30 += 1;
         osRecvMesg(sp58, NULL, 1);
         var_s3 ^= 1;
-        var_s2 = (var_s2 + 1) % 3;
+        __repair_phase_temp_s0 = (var_s2 + 1); var_s2 = __repair_phase_temp_s0 % 3;
       }
         func_80027584();
         if ((D_80046C40 != NULL) && (D_80046C3D != 0))
@@ -170,3 +190,4 @@ void func_800276E0(void)
   }
 
 }
+

@@ -47,7 +47,8 @@ extern u16 D_80046F90[];
 extern char D_8004A3E0[];
 extern char D_8004A3E4[];
 
-s32 func_8002E120(Voice *arg0, s32 arg1, s32 arg2) {
+s32 func_8002E120(Voice *arg0, s32 arg1_in, s32 arg2) {
+  s32 arg1;
     s16 sp18;
     u16 sp1A;
     Note *note;
@@ -60,13 +61,14 @@ s32 func_8002E120(Voice *arg0, s32 arg1, s32 arg2) {
     s16 *tbl;
 
     res = arg2;
+  arg1 = arg1_in;
     rem = 0xB8;
     sp1A = 0;
     sp18 = 0;
     while (arg0->p7C != NULL) {
-        tbl = (s16 *) D_80046F90;
         old = arg1;
         arg1 = ((arg0->p7C->time + 0x5C) / 184) * 0xB8;
+        tbl = (s16 *) D_80046F90;
         delta = arg1 - old;
         if (rem < delta) {
             break;

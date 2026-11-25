@@ -12,6 +12,7 @@ inline static u8 *inline_fn(s32 arg0)
 
 void func_801B4B6C(s32 arg0)
 {
+    u8 *__base_D_8011F2FC;
   s32 off;
   if ((*(u16 *)(D_8011F32E + D_801C7074 * 0x64) == 0x10) && (D_801C707B == 1))
   {
@@ -32,7 +33,7 @@ void func_801B4B6C(s32 arg0)
         block_7:
         *inline_fn(off) = (*inline_fn(off)) + 1;
 
-        *((&D_8011F2FC) + off) = (*((&D_8011F2FC) + off)) + 1;
+        *(((__base_D_8011F2FC = &D_8011F2FC)) + off) = (*((__base_D_8011F2FC) + off)) + 1;
         return;
       }
       block_8:
@@ -41,7 +42,7 @@ void func_801B4B6C(s32 arg0)
       if (((u32) ((*inline_fn(off)) - 6)) < 6U)
       {
         *inline_fn(off) = (*inline_fn(off)) + 1;
-        *((&D_8011F2FC) + off) = (*((&D_8011F2FC) + off)) - 1;
+        *((__base_D_8011F2FC) + off) = (*((__base_D_8011F2FC) + off)) - 1;
       }
     }
     else
@@ -50,7 +51,7 @@ void func_801B4B6C(s32 arg0)
 
       __repair_branch_off_0 = (arg0 & 0xFFFF) * 0x64;
       *inline_fn(__repair_branch_off_0) = 0;
-      *((&D_8011F2FC) + __repair_branch_off_0) = 0;
+      *((__base_D_8011F2FC) + __repair_branch_off_0) = 0;
     }
   }
 }

@@ -17,7 +17,7 @@ s32 func_80034640(s32);
 s32 func_800338B0(s32, s32);
 s32 func_8003EBF0(s32, s32);
 
-s32 func_8003F350(s32 arg0, s32 arg1) {
+s32 __osSiRawStartDma(s32 arg0, s32 arg1) {
     if (arg1 & 3) {
         func_800346B0(&D_8004AA70, &D_8004AA74, 0x37);
     }

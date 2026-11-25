@@ -6,7 +6,7 @@ extern s32 siWriteWordChecked(s32,s32);
 extern void func_8003EBF0(s32,s32);
 extern void func_8003EA40(s32,s32);
 extern void osMapTLBRdb(void);
-extern void func_8003CF70(s32,u32*);
+extern void osPiRawReadIo(s32,u32*);
 extern u64 func_80042630(u64,u64);
 extern void func_8003DDC0(void*,s32);
 typedef struct {u32 a,b,c,d;} VectorCode;
@@ -16,7 +16,7 @@ extern u64 D_800470B0;
 extern s32 D_800470B8;
 extern u8 D_800D5702[];
 
-void func_80033C20(void) {
+void osInitialize(void) {
  s32 pifStatus; u32 ramSize=0;
  *(s32*)(D_800D5702+0x7cda)=1; func_8003EBE0(func_8003EA30()|0x20000000);
  func_8003EBD0(0x1000800);
@@ -27,7 +27,7 @@ void func_80033C20(void) {
  *(VectorCode*)0x80000100=func_8003E0D0;
  *(VectorCode*)0x80000180=func_8003E0D0;
  func_8003EBF0(0x80000000,0x190); func_8003EA40(0x80000000,0x190);
- osMapTLBRdb(); func_8003CF70(4,&ramSize);
+ osMapTLBRdb(); osPiRawReadIo(4,&ramSize);
  ramSize &= 0xfffffff0; if(ramSize) D_800470B0=ramSize; D_800470B0=func_80042630(D_800470B0*3,4); if(!D_8000030C) func_8003DDC0(&D_8000031C,0x40);
  if(!D_80000300) D_800470B8=0x2f5b2d2;
  else if(D_80000300==2) D_800470B8=0x2e6025c;

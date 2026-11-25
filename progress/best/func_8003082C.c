@@ -22,7 +22,7 @@ extern s32 func_80031B94(void *arg0, s32 arg1);
 extern void func_800346B0(void *a, void *b, s32 c);
 extern void __handleMetaMsg(void *arg0, void *arg1);
 extern void __initFromBank(void *arg0, void *arg1);
-extern void __n_seqpReleaseVoice(void *arg0, void *arg1, s32 arg2);
+extern void __n_seqpReleaseVoice(void *arg0);
 extern void __seqpStopOsc(void *arg0, void *arg1);
 extern void __unmapVoice(void *arg0, void *arg1);
 extern s32 __voiceNeedsNoteKill(void *arg0, void *arg1, s32 arg2);
@@ -35,13 +35,16 @@ extern void n_alSynSetPitch(void *v, f32 p);
 extern void n_alSynSetVol(void *v, s16 vol, s32 delta);
 extern void n_alSynStopVoice(void *v);
 
+extern const char D_8004A4B4[];
 s32 func_8003082C(void *arg0) {
     Msg msg;
     f32 fval;
     s32 vol;
+s32 __repair_phase_vol;
+s32 __repair_result___repair_phase_vol;
     void *v;
     void *w;
-    s32 r;
+    
 s32 __repair_phase_r;
     s32 ret;
 s32 __repair_phase_ret;
@@ -71,15 +74,15 @@ s32 __repair_phase_ret;
             if (F_U8(w, 0x34) == 0) {
                 F_U8(w, 0x34) = 1;
             }
-            r = F_S32(arg0, 0x40);
+            __repair_phase_vol = F_S32(arg0, 0x40);
             F_U8(w, 0x30) = F_U8(arg0, 0x44);
-            F_S32(w, 0x24) = F_S32(arg0, 0x1C) + r;
-            n_alSynSetVol(v, __vsVol(w, arg0), r);
+            F_S32(w, 0x24) = F_S32(arg0, 0x1C) + __repair_phase_vol;
+            n_alSynSetVol(v, __vsVol(w, arg0), __repair_phase_vol);
             break;
         case 22:
             w = F_PTR(arg0, 0x3C);
-            r = F_S32(arg0, 0x40);
-            ret = ((s32 (*)(s32, f32 *))F_PTR(arg0, 0x74))(r, &fval);
+            __repair_result___repair_phase_vol = F_S32(arg0, 0x40);
+            ret = ((s32 (*)(s32, f32 *))F_PTR(arg0, 0x74))(__repair_result___repair_phase_vol, &fval);
             if (!(fval >= 2.1474836e9f)) {
                 F_S8(w, 0x36) = (s8)(s32)fval;
             } else {
@@ -89,7 +92,7 @@ s32 __repair_phase_ret;
             n_alSynSetVol((u8 *)w + 4, vol, func_80031B94(w, F_S32(arg0, 0x1C)));
             msg.type = 0x16;
             msg.a = w;
-            msg.b = r;
+            msg.b = __repair_result___repair_phase_vol;
             alEvtqPostEvent(QUEUE(arg0), &msg, ret);
             break;
         case 23:
@@ -145,7 +148,7 @@ s32 __repair_phase_ret;
                     do {
                         w = (u8 *)v + 4;
                         if (__voiceNeedsNoteKill(arg0, w, 0xC350) << 0x18) {
-                            __n_seqpReleaseVoice(arg0, w, 0xC350);
+                            __n_seqpReleaseVoice(arg0);
                         }
                         v = *(void **)v;
                     } while (v != NULL);
@@ -161,8 +164,8 @@ s32 __repair_phase_ret;
             if (v != NULL) {
                 w = v;
                 do {
-                    vol = __vsVol(w, arg0);
-                    n_alSynSetVol((u8 *)v + 4, vol, func_80031B94(v, F_S32(arg0, 0x1C)));
+                    __repair_phase_vol = __vsVol(w, arg0);
+                    n_alSynSetVol((u8 *)v + 4, __repair_phase_vol, func_80031B94(v, F_S32(arg0, 0x1C)));
                     v = *(void **)v;
                     w = v;
                 } while (v != NULL);
@@ -178,7 +181,7 @@ s32 __repair_phase_ret;
             break;
         case 13:
             if (F_S32(arg0, 0x2C) == 1) {
-                func_800346B0("EX", "n_seqplayer.c", 0x118);
+                func_800346B0("EX", D_8004A4B4, 0x118);
             }
             F_PTR(arg0, 0x18) = F_PTR(arg0, 0x3C);
             __setUsptFromTempo(arg0, 500000.0f);
@@ -189,7 +192,7 @@ s32 __repair_phase_ret;
             break;
         case 14:
             if (F_S32(arg0, 0x2C) != 0) {
-                func_800346B0("EX", "n_seqplayer.c", 0x121);
+                func_800346B0("EX", D_8004A4B4, 0x121);
             }
             v = F_PTR(arg0, 0x3C);
             F_PTR(arg0, 0x20) = v;
@@ -198,7 +201,7 @@ s32 __repair_phase_ret;
         case 1:
         case 3:
         case 4:
-            func_800346B0("EX", "n_seqplayer.c", 0x12B);
+            func_800346B0("EX", D_8004A4B4, 0x12B);
             break;
         }
         __repair_phase_ret = alEvtqNextEvent(QUEUE(arg0), (u8 *)arg0 + 0x38);

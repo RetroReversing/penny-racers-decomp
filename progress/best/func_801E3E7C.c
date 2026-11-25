@@ -12,19 +12,24 @@ inline static char inline_fn(s32 arg0)
 
 void func_801E3E7C(s32 arg0, s32 arg1)
 {
-  s32 var_a1;
   s32 var_a2;
-  u16 temp_v1;
+  s32 var_a1;
+  s32 temp_v1;
   func_801CA140();
   temp_v1 = inline_fn(arg1);
   switch (temp_v1)
   {
     case 1:
+      do
+    {
       goto block_13;
+    }
+    while (0);
 
     case 2:
-      func_801CB74C(arg0, 0x18, 0x20, 8, &D_801D4FC0, &D_801E9668);
-      func_801CBF48(arg0, 0x18, 0x30, 8, &D_801D4FC0, 1, (s32) D_801E979A);
+        { long long phantom_wide = arg0; }
+      do { func_801CB74C(arg0, 0x18, 0x20, 8, &D_801D4FC0, &D_801E9668); } while (0);
+      func_801CBF48((float) arg0, 0x18, (unsigned long long) 0x30, 8, &D_801D4FC0, 1, (s32) D_801E979A);
       var_a1 = 0x28;
       var_a2 = 0x30;
     {

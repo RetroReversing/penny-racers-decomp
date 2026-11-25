@@ -13,7 +13,7 @@ extern OSPri func_8003EDA0(OSThread *);
 extern void osSetThreadPri(OSThread *, OSPri);
 extern u32 __osDisableInt(void);
 extern void osCreateThread(OSThread *, OSId, void (*)(void *), void *, void *, OSPri);
-extern void func_8003F210(void);
+extern void __osViInit(void);
 extern void osStartThread(OSThread *);
 extern void func_8003EAE0(u32);
 OSDevMgr __osViDevMgr = { 0 };
@@ -57,7 +57,7 @@ void osCreateViManager(OSPri pri) {
     __osViDevMgr.dma = 0;
     __osViDevMgr.edma = 0;
     osCreateThread(&viThreadStorage.thread, 0, viMgrMain, &__osViDevMgr, &viThreadStack[4096], pri);
-    func_8003F210();
+    __osViInit();
     osStartThread(&viThreadStorage.thread);
     func_8003EAE0(savedMask);
     if (oldPri != -1) {

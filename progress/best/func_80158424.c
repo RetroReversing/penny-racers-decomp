@@ -16,51 +16,97 @@ void func_80157A54(void);
 void func_80152720(void);
 void func_801580F4(void);
 void func_800DE41C(int, int, int, int, int, int, void *, void *, void *, float, float, float, float, float, float, float, float, float);
-
-void func_80158424(void) {
-    void *temp_s1;
-    void *temp_s1_2;
-    register void *temp_s0;
-    s32 k54 = 0x54;
-    long k96 = 0x96;
-    void *base = D_8016D748;
-    register void *f1 = &func_801574DC;
-    void *f2 = &func_80157568;
-
-    func_800DE41C(0, 2, 2, 0, k54, k96, base, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 5, 2, 0, k54, k96, base + 0x10, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0x13, 2, 0, k54, k96, base + 0x20, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0x14, 2, 0, k54, k96, base + 0x30, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0x15, 2, 0, k54, k96, base + 0x40, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0x19, 2, 0, k54, k96, base + 0x50, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    do { func_800DE41C(0, 0x10, 2, 0, k54, k96, base + 0x60, f1, f2, 0.0f, -15.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f); } while (0);
-    func_800DE41C(0, 0x1F, 2, 0, k54, k96, base + 0x70, &func_8015769C, &func_80157728, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0x22, 2, 0, k54, k96, base + 0x80, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0x24, 2, 0, k54, k96, base + 0xA0, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0x23, 2, 0, k54, k96, base + 0x90, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0x25, 2, 0, k54, k96, base + 0xB0, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    temp_s1 = base + 0xC0;
-    func_800DE41C(0, 0, 2, 0x80, 0x51, 0xFF, temp_s1, &func_8013AE60, NULL, 605.0f, 58.0f, 3992.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0, 2, 0x80, 0x51, 0xFF, temp_s1, &func_8013AE60, NULL, 605.0f, 58.0f, 3784.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 2, 2, 0, 0x51, 0xFF, base + 0xD0, &func_80157CF4, NULL, -818.0f, -50.0f, 4200.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 5, 2, 0, 0x51, 0xFF, base + 0xE0, &func_80157E30, NULL, -1580.0f, -62.0f, 2240.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0x22, 2, 0, 0x51, 0xFF, base + 0xF0, &func_80157E30, NULL, 1885.0f, -50.0f, 2484.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    temp_s1_2 = base + 0x100;
-    func_800DE41C(0, 0, 2, 0x80, 0x51, 0xFF, temp_s1_2, &func_8013AE60, NULL, 712.0f, -50.0f, 4346.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 3, 2, 0x80, 0x51, 0xFF, temp_s1_2, &func_8013AE60, NULL, -1017.0f, -50.0f, 3333.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0x14, 2, 0x80, 0x51, 0xFF, temp_s1_2, &func_8013AE60, NULL, 300.0f, -150.0f, -4304.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 1, 2, 0x80, 0x51, 0xFF, base + 0x110, &func_8013AE60, NULL, -300.0f, -50.0f, 4724.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0x1E, 2, 0, 0x53, 0xFF, base + 0x120, &func_80157860, &func_801578EC, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0, 2, 0, 0x53, 0x96, base + 0x130, &func_8013AE60, &func_80157490, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    temp_s0 = base + 0x140;
-    func_800DE41C(0, 5, 2, 0, 0x51, 0xFF, temp_s0, &func_8013AE60, NULL, -557.0f, 2.0f, 2150.0f, 0.0f, 134.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0x14, 2, 0, 0x51, 0xFF, temp_s0, &func_8013AE60, NULL, -380.0f, -99.0f, -3180.0f, 0.0f, 90.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0x25, 2, 0, 0x51, 0xFF, temp_s0, &func_8013AE60, NULL, 1200.0f, 2.0f, 3795.5f, 0.0f, -90.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0xC, 1, 0, 0x51, 0xFF, &D_80239880, &func_80157BBC, NULL, -2943.0f, 325.0f, -250.5f, 0.0f, -45.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0x14, 1, 0, 0x51, 0xFF, &D_802398B4, &func_80157A54, NULL, 0.0f, 30.0f, -3499.0f, 0.0f, -90.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 6, 2, 0, 0x51, 0xFF, &D_8023991C, &func_8013AE60, NULL, -154.0f, 121.78f, 1321.1f, 0.0f, -90.0f, 180.0f, 2.0f, 2.0f, 1.0f);
-    func_800DE41C(0, 0xE, 2, 0, 0x51, 0xFF, &D_8023991C, &func_8013AE60, NULL, -2685.6f, -103.16f, -2083.05f, 0.0f, 45.0f, 0.0f, 2.0f, 2.0f, 1.0f);
-    func_800DE41C(0, 0x17, 2, 0, 0x51, 0xFF, &D_8023991C, &func_8013AE60, NULL, 232.46f, 200.0f, -1946.9f, 0.0f, 178.27f, 0.0f, 2.0f, 2.0f, 1.0f);
-    func_800DE41C(0, 0, 3, 0, 0x40, 0xFF, NULL, &func_80152720, NULL, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    func_800DE41C(0, 0, 3, 0, 0x40, 0xFF, NULL, &func_801580F4, NULL, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+inline static int inline_fn(int arg0)
+{
+  return -arg0;
 }
+
+void func_80158424(void)
+{
+  int *__base_D_8023991C;
+  void *temp_s1_2;
+  void *temp_s1;
+  register void *temp_s0;
+  unsigned int k54 = 0x54;
+  unsigned long long k96 = 0x96;
+  void *base = D_8016D748;
+  register void *f1 = &func_801574DC;
+  void *f2 = &func_80157568;
+  func_800DE41C(0, 2, 2, 0, k54, 0x96, base, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+  func_800DE41C(0, 5, 2, 0, k54, 0x96, base + 0x10, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+  func_800DE41C(0, 0x13, 2, 0, k54, 0x96, base + 0x20, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+  func_800DE41C(0, 0x14, 2, 0, k54, 0x96, base + 0x30, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+  func_800DE41C(0, 0x15, 2, 0, k54, 0x96, base + 0x40, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+  func_800DE41C(0, 0x19, 2, 0, k54, 0x96, base + 0x50, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+  do
+  {
+    do
+    {
+      do
+      {
+        func_800DE41C(0, 0x10, 2, 0, k54, k96, base + 0x60, f1, f2, 250.5f * 0.0f, inline_fn(15.0f), 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+      }
+      while (0);
+      func_800DE41C(0, 0x1F, 2, 0, k54, k96, base + 0x70, &func_8015769C, &func_80157728, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+      do
+      {
+        func_800DE41C(0, 0x22, 2, 0, k54, k96, base + 0x80, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+        func_800DE41C(0, 0x24, 2, 0, k54, k96, base + 0xA0, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+      }
+      while (0);
+    }
+    while (0);
+    do { func_800DE41C(0, 0x23, 2, 0, k54, k96, base + 0x90, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f); } while (0);
+  }
+  while (0);
+  func_800DE41C(0, 0x25, 2, 0, k54, k96, base + 0xB0, f1, f2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+  temp_s1 = base + 0xC0;
+  func_800DE41C(0, 0, 2, 0x80, 0x51, 0xFF, temp_s1, &func_8013AE60, NULL, 605.0f, 58.0f, 3992.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+  func_800DE41C(0, 0, 2, 0x80, 0x51, 0xFF, temp_s1, &func_8013AE60, NULL, 605.0f, 58.0f, 3784.5f, 0.0f, (long) 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+  func_800DE41C(0, 2, 2, 0, 0x51, 0xFF, base + 0xD0, &func_80157CF4, NULL, inline_fn(818.0f), -50.0f, 4200.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+  func_800DE41C(0, 5, 2, 0, 0x51, 0xFF, base - (-0xE0), &func_80157E30, NULL, inline_fn(1580.0f), -62.0f, 2240.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+  do
+  {
+    func_800DE41C(0, 0x22, 2, 0, 0x51, 0xFF, base + 0xF0, &func_80157E30, NULL, 1885.0f, inline_fn(50.0f), 2484.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+    do
+    {
+      func_800DE41C(0, 0, 2, 0x80, 0x51, 0xFF, base + 0x100, &func_8013AE60, NULL, 712.0f, -50.0f, 4346.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+      do
+      {
+        func_800DE41C(0, 3, 2, 0x80, 0x51, 0xFF, base + 0x100, &func_8013AE60, NULL, inline_fn(1017.0f), -50.0f, 3333.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+        func_800DE41C(0, 0x14, 2, 0x80, 0x51, 0xFF, base + 0x100, &func_8013AE60, NULL, 300.0f, -150.0f, inline_fn(4304.0f), 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+        func_800DE41C(0, 1, 2, 0x80, 0x51, 0xFF, base + 0x110, &func_8013AE60, NULL, inline_fn(300.0f), -50.0f, 4724.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+        func_800DE41C(0, 0x1E, 2, 0, 0x53, 0xFF, base - inline_fn(0x120), &func_80157860, &func_801578EC, 0.0f, 0.0f, (-150.0f) * 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+        func_800DE41C(0, 0, 2, 0, 0x53, 0x96, base + 0x130, &func_8013AE60, &func_80157490, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+        temp_s0 = base + 0x140;
+        func_800DE41C(0, 5, 2, 0, 0x51, 0xFF, temp_s0, &func_8013AE60, NULL, inline_fn(557.0f), 2.0f, 2150.0f, 0.0f, 134.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+        func_800DE41C(0, 0x14, 2, 0, 0x51, 0xFF, temp_s0, &func_8013AE60, NULL, inline_fn(380.0f), inline_fn(99.0f), inline_fn(3180.0f), 0.0f, 90.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+      }
+      while (0);
+    }
+    while (0);
+    func_800DE41C(0, 0x25, 2, 0, 0x51, 0xFF, temp_s0, &func_8013AE60, NULL, 1200.0f, 2.0f, 3795.5f, 0.0f, inline_fn(90.0f), 0.0f, 1.0f, 1.0f, 1.0f);
+    func_800DE41C(0, 0xC, 1, 0, 0x51, 0xFF, &D_80239880, &func_80157BBC, NULL, inline_fn(2943.0f), 325.0f, inline_fn(250.5f), 0.0f, inline_fn(45.0f), 0.0f, 1.0f, 1.0f, 1.0f);
+    do
+    {
+      func_800DE41C(0, 0x14, 1, 0, 0x51, 0xFF, &D_802398B4, &func_80157A54, NULL, 0.0f, 30.0f, inline_fn(3499.0f), 0.0f, inline_fn(90.0f), 0.0f, 1.0f, 1.0f, 1.0f);
+      do
+      {
+        __base_D_8023991C = &D_8023991C;
+        func_800DE41C(0, 6, 2, 0, 0x51, 0xFF, __base_D_8023991C, &func_8013AE60, NULL, inline_fn(154.0f), 121.78f, 1321.1f, 0.0f, inline_fn(90.0f), 180.0f, 2.0f, 2.0f, 1.0f);
+        do
+        {
+          func_800DE41C(0, 0xE, 2, 0, 0x51, 0xFF, __base_D_8023991C, &func_8013AE60, NULL, inline_fn(2685.6f), inline_fn(103.16f), inline_fn(2083.05f), 0.0f, 45.0f, 0.0f, 2.0f, 2.0f, 1.0f);
+          func_800DE41C(0, 0x17, 2, 0, 0x51, 0xFF, __base_D_8023991C, &func_8013AE60, NULL, 232.46f, 200.0f, inline_fn(1946.9f), 0.0f, 178.27f, 0.0f, 2.0f, 2.0f, 1.0f);
+        }
+        while (0);
+        func_800DE41C(0, 0, 3, 0, 0x40, 0xFF, NULL, &func_80152720, NULL, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+      }
+      while (0);
+    }
+    while (0);
+    func_800DE41C(0, 0, 3, 0, 0x40, 0xFF, NULL, &func_801580F4, NULL, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+  }
+  while (0);
+}
+
