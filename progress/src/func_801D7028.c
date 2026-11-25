@@ -17,7 +17,6 @@ extern char D_801D7D60[];
 extern s16 D_801D7DE8;
 
 void func_801D7028(s32 arg0, s16 arg1) {
-    u8 __repair_frame[8];
     void *temp_a0;
     void *temp_v0;
 
