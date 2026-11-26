@@ -4896,14 +4896,6 @@
   "score_after": 1505
  },
  {
-  "function": "func_8014981C",
-  "text": "Deep permuter: score 3150 \u2192 2975; 1 improvements; 59 candidates tested; 9 cached skips; 0 rejected; 7210s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935406",
-  "created_at": 1794357235.949777,
-  "score_before": 3150,
-  "score_after": 2975
- },
- {
   "function": "func_80141268",
   "text": "Deep permuter: score 14924 \u2192 13669; 3 improvements; 65 candidates tested; 0 cached skips; 0 rejected; 7213s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935363",
@@ -6758,14 +6750,6 @@
   "created_at": 1794708466.730318,
   "score_before": 4635,
   "score_after": 3778
- },
- {
-  "function": "func_8014981C",
-  "text": "Not matched. Keep the saved best 3760 (the earlier draft with goto/repair labels), since my clean rewrite scored 13920 (revision 98f79ebf46f79b3e8559) and is structurally wrong: the target zeroes D_80189CC9[0..2] with a backwards loop (addiu a3,-1 / bgez, sb $zero), then loops i over D_8018A276 with a 0x20-bit scan over D_8018D3A0 rows indexed by (D_8018A277[i] & 0xF) << 5 and (arg0 & 0xFF) << 5. My scan logic (popcount of rows AND-NOT, then a single-bit adjust) is a guess, not read off the assembly. Next: read the assembly loop by loop (the zero loop first, which is simple), then the 8-word inner loop and the 32-bit scan, and write each as a plain for-loop with the same counts.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794708473.7371469,
-  "score_before": 3760,
-  "score_after": 3760
  },
  {
   "function": "func_801578EC",
@@ -10376,14 +10360,6 @@
   "score_after": 1875
  },
  {
-  "function": "func_8014981C",
-  "text": "Best so far 2940 (not matched; claim lease ended before release). Source: u8 counters t0/a1/b/cnt, u32 bit mask `bit <<= 1` per bit (not 1<<b), D_8018D3A0 indexed as [row*8+a1] and [t2*8+a1], row=arg0 (u8). Remaining diff: target keeps t0 in $t0 (ours uses $t1), row base as (row<<5)+table via lui/addiu into $t5, and word0 count reloads from table. Outer init loop is do-while.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794722728.1974442,
-  "score_before": 3095,
-  "score_after": 2940
- },
- {
   "function": "func_800267FC",
   "text": "C is correct: osViSetYScale(1.0f); D_80046838=1; nuGfxDisplayOff(); osViBlack(1); with D_80046838 declared extern s32 and nuGfxDisplayOff(void). At the project profile -O2 it scores 120: only the 1.0f lui $at,0x3f80 / mtc1 $at,$f12 pair is scheduled above the prologue instead of after `sw $ra,0x10($sp)`. Exact match (score 0) verified two ways: -O1, and -O2 with -fno-schedule-insns2 (trial 77fd5f1e316b8ab46a3a). suggest() filed a function-scoped bundle for gcc-2.7.2-kmc \"-G0 -mips3 -mgp32 -mfp32 -O2 -fno-strength-reduce -fno-schedule-insns2\"; it needs user/automatic application to be saved as matched. Tried and failed to reach the order in plain -O2: f32/volatile f32/register f32 local for the constant, extra s32 local. Left: apply the suggested profile, or find a source form that blocks the second scheduler's hoist at -O2.",
   "by": "api-route-llm-code-2",
@@ -10398,14 +10374,6 @@
   "created_at": 1794722795.5841532,
   "score_before": 1875,
   "score_after": 1875
- },
- {
-  "function": "func_8014981C",
-  "text": "Best 5215 (43.3%) at revision dcb7b949d1ad6c03e31a; claim lapsed after the compile. Shape is right: sb-zero loop over t0<3 on D_80189CC9; if D_8018A276 != 0: for each k, t2 = D_8018A277[k]&0xF, a3 = 0; a1 loop 0..7 counts set bits of (D_8018D3A0[t2*8+a1] & ~D_8018D3A0[(arg0&0xFF)*8+a1]) (a0 mask reset to 1 each a1); then a2 = D_8018D3A0[t2*8], bit count over a2 gives v1; if v1==1 and !(a2 & D_8018D3A0[(arg0&0xFF)*8]) and a3 != 0 then a3--; D_80189CC9[k] = a3. Diffs now are the loop shape (target keeps t0 as the u8 index and reloads D_8018A276 each iteration, andi $t0,0xff x13) and frame (-8 vs target none). Next: write the k loop with u8 k compared unsigned against the reloaded D_8018A276.\n\nNot matched. Best: score 2905 (68.4%), 92 insns on both sides, revision cc75714bd4b8d5656013 (also 78c2df29945533bee9d3 with ra = arg0&0xFF hoisted, same score). Working source: ROW_WORD(row,w) = *(u32*)((u8*)D_8018D3A0 + (row<<5) + (w<<2)); t0, a1, k, cnt declared u8; zeroing loop over t0<3; if (D_8018A276 != 0) k loop; t2 = D_8018A277[k] & 0xF; a1 loop 0..7 counts set bits of ROW_WORD(t2,a1) & ~ROW_WORD(arg,a1); a2 = ROW_WORD(t2,0) bit count; if cnt==1 and !(a2 & ROW_WORD(arg,0)) and a3 != 0 then a3--; D_80189CC9[k] = a3. Pointer-base form scored 3340 and hoisting the row-A byte offset gave no change. Blocker: register and loop-order only. Target sets t0 = 0 before the table base (`lui t5`/`addiu`), and computes t3 = t4 + t5 (row-A base) before the k loop; mine re-derives the base per iteration. Next: try putting `u32 *base = D_8018D3A0;` as a function-level local and the `(row<<5)` as an add to base, to make gcc emit the lui/addiu once and fold the row offset into addu.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794722861.576271,
-  "score_before": 2940,
-  "score_after": 2905
  },
  {
   "function": "main",
@@ -13440,14 +13408,6 @@
   "score_after": 336
  },
  {
-  "function": "func_8014981C",
-  "text": "Not matched; the saved 2735 draft reproduces here unchanged (70.2%). Shape is right (92 insns both) but the register/branch structure differs: target's first loop keeps the index in $t0 with `andi $v0,$t0,0xFF` per use and the `sb $zero` store (ours uses $a1); the bit-count inner loops compile to bnel/bnez with the index re-masked each pass. Ours compiles with the bit loops as the same instruction count but different registers and branch targets. Not tried further this session. Next: write the zero-init loop with `u8 i` index used in both the store and the 0xFF compare so $t0 is the loop counter, and split the popcount into a separate static helper only if it does not change the unit's symbols.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794734426.727467,
-  "score_before": 2735,
-  "score_after": 2735
- },
- {
   "function": "func_80207DC8",
   "text": "Best verified score 575 (rev 4ed26253d403146346cf), 59/59 insns, 21 differing rows. Matched so far: nested u8 loops (i<9 inner, j<4 outer) with `if ((u8)func_801E435C(i,j) < 4) count++;`, `if (count == 9) (*p)++;` where p = &D_8021E1AC held in a local, count reset after the inner loop, `D_8021E1AC = 0;` up front. That gets the s4=9 constant and s3=address in the right registers. Remaining differences: (1) the tail block `if ((s16)D_8021E1AC >= 4) D_8021E1AC = 3;` \u2014 target reloads the address into $v1 via lui+addiu and uses `lh $v0,($v1)` / `sh $v0,($v1)`; ours keeps a fresh `lui $s3,%hi` + `lh %lo(...)($v0)`. (2) the `if (D_8021B079 == 1) D_8021E1AC = 3;` store uses `sh $v0,%lo(...)($at)` vs target `$at` too but ordering. (3) prologue save order: target saves ra,s4,s3,s2,s1,s0 in that order; ours emits s2,s3,s1,s4. Tried: u8 vs s32 counters, s16/u16 pointer forms, for vs do-while, count++ vs count=count+1, local pointer p. Untried next experiment is stored (see section=experiment).",
   "by": "api-route-llm-code-1",
@@ -13646,14 +13606,6 @@
   "created_at": 1794735327.9887009,
   "score_before": 1845,
   "score_after": 1845
- },
- {
-  "function": "func_8014981C",
-  "text": "Best 2735 (70.2%), rev b41435ec... (the candidate as supplied, with a1 as the first zeroing loop variable). Structure matches (92 insns each). Remaining diffs are register allocation and branch order: target uses $t0 for the outer loop counter in the first zeroing loop and $a1/$a0 for the bit-count loops; ours uses $a1 for both. Tried: first zeroing loop using k (u8) instead of a1 -> 2850 (worse). Next ideas: swap the roles of a1 and k in the bit-count loops (inner 8-word loop as k, outer row loop as a1), or make the popcount loop variable u32 so it stays in a different register. The bnel/bnez order near the end (target `bnel $v0,$zero` after the cnt==1 test) suggests the `a3 != 0` check is written as a separate if before the decrement.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794735390.431456,
-  "score_before": 2735,
-  "score_after": 2735
  },
  {
   "function": "func_8014B410",
@@ -13870,14 +13822,6 @@
   "created_at": 1794736435.2304902,
   "score_before": 3120,
   "score_after": 3120
- },
- {
-  "function": "func_8014981C",
-  "text": "Best 2735 (70.2%), revision c93799e02cbb4c846902 (the current structure; reproduced this session). Structure matches: first loop zeroes D_80189CC9[0..2]; if D_8018A276 != 0, loop k over it: t2 = D_8018A277[k]&0xF, count set bits of ROW_WORD(t2,a1) & ~ROW_WORD(arg0&0xFF,a1) over 8 words into a3, then the bit count of ROW_WORD(t2,0) (cnt==1 adjustment), store D_80189CC9[k]=a3. Remaining diffs are register allocation and loop shape: the target uses one u8 counter (t0) for the first loop AND for k, mask is a0 with a 1-shift, the inner bit loop is 0..31 with a 32-bit mask in a2, and the bnel with addiu a3 in the delay slot (the bit count increment executes only when the bit is set). Tried: sharing k for the first loop (2850, worse, the mask/shift moved to a1). Untried: write the bit count as an explicit do-while over a single u32 with `bits >>= 1` so the and/bnel form matches.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794736494.857465,
-  "score_before": 2735,
-  "score_after": 2735
  },
  {
   "function": "func_8014843C",
@@ -25952,14 +25896,6 @@
   "score_after": 37913
  },
  {
-  "function": "func_8014981C",
-  "text": "Best 2300 (revision c06852222d04e2d0e338 or 3f942bbedb2637019955; u8 k/a3/w/cnt/n, u32 t2/mask/bits, bits reused for the cnt==1 check). Remaining diff is register allocation and order only: target keeps outer index k in t0 across the clear loop (lines 0-11: addu t0,zero,zero; sb loop) and the main loop; candidate always puts k in t1 whatever the declaration order, do-while clear loop, or s8 k (4865, worse). Target also has a3=0 before the word loop with a1 as word counter, mask a0 reset per word, second count loop reusing a1 and v1. Untried: s32 mask/cnt to change allocation, or splitting the bit-count into a helper (would change call structure, likely not matching). Not enough progress to justify more compiles this session.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794764718.370309,
-  "score_before": 2735,
-  "score_after": 2300
- },
- {
   "function": "func_801545E0",
   "text": "Unmatched. Compiled the machine draft as-is: score 49794 (rev 0af9c0e50af33aae0d4f, the saved best). Target is 716 insns, mine 672. It is the same kind of function as func_80151564: a straight-line sequence of func_800DE41C calls with float constants, and most of the diff is reordering of the constant loads (lui/mtc1) and argument setup. One real difference: the target has `ori $at,$at,0xc400` where mine has 0xc000, so one float literal has a different bit pattern. Check the (f32)(a/b) constants on the calls with D_8023991C and the calls with 2.0f/3.0f: the mantissa for the target's constant is 0xc400 in the low half, which means a different value. Next: fix that constant first (compare the target's lui/ori pair against each literal), then try keeping the call order from the target. The first differing rows are at the start of the function, so start there. Ruled out: the machine draft's type declarations (they compile).",
   "by": "claude-haiku-5-5-23",
@@ -26870,14 +26806,6 @@
   "created_at": 1794766802.984254,
   "score_before": 6920,
   "score_after": 270
- },
- {
-  "function": "func_8014981C",
-  "text": "Best: score 2300 (75%), revision e73f23f26471bdac88bb (u8 k declared first; clear loop for k<3 first, then if (D_8018A276) loop). Target structure confirmed: clear loop first; then lbu D_8018A276 and branch; inside the if, target precomputes ref row = D_8018D3A0 + ((arg0&0xFF)<<5) (sll 5, addu with base) and row(t2) = base + t2<<5 before the loops, and keeps k in t0 (mine uses t1 for k and recomputes addresses per use). Tried and worse: moving clear loop to else (4260); ref pointer at top (3290); ref inside if with clear loop first (3025); signedness family on t2 (no change). Still differing: register choice for k (t0 target, t1 mine) and the hoisted ref/base address chain. Untested: keep row/ref as u32* pointers but also hoist base as a local u8* pointer, and use k as the loop variable of the outer loop with an explicit index into D_8018A277 via pointer increment.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794766829.679211,
-  "score_before": 2300,
-  "score_after": 2300
  },
  {
   "function": "func_80164364",
@@ -39172,5 +39100,135 @@
   "score_before": 5001,
   "score_after": 3354,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:365df5182ba5d025d40eb1c2b95f0d258461979233068ac0d62417d453f93ce2"
+ },
+ {
+  "function": "func_8014981C",
+  "text": "Deep permuter: score 3150 \u2192 2975; 1 improvements; 59 candidates tested; 9 cached skips; 0 rejected; 7210s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935406",
+  "created_at": 1794357235.949777,
+  "score_before": 3150,
+  "score_after": 2975
+ },
+ {
+  "function": "func_8014981C",
+  "text": "Not matched. Keep the saved best 3760 (the earlier draft with goto/repair labels), since my clean rewrite scored 13920 (revision 98f79ebf46f79b3e8559) and is structurally wrong: the target zeroes D_80189CC9[0..2] with a backwards loop (addiu a3,-1 / bgez, sb $zero), then loops i over D_8018A276 with a 0x20-bit scan over D_8018D3A0 rows indexed by (D_8018A277[i] & 0xF) << 5 and (arg0 & 0xFF) << 5. My scan logic (popcount of rows AND-NOT, then a single-bit adjust) is a guess, not read off the assembly. Next: read the assembly loop by loop (the zero loop first, which is simple), then the 8-word inner loop and the 32-bit scan, and write each as a plain for-loop with the same counts.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794708473.7371469,
+  "score_before": 3760,
+  "score_after": 3760
+ },
+ {
+  "function": "func_8014981C",
+  "text": "Best so far 2940 (not matched; claim lease ended before release). Source: u8 counters t0/a1/b/cnt, u32 bit mask `bit <<= 1` per bit (not 1<<b), D_8018D3A0 indexed as [row*8+a1] and [t2*8+a1], row=arg0 (u8). Remaining diff: target keeps t0 in $t0 (ours uses $t1), row base as (row<<5)+table via lui/addiu into $t5, and word0 count reloads from table. Outer init loop is do-while.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794722728.1974442,
+  "score_before": 3095,
+  "score_after": 2940
+ },
+ {
+  "function": "func_8014981C",
+  "text": "Best 5215 (43.3%) at revision dcb7b949d1ad6c03e31a; claim lapsed after the compile. Shape is right: sb-zero loop over t0<3 on D_80189CC9; if D_8018A276 != 0: for each k, t2 = D_8018A277[k]&0xF, a3 = 0; a1 loop 0..7 counts set bits of (D_8018D3A0[t2*8+a1] & ~D_8018D3A0[(arg0&0xFF)*8+a1]) (a0 mask reset to 1 each a1); then a2 = D_8018D3A0[t2*8], bit count over a2 gives v1; if v1==1 and !(a2 & D_8018D3A0[(arg0&0xFF)*8]) and a3 != 0 then a3--; D_80189CC9[k] = a3. Diffs now are the loop shape (target keeps t0 as the u8 index and reloads D_8018A276 each iteration, andi $t0,0xff x13) and frame (-8 vs target none). Next: write the k loop with u8 k compared unsigned against the reloaded D_8018A276.\n\nNot matched. Best: score 2905 (68.4%), 92 insns on both sides, revision cc75714bd4b8d5656013 (also 78c2df29945533bee9d3 with ra = arg0&0xFF hoisted, same score). Working source: ROW_WORD(row,w) = *(u32*)((u8*)D_8018D3A0 + (row<<5) + (w<<2)); t0, a1, k, cnt declared u8; zeroing loop over t0<3; if (D_8018A276 != 0) k loop; t2 = D_8018A277[k] & 0xF; a1 loop 0..7 counts set bits of ROW_WORD(t2,a1) & ~ROW_WORD(arg,a1); a2 = ROW_WORD(t2,0) bit count; if cnt==1 and !(a2 & ROW_WORD(arg,0)) and a3 != 0 then a3--; D_80189CC9[k] = a3. Pointer-base form scored 3340 and hoisting the row-A byte offset gave no change. Blocker: register and loop-order only. Target sets t0 = 0 before the table base (`lui t5`/`addiu`), and computes t3 = t4 + t5 (row-A base) before the k loop; mine re-derives the base per iteration. Next: try putting `u32 *base = D_8018D3A0;` as a function-level local and the `(row<<5)` as an add to base, to make gcc emit the lui/addiu once and fold the row offset into addu.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794722861.576271,
+  "score_before": 2940,
+  "score_after": 2905
+ },
+ {
+  "function": "func_8014981C",
+  "text": "Not matched; the saved 2735 draft reproduces here unchanged (70.2%). Shape is right (92 insns both) but the register/branch structure differs: target's first loop keeps the index in $t0 with `andi $v0,$t0,0xFF` per use and the `sb $zero` store (ours uses $a1); the bit-count inner loops compile to bnel/bnez with the index re-masked each pass. Ours compiles with the bit loops as the same instruction count but different registers and branch targets. Not tried further this session. Next: write the zero-init loop with `u8 i` index used in both the store and the 0xFF compare so $t0 is the loop counter, and split the popcount into a separate static helper only if it does not change the unit's symbols.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794734426.727467,
+  "score_before": 2735,
+  "score_after": 2735
+ },
+ {
+  "function": "func_8014981C",
+  "text": "Best 2735 (70.2%), rev b41435ec... (the candidate as supplied, with a1 as the first zeroing loop variable). Structure matches (92 insns each). Remaining diffs are register allocation and branch order: target uses $t0 for the outer loop counter in the first zeroing loop and $a1/$a0 for the bit-count loops; ours uses $a1 for both. Tried: first zeroing loop using k (u8) instead of a1 -> 2850 (worse). Next ideas: swap the roles of a1 and k in the bit-count loops (inner 8-word loop as k, outer row loop as a1), or make the popcount loop variable u32 so it stays in a different register. The bnel/bnez order near the end (target `bnel $v0,$zero` after the cnt==1 test) suggests the `a3 != 0` check is written as a separate if before the decrement.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794735390.431456,
+  "score_before": 2735,
+  "score_after": 2735
+ },
+ {
+  "function": "func_8014981C",
+  "text": "Best 2735 (70.2%), revision c93799e02cbb4c846902 (the current structure; reproduced this session). Structure matches: first loop zeroes D_80189CC9[0..2]; if D_8018A276 != 0, loop k over it: t2 = D_8018A277[k]&0xF, count set bits of ROW_WORD(t2,a1) & ~ROW_WORD(arg0&0xFF,a1) over 8 words into a3, then the bit count of ROW_WORD(t2,0) (cnt==1 adjustment), store D_80189CC9[k]=a3. Remaining diffs are register allocation and loop shape: the target uses one u8 counter (t0) for the first loop AND for k, mask is a0 with a 1-shift, the inner bit loop is 0..31 with a 32-bit mask in a2, and the bnel with addiu a3 in the delay slot (the bit count increment executes only when the bit is set). Tried: sharing k for the first loop (2850, worse, the mask/shift moved to a1). Untried: write the bit count as an explicit do-while over a single u32 with `bits >>= 1` so the and/bnel form matches.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794736494.857465,
+  "score_before": 2735,
+  "score_after": 2735
+ },
+ {
+  "function": "func_8014981C",
+  "text": "Best 2300 (revision c06852222d04e2d0e338 or 3f942bbedb2637019955; u8 k/a3/w/cnt/n, u32 t2/mask/bits, bits reused for the cnt==1 check). Remaining diff is register allocation and order only: target keeps outer index k in t0 across the clear loop (lines 0-11: addu t0,zero,zero; sb loop) and the main loop; candidate always puts k in t1 whatever the declaration order, do-while clear loop, or s8 k (4865, worse). Target also has a3=0 before the word loop with a1 as word counter, mask a0 reset per word, second count loop reusing a1 and v1. Untried: s32 mask/cnt to change allocation, or splitting the bit-count into a helper (would change call structure, likely not matching). Not enough progress to justify more compiles this session.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794764718.370309,
+  "score_before": 2735,
+  "score_after": 2300
+ },
+ {
+  "function": "func_8014981C",
+  "text": "Best: score 2300 (75%), revision e73f23f26471bdac88bb (u8 k declared first; clear loop for k<3 first, then if (D_8018A276) loop). Target structure confirmed: clear loop first; then lbu D_8018A276 and branch; inside the if, target precomputes ref row = D_8018D3A0 + ((arg0&0xFF)<<5) (sll 5, addu with base) and row(t2) = base + t2<<5 before the loops, and keeps k in t0 (mine uses t1 for k and recomputes addresses per use). Tried and worse: moving clear loop to else (4260); ref pointer at top (3290); ref inside if with clear loop first (3025); signedness family on t2 (no change). Still differing: register choice for k (t0 target, t1 mine) and the hoisted ref/base address chain. Untested: keep row/ref as u32* pointers but also hoist base as a local u8* pointer, and use k as the loop variable of the outer loop with an explicit index into D_8018A277 via pointer increment.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794766829.679211,
+  "score_before": 2300,
+  "score_after": 2300
+ },
+ {
+  "function": "func_8014981C",
+  "text": "Bit-count loops over 8 words (u32 rows of a table, 32-bit inner loops) with the single-bit countdown: 4585 best over six variants, far from the saved 965. The inner loops are probably written differently in the target (the bit mask is a separate register from the parameter). Not matched.",
+  "by": "manual-68913573ef2f4091",
+  "created_at": 1795711176.7462761,
+  "score_before": 4585,
+  "score_after": 4585,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:753c9dafeab2037ddf0f04d0dfdf20d03f4ecfcf2bcb7a30b9f26d04f49042f3"
+ },
+ {
+  "function": "func_8014981C",
+  "text": "haiku-pr30: read the 68-insn-long bit-count routine as: zero 3 bytes; n = D_8018A276; per index i count set bits of (rows[t2] & ~rows[arg]) over 8 words x 32 bits, then a popcount==1 decrement, store the count; the target keeps the loop counters as u8 with andi tests. A clean rewrite (f5_c4) scores 4025, far above the saved 965. Released; the remaining gap is loop/register shape.",
+  "by": "manual-a3f89156f3b6431f",
+  "created_at": 1795715803.9405692,
+  "score_before": 4585,
+  "score_after": 4025,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:753c9dafeab2037ddf0f04d0dfdf20d03f4ecfcf2bcb7a30b9f26d04f49042f3"
+ },
+ {
+  "function": "func_8014981C",
+  "text": "haiku-pr26: stalled at 3085 under the default profile (-O1 draft 5150). Bit-count routine: 8 words per row, popcount of row word 0, and a correction when the popcount is 1. Not close; the row-array form (D[t][a1] with a 32-bit mask loop) is the likely shape to revisit. Final source (scratch deleted at stop):\nextern u8 D_80189CC9[];\nextern u8 D_8018A276;\nextern u8 D_8018A277[];\nextern u32 D_8018D3A0[][8];\n\nvoid func_8014981C(u8 arg0)\n{\n  \n    u8 t0;\n    u32 a1;\n    s32 b;\n    u32 a2;\n    u32 cnt;\n    u32 mask;\n    u8 pc;\n\n    do { for (t0 = 0; t0 < 3; t0++) {\n        do { D_80189CC9[t0] = 0; } while (0);\n    } } while (0);\n    for (t0 = 0; t0 < D_8018A276; t0++) {\n            cnt = 0;\n            do { a2 = D_8018A277[t0] & 0xF; } while (0);\n            for (a1 = 0; a1 < 8; a1++) {\n                a2 = D_8018D3A0[a2][a1] & ~D_8018D3A0[arg0][a1];\n                mask = 1;\n                a1 = a2;\n                for (b = 0; b < 32; b++) {\n                    if (a1 & mask) {\n                        cnt++;\n                    }\n                    mask <<= 1;\n                }\n            }\n            mask = 1;\n            pc = 0;\n            a2 = D_8018D3A0[a2][0];\n            for (b = 0; b < 32; b++) {\n                if (a2 & mask) {\n                    pc++;\n                }\n                mask <<= 1;\n            }\n            if (pc == 1) {\n                if ((a2 & D_8018D3A0[arg0][0]) == 0 && cnt != 0) {\n                    cnt--;\n                }\n            }\n            do {\n                D_80189CC9[t0] = cnt;\n            } while (0);\n        }\n}",
+  "by": "manual-41d32257dcbd48de",
+  "created_at": 1795716096.305452,
+  "score_before": 965,
+  "score_after": 965
+ },
+ {
+  "function": "func_8014981C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr26: stalled at 3085 after prove_chain; see note.",
+  "by": "manual-41d32257dcbd48de",
+  "created_at": 1795716099.2605681,
+  "score_before": 965,
+  "score_after": 965
+ },
+ {
+  "function": "func_8014981C",
+  "text": "Small-model attempt at func_8014981C: 12 tries.\n  best 2580 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2725 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2875 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2950 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 2950 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n12 tries, no match. Best own score 2580 (try 11: pointer rows ra/rb as u32 *, arg0 reused as bit mask, u8 counters, word-0 popcount loop). Saved C scores 965 under own, so the clean rewrite is far from it: the register allocation differs (target keeps row/ra/rb in t-regs, mask in a0 reset per word). Untried: copy the saved C's loop shapes (ROW_WORD macro, u32 t2) without its junk, and the nested if form of the single-bit check.",
+  "by": "manual-0c8e1eacd1c640be",
+  "created_at": 1795716922.368354,
+  "score_before": 965,
+  "score_after": 965
+ },
+ {
+  "function": "func_8014981C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_8014981C: 12 tries.\n  best 2580 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2725 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2875 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2950 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 2950 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n12 tries, no match. Best own score 2580 (try 11: pointer rows ra/rb as u32 *, arg0 reused as bit mask, u8 counters, word-0 popcount loop). Saved C scores 965 under own, so the clean rewrite is far from it: the register allocation differs (target keeps row/ra/rb in t-regs, mask in a0 reset per word). Untried: copy the saved C's loop shapes (ROW_WORD macro, u32 t2) without its junk, and the nested if form of the single-bit check.",
+  "by": "manual-0c8e1eacd1c640be",
+  "created_at": 1795716927.761735,
+  "score_before": 965,
+  "score_after": 965
+ },
+ {
+  "function": "func_8014981C",
+  "text": "Small-model attempt at func_8014981C: 12 tries.\n  best 2580 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2725 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2875 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2950 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 2950 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n12 tries, no match. Best own score 2580 (try 11: pointer rows ra/rb as u32 *, arg0 reused as bit mask, u8 counters, word-0 popcount loop). Saved C scores 965 under own, so the clean rewrite is far from it: register allocation differs (target keeps row/ra/rb in t-regs, mask in a0 reset per word). Untried: the saved C's loop shapes (ROW_WORD macro, u32 t2) without its junk, and the nested if form of the single-bit check.",
+  "by": "manual-0c8e1eacd1c640be",
+  "created_at": 1795716956.0145972,
+  "score_before": 965,
+  "score_after": 965
  }
 ]
