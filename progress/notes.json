@@ -7936,14 +7936,6 @@
   "score_after": 30
  },
  {
-  "function": "func_800E0A00",
-  "text": "Best saved remains 2955 (brief candidate). My attempt: 3546 (revision 6cd9fa1e13095b3e2ef8), with `u32 pivot` (u8 pivot gave 4271, worse). Key facts from the target: D_8011F2FA is a u8 array with stride 100: the key is byte D_8011F2FA[ arg2[k] * 100 ] (lhu the u16 index from arg2, multiply by 100, lbu). The target's frame is 0x20 with only ra, s0, s1, s2 saved and uses t0=arg0, s2=arg1, s1=arg2, a2=i, s0=j, a3=pivot; ours has frame 0x30 and extra spills from the separate tmp and index temporaries, which is the main remaining gap (stack layout differs before any register issue). Next: keep the index computed once per loop test, avoid a separate `tmp` (swap via a u16 in the goto block only), and make the recursive calls take arg2 directly so only 4 saved registers are needed.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794709517.970515,
-  "score_before": 2955,
-  "score_after": 2955
- },
- {
   "function": "func_800E08B4",
   "text": "Hoare-style quicksort on a u16 index array, key table D_800E1EE0 (f32). Best remains the saved 4091 (candidate e2112de0b142218d1f2d). Tried: (a) s32 tmp instead of u16 tmp: no effect (4091). (b) loop/guard rewrite with i<=j, arg0+1<i, j<arg1-1: worse (4611). Unresolved: target frame is 0x20 (ra,s0,s1,s2 only, no locals); ours is 0x38, so the values kept across the recursive calls are placed differently. Target keeps arg0 copy in a2 (i) and arg1 copy in s0 (j); the pivot index is (arg0+arg1)/2 via srl/addu/sra. Next ideas: a separate s32 mid local for the pivot index; hoisting the key-table base (a3) before the first loop.",
   "by": "claude-haiku-5-5-20",
@@ -12272,14 +12264,6 @@
   "score_after": 3947
  },
  {
-  "function": "func_800E0A00",
-  "text": "Releasing now, with the reason: my rewrite is structurally far from the target (10% match, 123 differing rows), and a blind compile sequence will not close that gap at this effort level. Start from the saved 2005 candidate and read get_assembly for the partition loop before rewriting. Key facts: frame saves ra, s0, s1, s2 (0x1c); the pivot comes from idx[(lo+hi)/2] through the SortItem key at stride 100; the swap acts on the index array (u16); recursion on both sides. The draft fails on types and an arity error, so do not use it unedited.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794724136.625791,
-  "score_before": 2005,
-  "score_after": 2005
- },
- {
   "function": "func_8013DD2C",
   "text": "Not matched. Best revision 0ffd59b88bc3ed196181 scores 4400 (35%). Instruction count matches (68 vs 68), so the remaining diffs are order and register choice only.\n\nTarget structure (72 insns, leaf, no frame):\n- off = D_80126FF6 * 40: lbu, sll 2, addu, sll 3 into $v1, held for all four table loads.\n- t1 (lhu D_800DB1B8+0x2114+off, sll 16, sra 21), t5 (lhu +0x2116, same), t0 (lh +0x2110), t4 (lh +0x2112). Load order in the target: t5 first (0x2116), then t0, then t4, then t1 later.\n- Destination base a3 = (D_80168166<<11) + (&D_80183BE0 + (D_80126FF6<<12)) held in $t3/$t2 across the loop.\n- Outer loop j in $a2 (starts with `addu $a2,$zero,$zero`), inner i in $a1. The source index per store: ((i<<5) + 0x1F - j) * 2 computed as addiu 0x1F, subu j, sll 1, addu a3.\n- Source word: *(u16*)(D_800DB1B0 + (j*t5 + t4)*0x280 + (i*t1 + t0)*2). D_800DB1B0 is a pointer-valued s32 (lw before use). The final D_80168166 ^= 1 is a lbu/xori/sb.\n\nRemaining diffs: prologue ordering of the four table loads, and the destination index: the target computes (i<<5) before the j term (sll v1,a1,5; addiu 0x1F; subu) while mine folds -j into a separate `addiu $t4,$t3,-0x1f`. A split local for k (revision a05aae836bd7704a6198) made it worse (4470).\n\nLeft to try: write the inner loop with i as the outer dimension of the destination index, or give the t-values as u16 locals loaded in target order (t5 first). Do not spend more compiles on the k local.",
   "by": "claude-haiku-5-5-24",
@@ -16528,14 +16512,6 @@
   "score_after": 480
  },
  {
-  "function": "func_800E0A00",
-  "text": "Quicksort (lo, hi, u16 *arr); key = D_8011F2FA[arr[i]*100] as u8; pivot = key(arr[(lo+hi)/2]). Hoare loop: while key(i)<pivot i++; while pivot<key(j) j--; if i<j swap, i++, j--, else break; recurse (lo, i-1) if lo<i-1 and (j+1, hi) if j+1<hi. Best 6956 (30%, revision cf1e8dc2166df1000157): target keeps arg0 in $t0, arg1/arg2 in $s2/$s1, frame 0x20 (ra,s2,s1,s0 saved); ours spills to 0x28 and re-derives the D_8011F2FA address per access. Next: hold lo/hi/arr in named locals to match the register and frame layout.\n\nNot matched. Best 6956 (30%), revision cf1e8dc2166df1000157 (the plain version with i/j locals and the arr-free body). Named-local variant lo/hi/arr scored 7695 (worse). Target: frame 0x20 saving ra,s2,s1,s0; arg0 kept in $t0 (move $t0,$a0), arg1 -> $s2, arg2 -> $s1, i in $a2, j in $s0; key re-derived each access as lui/addu/lbu of D_8011F2FA with v*100. Ours spills to 0x28 and adds a move of arg0 into a1 for the recursive call. Next: keep the three args in s-registers explicitly (s0=j, s1=arr, s2=hi) by using them directly in the loops rather than copying; the recursive calls pass lo as the untouched arg0.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794735515.941141,
-  "score_before": 1885,
-  "score_after": 1885
- },
- {
   "function": "func_8015CF2C",
   "text": "Best verified score 670 (rev 5ec9a8537747d6b52f2b), 43 target insns vs 41 ours, 13 differing rows. Working C: `off = ((u16)arg0) * 0x64; obj = *((u8 **)(D_8011F350 + off)); t = (s16)(*(u16 *)(obj + 0x14) - 1); *(u16 *)(obj + 0x14) = t; *(f32 *)(obj + 0x70) = *(f32 *)(obj + 0x70) + 15.0f; if (t < 0) { func_8013E49C(*(u16 *)(obj + 0x76)); D_8011F2FD[off] = 2; }` then `func_8013EDFC(arg0 & 0xFFFF, obj);`, with D_8011F2FD declared as a scalar u8 and indexed via *(&D_8011F2FD + off). Remaining differences: (1) prologue save order \u2014 target saves ra,s2,s1,s0 immediately after the addiu; ours emits `sw $s2,0x18($sp)` before `move $s2,$a0` and defers `sw $ra` to after the address computation, i.e. our $s2 live range starts one instruction earlier. (2) target emits lwc1 0x70 / mtc1 / nop / add.s / swc1 *before* the lhu 0x14 decrement; ours does the decrement first. Swapping the statements in C had no effect (variant 4, score unchanged 670). (3) `andi $a0,$s2,0xFFFF` appears in the delay slot of `bgez` and again at .L8015CFB8 in the target (two conversions of arg0); ours computes it once. Tried: u16 param, u16 t, off/obj declaration order, explicit loop backedge, *(unsigned short) index, constant local, D_8011F2FD[off] vs *(&D_8011F2FD+off). Local repairs budget exhausted (8/4).",
   "by": "api-route-llm-code-1",
@@ -16998,14 +16974,6 @@
   "created_at": 1794736642.569587,
   "score_before": 6340,
   "score_after": 6340
- },
- {
-  "function": "func_800E0A00",
-  "text": "Not matched. Best 6956 (29.7%), revision 2ab031bf1fee1d242d4d: recursive quicksort on u16 index array `arg2`, key byte at `D_8011F2FA + idx*100`, `s32 i,j; u8 pivot; u16 tmp`. Tried: pivot s32 (7041, worse); key compare written as `*(u8*)((u8*)D + idx*100)` (6956, same, and it compiles to sltu as the target does). Remaining diffs: target frame 0x20 with four saved regs (ra, s2, s1, s0), mine 0x28. Target's second loop decrements `$s0` (addiu $s0,-1) and uses `bnel`, where mine increments `a1` and uses `bnez`, so the i/j roles in the partition loop are probably swapped relative to the target. Next: swap which index moves in the partition (j-- in the first loop body, i++ in the second) and check the swap block order before the recursive calls.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794736705.397933,
-  "score_before": 1885,
-  "score_after": 1885
  },
  {
   "function": "func_8014D5CC",
@@ -17518,14 +17486,6 @@
   "created_at": 1794738747.410499,
   "score_before": 1720,
   "score_after": 1720
- },
- {
-  "function": "func_800E0A00",
-  "text": "Recursive quicksort over u16 index array arr (arg2) with u8 table D_8011F2FA at stride 100 (table index = arr[k]*100 via 3x,8x,+x,4x shifts). Args: lo=a0, hi=a1, arr=a2. Target: frame 0x20 saving $ra,$s0,$s1,$s2; mid=(lo+hi)/2 signed; pivot=(u8)table[arr[mid]*100]; Hoare partition with i from lo, j from hi, swap via u16 tmp, break when i>=j; then recurse(lo,i-1) if lo<i-1, and (j+1,hi) if j+1<hi. Best 6956 (29.7%) from revision 7f4127506928eb6e0b88 (also 64d7fe680dacbaaed57a with tmp inside the block, b778845480a0cd262ca3 with scalar extern). All variants give identical instructions: target is 99 insns, mine 111, with a 0x28 frame vs 0x20 and the table address rebuilt with extra lui/addiu. Likely the target's loop shape is different (fewer blocks; the two while loops probably share one exit). Next: rewrite as one loop with the j-loop condition inline, or as a goto-free do-while, and check the number of saved regs (target saves only ra,s0,s1,s2).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794738806.2689788,
-  "score_before": 1885,
-  "score_after": 1885
  },
  {
   "function": "func_800DEFF8",
@@ -30328,14 +30288,6 @@
   "score_after": 395
  },
  {
-  "function": "func_800E0A00",
-  "text": "Move-on budget exhausted (3/3 without improvement). Saved best 9f9ebc25cf0800be4415 at 6621; best clean structural base caa1acaf1a76b70964c9 / 154d896d65d34259c8ad at 6651.\n\nKey discovery: func_800E08B4 (matched, 73% similar) is the same quicksort on D_800E1EE0 (f32) with identical shape; its matched C has pivot assigned BEFORE i=arg0/j=arg1, uses `for (;;)`, and carries a /*__repair_loop_weight*/do { i++; } while (0); wrapper around the inner i++ of the first while loop. Copying that donor shape verbatim (with D_8011F2FA[..*100] as a byte table) took 6956 -> 6751, the single best structural gain. Do not use `while (1)`.\n\nIndex arithmetic: target multiplies by 100 via sll/addu chains (v1*2, *8, +v1, *4). The pivot load keeps its base in $a3 (lui $a3,%hi / addu $a3 / lbu %lo($a3)) while the two inner-loop loads use $at (lui $at,%hi / addu $at / lbu %lo($at)) - the standard KMC -O1 global-array-into-$at pattern.\n\nCompiler evidence: at -O1 the score is 905 (90.9%) with only 9 regalloc / 6 operand rows left, versus 6621-6956 at the project's -O2. This function is almost certainly KMC GCC 2.7.2 -O1, matching the already-confirmed range 0x80203B04-0x80212000. Remaining -O1 gaps: (a) `move $t0,$a0` vs `move $t1,$a0` - arg0 should land in t0; try a separate `s32 lo = arg0;` used only for (arg0+arg1)/2 and the tail compare, never for i; (b) inner-loop loads come out as `lbu $v0,($v0)` with the base pre-added instead of lui $at/addu/lbu %lo($at) - try hoisting `s32 idx = arg2[i] * 100;` into a local so the base is not folded; (c) one extra `move $a1,$t0` / `move $a2,$t0` before the loop bodies.\n\nTried and failed: (s32) casts on the index, volatile / u8[0x8000] / s8 declarations of D_8011F2FA, i as u32, swapping i/j declaration order, branch_orientation inversion of if(i<j), explicit_loop_backedge, do/while(0) on j--, alternate swap orders, -O2 with -fno-strength-reduce / -fno-schedule-insns / -fno-expensive-optimizations / -fno-unroll-loops (all 6956), sn-n64-272-0001 -O1 (1080). -fno-cse, -fno-move-all-movables and -fno-loop-optimize are rejected by this compiler.\n\nQueued experiment: drop the loop-weight wrapper from the current revision to get back to the clean donor shape.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794763044.3644218,
-  "score_before": 1885,
-  "score_after": 1885
- },
- {
   "function": "func_801496B0",
   "text": "EXACT MATCH at KMC GCC -O1 (verified, suggested): params (u8 arg0, u16 arg1, u8 arg2); D_8018D140 as u16[][150]; reuse arg1 = (arg1<<8)&0x700 for the mask (separate u16 local gave 60, regswap). Unit -O2 blocks saving.",
   "by": "claude-opus-medium-1",
@@ -32270,14 +32222,6 @@
   "created_at": 1794766131.97238,
   "score_before": 2310,
   "score_after": 1990
- },
- {
-  "function": "func_800E0A00",
-  "text": "Not matched. Saved best 6621 (historical). My clean recursive-quicksort rewrite scored 6956 (29.7%, 111 vs 99 insns), so it is not an improvement. The machine draft failed to compile (its repair markers and bad pointer casts), so the draft is unusable. Target facts: 0x20 frame with four saves ($ra,$s2,$s1,$s0); arg2 (index array) is kept in $s1; the key lookup D_8011F2FA+idx*100 is recomputed with lui/addiu each use. My version uses a 0x28 frame and a fifth save (lui into $t4 pattern), so the locals are the wrong count. Next: reduce to three locals plus the saved array pointer to match the 0x20 frame, check whether the swap is done with tmp=arg2[i] before the j-- (order of i++/j--), and check the pivot index expression (arg0+arg1)/2 vs a shift.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794766143.699896,
-  "score_before": 1885,
-  "score_after": 1885
  },
  {
   "function": "func_801F9AC0",
@@ -34695,5 +34639,61 @@
   "score_before": null,
   "score_after": null,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:632b9e0e385d986f37a52b3ae69890ee36abc946c9477b54779c6f91db788fda"
+ },
+ {
+  "function": "func_800E0A00",
+  "text": "Best saved remains 2955 (brief candidate). My attempt: 3546 (revision 6cd9fa1e13095b3e2ef8), with `u32 pivot` (u8 pivot gave 4271, worse). Key facts from the target: D_8011F2FA is a u8 array with stride 100: the key is byte D_8011F2FA[ arg2[k] * 100 ] (lhu the u16 index from arg2, multiply by 100, lbu). The target's frame is 0x20 with only ra, s0, s1, s2 saved and uses t0=arg0, s2=arg1, s1=arg2, a2=i, s0=j, a3=pivot; ours has frame 0x30 and extra spills from the separate tmp and index temporaries, which is the main remaining gap (stack layout differs before any register issue). Next: keep the index computed once per loop test, avoid a separate `tmp` (swap via a u16 in the goto block only), and make the recursive calls take arg2 directly so only 4 saved registers are needed.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794709517.970515,
+  "score_before": 2955,
+  "score_after": 2955
+ },
+ {
+  "function": "func_800E0A00",
+  "text": "Releasing now, with the reason: my rewrite is structurally far from the target (10% match, 123 differing rows), and a blind compile sequence will not close that gap at this effort level. Start from the saved 2005 candidate and read get_assembly for the partition loop before rewriting. Key facts: frame saves ra, s0, s1, s2 (0x1c); the pivot comes from idx[(lo+hi)/2] through the SortItem key at stride 100; the swap acts on the index array (u16); recursion on both sides. The draft fails on types and an arity error, so do not use it unedited.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794724136.625791,
+  "score_before": 2005,
+  "score_after": 2005
+ },
+ {
+  "function": "func_800E0A00",
+  "text": "Quicksort (lo, hi, u16 *arr); key = D_8011F2FA[arr[i]*100] as u8; pivot = key(arr[(lo+hi)/2]). Hoare loop: while key(i)<pivot i++; while pivot<key(j) j--; if i<j swap, i++, j--, else break; recurse (lo, i-1) if lo<i-1 and (j+1, hi) if j+1<hi. Best 6956 (30%, revision cf1e8dc2166df1000157): target keeps arg0 in $t0, arg1/arg2 in $s2/$s1, frame 0x20 (ra,s2,s1,s0 saved); ours spills to 0x28 and re-derives the D_8011F2FA address per access. Next: hold lo/hi/arr in named locals to match the register and frame layout.\n\nNot matched. Best 6956 (30%), revision cf1e8dc2166df1000157 (the plain version with i/j locals and the arr-free body). Named-local variant lo/hi/arr scored 7695 (worse). Target: frame 0x20 saving ra,s2,s1,s0; arg0 kept in $t0 (move $t0,$a0), arg1 -> $s2, arg2 -> $s1, i in $a2, j in $s0; key re-derived each access as lui/addu/lbu of D_8011F2FA with v*100. Ours spills to 0x28 and adds a move of arg0 into a1 for the recursive call. Next: keep the three args in s-registers explicitly (s0=j, s1=arr, s2=hi) by using them directly in the loops rather than copying; the recursive calls pass lo as the untouched arg0.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794735515.941141,
+  "score_before": 1885,
+  "score_after": 1885
+ },
+ {
+  "function": "func_800E0A00",
+  "text": "Not matched. Best 6956 (29.7%), revision 2ab031bf1fee1d242d4d: recursive quicksort on u16 index array `arg2`, key byte at `D_8011F2FA + idx*100`, `s32 i,j; u8 pivot; u16 tmp`. Tried: pivot s32 (7041, worse); key compare written as `*(u8*)((u8*)D + idx*100)` (6956, same, and it compiles to sltu as the target does). Remaining diffs: target frame 0x20 with four saved regs (ra, s2, s1, s0), mine 0x28. Target's second loop decrements `$s0` (addiu $s0,-1) and uses `bnel`, where mine increments `a1` and uses `bnez`, so the i/j roles in the partition loop are probably swapped relative to the target. Next: swap which index moves in the partition (j-- in the first loop body, i++ in the second) and check the swap block order before the recursive calls.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794736705.397933,
+  "score_before": 1885,
+  "score_after": 1885
+ },
+ {
+  "function": "func_800E0A00",
+  "text": "Recursive quicksort over u16 index array arr (arg2) with u8 table D_8011F2FA at stride 100 (table index = arr[k]*100 via 3x,8x,+x,4x shifts). Args: lo=a0, hi=a1, arr=a2. Target: frame 0x20 saving $ra,$s0,$s1,$s2; mid=(lo+hi)/2 signed; pivot=(u8)table[arr[mid]*100]; Hoare partition with i from lo, j from hi, swap via u16 tmp, break when i>=j; then recurse(lo,i-1) if lo<i-1, and (j+1,hi) if j+1<hi. Best 6956 (29.7%) from revision 7f4127506928eb6e0b88 (also 64d7fe680dacbaaed57a with tmp inside the block, b778845480a0cd262ca3 with scalar extern). All variants give identical instructions: target is 99 insns, mine 111, with a 0x28 frame vs 0x20 and the table address rebuilt with extra lui/addiu. Likely the target's loop shape is different (fewer blocks; the two while loops probably share one exit). Next: rewrite as one loop with the j-loop condition inline, or as a goto-free do-while, and check the number of saved regs (target saves only ra,s0,s1,s2).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794738806.2689788,
+  "score_before": 1885,
+  "score_after": 1885
+ },
+ {
+  "function": "func_800E0A00",
+  "text": "Move-on budget exhausted (3/3 without improvement). Saved best 9f9ebc25cf0800be4415 at 6621; best clean structural base caa1acaf1a76b70964c9 / 154d896d65d34259c8ad at 6651.\n\nKey discovery: func_800E08B4 (matched, 73% similar) is the same quicksort on D_800E1EE0 (f32) with identical shape; its matched C has pivot assigned BEFORE i=arg0/j=arg1, uses `for (;;)`, and carries a /*__repair_loop_weight*/do { i++; } while (0); wrapper around the inner i++ of the first while loop. Copying that donor shape verbatim (with D_8011F2FA[..*100] as a byte table) took 6956 -> 6751, the single best structural gain. Do not use `while (1)`.\n\nIndex arithmetic: target multiplies by 100 via sll/addu chains (v1*2, *8, +v1, *4). The pivot load keeps its base in $a3 (lui $a3,%hi / addu $a3 / lbu %lo($a3)) while the two inner-loop loads use $at (lui $at,%hi / addu $at / lbu %lo($at)) - the standard KMC -O1 global-array-into-$at pattern.\n\nCompiler evidence: at -O1 the score is 905 (90.9%) with only 9 regalloc / 6 operand rows left, versus 6621-6956 at the project's -O2. This function is almost certainly KMC GCC 2.7.2 -O1, matching the already-confirmed range 0x80203B04-0x80212000. Remaining -O1 gaps: (a) `move $t0,$a0` vs `move $t1,$a0` - arg0 should land in t0; try a separate `s32 lo = arg0;` used only for (arg0+arg1)/2 and the tail compare, never for i; (b) inner-loop loads come out as `lbu $v0,($v0)` with the base pre-added instead of lui $at/addu/lbu %lo($at) - try hoisting `s32 idx = arg2[i] * 100;` into a local so the base is not folded; (c) one extra `move $a1,$t0` / `move $a2,$t0` before the loop bodies.\n\nTried and failed: (s32) casts on the index, volatile / u8[0x8000] / s8 declarations of D_8011F2FA, i as u32, swapping i/j declaration order, branch_orientation inversion of if(i<j), explicit_loop_backedge, do/while(0) on j--, alternate swap orders, -O2 with -fno-strength-reduce / -fno-schedule-insns / -fno-expensive-optimizations / -fno-unroll-loops (all 6956), sn-n64-272-0001 -O1 (1080). -fno-cse, -fno-move-all-movables and -fno-loop-optimize are rejected by this compiler.\n\nQueued experiment: drop the loop-weight wrapper from the current revision to get back to the clean donor shape.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794763044.3644218,
+  "score_before": 1885,
+  "score_after": 1885
+ },
+ {
+  "function": "func_800E0A00",
+  "text": "Not matched. Saved best 6621 (historical). My clean recursive-quicksort rewrite scored 6956 (29.7%, 111 vs 99 insns), so it is not an improvement. The machine draft failed to compile (its repair markers and bad pointer casts), so the draft is unusable. Target facts: 0x20 frame with four saves ($ra,$s2,$s1,$s0); arg2 (index array) is kept in $s1; the key lookup D_8011F2FA+idx*100 is recomputed with lui/addiu each use. My version uses a 0x28 frame and a fifth save (lui into $t4 pattern), so the locals are the wrong count. Next: reduce to three locals plus the saved array pointer to match the 0x20 frame, check whether the swap is done with tmp=arg2[i] before the j-- (order of i++/j--), and check the pivot index expression (arg0+arg1)/2 vs a shift.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794766143.699896,
+  "score_before": 1885,
+  "score_after": 1885
  }
 ]
