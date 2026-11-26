@@ -3600,14 +3600,6 @@
   "score_after": 655
  },
  {
-  "function": "func_80152720",
-  "text": "Deep permuter: score 9320 \u2192 6475; 4 improvements; 26 candidates tested; 99 cached skips; 0 rejected; 7204s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935479",
-  "created_at": 1794357141.823329,
-  "score_before": 9320,
-  "score_after": 6475
- },
- {
   "function": "func_80149F40",
   "text": "Deep permuter: score 1205 \u2192 1205; 0 improvements; 62 candidates tested; 5 cached skips; 0 rejected; 7222s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935411",
@@ -6702,14 +6694,6 @@
   "created_at": 1794708577.802871,
   "score_before": 6395,
   "score_after": 6395
- },
- {
-  "function": "func_80152720",
-  "text": "Released with 5 compiles, none reaching the saved best 4025. Best saved is the m2c-style draft (4025). Tried: (1) direct u8/u16 array indexing with idx=arg0*0x64: 8395/9195; (2) Cell struct stride 0x64 (v@0x00, u16 cnt@0x32, u8 flag@0x34): 7725; (3) separate arrays D_8011F2FC/D_8011F32E(u16)/D_8011F330 with arg0*0x64 and a D_8011F32E[arg0*0x32] counter store: 7565. Findings: the target recomputes the index per access, with (arg0&0xFFFF)*0x64 done as andi / sll 1 / addu / sll 3 / addu / sll 2 and each global addressed by its own lui %hi(...). The counter update is lhu, addiu 1, sltiu 0x15, bnez, then sh, i.e. the u16 counter at D_8011F32E is read-modify-write through the same computed index, not a reset-to-zero store. Not tried: starting from the m2c draft text (revision b7d2084219b8daebe8b9) and only fixing the counter with u16 pointer arithmetic (u16 *)(D_8011F32E + idx). The flag branch structure (flag==0 / v>=0x33 / v>=0xFF) is already right.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794708631.9467158,
-  "score_before": 4025,
-  "score_after": 4025
  },
  {
   "function": "func_80148260",
@@ -10238,14 +10222,6 @@
   "created_at": 1794723650.5946822,
   "score_before": 6340,
   "score_after": 6340
- },
- {
-  "function": "func_80152720",
-  "text": "Not matched. Best: revision d681b88248e2d0cb9e90 (score 7210; from fb7a1c3a55f3d2e18a6e by branch_orientation variant 2: the `D_8011F2FC[idx] < 0xFF` branch is written first with the +0xA store, else sets D_8011F330 to 0). Target is 101 insns, candidate ~59. Facts: D_8011F32E/D_8011F330 accessed as u16 (lhu/sh), D_8011F2FC as u8 (lbu/sb); index = (arg0&0xFFFF)*100 recomputed (andi $a0,0xFFFF) at every use; target has per-access lui+addu+%lo(sym). Candidate has parameter u16 arg0 and &ARRAY[arg0*100] accesses but compiler still emits move $a2,$a0 and hoists lui/addiu of D_8011F32E. Tried without gain: byte-offset pointers (9320), inline (arg0&0xFFFF) per use (7670), &ARRAY[idx] casts (7670), u16 parameter (7670). Next: apply the other branch_orientation variants' ideas together (variant 1 was worse, variant 3 7365), then attack the index recomputation so the compiler re-derives it after each store (e.g. separate index per statement via a macro-free helper, or structure as nested ifs matching target block order: first increment/clamp of D_8011F32E, then D_8011F330 test).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794723653.438949,
-  "score_before": 4025,
-  "score_after": 4025
  },
  {
   "function": "func_80149220",
@@ -16856,14 +16832,6 @@
   "score_after": 0
  },
  {
-  "function": "func_80152720",
-  "text": "Not matched. Saved best 4025 (m2c draft form). Logic is clear: idx = arg0&0xFFFF, off = idx*100. Stage 1: u16 at D_8011F32E+off += 1, and if >= 0x15 set it to 0. Stage 2: if u16 at D_8011F330+off == 0, then (if u8 D_8011F2FC+off >= 0x33 subtract 0xA, else set u16 D_8011F330+off = 1); otherwise (if u8 D_8011F2FC+off >= 0xFF set u16 D_8011F330+off = 0, else add 0xA to the u8). Tail: D_802B22D4 = ((u8 D_8011F2FC[off] << 8) & 0xF800) | 1. Three rewrites: a local off variable scored 6535; the fully inline (arg0&0xFFFF)*0x64 form scored 7670 (the compiler then hoists the base into a0 with %lo folded into addiu, unlike the target, which uses lui/addu/%lo loads directly). The target recomputes the sll/addu chain in every block and reads D_8011F32E with lui %hi plus %lo folded into the load, so the base must stay a symbol and not get hoisted. Next step: a version with the stage-1 read-modify-write as a single expression on the symbol (so the store uses lui at + %lo), and per-block recomputation of off, starting from the m2c draft at 4025.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794749778.735122,
-  "score_before": 4025,
-  "score_after": 4025
- },
- {
   "function": "func_80157F6C",
   "text": "Not matched. Current best on baseline 2141 (saved historical 596). Target: stride 100 (idx*100 via shifts/adds), base D_8011F2F0, offsets 0x18/0x1C/0x20/0x44, calls func_8013AE60(idx) first then __sinf/__cosf. Blocking diff is prologue register allocation: target saves ra(0x1c), s2(0x18), s1(0x14), s0(0x10) and does `move s2,a0; move s1,s2; andi s0,s1,0xffff; jal func_8013AE60` with a0=s0. Every candidate so far saves s1 first and drops the s2 copy. Three variants tried with no change in score: a local copy `a = arg0`, `idx=(u16)arg0`, and the signed-copy form; all compile to the same instructions. Next step if retried: find a source form that forces arg0 to stay live in a callee-saved reg across the call while the idx copy is separate (e.g. derive idx from a volatile-free second variable assigned after a use of arg0), or try compile_family(signedness). Branch sense looks right (bc1f goes to the else path).",
   "by": "claude-haiku-5-5-22",
@@ -18760,14 +18728,6 @@
   "score_after": 0
  },
  {
-  "function": "func_80152720",
-  "text": "Not matched. Best unmatched source scores 6230 (38%) vs saved best 4025 (different source). Layout: base D_8011F2FC, stride 100 per index (index = arg0 & 0xFFFF; x100 via sll1/addu/sll3/addu/sll2). Fields: u8 at +0 (-0xA when >=0x33 on flag==0 path; +0xA when <0xFF on flag!=0 path; flag!=0 at >=0xFF clears flag), u16 at +0x32 (counter +1, reset to 0 when >=0x15), u16 at +0x34 (flag: set 1 / cleared 0). Final D_802B22D4 = ((a<<8)&0xF800)|1. Remaining diff: target recomputes index*100 separately in each block (101 insns vs my 67); gcc CSEs within a block, and inline (u16)arg0 indexing gave the same score. Register assignment is swapped ($v0/$v1). Tried and rejected: char-array offset form (9320), s8 for the byte field (6505). Next idea: find C whose per-block index recomputation matches the target's four repeated sll/addu chains, probably by splitting the statements into separate arrays/pointers or by a different control-flow nesting for the flag==0 branch.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794753982.038692,
-  "score_before": 4025,
-  "score_after": 4025
- },
- {
   "function": "__osViSwapContext",
   "text": "Not matched; releasing early at low effort, not because the function is proven impossible. 748-byte function in unit main: an RDP/display-list task setup. It loads D_800481F4 (task pointer), reads fields at offsets 0x0..0x38, writes the 0xA44000xx display-processor registers, calls osVirtualToPhysical twice, and ends with a 16-byte copy loop rotating D_800481F0/D_800481F4. Saved best 6255 is the m2c draft. My hand rewrite (revision 8fba70856f9bc6ad1d2a) scored 6355, worse. The first differences are prologue order: the target spills $s0, loads D_800481F4 into $s0, then reads 0xA4400010 (lui/ori/lw) before any field access; my source reads the fields first. Next steps: start from saved_best; make the first statement temp_s0 = D_800481F4 and read *(s32 *)0xA4400010 before field accesses; then introduce a struct for the task record (u16 flags at 0, pointer at 4, f32 scale at 0x24, u32 at 0x20/0x2C) and one for the 0x14-byte per-frame block at temp_s1.",
   "by": "claude-haiku-5-5-23",
@@ -19414,14 +19374,6 @@
   "created_at": 1794755298.411895,
   "score_before": 6160,
   "score_after": 6160
- },
- {
-  "function": "func_80152720",
-  "text": "Unmatched. Best current candidate 6500 (35.6%), revision d42a8b07051df161df7c: one `off = (arg0&0xFFFF)*0x64` temp for the first counter block, later blocks recompute `(arg0&0xFFFF)*0x64` inline. Chain order now matches (andi, sll/addu x*100, then lui/lhu), but the target keeps the index in $v1 and the offset in $v1/$v0 swapped, and it recomputes `andi $v0,$a0,0xffff` in the bnez delay slot and loads D_8011F330 via lui/addu/lhu(%lo). Saved best 4025 not reproduced. Tried and worse: fully inlined per-use expressions (7670), separate temps per block (9320), char-array indexing (7670). Next: try computing the index into a separate s32 temp that is reloaded from arg0 per block, to match the andi-in-delay-slot pattern; then register naming.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794755307.484926,
-  "score_before": 4025,
-  "score_after": 4025
  },
  {
   "function": "func_801948E0",
@@ -25280,14 +25232,6 @@
   "score_after": 52929
  },
  {
-  "function": "func_80152720",
-  "text": "func_80152720 (404 bytes, 101 target insns). Source shape: arg0 s32 masked with &0xFFFF and multiplied by 0x64 (stride-100 records) recomputed at each access; D_8011F32E is a u16 counter wrapping at 0x15 (>= 0x15 -> 0); D_8011F330 u8 flag, D_8011F2FC u8 value with -=0xA / +=0xA clamps at 0x33 / 0xFF; final D_802B22D4 = ((D_8011F2FC[idx*0x64] << 8) & 0xF800) | 1. Best this session: 5195 (48.5%) with repeated (arg0&0xFFFF)*0x64 expressions. Earlier simplified version with a single off variable scored 6650; saved best 4025 is from an older source. Diff: target re-masks and recomputes the index for the counter load and the store, and its counter is loaded through a separate lui/addu/lhu sequence, while my code folds the address. Next: match the counter access (lhu from D_8011F32E[idx]) with its own address expression first, then the flag/value branches. Not tried: u16 vs s32 for the counter, and the two-step address for the last D_802B22D4 read.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794764829.3604841,
-  "score_before": 4025,
-  "score_after": 4025
- },
- {
   "function": "func_8014F5A8",
   "text": "Releasing now: this 1550-instruction function is a long hand-unrollable sequence of ~70 func_800DE41C calls with per-call float constants. The saved m2c-style draft is at about 2% and a single-call probe is at 2.0% with a different frame; reaching exact match needs the full 0x98 frame, saved-register layout ($ra, $s0-$s5, $fs0-$fs2) and the exact constant placement, which is not achievable in this low-effort session. Next steps for whoever takes it: start from saved_best (revision 075e252709bc7dedf089), first fix the frame size and register saves using get_assembly page 0, then test -O1 for constant handling. Also: the diff shows ~458 repeated sw $ra and 318 swc1 $f22 rows, which indicates the target re-stores the return address per call site; check whether the call wrapper is inlined.",
   "by": "claude-haiku-5-5-21",
@@ -26062,14 +26006,6 @@
   "created_at": 1794766879.466283,
   "score_before": 7040,
   "score_after": 7040
- },
- {
-  "function": "func_80152720",
-  "text": "Not matched. Probably -O1: the project's -O2 default is far off (6500 recorded here). Under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (try_compiler), my best is 2405 (76.2%). Compare only against the -O1 number.\n\nFacts: the three arrays are indexed by a byte offset idx = (arg0 & 0xFFFF) * 100. D_8011F32E and D_8011F330 are u16 (lhu/sh); D_8011F2FC is u8 (lbu/sb). D_802B22D4 is s16.\n\nBest -O1 shape: `s32 idx = (arg0 & 0xFFFF) * 0x64;` for the counter (`*(u16*)(D_8011F32E+idx) += 1; if (>= 0x15) = 0`). The flag and count blocks write `(arg0 & 0xFFFF) * 0x64` inline in each access. The last line is inline too. Flag logic: if flag==0 { if F2FC >= 0x33 F2FC -= 0xA else flag = 1 } else { if F2FC >= 0xFF flag = 0 else F2FC += 0xA }.\n\nRemaining at -O1: the target recomputes the index per access (andi $v1,$a0 each time, not CSE'd); register numbers differ; the bnez/bnel sides of the flag branch are reversed in part. Next: try the else-branch order and make only the first access use idx.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794766890.516651,
-  "score_before": 4025,
-  "score_after": 4025
  },
  {
   "function": "func_80149220",
@@ -39622,5 +39558,86 @@
   "created_at": 1795725100.629503,
   "score_before": 2310,
   "score_after": 2310
+ },
+ {
+  "function": "func_80152720",
+  "text": "Deep permuter: score 9320 \u2192 6475; 4 improvements; 26 candidates tested; 99 cached skips; 0 rejected; 7204s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935479",
+  "created_at": 1794357141.823329,
+  "score_before": 9320,
+  "score_after": 6475
+ },
+ {
+  "function": "func_80152720",
+  "text": "Released with 5 compiles, none reaching the saved best 4025. Best saved is the m2c-style draft (4025). Tried: (1) direct u8/u16 array indexing with idx=arg0*0x64: 8395/9195; (2) Cell struct stride 0x64 (v@0x00, u16 cnt@0x32, u8 flag@0x34): 7725; (3) separate arrays D_8011F2FC/D_8011F32E(u16)/D_8011F330 with arg0*0x64 and a D_8011F32E[arg0*0x32] counter store: 7565. Findings: the target recomputes the index per access, with (arg0&0xFFFF)*0x64 done as andi / sll 1 / addu / sll 3 / addu / sll 2 and each global addressed by its own lui %hi(...). The counter update is lhu, addiu 1, sltiu 0x15, bnez, then sh, i.e. the u16 counter at D_8011F32E is read-modify-write through the same computed index, not a reset-to-zero store. Not tried: starting from the m2c draft text (revision b7d2084219b8daebe8b9) and only fixing the counter with u16 pointer arithmetic (u16 *)(D_8011F32E + idx). The flag branch structure (flag==0 / v>=0x33 / v>=0xFF) is already right.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794708631.9467158,
+  "score_before": 4025,
+  "score_after": 4025
+ },
+ {
+  "function": "func_80152720",
+  "text": "Not matched. Best: revision d681b88248e2d0cb9e90 (score 7210; from fb7a1c3a55f3d2e18a6e by branch_orientation variant 2: the `D_8011F2FC[idx] < 0xFF` branch is written first with the +0xA store, else sets D_8011F330 to 0). Target is 101 insns, candidate ~59. Facts: D_8011F32E/D_8011F330 accessed as u16 (lhu/sh), D_8011F2FC as u8 (lbu/sb); index = (arg0&0xFFFF)*100 recomputed (andi $a0,0xFFFF) at every use; target has per-access lui+addu+%lo(sym). Candidate has parameter u16 arg0 and &ARRAY[arg0*100] accesses but compiler still emits move $a2,$a0 and hoists lui/addiu of D_8011F32E. Tried without gain: byte-offset pointers (9320), inline (arg0&0xFFFF) per use (7670), &ARRAY[idx] casts (7670), u16 parameter (7670). Next: apply the other branch_orientation variants' ideas together (variant 1 was worse, variant 3 7365), then attack the index recomputation so the compiler re-derives it after each store (e.g. separate index per statement via a macro-free helper, or structure as nested ifs matching target block order: first increment/clamp of D_8011F32E, then D_8011F330 test).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794723653.438949,
+  "score_before": 4025,
+  "score_after": 4025
+ },
+ {
+  "function": "func_80152720",
+  "text": "Not matched. Saved best 4025 (m2c draft form). Logic is clear: idx = arg0&0xFFFF, off = idx*100. Stage 1: u16 at D_8011F32E+off += 1, and if >= 0x15 set it to 0. Stage 2: if u16 at D_8011F330+off == 0, then (if u8 D_8011F2FC+off >= 0x33 subtract 0xA, else set u16 D_8011F330+off = 1); otherwise (if u8 D_8011F2FC+off >= 0xFF set u16 D_8011F330+off = 0, else add 0xA to the u8). Tail: D_802B22D4 = ((u8 D_8011F2FC[off] << 8) & 0xF800) | 1. Three rewrites: a local off variable scored 6535; the fully inline (arg0&0xFFFF)*0x64 form scored 7670 (the compiler then hoists the base into a0 with %lo folded into addiu, unlike the target, which uses lui/addu/%lo loads directly). The target recomputes the sll/addu chain in every block and reads D_8011F32E with lui %hi plus %lo folded into the load, so the base must stay a symbol and not get hoisted. Next step: a version with the stage-1 read-modify-write as a single expression on the symbol (so the store uses lui at + %lo), and per-block recomputation of off, starting from the m2c draft at 4025.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794749778.735122,
+  "score_before": 4025,
+  "score_after": 4025
+ },
+ {
+  "function": "func_80152720",
+  "text": "Not matched. Best unmatched source scores 6230 (38%) vs saved best 4025 (different source). Layout: base D_8011F2FC, stride 100 per index (index = arg0 & 0xFFFF; x100 via sll1/addu/sll3/addu/sll2). Fields: u8 at +0 (-0xA when >=0x33 on flag==0 path; +0xA when <0xFF on flag!=0 path; flag!=0 at >=0xFF clears flag), u16 at +0x32 (counter +1, reset to 0 when >=0x15), u16 at +0x34 (flag: set 1 / cleared 0). Final D_802B22D4 = ((a<<8)&0xF800)|1. Remaining diff: target recomputes index*100 separately in each block (101 insns vs my 67); gcc CSEs within a block, and inline (u16)arg0 indexing gave the same score. Register assignment is swapped ($v0/$v1). Tried and rejected: char-array offset form (9320), s8 for the byte field (6505). Next idea: find C whose per-block index recomputation matches the target's four repeated sll/addu chains, probably by splitting the statements into separate arrays/pointers or by a different control-flow nesting for the flag==0 branch.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794753982.038692,
+  "score_before": 4025,
+  "score_after": 4025
+ },
+ {
+  "function": "func_80152720",
+  "text": "Unmatched. Best current candidate 6500 (35.6%), revision d42a8b07051df161df7c: one `off = (arg0&0xFFFF)*0x64` temp for the first counter block, later blocks recompute `(arg0&0xFFFF)*0x64` inline. Chain order now matches (andi, sll/addu x*100, then lui/lhu), but the target keeps the index in $v1 and the offset in $v1/$v0 swapped, and it recomputes `andi $v0,$a0,0xffff` in the bnez delay slot and loads D_8011F330 via lui/addu/lhu(%lo). Saved best 4025 not reproduced. Tried and worse: fully inlined per-use expressions (7670), separate temps per block (9320), char-array indexing (7670). Next: try computing the index into a separate s32 temp that is reloaded from arg0 per block, to match the andi-in-delay-slot pattern; then register naming.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794755307.484926,
+  "score_before": 4025,
+  "score_after": 4025
+ },
+ {
+  "function": "func_80152720",
+  "text": "func_80152720 (404 bytes, 101 target insns). Source shape: arg0 s32 masked with &0xFFFF and multiplied by 0x64 (stride-100 records) recomputed at each access; D_8011F32E is a u16 counter wrapping at 0x15 (>= 0x15 -> 0); D_8011F330 u8 flag, D_8011F2FC u8 value with -=0xA / +=0xA clamps at 0x33 / 0xFF; final D_802B22D4 = ((D_8011F2FC[idx*0x64] << 8) & 0xF800) | 1. Best this session: 5195 (48.5%) with repeated (arg0&0xFFFF)*0x64 expressions. Earlier simplified version with a single off variable scored 6650; saved best 4025 is from an older source. Diff: target re-masks and recomputes the index for the counter load and the store, and its counter is loaded through a separate lui/addu/lhu sequence, while my code folds the address. Next: match the counter access (lhu from D_8011F32E[idx]) with its own address expression first, then the flag/value branches. Not tried: u16 vs s32 for the counter, and the two-step address for the last D_802B22D4 read.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794764829.3604841,
+  "score_before": 4025,
+  "score_after": 4025
+ },
+ {
+  "function": "func_80152720",
+  "text": "Not matched. Probably -O1: the project's -O2 default is far off (6500 recorded here). Under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (try_compiler), my best is 2405 (76.2%). Compare only against the -O1 number.\n\nFacts: the three arrays are indexed by a byte offset idx = (arg0 & 0xFFFF) * 100. D_8011F32E and D_8011F330 are u16 (lhu/sh); D_8011F2FC is u8 (lbu/sb). D_802B22D4 is s16.\n\nBest -O1 shape: `s32 idx = (arg0 & 0xFFFF) * 0x64;` for the counter (`*(u16*)(D_8011F32E+idx) += 1; if (>= 0x15) = 0`). The flag and count blocks write `(arg0 & 0xFFFF) * 0x64` inline in each access. The last line is inline too. Flag logic: if flag==0 { if F2FC >= 0x33 F2FC -= 0xA else flag = 1 } else { if F2FC >= 0xFF flag = 0 else F2FC += 0xA }.\n\nRemaining at -O1: the target recomputes the index per access (andi $v1,$a0 each time, not CSE'd); register numbers differ; the bnez/bnel sides of the flag branch are reversed in part. Next: try the else-branch order and make only the first access use idx.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794766890.516651,
+  "score_before": 4025,
+  "score_after": 4025
+ },
+ {
+  "function": "func_80152720",
+  "text": "Hand-off of func_80152720: best 3050 (37 differing rows) in /tmp/dd-haiku-pr30/start/best.c.\n\nRemaining rows (marker | target | candidate):\n  > |  | sw $a0, ($sp)\n  > |  | lw $v1, ($sp)\n  r | andi $v1, $a0, 0xffff | andi $v1, $v1, 0xffff\n  i | bnez $v0, 0x58 | bnez $v0, 0x60\n  | | andi $v0, $a0, 0xffff | nop\n  > |  | lw $v0, ($sp)\n  > |  | andi $v0, $v0, 0xffff\n  i | bnez $v0, 0xe8 | bnez $v0, 0xf8\n  | | andi $v0, $a0, 0xffff | nop\n  i | bnez $v0, 0xbc | bnez $v0, 0xc8\n  i | andi $v0, $a0, 0xffff | andi $v0, $v1, 0xff\n  i | lui $v0, %hi(D_8011F2FC) | lui $at, %hi(D_8011F2FD)\n  r | addu $v0, $v0, $v1 | addu $at, $at, $v0\n  i | lbu $v0, %lo(D_8011F2FC)($v0) | lbu $v0, %lo(D_8011F2FD)($at)\n  > |  | j func_80152720+0x174\n  | | j func_80152720+0x15c | lw $v1, ($sp)\n  r | andi $v0, $a0, 0xffff | andi $v1, $v1, 0xffff\n  r | sll $v1, $v0, 1 | sll $v0, $v1, 1\n  r | addu $v1, $v1, $v0 | addu $v0, $v0, $v1\n  r | sll $v1, $v1, 3 | sll $v0, $v0, 3\n  r | addu $v1, $v1, $v0 | addu $v0, $v0, $v1\n  r | sll $v1, $v1, 2 | sll $v0, $v0, 2\n  r | addiu $v0, $zero, 1 | addiu $v1, $zero, 1\n  r | addu $at, $at, $v1 | addu $at, $at, $v0\n  > |  | j func_80152720+0x174\n  r | sh $v0, %lo(D_8011F330)($at) | sh $v1, %lo(D_8011F330)($at)\n  | | j func_80152720+0x15c | lw $v0, ($sp)\n  r | andi $v0, $a0, 0xffff | andi $v0, $v0, 0xffff\n  | | beql $v0, $zero, 0x138 | beqz $v0, 0x14c\n  | | andi $v1, $a0, 0xffff | nop\n  i | lui $v0, %hi(D_8011F2FC) | lui $v0, %hi(D_8011F2FD)\n  i | lbu $v0, %lo(D_8011F2FC)($v0) | lbu $v0, %lo(D_8011F2FD)($v0)\n  > |  | j func_80152720+0x174\n  | | j func_80152720+0x15c | lw $v1, ($sp)\n  r | andi $v0, $a0, 0xffff | andi $v1, $v1, 0xffff\n  > |  | lw $v0, ($sp)\n  r | andi $v0, $a0, 0xffff | andi $v0, $v0, 0xffff\n\nRegister pairs (explain_regs.py):\n  $v0 where the target has $v1 (7 rows):\n  why not $v1: block-local: local-alloc gives quantities registers in priority order and $v1 was taken or tied up in that block (also in $v1: pseudo 77 (1.00), pseudo 78 (1.60)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $v1: block-local: local-alloc gives quantities registers in priority order and $v1 was taken or tied up in that block (also in $v1: pseudo 77 (1.00), pseudo 78 (1.60)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $v1: block-local: local-alloc gives quantities registers in priority order and $v1 was taken or tied up in that block (also in $v1: pseudo 77 (1.00), pseudo 78 (1.60)). Move it: change its refs/length against those, or make it global (a use in another block).\n  $v1 where the target has $v0 (7 rows):\n  why not $v0: block-local: local-alloc gives quantities registers in priority order and $v0 was taken or tied up in that block (also in $v0: pseudo 76 (1.50), pseudo 80 (1.00)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $v0: block-local: local-alloc gives quantities registers in priority order and $v0 was taken or tied up in that block (also in $v0: pseudo 76 (1.50), pseudo 80 (1.00)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $v0: block-local: local-alloc gives quantities registers in priority order and $v0 was taken or tied up in that block (also in $v0: pseudo 76 (1.50), pseudo 80 (1.00)). Move it: change its refs/length against those, or make it global (a use in another block).\n  $v1 where the target has $a0 (3 rows):\n  why not $a0: block-local: local-alloc gives quantities registers in priority order and $a0 was taken or tied up in that block. Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $a0: block-local: local-alloc gives quantities registers in priority order and $a0 was taken or tied up in that block. Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $a0: block-local: local-alloc gives quant",
+  "by": "manual-a3f89156f3b6431f",
+  "created_at": 1795715255.0368419,
+  "score_before": 2350,
+  "score_after": 2350
+ },
+ {
+  "function": "func_80152720",
+  "text": "Released by haiku-pr30 after no improvement on 4 local variants; see earlier handoff note.",
+  "by": "manual-a3f89156f3b6431f",
+  "created_at": 1795715289.420097,
+  "score_before": 3050,
+  "score_after": 3050,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:94220e452bbc8fa7a31eae22f9300d7fbfb48c33d7e85ef745359ed5d1e774a1"
  }
 ]
