@@ -6680,14 +6680,6 @@
   "score_after": 940
  },
  {
-  "function": "nuContPakJisToN64",
-  "text": "Decoded semantics (from the asm, verified by reading): for i in 0..n-1 with c=src[0]: if c==0 return. If (u32)(c-0x41)<0x1A: dst=c-0x27. Else if (u8)(c-0x61)<0x1A: dst=c-0x47. Else if (u32)(c-0x30)<0xA: dst=c-0x20. Else if (u8)(c+0x4F)<0x2C: d=src[1]; if d==0xDE {dst = c<0xCA ? c-0x3A : c-0x3F; src++} else if d==0xDF {dst=c-0x3A; src++} else dst=c-0x61 (no extra src++). Else table search: v1=0,cnt=0; while D_80046DB1[v1]!=0 { if D_80046DB0[v1]==c break; v1+=2; cnt++ }; val=D_80046DB1[v1]; dst = val ? val : 0xF. Then dst++, src++, i++ while i<n (n==0 returns at entry). The table is interleaved: key at D_80046DB0+even, value at +odd. Constants 0xDE, 0xDF, 0xF are kept in t4/t3/t2 across the loop. Best-known source (1580, messy m2c-style) is still the saved best; a clean rewrite with (u32) casts and extern scalars scored 3150 (worse: the if-chain polarity and the hoisted constants differ). The target has a 8-byte frame (addiu sp,-8) that the clean rewrite lacks. Untried: keep the saved best's if-chain polarity and hoist 0xDE/0xDF/0xF into locals.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794707954.6528158,
-  "score_before": 1580,
-  "score_after": 1580
- },
- {
   "function": "auDmaCallBack",
   "text": "Not attempted in this session; released unworked. The machine draft needs the globals declared (D_8005D7A4, D_80046C30, D_8005D7A8, D_8005DCB0, D_8005D1A0, D_8005D088 \u2014 the draft's undeclared-symbol errors). Draft's shape: walks a linked list at D_8005D7A4 (node: next@0, prev@4?, base@8, ...), unlinks a node from D_8005D7A8 via alUnlink/alLink, and calls osEPiStartDma with a 0x18-byte record at D_8005D1A0 + D_8005DCB0*0x18. Verify the field offsets against the assembly before writing C.",
   "by": "claude-haiku-5-5-24",
@@ -10352,14 +10344,6 @@
   "score_after": 0
  },
  {
-  "function": "nuContPakJisToN64",
-  "text": "Not matched. Saved best remains 870 (permuter, other source). My rewrites: best of mine is 2450 (u32 c, hoisted 0xDE/0xDF/0xF locals, scalar extern D_80046DB0/D_80046DB1 accessed as (&D_80046DB1)[v1]); the 870 source is better, so start from it. Recovered control flow (verified by reading asm): loop over n with c=src[0], c==0 exits. Ranges: A-Z -> c-0x27; a-z -> c-0x47; 0-9 -> c-0x20; c in 0xB1..0xDC looks at next byte: 0xDE -> (c<0xCA? c-0x3A : c-0x3F) and src++, 0xDF -> c-0x3A and src++, else c-0x61 (no src++). Otherwise table search: pairs (T0[v],T1[v]) at even v, stop when T1[v+1-ish]==0; store matched T1[v] or on no match; then if T1[v]==0 store 0xF. Target keeps the raw byte in $v1 and the masked byte in $t0 (lbu v1; andi t0,v1,0xff); u8 c makes the compiler mask into the compare register, which is the main remaining diff. Also target hoists 0xDE/0xDF/0xF into $t4/$t3/$t2 before the loop and uses a 'beqz a2' loop-entry only once; my returns in the body duplicate that test (use a do/break form, but that scored worse). Next step: try a u32 raw byte plus a separate masked copy for the zero test, and keep the 870 source's register layout.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794721866.477089,
-  "score_before": 870,
-  "score_after": 870
- },
- {
   "function": "nuContPakN64ToJis",
   "text": "Not matched (best 3975, 56.7%, revision b9104236ffdc2741b995). Target: 8-byte frame (addiu sp,-8, no saves); 0xDE/0xDF/0xF constants kept in registers and hoisted before the loop; out=$t1=arg1, esc=$a1=arg1+1 set inside the arg2!=0 block. Class ranges: c-0x1A<0x1A -> +0x27; c-0x10<0xA -> +0x20; c-0x50<0x2C -> +0x61; c-0x7C<0xF -> out c+0x3A and esc 0xDE, both advanced; (c+0x75)&0xFF<5 -> c+0x3F, esc 0xDE; (c+0x70)&0xFF<5 -> c+0x3A, esc 0xDF. Else: scan D_80046DB1 with step 2 (keys at odd bytes, values at D_80046DB0+2k); found -> out=D_80046DB0[2k], not found -> 0xF; both paths advance esc once. Untried: s32 locals for the constants assigned before the loop; forcing the 8-byte frame. Masked-int compare variant (4175) was worse.\n\nNot matched. Best 3975 (56.7%) is in the earlier revision b9104236ffdc2741b995 (its C used `esc` set in the else-branch and `if (c == 0)` on u8 c), not the current 8444d70baa0f7fc96554 (4175). Target: 8-byte frame (addiu sp,-8, no saves); 0xDE/0xDF/0xF constants kept in registers and hoisted before the loop; out=$t1=arg1, esc=$a1=arg1+1 set inside the arg2!=0 block. Class ranges: c-0x1A<0x1A -> +0x27; c-0x10<0xA -> +0x20; c-0x50<0x2C -> +0x61; c-0x7C<0xF -> out c+0x3A and esc 0xDE, both advanced; (c+0x75)&0xFF<5 -> c+0x3F, esc 0xDE; (c+0x70)&0xFF<5 -> c+0x3A, esc 0xDF. Else: scan D_80046DB1 with step 2 (keys at odd bytes, values at D_80046DB0+2k); found -> out=D_80046DB0[2k], not found -> 0xF; both paths advance esc once. Untried: s32 locals for the constants assigned before the loop; forcing the 8-byte frame.",
   "by": "claude-haiku-5-5-22",
@@ -13312,14 +13296,6 @@
   "score_after": 8560
  },
  {
-  "function": "nuContPakJisToN64",
-  "text": "Tried two clean rewrites (no repair literals) against target. Structure traced from asm: n==0 early exit; per char c=s[i]: c==0 returns; range checks (c-0x41<0x1A -> c-0x27; c-0x61<0x1A -> c-0x47; c-0x30<0xA -> c-0x20); 0xB1..0xDC range looks at s[1]: 0xDE -> (c<0xCA? c-0x3A : c-0x3F) and s++; 0xDF -> c-0x3A and s++; else c-0x61; otherwise DB0/DB1 table search (DB1[0]==0 -> 0xF; loop idx+=2,a3++ until DB0[idx]==c or DB1[idx]==0; out=DB1[idx], 0 -> 0xF). Scores: 2315 (plain do/while with s[1] tests) and 2395 (with local k_de/k_df/k_f constants). Remaining diff: target keeps 0xDE/0xDF/0xF hoisted into registers at function entry (t4,t3,t2) and has an 8-byte frame (addiu sp,-8) that my version lacks; the saved best 870 (permuter) uses goto-heavy form with `__repair_literal` artifact. Next idea: find how gcc hoists the three constants (maybe a single shared loop-invariant via a local array or by making them used on the first iteration), and reproduce the frame with a dummy local. Not tried: switch-based dispatch on c for the 0xB1..0xDC range.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794732081.88883,
-  "score_before": 870,
-  "score_after": 870
- },
- {
   "function": "__CSPHandleMetaMsg",
   "text": "Not matched. Best from this claim: revision 7f35960a03c85402628a, score 45 (99.5%). Saved best is 30 from a different source, so it was not reproduced. The current C matches the instruction set and the 0x40 frame (pad[4] makes the frame 0x40, and the same code with pad[2] gives 0x38 and score 60). What is left is the stack slot assignment of the saved registers: target stores s4 at 0x30, s2 at 0x28, s3 at 0x2c, s6 at 0x38, s5 at 0x34, s1 at 0x24, s0 at 0x20, ra at 0x3c. The current C puts s2/s3/s4 at 0x28/0x2c/0x30 the other way round. Next: reorder the locals (node, next, matched, total, tmp) and the first-use order so that the register that holds `matched` (s4 in target, initialised from a0 as `move $s4,$a0`) is declared first. Note the first target instruction after the prologue is `move $s4,$a0`, so arg1 (m) and the register for `matched` are the ones to swap.",
   "by": "claude-haiku-5-5-21",
@@ -13590,14 +13566,6 @@
   "created_at": 1794733432.3160052,
   "score_before": 8560,
   "score_after": 8560
- },
- {
-  "function": "nuContPakJisToN64",
-  "text": "Not matched. Saved best f6636e9469843809eb79 scores 870 (permuter output, ugly m2c-style). Clean rewrites scored 2535 (aa659261c16a7316fe3f) and 2265 (05d13a20b6d4d4965bf8). try_local_repairs on the 870 base: no variant better (1425, 1065, 870 equal). Recovered control flow: do-while over arg2 with pre-check; c==0 exits; A-Z -> c-0x27; a-z -> c-0x47; 0-9 -> c-0x20; (u8)(c+0x4F)<0x2C then src[1]: 0xDE -> (c<0xCA? c-0x3A : c-0x3F) and src++; 0xDF -> c-0x3A and src++; else c-0x61; otherwise dictionary search over D_80046DB0/D_80046DB1 pairs, store 0xF if no match or DB1 zero; dst++ and src++ per iteration. Blocking difference: target begins with `addiu $sp,$sp,-8` (8-byte frame with no calls), and none of my variants reproduce that frame, so every later row is shifted. Constants 0xDE/0xDF/0xF are hoisted into $t4/$t3/$t2 outside the loop. Next agent: find what makes gcc allocate an 8-byte frame here (a stack-resident local or address-taken scalar), then fix the loop-invariant constants before tuning registers.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794733450.70475,
-  "score_before": 870,
-  "score_after": 870
  },
  {
   "function": "nuGfxTaskMgrInit",
@@ -17710,14 +17678,6 @@
   "created_at": 1794748585.5452921,
   "score_before": 625,
   "score_after": 625
- },
- {
-  "function": "nuContPakJisToN64",
-  "text": "Not matched. Best saved is 870 (permuter, messy C with repair artifacts). Two clean rewrites I tried scored 2495 and 3600, both worse. Decoded logic from the asm, worth reusing: loop over n bytes, return on c==0. Ranges: 'A'-'Z' -> c-0x27; 'a'-'z' -> c-0x47; '0'-'9' -> c-0x20; c in 0xB1..0xDC looks at next byte: next==0xDE -> (c<0xCA ? c-0x3A : c-0x3F) and skip next; next==0xDF -> c-0x3A and skip next; else c-0x61 (no skip). Otherwise table lookup over D_80046DB0[2k] keys / D_80046DB1[2k] values, stopping at a zero value; found -> store value, not found -> store 0xF. A check D_80046DB1[0]==0 short-circuits to 0xF. Both rewrites differ in frame (target has addiu sp,-8 with no visible use, probably a spill slot or dead local) and in register/order of the table loop and the 0xDE/0xDF constants. Next step: try a frame-forcing local and a reorder of the table loop, starting from saved best 870.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794748611.839711,
-  "score_before": 870,
-  "score_after": 870
  },
  {
   "function": "nuScWaitTaskReady",
@@ -23712,14 +23672,6 @@
   "score_after": 9216
  },
  {
-  "function": "nuContPakJisToN64",
-  "text": "Target is the N64 libultra nuContPakJisToN64 (JIS->N64 ASCII conversion, 83 insns). Saved best 870 came from a different (m2c-derived) source; my clean rewrite scored 3860 and budget ran out 3/3.\n\nExact target shape (verified from assembly):\n- Loop: lbu v1,0(a0); andi t0,v1,0xff; beqz t0 -> exit. t1 = index, a2 = limit, sltu at end.\n- Four range tests then the table branch. Constant loads hoisted before the loop: t4=0xDE, t3=0xDF, t2=0xF (all `addiu reg,$zero,imm`, so they are ints not pointers).\n- Table branch (.L8002A510): `lui v0,%hi(D_80046DB1); lbu v0,%lo(...)($v0)` then `beqz v0,.L8002A568` with `addu a3,$zero,$zero` in the delay slot, `addu v1,$zero,$zero`. Loop body reloads `lui v0,%hi(D_80046DB0); addu v0,v0,v1; lbu v0,%lo(D_80046DB0)($v0)` every iteration (no strength reduction) and `addiu v1,v1,0x2`, `bnez ... ; addiu a3,a3,0x1` in the delay slot. So v1 is a BYTE index stepping by 2 and a3 counts entries; the compare byte is D_80046DB0[v1] and the mapped byte is D_80046DB1[v1].\n- Hit path: j .L8002A4FC which loads D_80046DB1[v1] and `sb` it, then `bnel v0,$zero,.L8002A570 ; addiu a1,a1,0x1` \u2014 i.e. store, and only advance dst when the mapped byte is nonzero; the +1 is in the branch delay slot.\n- Miss: sb t2(0xF),0(a1) then fallthrough to `addiu a1,a1,0x1`.\n- .L8002A56C (after the 0xDE/0xDF case): addiu a1,a1,0x1 then addiu t1,t1,0x1 / sltu / bnez with `addiu a0,a0,0x1` in the delay slot.\n- My 3860 diff showed my version computing `lui/addiu` of the table bases once outside the loop (extra 4 insns at top) and using a scaled index temp \u2014 so the remaining work is forcing a fresh `lui %hi` per use (e.g. volatile-qualified or separately declared extern arrays used directly, not via a cached pointer) and keeping the byte index (not entry index) in the loop.\n\nNext experiment: keep the structure above but write the table accesses literally as D_80046DB0[v1] / D_80046DB1[v1] with `s32 v1` stepped by 2 and `s32 a3` counter, and declare the arrays as `extern u8 D_80046DB0[];` (already in source) while avoiding any local pointer to them.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794759917.9833841,
-  "score_before": 870,
-  "score_after": 870
- },
- {
   "function": "func_802153C4",
   "text": "Fresh exact KMC O1 source in submitted bundle: PRState {s16 a,b;u8 c,d,e;} extern D_8021F02E generates shared base all 5 stores. Full call and arg3 s8 arg4/5 u8 verified. Wrong O2 score1631; pending profile apply only.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -27334,14 +27286,6 @@
   "created_at": 1794766027.567028,
   "score_before": 85,
   "score_after": 85
- },
- {
-  "function": "nuContPakJisToN64",
-  "text": "Best current attempt 2235 (73%, revision b2b7812805f00d14b2e7), better than the saved 870 draft in raw score terms only if rescored; the saved 870 draft is a machine-generated goto mess. Clean source shape that works: for (i<len) loop, break on *src==0, DE/DF two-byte branch with src++, ranges via (u8)(c-K)<N, table scan using `u32 off` with D_80046DB0[off] as key and (&D_80046DB1)[off] as value (off += 2 per entry; DB1 is a separate symbol at DB0+1, so use two externs). Remaining diffs: target hoists the constants 0xDE/0xDF/0xF into registers before the loop and emits the body's constant compares in a different order; the target has a 'match then re-check value zero' tail (variant with break + trailing if gave 2270, worse). Target also has a stack frame (addiu sp,-8) that my variants do not produce; check whether that comes from a different call/return shape. Try the 0x0DE/0x0DF/0x0F constants as locals declared up front.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794766062.365833,
-  "score_before": 870,
-  "score_after": 870
  },
  {
   "function": "func_80025C50",
@@ -38858,5 +38802,117 @@
   "created_at": 1795726459.886733,
   "score_before": 1560,
   "score_after": 1560
+ },
+ {
+  "function": "nuContPakJisToN64",
+  "text": "Decoded semantics (from the asm, verified by reading): for i in 0..n-1 with c=src[0]: if c==0 return. If (u32)(c-0x41)<0x1A: dst=c-0x27. Else if (u8)(c-0x61)<0x1A: dst=c-0x47. Else if (u32)(c-0x30)<0xA: dst=c-0x20. Else if (u8)(c+0x4F)<0x2C: d=src[1]; if d==0xDE {dst = c<0xCA ? c-0x3A : c-0x3F; src++} else if d==0xDF {dst=c-0x3A; src++} else dst=c-0x61 (no extra src++). Else table search: v1=0,cnt=0; while D_80046DB1[v1]!=0 { if D_80046DB0[v1]==c break; v1+=2; cnt++ }; val=D_80046DB1[v1]; dst = val ? val : 0xF. Then dst++, src++, i++ while i<n (n==0 returns at entry). The table is interleaved: key at D_80046DB0+even, value at +odd. Constants 0xDE, 0xDF, 0xF are kept in t4/t3/t2 across the loop. Best-known source (1580, messy m2c-style) is still the saved best; a clean rewrite with (u32) casts and extern scalars scored 3150 (worse: the if-chain polarity and the hoisted constants differ). The target has a 8-byte frame (addiu sp,-8) that the clean rewrite lacks. Untried: keep the saved best's if-chain polarity and hoist 0xDE/0xDF/0xF into locals.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794707954.6528158,
+  "score_before": 1580,
+  "score_after": 1580
+ },
+ {
+  "function": "nuContPakJisToN64",
+  "text": "Not matched. Saved best remains 870 (permuter, other source). My rewrites: best of mine is 2450 (u32 c, hoisted 0xDE/0xDF/0xF locals, scalar extern D_80046DB0/D_80046DB1 accessed as (&D_80046DB1)[v1]); the 870 source is better, so start from it. Recovered control flow (verified by reading asm): loop over n with c=src[0], c==0 exits. Ranges: A-Z -> c-0x27; a-z -> c-0x47; 0-9 -> c-0x20; c in 0xB1..0xDC looks at next byte: 0xDE -> (c<0xCA? c-0x3A : c-0x3F) and src++, 0xDF -> c-0x3A and src++, else c-0x61 (no src++). Otherwise table search: pairs (T0[v],T1[v]) at even v, stop when T1[v+1-ish]==0; store matched T1[v] or on no match; then if T1[v]==0 store 0xF. Target keeps the raw byte in $v1 and the masked byte in $t0 (lbu v1; andi t0,v1,0xff); u8 c makes the compiler mask into the compare register, which is the main remaining diff. Also target hoists 0xDE/0xDF/0xF into $t4/$t3/$t2 before the loop and uses a 'beqz a2' loop-entry only once; my returns in the body duplicate that test (use a do/break form, but that scored worse). Next step: try a u32 raw byte plus a separate masked copy for the zero test, and keep the 870 source's register layout.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794721866.477089,
+  "score_before": 870,
+  "score_after": 870
+ },
+ {
+  "function": "nuContPakJisToN64",
+  "text": "Tried two clean rewrites (no repair literals) against target. Structure traced from asm: n==0 early exit; per char c=s[i]: c==0 returns; range checks (c-0x41<0x1A -> c-0x27; c-0x61<0x1A -> c-0x47; c-0x30<0xA -> c-0x20); 0xB1..0xDC range looks at s[1]: 0xDE -> (c<0xCA? c-0x3A : c-0x3F) and s++; 0xDF -> c-0x3A and s++; else c-0x61; otherwise DB0/DB1 table search (DB1[0]==0 -> 0xF; loop idx+=2,a3++ until DB0[idx]==c or DB1[idx]==0; out=DB1[idx], 0 -> 0xF). Scores: 2315 (plain do/while with s[1] tests) and 2395 (with local k_de/k_df/k_f constants). Remaining diff: target keeps 0xDE/0xDF/0xF hoisted into registers at function entry (t4,t3,t2) and has an 8-byte frame (addiu sp,-8) that my version lacks; the saved best 870 (permuter) uses goto-heavy form with `__repair_literal` artifact. Next idea: find how gcc hoists the three constants (maybe a single shared loop-invariant via a local array or by making them used on the first iteration), and reproduce the frame with a dummy local. Not tried: switch-based dispatch on c for the 0xB1..0xDC range.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794732081.88883,
+  "score_before": 870,
+  "score_after": 870
+ },
+ {
+  "function": "nuContPakJisToN64",
+  "text": "Not matched. Saved best f6636e9469843809eb79 scores 870 (permuter output, ugly m2c-style). Clean rewrites scored 2535 (aa659261c16a7316fe3f) and 2265 (05d13a20b6d4d4965bf8). try_local_repairs on the 870 base: no variant better (1425, 1065, 870 equal). Recovered control flow: do-while over arg2 with pre-check; c==0 exits; A-Z -> c-0x27; a-z -> c-0x47; 0-9 -> c-0x20; (u8)(c+0x4F)<0x2C then src[1]: 0xDE -> (c<0xCA? c-0x3A : c-0x3F) and src++; 0xDF -> c-0x3A and src++; else c-0x61; otherwise dictionary search over D_80046DB0/D_80046DB1 pairs, store 0xF if no match or DB1 zero; dst++ and src++ per iteration. Blocking difference: target begins with `addiu $sp,$sp,-8` (8-byte frame with no calls), and none of my variants reproduce that frame, so every later row is shifted. Constants 0xDE/0xDF/0xF are hoisted into $t4/$t3/$t2 outside the loop. Next agent: find what makes gcc allocate an 8-byte frame here (a stack-resident local or address-taken scalar), then fix the loop-invariant constants before tuning registers.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794733450.70475,
+  "score_before": 870,
+  "score_after": 870
+ },
+ {
+  "function": "nuContPakJisToN64",
+  "text": "Not matched. Best saved is 870 (permuter, messy C with repair artifacts). Two clean rewrites I tried scored 2495 and 3600, both worse. Decoded logic from the asm, worth reusing: loop over n bytes, return on c==0. Ranges: 'A'-'Z' -> c-0x27; 'a'-'z' -> c-0x47; '0'-'9' -> c-0x20; c in 0xB1..0xDC looks at next byte: next==0xDE -> (c<0xCA ? c-0x3A : c-0x3F) and skip next; next==0xDF -> c-0x3A and skip next; else c-0x61 (no skip). Otherwise table lookup over D_80046DB0[2k] keys / D_80046DB1[2k] values, stopping at a zero value; found -> store value, not found -> store 0xF. A check D_80046DB1[0]==0 short-circuits to 0xF. Both rewrites differ in frame (target has addiu sp,-8 with no visible use, probably a spill slot or dead local) and in register/order of the table loop and the 0xDE/0xDF constants. Next step: try a frame-forcing local and a reorder of the table loop, starting from saved best 870.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794748611.839711,
+  "score_before": 870,
+  "score_after": 870
+ },
+ {
+  "function": "nuContPakJisToN64",
+  "text": "Target is the N64 libultra nuContPakJisToN64 (JIS->N64 ASCII conversion, 83 insns). Saved best 870 came from a different (m2c-derived) source; my clean rewrite scored 3860 and budget ran out 3/3.\n\nExact target shape (verified from assembly):\n- Loop: lbu v1,0(a0); andi t0,v1,0xff; beqz t0 -> exit. t1 = index, a2 = limit, sltu at end.\n- Four range tests then the table branch. Constant loads hoisted before the loop: t4=0xDE, t3=0xDF, t2=0xF (all `addiu reg,$zero,imm`, so they are ints not pointers).\n- Table branch (.L8002A510): `lui v0,%hi(D_80046DB1); lbu v0,%lo(...)($v0)` then `beqz v0,.L8002A568` with `addu a3,$zero,$zero` in the delay slot, `addu v1,$zero,$zero`. Loop body reloads `lui v0,%hi(D_80046DB0); addu v0,v0,v1; lbu v0,%lo(D_80046DB0)($v0)` every iteration (no strength reduction) and `addiu v1,v1,0x2`, `bnez ... ; addiu a3,a3,0x1` in the delay slot. So v1 is a BYTE index stepping by 2 and a3 counts entries; the compare byte is D_80046DB0[v1] and the mapped byte is D_80046DB1[v1].\n- Hit path: j .L8002A4FC which loads D_80046DB1[v1] and `sb` it, then `bnel v0,$zero,.L8002A570 ; addiu a1,a1,0x1` \u2014 i.e. store, and only advance dst when the mapped byte is nonzero; the +1 is in the branch delay slot.\n- Miss: sb t2(0xF),0(a1) then fallthrough to `addiu a1,a1,0x1`.\n- .L8002A56C (after the 0xDE/0xDF case): addiu a1,a1,0x1 then addiu t1,t1,0x1 / sltu / bnez with `addiu a0,a0,0x1` in the delay slot.\n- My 3860 diff showed my version computing `lui/addiu` of the table bases once outside the loop (extra 4 insns at top) and using a scaled index temp \u2014 so the remaining work is forcing a fresh `lui %hi` per use (e.g. volatile-qualified or separately declared extern arrays used directly, not via a cached pointer) and keeping the byte index (not entry index) in the loop.\n\nNext experiment: keep the structure above but write the table accesses literally as D_80046DB0[v1] / D_80046DB1[v1] with `s32 v1` stepped by 2 and `s32 a3` counter, and declare the arrays as `extern u8 D_80046DB0[];` (already in source) while avoiding any local pointer to them.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794759917.9833841,
+  "score_before": 870,
+  "score_after": 870
+ },
+ {
+  "function": "nuContPakJisToN64",
+  "text": "Best current attempt 2235 (73%, revision b2b7812805f00d14b2e7), better than the saved 870 draft in raw score terms only if rescored; the saved 870 draft is a machine-generated goto mess. Clean source shape that works: for (i<len) loop, break on *src==0, DE/DF two-byte branch with src++, ranges via (u8)(c-K)<N, table scan using `u32 off` with D_80046DB0[off] as key and (&D_80046DB1)[off] as value (off += 2 per entry; DB1 is a separate symbol at DB0+1, so use two externs). Remaining diffs: target hoists the constants 0xDE/0xDF/0xF into registers before the loop and emits the body's constant compares in a different order; the target has a 'match then re-check value zero' tail (variant with break + trailing if gave 2270, worse). Target also has a stack frame (addiu sp,-8) that my variants do not produce; check whether that comes from a different call/return shape. Try the 0x0DE/0x0DF/0x0F constants as locals declared up front.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794766062.365833,
+  "score_before": 870,
+  "score_after": 870
+ },
+ {
+  "function": "nuContPakJisToN64",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Haiku haiku-pr7: saved best 20 (4 register rows: the temporary for the 0xDE/0xDF byte arms takes $a3 where the target uses $v0). Moving that temporary to $v0 with the store in the arm: 75. prove_chain all families (518 children, 60 judged): none below 20. The saved best has __repair_literal, __repair_frame and goto scaffolding; a clean form is not yet written. Not matched.",
+  "by": "manual-74526d26d6b14065",
+  "created_at": 1795709807.913093,
+  "score_before": 20,
+  "score_after": 20
+ },
+ {
+  "function": "nuContPakJisToN64",
+  "text": "Small-model attempt at nuContPakJisToN64: 2 tries.\n  best 795 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 4360 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 5595 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 5595 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 5595 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\nend-to-end test of haiku.py; clean rewrite far from the saved best",
+  "by": "manual-4e2b306c82e44fbc",
+  "created_at": 1795715901.254391,
+  "score_before": 20,
+  "score_after": 20
+ },
+ {
+  "function": "nuContPakJisToN64",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at nuContPakJisToN64: 2 tries.\n  best 795 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 4360 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 5595 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 5595 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 5595 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\nend-to-end test of haiku.py; clean rewrite far from the saved best",
+  "by": "manual-4e2b306c82e44fbc",
+  "created_at": 1795715901.6105652,
+  "score_before": 20,
+  "score_after": 20
+ },
+ {
+  "function": "nuContPakJisToN64",
+  "text": "Small-model attempt at nuContPakJisToN64: 0 tries.",
+  "by": "manual-9d2b6ce5cef744c4",
+  "created_at": 1795715968.5894022,
+  "score_before": 20,
+  "score_after": 20
+ },
+ {
+  "function": "nuContPakJisToN64",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at nuContPakJisToN64: 0 tries.",
+  "by": "manual-9d2b6ce5cef744c4",
+  "created_at": 1795715970.4753249,
+  "score_before": 20,
+  "score_after": 20
+ },
+ {
+  "function": "nuContPakJisToN64",
+  "text": "Small-model attempt at nuContPakJisToN64: 14 tries.\n  best 1205 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 1715 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 1770 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1770 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1810 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\nClean rewrites (14 tries). Best own score 1205 (saved C 20). Remaining diffs: target has an 8-byte stack frame (addiu sp,-8) that a clean C version lacks; the compiler hoists the D_80046DB1 address (lui/addiu) into a register while the target re-loads it with lbu %lo each time; 0xDE/0xDF/0xF constants are hoisted in a different order. Saved C (score 20) only uses __repair scaffolding, so it was not submitted.",
+  "by": "manual-d229e3df81014ed4",
+  "created_at": 1795716331.9355588,
+  "score_before": 20,
+  "score_after": 20
+ },
+ {
+  "function": "nuContPakJisToN64",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at nuContPakJisToN64: 14 tries.\n  best 1205 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 1715 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 1770 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1770 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1810 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\nClean rewrites (14 tries). Best own score 1205 (saved C 20). Remaining diffs: target has an 8-byte stack frame (addiu sp,-8) that a clean C version lacks; the compiler hoists the D_80046DB1 address (lui/addiu) into a register while the target re-loads it with lbu %lo each time; 0xDE/0xDF/0xF constants are hoisted in a different order. Saved C (score 20) only uses __repair scaffolding, so it was not submitted.",
+  "by": "manual-d229e3df81014ed4",
+  "created_at": 1795716333.993325,
+  "score_before": 20,
+  "score_after": 20
  }
 ]
