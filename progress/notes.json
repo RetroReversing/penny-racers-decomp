@@ -3632,14 +3632,6 @@
   "score_after": 1205
  },
  {
-  "function": "func_801984DC",
-  "text": "Deep permuter: score 2925 \u2192 2305; 2 improvements; 96 candidates tested; 0 cached skips; 0 rejected; 7211s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589934705",
-  "created_at": 1794348746.244425,
-  "score_before": 2925,
-  "score_after": 2305
- },
- {
   "function": "func_80205F64",
   "text": "Deep permuter: score 120 \u2192 120; 0 improvements; 86 candidates tested; 0 cached skips; 0 rejected; 7211s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935728",
@@ -6950,14 +6942,6 @@
   "created_at": 1794709658.398008,
   "score_before": 220,
   "score_after": 220
- },
- {
-  "function": "func_801984DC",
-  "text": "Logic decoded and matches asm (candidate 3eebee98e83df7392380, score 2995; saved best 2925 from another source is better). Structure: N=D_801C6BB9 (s8), M=D_801C7068 (s8), K=D_801C7469 (u8), T=D_801C7062[] (T0=[0], T1=[1]; D_801C7063 is read separately at the tail), P=*(u8**)D_801C7AB0 (byte at +1 must equal 5), table D_801C6C10[N*24+M] (u16) must be 0xFFFF, N<0x17 signed. Result: P[1]!=5 -> 1; T0==M: T1==N+1 -> K==2; T1==N-1 -> K==1||K==3; else 1. T0!=M: if T0==M+1 or M-1 and D_801C7063==N -> K==0||K==2; else 1. Outside the guard: 0. Remaining diffs are branch layout and register choice, not logic. Binding M to a local made it worse (3955): the target reloads globals after the N<0x17 test and loads M only after beqz. Untried: put the table test in a separate if so the M load comes after the slti, and write T1 comparisons as signed-char compares.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794709658.5078359,
-  "score_before": 2925,
-  "score_after": 2925
  },
  {
   "function": "func_8019A31C",
@@ -10584,14 +10568,6 @@
   "score_after": 1530
  },
  {
-  "function": "func_801984DC",
-  "text": "Best this claim 3000 (64.2%) at revision b213ae598a5bc23cd037; historical saved best is 2925, not beaten. The m2c draft is a goto-based mess that does not compile; use this logic instead. Asm 0..90: gate `D_801C6BB9 < 0x17` (signed slti) and `D_801C6C10[(a*24 + D_801C7068)] == 0xFFFF` (u16, a=D_801C6BB9). Then if ((u8*)D_801C7AB0)[1] != 5 -> a1=1. Else if D_801C7062 == D_801C7068: byte1 of D_801C7062 == a+1 -> a1=(D_801C7469==2); == a-1 -> a1=(D_801C7469==1 || ==3); else a1=1. Else if D_801C7062 == D_801C7068\u00b11: D_801C7063 != a -> a1=1, else a1=(D_801C7469==0 || ==2). Else a1=1. Return a1 & 0xFF. Lessons: hoisting globals into locals at function top gives 7020 (target reads each global lazily); pointer local `s8 *p=&D_801C7062` gives 3135; a late `b = D_801C7068` local gives 3220. Remaining: target addresses D_801C7062 via `addiu $v1,D_801C7062` then `lb 0(v1)`/`lb 1(v1)` in one block and keeps D_801C7068 in $a2 across the branches. Untried: reproduce the first block as the target's exact order (load D_801C7062 byte0 first, compare with D_801C7068, then byte1 with a and a+1 / a-1).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794724751.237083,
-  "score_before": 2925,
-  "score_after": 2925
- },
- {
   "function": "__osViSwapContext",
   "text": "Not matched; best 6255 (66.5%), revision 5c6db24bc888161aad7b (m2c-style draft with plain *(s32*)0xA44000xx). Writing the MMIO addresses as vs32 (already in context.h, do not typedef it again) made it worse (6480): the target loads D_800481F4 into s0 (lui s0 / lw s0) and reads the first MMIO word 0xA4400010 only after that, then lhu of s0, andi 2, beqz. So the statement order is: temp_s0 = D_800481F4 first, then the 0xA4400010 read, then the flag tests. Each MMIO store uses its own lui+ori+sw, so the address is materialised each time (vs32 is right for that). Target has 187 insns vs 172 in the 6255 candidate; the extra are the 0x10 flag reads and a second and/andi pair. Next: keep the 6255 form, but move the 0xA4400010 read to just before the first use in the (flags & 2) block so GCC emits it after the s0 load.",
   "by": "claude-haiku-5-5-24",
@@ -13800,14 +13776,6 @@
   "score_after": 3210
  },
  {
-  "function": "func_801984DC",
-  "text": "No match. Best is revision 87749404384a3880ca95 at 2450 (70.8%): a single exit label `END: return a1 & 0xFF;`, early `goto END` for the range/0xFFFF test and the `pl[1]!=5` case, and L1/L2 labels with direct global reads (no locals). Logic derived from asm: a1 = 0; if !(g<0x17) or table16[(g*0x18+t)*2]!=0xFFFF -> END; if *(u8*)(D_801C7AB0+1)!=5 -> a1=1; q0==t && q1==g+1 -> a1=(m==2); q0==t && q1==g-1 -> a1=(m==1||m==3); else if q0 not t+1/t-1 -> a1=1; else if D_801C7063!=g -> a1=1; else a1=(m==0||m==2). Remaining diffs: target loads g (lb D_801C6BB9) into $a0 and keeps t in $a2 for the rest of the function, and the first test is slti on g; the sll/addu index is g*3 then *8 + t, *2. Using s32 locals for g,t (3480) reorders loads and was worse. Next: keep the 2450 structure, try caching g/t in locals only after the slti (so the first lb of g is direct), and the q0 reload of D_801C7062 into a register once (target: lui/addiu v1 then lb (v1), lb 1(v1)).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794737169.452835,
-  "score_before": 2925,
-  "score_after": 2450
- },
- {
   "function": "nuAuStlMgrInit",
   "text": "nuAuStlMgrInit (632 bytes, 158 insns): saved best 1230 (revision not reverified); fresh compile of the machine-draft shape gave 1405 (91.1%). Mismatch is in the second half: the loop body for the func_800428B0 table entry. Target computes `&func_800428B0` and `&func_800428B0+0xD0` separately and subtracts them at runtime (subu a3,v0,a2), and reloads D_800437A0 at the end (lui t2) after the loop; ours folds the difference to 0xd0 and reorders the loop-invariant addresses. Next: restore saved_best with get_candidate and try writing the size as `(s32)((char*)func_800428B0 + 0xD0) - (s32)func_800428B0` with func declared as `extern char func_800428B0[]`, and keep the loop counter as `i` with `i < 2` (target uses sltiu v0,a1,2 not (i+1)<=2).",
   "by": "claude-haiku-5-5-22",
@@ -14190,14 +14158,6 @@
   "created_at": 1794739107.5058932,
   "score_before": 9,
   "score_after": 9
- },
- {
-  "function": "func_801984DC",
-  "text": "Best 2450 (70.8%): first-version source, globals read directly, goto L1/L2, result a1 & 0xFF, index ((A*0x18)+T)*2 into D_801C6C10. Tried and worse, so do not repeat: T local before bound check (3510); T local after bound check (3120); A and T locals (3080); local pointer q=D_801C7062 with 2450 otherwise (2775). Remaining diff is register and load order: target loads A into $a0 first, T into $a2 right after the bound check and keeps it there, and uses a single base for D_801C7062 in $v1. Untried: write the index as a separate expression computed once into a local after the bound check while keeping the A+1/A-1 compares on the global; or check D_801C7AB0 via a u8 * local.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794739161.147696,
-  "score_before": 2450,
-  "score_after": 2450
  },
  {
   "function": "func_80230EFC",
@@ -19918,14 +19878,6 @@
   "created_at": 1794755421.412103,
   "score_before": 1999,
   "score_after": 1999
- },
- {
-  "function": "func_801984DC",
-  "text": "Best rechecked 2450 (70.8%): the goto-based draft with D_801C6BB9 / D_801C7068 read inline at each use (saved best). Target order: first test D_801C6BB9 < 0x17 (lb, slti, beqz to END); then the u16 lookup at D_801C6C10 + ((B9*0x18 + D7068)*2) compared to 0xFFFF; D_801C7068 is loaded at the lookup, not before the first test. Tried hoisting both loads into locals n/b: worse (3185), because it moves D_801C7068 and D_801C6BB9 loads before the first test. Remaining: target reuses one load of D_801C7068 across the branches (lui a2 / lb a2 once), and the branch targets differ (beqz 0x148 etc.). Untried: keep only D_801C6BB9 hoisted (after the < 0x17 check) and keep D_801C7068 inline; and write D_801C7062 reads as one base pointer.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794755463.434459,
-  "score_before": 2450,
-  "score_after": 2450
  },
  {
   "function": "func_80149220",
@@ -25912,14 +25864,6 @@
   "score_after": 1530
  },
  {
-  "function": "func_801984DC",
-  "text": "Not matched. Best is 2450 (70.8%, revision 87749404384a3880ca95, the brief's goto/END version). search_flags gave 2450 for every flag set, so flags are not the issue. Tried and worse or equal: caching i and k as locals at the top (3480); i loaded first, k after the range check (3080); nested if/else chain without gotos (2450, same as best); branch_orientation family on the D_801C7063 test (3300). Diff against best: target loads D_801C7068 once into a2 and keeps it live for the whole function, while ours reloads it into v1 and shuffles a0/a1. Target starts with 'lui a0,%hi(D_801C6BB9)' + lb and branches to the epilogue with 'beqz v0,0x148'. Next: find a source form that keeps k in one register from the first use; check whether i*0x18 is computed as (i*2+i)<<3 via sll/addu; try -O1 vs -O2 with compile_variants. Once roles are clear, rename D_801C6BB9 / D_801C7068 / D_801C7062 (looks like a 2D cell grid with a 3-entry neighbour pattern).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794765182.617213,
-  "score_before": 2450,
-  "score_after": 2450
- },
- {
   "function": "func_80198250",
   "text": "Best 775 (90.6%), candidate revision 2e655a137e9471ef9238 (same score as 94b7f9c9189f6b173e47). Structure: if D_801C6BB9!=0 and D_801C6BB0[D_801C6BB9*24+D_801C7068]==0xFFFF, then if D_801C7AB0[1]!=5 a1=1; else compare D_801C7062[0] with a2 (local copy of D_801C7068) and D_801C7062[1] with D_801C6BB9+1 (a1=(x==1)|(x==3)), or D_801C6BB9-1 (if x==0 a1=1); else if D_801C7062[0] is D_801C7068+/-1, a1=1 when D_801C7062[1]!=D_801C6BB9, or x==0/2; otherwise a1=1. Caching a2 as a local for the first path and globals for later reloads matched better than all-local (1965) or all-global (1335). Remaining diffs: target keeps D_801C7068 in $a2 and D_801C6BB9 in $a0 while ours swaps $v1/$a0 (register allocation), and the bne $v1,$v0 branch target is 0x9c vs 0xa8 (block order). Tried without change: local p0 read in the fall-through block; u32 a2 signedness. Next: try the x==0 branch as bnez-then-j form, or reorder the else-if chain so the p0 test comes before the p1 tests.",
   "by": "claude-haiku-5-5-23",
@@ -26710,14 +26654,6 @@
   "created_at": 1794767083.845897,
   "score_before": 3120,
   "score_after": 3120
- },
- {
-  "function": "func_801984DC",
-  "text": "Not matched. Best saved source scores 2450 (70.8%): target 84 insns, mine 82. Target reads D_801C6BB9 first (lui/lb to $a0, slti, beqz to END) and loads D_801C7068 late into $a2 for the table index and compares; mine loads D_801C7068 into $v1 first, so the register and order of the first two loads differ. Tried: local copies x=D_801C6BB9 and y=D_801C7068 (3480); y only (3510). Both worse; keep globals. Untried: rewriting the first check as a separate early load so the compiler keeps D_801C6BB9 in $a0, and -O1/scheduling variants.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794767210.4733682,
-  "score_before": 2450,
-  "score_after": 2450
  },
  {
   "function": "func_80198250",
@@ -39314,5 +39250,104 @@
   "created_at": 1795715579.445518,
   "score_before": 1070,
   "score_after": 1070
+ },
+ {
+  "function": "func_801984DC",
+  "text": "Deep permuter: score 2925 \u2192 2305; 2 improvements; 96 candidates tested; 0 cached skips; 0 rejected; 7211s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589934705",
+  "created_at": 1794348746.244425,
+  "score_before": 2925,
+  "score_after": 2305
+ },
+ {
+  "function": "func_801984DC",
+  "text": "Logic decoded and matches asm (candidate 3eebee98e83df7392380, score 2995; saved best 2925 from another source is better). Structure: N=D_801C6BB9 (s8), M=D_801C7068 (s8), K=D_801C7469 (u8), T=D_801C7062[] (T0=[0], T1=[1]; D_801C7063 is read separately at the tail), P=*(u8**)D_801C7AB0 (byte at +1 must equal 5), table D_801C6C10[N*24+M] (u16) must be 0xFFFF, N<0x17 signed. Result: P[1]!=5 -> 1; T0==M: T1==N+1 -> K==2; T1==N-1 -> K==1||K==3; else 1. T0!=M: if T0==M+1 or M-1 and D_801C7063==N -> K==0||K==2; else 1. Outside the guard: 0. Remaining diffs are branch layout and register choice, not logic. Binding M to a local made it worse (3955): the target reloads globals after the N<0x17 test and loads M only after beqz. Untried: put the table test in a separate if so the M load comes after the slti, and write T1 comparisons as signed-char compares.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794709658.5078359,
+  "score_before": 2925,
+  "score_after": 2925
+ },
+ {
+  "function": "func_801984DC",
+  "text": "Best this claim 3000 (64.2%) at revision b213ae598a5bc23cd037; historical saved best is 2925, not beaten. The m2c draft is a goto-based mess that does not compile; use this logic instead. Asm 0..90: gate `D_801C6BB9 < 0x17` (signed slti) and `D_801C6C10[(a*24 + D_801C7068)] == 0xFFFF` (u16, a=D_801C6BB9). Then if ((u8*)D_801C7AB0)[1] != 5 -> a1=1. Else if D_801C7062 == D_801C7068: byte1 of D_801C7062 == a+1 -> a1=(D_801C7469==2); == a-1 -> a1=(D_801C7469==1 || ==3); else a1=1. Else if D_801C7062 == D_801C7068\u00b11: D_801C7063 != a -> a1=1, else a1=(D_801C7469==0 || ==2). Else a1=1. Return a1 & 0xFF. Lessons: hoisting globals into locals at function top gives 7020 (target reads each global lazily); pointer local `s8 *p=&D_801C7062` gives 3135; a late `b = D_801C7068` local gives 3220. Remaining: target addresses D_801C7062 via `addiu $v1,D_801C7062` then `lb 0(v1)`/`lb 1(v1)` in one block and keeps D_801C7068 in $a2 across the branches. Untried: reproduce the first block as the target's exact order (load D_801C7062 byte0 first, compare with D_801C7068, then byte1 with a and a+1 / a-1).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794724751.237083,
+  "score_before": 2925,
+  "score_after": 2925
+ },
+ {
+  "function": "func_801984DC",
+  "text": "No match. Best is revision 87749404384a3880ca95 at 2450 (70.8%): a single exit label `END: return a1 & 0xFF;`, early `goto END` for the range/0xFFFF test and the `pl[1]!=5` case, and L1/L2 labels with direct global reads (no locals). Logic derived from asm: a1 = 0; if !(g<0x17) or table16[(g*0x18+t)*2]!=0xFFFF -> END; if *(u8*)(D_801C7AB0+1)!=5 -> a1=1; q0==t && q1==g+1 -> a1=(m==2); q0==t && q1==g-1 -> a1=(m==1||m==3); else if q0 not t+1/t-1 -> a1=1; else if D_801C7063!=g -> a1=1; else a1=(m==0||m==2). Remaining diffs: target loads g (lb D_801C6BB9) into $a0 and keeps t in $a2 for the rest of the function, and the first test is slti on g; the sll/addu index is g*3 then *8 + t, *2. Using s32 locals for g,t (3480) reorders loads and was worse. Next: keep the 2450 structure, try caching g/t in locals only after the slti (so the first lb of g is direct), and the q0 reload of D_801C7062 into a register once (target: lui/addiu v1 then lb (v1), lb 1(v1)).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794737169.452835,
+  "score_before": 2925,
+  "score_after": 2450
+ },
+ {
+  "function": "func_801984DC",
+  "text": "Best 2450 (70.8%): first-version source, globals read directly, goto L1/L2, result a1 & 0xFF, index ((A*0x18)+T)*2 into D_801C6C10. Tried and worse, so do not repeat: T local before bound check (3510); T local after bound check (3120); A and T locals (3080); local pointer q=D_801C7062 with 2450 otherwise (2775). Remaining diff is register and load order: target loads A into $a0 first, T into $a2 right after the bound check and keeps it there, and uses a single base for D_801C7062 in $v1. Untried: write the index as a separate expression computed once into a local after the bound check while keeping the A+1/A-1 compares on the global; or check D_801C7AB0 via a u8 * local.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794739161.147696,
+  "score_before": 2450,
+  "score_after": 2450
+ },
+ {
+  "function": "func_801984DC",
+  "text": "Best rechecked 2450 (70.8%): the goto-based draft with D_801C6BB9 / D_801C7068 read inline at each use (saved best). Target order: first test D_801C6BB9 < 0x17 (lb, slti, beqz to END); then the u16 lookup at D_801C6C10 + ((B9*0x18 + D7068)*2) compared to 0xFFFF; D_801C7068 is loaded at the lookup, not before the first test. Tried hoisting both loads into locals n/b: worse (3185), because it moves D_801C7068 and D_801C6BB9 loads before the first test. Remaining: target reuses one load of D_801C7068 across the branches (lui a2 / lb a2 once), and the branch targets differ (beqz 0x148 etc.). Untried: keep only D_801C6BB9 hoisted (after the < 0x17 check) and keep D_801C7068 inline; and write D_801C7062 reads as one base pointer.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794755463.434459,
+  "score_before": 2450,
+  "score_after": 2450
+ },
+ {
+  "function": "func_801984DC",
+  "text": "Not matched. Best is 2450 (70.8%, revision 87749404384a3880ca95, the brief's goto/END version). search_flags gave 2450 for every flag set, so flags are not the issue. Tried and worse or equal: caching i and k as locals at the top (3480); i loaded first, k after the range check (3080); nested if/else chain without gotos (2450, same as best); branch_orientation family on the D_801C7063 test (3300). Diff against best: target loads D_801C7068 once into a2 and keeps it live for the whole function, while ours reloads it into v1 and shuffles a0/a1. Target starts with 'lui a0,%hi(D_801C6BB9)' + lb and branches to the epilogue with 'beqz v0,0x148'. Next: find a source form that keeps k in one register from the first use; check whether i*0x18 is computed as (i*2+i)<<3 via sll/addu; try -O1 vs -O2 with compile_variants. Once roles are clear, rename D_801C6BB9 / D_801C7068 / D_801C7062 (looks like a 2D cell grid with a 3-entry neighbour pattern).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794765182.617213,
+  "score_before": 2450,
+  "score_after": 2450
+ },
+ {
+  "function": "func_801984DC",
+  "text": "Not matched. Best saved source scores 2450 (70.8%): target 84 insns, mine 82. Target reads D_801C6BB9 first (lui/lb to $a0, slti, beqz to END) and loads D_801C7068 late into $a2 for the table index and compares; mine loads D_801C7068 into $v1 first, so the register and order of the first two loads differ. Tried: local copies x=D_801C6BB9 and y=D_801C7068 (3480); y only (3510). Both worse; keep globals. Untried: rewriting the first check as a separate early load so the compiler keeps D_801C6BB9 in $a0, and -O1/scheduling variants.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794767210.4733682,
+  "score_before": 2450,
+  "score_after": 2450
+ },
+ {
+  "function": "func_801984DC",
+  "text": "Hand-off of func_801984DC: best 2070 (30 differing rows) in /tmp/dd-haiku-pr5/cands/f6.c.\n\nRemaining rows (marker | target | candidate):\n  r | lui $a2, %hi(D_801C7068) | lui $v1, %hi(D_801C7068)\n  r | lb $a2, %lo(D_801C7068)($a2) | lb $v1, %lo(D_801C7068)($v1)\n  r | addu $v0, $v0, $a2 | addu $v0, $v0, $v1\n  r | lui $v1, %hi(D_801C7062) | lui $a0, %hi(D_801C7062)\n  r | addiu $v1, $v1, %lo(D_801C7062) | addiu $a0, $a0, %lo(D_801C7062)\n  r | lb $v0, ($v1) | lb $v1, ($a0)\n  > |  | lui $v0, %hi(D_801C7068)\n  > |  | lb $v0, %lo(D_801C7068)($v0)\n  r | bne $v0, $a2, 0xf8 | bne $v1, $v0, 0xf0\n  o |  | nop\n  > |  | lb $v1, 1($a0)\n  > |  | lui $v0, %hi(D_801C6BB9)\n  > |  | lb $v0, %lo(D_801C6BB9)($v0)\n  r | addiu $v0, $a0, 1 | addiu $v0, $v0, 1\n  < | lb $v1, 1($v1) | \n  i | bne $v1, $v0, 0x98 | bne $v1, $v0, 0xac\n  < | lui $a0, %hi(D_801C7062) | \n  < | addiu $a0, $a0, %lo(D_801C7062) | \n  > |  | j func_801984DC+0x13c\n  o | sltiu $v0, $v0, 1 | \n  < | or $v1, $v1, $v0 | \n  < | beqz $v1, 0x148 | \n  o | nop | \n  < | j func_801984DC+0x148 | \n  < | addiu $a1, $zero, 1 | \n  | | bnel $a0, $v0, 0x148 | bne $a0, $v0, 0x144\n  | | bnel $v1, $v0, 0x148 | bne $v1, $v0, 0x144\n  < | j func_801984DC+0xe0 | \n  o |  | sltiu $v0, $v0, 1\n  > |  | or $a1, $v1, $v0\n\nRegister pairs (explain_regs.py):\n  $v1 where the target has $a2 (3 rows):\n  why not $a2: block-local: local-alloc gives quantities registers in priority order and $a2 was taken or tied up in that block. Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $a2: $a2 was free in its conflicts; global.c picks the first free register of the class in allocation order: an earlier allocation (or a register nothing had used yet) decided it.\n  why not $a2: block-local: local-alloc gives quantities registers in priority order and $a2 was taken or tied up in that block. Move it: change its refs/length against those, or make it global (a use in another block).\n  $a0 where the target has $v1 (3 rows):\n  why not $v1: $v1 is live across it (a fixed use: an argument, return value or call-clobbered register), so it can never get it: shorten its life or move the use of $v1.\n  why not $v1: pseudo 142 conflicts with it and was allocated first (priority 0.75 > 0.38) into $v1: raise this one's priority (more refs, shorter life) or lower that one's, or end the overlap.\n  why not $v1: $v1 is live across it (a fixed use: an argument, return value or call-clobbered register), so it can never get it: shorten its life or move the use of $v1.\n  $v1 where the target has $v0 (2 rows):\n  why not $v0: block-local: local-alloc gives quantities registers in priority order and $v0 was taken or tied up in that block (also in $v0: pseudo 76 (1.00), pseudo 84 (2.00)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $v0: $v0 is live across it (a fixed use: an argument, return value or call-clobbered register), so it can never get it: shorten its life or move the use of $v0.\n  why not $v0: block-local: local-alloc gives quantities registers in priority order and $v0 was taken or tied up in that block (also in $v0: pseudo 76 (1.00), pseudo 84 (2.00)). Move it: change its refs/length against those, or make it global (a use in another block).\n  $v0 where the target has $a2 (1 row):\n  why not $a2: block-local: local-alloc gives quantities registers in priority order and $a2 was taken or tied up in that block. Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $a2: block-local: local-alloc gives quantities registers in priority order and $a2 was taken or tied up in that block. Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $a2: block-local: local-alloc gives quantities registers in priority order and $a2 was taken or tied up in that block. Move it: change its refs/length against those, or make it global (a use in another block).\n  $v0 where t",
+  "by": "manual-2b1373017f1c4849",
+  "created_at": 1795707975.949004,
+  "score_before": 2005,
+  "score_after": 2005
+ },
+ {
+  "function": "func_801984DC",
+  "text": "Tried about 9 judged fresh and edited shapes (nested if/else, single if with && table test, s32 and s8 locals for row and col, s8 pointer for D_801C7062, reordered col branch). Best this claim 2070 (f6), saved best 2005 not beaten. Target reloads nothing: D_801C7068 is loaded once into a2 and reused for the col compares and index; every C form reloads it and the locals that fix it move loads before the first test. Moving on after 12 attempts.",
+  "by": "manual-2b1373017f1c4849",
+  "created_at": 1795708029.492397,
+  "score_before": 2070,
+  "score_after": 2070,
+  "handoff_inputs": "7d6ab19fd43b588fb9bd67b9d84d10cd2a9748f024bfaf8e453c8df33558880f:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:586471a91e37fa22e842893a916eb45a152620c6abb2e76e6527803846930d2e"
+ },
+ {
+  "function": "func_801984DC",
+  "text": "Small-model attempt at func_801984DC: 6 tries.\n  best 1755 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1770 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 2375 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3450 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 4260 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nClean rewrite with inline globals, no locals. Best 1755 (own profile, from 2005 saved). Target loads D_801C7068 once into a register and reuses D_801C6BB9 and D_801C7062 pointers; the compiler reloads them per expression, so the remaining differences are regalloc and order. Tried: branch-form first case (worse 2490), nested duplicated fallback (worse 2790), swapped compare order (worse 3120), nested neighbour check (worse 3070). Not matched.",
+  "by": "manual-d5ea0540df8f4a2a",
+  "created_at": 1795717608.2604449,
+  "score_before": 2070,
+  "score_after": 1755,
+  "handoff_inputs": "7d6ab19fd43b588fb9bd67b9d84d10cd2a9748f024bfaf8e453c8df33558880f:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:586471a91e37fa22e842893a916eb45a152620c6abb2e76e6527803846930d2e"
+ },
+ {
+  "function": "func_801984DC",
+  "text": "Small-model attempt at func_801984DC: 12 tries.\n  best 1095 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1110 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1295 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1600 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2665 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries, best own-profile score 1095 (from 1755 saved). Gains: read the global D_801C7068 directly in the second else-if (not the cached local) and the B-1 check; B cached in a local and the B+1 check cached. Still differs: the 0x17 chain's leaf (D7469==2) is computed into a temp and moved in the delay slot; the B-1 leaf's or-form and the D7062 base reuse in the last chain (register/CSE). Not matched; a rewrite of the leaves as values may help.",
+  "by": "manual-1d66a5d6687d4314",
+  "created_at": 1795726301.690784,
+  "score_before": 1755,
+  "score_after": 1095,
+  "handoff_inputs": "7d6ab19fd43b588fb9bd67b9d84d10cd2a9748f024bfaf8e453c8df33558880f:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:586471a91e37fa22e842893a916eb45a152620c6abb2e76e6527803846930d2e"
  }
 ]
