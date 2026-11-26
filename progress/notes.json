@@ -3072,14 +3072,6 @@
   "score_after": 37040
  },
  {
-  "function": "func_8014BB30",
-  "text": "Deep permuter: score 10995 \u2192 6885; 5 improvements; 75 candidates tested; 0 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935437",
-  "created_at": 1794348449.2867358,
-  "score_before": 10995,
-  "score_after": 6885
- },
- {
   "function": "func_8015C560",
   "text": "Deep permuter: score 10525 \u2192 9585; 3 improvements; 156 candidates tested; 0 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935526",
@@ -7432,14 +7424,6 @@
   "score_after": 6395
  },
  {
-  "function": "func_8014BB30",
-  "text": "Structure: 32-byte entries indexed by idx = arg0&0xFF (sll 5), fields at D_8018D3A0+0 (flag 0x2000 -> a1=0x800), +4 (bits 0x200000->1, 0x400000->2, 0x800000->4, 0x1000000->8), +0x10 (0x200->0x10), +0x14 (0x40->0x20, 0x80->0x40), +0x18 (0x40000->0x80, 0x80000->0x100, 0x100000->0x200), +0x1C (0x4000->0x400). Each test is `if (field & mask) a1 |= bit`, compiled as bnel with the ori in the delay slot. Return a1 & 0xFFFF. Key mismatch: the target recomputes andi a0,0xFF / sll 5 / lui at / addu at / lw for EVERY test (about 10 index computations, 106 insns), while gcc CSEs the index into one register (66 insns). Two forms tried (raw s32 pointer casts; Entry struct array with arg0&0xFF inline): both 10980, 0%. Not tried: a source form that stops the CSE, or a u8 base with byte offsets.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794708623.338443,
-  "score_before": 7230,
-  "score_after": 7230
- },
- {
   "function": "func_8014D2B4",
   "text": "Best remains 3790 (revision 5070112f86045ec80be6, 63.9%). Target: frame 0x28, saves ra, s1, s0 and $f20 (angle lives in $f20 across __sinf/__cosf). Target does `move $s1,$a0` before func_8013AE60 and re-derives `andi ...,0xffff` from s1 after the call, so arg0 stays live across the call. My candidates: (a) i=arg0&0xFFFF s32 local, 3790 (best); (b) u16 i=arg0 local, 4080; (c) idx=arg0 copy then idx&0xFFFF, 3790 (the compiler folds the copy, no change). The candidate frame is always 0x20 with no s1/ra save, so the liveness of arg0 across the call is the unsolved point. Next experiment: a source shape where the post-call index comes from the raw s32 parameter through a non-folding form (e.g. volatile-free helper or a second parameter-like local assigned after the call), or check compile_family(family=\"signedness\") as the tool suggests. The mul.d/div.d/cvt double sequence for the angle already matches.",
   "by": "claude-haiku-5-5-24",
@@ -11744,14 +11728,6 @@
   "score_after": 6142
  },
  {
-  "function": "func_8014BB30",
-  "text": "Not matched. Target 106 insns, 424 bytes. Shape: 12 independent tests of the form `if (*(s32*)(&D_8018D3xx + ((arg0&0xFF)<<5)) & MASK) var |= BIT;`, returning var & 0xFFFF. Each test recomputes the index and reloads the table: the target does not CSE the index (andi/sll/lui/addu/lw repeated per test).\n\nAttempts this session (current rechecked scores):\n- Shared local `idx = (arg0&0xFF)<<5`: 11210. Target reloads per test, so this is worse.\n- Index inlined in every test, all `var |= bit` ifs: 10980 (best this session). Remaining diffs: the target emits `lui $v1,0x80; and; bnel` for the 0x800000 test and `ori $a1,$a1,4` on a branch, which my form does not reproduce; the target also starts the sequence by initializing var with a branch rather than a constant store.\n- Saved-best 9350 is from another source and does not reproduce here.\n\nLeft to try: write the first test as `var = (cond) ? 0x800 : 0` and the others as `var |= ...` in the target order; check whether the bit-tests use `&` with a 32-bit constant (lui+and) versus `andi` for masks <= 0xFFFF (the target uses lui+and for 0x800000 and 0x1000000); vary the loop-free test order to see which order the target uses.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794723597.173048,
-  "score_before": 7230,
-  "score_after": 7230
- },
- {
   "function": "func_8014B890",
   "text": "Best this session: 3565 (63% match), revision 1eb9398dc87a026fd6a8 (switch on state; do-while scan of D_8018BC35 with i<6; i<3 selects the 0x12/0x14 branch else 0xC8 branch; s1=&D_80190CB2 local). Saved best 3385 is from an older, different source; not reproduced. Target shape: switch-like, but the 0x11 test is first and the scan (state==0) path is placed last. Remaining diffs: prologue order (ra/s1/s0 saves interleaved; frame 0x20), the 0x3E reload is emitted in the wrong place, and the lhu/addiu/sh timer block is ordered differently. Tried and worse: if-chain (5255), state>=0x12 nesting, inline lui for timer (6022, 4792). Next: try a `case 0x11` that reads timer into a local before the switch, or search_flags for the scheduling.",
   "by": "claude-haiku-5-5-21",
@@ -15880,14 +15856,6 @@
   "score_after": 2745
  },
  {
-  "function": "func_8014BB30",
-  "text": "Not matched. Best 6670 (37%), revision 6f8e4028fec1bcffc19e. Target is 14 flag tests: each `if (tbl[idx] & mask) var |= bit;` where tbl[idx] is s32 at D_8018D3xx + ((arg0&0xFF)<<5), masks 0x2000 (first, sets var=0x800 not |=), then 0x200000/0x400000/0x800000/0x1000000 on D_8018D3A4, 0x200 on D_8018D3B0, 0x40 and 0x80 on D_8018D3B4, 0x40000/0x80000/0x100000 on D_8018D3B8, 0x4000 on D_8018D3BC; return var&0xFFFF. Key finding: target recomputes andi/sll/lui/addu/lw for every test and never CSEs the index, so plain reads get merged (10980). Declaring the table read as `*(volatile s32 *)` stops that merge (6670). Remaining diff: the target keeps `var=0` then `andi/beqz` per test with `bnel`+`ori` in delay slots and the 0x2000 test is andi-only; our draft still shares lui/addu for D_8018D3A4 across tests and folds the masks (lui 0x20/0x40 wrong: target masks 0x200000 use lui 0x20 on the value). Next: try volatile on the index (e.g. re-read arg0 through a volatile u8 pointer) so each test re-derives the offset, and write masks as the exact constants 0x200000 etc.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794735050.0024672,
-  "score_before": 7230,
-  "score_after": 6670
- },
- {
   "function": "func_801578EC",
   "text": "Stopping at low effort. Best is the saved 400 (not reproduced). My rewrites: macro version 4055, explicit per-pair version 4555 (worse; the target's index sequence goes right after the pair-2 word0 store, which the explicit version computes too early). The structure is a display-list builder of 10 pairs; per pair: p=*arg0; *arg0=p+8; p[0]=w0; p[1]=w1. Diffs are register/order: target keeps the list pointer in $v1 and the index chain in $a3 (andi $a1 first, then sll/addu x2, sll x2). Next: write the index as `s32 a3 = (u16)arg1 * 100` between pairs 2 and 3 and use $a1 for the masked arg (arg1 = (u16)arg1 at top), keeping the pointer in a v1-shaped local.",
   "by": "claude-haiku-5-5-24",
@@ -16280,14 +16248,6 @@
   "score_after": 845
  },
  {
-  "function": "func_8014BB30",
-  "text": "Best 6670 (37.0%), candidate revision 250ca0c54562a7cddd11. Two compiles tried, neither improved; the second was a no-op rewrite. Structure: 13 bit tests on volatile words at D_8018D3A0/A4/B0/B4/B8/BC + ((arg0&0xFF)<<5), OR-ing bits 0x800,0x1,0x2,0x4,0x8,0x10,0x20,0x40,0x80,0x100,0x200,0x400, returning &0xFFFF. Target (106 insns) does NOT CSE the index: it recomputes andi $v0,$a0,0xff; sll $v0,$v0,5 for each of ~10 tests, and tests each bit with andi/beqz or bnel rather than merging. Ours CSEs the index once and folds the 0x2000 test into srl 2 / andi 0x800. Untried next step: force separate index computations per test (e.g. a different but equal-valued expression per statement, or split by function-local u8 index copies) and write the 0x800 case as a branch. The parameter_width compile family was suggested but not run.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794736030.3068311,
-  "score_before": 6670,
-  "score_after": 6670
- },
- {
   "function": "func_8014BA14",
   "text": "Best remains saved switch version at 2210 (21 prior attempts). Target is a binary-search if-tree over arg0&0xFFFF: first slti 0x508, then 0x506, 0x119, 0x115, a ==0xD check (addiu v0,0xD; beql a0,v0), a ==0x409 check, then 0x70E, 0x70F, 0x615/0x612 range, then 0x2FFF/0x4FFF pair. v1 holds the result (0 default, set to 1/2 via beql delay slots). My nested-if rewrite (4175) emits sltiu for the equality tests, which the target does not; branch_orientation repairs reached 3615. Not tried: writing equality tests with a loaded constant (v0 = 0xD; a0==v0) to force beql shape, or a switch on the high range plus an if for the 0x508 split.",
   "by": "claude-haiku-5-5-21",
@@ -16678,14 +16638,6 @@
   "created_at": 1794737002.254344,
   "score_before": 1530,
   "score_after": 1530
- },
- {
-  "function": "func_8014BB30",
-  "text": "Best: revision d7b539fd2b5bff8fe551 (6670, 37%). The target recomputes `andi $v0,$a0,0xff; sll $v0,5; lui $at; addu $at,$at,$v0; lw` per access (about 11 times). Every C variant tried (inline index, local off, if/else first test) gets CSE'd by GCC into one `sll $a2` plus `addu $v0,$v0,$a2` per access, and the first test emits `srl $v0,2` instead of the andi 0x2000 / beqz pair. So the source shape that reproduces per-access recomputation is still unknown. Untried: index via a u8 cast of arg0 at each access, or a single volatile pointer walking the six table bases. Stopping at the move-on budget.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794737090.953614,
-  "score_before": 6670,
-  "score_after": 6670
  },
  {
   "function": "func_80198CC4",
@@ -30416,14 +30368,6 @@
   "score_after": 59841
  },
  {
-  "function": "func_8014BB30",
-  "text": "Not matched. Best at gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1: score 760 (92.8%); at project -O2 this draft scores 6670. Source: the machine draft with the six arrays declared u8[] and each test as `*(volatile s32 *)(D_x + ((arg0 & 0xFF) << 5)) & bit`, with the 0x800 bit as the first test. Remaining diff at -O1: the first test compiles as srl v0,2 + andi a1,v0,0x800 (a shift-based select), while the target branches: andi v0,v0,0x2000; beqz; move a1,$zero; addiu a1,a1,0x800. The if/else form of the first test compiles identically (760), so the compiler is turning the single-bit select into a shift. Also the target reloads the address with sll $v0,$v0,5 computed once per table (andi a0,0xff then sll 5 reused), and the candidate recomputes it per test. Next: put the first select in a separate statement with its own volatile load (not the shared table index), and try a local `s32 idx = (arg0 & 0xFF) << 5;` reused by all twelve tests, which matches the target's single index computation.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794764865.210748,
-  "score_before": 6670,
-  "score_after": 6670
- },
- {
   "function": "func_801BD7E8",
   "text": "Releasing: this is a 2189-instruction function with ~150 hard-coded func_800DE41C calls and a long if/else dispatch on D_801C7AB4. The draft does not compile as given (undeclared sp48 at line 73, pointer type errors at 168/255/269), and my single probe reached only 1.9% (214660) with a different frame. Reaching a match needs the draft fixed to compile, the 0xa0 frame and callee-saved layout recovered, then the constant tables. Not achievable at this effort in one session. Saved best is 169542; draft baseline revision 31885d4662c87e9893b9 (the current revision 976aa550f640877aae33 is my probe and can be discarded). Notes above list the first steps.",
   "by": "claude-haiku-5-5-21",
@@ -31950,14 +31894,6 @@
   "created_at": 1794766929.197675,
   "score_before": 450,
   "score_after": 450
- },
- {
-  "function": "func_8014BB30",
-  "text": "Release: cannot get closer with the current approach. Best 6670 (37%) at rev 250ca0c54562a7cddd11 (volatile loads, one `if` per bit). Dropping volatile gives 10980; if/else form of the first block (rev 6dde09750003de357186) and fresh-index variants change nothing. The compiler folds the first test (0x2000 -> 0x800) into srl+andi, which the target does not do, and CSEs the index sll into $a2 while the target recomputes sll 5 / andi 0xff / lui / addu / lw for each of the 12 tests. Target: leaf function; each test is andi v0,a0,0xff; sll v0,v0,5; lui at,%hi(base); addu at,at,v0; lw v0,%lo(base)(at); andi v0,v0,MASK; beqz skip; then a bit set. Bits: 0x800 (A0,0x2000), 1,2,4,8 (A4 masks 0x200000/0x400000/0x800000/0x1000000), 0x10 (B0,0x200), 0x20/0x40 (B4, 0x40/0x80), 0x80/0x100/0x200 (B8, 0x40000/0x80000/0x100000), 0x400 (BC,0x4000). Next session: test whether the reordering puts the 0x800 block after the others (the target's first block already uses move/addiu on the taken path), and try the structure with a separate per-base helper read through a u8* index.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794766950.262,
-  "score_before": 6670,
-  "score_after": 6670
  },
  {
   "function": "func_80148260",
@@ -34916,5 +34852,87 @@
   "created_at": 1794766521.801853,
   "score_before": 4856,
   "score_after": 4856
+ },
+ {
+  "function": "func_8014BB30",
+  "text": "Deep permuter: score 10995 \u2192 6885; 5 improvements; 75 candidates tested; 0 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935437",
+  "created_at": 1794348449.2867358,
+  "score_before": 10995,
+  "score_after": 6885
+ },
+ {
+  "function": "func_8014BB30",
+  "text": "Structure: 32-byte entries indexed by idx = arg0&0xFF (sll 5), fields at D_8018D3A0+0 (flag 0x2000 -> a1=0x800), +4 (bits 0x200000->1, 0x400000->2, 0x800000->4, 0x1000000->8), +0x10 (0x200->0x10), +0x14 (0x40->0x20, 0x80->0x40), +0x18 (0x40000->0x80, 0x80000->0x100, 0x100000->0x200), +0x1C (0x4000->0x400). Each test is `if (field & mask) a1 |= bit`, compiled as bnel with the ori in the delay slot. Return a1 & 0xFFFF. Key mismatch: the target recomputes andi a0,0xFF / sll 5 / lui at / addu at / lw for EVERY test (about 10 index computations, 106 insns), while gcc CSEs the index into one register (66 insns). Two forms tried (raw s32 pointer casts; Entry struct array with arg0&0xFF inline): both 10980, 0%. Not tried: a source form that stops the CSE, or a u8 base with byte offsets.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794708623.338443,
+  "score_before": 7230,
+  "score_after": 7230
+ },
+ {
+  "function": "func_8014BB30",
+  "text": "Not matched. Target 106 insns, 424 bytes. Shape: 12 independent tests of the form `if (*(s32*)(&D_8018D3xx + ((arg0&0xFF)<<5)) & MASK) var |= BIT;`, returning var & 0xFFFF. Each test recomputes the index and reloads the table: the target does not CSE the index (andi/sll/lui/addu/lw repeated per test).\n\nAttempts this session (current rechecked scores):\n- Shared local `idx = (arg0&0xFF)<<5`: 11210. Target reloads per test, so this is worse.\n- Index inlined in every test, all `var |= bit` ifs: 10980 (best this session). Remaining diffs: the target emits `lui $v1,0x80; and; bnel` for the 0x800000 test and `ori $a1,$a1,4` on a branch, which my form does not reproduce; the target also starts the sequence by initializing var with a branch rather than a constant store.\n- Saved-best 9350 is from another source and does not reproduce here.\n\nLeft to try: write the first test as `var = (cond) ? 0x800 : 0` and the others as `var |= ...` in the target order; check whether the bit-tests use `&` with a 32-bit constant (lui+and) versus `andi` for masks <= 0xFFFF (the target uses lui+and for 0x800000 and 0x1000000); vary the loop-free test order to see which order the target uses.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794723597.173048,
+  "score_before": 7230,
+  "score_after": 7230
+ },
+ {
+  "function": "func_8014BB30",
+  "text": "Not matched. Best 6670 (37%), revision 6f8e4028fec1bcffc19e. Target is 14 flag tests: each `if (tbl[idx] & mask) var |= bit;` where tbl[idx] is s32 at D_8018D3xx + ((arg0&0xFF)<<5), masks 0x2000 (first, sets var=0x800 not |=), then 0x200000/0x400000/0x800000/0x1000000 on D_8018D3A4, 0x200 on D_8018D3B0, 0x40 and 0x80 on D_8018D3B4, 0x40000/0x80000/0x100000 on D_8018D3B8, 0x4000 on D_8018D3BC; return var&0xFFFF. Key finding: target recomputes andi/sll/lui/addu/lw for every test and never CSEs the index, so plain reads get merged (10980). Declaring the table read as `*(volatile s32 *)` stops that merge (6670). Remaining diff: the target keeps `var=0` then `andi/beqz` per test with `bnel`+`ori` in delay slots and the 0x2000 test is andi-only; our draft still shares lui/addu for D_8018D3A4 across tests and folds the masks (lui 0x20/0x40 wrong: target masks 0x200000 use lui 0x20 on the value). Next: try volatile on the index (e.g. re-read arg0 through a volatile u8 pointer) so each test re-derives the offset, and write masks as the exact constants 0x200000 etc.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794735050.0024672,
+  "score_before": 7230,
+  "score_after": 6670
+ },
+ {
+  "function": "func_8014BB30",
+  "text": "Best 6670 (37.0%), candidate revision 250ca0c54562a7cddd11. Two compiles tried, neither improved; the second was a no-op rewrite. Structure: 13 bit tests on volatile words at D_8018D3A0/A4/B0/B4/B8/BC + ((arg0&0xFF)<<5), OR-ing bits 0x800,0x1,0x2,0x4,0x8,0x10,0x20,0x40,0x80,0x100,0x200,0x400, returning &0xFFFF. Target (106 insns) does NOT CSE the index: it recomputes andi $v0,$a0,0xff; sll $v0,$v0,5 for each of ~10 tests, and tests each bit with andi/beqz or bnel rather than merging. Ours CSEs the index once and folds the 0x2000 test into srl 2 / andi 0x800. Untried next step: force separate index computations per test (e.g. a different but equal-valued expression per statement, or split by function-local u8 index copies) and write the 0x800 case as a branch. The parameter_width compile family was suggested but not run.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794736030.3068311,
+  "score_before": 6670,
+  "score_after": 6670
+ },
+ {
+  "function": "func_8014BB30",
+  "text": "Best: revision d7b539fd2b5bff8fe551 (6670, 37%). The target recomputes `andi $v0,$a0,0xff; sll $v0,5; lui $at; addu $at,$at,$v0; lw` per access (about 11 times). Every C variant tried (inline index, local off, if/else first test) gets CSE'd by GCC into one `sll $a2` plus `addu $v0,$v0,$a2` per access, and the first test emits `srl $v0,2` instead of the andi 0x2000 / beqz pair. So the source shape that reproduces per-access recomputation is still unknown. Untried: index via a u8 cast of arg0 at each access, or a single volatile pointer walking the six table bases. Stopping at the move-on budget.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794737090.953614,
+  "score_before": 6670,
+  "score_after": 6670
+ },
+ {
+  "function": "func_8014BB30",
+  "text": "Not matched. Best at gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1: score 760 (92.8%); at project -O2 this draft scores 6670. Source: the machine draft with the six arrays declared u8[] and each test as `*(volatile s32 *)(D_x + ((arg0 & 0xFF) << 5)) & bit`, with the 0x800 bit as the first test. Remaining diff at -O1: the first test compiles as srl v0,2 + andi a1,v0,0x800 (a shift-based select), while the target branches: andi v0,v0,0x2000; beqz; move a1,$zero; addiu a1,a1,0x800. The if/else form of the first test compiles identically (760), so the compiler is turning the single-bit select into a shift. Also the target reloads the address with sll $v0,$v0,5 computed once per table (andi a0,0xff then sll 5 reused), and the candidate recomputes it per test. Next: put the first select in a separate statement with its own volatile load (not the shared table index), and try a local `s32 idx = (arg0 & 0xFF) << 5;` reused by all twelve tests, which matches the target's single index computation.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794764865.210748,
+  "score_before": 6670,
+  "score_after": 6670
+ },
+ {
+  "function": "func_8014BB30",
+  "text": "Release: cannot get closer with the current approach. Best 6670 (37%) at rev 250ca0c54562a7cddd11 (volatile loads, one `if` per bit). Dropping volatile gives 10980; if/else form of the first block (rev 6dde09750003de357186) and fresh-index variants change nothing. The compiler folds the first test (0x2000 -> 0x800) into srl+andi, which the target does not do, and CSEs the index sll into $a2 while the target recomputes sll 5 / andi 0xff / lui / addu / lw for each of the 12 tests. Target: leaf function; each test is andi v0,a0,0xff; sll v0,v0,5; lui at,%hi(base); addu at,at,v0; lw v0,%lo(base)(at); andi v0,v0,MASK; beqz skip; then a bit set. Bits: 0x800 (A0,0x2000), 1,2,4,8 (A4 masks 0x200000/0x400000/0x800000/0x1000000), 0x10 (B0,0x200), 0x20/0x40 (B4, 0x40/0x80), 0x80/0x100/0x200 (B8, 0x40000/0x80000/0x100000), 0x400 (BC,0x4000). Next session: test whether the reordering puts the 0x800 block after the others (the target's first block already uses move/addiu on the taken path), and try the structure with a separate per-base helper read through a u8* index.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794766950.262,
+  "score_before": 6670,
+  "score_after": 6670
+ },
+ {
+  "function": "func_8014BB30",
+  "text": "Haiku pass (haiku-pr6): a flag-bit builder: a1 = 0x800 if D_8018D3A0[i]&0x2000, then |= 1,2,4,8 from D_8018D3A4 bits 0x200000..0x1000000, |= 0x10 (D_8018D3B0 0x200), 0x20/0x40 (D_8018D3B4 0x40/0x80), 0x80/0x100/0x200 (D_8018D3B8 bits), 0x400 (D_8018D3BC 0x4000), index (u8)arg0 << 5, every load volatile, return u16. Best: -O1 550 (trial b4ad922796ddaa78060d, the do-while fence around the first test, not applied: not exact). -O2 2820 (app; saved best 2785). Remaining row: the target keeps the first test as a branch (beqz; move $a1,$zero; addiu 0x800), while every spelling tried (short, explicit else, temp word, constant local, != 0) lets gcc fold it to srl 2 + andi 0x800. Next: a spelling that keeps that branch (maybe a second test on the same word, or the 0x800 set from a separate pointer).",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795709765.895222,
+  "score_before": 2820,
+  "score_after": 2820,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:e20189ca45f1ab9c51791bb13f2885453d6d483c7faaee23fa20aaa94e6c5da0"
+ },
+ {
+  "function": "func_8014BB30",
+  "text": "Near-match: -O1 550 (not exact), one branch row; see note.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795709775.979003,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:e20189ca45f1ab9c51791bb13f2885453d6d483c7faaee23fa20aaa94e6c5da0"
  }
 ]
