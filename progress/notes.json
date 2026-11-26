@@ -6864,14 +6864,6 @@
   "score_after": 180
  },
  {
-  "function": "func_80231130",
-  "text": "No match; best 1765 (revision 3839724ad67b02f5917f). Outer loop i=0..6 (u16), off=i*0x178, call func_80025DBC(D_800DA260+off) first, then zero stores at fixed offsets from D_800DA260 (u16 +0..+16 with i at +0; u32 +20..+32; u8 +36,+37), inner j loop 0..6 storing u32 zeros at D_800DA260+40+idx and +44 (idx=j*8+off), then five u16 zero stores at +100..+108 for row i. Remaining diffs: the tail stores should recompute i*0x178 in fresh registers (target recomputes off in v1; ours reuses s0). Inline i*0x178 in tail (4842) was worse. Target frame 0x20 saves ra,s0,s1,s2. The queued candidate 0c4ce8d was a broken draft with a goto label; ignore it.\n\nNo match; best 1580 (revision 3abc809f380213e19240, saved). Source: outer do-loop over u16 i=0..6, off=i*0x178; `char *base` assigned D_800DA260 before the loop; call func_80025DBC(base+off) first; u16 zero stores at off+0..+16 (off+0 holds i), u32 zeros at off+20/24/28/32, u8 zeros at off+36/37; inner do-loop over u16 j=0..6 storing u32 zeros at D_800DA260+40+idx and +44 (idx=j*8+off); then idx=i*0x178 and five u16 zero stores at +100..+108; i++. Remaining diffs are register allocation and prologue order: target saves ra at 0x1c, s2 at 0x18, s1 at 0x14, s0 at 0x10 with `lui/addiu s2` (base) before `move s1,zero`; ours differs in that order. Tried and worse: moving base assignment after i=0 (1770); idx=i*0x178 inline (4842); idx=(i&0xFFFF)*0x178 (1765). Loop-tail recompute of off in v1 with sltiu/bnez is not reproduced. Next attempt would be a different loop shape (while-loop over u16 with the tail recomputed from i).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794709127.103286,
-  "score_before": 4750,
-  "score_after": 1580
- },
- {
   "function": "func_8022976C",
   "text": "Recursive quicksort over float keys (D_8022E620, stride grp*24) with parallel u8 values (D_8022A720, stride grp*6); pivot index = (lo+hi)>>1 using sra. Clean rewrite (locals keys/vals, u16 i/j, pivot via s32 sum) scored 5695, worse than the saved 4256. Target keeps grp in $s1, lo in $t4, hi in $s2 and saves s0/s1/s2/ra (frame 0x20), and recomputes the D_8022E620 base per access; ours keeps one base and saves fewer regs. Next: declare grp/lo/hi as the saved register copies (use a 3-local copy form) and recompute bases per access. Tail (j+1<hi recursion) not verified against the target branch order.",
   "by": "claude-haiku-5-5-20",
@@ -10464,14 +10456,6 @@
   "score_after": 1845
  },
  {
-  "function": "func_80231130",
-  "text": "Not matched. Best: revision 1d039c3ee39c65a87636 (score 4763, 58.2%; target 114 insns, mine 107). Facts: outer loop i (u16) 0..6, record stride 0x178; per record: func_80025DBC(&D_800DA260[off]); s16 at +0 = i; s16 zeros at +2..+0x1A; u8 zero at +0x1B; inner loop k (u16) 0..6 with s16 zeros at (k*8 + off + 0x1E) and +0x22; tail s16 zeros at +0x5A..+0x62. The best form uses a local `off = i * 0x178` and (k*8)+(i*0x178) for the inner loop. Tried: inline i*0x178 per use everywhere (11317, much worse: the compiler spills 0x38 frame and re-derives the base per store). Target keeps the base in s2 (lui/addiu %lo of D_800DA260 once per iteration) with frame 0x20 (ra 0x1c, s2 0x18, s1 0x14, s0 0x10), and uses andi $v0,$s1,0xFFFF per inner index. Ours spills s3/s4 (frame 0x28). Next: force the inner index through a u16 temp and drop the extra `i*0x178` term from the inner-loop base (use s2-relative offsets like the target).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794724071.1198652,
-  "score_before": 1315,
-  "score_after": 1315
- },
- {
   "function": "func_8021A994",
   "text": "Not matched. Best 160 (98.4%) at revision ec791ca674773cfd4898. Fixed the store block: the stores are based at D_800DB1B8+0x2114 with offsets 0,2,-4,-2 and then 0x2128,0x212A,0x212C,0x212E (my earlier offsets 0x2118..0x211E were wrong). Remaining diff: at the end, the target keeps a0=0xA0 from the early store and calls func_8013ADA8 with it, with the final sh of 0xB4 in the jal delay slot. Ours re-materializes `addiu $a0,$zero,0xA0` just before the call, after the last sh. Adding a second call (func_80232360) right after made it worse (460), so do not do that. Next try: write the 0xA0 value once into a local before the stores, or reorder the 0x2128 group so 0xA0 stays in a0 across the stores.",
   "by": "claude-haiku-5-5-22",
@@ -13008,14 +12992,6 @@
   "score_after": 70
  },
  {
-  "function": "func_80231130",
-  "text": "Not matched; best 2713 (76.2%), revision 8d8b6b7efa7b97760613. Do not use the m2c draft. Structure is right: outer do-while over u16 i, stride 0x178 (i*376, sll/addu/sll4/subu/sll3), call func_80025DBC(&D_800DA260 + off) first, then field stores, then inner do-while over j with offset off + j*8 for the stores at +0x1E and +0x22, then five sh at +0x5A..+0x62. Store widths already match: sh for the first six and the 0x5A..0x62 group, sw for +0xA..+0x16 and the inner pair, sb for +0x1A/+0x1B. Remaining diffs are frame and register allocation. Target frame is 0x20 with only ra, s2, s1, s0 saved; s2 holds &D_800DA260, s1 is i, s0 is off across the call. My best has a 0x28 frame with extra saves. Changing j to s32 made it much worse (4763), so keep j as u16. Next: keep &D_800DA260 as one loop-invariant base so the call and stores share it, and leave off as the only per-iteration temp that lives across the call.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794732504.267188,
-  "score_before": 1315,
-  "score_after": 1315
- },
- {
   "function": "func_8021A994",
   "text": "Best 360 (96.5%) at revision 0b802fa0e5e32a87d940 (keep it; the later 775b77 and 319aed variants are no better). Remaining 3 diffs: target computes `andi $a2,$s0,0xff` at the loop head, ours emits `move $a2,$zero` because gcc folds var_s0 = 0 through the loop start; reading var_s0 through a computed expression (D_8021EEB2 & 0xFF & var_s0) did not change the output. Also the sh $v1,0x1a($v0) store is swapped with the addiu $a0,0xa0 near the end. Why it can't get closer with the tried shapes: folding of the zero init is the blocker; a volatile loop variable or a different loop form (while with explicit increment) are the untried options.",
   "by": "claude-haiku-5-5-20",
@@ -13328,14 +13304,6 @@
   "score_after": 1596
  },
  {
-  "function": "func_80231130",
-  "text": "Stopping: no improvement over saved best 2863 (74.8%) after 3 compiles this session. Best source is rev f1b24812e3f281af1a58 (s1 u16, off s32, inner loop j u16, stores at off+0x28/0x2C+j*8). Recomputing s1*0x178 in the inner loop gave 2963 (worse). Target keeps &D_800DA260 in a callee-saved reg (s2) used as the func_80025DBC arg and recomputes off into v1 for the inner loop, with frame 0x20 and only s0-s2 saved; ours spills an extra reg (s4) and uses a 0x28 frame. Untried: a u8 *base local for the stores; a separate u16 for the inner loop index shared with the outer loop variable. Both are likely to change register allocation, not the instruction set, so the remaining diff is register/stack-layout.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794734490.987631,
-  "score_before": 1315,
-  "score_after": 1315
- },
- {
   "function": "func_80214860",
   "text": "Not started in C. Shape: state machine on D_80168BB0 (switch on value-1, range 0..0x23, via a jump table at D_8021DE00). The table lives in rodata that is not loaded here (read_data says \"not in a loaded part of the ROM\"), so the case-value to block mapping cannot be read. Blocks seen: alSeqpStop(&D_8006FB38) then state=0x22; several blocks test D_8021E678 (==1), D_8021B680 (==0x1C/0x4/0x2/0x6/0xC/0x18), D_8021AFE0 (==0xC) and D_8021AFDC (==0x18), call func_801D65BC with 0/2/3/4, and store the new state into D_8021B680 at the join (.L80214A18). Next step: get the table from the rodata (the unit that owns D_8021DE00, or ask the user for the rodata dump), then write a switch with one case per entry.",
   "by": "claude-haiku-5-5-21",
@@ -13566,22 +13534,6 @@
   "created_at": 1794735651.52016,
   "score_before": 6340,
   "score_after": 6340
- },
- {
-  "function": "func_80231130",
-  "text": "Best 2225 (80.4%), revision f92bd100205ac2713560 (same as 67c1979074feee5f4c0d). Key wins: (1) inner loop j=0..6 uses `idx = off + j*8;` then stores at (u8*)&D_800DA260 + idx + 0x28 / + 0x2C (2863 -> 2410); (2) `u8 *base = (u8*)&D_800DA260;` used only for func_80025DBC(base + off) (2410 -> 2225). Remaining: target saves ra first (sw ra,0x1c) then s2,s1,s0 and computes off = (u16)s1*376 as andi/sll/addu/sll4/subu/sll3; mine saves s2 before ra and computes base lui/addiu inside loop. Moving `s1 = 0` after base init made it worse (2415).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794735730.2316349,
-  "score_before": 1315,
-  "score_after": 1315
- },
- {
-  "function": "func_80231130",
-  "text": "Best 2225 (80.4%), revision f92bd100205ac2713560 (same as 67c1979074feee5f4c0d). Key wins: (1) inner loop j=0..6 uses `idx = off + j*8;` then stores at (u8*)&D_800DA260 + idx + 0x28 / + 0x2C (2863 -> 2410); (2) `u8 *base = (u8*)&D_800DA260;` used only for func_80025DBC(base + off) (2410 -> 2225). Remaining: target saves ra first (sw ra,0x1c) then s2,s1,s0 and computes off = (u16)s1*376 as andi/sll/addu/sll4/subu/sll3; mine saves s2 before ra and computes base lui/addiu inside loop. Moving `s1 = 0` after base init made it worse (2415).\n\nBest 2225 (80.4%), revision 67c1979074feee5f4c0d. Wins: inner loop uses idx = off + j*8 and stores at (u8*)&D_800DA260 + idx + 0x28/+0x2C (2863 -> 2410); base = (u8*)&D_800DA260 used only for func_80025DBC(base + off) (2410 -> 2225). Remaining diffs: target saves ra first (sw ra,0x1c), then s2,s1,s0 (frame 0x20); mine saves s2 before ra. Target computes off as andi/sll/addu/sll4/subu/sll3 from s1 with s2 hoisted once before the loop; mine recomputes the base in the loop. Tried: s1=0 after base init (2415, worse); off=(u16)s1*0x178 (no change). Next: try making the base available only after the first loop (or two bases), to change the save order and hoisting.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794735730.2316349,
-  "score_before": 1315,
-  "score_after": 1315
  },
  {
   "function": "func_8021A994",
@@ -25504,14 +25456,6 @@
   "score_after": 57183
  },
  {
-  "function": "func_80231130",
-  "text": "No match. Cleanest candidate scores 2410 (revision eb0e69cd3e07eb5b66cf); saved best 2105 (revision 8534ae1579f9358ad306) is corrupted (stray `/*__repair_loop_weight*/do { s1++; } while (0);` inside the outer loop) and should not be reused as-is. Target structure is clear: outer loop on u16 s1 with off = s1*376 kept in callee-saved s0 across func_80025DBC (call arg = s0 + s2, s2 = &D_800DA260); stores addressed as lui %hi(D_800DA260+K) + addu index with no per-store pointer; inner loop j<7 stores at idx+0x28 / idx+0x2C with idx = off + j*8; tail sh stores at off+0x64..0x6C. Our compiles recompute off after the call (andi v1,s1 again) instead of keeping it in s0, and place the s2 setup and s0/s1 saves in a different order. Tried: base-pointer variant (2868, worse: inner loop turns into pointer temps s3/s4), explicit idx variant (2410 best clean). Next: get off into a variable that is provably live across the call (e.g. store the call result-independent value via a separate u32 offset read after the call), or try -O1 via try_compiler; the signedness family on s1 was not run.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794764333.4057212,
-  "score_before": 1315,
-  "score_after": 1315
- },
- {
   "function": "func_80234484",
   "text": "Unmatched, 3056 B (764 target insns). Machine draft does not compile as written (arithmetic on pointers to incomplete types, invalid use of arrays with unspecified bounds at lines 342-432, and goto/label structure that isn't valid C). A minimal stub compiles but scores 73870 (3.3%); saved best 48077 is a different source. Target: 0x60 frame saving ra, fp, s7..s0; first block is the D_8011F32E[idx].f0 == 0 init that stores 0 into D_8023761E[0..6] (u8 table at 0x0 stride 2) and sets f0=1; then a repair pass over 6 rows of D_8022A772 (2286-byte records, u16 at 0) copying into 12-byte records at D_80237640 (u16 idx at +8, u8 flag at +0xA); then an insertion-sort style pass over those 12-byte records with func_80235074 swaps keyed by a byte at +0x0C of the table D_8023764A/D_80237648; then a priority loop calling func_801E3FE8, func_801E435C, func_801E43A0, func_801DD938 and func_8003DE60. Needs a full rewrite from the assembly with the record struct declared once; nothing verified. Next step: write the record struct and the first (f0==0) block, compile that, then add the sort passes one at a time.",
   "by": "claude-haiku-5-5-21",
@@ -26478,14 +26422,6 @@
   "created_at": 1794766462.324756,
   "score_before": 0,
   "score_after": 0
- },
- {
-  "function": "func_80231130",
-  "text": "Not matched. Current draft 4103 (64%), saved best 2105 is a different source. Target: frame 0x20 (not 0x28), saves s0..s3 and ra at 0x1c; loop variable s1 is u16 and every index is andi s1,0xffff (five uses), so write the index as (u16) in each access. Record stride 0x178 is computed as s0 = (x*...) with sll 3 chains and addu, and the inner 7-iteration loop uses j*8 offsets from the record base at +0x28. Next: pass &D_800DA260 + off into func_80025DBC as the first statement, and compute off with u16 s1 in each use.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794766477.582726,
-  "score_before": 1315,
-  "score_after": 1315
  },
  {
   "function": "func_8013EA18",
@@ -39349,5 +39285,94 @@
   "score_before": 1755,
   "score_after": 1095,
   "handoff_inputs": "7d6ab19fd43b588fb9bd67b9d84d10cd2a9748f024bfaf8e453c8df33558880f:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:586471a91e37fa22e842893a916eb45a152620c6abb2e76e6527803846930d2e"
+ },
+ {
+  "function": "func_80231130",
+  "text": "No match; best 1765 (revision 3839724ad67b02f5917f). Outer loop i=0..6 (u16), off=i*0x178, call func_80025DBC(D_800DA260+off) first, then zero stores at fixed offsets from D_800DA260 (u16 +0..+16 with i at +0; u32 +20..+32; u8 +36,+37), inner j loop 0..6 storing u32 zeros at D_800DA260+40+idx and +44 (idx=j*8+off), then five u16 zero stores at +100..+108 for row i. Remaining diffs: the tail stores should recompute i*0x178 in fresh registers (target recomputes off in v1; ours reuses s0). Inline i*0x178 in tail (4842) was worse. Target frame 0x20 saves ra,s0,s1,s2. The queued candidate 0c4ce8d was a broken draft with a goto label; ignore it.\n\nNo match; best 1580 (revision 3abc809f380213e19240, saved). Source: outer do-loop over u16 i=0..6, off=i*0x178; `char *base` assigned D_800DA260 before the loop; call func_80025DBC(base+off) first; u16 zero stores at off+0..+16 (off+0 holds i), u32 zeros at off+20/24/28/32, u8 zeros at off+36/37; inner do-loop over u16 j=0..6 storing u32 zeros at D_800DA260+40+idx and +44 (idx=j*8+off); then idx=i*0x178 and five u16 zero stores at +100..+108; i++. Remaining diffs are register allocation and prologue order: target saves ra at 0x1c, s2 at 0x18, s1 at 0x14, s0 at 0x10 with `lui/addiu s2` (base) before `move s1,zero`; ours differs in that order. Tried and worse: moving base assignment after i=0 (1770); idx=i*0x178 inline (4842); idx=(i&0xFFFF)*0x178 (1765). Loop-tail recompute of off in v1 with sltiu/bnez is not reproduced. Next attempt would be a different loop shape (while-loop over u16 with the tail recomputed from i).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794709127.103286,
+  "score_before": 4750,
+  "score_after": 1580
+ },
+ {
+  "function": "func_80231130",
+  "text": "Not matched. Best: revision 1d039c3ee39c65a87636 (score 4763, 58.2%; target 114 insns, mine 107). Facts: outer loop i (u16) 0..6, record stride 0x178; per record: func_80025DBC(&D_800DA260[off]); s16 at +0 = i; s16 zeros at +2..+0x1A; u8 zero at +0x1B; inner loop k (u16) 0..6 with s16 zeros at (k*8 + off + 0x1E) and +0x22; tail s16 zeros at +0x5A..+0x62. The best form uses a local `off = i * 0x178` and (k*8)+(i*0x178) for the inner loop. Tried: inline i*0x178 per use everywhere (11317, much worse: the compiler spills 0x38 frame and re-derives the base per store). Target keeps the base in s2 (lui/addiu %lo of D_800DA260 once per iteration) with frame 0x20 (ra 0x1c, s2 0x18, s1 0x14, s0 0x10), and uses andi $v0,$s1,0xFFFF per inner index. Ours spills s3/s4 (frame 0x28). Next: force the inner index through a u16 temp and drop the extra `i*0x178` term from the inner-loop base (use s2-relative offsets like the target).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794724071.1198652,
+  "score_before": 1315,
+  "score_after": 1315
+ },
+ {
+  "function": "func_80231130",
+  "text": "Not matched; best 2713 (76.2%), revision 8d8b6b7efa7b97760613. Do not use the m2c draft. Structure is right: outer do-while over u16 i, stride 0x178 (i*376, sll/addu/sll4/subu/sll3), call func_80025DBC(&D_800DA260 + off) first, then field stores, then inner do-while over j with offset off + j*8 for the stores at +0x1E and +0x22, then five sh at +0x5A..+0x62. Store widths already match: sh for the first six and the 0x5A..0x62 group, sw for +0xA..+0x16 and the inner pair, sb for +0x1A/+0x1B. Remaining diffs are frame and register allocation. Target frame is 0x20 with only ra, s2, s1, s0 saved; s2 holds &D_800DA260, s1 is i, s0 is off across the call. My best has a 0x28 frame with extra saves. Changing j to s32 made it much worse (4763), so keep j as u16. Next: keep &D_800DA260 as one loop-invariant base so the call and stores share it, and leave off as the only per-iteration temp that lives across the call.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794732504.267188,
+  "score_before": 1315,
+  "score_after": 1315
+ },
+ {
+  "function": "func_80231130",
+  "text": "Stopping: no improvement over saved best 2863 (74.8%) after 3 compiles this session. Best source is rev f1b24812e3f281af1a58 (s1 u16, off s32, inner loop j u16, stores at off+0x28/0x2C+j*8). Recomputing s1*0x178 in the inner loop gave 2963 (worse). Target keeps &D_800DA260 in a callee-saved reg (s2) used as the func_80025DBC arg and recomputes off into v1 for the inner loop, with frame 0x20 and only s0-s2 saved; ours spills an extra reg (s4) and uses a 0x28 frame. Untried: a u8 *base local for the stores; a separate u16 for the inner loop index shared with the outer loop variable. Both are likely to change register allocation, not the instruction set, so the remaining diff is register/stack-layout.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794734490.987631,
+  "score_before": 1315,
+  "score_after": 1315
+ },
+ {
+  "function": "func_80231130",
+  "text": "Best 2225 (80.4%), revision f92bd100205ac2713560 (same as 67c1979074feee5f4c0d). Key wins: (1) inner loop j=0..6 uses `idx = off + j*8;` then stores at (u8*)&D_800DA260 + idx + 0x28 / + 0x2C (2863 -> 2410); (2) `u8 *base = (u8*)&D_800DA260;` used only for func_80025DBC(base + off) (2410 -> 2225). Remaining: target saves ra first (sw ra,0x1c) then s2,s1,s0 and computes off = (u16)s1*376 as andi/sll/addu/sll4/subu/sll3; mine saves s2 before ra and computes base lui/addiu inside loop. Moving `s1 = 0` after base init made it worse (2415).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794735730.2316349,
+  "score_before": 1315,
+  "score_after": 1315
+ },
+ {
+  "function": "func_80231130",
+  "text": "Best 2225 (80.4%), revision f92bd100205ac2713560 (same as 67c1979074feee5f4c0d). Key wins: (1) inner loop j=0..6 uses `idx = off + j*8;` then stores at (u8*)&D_800DA260 + idx + 0x28 / + 0x2C (2863 -> 2410); (2) `u8 *base = (u8*)&D_800DA260;` used only for func_80025DBC(base + off) (2410 -> 2225). Remaining: target saves ra first (sw ra,0x1c) then s2,s1,s0 and computes off = (u16)s1*376 as andi/sll/addu/sll4/subu/sll3; mine saves s2 before ra and computes base lui/addiu inside loop. Moving `s1 = 0` after base init made it worse (2415).\n\nBest 2225 (80.4%), revision 67c1979074feee5f4c0d. Wins: inner loop uses idx = off + j*8 and stores at (u8*)&D_800DA260 + idx + 0x28/+0x2C (2863 -> 2410); base = (u8*)&D_800DA260 used only for func_80025DBC(base + off) (2410 -> 2225). Remaining diffs: target saves ra first (sw ra,0x1c), then s2,s1,s0 (frame 0x20); mine saves s2 before ra. Target computes off as andi/sll/addu/sll4/subu/sll3 from s1 with s2 hoisted once before the loop; mine recomputes the base in the loop. Tried: s1=0 after base init (2415, worse); off=(u16)s1*0x178 (no change). Next: try making the base available only after the first loop (or two bases), to change the save order and hoisting.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794735730.2316349,
+  "score_before": 1315,
+  "score_after": 1315
+ },
+ {
+  "function": "func_80231130",
+  "text": "No match. Cleanest candidate scores 2410 (revision eb0e69cd3e07eb5b66cf); saved best 2105 (revision 8534ae1579f9358ad306) is corrupted (stray `/*__repair_loop_weight*/do { s1++; } while (0);` inside the outer loop) and should not be reused as-is. Target structure is clear: outer loop on u16 s1 with off = s1*376 kept in callee-saved s0 across func_80025DBC (call arg = s0 + s2, s2 = &D_800DA260); stores addressed as lui %hi(D_800DA260+K) + addu index with no per-store pointer; inner loop j<7 stores at idx+0x28 / idx+0x2C with idx = off + j*8; tail sh stores at off+0x64..0x6C. Our compiles recompute off after the call (andi v1,s1 again) instead of keeping it in s0, and place the s2 setup and s0/s1 saves in a different order. Tried: base-pointer variant (2868, worse: inner loop turns into pointer temps s3/s4), explicit idx variant (2410 best clean). Next: get off into a variable that is provably live across the call (e.g. store the call result-independent value via a separate u32 offset read after the call), or try -O1 via try_compiler; the signedness family on s1 was not run.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794764333.4057212,
+  "score_before": 1315,
+  "score_after": 1315
+ },
+ {
+  "function": "func_80231130",
+  "text": "Not matched. Current draft 4103 (64%), saved best 2105 is a different source. Target: frame 0x20 (not 0x28), saves s0..s3 and ra at 0x1c; loop variable s1 is u16 and every index is andi s1,0xffff (five uses), so write the index as (u16) in each access. Record stride 0x178 is computed as s0 = (x*...) with sll 3 chains and addu, and the inner 7-iteration loop uses j*8 offsets from the record base at +0x28. Next: pass &D_800DA260 + off into func_80025DBC as the first statement, and compute off with u16 s1 in each use.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794766477.582726,
+  "score_before": 1315,
+  "score_after": 1315
+ },
+ {
+  "function": "func_80231130",
+  "text": "Init loop over 7 records (376-byte stride, D_800DA260) as a struct array with the tab[7][2] word pairs and the five halfword clears: 4070 best, base-pointer local variants 10270 and up. The saved best (1205) is better. Not matched.",
+  "by": "manual-68913573ef2f4091",
+  "created_at": 1795711269.352915,
+  "score_before": 4070,
+  "score_after": 4070,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:ff5b64af288666d79c3ccee0cb712fffb36b39227a172b279cf7f121e5b25f3e"
+ },
+ {
+  "function": "func_80231130",
+  "text": "haiku-pr29: not matched. The target is a 7-record loop over 376-byte records at D_800DA260 (record stride 376 = (3i*16 - i)*8). Stores are one lui/addu/sh per field from one base register (so write each as *(T *)((u8 *)&D_800DA260 + off + K)), the call comes first, the k loop (7 x 2 s32 at 0x28+8k, 0x2C+8k) uses a fresh i*376 and is NOT strength-reduced (the tail 5 s16 at 0x64..0x6C recomputes i*376 after it). Best scores: struct-typed Rec178 array with s->field writes 11175 (struct size must be 376, else every offset shifts); plain byte-offset form with off local and for-loops 3413 (-O2 default, also 2959 under -G0 -mips3 -mgp32 -mfp32 -O1); the do-while outer loop and fresh i*376 variants 6872. -fno-strength-reduce given through fast_judge --flags changed nothing. Saved best 1485 is not beaten. Next idea: the compiler still strength-reduces the k loop: try an index that stays a u16 k with the record base as a separate u8 pointer, or a per-function profile trial.",
+  "by": "manual-f6353e03c8044c64",
+  "created_at": 1795715188.781016,
+  "score_before": 1205,
+  "score_after": 1205
+ },
+ {
+  "function": "func_80231130",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Not beaten: best 2959-3413 in app judge, saved 1485. See note.",
+  "by": "manual-f6353e03c8044c64",
+  "created_at": 1795715189.787124,
+  "score_before": 1205,
+  "score_after": 1205
  }
 ]
