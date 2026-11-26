@@ -3792,14 +3792,6 @@
   "score_after": 1181
  },
  {
-  "function": "func_80140A38",
-  "text": "Deep permuter: score 2954 \u2192 2954; 0 improvements; 1 candidates tested; 0 cached skips; 0 rejected; 53s elapsed. Interrupted or failed; see activity output.",
-  "by": "Wwww.permuter-8589935360",
-  "created_at": 1794349034.638877,
-  "score_before": 2954,
-  "score_after": 2954
- },
- {
   "function": "func_80027C90",
   "text": "Deep permuter: score 15 \u2192 15; 0 improvements; 1000 candidates tested; 95 cached skips; 0 rejected; 5987s elapsed. Variant limit reached.",
   "by": "Wwww.permuter-8589934765",
@@ -7278,14 +7270,6 @@
   "created_at": 1794708688.5463622,
   "score_before": 6615,
   "score_after": 6145
- },
- {
-  "function": "func_80140A38",
-  "text": "Released with best 2509 (76.9%) at revision 721889e51f9a7bdbf395. Remaining gap is the float branch shape (target: c.le.s $f0,$f2 with bc1tl, 'or' path when f>=2^31; my form emits bc1f) and the -240 constant hoisting before the call. Flipping the if (scored 3115) and removing pad0 (2925) both made it worse. Next: try the -240.0f as a local declared before the call, and keep the >= form.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794708688.586497,
-  "score_before": 1207,
-  "score_after": 1207
  },
  {
   "function": "func_80149220",
@@ -11456,14 +11440,6 @@
   "score_after": 5830
  },
  {
-  "function": "func_80140A38",
-  "text": "Not matched. Best revision c2a5c5c0a2786a75af1f scores 2500 (77%); target 109 insns, mine 102.\n\nCurrent C shape: s1 = &D_8011F2F0 + (arg0&0xFFFF)*100; fv1 = *(f32*)(s1+0x44); if fv1 >= 2^31 then idx = ((s32)(fv1-2^31) | 0x80000000) & 0xFFFF, else idx = (s32)fv1 & 0xFFFF; s0 = &D_8011F2F0 + idx*100; struct frame fr at sp+0x20 (b0,b1,h4,f12, tail[0x30], total 0x48) so frame is 0x78, matching the target. fr.h4 = *(u16*)(*(u8**)(s0+0x60)+0x20); func_80129C1C(&fr, s0+0x18, s0+0x1C, s0+0x20, 0, -240.0f, 0); then the fr.b1 branch.\n\nFrame size is fixed (0x78) by the tail[0x30] pad. Do not change it.\n\nRemaining diffs:\n- The target uses bc1tl (likely branch, delay slot sub.s) with c.le.s $f0,$f2 (2^31 <= fv1). My \">=\" form emits bc1f, and the \"!(fv1 < 2^31)\" form (2700) emits c.lt.s with bc1t. Neither reproduces the delay-slot-subtract shape.\n- The final stores in the b1==0 path are reordered: target does the 0x1C copy and 0x38/0x30 0.2f constants after the call; mine emits sw $zero to 0x2c/0x24 earlier.\n\nLeft to try: change the 2^31 comparison so the subtraction is in the taken path only (e.g. compute `fv0 = fv1 - 2^31` inside the if with an explicit temp), and check the (s32) conversion of the non-taken branch uses trunc.w.s into $f2 then mfc1 into $v0, not $a0.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794723746.2128088,
-  "score_before": 1207,
-  "score_after": 1207
- },
- {
   "function": "func_8014081C",
   "text": "Best score 2017 (83.7%, 121 vs 124 insns) at revision 25b6df8740ea70c50b1b (the saved draft with the duplicate func_8013E49C prototype removed, since context.h already declares it as s32). Remaining differences: (1) frame is 0x40 in ours vs 0x38 in target; saves are ra@0x30,s3@0x2c,s2@0x28,s1@0x24,s0@0x20 in target. Removing the f32 local and inlining the float-to-unsigned conversion had no effect on the frame, so the extra 8 bytes come from something else (possibly the 0x14/0x18 outgoing-arg slots or a temp). (2) Target computes 0.2f via lui/ori/mtc1 BEFORE loading 0xC(s1); ours loads 0xC first. (3) Target loads 0x8(s1) after the 0x18 add; ours hoists it. (4) Final unsigned-float branch uses bc1tl and lui 0x8000 / or, ours uses bc1f. Untried: writing the first update as s1->f += -0.2 (gcc may pick the other load order), and a local for s1 0x18 sum. Notes only; no claim left.",
   "by": "claude-haiku-5-5-20",
@@ -15536,14 +15512,6 @@
   "score_after": 4400
  },
  {
-  "function": "func_80140A38",
-  "text": "My rewrite (revision 2b707f09abc16627b96c) scored 2995, worse than the saved best 1207, so keep the saved one. Logic matches the target: s1 = D_8011F2F0 + (arg0&0xFFFF)*100, a float at +0x44 converted to u16 (with the >=2^31 unsigned path), s0 = entry v, the call func_80129C1C(&frame[0x20], s0+0x18, s0+0x1C, s0+0x20, 0, -240.0f, 0) with stack args, then the flag at frame[0x21] picks two branches (frame[0x20]==0x13 vs not). Main remaining diff is the stack frame: target is 0x78 with ra/s1/s0 saved at 0x70/0x6C/0x68; our frame is 0x68 and the struct/args region is too small. Next: enlarge the local frame (a larger u8 buffer, ~0x48 bytes) so the saves land at the target offsets, and keep the 240.0f arithmetic order (sub, then 240-x, div, mul 0.5) as in the target.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794735730.059259,
-  "score_before": 1207,
-  "score_after": 1207
- },
- {
   "function": "func_80231130",
   "text": "Best 2225 (80.4%), revision f92bd100205ac2713560 (same as 67c1979074feee5f4c0d). Key wins: (1) inner loop j=0..6 uses `idx = off + j*8;` then stores at (u8*)&D_800DA260 + idx + 0x28 / + 0x2C (2863 -> 2410); (2) `u8 *base = (u8*)&D_800DA260;` used only for func_80025DBC(base + off) (2410 -> 2225). Remaining: target saves ra first (sw ra,0x1c) then s2,s1,s0 and computes off = (u16)s1*376 as andi/sll/addu/sll4/subu/sll3; mine saves s2 before ra and computes base lui/addiu inside loop. Moving `s1 = 0` after base init made it worse (2415).",
   "by": "claude-haiku-5-5-24",
@@ -15926,14 +15894,6 @@
   "created_at": 1794736714.1199412,
   "score_before": 2750,
   "score_after": 2720
- },
- {
-  "function": "func_80140A38",
-  "text": "Best current 2395 (78%, revision d602c33b3a37fd4362e5): stack buffer u8 sp[0x40] (frame must reach 0x78 with ra/s1/s0 at 0x70/0x6C/0x68); temp_s1 = D_8011F2F0 + (arg0&0xFFFF)*100; float at +0x44 converted to u16 index (>=2^31 branch); temp_s0 = D_8011F2F0 + idx*100; *(u16*)(sp+0x24) = *(u16*)(*(u8**)(s0+0x60)+0x20); func_80129C1C(sp+0x20, s0+0x18, s0+0x1C, s0+0x20, 0, -240.0f, 0); s1 +0x18/+0x20 = s0 +/- 0.5f; if sp[0x21] != 0 branch (s1+0x1C = sp+0x2C; temp = ((240-(s0+0x1C - sp2C))/240)*0.5 into s1+0x38/+0x30; if sp[0x20]==0x13 zero s1+0x2C/+0x24; else -12/+12); else s1+0x1C = s0+0x1C, s1+0x38/+0x30 = 0.2f. Target uses bc1tl (branch-likely) at the >=2^31 test and lui 0x8000 / or for the unsigned conversion; mine uses bc1f. Swapping the compare operands gives the same 2395. Next: match the 0x8000 OR form and the branch-likely shape, and check the sp buffer offsets against the target's addiu $a0,$sp,0x20.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794736737.004891,
-  "score_before": 1207,
-  "score_after": 1207
  },
  {
   "function": "func_8014D740",
@@ -22478,14 +22438,6 @@
   "created_at": 1794754732.985983,
   "score_before": 7040,
   "score_after": 7040
- },
- {
-  "function": "func_80140A38",
-  "text": "436 B; a0 = u16 index, record stride 100 (x*100 via sll/addu chain); s1=record of index, s0=record of (int)f32 field 0x44 (with >=2^31 unsigned branch, bc1tl). s0 loads u16 via *(ptr at 0x60)+0x20. Calls func_80129C1C(&local_byte_at_sp+0x20, s0+0x18, s0+0x1C, s0+0x20, 0, -240.0f, 0). Frame 0x78: ra 0x70, s1 0x6c, s0 0x68, local array at sp+0x20 (lbu from 0x20 later), u16 at 0x24, float at 0x2C. Best C so far 6350; saved best 1207 is far better. Mismatch is mainly frame layout (my locals went to 0x40 / 0xa0 frames): the frame needs a 0x48-byte-ish local block at 0x20..0x60 plus saved s0,s1,s2,ra and f20 (sdc1 f20 not in target). Next: fix the frame locals to match 0x78, then float branch/order. Not matched; released at move-on budget.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794754768.078523,
-  "score_before": 1207,
-  "score_after": 1207
  },
  {
   "function": "func_8013EDFC",
@@ -29448,14 +29400,6 @@
   "score_after": 2586
  },
  {
-  "function": "func_80140A38",
-  "text": "Not matched. Best this session: 2524 (revision 03050712e8f884b87473), worse than saved 1207. Findings: (1) the 0x78 frame and $ra/$s1/$s0 saves at 0x70/0x6c/0x68 are reproduced by a 0x40-byte union local at $sp+0x20 (struct fields a@0x20, b@0x21, h@0x24, f@0x2C) with the call's first arg = &local.a. A 0x48 union gives 0x80 frame (wrong); a 0x40 union is right. (2) The float test in the target is `c.le.s 2^31, t` with `bc1tl` whose delay slot is the sub.s, so the taken path is t>=2^31 (sub, trunc, or 0x80000000). Writing it as `if (2^31 <= t)` gives bc1f instead; the swapped `if (t < 2^31)` gave 2714. Still open: the branch-likely shape, register choice (target uses $a0 for the trunc result, we use $v0), and a compile-time 2^31 constant load (`lui 0x4F000000` into $at then mtc1 to $f0) placed before c.le.s. Untried: write the t>=2^31 path with a separate temp so gcc schedules the sub.s into the likely delay slot, and try -O1 for the branch-likely shape. Source for the 2524 version is in the candidate revision.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794764933.5633721,
-  "score_before": 1207,
-  "score_after": 1207
- },
- {
   "function": "func_80148260",
   "text": "Best saved candidate: revision c69e83ec5b2506cf268f, score 5830 (the source as submitted, keeps `(arg1 & 0xFF) * 0x12C / 2 + index` addressing). Target facts: row base is D_8018D140 + 300*(arg1&0xFF) bytes, computed as (v*5)*15*4; mask table D_8018D3A0 + ((arg0&0xFF)<<5); the first loop is a bottom-tested pointer-increment loop with the (i*2) offset in the delay slot; the mask inner loop carries j<<8 in t1 and k in a2. Tried: a local `u16 *out = (u16*)((u8*)D_8018D140 + (arg1&0xFF)*300)` with out[i] indexing scored 6385 (worse, register/order changed everywhere). Open: the target reloads the base via lui/addiu inside the second loop at the fallthrough point, and the tail branch (arg1==1 path) differs in order. Untried: an explicit bottom-tested do-while for the first loop, and splitting the arg1==1 tail into its own static helper form.",
   "by": "claude-haiku-5-5-24",
@@ -30774,14 +30718,6 @@
   "created_at": 1794766920.774524,
   "score_before": 3253,
   "score_after": 3253
- },
- {
-  "function": "func_80140A38",
-  "text": "Releasing at session end (low effort budget, not a difficulty verdict). Best this session: 2395 (78%), revision c17dfae627cbbcc6d416; the saved historical best is 1207 from another source. Fixes so far: m2c draft did not compile (undeclared sp21/sp2C from the union); replaced with a plain `u8 buf[64]` stack buffer, which gives the target's 0x78 frame. Remaining diff: target uses `bc1tl .L6c` on the first float >= 2.1474836e9 test and `lui $v0,0x8000 / or $a0,$a0,$v0` for the unsigned conversion; mine uses `bc1f` and `addiu $a0,$sp,0x40` where target has `addiu $a0,$sp,0x20`. Next: move the func_80129C1C output pointer to buf+0x20 and realign the value fields; try `if (!(x < 2.1474836e9f))` to get bc1tl; check ordering of the 0.0f stores versus -12/12.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794766928.948982,
-  "score_before": 1207,
-  "score_after": 1207
  },
  {
   "function": "func_801AEEE8",
@@ -35739,5 +35675,69 @@
   "score_before": 1315,
   "score_after": 1315,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:d0a84f245866d85ec31b49da3bde18a3b635ad0f9d25d7ccbe3a4bc276a9dd1e"
+ },
+ {
+  "function": "func_80140A38",
+  "text": "Deep permuter: score 2954 \u2192 2954; 0 improvements; 1 candidates tested; 0 cached skips; 0 rejected; 53s elapsed. Interrupted or failed; see activity output.",
+  "by": "Wwww.permuter-8589935360",
+  "created_at": 1794349034.638877,
+  "score_before": 2954,
+  "score_after": 2954
+ },
+ {
+  "function": "func_80140A38",
+  "text": "Released with best 2509 (76.9%) at revision 721889e51f9a7bdbf395. Remaining gap is the float branch shape (target: c.le.s $f0,$f2 with bc1tl, 'or' path when f>=2^31; my form emits bc1f) and the -240 constant hoisting before the call. Flipping the if (scored 3115) and removing pad0 (2925) both made it worse. Next: try the -240.0f as a local declared before the call, and keep the >= form.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794708688.586497,
+  "score_before": 1207,
+  "score_after": 1207
+ },
+ {
+  "function": "func_80140A38",
+  "text": "Not matched. Best revision c2a5c5c0a2786a75af1f scores 2500 (77%); target 109 insns, mine 102.\n\nCurrent C shape: s1 = &D_8011F2F0 + (arg0&0xFFFF)*100; fv1 = *(f32*)(s1+0x44); if fv1 >= 2^31 then idx = ((s32)(fv1-2^31) | 0x80000000) & 0xFFFF, else idx = (s32)fv1 & 0xFFFF; s0 = &D_8011F2F0 + idx*100; struct frame fr at sp+0x20 (b0,b1,h4,f12, tail[0x30], total 0x48) so frame is 0x78, matching the target. fr.h4 = *(u16*)(*(u8**)(s0+0x60)+0x20); func_80129C1C(&fr, s0+0x18, s0+0x1C, s0+0x20, 0, -240.0f, 0); then the fr.b1 branch.\n\nFrame size is fixed (0x78) by the tail[0x30] pad. Do not change it.\n\nRemaining diffs:\n- The target uses bc1tl (likely branch, delay slot sub.s) with c.le.s $f0,$f2 (2^31 <= fv1). My \">=\" form emits bc1f, and the \"!(fv1 < 2^31)\" form (2700) emits c.lt.s with bc1t. Neither reproduces the delay-slot-subtract shape.\n- The final stores in the b1==0 path are reordered: target does the 0x1C copy and 0x38/0x30 0.2f constants after the call; mine emits sw $zero to 0x2c/0x24 earlier.\n\nLeft to try: change the 2^31 comparison so the subtraction is in the taken path only (e.g. compute `fv0 = fv1 - 2^31` inside the if with an explicit temp), and check the (s32) conversion of the non-taken branch uses trunc.w.s into $f2 then mfc1 into $v0, not $a0.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794723746.2128088,
+  "score_before": 1207,
+  "score_after": 1207
+ },
+ {
+  "function": "func_80140A38",
+  "text": "My rewrite (revision 2b707f09abc16627b96c) scored 2995, worse than the saved best 1207, so keep the saved one. Logic matches the target: s1 = D_8011F2F0 + (arg0&0xFFFF)*100, a float at +0x44 converted to u16 (with the >=2^31 unsigned path), s0 = entry v, the call func_80129C1C(&frame[0x20], s0+0x18, s0+0x1C, s0+0x20, 0, -240.0f, 0) with stack args, then the flag at frame[0x21] picks two branches (frame[0x20]==0x13 vs not). Main remaining diff is the stack frame: target is 0x78 with ra/s1/s0 saved at 0x70/0x6C/0x68; our frame is 0x68 and the struct/args region is too small. Next: enlarge the local frame (a larger u8 buffer, ~0x48 bytes) so the saves land at the target offsets, and keep the 240.0f arithmetic order (sub, then 240-x, div, mul 0.5) as in the target.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794735730.059259,
+  "score_before": 1207,
+  "score_after": 1207
+ },
+ {
+  "function": "func_80140A38",
+  "text": "Best current 2395 (78%, revision d602c33b3a37fd4362e5): stack buffer u8 sp[0x40] (frame must reach 0x78 with ra/s1/s0 at 0x70/0x6C/0x68); temp_s1 = D_8011F2F0 + (arg0&0xFFFF)*100; float at +0x44 converted to u16 index (>=2^31 branch); temp_s0 = D_8011F2F0 + idx*100; *(u16*)(sp+0x24) = *(u16*)(*(u8**)(s0+0x60)+0x20); func_80129C1C(sp+0x20, s0+0x18, s0+0x1C, s0+0x20, 0, -240.0f, 0); s1 +0x18/+0x20 = s0 +/- 0.5f; if sp[0x21] != 0 branch (s1+0x1C = sp+0x2C; temp = ((240-(s0+0x1C - sp2C))/240)*0.5 into s1+0x38/+0x30; if sp[0x20]==0x13 zero s1+0x2C/+0x24; else -12/+12); else s1+0x1C = s0+0x1C, s1+0x38/+0x30 = 0.2f. Target uses bc1tl (branch-likely) at the >=2^31 test and lui 0x8000 / or for the unsigned conversion; mine uses bc1f. Swapping the compare operands gives the same 2395. Next: match the 0x8000 OR form and the branch-likely shape, and check the sp buffer offsets against the target's addiu $a0,$sp,0x20.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794736737.004891,
+  "score_before": 1207,
+  "score_after": 1207
+ },
+ {
+  "function": "func_80140A38",
+  "text": "436 B; a0 = u16 index, record stride 100 (x*100 via sll/addu chain); s1=record of index, s0=record of (int)f32 field 0x44 (with >=2^31 unsigned branch, bc1tl). s0 loads u16 via *(ptr at 0x60)+0x20. Calls func_80129C1C(&local_byte_at_sp+0x20, s0+0x18, s0+0x1C, s0+0x20, 0, -240.0f, 0). Frame 0x78: ra 0x70, s1 0x6c, s0 0x68, local array at sp+0x20 (lbu from 0x20 later), u16 at 0x24, float at 0x2C. Best C so far 6350; saved best 1207 is far better. Mismatch is mainly frame layout (my locals went to 0x40 / 0xa0 frames): the frame needs a 0x48-byte-ish local block at 0x20..0x60 plus saved s0,s1,s2,ra and f20 (sdc1 f20 not in target). Next: fix the frame locals to match 0x78, then float branch/order. Not matched; released at move-on budget.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794754768.078523,
+  "score_before": 1207,
+  "score_after": 1207
+ },
+ {
+  "function": "func_80140A38",
+  "text": "Not matched. Best this session: 2524 (revision 03050712e8f884b87473), worse than saved 1207. Findings: (1) the 0x78 frame and $ra/$s1/$s0 saves at 0x70/0x6c/0x68 are reproduced by a 0x40-byte union local at $sp+0x20 (struct fields a@0x20, b@0x21, h@0x24, f@0x2C) with the call's first arg = &local.a. A 0x48 union gives 0x80 frame (wrong); a 0x40 union is right. (2) The float test in the target is `c.le.s 2^31, t` with `bc1tl` whose delay slot is the sub.s, so the taken path is t>=2^31 (sub, trunc, or 0x80000000). Writing it as `if (2^31 <= t)` gives bc1f instead; the swapped `if (t < 2^31)` gave 2714. Still open: the branch-likely shape, register choice (target uses $a0 for the trunc result, we use $v0), and a compile-time 2^31 constant load (`lui 0x4F000000` into $at then mtc1 to $f0) placed before c.le.s. Untried: write the t>=2^31 path with a separate temp so gcc schedules the sub.s into the likely delay slot, and try -O1 for the branch-likely shape. Source for the 2524 version is in the candidate revision.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794764933.5633721,
+  "score_before": 1207,
+  "score_after": 1207
+ },
+ {
+  "function": "func_80140A38",
+  "text": "Releasing at session end (low effort budget, not a difficulty verdict). Best this session: 2395 (78%), revision c17dfae627cbbcc6d416; the saved historical best is 1207 from another source. Fixes so far: m2c draft did not compile (undeclared sp21/sp2C from the union); replaced with a plain `u8 buf[64]` stack buffer, which gives the target's 0x78 frame. Remaining diff: target uses `bc1tl .L6c` on the first float >= 2.1474836e9 test and `lui $v0,0x8000 / or $a0,$a0,$v0` for the unsigned conversion; mine uses `bc1f` and `addiu $a0,$sp,0x40` where target has `addiu $a0,$sp,0x20`. Next: move the func_80129C1C output pointer to buf+0x20 and realign the value fields; try `if (!(x < 2.1474836e9f))` to get bc1tl; check ordering of the 0.0f stores versus -12/12.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794766928.948982,
+  "score_before": 1207,
+  "score_after": 1207
  }
 ]
