@@ -5072,14 +5072,6 @@
   "score_after": 2281
  },
  {
-  "function": "func_80214FD8",
-  "text": "Deep permuter: score 15500 \u2192 7570; 4 improvements; 31 candidates tested; 199 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935800",
-  "created_at": 1794357119.364144,
-  "score_before": 15500,
-  "score_after": 7570
- },
- {
   "function": "__n_seqpReleaseVoice",
   "text": "Deep permuter: score 111 \u2192 111; 0 improvements; 59 candidates tested; 1 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934936",
@@ -9062,14 +9054,6 @@
   "created_at": 1794712314.702723,
   "score_before": 6450,
   "score_after": 6450
- },
- {
-  "function": "func_80214FD8",
-  "text": "Not matched. Current harness scores the saved-best source at 15500 and my index-hoisted variant (u16 *p = D_8011F330 + (arg1&0xFFFF)*100) at 14645, while saved_best reports 465 under an unverified historical baseline; the scores disagree, so verify the baseline first. Structural diffs: target computes idx=(arg1&0xFFFF)*100 as andi/sll1/addu/sll3/addu/sll2 (x*3, <<3 => x*24, +x => x*25, <<2 => x*100) then lui/addu base, but the target also keeps 5 callee-saved regs (s0-s3, ra; frame 0x38), while the candidates save fewer, so the register allocation of arg0 (s1) and the loop counters differs. Next step: force a live value across the first call (e.g. keep arg0 and the index in separate locals) to get the s0..s3 frame, then fix the lhu/sh addressing. Also the sp18 array path (sp18[D_80190C98]) and the do-while loops need checking against the target frame.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794712323.3532312,
-  "score_before": 465,
-  "score_after": 465
  },
  {
   "function": "func_80137F60",
@@ -13262,14 +13246,6 @@
   "created_at": 1794727667.64512,
   "score_before": 6450,
   "score_after": 6450
- },
- {
-  "function": "func_80214FD8",
-  "text": "Compiles now (the earlier undeclared sp19/sp1A/sp1B errors were in a stale draft; the current source uses sp18[] throughout). Score 15500 (38.2%) at 52a293cf27c7611a5000; saved historical best 465 is listed as the same source with different rechecked inputs, so check get_candidate(base=\"saved_best\") first. Remaining diffs: the state index is recomputed per access in the target as `andi $a1,$a1,0xffff` once, then `sll/addu` chain (x*0x64 via (x*2+x)*8+x)*4) and the base address `lui/addiu D_8011F330` built once and reused; mine redoes the multiply and the lhu from D_8011F330 in a different order. Next: store `u16 idx = arg1 & 0xFFFF;` once and use `D_8011F330 + idx*100` for the state read, then compare the case-1 call order (target starts with func_801CA140 then func_801CA494 with arg 0,0,0,0xFF). The do-while loops over D_8021F028/D_8021F029 with `(s16)(0xF4 - n*8)` look right; check the loop counter register choice after the calls.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794727693.327849,
-  "score_before": 465,
-  "score_after": 465
  },
  {
   "function": "func_80232480",
@@ -18502,14 +18478,6 @@
   "created_at": 1794740703.244056,
   "score_before": 10369,
   "score_after": 10369
- },
- {
-  "function": "func_80214FD8",
-  "text": "Not matched. Best current score 14645 (revision 7711e3b5f67a7431dec9): switch version with the index address computed once into a local `u16 *rec`, then `*rec = 1` in case 0. Saved-best 465 cannot be reproduced: the text restored from saved_best compiles to 15500 now, so its historical score is not reliable. Target facts: frame 0x38; saves ra,s3,s2,s1,s0 at 0x30..0x20; arg0 is kept in $s1 (move $s1,$a0 right after the index load); index is (arg1&0xFFFF)*0x64 emitted as andi, sll1, addu, sll3, addu, sll2 (no mul). Case 0 stores 1 with lui $at + sh into D_8011F330. Remaining differences: prologue save order and stack slots (mine saves ra first at 0x30 but the register/slot layout differs), arg0 register (mine uses s2, target s1), index computed in a1 instead of v1 (andi into v1 first), and the 8-call sequence is reordered. Next step: fix the prologue and index-temp register (andi into $v1, not $a1) before touching the loops.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794740706.219342,
-  "score_before": 465,
-  "score_after": 465
  },
  {
   "function": "func_80148DBC",
@@ -25912,14 +25880,6 @@
   "score_after": 1990
  },
  {
-  "function": "func_80214FD8",
-  "text": "No match. Tried: (1) machine draft as given \u2014 does not compile (undeclared sp19/sp1A/sp1B); (2) switch on u16 with candidate body: 15500; (3) if-chain with u32 idx = arg1&0xFFFF and v = *(u16*)(D_8011F330 + idx*0x64): 16395 (worse). Target facts: prologue frame 0x38, saves ra/s0..s3; the index is computed as idx*0x64 via sll/addu chain, and it is recomputed in the case-0 store block (lui %hi/addiu, sh $v0,%lo) rather than reused; the case-1 path does func_801CA140, func_801CA494(0,0,0,0,0xFF), then a long series of func_8014A4C8 calls with constant args. Target has a jump at +0x3d0 and a second dispatch via beq $v1,$v0 with a fallthrough. Next step: write the first-level dispatch exactly as the target's branch layout (beqz to store block, bne 1 to exit), then the case-1 body as straight-line calls; check the two do-while loops (0x15 - D_8021F028 and D_8021F029) last. Not a register problem yet: the call sequence and branch layout differ.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794758305.81724,
-  "score_before": 465,
-  "score_after": 465
- },
- {
   "function": "func_80206770",
   "text": "EXACT diagnostic byte match O1. Complete clean matching source in function-specific suggestion pending profile apply. extern u8 D_3EA210[],D_3EACF0[],D_8030BD90[]; DMA size byte difference D_3EACF0-D_3EA210. Other calls unchanged, no wrappers. O1 naturally gets sw ra first and v0=end, a2=start then move a0,a2, and all stack argument order. Default O2 clean source score1258; don't chase its scheduling.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -27222,14 +27182,6 @@
   "created_at": 1794759814.497992,
   "score_before": 280,
   "score_after": 280
- },
- {
-  "function": "func_80214FD8",
-  "text": "Not matched. Best current compile is revision 52a293cf27c7611a5000 (switch on temp_v1, `& 0xFFFF` casts), score 15500 (38.2%). Target 251 insns vs mine 241. Findings: the target computes arg1*100 once for the load (andi, sll1, addu, sll3, addu, sll2) and recomputes it for the case-0 store, with lui+addu+sh; mine loads the base via lui+addiu %lo, which does not match. The target saves ra,s3,s2,s1,s0 and keeps arg0 in $s1; mine keeps it in $s2. The if/else form (revision a9cfd0d9fc6bfab9fb4a, 16395) is worse than the switch. Signedness variant (unsigned var_a1) gave no change. Remaining diffs: branch layout (target beqz then beq then j to common exit), order of the 0xFF store before the 0x54 call, and the duplicated address recompute. Next step if picked up again: write case 0 as a separate address-recompute store and check the prologue saved-register set first.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794759822.987378,
-  "score_before": 465,
-  "score_after": 465
  },
  {
   "function": "func_801441E0",
@@ -34898,5 +34850,53 @@
   "score_before": null,
   "score_after": null,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:f8a89880f74a1977b4708b08b2bd1f30dc0b289f3d9394aa7dfd8c2328be3f6a"
+ },
+ {
+  "function": "func_80214FD8",
+  "text": "Deep permuter: score 15500 \u2192 7570; 4 improvements; 31 candidates tested; 199 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935800",
+  "created_at": 1794357119.364144,
+  "score_before": 15500,
+  "score_after": 7570
+ },
+ {
+  "function": "func_80214FD8",
+  "text": "Not matched. Current harness scores the saved-best source at 15500 and my index-hoisted variant (u16 *p = D_8011F330 + (arg1&0xFFFF)*100) at 14645, while saved_best reports 465 under an unverified historical baseline; the scores disagree, so verify the baseline first. Structural diffs: target computes idx=(arg1&0xFFFF)*100 as andi/sll1/addu/sll3/addu/sll2 (x*3, <<3 => x*24, +x => x*25, <<2 => x*100) then lui/addu base, but the target also keeps 5 callee-saved regs (s0-s3, ra; frame 0x38), while the candidates save fewer, so the register allocation of arg0 (s1) and the loop counters differs. Next step: force a live value across the first call (e.g. keep arg0 and the index in separate locals) to get the s0..s3 frame, then fix the lhu/sh addressing. Also the sp18 array path (sp18[D_80190C98]) and the do-while loops need checking against the target frame.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794712323.3532312,
+  "score_before": 465,
+  "score_after": 465
+ },
+ {
+  "function": "func_80214FD8",
+  "text": "Compiles now (the earlier undeclared sp19/sp1A/sp1B errors were in a stale draft; the current source uses sp18[] throughout). Score 15500 (38.2%) at 52a293cf27c7611a5000; saved historical best 465 is listed as the same source with different rechecked inputs, so check get_candidate(base=\"saved_best\") first. Remaining diffs: the state index is recomputed per access in the target as `andi $a1,$a1,0xffff` once, then `sll/addu` chain (x*0x64 via (x*2+x)*8+x)*4) and the base address `lui/addiu D_8011F330` built once and reused; mine redoes the multiply and the lhu from D_8011F330 in a different order. Next: store `u16 idx = arg1 & 0xFFFF;` once and use `D_8011F330 + idx*100` for the state read, then compare the case-1 call order (target starts with func_801CA140 then func_801CA494 with arg 0,0,0,0xFF). The do-while loops over D_8021F028/D_8021F029 with `(s16)(0xF4 - n*8)` look right; check the loop counter register choice after the calls.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794727693.327849,
+  "score_before": 465,
+  "score_after": 465
+ },
+ {
+  "function": "func_80214FD8",
+  "text": "Not matched. Best current score 14645 (revision 7711e3b5f67a7431dec9): switch version with the index address computed once into a local `u16 *rec`, then `*rec = 1` in case 0. Saved-best 465 cannot be reproduced: the text restored from saved_best compiles to 15500 now, so its historical score is not reliable. Target facts: frame 0x38; saves ra,s3,s2,s1,s0 at 0x30..0x20; arg0 is kept in $s1 (move $s1,$a0 right after the index load); index is (arg1&0xFFFF)*0x64 emitted as andi, sll1, addu, sll3, addu, sll2 (no mul). Case 0 stores 1 with lui $at + sh into D_8011F330. Remaining differences: prologue save order and stack slots (mine saves ra first at 0x30 but the register/slot layout differs), arg0 register (mine uses s2, target s1), index computed in a1 instead of v1 (andi into v1 first), and the 8-call sequence is reordered. Next step: fix the prologue and index-temp register (andi into $v1, not $a1) before touching the loops.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794740706.219342,
+  "score_before": 465,
+  "score_after": 465
+ },
+ {
+  "function": "func_80214FD8",
+  "text": "No match. Tried: (1) machine draft as given \u2014 does not compile (undeclared sp19/sp1A/sp1B); (2) switch on u16 with candidate body: 15500; (3) if-chain with u32 idx = arg1&0xFFFF and v = *(u16*)(D_8011F330 + idx*0x64): 16395 (worse). Target facts: prologue frame 0x38, saves ra/s0..s3; the index is computed as idx*0x64 via sll/addu chain, and it is recomputed in the case-0 store block (lui %hi/addiu, sh $v0,%lo) rather than reused; the case-1 path does func_801CA140, func_801CA494(0,0,0,0,0xFF), then a long series of func_8014A4C8 calls with constant args. Target has a jump at +0x3d0 and a second dispatch via beq $v1,$v0 with a fallthrough. Next step: write the first-level dispatch exactly as the target's branch layout (beqz to store block, bne 1 to exit), then the case-1 body as straight-line calls; check the two do-while loops (0x15 - D_8021F028 and D_8021F029) last. Not a register problem yet: the call sequence and branch layout differ.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794758305.81724,
+  "score_before": 465,
+  "score_after": 465
+ },
+ {
+  "function": "func_80214FD8",
+  "text": "Not matched. Best current compile is revision 52a293cf27c7611a5000 (switch on temp_v1, `& 0xFFFF` casts), score 15500 (38.2%). Target 251 insns vs mine 241. Findings: the target computes arg1*100 once for the load (andi, sll1, addu, sll3, addu, sll2) and recomputes it for the case-0 store, with lui+addu+sh; mine loads the base via lui+addiu %lo, which does not match. The target saves ra,s3,s2,s1,s0 and keeps arg0 in $s1; mine keeps it in $s2. The if/else form (revision a9cfd0d9fc6bfab9fb4a, 16395) is worse than the switch. Signedness variant (unsigned var_a1) gave no change. Remaining diffs: branch layout (target beqz then beq then j to common exit), order of the 0xFF store before the 0x54 call, and the duplicated address recompute. Next step if picked up again: write case 0 as a separate address-recompute store and check the prologue saved-register set first.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794759822.987378,
+  "score_before": 465,
+  "score_after": 465
  }
 ]
