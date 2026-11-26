@@ -7112,14 +7112,6 @@
   "score_after": 4256
  },
  {
-  "function": "func_801AEEE8",
-  "text": "Body fully recovered; blocked only by the branch opcode. Target (0x801AEEE8, 53 insns): one lui/addiu base for D_800DB1B8+0x2108, 24 halfword stores to it, then an ascending loop `var_a0=2; do { *(s16*)(D_800DB1B8+0x2108+(var_a0&0xFF)*0x28)=0; var_a0++; } while ((u32)(var_a0&0xFF)<4U);` ending in `sltiu $v0,$v0,4` + `bnel $v0,$zero,.L` (branch-likely).\nBest verified: gcc-2.8.1-pm -G0 -mips3 -mgp32 -mfp32 -O1 with `extern u8 D_800DB1B8[0x21A8]; u8 *temp_v0 = D_800DB1B8 + 0x2108;` and the goto-loop above => score 200, exactly one differing instruction: emitted `bnez` instead of `bnel`. Same 200 with gcc-2.8.1-pm-sn-as -O1, and with -Wa,-O3 / -Wa,-mbranch-likely. -mbranch-likely is rejected by every cc1 in this project (gcc-2.7.2-kmc, 2.8.1-pm, sn-n64-281, sn-n64-272-*, ido-7.1), so the branch-likely form cannot be produced by the available toolchains.\nUnder the project profile (gcc-2.7.2-kmc -O2) the same C scores 5445: kmc -O2 re-materialises the base with lui/%lo per store (lui $at + sh %lo(...)($at) x24) instead of one lui/addiu pair, so kmc -O2 cannot reach this function. kmc -O1 gives 2910, sn-n64-272-0004 -O1 375, sn-n64-272-970404 -O1 775, ido-7.1/-5.3 -O2 5240.\nStruct forms tried (all worse): s16 array p[i] indexing (1130 at 2.8.1-pm), a Row{ s16 h[20]; } array inside a padded global (570 at sn-272-0004), M2C_FIELD macros, u8* vs s16* base, &global+0x2108 vs array+0x2108, loop written as for/while/do-while/goto with <, <=, !=, !(>=), s32 vs u8 induction variable.\nNext step if the project ever gains an assembler/cc1 accepting -mbranch-likely (or a compiler that emits bnel at -O1): the 2.8.1-pm -O1 candidate above should become a byte-exact match with no C change.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794709197.404701,
-  "score_before": 450,
-  "score_after": 450
- },
- {
   "function": "func_8013B704",
   "text": "func_8013B704 (400 B), no C written yet. Structure read from asm: (Gfx-like **dl in a0 saved to a3, idx = (u16)a1). Stride 100 table D_8011F2F0 (u8); if byte == D_80126FF6 then a0 = D_8018A264[idx] (u8), and if a0 == 1 emit 4 display-list words via *dl (E7000000/0, B6000000/a0, B900031D/00504340). Then a switch on u16 D_8011F32E[idx*100] - 0xB, range 0..0x22, via jump table at D_80183198 (the decompile failed: 'Unable to determine jump table'). Each case sets (a0,a2,v1) as constants (0xFF/0xFF/0, 0xFF/0xFF/0xFF, 0/0xFF/0x96, 0xC8/0xC8/0xFF..., default 0x64/0x64/0x64); then emits FA000000 with a0<<24|a2<<16|v1<<8, and ORs in the byte D_8011F2FC[idx*100] into word 1. Next step: read_data at D_80183198 to recover the case mapping, then write a switch. Not attempted further this session.",
   "by": "claude-haiku-5-5-23",
@@ -10344,14 +10336,6 @@
   "score_after": 900
  },
  {
-  "function": "func_801AEEE8",
-  "text": "Not matched; saved best 450 (m2c-style temp_v0 = &D_800DB1B8 + 0x2108 with M2C_FIELD stores) stands. My s16* clean rewrite (p = (s16*)(D_800DB1B8+0x2108), p[k] stores in the target's order, then loop i=2..3 storing 0 at +i*0x28) scored 10355: gcc re-materialises lui/addiu of D_800DB1B8+0x210E for every store through a pointer built from the array symbol, whereas the target keeps the base in v0 across all 24 stores (lui/addiu once, then sh with immediate offsets). Target store order (offset:value): 0:1 2:0 4:1 6:2 C:F0 E:F0 8:0 A:0 20:0 22:0 24:F0 26:F0 28:1 2A:3 2C:4 2E:5 34:78 36:5A 30:3C 32:4B 48:3C 4A:4B 4C:B4 4E:A5, then loop over v0=2,3 (index*40 bytes) storing 0 with the base recomputed from v0*5*8. Loop: sll/addu/sll computes v0*40 then `sh $zero` at D_800DB1B8+0x2108+off. Untried: a char* base local (base = (char*)D_800DB1B8 + 0x2108) with *(s16*)(base+k) stores, which keeps one base register like the target.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794721507.785185,
-  "score_before": 450,
-  "score_after": 450
- },
- {
   "function": "func_800E15CC",
   "text": "Not matched. Best 660 (85.9%): the do/while list walk with s32 cur, `e = D_8011F2F0 + cur * 100`, count n in u16, then `D_8011F068[n] = 0xFFFF; tmp = n-1; if (tmp > 0) func_800E0A00(0, tmp, D_8011F068, D_8011F068)`. Remaining diffs: target masks the index with andi (u16) before the x100 multiply and before the loop-end compare, and compares n (not tmp) with a2 for the loop check; target's `sw $ra` comes later in the prologue. Tried: cur as u16 (695, worse); (u16)cur*100 on the s32 version (695, worse). Untried: n compared as u16 against a precomputed bound; keep tmp as u16 for the call; moving the D_8011F068[n]=0xFFFF store before the if.",
   "by": "claude-haiku-5-5-21",
@@ -13094,14 +13078,6 @@
   "created_at": 1794730748.16961,
   "score_before": 565,
   "score_after": 565
- },
- {
-  "function": "func_801AEEE8",
-  "text": "Saved best 450 is the M2C_FIELD version (temp_v0 = &D_800DB1B8 + 0x2108, stores at constant offsets, then the var_a0 loop with *(&D_800DB1B8+0x2108+((var_a0&0xFF)*0x28))=0). Tried and worse: a plain s16 pointer p = (s16*)(D_800DB1B8+0x2108) with p[i] stores (5910, compiler rematerializes lui/addiu per store); p[(i&0xFF)*20] in the loop (5805). Target keeps a single lui $v0/addiu $v0 base for the whole block, so the pointer local must stay live across the stores; the compiler does not keep it with array indexing. Next: keep the M2C_FIELD form and fix the loop shape (target uses sll/addu/sll for *40 and a do-while with andi 0xFF, bnel).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794730754.1796749,
-  "score_before": 450,
-  "score_after": 450
  },
  {
   "function": "func_80209AEC",
@@ -17952,14 +17928,6 @@
   "score_after": 1647
  },
  {
-  "function": "func_801AEEE8",
-  "text": "Not matched; all tries 0%. Target: base v0 = D_800DB1B8+0x2108 (lui/addiu once), then all 0x24-ish halfword stores as sh <reg>,off(v0) with offsets 0..0x4E (one-off +0,+2,+4,+6,+8,+A,+C,+E,+20..+2E,+30..+36,+48..+4E), values 1,0,1,2,0xF0,0xF0,0,0,0,0,0xF0,0xF0,1,3,4,5,0x3C,0x4B,0x78,0x5A,0x3C,0x4B,0xB4,0xA5 mostly; then loop i=2..3 storing 0 at D+0x2108+(i&0xFF)*40 (sll/addu/sll). Problem: gcc folds `temp[k]` into absolute lui/%lo per store (22 separate lui) when base is a global array, so no base register survives. Need a way to force one base register (e.g. base pointer taken from the array once and kept live, or a struct pointer). Draft in 6d4db28 shows the M2C_FIELD form. Compiler gcc-2.7.2-kmc.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794748496.923838,
-  "score_before": 450,
-  "score_after": 450
- },
- {
   "function": "func_80032108",
   "text": "Best 135 (98.0%, 69 insns both sides), saved-best source = first candidate (a=arg0, b=arg1, ints per brief). Remaining diff is register allocation and prologue order only: target saves s0 (arg0) first at 0x28, then s1, then s5=arg2 at 0x3c; mine saves s5 first. Loop head in target: lw s4,8(a); lhu s3,0x1a(a); lw s2,0xc(a). Tried: reordering loop loads (140), swapping s2/s4 names/types (140) \u2014 both worse or equal. Not tried: moving arg2 into a local before the a/b setup, or making the early `arg2==0` branch use a/b declared after the loop-state locals.",
   "by": "claude-haiku-5-5-20",
@@ -20544,14 +20512,6 @@
   "score_after": 15
  },
  {
-  "function": "func_801AEEE8",
-  "text": "Not matched. Five variants this claim scored 5605-10355 (saved_best draft 450 is historical, not reverified). Findings: (1) m2c draft's `extern M2C_UNK D_800DB1B8` is s32, so `&D + off` scales by 4; use `extern u8 D_800DB1B8[]` and byte offsets. (2) Target holds base = D_800DB1B8+0x2108 in $v0 (lui/addiu once, then sh off($v0) for 22 stores). GCC folds the constant into every store as lui $at,%hi(...+0x210e) with %lo offsets, so the pointer-local form does not reproduce it. Likely the original indexed through a non-constant or struct-typed base (try a struct pointer with a 0x2108 member offset, or a pointer parameter). (3) Loop: target is a do/while over a var_a0 counter from 2 (sll/addu/sll i*40, lui $at, addu, sh zero, %lo(D+0x2108)); the m2c's `(var_a0&0xFF)*0x28` form matches that shape, so keep it and fix only the base. Next step: change the 22 leading stores to a register base, then compare.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794754533.767207,
-  "score_before": 450,
-  "score_after": 450
- },
- {
   "function": "auDmaCallBack",
   "text": "No match. Saved best 3400 (machine-draft-derived, in brief) is still the baseline. Declaring the externs and prototypes properly (osVirtualToPhysical, alUnlink(void*), alLink(void*, void**), osEPiStartDma, osCartRomInit; D_8005D1A0 as u8[]) gives 3585 (66%): it fixes the pointer-compare warning but the frame layout is off. Target saves s1 first (`sw $s1,0x14`), then s3/s2/s0, and keeps `ra` at 0x20 last; ours stores ra first. Target loads `D_8005D7A4` into s1 via lui+lw at the top, and `D_8005D7A8` through a separate `addiu` on the high half (not a direct global read). The saved-best structure is closest; the remaining gap is register allocation and save ordering at -O1 (the compiler note says this range is -O1, not project -O2). Untried: compile with -O1 via search_flags, then reorder the early loads.",
   "by": "claude-haiku-5-5-20",
@@ -23030,14 +22990,6 @@
   "created_at": 1794758515.205503,
   "score_before": 13365,
   "score_after": 13365
- },
- {
-  "function": "func_801AEEE8",
-  "text": "Move-on budget exhausted (3/3, then several diagnostic trials). Body is understood: write s16 constants into the 0x28-byte records at D_800DB1B8+0x2108 (fields 0,2,4,6,0xc,0xe,8,0xa,0x20,0x22,0x24,0x26 of record 0 then record 1), then a 2..3 loop storing 0 to record[i].f00 with index*0x28 and `bnel` backedge.\n\nKey finding: the target is NOT the project profile. Same struct C with gcc-2.8.1-pm -G0 -mips3 -mgp32 -mfp32 -O1 scores 450 (only 7 rows differ); gcc-2.8.1-pm-sn-as -O1 identical 450-class; sn-n64-272-0001 -O1 3210; KMC -O1 3715; KMC -O2 (project) 5605. Under KMC -O2 the blocker is that each constant store is folded to `lui $at,%hi(D_800DB1B8+off); sh $c,%lo(...)($at)` instead of one base in $v0 plus `sh $c,off($v0)` as in the target; that is a codegen difference, not a C error.\n\nRemaining deltas under gcc-2.8.1-pm -O1 (450): (a) first store emitted as sh $a0,-0x6318($v0) after the base folded to symbol D_800E35D8 instead of sh $a0,($v0) with $v0 = lui/addiu D_800DB1B8+0x2108; (b) loop store strength-reduced as `sll 5` + `sw` instead of `sll 3` + `sh`; (c) `bnez` instead of `bnel` with the andi delay slot. Tried and rejected: byte-array extern + s16* indexing (5605), do/while (705/1130), u8/s32/u32 index, p[i&0xFF].f00, pointer-cast loop store, `return;` at end. Struct S_801AEEE8 layout used: s16 f00..f0e, pad to 0x20, f20,f22,f24,f26 (size 0x28). Next step: get the compiler profile applied for this unit (suggest/try_compiler with gcc-2.8.1-pm -O1) and then only the loop strength-reduction/backedge rows remain.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794758538.20083,
-  "score_before": 450,
-  "score_after": 450
  },
  {
   "function": "func_80140E0C",
@@ -27760,14 +27712,6 @@
   "score_after": 58770
  },
  {
-  "function": "func_801AEEE8",
-  "text": "Cannot get closer with the budget left. Best this session 10355 (0.0%), far behind the saved 450, so the saved best stands. The function is 24 halfword stores to D_800DB1B8+0x2108+off, then a 2-iteration loop (i = 2..3) zeroing the halfword at base + i*0x28. The target keeps one base register (lui+addiu into v0, then sh with immediate offsets) and the loop index is andi 0xff. Writing the base as a separate pointer statement, or a struct pointer that the compiler folds, did not change the emitted code: it still emits a lui %hi(D_800DB1B8+0x210e) per store and places the constant 2 first. Untried: a struct type whose fields sit at 0x0,0x2,...,0x4E, so the stores become field assignments off one base.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794765786.5705972,
-  "score_before": 450,
-  "score_after": 450
- },
- {
   "function": "func_8003F464",
   "text": "Own clean source3fc87aba6252d58e3d95 corrected stale wrong-game symbol references: D_80048200 flag, D_800DE2B0 queue for both send/recv, D_8006E770 buffer. try_compiler explicit source exact with -O1 -fschedule-insns2; submitted suggest verified bundle. Plain -O1=120, O2=626. Automatic profile changes disabled; apply pending exact bundle.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -28182,14 +28126,6 @@
   "created_at": 1794766920.774524,
   "score_before": 3253,
   "score_after": 3253
- },
- {
-  "function": "func_801AEEE8",
-  "text": "Current clean candidate 72eb60ae91be5053edcb fixes inherited &s32 +0x2108 scaling and changes loop zero store to s16. Historical best450 is invalid under current inputs (rechecked5665). Current KMC O2 clean score5445; volatile pointer5190 but unjustified volatility removed. Compiler trial gcc-2.8.1-pm -O1 current clean source matches all except bnez vs target bnel (score200); KMC O1 score2910, -fno-force-addr unchanged, PM O2 2450, PM SN assembler O1 also200, no delayed branch400, -mbranch-likely unsupported. Structured do/while worsens PM O1 to705; keep goto backedge. Submitted compiler investigation suggestion with exact corrected C. Next inspect assembler branch-likely treatment or correct compiler profile, then tune single residual; avoid restoring erroneous inherited source. Leaving early because clear compiler/profile discrepancy, bounded compiler investigations completed.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794766929.197675,
-  "score_before": 450,
-  "score_after": 450
  },
  {
   "function": "func_80148260",
@@ -38482,5 +38418,127 @@
   "created_at": 1795726438.016535,
   "score_before": 1090,
   "score_after": 1090
+ },
+ {
+  "function": "func_801AEEE8",
+  "text": "Body fully recovered; blocked only by the branch opcode. Target (0x801AEEE8, 53 insns): one lui/addiu base for D_800DB1B8+0x2108, 24 halfword stores to it, then an ascending loop `var_a0=2; do { *(s16*)(D_800DB1B8+0x2108+(var_a0&0xFF)*0x28)=0; var_a0++; } while ((u32)(var_a0&0xFF)<4U);` ending in `sltiu $v0,$v0,4` + `bnel $v0,$zero,.L` (branch-likely).\nBest verified: gcc-2.8.1-pm -G0 -mips3 -mgp32 -mfp32 -O1 with `extern u8 D_800DB1B8[0x21A8]; u8 *temp_v0 = D_800DB1B8 + 0x2108;` and the goto-loop above => score 200, exactly one differing instruction: emitted `bnez` instead of `bnel`. Same 200 with gcc-2.8.1-pm-sn-as -O1, and with -Wa,-O3 / -Wa,-mbranch-likely. -mbranch-likely is rejected by every cc1 in this project (gcc-2.7.2-kmc, 2.8.1-pm, sn-n64-281, sn-n64-272-*, ido-7.1), so the branch-likely form cannot be produced by the available toolchains.\nUnder the project profile (gcc-2.7.2-kmc -O2) the same C scores 5445: kmc -O2 re-materialises the base with lui/%lo per store (lui $at + sh %lo(...)($at) x24) instead of one lui/addiu pair, so kmc -O2 cannot reach this function. kmc -O1 gives 2910, sn-n64-272-0004 -O1 375, sn-n64-272-970404 -O1 775, ido-7.1/-5.3 -O2 5240.\nStruct forms tried (all worse): s16 array p[i] indexing (1130 at 2.8.1-pm), a Row{ s16 h[20]; } array inside a padded global (570 at sn-272-0004), M2C_FIELD macros, u8* vs s16* base, &global+0x2108 vs array+0x2108, loop written as for/while/do-while/goto with <, <=, !=, !(>=), s32 vs u8 induction variable.\nNext step if the project ever gains an assembler/cc1 accepting -mbranch-likely (or a compiler that emits bnel at -O1): the 2.8.1-pm -O1 candidate above should become a byte-exact match with no C change.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794709197.404701,
+  "score_before": 450,
+  "score_after": 450
+ },
+ {
+  "function": "func_801AEEE8",
+  "text": "Not matched; saved best 450 (m2c-style temp_v0 = &D_800DB1B8 + 0x2108 with M2C_FIELD stores) stands. My s16* clean rewrite (p = (s16*)(D_800DB1B8+0x2108), p[k] stores in the target's order, then loop i=2..3 storing 0 at +i*0x28) scored 10355: gcc re-materialises lui/addiu of D_800DB1B8+0x210E for every store through a pointer built from the array symbol, whereas the target keeps the base in v0 across all 24 stores (lui/addiu once, then sh with immediate offsets). Target store order (offset:value): 0:1 2:0 4:1 6:2 C:F0 E:F0 8:0 A:0 20:0 22:0 24:F0 26:F0 28:1 2A:3 2C:4 2E:5 34:78 36:5A 30:3C 32:4B 48:3C 4A:4B 4C:B4 4E:A5, then loop over v0=2,3 (index*40 bytes) storing 0 with the base recomputed from v0*5*8. Loop: sll/addu/sll computes v0*40 then `sh $zero` at D_800DB1B8+0x2108+off. Untried: a char* base local (base = (char*)D_800DB1B8 + 0x2108) with *(s16*)(base+k) stores, which keeps one base register like the target.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794721507.785185,
+  "score_before": 450,
+  "score_after": 450
+ },
+ {
+  "function": "func_801AEEE8",
+  "text": "Saved best 450 is the M2C_FIELD version (temp_v0 = &D_800DB1B8 + 0x2108, stores at constant offsets, then the var_a0 loop with *(&D_800DB1B8+0x2108+((var_a0&0xFF)*0x28))=0). Tried and worse: a plain s16 pointer p = (s16*)(D_800DB1B8+0x2108) with p[i] stores (5910, compiler rematerializes lui/addiu per store); p[(i&0xFF)*20] in the loop (5805). Target keeps a single lui $v0/addiu $v0 base for the whole block, so the pointer local must stay live across the stores; the compiler does not keep it with array indexing. Next: keep the M2C_FIELD form and fix the loop shape (target uses sll/addu/sll for *40 and a do-while with andi 0xFF, bnel).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794730754.1796749,
+  "score_before": 450,
+  "score_after": 450
+ },
+ {
+  "function": "func_801AEEE8",
+  "text": "Not matched; all tries 0%. Target: base v0 = D_800DB1B8+0x2108 (lui/addiu once), then all 0x24-ish halfword stores as sh <reg>,off(v0) with offsets 0..0x4E (one-off +0,+2,+4,+6,+8,+A,+C,+E,+20..+2E,+30..+36,+48..+4E), values 1,0,1,2,0xF0,0xF0,0,0,0,0,0xF0,0xF0,1,3,4,5,0x3C,0x4B,0x78,0x5A,0x3C,0x4B,0xB4,0xA5 mostly; then loop i=2..3 storing 0 at D+0x2108+(i&0xFF)*40 (sll/addu/sll). Problem: gcc folds `temp[k]` into absolute lui/%lo per store (22 separate lui) when base is a global array, so no base register survives. Need a way to force one base register (e.g. base pointer taken from the array once and kept live, or a struct pointer). Draft in 6d4db28 shows the M2C_FIELD form. Compiler gcc-2.7.2-kmc.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794748496.923838,
+  "score_before": 450,
+  "score_after": 450
+ },
+ {
+  "function": "func_801AEEE8",
+  "text": "Not matched. Five variants this claim scored 5605-10355 (saved_best draft 450 is historical, not reverified). Findings: (1) m2c draft's `extern M2C_UNK D_800DB1B8` is s32, so `&D + off` scales by 4; use `extern u8 D_800DB1B8[]` and byte offsets. (2) Target holds base = D_800DB1B8+0x2108 in $v0 (lui/addiu once, then sh off($v0) for 22 stores). GCC folds the constant into every store as lui $at,%hi(...+0x210e) with %lo offsets, so the pointer-local form does not reproduce it. Likely the original indexed through a non-constant or struct-typed base (try a struct pointer with a 0x2108 member offset, or a pointer parameter). (3) Loop: target is a do/while over a var_a0 counter from 2 (sll/addu/sll i*40, lui $at, addu, sh zero, %lo(D+0x2108)); the m2c's `(var_a0&0xFF)*0x28` form matches that shape, so keep it and fix only the base. Next step: change the 22 leading stores to a register base, then compare.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794754533.767207,
+  "score_before": 450,
+  "score_after": 450
+ },
+ {
+  "function": "func_801AEEE8",
+  "text": "Move-on budget exhausted (3/3, then several diagnostic trials). Body is understood: write s16 constants into the 0x28-byte records at D_800DB1B8+0x2108 (fields 0,2,4,6,0xc,0xe,8,0xa,0x20,0x22,0x24,0x26 of record 0 then record 1), then a 2..3 loop storing 0 to record[i].f00 with index*0x28 and `bnel` backedge.\n\nKey finding: the target is NOT the project profile. Same struct C with gcc-2.8.1-pm -G0 -mips3 -mgp32 -mfp32 -O1 scores 450 (only 7 rows differ); gcc-2.8.1-pm-sn-as -O1 identical 450-class; sn-n64-272-0001 -O1 3210; KMC -O1 3715; KMC -O2 (project) 5605. Under KMC -O2 the blocker is that each constant store is folded to `lui $at,%hi(D_800DB1B8+off); sh $c,%lo(...)($at)` instead of one base in $v0 plus `sh $c,off($v0)` as in the target; that is a codegen difference, not a C error.\n\nRemaining deltas under gcc-2.8.1-pm -O1 (450): (a) first store emitted as sh $a0,-0x6318($v0) after the base folded to symbol D_800E35D8 instead of sh $a0,($v0) with $v0 = lui/addiu D_800DB1B8+0x2108; (b) loop store strength-reduced as `sll 5` + `sw` instead of `sll 3` + `sh`; (c) `bnez` instead of `bnel` with the andi delay slot. Tried and rejected: byte-array extern + s16* indexing (5605), do/while (705/1130), u8/s32/u32 index, p[i&0xFF].f00, pointer-cast loop store, `return;` at end. Struct S_801AEEE8 layout used: s16 f00..f0e, pad to 0x20, f20,f22,f24,f26 (size 0x28). Next step: get the compiler profile applied for this unit (suggest/try_compiler with gcc-2.8.1-pm -O1) and then only the loop strength-reduction/backedge rows remain.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794758538.20083,
+  "score_before": 450,
+  "score_after": 450
+ },
+ {
+  "function": "func_801AEEE8",
+  "text": "Cannot get closer with the budget left. Best this session 10355 (0.0%), far behind the saved 450, so the saved best stands. The function is 24 halfword stores to D_800DB1B8+0x2108+off, then a 2-iteration loop (i = 2..3) zeroing the halfword at base + i*0x28. The target keeps one base register (lui+addiu into v0, then sh with immediate offsets) and the loop index is andi 0xff. Writing the base as a separate pointer statement, or a struct pointer that the compiler folds, did not change the emitted code: it still emits a lui %hi(D_800DB1B8+0x210e) per store and places the constant 2 first. Untried: a struct type whose fields sit at 0x0,0x2,...,0x4E, so the stores become field assignments off one base.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794765786.5705972,
+  "score_before": 450,
+  "score_after": 450
+ },
+ {
+  "function": "func_801AEEE8",
+  "text": "Current clean candidate 72eb60ae91be5053edcb fixes inherited &s32 +0x2108 scaling and changes loop zero store to s16. Historical best450 is invalid under current inputs (rechecked5665). Current KMC O2 clean score5445; volatile pointer5190 but unjustified volatility removed. Compiler trial gcc-2.8.1-pm -O1 current clean source matches all except bnez vs target bnel (score200); KMC O1 score2910, -fno-force-addr unchanged, PM O2 2450, PM SN assembler O1 also200, no delayed branch400, -mbranch-likely unsupported. Structured do/while worsens PM O1 to705; keep goto backedge. Submitted compiler investigation suggestion with exact corrected C. Next inspect assembler branch-likely treatment or correct compiler profile, then tune single residual; avoid restoring erroneous inherited source. Leaving early because clear compiler/profile discrepancy, bounded compiler investigations completed.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794766929.197675,
+  "score_before": 450,
+  "score_after": 450
+ },
+ {
+  "function": "func_801AEEE8",
+  "text": "haiku-pr1 (Haiku 5.5): TOOL PROBLEM: the saved best (get_candidate saved_best, recorded as 525 from a permuter lane) judges 4155 in the current app and in the local judge; the app records 525 as best so far. Submitting the saved-best source with the stray D_800DD2C0 = 1 store removed gives 4055 (the target has no store to D_800DD2C0 in this function). Worth a rescore of the saved best under the current header. Clean rewrite of the table init (sh stores on base+offsets, loop for indices 2 and 3 with stride 40): 7285 to 10915, the compiler keeps the stores in a different form than the draft.",
+  "by": "manual-a2e0c67556b34442",
+  "created_at": 1795707981.58172,
+  "score_before": 4055,
+  "score_after": 4055,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:576c641040f6e609456456ebb21b79cc01de7c64f6af284c50d2df05aa34410e"
+ },
+ {
+  "function": "func_801AEEE8",
+  "text": "Score discrepancy: saved 525 rescored 4155. See note.",
+  "by": "manual-a2e0c67556b34442",
+  "created_at": 1795707981.755085,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:576c641040f6e609456456ebb21b79cc01de7c64f6af284c50d2df05aa34410e"
+ },
+ {
+  "function": "func_801AEEE8",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr10 (Haiku 5.5): saved best 4155 (O2; O1 910). The target is a 56-line initializer: 24 half-word stores from base D_800DB1B8+0x2108 (values listed by offset, 0x20 to 0x4E with 0x34, 0x36, 0x30, 0x32 out of order), then a loop for i = 2..3 storing zero at base + 40*i. The best's register-based base (temp_v0) and its fences are needed for the base-register form; the clean base forms (a char pointer, a s16 pointer, a u8 loop index) gave 7285 to 10915. Dropping the D_800DD2C0 = 1 store the target does not have: 4055 (O2), 905 (O1). Judged about 11 attempts. Open: a spelling that keeps the target's base register (lui/addiu once, sh off($v0)) without fences: permuter gap (store-run base register).",
+  "by": "manual-497803c65e684d1b",
+  "created_at": 1795711431.711565,
+  "score_before": 525,
+  "score_after": 525
+ },
+ {
+  "function": "func_801AEEE8",
+  "text": "Small-model attempt at func_801AEEE8: 12 tries.\n  best 3390 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 6430 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 6430 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 7285 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 7285 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\nNear-miss 3390 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2 kept as compiler trial a48ca0abb298bf8611b1 (not applied).\n12 tries, no match. Best under -O1 profile 6430 (plain char* base plus s16 stores in source order, u8 zeroing loop of 2 iterations). Target keeps the base in $v0 and the constant 1 in $a0 and reorders nothing; the compiler moved the first store and copied the base to $a0, so the stores are out of order. Untried: shapes that keep the base in one register across the whole block, or an element struct of 0x28 bytes.",
+  "by": "manual-3db0bd0c690f452b",
+  "created_at": 1795725148.534401,
+  "score_before": 525,
+  "score_after": 525
+ },
+ {
+  "function": "func_801AEEE8",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_801AEEE8: 12 tries.\n  best 3390 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 6430 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 6430 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 7285 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 7285 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\nNear-miss 3390 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2 kept as compiler trial a48ca0abb298bf8611b1 (not applied).\n12 tries, no match. Best under -O1 profile 6430 (plain char* base plus s16 stores in source order, u8 zeroing loop of 2 iterations). Target keeps the base in $v0 and the constant 1 in $a0 and reorders nothing; the compiler moved the first store and copied the base to $a0, so the stores are out of order. Untried: shapes that keep the base in one register across the whole block, or an element struct of 0x28 bytes.",
+  "by": "manual-3db0bd0c690f452b",
+  "created_at": 1795725154.834383,
+  "score_before": 525,
+  "score_after": 525
+ },
+ {
+  "function": "func_801AEEE8",
+  "text": "Small-model attempt at func_801AEEE8: 12 tries.\n  best 2990 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 6430 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 6430 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 7285 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 7285 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\nNear-miss 2990 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2 kept as compiler trial 24521c594eb713de58fa (not applied).\n12 tries, no match. Best under gcc-2.8.1 -O2 was 2990 (head through &D_800DD2C0 as s16 pointer, loop on D_800DB1B8+0x2108+i*0x28). Under own profile (kmc -O2) every try scored about 7440, worse than the saved 525; the loop is hoisted (move/extra lui) where target recomputes lui $at in the loop. Not tried: register void* temp_v0 style head from saved best.",
+  "by": "manual-18321e1ec96144fd",
+  "created_at": 1795726499.2454348,
+  "score_before": 525,
+  "score_after": 525
+ },
+ {
+  "function": "func_801AEEE8",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_801AEEE8: 12 tries.\n  best 2990 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 6430 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 6430 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 7285 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 7285 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\nNear-miss 2990 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2 kept as compiler trial 24521c594eb713de58fa (not applied).\n12 tries, no match. Best under gcc-2.8.1 -O2 was 2990 (head through &D_800DD2C0 as s16 pointer, loop on D_800DB1B8+0x2108+i*0x28). Under own profile (kmc -O2) every try scored about 7440, worse than the saved 525; the loop is hoisted (move/extra lui) where target recomputes lui $at in the loop. Not tried: register void* temp_v0 style head from saved best.",
+  "by": "manual-18321e1ec96144fd",
+  "created_at": 1795726500.1092422,
+  "score_before": 525,
+  "score_after": 525
  }
 ]
