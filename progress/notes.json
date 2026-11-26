@@ -3328,14 +3328,6 @@
   "score_after": 2488
  },
  {
-  "function": "func_8020E650",
-  "text": "Deep permuter: score 3090 \u2192 2850; 2 improvements; 64 candidates tested; 57 cached skips; 0 rejected; 7208s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935756",
-  "created_at": 1794357164.438228,
-  "score_before": 3090,
-  "score_after": 2850
- },
- {
   "function": "n_alSynSetPan",
   "text": "Deep permuter: score 315 \u2192 315; 0 improvements; 45 candidates tested; 29 cached skips; 0 rejected; 7217s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934924",
@@ -7102,14 +7094,6 @@
   "created_at": 1794708911.636076,
   "score_before": 778,
   "score_after": 778
- },
- {
-  "function": "func_8020E650",
-  "text": "Best this session 3090 (60%) at revision e258e8ffa226c7613a0b; saved best 1455 is from a different source, so start from get_candidate(base=\"saved_best\"). The machine-draft gotos and casts are not the right shape. The target keeps a local pointer s0 = &D_8021E1A2 (frame 0x18, saves ra and s0), reads the halfword through it (lh v0,(s0)), and the first branch is on that load, not on a fresh global access. Mine re-takes the global address each time (frame 0x20, no s0). Rewrite with a local `s16 *p = &D_8021E1A2` and index p[0] / p[-9] style stores, and check whether the func_80148230() calls can be hoisted, since the target calls it once per path. Stores are sb to D_8021E190-1 and -0x12/-0x13 relative to D_8021E1A2.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794708911.7222059,
-  "score_before": 1455,
-  "score_after": 1455
  },
  {
   "function": "func_80157F6C",
@@ -11008,14 +10992,6 @@
   "score_after": 570
  },
  {
-  "function": "func_8020E650",
-  "text": "Not matched. Best: revision dc47b502f21e9df798b1 (score 3835, 50.8%; target 78 insns, mine 76); b5b629cd85283d9645e0 is the same score with the symbol re-read directly. Structure written as gotos mirroring the asm: block 1 (s16 D_8021E1A2 < 2 and func_80148230()&0xFF == 2 -> sb -0x12 = 0, sb -0x13 = 8), block 2 (result 1 or 0 -> D_8021E190 = 0; else 9), then D_8021E190[-1] = 0x10 (0x11 if D_801C5EA0 == 1), then the D_8021E18C clamp (lb/lbu, sll 24, sra 24, sh). Key facts: target keeps &D_8021E1A2 in s0 across calls with frame 0x18 (ra at 0x14, s0 at 0x10); ours uses frame 0x20 because of extra locals/spill. Target does `lui $a0,%hi(D_8021E190)` + `addiu $a0,%lo` once and stores 9/0x10/1 through $a0 with sb to 0 and -1; ours emits lui $at + sb %lo per store. Tried: p and q pointers (4085), p with v (3835), no v with inline sra (3980), symbol re-reads (3835). Next: make the D_8021E190 base a single pointer used for both the =9 store and the [-1] stores (so the compiler keeps $a0), and drop the v local so the frame shrinks to 0x18.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794723944.8047519,
-  "score_before": 1455,
-  "score_after": 1455
- },
- {
   "function": "func_80219CF0",
   "text": "Not matched. Saved best 1770 (76.9%, different source); my clean rewrite scores 1796 (same 76.9%). The logic is confirmed: p = D_8011F2F0 + (u16)arg0*100 (mul by 100 via sll/addu chain); switch on u16 at p+0x3E: case 0 sets D_8021E19E=0, the u16 state to 1, returns; case 1 increments the u8 flag at D_8021E19E, returns if flag<6, else temp=D_8021CA3C[func_801FA30C(p)&1] and the 18-arg func_800DE41C call, then flag=0. Remaining diffs: (a) the target reloads the flag with lbu after the sb (the store-then-reload), ours keeps the value and emits andi; (b) the prologue saves ($ra, $s0) come at the top in the target but are later in ours, because ours only needs s0 in case 1; (c) float reg choice f2 vs f0 for the temp. Attempts that did not help: `*flag += 1` vs `*flag = *flag + 1`, reordering the `>=6` test, and signedness s8 for p (not tried yet). Next try: force the flag address into s0 at function top (`flag = &D_8021E19E;` before the switch) so the s0 save is in the prologue.",
   "by": "claude-haiku-5-5-22",
@@ -13806,14 +13782,6 @@
   "created_at": 1794732351.22261,
   "score_before": 778,
   "score_after": 778
- },
- {
-  "function": "func_8020E650",
-  "text": "Not matched. Current rechecked best is 3090 (60.3%) from this same source; the historical saved 1455 is not reproduced by the current inputs, so do not trust that number. The target frame is addiu sp,-0x18 with sw ra at 0x14 and sw s0 at 0x10; the function keeps the address of D_8021E1A2 in $s0 and loads lh ($s0) once. Mine uses -0x20, a fresh lui/lh at the top, and a spilled s0 at 0x18, so the prologue, the stack offsets, and the s0 usage are all wrong. Local repairs (branch orientation, signedness, constant locals, global table form) gave no improvement; the extern type of D_801C5EA0 and D_8021E18C did not help either. Next: rewrite the head so that a local pointer is taken from &D_8021E1A2 once and reused for the lh and for the -0x12/-0x13 stores, which should give the s0 save and the -0x18 frame. Then fix the D_8021E190 stores (sb with base a0 at -1) and branch order. Structure is not yet right; do not spend registers effort first.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794732403.993313,
-  "score_before": 1455,
-  "score_after": 1455
  },
  {
   "function": "func_8021AB34",
@@ -20584,14 +20552,6 @@
   "score_after": 8381
  },
  {
-  "function": "func_8020E650",
-  "text": "Move-on budget exhausted (3/3 compiles without beating the inherited 1455). Structure is understood; only the address materialisation differs.\n\nTarget shape: prologue addiu sp,-0x18 / sw ra,0x14 / sw s0,0x10; s0 = &D_8021E1A2 cached once before the first jal func_80148230 and reused after it for `sb $zero,-0x12($s0)` and `sb $v0,-0x13($s0)`; later paths reload D_8021E1A2 with lui/lh, use a0=&D_8021E190 with `sb $v0,0x0($a0)` / `sb $v0,-1($a0)`, and a0=&D_8021E18C for the final clamp; epilogue lw ra/lw s0/jr ra/addiu sp,0x18 and v0 is never set on the fall-through exit, so the function is void (m2c's `long` is wrong; brief warns \"control reaches end of non-void function\").\n\nTried: (a) void return + symbol-base casts (score 3190, 76 insns); (b) local s16 *q = (s16*)&D_8021E1A2 with ((s8*)q)[-0x12] stores (score 4020, 78 insns). Both make gcc-2.7.2-kmc constant-fold the -0x12/-0x13 stores into `lui $at,%hi(D_8021E190); sb $zero,%lo(D_8021E190)($at)` instead of the target's s0-relative store, which also inflates the frame to -0x20 and moves ra to 0x1c.\n\nRemaining idea: force the store address to stay relative to the register already holding the base. gcc folds `&sym + const` early, so try to obtain the base through something it cannot fold (e.g. a pointer whose value comes from memory or from a call result, or a struct pointer dereference) while keeping the same three symbol addresses; alternatively accept that the retail source used a struct base at D_8021E1A2 with fields at -0x12/-0x13 (i.e. D_8021E190/D_8021E18F are members of the preceding record) and write it that way. Also worth one try: keep the inherited `long` return (that variant scored 1455) and change only the two stores.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794754082.2548401,
-  "score_before": 1455,
-  "score_after": 1455
- },
- {
   "function": "func_801FC9D0",
   "text": "Not matched. Best saved 4680 (historical, source not kept); every current C variant scores 9745 or worse (try_local_repairs 6 variants: 9745/9810/11010). Target is a display-list builder: arg0 is Gfx** (u32 **); st=u16 at D_8011F330[idx*100]; st==0 -> store 1 and return; st!=1 -> return; st==1 builds 14 words. idx*100 is computed as ((x*2+x)*8+x)*4 and is recomputed separately in each branch in the target (lhu path, sh path, lbu path); C with one shared (arg1&0xFFFF)*100 CSEs it, which accounts for the 114-vs-135 instruction gap (21 missing addu/sll). Also the target's arg0 copy lives in $t1 (move in beqz delay slot), candidate uses $t0. v is u8 (lbu), q=v/7 unsigned magic (0x24924925), r=(v-7q)&0xFF, x0=r<<5, x1=x0+0x20. Untried: a way to stop CSE of the three idx*100 computations (e.g. per-branch distinct expressions the compiler cannot merge), or a struct-array stride-100 model with different bases. Next person: fix the recomputed idx*100 first, then branch layout, then registers.",
   "by": "claude-haiku-5-5-23",
@@ -21230,14 +21190,6 @@
   "created_at": 1794755199.3051069,
   "score_before": 985,
   "score_after": 985
- },
- {
-  "function": "func_8020E650",
-  "text": "Not matched. Best this session 1490 (80.8%) at revision 835cbfff502d8115ccea: void return; `s8 *s0 = (s8*)&D_8021E1A2` as the base for the first block (s0[-0x12]=0, s0[-0x13]=8, lh via *(s16*)s0), a single `s8 *a0` pointer for the D_8021E190 stores (a0=&D_8021E190; *a0=0 or 9; a0[-1]=0x10; if D_801C5EA0==1 a0[-1]=0x11), goto block_9/block_8 structure as in target (the `(f()&0xFF)==1 || !(f()&0xFF)` double call matches). Second block (D_8021E18C) still wrong: remaining diff is that target keeps the address in $a0 (lui/addiu a0,&D_8021E18C; lh v1,0(a0); lb v0,3(a0); slt; lbu 4(a0)) while mine materialises D_8021E18F/D_8021E190 as separate symbols. Writing it via a `s16 *w` pointer gave 2555; via a0 reuse 2540 (symbol folding wrong). Frame: target is addiu sp,-0x18 with ra at 0x14 and s0 at 0x10; mine is -0x20 (ra 0x1c, s0 0x18) in all variants, so something adds 8 bytes of frame; check whether the s8* first-block base or the goto-into-else layout causes it. Next: try declaring the second block's pointer before the first if, or use s0 for it (target likely reuses s0 pointer style), and fix the frame size first.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794755227.889529,
-  "score_before": 1455,
-  "score_after": 1455
  },
  {
   "function": "func_801993D4",
@@ -22406,14 +22358,6 @@
   "created_at": 1794756840.9771452,
   "score_before": 9358,
   "score_after": 9358
- },
- {
-  "function": "func_8020E650",
-  "text": "Tried 3 variants; none beat saved best 1455 (the inherited candidate). Target keeps a single base register s0 = &D_8021E1A2 (lui s0/addiu s0 at entry, then lh 0(s0), sb -0x12/-0x13(s0) on the first branch) and has a 0x18 frame (ra at 0x14, s0 at 0x10). My versions lui/addiu per access and use a 0x20 frame with s0 saved at 0x18. Target also loads D_8021E190 via $a0 (lui a0/addiu a0, then sb 0(a0), sb -1(a0)) while mine uses $at. Most likely lead: a local base pointer `s16 *base = &D_8021E1A2;` read via base[0] with base-relative stores, and a void return. Untested: whether the trailing D_8021E18C store also wants the pointer shape.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794756855.5878882,
-  "score_before": 1455,
-  "score_after": 1455
  },
  {
   "function": "func_8014A9F4",
@@ -28542,14 +28486,6 @@
   "created_at": 1794766478.096561,
   "score_before": 255,
   "score_after": 255
- },
- {
-  "function": "func_8020E650",
-  "text": "Not matched. Best saved score is 1455 (historical source, not reproduced). My candidates this session scored 3570 to 3900, all worse, so this is not a near match.\n\nFacts from the target: D_8021E190 == &D_8021E1A2 - 0x12 and D_8021E18F == &D_8021E1A2 - 0x13. The target uses one base register s0 = &D_8021E1A2 only at the top (lui/addiu s0, lh (s0), frame 0x18 saving ra at 0x14 and s0 at 0x10), then the later code uses plain lui/%lo globals. The first block is `sb $zero,-0x12($s0)` and `sb 8,-0x13($s0)`. The later D_8021E190 stores use $a0 = &D_8021E190 (lui/addiu), not s0.\n\nAttempts that failed: (1) one s8 base pointer used everywhere gave 0x20 frames and s0 spills at 0x18; (2) globals everywhere gave lui per store; (3) a void-return tail with no local v still gave a 0x20 frame. The frame size is the first thing to fix. Next try: keep only the top block on s0 and let the rest use globals, with the 0x10/0x11 tail written as `*(D190 - 1)` through a0; check the frame is 0x18 before tuning registers.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794766498.333131,
-  "score_before": 1455,
-  "score_after": 1455
  },
  {
   "function": "func_8021A994",
@@ -37574,5 +37510,162 @@
   "created_at": 1795727025.5652978,
   "score_before": 130,
   "score_after": 130
+ },
+ {
+  "function": "func_8020E650",
+  "text": "Deep permuter: score 3090 \u2192 2850; 2 improvements; 64 candidates tested; 57 cached skips; 0 rejected; 7208s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935756",
+  "created_at": 1794357164.438228,
+  "score_before": 3090,
+  "score_after": 2850
+ },
+ {
+  "function": "func_8020E650",
+  "text": "Best this session 3090 (60%) at revision e258e8ffa226c7613a0b; saved best 1455 is from a different source, so start from get_candidate(base=\"saved_best\"). The machine-draft gotos and casts are not the right shape. The target keeps a local pointer s0 = &D_8021E1A2 (frame 0x18, saves ra and s0), reads the halfword through it (lh v0,(s0)), and the first branch is on that load, not on a fresh global access. Mine re-takes the global address each time (frame 0x20, no s0). Rewrite with a local `s16 *p = &D_8021E1A2` and index p[0] / p[-9] style stores, and check whether the func_80148230() calls can be hoisted, since the target calls it once per path. Stores are sb to D_8021E190-1 and -0x12/-0x13 relative to D_8021E1A2.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794708911.7222059,
+  "score_before": 1455,
+  "score_after": 1455
+ },
+ {
+  "function": "func_8020E650",
+  "text": "Not matched. Best: revision dc47b502f21e9df798b1 (score 3835, 50.8%; target 78 insns, mine 76); b5b629cd85283d9645e0 is the same score with the symbol re-read directly. Structure written as gotos mirroring the asm: block 1 (s16 D_8021E1A2 < 2 and func_80148230()&0xFF == 2 -> sb -0x12 = 0, sb -0x13 = 8), block 2 (result 1 or 0 -> D_8021E190 = 0; else 9), then D_8021E190[-1] = 0x10 (0x11 if D_801C5EA0 == 1), then the D_8021E18C clamp (lb/lbu, sll 24, sra 24, sh). Key facts: target keeps &D_8021E1A2 in s0 across calls with frame 0x18 (ra at 0x14, s0 at 0x10); ours uses frame 0x20 because of extra locals/spill. Target does `lui $a0,%hi(D_8021E190)` + `addiu $a0,%lo` once and stores 9/0x10/1 through $a0 with sb to 0 and -1; ours emits lui $at + sb %lo per store. Tried: p and q pointers (4085), p with v (3835), no v with inline sra (3980), symbol re-reads (3835). Next: make the D_8021E190 base a single pointer used for both the =9 store and the [-1] stores (so the compiler keeps $a0), and drop the v local so the frame shrinks to 0x18.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794723944.8047519,
+  "score_before": 1455,
+  "score_after": 1455
+ },
+ {
+  "function": "func_8020E650",
+  "text": "Not matched. Current rechecked best is 3090 (60.3%) from this same source; the historical saved 1455 is not reproduced by the current inputs, so do not trust that number. The target frame is addiu sp,-0x18 with sw ra at 0x14 and sw s0 at 0x10; the function keeps the address of D_8021E1A2 in $s0 and loads lh ($s0) once. Mine uses -0x20, a fresh lui/lh at the top, and a spilled s0 at 0x18, so the prologue, the stack offsets, and the s0 usage are all wrong. Local repairs (branch orientation, signedness, constant locals, global table form) gave no improvement; the extern type of D_801C5EA0 and D_8021E18C did not help either. Next: rewrite the head so that a local pointer is taken from &D_8021E1A2 once and reused for the lh and for the -0x12/-0x13 stores, which should give the s0 save and the -0x18 frame. Then fix the D_8021E190 stores (sb with base a0 at -1) and branch order. Structure is not yet right; do not spend registers effort first.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794732403.993313,
+  "score_before": 1455,
+  "score_after": 1455
+ },
+ {
+  "function": "func_8020E650",
+  "text": "Move-on budget exhausted (3/3 compiles without beating the inherited 1455). Structure is understood; only the address materialisation differs.\n\nTarget shape: prologue addiu sp,-0x18 / sw ra,0x14 / sw s0,0x10; s0 = &D_8021E1A2 cached once before the first jal func_80148230 and reused after it for `sb $zero,-0x12($s0)` and `sb $v0,-0x13($s0)`; later paths reload D_8021E1A2 with lui/lh, use a0=&D_8021E190 with `sb $v0,0x0($a0)` / `sb $v0,-1($a0)`, and a0=&D_8021E18C for the final clamp; epilogue lw ra/lw s0/jr ra/addiu sp,0x18 and v0 is never set on the fall-through exit, so the function is void (m2c's `long` is wrong; brief warns \"control reaches end of non-void function\").\n\nTried: (a) void return + symbol-base casts (score 3190, 76 insns); (b) local s16 *q = (s16*)&D_8021E1A2 with ((s8*)q)[-0x12] stores (score 4020, 78 insns). Both make gcc-2.7.2-kmc constant-fold the -0x12/-0x13 stores into `lui $at,%hi(D_8021E190); sb $zero,%lo(D_8021E190)($at)` instead of the target's s0-relative store, which also inflates the frame to -0x20 and moves ra to 0x1c.\n\nRemaining idea: force the store address to stay relative to the register already holding the base. gcc folds `&sym + const` early, so try to obtain the base through something it cannot fold (e.g. a pointer whose value comes from memory or from a call result, or a struct pointer dereference) while keeping the same three symbol addresses; alternatively accept that the retail source used a struct base at D_8021E1A2 with fields at -0x12/-0x13 (i.e. D_8021E190/D_8021E18F are members of the preceding record) and write it that way. Also worth one try: keep the inherited `long` return (that variant scored 1455) and change only the two stores.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794754082.2548401,
+  "score_before": 1455,
+  "score_after": 1455
+ },
+ {
+  "function": "func_8020E650",
+  "text": "Not matched. Best this session 1490 (80.8%) at revision 835cbfff502d8115ccea: void return; `s8 *s0 = (s8*)&D_8021E1A2` as the base for the first block (s0[-0x12]=0, s0[-0x13]=8, lh via *(s16*)s0), a single `s8 *a0` pointer for the D_8021E190 stores (a0=&D_8021E190; *a0=0 or 9; a0[-1]=0x10; if D_801C5EA0==1 a0[-1]=0x11), goto block_9/block_8 structure as in target (the `(f()&0xFF)==1 || !(f()&0xFF)` double call matches). Second block (D_8021E18C) still wrong: remaining diff is that target keeps the address in $a0 (lui/addiu a0,&D_8021E18C; lh v1,0(a0); lb v0,3(a0); slt; lbu 4(a0)) while mine materialises D_8021E18F/D_8021E190 as separate symbols. Writing it via a `s16 *w` pointer gave 2555; via a0 reuse 2540 (symbol folding wrong). Frame: target is addiu sp,-0x18 with ra at 0x14 and s0 at 0x10; mine is -0x20 (ra 0x1c, s0 0x18) in all variants, so something adds 8 bytes of frame; check whether the s8* first-block base or the goto-into-else layout causes it. Next: try declaring the second block's pointer before the first if, or use s0 for it (target likely reuses s0 pointer style), and fix the frame size first.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794755227.889529,
+  "score_before": 1455,
+  "score_after": 1455
+ },
+ {
+  "function": "func_8020E650",
+  "text": "Tried 3 variants; none beat saved best 1455 (the inherited candidate). Target keeps a single base register s0 = &D_8021E1A2 (lui s0/addiu s0 at entry, then lh 0(s0), sb -0x12/-0x13(s0) on the first branch) and has a 0x18 frame (ra at 0x14, s0 at 0x10). My versions lui/addiu per access and use a 0x20 frame with s0 saved at 0x18. Target also loads D_8021E190 via $a0 (lui a0/addiu a0, then sb 0(a0), sb -1(a0)) while mine uses $at. Most likely lead: a local base pointer `s16 *base = &D_8021E1A2;` read via base[0] with base-relative stores, and a void return. Untested: whether the trailing D_8021E18C store also wants the pointer shape.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794756855.5878882,
+  "score_before": 1455,
+  "score_after": 1455
+ },
+ {
+  "function": "func_8020E650",
+  "text": "Not matched. Best saved score is 1455 (historical source, not reproduced). My candidates this session scored 3570 to 3900, all worse, so this is not a near match.\n\nFacts from the target: D_8021E190 == &D_8021E1A2 - 0x12 and D_8021E18F == &D_8021E1A2 - 0x13. The target uses one base register s0 = &D_8021E1A2 only at the top (lui/addiu s0, lh (s0), frame 0x18 saving ra at 0x14 and s0 at 0x10), then the later code uses plain lui/%lo globals. The first block is `sb $zero,-0x12($s0)` and `sb 8,-0x13($s0)`. The later D_8021E190 stores use $a0 = &D_8021E190 (lui/addiu), not s0.\n\nAttempts that failed: (1) one s8 base pointer used everywhere gave 0x20 frames and s0 spills at 0x18; (2) globals everywhere gave lui per store; (3) a void-return tail with no local v still gave a 0x20 frame. The frame size is the first thing to fix. Next try: keep only the top block on s0 and let the rest use globals, with the 0x10/0x11 tail written as `*(D190 - 1)` through a0; check the frame is 0x18 before tuning registers.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794766498.333131,
+  "score_before": 1455,
+  "score_after": 1455
+ },
+ {
+  "function": "func_8020E650",
+  "text": "State machine on D_8021E1A2 (s16), bytes at D_8021E190/18F, short at 18C, flag D_801C5EA0; two func_80148230 calls per path, then a clamp of 18C between the two bytes. Fresh C (one flag for the skip path) scores 8129, far from the saved 1778; the logic is probably off in the branch that calls func_80148230 twice (the second call's result is tested as nonzero, then the first condition is re-read). Moving on.",
+  "by": "manual-2b1373017f1c4849",
+  "created_at": 1795709114.199577,
+  "score_before": 8129,
+  "score_after": 8129,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:700a52124b904db89633ab739221bfe1f03a9bea3d4565c9781b356811fb31f6"
+ },
+ {
+  "function": "func_8020E650",
+  "text": "Haiku pass (haiku-pr6): a state machine over D_8021E1A2 (s16 counter), D_8021E190 (s8, written 0 / 9 with a -1 byte 0x10 or 0x11 when D_801C5EA0 == 1) and D_8021E18C (s16, clamped by its two s8 neighbours at +3 and +4, a sign-extended byte copy). Target keeps &D_8021E1A2 in $s0 across the calls. A clean rewrite (goto-based, from the assembly) scored 3816 at -O1 (6422 at -O2); the saved best (m2c form) scores 1904 at -O1 and 2008 at -O2 with the current judge. Tried: an s16 pointer base (4205, the frame has no $s0), a char base pointer (4205). Next: make the saved best the start and keep the $s0 base pointer across the two calls.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795710028.408333,
+  "score_before": 8129,
+  "score_after": 6422,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:700a52124b904db89633ab739221bfe1f03a9bea3d4565c9781b356811fb31f6"
+ },
+ {
+  "function": "func_8020E650",
+  "text": "Saved best is better (1904 at -O1 locally); clean rewrite 3816. See note.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795710028.565331,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:700a52124b904db89633ab739221bfe1f03a9bea3d4565c9781b356811fb31f6"
+ },
+ {
+  "function": "func_8020E650",
+  "text": "Hand-off of func_8020E650: best 3782 (37 differing rows) in c/e3.c.\n\nRemaining rows (marker | target | candidate):\n  > |  | lui $v0, %hi(D_8021E1A2)\n  > |  | lh $v0, %lo(D_8021E1A2)($v0)\n  s | addiu $sp, $sp, -0x18 | addiu $sp, $sp, -0x20\n  < | sw $ra, 0x14($sp) | \n  < | sw $s0, 0x10($sp) | \n  < | lui $s0, %hi(D_8021E1A2) | \n  < | addiu $s0, $s0, %lo(D_8021E1A2) | \n  < | lh $v0, ($s0) | \n  | | nop | sw $ra, 0x18($sp)\n  > |  | lui $at, %hi(D_8021E190)\n  i | sb $zero, -0x12($s0) | sb $zero, %lo(D_8021E190)($at)\n  > |  | lui $at, %hi(D_8021E18F)\n  i | sb $v0, -0x13($s0) | sb $v0, %lo(D_8021E18F)($at)\n  i | lui $a0, %hi(D_8021E18C) | lui $v0, %hi(D_8021E18F)\n  > |  | lbu $v0, %lo(D_8021E18F)($v0)\n  > |  | lui $a0, %hi(D_8021E18C)\n  o | lb $v0, 3($a0) | sll $v0, $v0, 0x18\n  > |  | sra $a1, $v0, 0x18\n  > |  | sra $v0, $v0, 0x18\n  i | beqz $v0, 0x104 | beqz $v0, 0x11c\n  | | lbu $v0, 4($a0) | lui $v0, %hi(D_8021E190)\n  < | j func_8020E650+0x120 | \n  o | sll $v0, $v0, 0x18 | \n  < | lh $v0, ($a0) | \n  < | lb $v1, 4($a0) | \n  < | slt $v0, $v0, $v1 | \n  < | beqz $v0, 0x128 | \n  < | nop | \n  i | lbu $v0, 3($a0) | lbu $v0, %lo(D_8021E190)($v0)\n  > |  | j func_8020E650+0x130\n  | | lw $ra, 0x14($sp) | lui $v0, %hi(D_8021E190)\n  > |  | lb $v0, %lo(D_8021E190)($v0)\n  > |  | slt $v0, $v1, $v0\n  > |  | bnel $v0, $zero, 0x130\n  > |  | sh $a1, ($a0)\n  i | lw $s0, 0x10($sp) | lw $ra, 0x18($sp)\n  s | addiu $sp, $sp, 0x18 | addiu $sp, $sp, 0x20\n\nRegister pairs (explain_regs.py):\n  none\n\nTried (approach: score):\n  - machine-style draft with both calls and the tail: 8330 default, 4411 under -O1\n  - pointer s0 to D_8021E1A2 and a0 to D_8021E190 (goto tail): 3782 default, 1507 under -O1; the target keeps s0 in a saved register across the calls and reads D_8021E1A2 by absolute address after them, the source folds the pointer away\n\nFindings:\n78 insns: a 3-way decision on D_8021E1A2 around two func_80148230 calls, then a struct tail at D_8021E18C (s16 at 0, s8 at 3 and 4) with mixed lbu/lb. Untried: keep s0 opaque (a volatile pointer or a parameter-like local) so it stays in s0.",
+  "by": "manual-7399cac01e854d91",
+  "created_at": 1795713892.768163,
+  "score_before": 6422,
+  "score_after": 3782,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:700a52124b904db89633ab739221bfe1f03a9bea3d4565c9781b356811fb31f6"
+ },
+ {
+  "function": "func_8020E650",
+  "text": "Haiku pr20: best 1507 under -O1 (1778 saved default). Open: keep the s0 base pointer opaque so it stays in a saved register across the two calls; the target reads D_8021E1A2 absolutely after them.",
+  "by": "manual-7399cac01e854d91",
+  "created_at": 1795713903.006103,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:700a52124b904db89633ab739221bfe1f03a9bea3d4565c9781b356811fb31f6"
+ },
+ {
+  "function": "func_8020E650",
+  "text": "haiku-pr29: not matched; draft 5952 vs saved 1778 (11 attempts). Decode: st = D_8021E1A2 (s16). If st < 2: v = (u8) func_80148230(); if v == 2: D_8021E190 = 0, D_8021E18F = 8, go to the tail. Else: if st >= 2 go to the set-9 arm; v = (u8) func(); if v == 1 go to the set-0 arm; v = (u8) func() again; if v == 0 go to the set-0 arm; else if st < 2 go to the tail; set-9 arm: D_8021E190 = 9; then D_8021E18F = 0x10 (0x11 when D_801C5EA0 == 1). Tail on D_8021E18C: s16 A = [0], s8 B = [3], s8 C = [4]: if B < A then A = C, else if A < C then A = B. Not checked: the delay-slot stores order and the exact cast of the second call result (andi 0xFF in both).",
+  "by": "manual-f6353e03c8044c64",
+  "created_at": 1795715751.555923,
+  "score_before": 1778,
+  "score_after": 1778
+ },
+ {
+  "function": "func_8020E650",
+  "text": "[Released without compiling it once; notes not checked by a compile.] draft 5952 vs saved 1778; see note",
+  "by": "manual-f6353e03c8044c64",
+  "created_at": 1795715753.825771,
+  "score_before": 1778,
+  "score_after": 1778
+ },
+ {
+  "function": "func_8020E650",
+  "text": "Small-model attempt at func_8020E650: 12 tries.\n  best 230 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 1267 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1517 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1700 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3345 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 230 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2 kept as compiler trial 3f496996a3295dcdbae4 (not applied).\nNot matched after 12 tries. Best 230 under gcc-2.8.1-pm-sn-as -O2 (profile 3); own profile stays 1778 (saved). Fence-free version of the saved best with a pointer base for D_8021E1A2 in the first block and the global s16 in the later range checks. Still differs: target reloads D_8021E18C through a0 for the second tail compare (ours reuses the loaded halfword), and the target orders sw ra before sw s0. Next: try an else-if tail with a separate load path, or the operand order of the lb/lh pair.",
+  "by": "manual-e608274d1eda4398",
+  "created_at": 1795726062.565983,
+  "score_before": 1778,
+  "score_after": 1778
+ },
+ {
+  "function": "func_8020E650",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_8020E650: 12 tries.\n  best 230 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 1267 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1517 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1700 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3345 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 230 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2 kept as compiler trial 3f496996a3295dcdbae4 (not applied).\nNot matched after 12 tries. Best 230 under gcc-2.8.1-pm-sn-as -O2 (profile 3); own profile stays 1778 (saved). Fence-free version of the saved best with a pointer base for D_8021E1A2 in the first block and the global s16 in the later range checks. Still differs: target reloads D_8021E18C through a0 for the second tail compare (ours reuses the loaded halfword), and the target orders sw ra before sw s0. Next: try an else-if tail with a separate load path, or the operand order of the lb/lh pair.",
+  "by": "manual-e608274d1eda4398",
+  "created_at": 1795726064.197988,
+  "score_before": 1778,
+  "score_after": 1778
+ },
+ {
+  "function": "func_8020E650",
+  "text": "Small-model attempt at func_8020E650: 12 tries.\n  best 170 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 1207 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1517 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1751 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3233 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 170 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2 kept as compiler trial 25041d4872f7b9fce617 (not applied).\n12 tries, not matched. Best 170 under gcc-2.8.1-pm-sn-as -O2 (profile 3). Kept: the near-miss's first comparison reversed to 'lh > lb3' (matched the target's first block load order), second written as 'lh < s8 lb4'. Left: prologue sw $ra order (target stores ra before s0), and the target reloads lh in the second block; a fresh read via the global adds a lui, and caching via a local or second pointer did not give the reload. Also tried: else-if chain, s16/s32 casts, indexed read. Not tried: ordering of the first block's saves.",
+  "by": "manual-37b3e384c0f94c28",
+  "created_at": 1795726939.292026,
+  "score_before": 1778,
+  "score_after": 1778
+ },
+ {
+  "function": "func_8020E650",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_8020E650: 12 tries.\n  best 170 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 1207 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1517 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1751 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3233 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 170 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2 kept as compiler trial 25041d4872f7b9fce617 (not applied).\n12 tries, not matched. Best 170 under gcc-2.8.1-pm-sn-as -O2 (profile 3). Kept: the near-miss's first comparison reversed to 'lh > lb3' (matched the target's first block load order), second written as 'lh < s8 lb4'. Left: prologue sw $ra order (target stores ra before s0), and the target reloads lh in the second block; a fresh read via the global adds a lui, and caching via a local or second pointer did not give the reload. Also tried: else-if chain, s16/s32 casts, indexed read. Not tried: ordering of the first block's saves.",
+  "by": "manual-37b3e384c0f94c28",
+  "created_at": 1795726940.922828,
+  "score_before": 1778,
+  "score_after": 1778
  }
 ]
