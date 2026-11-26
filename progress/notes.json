@@ -7224,14 +7224,6 @@
   "score_after": 2525
  },
  {
-  "function": "func_8019862C",
-  "text": "Not matched. Compiler: the target is KMC gcc 2.7.2 (compiler map), not the claim's 2.8.1 profile. Under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 the m2c draft in the candidate scores 2295 (72.0%) via try_compiler; the best saved under 2.8.1 is 2050. Control flow of the target (from the asm): (1) a = D_801C7068 < 0x17 and D_801C6BE2 is a u16 array read with lhu at (b*0x18 + a)*2 == 0xFFFF; (2) D_801C7AB0 byte at +1 != 5 -> return 1; (3) p0 = D_801C7062[0], p1 = D_801C7062[1]. Branch A: p0==a and p1 == b+1 (beq) or p1 == b-1 -> return (D==1 || D==3). Branch B: p0 == a+1 -> (p1==b ? D==3 : 1). Branch C: p0 == a-1 and p1 == b -> (D==0 || D==2). Otherwise 1. My clean if/else rewrite of exactly this scored 7.3% under kmc (try_compiler with source), because gcc emits the branches in the draft's goto order (block_9 shared tail reached from two paths) rather than my nested order. Next: keep the draft's goto block_9/block_16 shape, compiled with gcc-2.7.2-kmc, then fix the lhu/index multiply order (target: sll 1; addu; sll 3; addu; sll 1) and the s8 loads.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794709619.64718,
-  "score_before": 1520,
-  "score_after": 1520
- },
- {
   "function": "func_80215480",
   "text": "Function: per-entry update of two f32 arrays (stride 0x64) at D_8011F320/F324, adding D_8011F308/F30C, then zeroing an entry when its value is outside the f64 range checks D_8021DE90/DE98 (F320) and D_8021DEA0/DEA8 (F324). Target shape: index t = i*0x64 (computed as ((i*2+i)*8+i)*4, one shift/add chain in v0, i kept in v1 via andi), each access is lui/addu/%lo folded into lwc1/swc1. Tried: (a) `s32 t=i*0x64` with `+=` on both arrays: 4725 (the candidate that folds %lo correctly, but ordering differs). (b) per-access `i*0x64` without a temp: 6865 (no %lo folding). (c) temps a,b for the loads: 4675, GCC reorders the loads anyway. Best saved remains 2525. Unresolved: the target loads F320, F308, adds, stores F320 before touching F324; GCC schedules the second array's load earlier, and i stays in a0 rather than v1. Next idea: keep the `t` form and try the store/load ordering with the stores split into separate statements after both loads. Did not reach a match.",
   "by": "claude-haiku-5-5-20",
@@ -11088,14 +11080,6 @@
   "score_after": 1770
  },
  {
-  "function": "func_8019862C",
-  "text": "Saved best is 2050 from an earlier attempt; my rewrite this claim scored 7085 (13.5%), so do not start from it. Verified logic from the asm (use it to write a new candidate): N=D_801C6BB9 (s8), P=D_801C7068 (s8), mode=D_801C7469 (u8), A=D_801C7062[0], B=D_801C7062[1], cell=*(u16*)(D_801C6BE2 + (N*24+P)*2), gate = (P < 0x17 signed) && cell == 0xFFFF; then if D_801C7AB0->byte1 (lbu at 1 from the pointer loaded from D_801C7AB0) != 5 -> flag 1; else: if A==P { if B==N+1 || B==N-1 -> flag = (mode==1 || mode==3) else flag 1 } else if A==P+1 { if B==N -> flag = (mode==3) else flag 1 } else if A==P-1 { if B!=N -> flag 1 else flag = (mode==0 || mode==2) } else flag 1. Return flag & 0xFF. The target loads P first (lui a1,%hi(D_801C7068)) and keeps it in a1 across the whole function; N is loaded later (a0). My rewrite got the logic right in outline but the register/branch order differs (I loaded N first into a3 and the cell index in v0), giving 93 differing rows. Next: write the gate with P loaded first and the cell address computed as (N*3*8+P)*2 with N in a0, and use the same bnel/beq shapes as the target (the target uses bnel/bne with the \"addiu a2,zero,1\" in the delay slot, so write a2=1 as the last statement of each branch). Untried: compile_family signedness.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794724599.301671,
-  "score_before": 1520,
-  "score_after": 1520
- },
- {
   "function": "func_801B4B6C",
   "text": "Best saved 1150 (historical, different source; not reproduced). My rewrite (revision 608e4044245f05a64ad5) scores 5255 (46.9%): the target is 99 insns vs ours 70, with a 0x184 branch to a function-tail block that our version lacks. Target re-reads D_801CA138 (lui+lb, beqz) after the first p-check, and index math is x*0x64 done as ((x*3)<<1 ... ) i.e. sll/addu chain with a separate andi of arg0 per use. Structure in the m2c draft (goto block_7/block_8 with inline_fn) is closer to the target's shape than my if/else version; start from the saved 1150 source rather than this rewrite. Next: restore saved_best, check the 0x88/0x184 branch layout against the draft's block_7/block_8 split, and keep `andi arg0,0xffff` recomputed per arm.",
   "by": "claude-haiku-5-5-21",
@@ -14648,14 +14632,6 @@
   "score_after": 2586
  },
  {
-  "function": "func_8019862C",
-  "text": "Not attempted this session; released unstarted to stay within the session claim budget. The machine draft is an m2c guess with a table check on D_801C6BE2 (u16 at ((D_801C6BB9*0x18)+D_801C7068)*2 == 0xFFFF) and a D_801C7AB0 field at +1 != 5 test. Start from the target assembly and the same comparison pattern as func_80198A90 (the small sibling family at 0x801973D0).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794736623.996073,
-  "score_before": 1520,
-  "score_after": 1520
- },
- {
   "function": "func_8013DD2C",
   "text": "Best saved is 4400 (earlier draft); my rewrite scored 6385 (revision 84ccc7af96779ef35566). Structure per asm: off=D_80126FF6*40; t1=((u16 @2114+off)<<16)>>21, t5=((u16 @2116+off)<<16)>>21, t0=s16 @2110+off, t4=s16 @2112+off; dst=D_80183BE0+(D_80126FF6<<12)+(D_80168166<<11); outer j<32: src=D_800DB1B0(ptr)+(j*t5+t4)*0x280; inner i<32: dst16[((i<<5)+0x1F-j)*2] = src16[(i*t1+t0)*2]; then D_80168166 ^= 1. Target's t-loads are interleaved with the off computation (sll/addu/sll chain, lui/addu/lhu per field) and it uses mult/mflo rather than shifts for j*t5 and i*t1; my draft orders the loads differently (lui $a1 for D_80126FF6 first). Next: move the D_80126FF6 lbu into the same expression as the off chain, and keep dst pointer computed after the t-loads.",
   "by": "claude-haiku-5-5-21",
@@ -15254,14 +15230,6 @@
   "created_at": 1794739161.147696,
   "score_before": 2450,
   "score_after": 2450
- },
- {
-  "function": "func_8019862C",
-  "text": "Best current: revision 624e110e6bb771457ed5 (3710, 54.7%); a3956190b40005d98c05 is the same instructions with result renamed a2 (no change). Target 82 insns, mine 70. Goto form matches the target's labels (b=D_801C7068 first with slti 0x17; a=D_801C6BB9; halfword D_801C6BE2[a*24+b]==0xFFFF; D_801C7AB0[1]==5; c0/c1 from D_801C7062[0]/[1]; flag D_801C7469 tests with v==1||v==3 in one block and v==0||v==2 in another, v==3 alone after c0==b+1). Why it can't get closer by tuning: the target reloads D_801C7068 into $a1 and tests slti 0x17 before loading D_801C6BB9; mine loads into $a3 and puts both loads in one block, so the branch offsets (0x140 vs 0x110) and the joins differ. The target also has an extra `lb v1,1(a0)` plus a separate `bne v0,a1` (c0 compared to b with the reloaded b, not a cached one). Next: write the c0 reload as a fresh read of D_801C7068 at each compare (not a cached b) to mirror the target's extra lui/lb pairs, then check the join order.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794739164.964565,
-  "score_before": 1520,
-  "score_after": 1520
  },
  {
   "function": "func_80230EFC",
@@ -21334,14 +21302,6 @@
   "created_at": 1794755853.785433,
   "score_before": 140,
   "score_after": 140
- },
- {
-  "function": "func_8019862C",
-  "text": "Not matched. Best this session: 2960 (63.9%) under gcc-2.8.1-pm-sn-as with direct global reads (no locals; locals made it worse at 6280) and bitwise | for the two D_801C7469 checks. Logic verified from asm: r=1 unless [D68<0x17 && table[b*24+a]==0xFFFF && byte1(*D_801C7AB0)==5] goes into the x/y pair checks: x==a & y==b+-1 -> D469 in {1,3}; x==a+1 & y==b -> D469==3, else set; x==a-1 & y==b -> D469 in {0,2}; all other paths set. Remaining diffs: branch layout (target bne to 0x140 / bnel) and the final D469 block ordering. try_compiler gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 gave 2295 (72%); under kmc it emits lw with sll 3 for D_801C6BE2 where the target has lhu with sll 1 (the 16-bit table index is (b*24+a)*2), so the table's type/index expression needs fixing under kmc before comparing layouts. Next: under kmc, index the table as a u16 with the *2 explicit, then reorder the x==a+1 block.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794755865.745164,
-  "score_before": 1520,
-  "score_after": 1520
  },
  {
   "function": "func_801FC768",
@@ -27528,14 +27488,6 @@
   "score_after": 3120
  },
  {
-  "function": "func_8019862C",
-  "text": "Best saved: revision 2602c7b0f36a6fb4832d (the m2c draft), score 2050. Target loads b=D_801C7068 first (lui a1 / lb / slti 0x17) and a=D_801C6BB9 only afterwards (lui a0 / lb a0), so the draft's operand order is roughly right but the draft's var_v0/var_v1 goto block_9 shape is not what the target does. A hand rewrite (b first, nested ifs, goto done) scored 5855 and was worse; discarded. Target has ~82 insns vs 58 in our rewrite, with the D_801C6BE2 table index as (a*0x18+b)*2 computed via sll 1 + addu. Not tried: the draft with try_local_repairs (27 proposals are queued for it), and -O1. Start from the draft at 2602c7b0.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794765098.221204,
-  "score_before": 1520,
-  "score_after": 1520
- },
- {
   "function": "func_8014ABD8",
   "text": "EXACT under KMC -G0 -mips3 -mgp32 -mfp32 -O1, diagnostic37edce67791e9b210445, source revisiona974a46f9b0fda7c3998 (u32 arg0). suggest verified byte-exact and queued function-only bundle; automatic compiler changes OFF, needs application. Default O2 score715. Do not tune C further; apply queued exact bundle.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -28614,14 +28566,6 @@
   "created_at": 1794767276.074582,
   "score_before": 1125,
   "score_after": 1125
- },
- {
-  "function": "func_8019862C",
-  "text": "No match. Best 1440 (82.4%), revision 073cbe5b8fd5c53604a2. Structure: gate D_801C6BE2[((D_801C6BB9*3)<<3)+D_801C7068]==0xFFFF (u16 table, index scaled last); D_801C7AB0 byte1 != 5 -> a2=1; case A (p0==c and p1==a+1 or a-1, p=D_801C7062) -> a2=((m==1)|(m==3)); case B (p0==c+1, p1==a) -> if (m==3) a2=1; then p0!=c-1 -> a2=1; p1!=a -> a2=1; else a2=((m==0)|(m==2)). Globals must be re-read per use: caching c/a/m in locals scored 5770-6170. Writing case A as if-form gave 1535, and bool-form in B/C gave 2295. Remaining diff is the tail after case A: target does or v1,v1,v0; beqz END; nop; j END; addiu a2,1 and then loads D_801C7062 with lui/addiu into $a0, while mine computes the or into $a2 and reloads the array base. Tried a pointer tail variant: identical to 1440. Not tried: compile_variants over the tail alternatives, or nesting case A's condition with its own if inside the outer if. Move on; the case A tail is the lead for next time.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794767276.181043,
-  "score_before": 1520,
-  "score_after": 1440
  },
  {
   "function": "nuContMgr",
@@ -38103,5 +38047,125 @@
   "created_at": 1795726471.324088,
   "score_before": 3144,
   "score_after": 3144
+ },
+ {
+  "function": "func_8019862C",
+  "text": "Not matched. Compiler: the target is KMC gcc 2.7.2 (compiler map), not the claim's 2.8.1 profile. Under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 the m2c draft in the candidate scores 2295 (72.0%) via try_compiler; the best saved under 2.8.1 is 2050. Control flow of the target (from the asm): (1) a = D_801C7068 < 0x17 and D_801C6BE2 is a u16 array read with lhu at (b*0x18 + a)*2 == 0xFFFF; (2) D_801C7AB0 byte at +1 != 5 -> return 1; (3) p0 = D_801C7062[0], p1 = D_801C7062[1]. Branch A: p0==a and p1 == b+1 (beq) or p1 == b-1 -> return (D==1 || D==3). Branch B: p0 == a+1 -> (p1==b ? D==3 : 1). Branch C: p0 == a-1 and p1 == b -> (D==0 || D==2). Otherwise 1. My clean if/else rewrite of exactly this scored 7.3% under kmc (try_compiler with source), because gcc emits the branches in the draft's goto order (block_9 shared tail reached from two paths) rather than my nested order. Next: keep the draft's goto block_9/block_16 shape, compiled with gcc-2.7.2-kmc, then fix the lhu/index multiply order (target: sll 1; addu; sll 3; addu; sll 1) and the s8 loads.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794709619.64718,
+  "score_before": 1520,
+  "score_after": 1520
+ },
+ {
+  "function": "func_8019862C",
+  "text": "Saved best is 2050 from an earlier attempt; my rewrite this claim scored 7085 (13.5%), so do not start from it. Verified logic from the asm (use it to write a new candidate): N=D_801C6BB9 (s8), P=D_801C7068 (s8), mode=D_801C7469 (u8), A=D_801C7062[0], B=D_801C7062[1], cell=*(u16*)(D_801C6BE2 + (N*24+P)*2), gate = (P < 0x17 signed) && cell == 0xFFFF; then if D_801C7AB0->byte1 (lbu at 1 from the pointer loaded from D_801C7AB0) != 5 -> flag 1; else: if A==P { if B==N+1 || B==N-1 -> flag = (mode==1 || mode==3) else flag 1 } else if A==P+1 { if B==N -> flag = (mode==3) else flag 1 } else if A==P-1 { if B!=N -> flag 1 else flag = (mode==0 || mode==2) } else flag 1. Return flag & 0xFF. The target loads P first (lui a1,%hi(D_801C7068)) and keeps it in a1 across the whole function; N is loaded later (a0). My rewrite got the logic right in outline but the register/branch order differs (I loaded N first into a3 and the cell index in v0), giving 93 differing rows. Next: write the gate with P loaded first and the cell address computed as (N*3*8+P)*2 with N in a0, and use the same bnel/beq shapes as the target (the target uses bnel/bne with the \"addiu a2,zero,1\" in the delay slot, so write a2=1 as the last statement of each branch). Untried: compile_family signedness.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794724599.301671,
+  "score_before": 1520,
+  "score_after": 1520
+ },
+ {
+  "function": "func_8019862C",
+  "text": "Not attempted this session; released unstarted to stay within the session claim budget. The machine draft is an m2c guess with a table check on D_801C6BE2 (u16 at ((D_801C6BB9*0x18)+D_801C7068)*2 == 0xFFFF) and a D_801C7AB0 field at +1 != 5 test. Start from the target assembly and the same comparison pattern as func_80198A90 (the small sibling family at 0x801973D0).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794736623.996073,
+  "score_before": 1520,
+  "score_after": 1520
+ },
+ {
+  "function": "func_8019862C",
+  "text": "Best current: revision 624e110e6bb771457ed5 (3710, 54.7%); a3956190b40005d98c05 is the same instructions with result renamed a2 (no change). Target 82 insns, mine 70. Goto form matches the target's labels (b=D_801C7068 first with slti 0x17; a=D_801C6BB9; halfword D_801C6BE2[a*24+b]==0xFFFF; D_801C7AB0[1]==5; c0/c1 from D_801C7062[0]/[1]; flag D_801C7469 tests with v==1||v==3 in one block and v==0||v==2 in another, v==3 alone after c0==b+1). Why it can't get closer by tuning: the target reloads D_801C7068 into $a1 and tests slti 0x17 before loading D_801C6BB9; mine loads into $a3 and puts both loads in one block, so the branch offsets (0x140 vs 0x110) and the joins differ. The target also has an extra `lb v1,1(a0)` plus a separate `bne v0,a1` (c0 compared to b with the reloaded b, not a cached one). Next: write the c0 reload as a fresh read of D_801C7068 at each compare (not a cached b) to mirror the target's extra lui/lb pairs, then check the join order.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794739164.964565,
+  "score_before": 1520,
+  "score_after": 1520
+ },
+ {
+  "function": "func_8019862C",
+  "text": "Not matched. Best this session: 2960 (63.9%) under gcc-2.8.1-pm-sn-as with direct global reads (no locals; locals made it worse at 6280) and bitwise | for the two D_801C7469 checks. Logic verified from asm: r=1 unless [D68<0x17 && table[b*24+a]==0xFFFF && byte1(*D_801C7AB0)==5] goes into the x/y pair checks: x==a & y==b+-1 -> D469 in {1,3}; x==a+1 & y==b -> D469==3, else set; x==a-1 & y==b -> D469 in {0,2}; all other paths set. Remaining diffs: branch layout (target bne to 0x140 / bnel) and the final D469 block ordering. try_compiler gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 gave 2295 (72%); under kmc it emits lw with sll 3 for D_801C6BE2 where the target has lhu with sll 1 (the 16-bit table index is (b*24+a)*2), so the table's type/index expression needs fixing under kmc before comparing layouts. Next: under kmc, index the table as a u16 with the *2 explicit, then reorder the x==a+1 block.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794755865.745164,
+  "score_before": 1520,
+  "score_after": 1520
+ },
+ {
+  "function": "func_8019862C",
+  "text": "Best saved: revision 2602c7b0f36a6fb4832d (the m2c draft), score 2050. Target loads b=D_801C7068 first (lui a1 / lb / slti 0x17) and a=D_801C6BB9 only afterwards (lui a0 / lb a0), so the draft's operand order is roughly right but the draft's var_v0/var_v1 goto block_9 shape is not what the target does. A hand rewrite (b first, nested ifs, goto done) scored 5855 and was worse; discarded. Target has ~82 insns vs 58 in our rewrite, with the D_801C6BE2 table index as (a*0x18+b)*2 computed via sll 1 + addu. Not tried: the draft with try_local_repairs (27 proposals are queued for it), and -O1. Start from the draft at 2602c7b0.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794765098.221204,
+  "score_before": 1520,
+  "score_after": 1520
+ },
+ {
+  "function": "func_8019862C",
+  "text": "No match. Best 1440 (82.4%), revision 073cbe5b8fd5c53604a2. Structure: gate D_801C6BE2[((D_801C6BB9*3)<<3)+D_801C7068]==0xFFFF (u16 table, index scaled last); D_801C7AB0 byte1 != 5 -> a2=1; case A (p0==c and p1==a+1 or a-1, p=D_801C7062) -> a2=((m==1)|(m==3)); case B (p0==c+1, p1==a) -> if (m==3) a2=1; then p0!=c-1 -> a2=1; p1!=a -> a2=1; else a2=((m==0)|(m==2)). Globals must be re-read per use: caching c/a/m in locals scored 5770-6170. Writing case A as if-form gave 1535, and bool-form in B/C gave 2295. Remaining diff is the tail after case A: target does or v1,v1,v0; beqz END; nop; j END; addiu a2,1 and then loads D_801C7062 with lui/addiu into $a0, while mine computes the or into $a2 and reloads the array base. Tried a pointer tail variant: identical to 1440. Not tried: compile_variants over the tail alternatives, or nesting case A's condition with its own if inside the outer if. Move on; the case A tail is the lead for next time.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794767276.181043,
+  "score_before": 1520,
+  "score_after": 1440
+ },
+ {
+  "function": "func_8019862C",
+  "text": "Haiku pass (haiku-pr6): a decision tree on the phase bytes (D_801C7068 c, D_801C6BB9 b, D_801C7062[0..1], D_801C7469 mode) gated by D_801C6BE2[b*24+c] == 0xFFFF and D_801C7AB0[1] == 5, returning 0/1: a branch on p0 == c with p1 = b+-1 -> (mode 1 or 3); p0 == c+1 and p1 == b -> mode 3; else p0 != c-1 or p1 != b -> 1; else mode 0 or 2. A clean rewrite from the assembly scored 5715 at -O2 (6200 at -O1); the saved best is not known from this pass. Next: the target computes (mode==1 || mode==3) through xori/sltiu and jumps into the shared tail (86C8), so the form of the sum needs the same shape.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795710598.612322,
+  "score_before": 1100,
+  "score_after": 1100
+ },
+ {
+  "function": "func_8019862C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Decision tree written from the asm; 5715 at -O2. See note.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795710605.1799731,
+  "score_before": 1100,
+  "score_after": 1100
+ },
+ {
+  "function": "func_8019862C",
+  "text": "haiku-pr26: stalled at 3420 under -G0 -mips3 -mgp32 -mfp32 -O1 (default O2 far, about 6100 for the hand draft). Hand draft p2 (single exit, u8 result, nested ifs) was 7820; prove_chain (all families) took it to 3420 and no child improves. A stray lbu of D_801C7068 appears in the draft (type clash or a copy the target does not make); the target keeps the result in $a2 and returns from one exit. Final source (scratch deleted at stop):\nextern s8 D_801C7068;\nextern s8 D_801C6BB9;\nextern u16 D_801C6BE2[];\nextern u8 *D_801C7AB0;\nextern s8 D_801C7062[];\nextern u8 D_801C7469;\n\nu8 func_8019862C(void)\n{\n  u8 r;\n  r = 0;\n  if (D_801C7068 < 0x17)\n  {\n    if (D_801C6BE2[D_801C6BB9 * 24 + D_801C7068] == 0xFFFF)\n    {\n      r = 1;\n      if (D_801C7AB0[1] == 5)\n      {\n        if ((D_801C7062[0]) == D_801C7068)\n        {\n          if ((D_801C7062[1]) == D_801C6BB9 + 1 || (D_801C7062[1]) == D_801C6BB9 - 1)\n          {\n            r = (D_801C7469 == 1 || D_801C7469 == 3);\n          }\n          else\n          {\n            r = 1;\n          }\n        }\n        else if ((D_801C7062[0]) == D_801C7068 + 1)\n        {\n          if ((D_801C7062[1]) == D_801C6BB9)\n          {\n            r = (D_801C7469 == 3);\n          }\n          else\n          {\n            r = 1;\n          }\n        }\n        else if ((D_801C7062[0]) != D_801C7068 - 1)\n        {\n          r = 1;\n        }\n        else if ((D_801C7062[1]) != D_801C6BB9)\n        {\n          r = 1;\n        }\n        else\n        {\n          r = (D_801C7469 == 0 || D_801C7469 == 2);\n        }\n      }\n    }\n  }\n  return r;\n}",
+  "by": "manual-41d32257dcbd48de",
+  "created_at": 1795715901.1523452,
+  "score_before": 1100,
+  "score_after": 1100
+ },
+ {
+  "function": "func_8019862C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr26: stalled at 3420 under -O1 after prove_chain; see note.",
+  "by": "manual-41d32257dcbd48de",
+  "created_at": 1795715901.822815,
+  "score_before": 1100,
+  "score_after": 1100
+ },
+ {
+  "function": "func_8019862C",
+  "text": "Small-model attempt at func_8019862C: 10 tries.\n  best 1875 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2160 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 2175 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 2335 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2935 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n10 tries, not matched. Best: 1875 under the own profile (gcc-2.8.1 -O2) and 2160 under -O1 (gcc-2.7.2-kmc). Donor func_8019839C's C (91% similar) does not fit: the target has no D_801C7068 != 0 guard, a different lhu index base, and a shared 'or' tail for the D==1|D==3 and D==0|D==2 checks. Remaining diffs: register allocation (a in a1, result in a2 with the target's -O1 loads) and the tail's j/bnel shape. Locals, nesting and bitwise-or tails were tried.",
+  "by": "manual-fff97663ade14a94",
+  "created_at": 1795717550.33921,
+  "score_before": 1100,
+  "score_after": 1100
+ },
+ {
+  "function": "func_8019862C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_8019862C: 10 tries.\n  best 1875 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2160 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 2175 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 2335 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2935 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n10 tries, not matched. Best: 1875 under the own profile (gcc-2.8.1 -O2) and 2160 under -O1 (gcc-2.7.2-kmc). Donor func_8019839C's C (91% similar) does not fit: the target has no D_801C7068 != 0 guard, a different lhu index base, and a shared 'or' tail for the D==1|D==3 and D==0|D==2 checks. Remaining diffs: register allocation (a in a1, result in a2 with the target's -O1 loads) and the tail's j/bnel shape. Locals, nesting and bitwise-or tails were tried.",
+  "by": "manual-fff97663ade14a94",
+  "created_at": 1795717552.347778,
+  "score_before": 1100,
+  "score_after": 1100
+ },
+ {
+  "function": "func_8019862C",
+  "text": "Small-model attempt at func_8019862C: 12 tries.\n  best 1155 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1170 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1350 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 1475 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2865 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 1155 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 2c15600b1d82226473eb (not applied).\nBest 1155 under gcc-2.7.2-kmc -O1 (twin profile) from nesting the status check as an outer if-else on D_801C7AB0[1]==5 with a2 = 0 initialised first. Tried: cached s8/s32 locals for D_801C7068 (worse, 2010-8040), void-pointer cast, p pointer local (worse), || forms (own score up to 4200), masked (D_801C7469 & 0xFD) (1340), direct a2 = D_801C7469 == 3 (1480). Left: the register allocation of the target's first load (lui a1 reused for D_801C7068 and the loop of a2 init), and the O2 own profile still around 2100.",
+  "by": "manual-e59729990c144223",
+  "created_at": 1795726247.651098,
+  "score_before": 1100,
+  "score_after": 1100
+ },
+ {
+  "function": "func_8019862C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_8019862C: 12 tries.\n  best 1155 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1170 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1350 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 1475 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2865 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 1155 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 2c15600b1d82226473eb (not applied).\nBest 1155 under gcc-2.7.2-kmc -O1 (twin profile) from nesting the status check as an outer if-else on D_801C7AB0[1]==5 with a2 = 0 initialised first. Tried: cached s8/s32 locals for D_801C7068 (worse, 2010-8040), void-pointer cast, p pointer local (worse), || forms (own score up to 4200), masked (D_801C7469 & 0xFD) (1340), direct a2 = D_801C7469 == 3 (1480). Left: the register allocation of the target's first load (lui a1 reused for D_801C7068 and the loop of a2 init), and the O2 own profile still around 2100.",
+  "by": "manual-e59729990c144223",
+  "created_at": 1795726248.538997,
+  "score_before": 1100,
+  "score_after": 1100
  }
 ]
