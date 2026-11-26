@@ -34641,96 +34641,6 @@
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:28ec43cc6a321b67b83e38e69019694683f28a4fa3be7ad11467296a8d254f9b"
  },
  {
-  "function": "func_801B3CB0",
-  "text": "Best 2715 (69.8%), revision 487119e5fb1924e0ae08: the saved-progress temp_v1 chain with `extern u8 D_8011F2FC[]` (lbu, not lb; 2915 -> 2715). Saved \"85\" is historical and did not reproduce here (the same source scored 2915 before the u8 fix). Structure matches the target: a straight line of 11 Gfx-style commands, each `*arg0 += 8` then two stores; D_8011F2FC index is (arg1&0xFFFF)*0x64 with lbu, OR 0xFF000000; D_803147E8 address is in the last 0x0400103F command. Remaining differences are register/order: the target keeps 0xE7000000 in a3 for the first and the final command (CSE) and loads 0xBA001402/0xB900031D/0xFCFFFFFF immediates into v0 one after another; ours uses extra t0/t1/a2 temporaries. A plain struct version (Gfx *g; g = *arg0; ...) scored 3425 with 43 register rows, so keep the temp chain. Next: force the 0xE7000000 constant into one reused local (e.g. `u32 cmd = 0xE7000000;`) and check the lui/ori order for 0xB900031D.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794709662.025214,
-  "score_before": 85,
-  "score_after": 85
- },
- {
-  "function": "func_801B3CB0",
-  "text": "Not matched. Best now 2715 (69.8%), revision ee6cc8eb6b0023785a27. Saved best 85 does not reproduce in this build: the same source as the saved best scored 2915 (67.6%). The one clear source fix: D_8011F2FC must be `unsigned char` (target is lbu, not lb). Target is straight-line RDP writes: each is `w=*arg0; *arg0=w+8; w[0]=..; w[1]=..` with word constants E7000000/0, BA001402/0, B6000000/2001, B900031D/005049C8, FCFFFFFF/FFFDF6FB, E7000000/0, FA000000/(D_8011F2FC[(u16)arg1*100]|FF000000), F9000000/1, 0400103F/&D_803147E8, B1000204/406, E7000000/0. Remaining diff: the target writes the first word through a3 (lui a3,0xe700 stored before the other constants) and reads *arg0 once per block, while the candidate materialises the constants in t1/a2/t0 and reloads *arg0 per op. Next: try a single dl local updated by one helper macro, or move the E7000000 constant to a shared local so GCC uses a3 for it.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794724702.3231082,
-  "score_before": 85,
-  "score_after": 85
- },
- {
-  "function": "func_801B3CB0",
-  "text": "func_801B3CB0 (N64 display-list builder: 12 commands written through *arg0 as 8-byte Gfx pairs; a3 holds 0xE7000000 for the first and last E7 commands; table D_8011F2FC read with lbu at (arg1&0xFFFF)*0x64, OR 0xFF000000). Current best 2715 (69.8%), revision 8e73c2b2973c4b499b07 (pointer-temp form with lbu table). The saved 85 does NOT reproduce: the same saved source compiles at 2915 today. Gfx-struct form scored 3425 (wrong register picks, t1/t0/a2 instead of v1/v0). Remaining diffs are register allocation and constant scheduling: target keeps one pointer in v1 across commands and emits lui/ori of each w0 right before its sw. Next idea: write each w0 constant into a single shared local before the store (like a3), and try 0xB900031D/0x0400103F materialized late.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794736943.915446,
-  "score_before": 85,
-  "score_after": 85
- },
- {
-  "function": "func_801B3CB0",
-  "text": "Display-list builder: eleven 8-byte commands, cursor *arg0 (load cursor, store cursor+8, write two words). Best current: revision 424920844d47faed3279 (2980, 66.8%); saved best 85 uses the m2c temp_v1_N structure with signed `char` table and is not reproduced by the same text here. Facts: D_8011F2FC must be `u8` (target lbu, index (arg1&0xFFFF)*100, OR 0xFF000000 into word 1 of the FA command); the first E7 constant is reused by $a3 for the last E7 store (target reloads the cursor for each command, then lui/ori just before the store). Tried: macro form (2640), temp-cursor form with u8 (2980, best), per-command `d` pointer (3425, worse: reorders the cursor loads). Why it stalls: GCC hoists the shared constants (0xFCFFFFFF/0xFFFDF6FB, 0xB900031D, 0x0400103F) across commands and the target does not, so the register/order diff stays. Next: restore the 85 source structure, make only the table `u8`, and check whether 85 reproduces before any other change.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794739256.3770828,
-  "score_before": 85,
-  "score_after": 85
- },
- {
-  "function": "func_801B3CB0",
-  "text": "No match. Best rechecked 2715 (69.8%, revision 8e73c2b2973c4b499b07): the m2c temp-variable form (temp_v1 = *arg0; *arg0 = temp+8; s32 stores via char*) with `extern unsigned char D_8011F2FC[]` (the unsigned change fixed lb->lbu, +200). The saved best 85 is historical and does not recheck. Instruction count matches (90 each); remaining diffs are register/order: target loads each command pointer once and stores constants via a3/v1 (`lui a3,0xe700; sw a3,(v1); sw zero,4(v1); lw v1,(a0); addiu v0,v1,8; sw v0,(a0)`), while we use t1 for the pointer and build 0xba001402 in a2. Also the 0xB900031D command: the target builds the first half in the earlier register sequence. The flat `p = *arg0; *arg0 = p + 2;` form scored worse (3425). Next: test the pointer as `void *` vs `s32 *` per command, and statement order where the constant-only stores come first.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794755541.8694909,
-  "score_before": 85,
-  "score_after": 85
- },
- {
-  "function": "func_801B3CB0",
-  "text": "Best saved: revision 8e005ccd1bbc04bd5c9e (score 85), the machine draft with its do{}while(0) wrapper and temp_* variables. My clean rewrite (g = *arg0 per store, 3625) and the lbu patch to that draft (2715) both scored worse; do not start from them. Known remaining issue from the 85 version: the D_8011F2FC table byte is loaded with lw where the target uses lbu (unsigned char); the first `| 0xFF000000` operand should use an unsigned char load. Target also needs the constant stores in the order it uses (lui a3 0xE700 first, then sw zero, then lw/addiu for the 0xBA001402 record). Not yet tried: try_local_repairs on the 85 revision (54 proposals queued), and the lbu fix applied alone to that revision (the patch I tried was combined with a different base).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794765128.672378,
-  "score_before": 85,
-  "score_after": 85
- },
- {
-  "function": "func_801B3CB0",
-  "text": "Release: no closer structure found. Best: rev 487119e5fb1924e0ae08 (2715, 69.8%), the saved do-while display-list source with `extern u8 D_8011F2FC[]`. Tried: sequential p[] form (rev 6d3fe5d3e591ca693f52, 3625, worse), and `(s32) D_803147E8` instead of `&D_803147E8` (rev 7fc0079b1f53b13929f5, no effect). Remaining diff: the target keeps lw $v1,(a0) pointer load and loads constants as lui $a3,0xe700 before the first store, and hoists 0xB900031D after 0xFCFFFFFF; ours uses $t1 for the pointer and $a2 for 0xBA001402. These are register and order differences from the statement order, so next try: reorder the do-while temporaries so the first pair's pointer is named temp_v1, and try compile_family(parameter_width).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794767215.023374,
-  "score_before": 85,
-  "score_after": 85
- },
- {
-  "function": "func_801B3CB0",
-  "text": "Moved on after 8 trials returning previously seen scored instruction diffs. Best source retained.",
-  "by": "manual-f371a0a530af4d31",
-  "created_at": 1795710322.688947,
-  "score_before": 325,
-  "score_after": 325,
-  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a32d50acd48646799f6487d371fd3a090964b40ca0073b0efa30c7106d883e4d"
- },
- {
-  "function": "func_801B3CB0",
-  "text": "Hand-off of func_801B3CB0: best 325 (7 differing rows) in /tmp/dd-haiku-pr9b/start/best.c.\n\nRemaining rows (marker | target | candidate):\n  r | lw $v0, ($a0) | lw $v1, ($a0)\n  r | addiu $v1, $v0, 8 | addiu $v0, $v1, 8\n  r | sw $v1, ($a0) | sw $v0, ($a0)\n  r | sw $a3, ($v0) | sw $a3, ($v1)\n  r | sw $zero, 4($v0) | sw $zero, 4($v1)\n  | | lui $v0, 0x400 | addiu $v0, $zero, 0x103f\n  < | ori $v0, $v0, 0x103f | \n\nRegister pairs (explain_regs.py):\n  $v1 where the target has $v0 (4 rows):\n  why not $v0: block-local: local-alloc gives quantities registers in priority order and $v0 was taken or tied up in that block (also in $v0: pseudo 79 (1.60), pseudo 87 (4.00)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $v0: block-local: local-alloc gives quantities registers in priority order and $v0 was taken or tied up in that block (also in $v0: pseudo 79 (1.60), pseudo 87 (4.00)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $v0: block-local: local-alloc gives quantities registers in priority order and $v0 was taken or tied up in that block (also in $v0: pseudo 79 (1.60), pseudo 87 (4.00)). Move it: change its refs/length against those, or make it global (a use in another block).\n  $v0 where the target has $v1 (2 rows):\n  why not $v1: block-local: local-alloc gives quantities registers in priority order and $v1 was taken or tied up in that block (also in $v1: pseudo 76 (12.00), pseudo 78 (15.20)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $v1: block-local: local-alloc gives quantities registers in priority order and $v1 was taken or tied up in that block (also in $v1: pseudo 76 (12.00), pseudo 78 (15.20)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $v1: block-local: local-alloc gives quantities registers in priority order and $v1 was taken or tied up in that block (also in $v1: pseudo 76 (12.00), pseudo 78 (15.20)). Move it: change its refs/length against those, or make it global (a use in another block).\n\nTried (approach: score):\n  - unsigned short cast removed from the 0x0400103F store: 500\n  - cast spelled as (0x0400<<16)|0x103F, (s32)(u32), (s32)): 500\n  - temp_v0_2/temp_v1_8 swapped in the tail: 450\n  - fresh local for temp_v1_7: 325 (no change)\n\nFindings:\ntarget builds 0x0400103F as lui $v0,0x400 + ori; the (unsigned short) cast yields addiu $v0,$zero,0x103f. Every spelling that writes the full word scored 500, so the cast's removal alone is not enough; the store-order or register rows after it still need work",
-  "by": "manual-f371a0a530af4d31",
-  "created_at": 1795710390.735447,
-  "score_before": 325,
-  "score_after": 325,
-  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a32d50acd48646799f6487d371fd3a090964b40ca0073b0efa30c7106d883e4d"
- },
- {
-  "function": "func_801B3CB0",
-  "text": "Haiku clean rewrite (session haiku-pr17), 12 judged candidates. Clean display-list form (one Gfx bump and two word stores per command, the FA word as (arg1 & 0xFFFF) * 0x64 indexed D_8011F2FC with | 0xFF000000, not 0xFFFF0000) scores 2980 at -O2 (best clean). Best 325 (scaffolded). Instructions match apart from registers: sched hoists each command's constant lui/ori to the top of the block (single-set pseudos are boosted), the target builds each constant after its pointer bump. Tried: block-scoped and per-command pointer locals, shared and block-local word locals (7700), w0 before the bump (3885), w1 before w0, two-step lui+ori word, m2c temp_v1 style (2980). Repair idea: a multi-set constant word per command (birthing_insn_p).",
-  "by": "manual-3be4557e41ac4704",
-  "created_at": 1795712408.241741,
-  "score_before": 325,
-  "score_after": 325
- },
- {
-  "function": "func_801B3CB0",
-  "text": "[Released without compiling it once; notes not checked by a compile.] Clean display-list rewrite scores 2980 (constants hoisted by sched); best 325 is scaffolded. Released after 12 judged candidates.",
-  "by": "manual-3be4557e41ac4704",
-  "created_at": 1795712412.398905,
-  "score_before": 325,
-  "score_after": 325
- },
- {
   "function": "func_801542F8",
   "text": "Deep permuter: score 3515 \u2192 2720; 5 improvements; 41 candidates tested; 67 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935488",
@@ -35802,5 +35712,95 @@
   "created_at": 1795715482.479587,
   "score_before": 1065,
   "score_after": 1065
+ },
+ {
+  "function": "func_801B3CB0",
+  "text": "Best 2715 (69.8%), revision 487119e5fb1924e0ae08: the saved-progress temp_v1 chain with `extern u8 D_8011F2FC[]` (lbu, not lb; 2915 -> 2715). Saved \"85\" is historical and did not reproduce here (the same source scored 2915 before the u8 fix). Structure matches the target: a straight line of 11 Gfx-style commands, each `*arg0 += 8` then two stores; D_8011F2FC index is (arg1&0xFFFF)*0x64 with lbu, OR 0xFF000000; D_803147E8 address is in the last 0x0400103F command. Remaining differences are register/order: the target keeps 0xE7000000 in a3 for the first and the final command (CSE) and loads 0xBA001402/0xB900031D/0xFCFFFFFF immediates into v0 one after another; ours uses extra t0/t1/a2 temporaries. A plain struct version (Gfx *g; g = *arg0; ...) scored 3425 with 43 register rows, so keep the temp chain. Next: force the 0xE7000000 constant into one reused local (e.g. `u32 cmd = 0xE7000000;`) and check the lui/ori order for 0xB900031D.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794709662.025214,
+  "score_before": 85,
+  "score_after": 85
+ },
+ {
+  "function": "func_801B3CB0",
+  "text": "Not matched. Best now 2715 (69.8%), revision ee6cc8eb6b0023785a27. Saved best 85 does not reproduce in this build: the same source as the saved best scored 2915 (67.6%). The one clear source fix: D_8011F2FC must be `unsigned char` (target is lbu, not lb). Target is straight-line RDP writes: each is `w=*arg0; *arg0=w+8; w[0]=..; w[1]=..` with word constants E7000000/0, BA001402/0, B6000000/2001, B900031D/005049C8, FCFFFFFF/FFFDF6FB, E7000000/0, FA000000/(D_8011F2FC[(u16)arg1*100]|FF000000), F9000000/1, 0400103F/&D_803147E8, B1000204/406, E7000000/0. Remaining diff: the target writes the first word through a3 (lui a3,0xe700 stored before the other constants) and reads *arg0 once per block, while the candidate materialises the constants in t1/a2/t0 and reloads *arg0 per op. Next: try a single dl local updated by one helper macro, or move the E7000000 constant to a shared local so GCC uses a3 for it.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794724702.3231082,
+  "score_before": 85,
+  "score_after": 85
+ },
+ {
+  "function": "func_801B3CB0",
+  "text": "func_801B3CB0 (N64 display-list builder: 12 commands written through *arg0 as 8-byte Gfx pairs; a3 holds 0xE7000000 for the first and last E7 commands; table D_8011F2FC read with lbu at (arg1&0xFFFF)*0x64, OR 0xFF000000). Current best 2715 (69.8%), revision 8e73c2b2973c4b499b07 (pointer-temp form with lbu table). The saved 85 does NOT reproduce: the same saved source compiles at 2915 today. Gfx-struct form scored 3425 (wrong register picks, t1/t0/a2 instead of v1/v0). Remaining diffs are register allocation and constant scheduling: target keeps one pointer in v1 across commands and emits lui/ori of each w0 right before its sw. Next idea: write each w0 constant into a single shared local before the store (like a3), and try 0xB900031D/0x0400103F materialized late.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794736943.915446,
+  "score_before": 85,
+  "score_after": 85
+ },
+ {
+  "function": "func_801B3CB0",
+  "text": "Display-list builder: eleven 8-byte commands, cursor *arg0 (load cursor, store cursor+8, write two words). Best current: revision 424920844d47faed3279 (2980, 66.8%); saved best 85 uses the m2c temp_v1_N structure with signed `char` table and is not reproduced by the same text here. Facts: D_8011F2FC must be `u8` (target lbu, index (arg1&0xFFFF)*100, OR 0xFF000000 into word 1 of the FA command); the first E7 constant is reused by $a3 for the last E7 store (target reloads the cursor for each command, then lui/ori just before the store). Tried: macro form (2640), temp-cursor form with u8 (2980, best), per-command `d` pointer (3425, worse: reorders the cursor loads). Why it stalls: GCC hoists the shared constants (0xFCFFFFFF/0xFFFDF6FB, 0xB900031D, 0x0400103F) across commands and the target does not, so the register/order diff stays. Next: restore the 85 source structure, make only the table `u8`, and check whether 85 reproduces before any other change.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794739256.3770828,
+  "score_before": 85,
+  "score_after": 85
+ },
+ {
+  "function": "func_801B3CB0",
+  "text": "No match. Best rechecked 2715 (69.8%, revision 8e73c2b2973c4b499b07): the m2c temp-variable form (temp_v1 = *arg0; *arg0 = temp+8; s32 stores via char*) with `extern unsigned char D_8011F2FC[]` (the unsigned change fixed lb->lbu, +200). The saved best 85 is historical and does not recheck. Instruction count matches (90 each); remaining diffs are register/order: target loads each command pointer once and stores constants via a3/v1 (`lui a3,0xe700; sw a3,(v1); sw zero,4(v1); lw v1,(a0); addiu v0,v1,8; sw v0,(a0)`), while we use t1 for the pointer and build 0xba001402 in a2. Also the 0xB900031D command: the target builds the first half in the earlier register sequence. The flat `p = *arg0; *arg0 = p + 2;` form scored worse (3425). Next: test the pointer as `void *` vs `s32 *` per command, and statement order where the constant-only stores come first.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794755541.8694909,
+  "score_before": 85,
+  "score_after": 85
+ },
+ {
+  "function": "func_801B3CB0",
+  "text": "Best saved: revision 8e005ccd1bbc04bd5c9e (score 85), the machine draft with its do{}while(0) wrapper and temp_* variables. My clean rewrite (g = *arg0 per store, 3625) and the lbu patch to that draft (2715) both scored worse; do not start from them. Known remaining issue from the 85 version: the D_8011F2FC table byte is loaded with lw where the target uses lbu (unsigned char); the first `| 0xFF000000` operand should use an unsigned char load. Target also needs the constant stores in the order it uses (lui a3 0xE700 first, then sw zero, then lw/addiu for the 0xBA001402 record). Not yet tried: try_local_repairs on the 85 revision (54 proposals queued), and the lbu fix applied alone to that revision (the patch I tried was combined with a different base).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794765128.672378,
+  "score_before": 85,
+  "score_after": 85
+ },
+ {
+  "function": "func_801B3CB0",
+  "text": "Release: no closer structure found. Best: rev 487119e5fb1924e0ae08 (2715, 69.8%), the saved do-while display-list source with `extern u8 D_8011F2FC[]`. Tried: sequential p[] form (rev 6d3fe5d3e591ca693f52, 3625, worse), and `(s32) D_803147E8` instead of `&D_803147E8` (rev 7fc0079b1f53b13929f5, no effect). Remaining diff: the target keeps lw $v1,(a0) pointer load and loads constants as lui $a3,0xe700 before the first store, and hoists 0xB900031D after 0xFCFFFFFF; ours uses $t1 for the pointer and $a2 for 0xBA001402. These are register and order differences from the statement order, so next try: reorder the do-while temporaries so the first pair's pointer is named temp_v1, and try compile_family(parameter_width).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794767215.023374,
+  "score_before": 85,
+  "score_after": 85
+ },
+ {
+  "function": "func_801B3CB0",
+  "text": "Moved on after 8 trials returning previously seen scored instruction diffs. Best source retained.",
+  "by": "manual-f371a0a530af4d31",
+  "created_at": 1795710322.688947,
+  "score_before": 325,
+  "score_after": 325,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a32d50acd48646799f6487d371fd3a090964b40ca0073b0efa30c7106d883e4d"
+ },
+ {
+  "function": "func_801B3CB0",
+  "text": "Hand-off of func_801B3CB0: best 325 (7 differing rows) in /tmp/dd-haiku-pr9b/start/best.c.\n\nRemaining rows (marker | target | candidate):\n  r | lw $v0, ($a0) | lw $v1, ($a0)\n  r | addiu $v1, $v0, 8 | addiu $v0, $v1, 8\n  r | sw $v1, ($a0) | sw $v0, ($a0)\n  r | sw $a3, ($v0) | sw $a3, ($v1)\n  r | sw $zero, 4($v0) | sw $zero, 4($v1)\n  | | lui $v0, 0x400 | addiu $v0, $zero, 0x103f\n  < | ori $v0, $v0, 0x103f | \n\nRegister pairs (explain_regs.py):\n  $v1 where the target has $v0 (4 rows):\n  why not $v0: block-local: local-alloc gives quantities registers in priority order and $v0 was taken or tied up in that block (also in $v0: pseudo 79 (1.60), pseudo 87 (4.00)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $v0: block-local: local-alloc gives quantities registers in priority order and $v0 was taken or tied up in that block (also in $v0: pseudo 79 (1.60), pseudo 87 (4.00)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $v0: block-local: local-alloc gives quantities registers in priority order and $v0 was taken or tied up in that block (also in $v0: pseudo 79 (1.60), pseudo 87 (4.00)). Move it: change its refs/length against those, or make it global (a use in another block).\n  $v0 where the target has $v1 (2 rows):\n  why not $v1: block-local: local-alloc gives quantities registers in priority order and $v1 was taken or tied up in that block (also in $v1: pseudo 76 (12.00), pseudo 78 (15.20)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $v1: block-local: local-alloc gives quantities registers in priority order and $v1 was taken or tied up in that block (also in $v1: pseudo 76 (12.00), pseudo 78 (15.20)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $v1: block-local: local-alloc gives quantities registers in priority order and $v1 was taken or tied up in that block (also in $v1: pseudo 76 (12.00), pseudo 78 (15.20)). Move it: change its refs/length against those, or make it global (a use in another block).\n\nTried (approach: score):\n  - unsigned short cast removed from the 0x0400103F store: 500\n  - cast spelled as (0x0400<<16)|0x103F, (s32)(u32), (s32)): 500\n  - temp_v0_2/temp_v1_8 swapped in the tail: 450\n  - fresh local for temp_v1_7: 325 (no change)\n\nFindings:\ntarget builds 0x0400103F as lui $v0,0x400 + ori; the (unsigned short) cast yields addiu $v0,$zero,0x103f. Every spelling that writes the full word scored 500, so the cast's removal alone is not enough; the store-order or register rows after it still need work",
+  "by": "manual-f371a0a530af4d31",
+  "created_at": 1795710390.735447,
+  "score_before": 325,
+  "score_after": 325,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a32d50acd48646799f6487d371fd3a090964b40ca0073b0efa30c7106d883e4d"
+ },
+ {
+  "function": "func_801B3CB0",
+  "text": "Haiku clean rewrite (session haiku-pr17), 12 judged candidates. Clean display-list form (one Gfx bump and two word stores per command, the FA word as (arg1 & 0xFFFF) * 0x64 indexed D_8011F2FC with | 0xFF000000, not 0xFFFF0000) scores 2980 at -O2 (best clean). Best 325 (scaffolded). Instructions match apart from registers: sched hoists each command's constant lui/ori to the top of the block (single-set pseudos are boosted), the target builds each constant after its pointer bump. Tried: block-scoped and per-command pointer locals, shared and block-local word locals (7700), w0 before the bump (3885), w1 before w0, two-step lui+ori word, m2c temp_v1 style (2980). Repair idea: a multi-set constant word per command (birthing_insn_p).",
+  "by": "manual-3be4557e41ac4704",
+  "created_at": 1795712408.241741,
+  "score_before": 325,
+  "score_after": 325
+ },
+ {
+  "function": "func_801B3CB0",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Clean display-list rewrite scores 2980 (constants hoisted by sched); best 325 is scaffolded. Released after 12 judged candidates.",
+  "by": "manual-3be4557e41ac4704",
+  "created_at": 1795712412.398905,
+  "score_before": 325,
+  "score_after": 325
  }
 ]
