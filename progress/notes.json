@@ -7336,14 +7336,6 @@
   "score_after": 4960
  },
  {
-  "function": "func_8012913C",
-  "text": "Not matched. Best this session 7375 (43.7%), revision 9b4015e5044d486d0423 (clean C: do-while over u16 s0 with the struct chain, float box test with early return of s0, else updates a1/s0 via +0xA/+0xE with 0xFFFF sentinel, then func_8003DE60(D_8012AA38,a1,a2) and return s0). Semantics confirmed from asm: loop var v1 = s0&0xFFFF; entry off = v1*100; p = *(D_8011F340+off); e = *(*(*(p+4)+4)+4); f308 = D_8011F308[off], f310 = D_8011F310[off] (byte-offset float arrays); test arg1 < e.s16[0x40]+f308 && e.s16[0x50]+f308 < arg1 && arg3 < e.s16[0x44]+f310 && e.s16[0x54]+f310 < arg3 -> return s0. Target has 131 insns, mine 95, so my code drops work: the target re-masks s0 with andi 0xFFFF before every index (s0 as u16 is not enough; use explicit (s32)(s0 & 0xFFFF) per use) and reloads D_8011F340 chain per access. Also target f32 registers are loaded in a different order (arg3 into $f4 before arg1 $f6 etc.). Next: write the indices with explicit & 0xFFFF and the chain p->+4->+4->+4 without caching e.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794710699.473239,
-  "score_before": 2005,
-  "score_after": 2005
- },
- {
   "function": "__voiceNeedsNoteKill",
   "text": "Score 695 -> 55 with ONE structural change (revision 8fa3576c3c1f7dc7986c, current saved best).\n\nDecisive change: bind the loop successor to a local at the top of the loop and step with it, instead of re-reading v->next:\n    while (v != NULL) {\n        Voice *next;\n        next = v->next;\n        d = v->field08;\n        total += d;\n        if (v->field0C == 5 && v->field10 == arg1) {\n            if (arg2 < total) {\n                if (next != NULL) { next->field08 += d; }\n                alUnlink(v); alLink(v, (Voice **)((u8 *)arg0 + 0x48));\n                return ret;\n            }\n            ret = 0; break;\n        }\n        v = next;\n    }\nThe form `v->next` twice (as `if (v->next) v->next->field08 += d;` and `v = v->next;`) gives score 695 with the next-load sunk to the equal-path and a plain `bne`. With the local, GCC hoists `lw next,($s0)` to the top of the loop, uses `bnel` + delay-slot `move s0,next`, and duplicates `move s0,next` in the two paths \u2014 exactly the target.\n\nWhat is left (9 diff rows, all one allocation choice): target has arg0 in $s1 and the return-value variable `ret` in $s2; the candidate has them swapped (ret=$s1, arg0=$s2), which also swaps the prologue sw $s1/sw $s2 order and every `$s1`/`$s2` use. Everything else (44 insns, incl. addiu t0,zero,5 hoisted, `move a0,zero` = total, bnel/bnez shape) matches.\n\nTried, all no better: ret before total in decls / v-last / total-first (310 or 80); separate decls + assignments in each order (55, identical output); d declared before v (80); hoisting `next` to function scope (55 identical). Declaration order must stay `Voice *v = ...; s32 total = 0; s32 ret = 1; s32 d;` with the assignments inside the loop as above.\n\nUntried next ideas: (a) introduce a `Voice **head`/context-struct pointer for `(u8*)arg0 + 0x48` so arg0's pseudo weight changes; (b) change `ret`'s type or its initialization site; (c) any change that makes arg0's global-alloc priority exceed ret's (arg0: 2 code refs, ret: 4 code refs, so ret currently wins the lower saved register).\n\nUpdate after a second session: still 55 (saved best 8fa3576c3c1f7dc7986c). The one remaining problem is a single coherent allocation choice \u2014 target: arg0 in $s1 and the return-value variable in $s2; candidate: swapped. All 44 instructions, every stack offset (except the $s1/$s2 save order that follows from it) and every branch shape already match.\n\nAdditional experiments (all with the exact source from the earlier note):\n- `Voice **head = (Voice **)((u8 *)arg0 + 0x48);` before the loop + `alLink(v, head)` -> 485 (the addiu moves to the prologue).\n- same but `head` declared with the others and assigned before the loop -> 485.\n- context struct `typedef struct { u8 pad[0x48]; Voice *freeList; Voice *active; } Ctx;` with `Ctx *c = arg0; Voice *v = c->active; alLink(v, &c->freeList);` -> 60 (only 1 diff row shifted, still 9 mismatches) \u2014 closest alternative to the plain form.\n- declaration/initialisation permutations (ret before total, total first, separate decls + assignments, d before v, hoisting `next` to function scope): 55 identical, 80, or 310.\n\nRemaining hypothesis to test: arg0 has 2 code refs and the ret variable 4, so global-alloc gives ret the better saved register. Anything that legitimately adds an arg0 reference in the loop (without adding an instruction) or removes a ret reference would flip s1/s2. Do not add dummy uses (forbidden and would change the code).\n\nMoving on at the budget limit (4 compiles without improvement, best 55). Best source is the saved candidate revision 8fa3576c3c1f7dc7986c (see the function note for the exact C and the full list of failed variants). Everything matches byte-for-byte except one coherent allocation: the target has arg0 in $s1 and the return-value variable in $s2, the candidate has them swapped (9 diff rows, all $s1/$s2, plus the sw $s1/sw $s2 prologue order that follows from it). Last try this session: signedness of field08 (u32) -> identical 55. Next idea: raise arg0's global-alloc priority above the ret variable's (arg0 has 2 code refs, ret has 4) without adding a dummy use.",
   "by": "opencode-deepseek-v4.1-flash-free-5",
@@ -10976,14 +10968,6 @@
   "score_after": 2534
  },
  {
-  "function": "func_8012913C",
-  "text": "Tried the saved candidate (rev 93d9ce446681, score 2005, 84.6%). Target differences: the table stride multiply uses sll/addu chain (v*25 then <<2 -> 100-byte struct stride) where my `v*0x64` gives sll-4 forms; the 0x64 idiom needs a different expression. Variant `(v*25)<<2` scored 2385, worse; reverted to saved best, not pursued further. Remaining diffs: register allocation (target uses $v0 for table pointers and $a2 for the saved arg0 copy), an extra `ori $a3/$v0,0xffff` mask in the target, and `andi $v0,$a1,0xffff` reloads that should be CSE'd. Untried: moving `var_s0` to a separate u16 local before the loop, and restructuring the nested || chain into separate if-blocks.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794726644.039022,
-  "score_before": 2005,
-  "score_after": 2005
- },
- {
   "function": "func_8013F638",
   "text": "Best 2930 (80%), revision 42723a57af413224d37f. Cannot get closer without the jump tables: the inner switch on (0x53A-1) uses the table at D_80183428 and the second switch uses D_80183468 (15 entries each). The ROM does not contain them in a loaded part (read_data: not loaded), so the compile emits `lui ?local` where the target has `%hi(D_80183428)`, and that operand cannot match from our own .rodata. The first-switch structure (nested if on state != 1, then != 0) is the best control-flow form found; remaining diff is the lhu reload and a0/a1 zero register. Next agent: first check whether the jump-table symbol can be declared as a data array so the lui relocates to the real address; if not, this needs the table data before it can match.",
   "by": "claude-haiku-5-5-23",
@@ -14582,14 +14566,6 @@
   "created_at": 1794740158.761782,
   "score_before": 2930,
   "score_after": 2930
- },
- {
-  "function": "func_8012913C",
-  "text": "Release reason: three rewrites from the structure above all scored worse than saved best 2005 (6495, 7390, 7880); the blocker is the loop-carried index/ordering (target keeps the index in v1 via andi s0 and copies arg0 to a2 first, which my forms do not reproduce), so further compiles at this level are unlikely to close the gap. Start from saved_best (revision ed7940a3e9cf0e536da0) with the recovered facts above. Entries: 100-byte records, pointer chain p0=*(F340+idx*100) -> +4 -> +4 -> +4 gives obj; floats at F308+off and F310+off; sentinel 0xFFFF is read from the entry field (not a constant index).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794740179.73364,
-  "score_before": 2005,
-  "score_after": 2005
  },
  {
   "function": "func_8020FFD0",
@@ -21384,14 +21360,6 @@
   "score_after": 35
  },
  {
-  "function": "func_8012913C",
-  "text": "Saved best is 2005 (84.6%), from the machine-draft shape with `temp_a0 = var_v1 * 0x64` for the D_8011F340/D_8011F308/D_8011F310 indices. Target indexes D_8011F340 by the raw index (sll $a0,$v0,2 then lui/addu/lw), so the *0x64 belongs only to the float tables and per-row offsets. Tried: direct D_8011F340[var_v1] indexing (2045, worse); u16 var_v0 (2400, worse). Remaining diff: the target puts `move $a2,$s0` first (mine uses $a3), has an `ori $a3,$zero,0xffff` the saved source lacks, and loads the float table before the first table load; the float loads and cvt.s.w order also differ. Next: restructure the float loads as separate statements per row, and try the target's `lh $v0,0x40/0x50` pair order. Stopping here: the three variants above each lost ground, and the structural question (which index is the raw one) needs a fresh read of the assembly.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794758239.9847062,
-  "score_before": 2005,
-  "score_after": 2005
- },
- {
   "function": "func_80219B58",
   "text": "MATCHES at KMC -O1 (suggestion submitted with exact C). Key points: the local c is u32 (u8 adds an andi, s32 gives sra), and it is loaded from D_8011F2F0[idx].unk0 before the gfx writes. Waiting for the -O1 profile.",
   "by": "claude-opus-medium-1",
@@ -22222,14 +22190,6 @@
   "created_at": 1794759183.773443,
   "score_before": 6875,
   "score_after": 6875
- },
- {
-  "function": "func_8012913C",
-  "text": "Not matched. Best saved remains 2005 (m2c-based draft). My clean rewrite scored 7810 (91 insns vs target 131), so it is worse. Algorithm read from the asm (verified against the branches): obj chain p=*(D_8011F340+idx*100), obj=*(*(*(p+4)+4)+4); fx=float at D_8011F308+idx*100, fy=float at D_8011F310+idx*100; inside box iff arg1 < s16(obj+0x40)+fx && s16(obj+0x50)+fx < arg1 && arg3 < s16(obj+0x44)+fy && s16(obj+0x54)+fy < arg3; if inside return idx. Otherwise step: flag 0 reads u16 p+0xA (if 0xFFFF then idx=p+0xE, flag=1), flag 1 reads p+0xE (if 0xFFFF then idx=p+0xA, flag=0); loop while idx != arg0, then func_8003DE60(D_8012AA38, flag, arg0) and return arg0. Remaining mismatch: target keeps arg0 in $s0 and a copy in $a2, the in-box chain re-tests each float with andi $v1 reloads, and idx is kept as andi $v1,$s0,0xffff at each use; 131 vs 91 insns means the target keeps the four-test chain and both flag branches separately, so the short-circuit form needs to be expanded into per-branch sequences. Try -O1 (the brief compiler) with the flag test as separate if/else arms that each re-fetch p.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794759243.7385411,
-  "score_before": 2005,
-  "score_after": 2005
  },
  {
   "function": "func_80214B8C",
@@ -26878,14 +26838,6 @@
   "created_at": 1794767886.078723,
   "score_before": 2534,
   "score_after": 2534
- },
- {
-  "function": "func_8012913C",
-  "text": "Not matched. Best: revision 6260338557456bae2871, score 1410 (89.2%). Target 131 insns, no frame-size issue; the loop reads D_8011F340 (array of byte-offset pointers, offset idx*100), rec = 4 derefs (+4,+4,+4), float boxes at D_8011F308 + off (x) and D_8011F310 + off (y), each float re-loaded per comparison (caching it costs score). Written with arg1/arg3 as f32 args; u16 a1 flag (s32 worse, 2695 vs 1770). Remaining: target has 'move $a2,$s0' and 'move $a1,$zero' only once at entry; ours re-materializes a1=0 on several paths (from the a1=0/1 assignments in the two branches). Target tests (a1 & 0xFFFF) once at body top and a2 is kept from s0 at entry; ours reloads. Next: restructure the two a1 branches so a1 is assigned once (e.g., compute next index and a1 flip in one expression), and keep a2 = arg0 as a separate local set at entry. (A (a1 & 0xFFFF) == 0 test rewrite had no effect.)",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794767904.0515509,
-  "score_before": 2005,
-  "score_after": 1410
  },
  {
   "function": "func_8013CF4C",
@@ -39374,5 +39326,77 @@
   "created_at": 1794766131.97238,
   "score_before": 2310,
   "score_after": 1990
+ },
+ {
+  "function": "func_8012913C",
+  "text": "Not matched. Best this session 7375 (43.7%), revision 9b4015e5044d486d0423 (clean C: do-while over u16 s0 with the struct chain, float box test with early return of s0, else updates a1/s0 via +0xA/+0xE with 0xFFFF sentinel, then func_8003DE60(D_8012AA38,a1,a2) and return s0). Semantics confirmed from asm: loop var v1 = s0&0xFFFF; entry off = v1*100; p = *(D_8011F340+off); e = *(*(*(p+4)+4)+4); f308 = D_8011F308[off], f310 = D_8011F310[off] (byte-offset float arrays); test arg1 < e.s16[0x40]+f308 && e.s16[0x50]+f308 < arg1 && arg3 < e.s16[0x44]+f310 && e.s16[0x54]+f310 < arg3 -> return s0. Target has 131 insns, mine 95, so my code drops work: the target re-masks s0 with andi 0xFFFF before every index (s0 as u16 is not enough; use explicit (s32)(s0 & 0xFFFF) per use) and reloads D_8011F340 chain per access. Also target f32 registers are loaded in a different order (arg3 into $f4 before arg1 $f6 etc.). Next: write the indices with explicit & 0xFFFF and the chain p->+4->+4->+4 without caching e.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794710699.473239,
+  "score_before": 2005,
+  "score_after": 2005
+ },
+ {
+  "function": "func_8012913C",
+  "text": "Tried the saved candidate (rev 93d9ce446681, score 2005, 84.6%). Target differences: the table stride multiply uses sll/addu chain (v*25 then <<2 -> 100-byte struct stride) where my `v*0x64` gives sll-4 forms; the 0x64 idiom needs a different expression. Variant `(v*25)<<2` scored 2385, worse; reverted to saved best, not pursued further. Remaining diffs: register allocation (target uses $v0 for table pointers and $a2 for the saved arg0 copy), an extra `ori $a3/$v0,0xffff` mask in the target, and `andi $v0,$a1,0xffff` reloads that should be CSE'd. Untried: moving `var_s0` to a separate u16 local before the loop, and restructuring the nested || chain into separate if-blocks.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794726644.039022,
+  "score_before": 2005,
+  "score_after": 2005
+ },
+ {
+  "function": "func_8012913C",
+  "text": "Release reason: three rewrites from the structure above all scored worse than saved best 2005 (6495, 7390, 7880); the blocker is the loop-carried index/ordering (target keeps the index in v1 via andi s0 and copies arg0 to a2 first, which my forms do not reproduce), so further compiles at this level are unlikely to close the gap. Start from saved_best (revision ed7940a3e9cf0e536da0) with the recovered facts above. Entries: 100-byte records, pointer chain p0=*(F340+idx*100) -> +4 -> +4 -> +4 gives obj; floats at F308+off and F310+off; sentinel 0xFFFF is read from the entry field (not a constant index).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794740179.73364,
+  "score_before": 2005,
+  "score_after": 2005
+ },
+ {
+  "function": "func_8012913C",
+  "text": "Saved best is 2005 (84.6%), from the machine-draft shape with `temp_a0 = var_v1 * 0x64` for the D_8011F340/D_8011F308/D_8011F310 indices. Target indexes D_8011F340 by the raw index (sll $a0,$v0,2 then lui/addu/lw), so the *0x64 belongs only to the float tables and per-row offsets. Tried: direct D_8011F340[var_v1] indexing (2045, worse); u16 var_v0 (2400, worse). Remaining diff: the target puts `move $a2,$s0` first (mine uses $a3), has an `ori $a3,$zero,0xffff` the saved source lacks, and loads the float table before the first table load; the float loads and cvt.s.w order also differ. Next: restructure the float loads as separate statements per row, and try the target's `lh $v0,0x40/0x50` pair order. Stopping here: the three variants above each lost ground, and the structural question (which index is the raw one) needs a fresh read of the assembly.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794758239.9847062,
+  "score_before": 2005,
+  "score_after": 2005
+ },
+ {
+  "function": "func_8012913C",
+  "text": "Not matched. Best saved remains 2005 (m2c-based draft). My clean rewrite scored 7810 (91 insns vs target 131), so it is worse. Algorithm read from the asm (verified against the branches): obj chain p=*(D_8011F340+idx*100), obj=*(*(*(p+4)+4)+4); fx=float at D_8011F308+idx*100, fy=float at D_8011F310+idx*100; inside box iff arg1 < s16(obj+0x40)+fx && s16(obj+0x50)+fx < arg1 && arg3 < s16(obj+0x44)+fy && s16(obj+0x54)+fy < arg3; if inside return idx. Otherwise step: flag 0 reads u16 p+0xA (if 0xFFFF then idx=p+0xE, flag=1), flag 1 reads p+0xE (if 0xFFFF then idx=p+0xA, flag=0); loop while idx != arg0, then func_8003DE60(D_8012AA38, flag, arg0) and return arg0. Remaining mismatch: target keeps arg0 in $s0 and a copy in $a2, the in-box chain re-tests each float with andi $v1 reloads, and idx is kept as andi $v1,$s0,0xffff at each use; 131 vs 91 insns means the target keeps the four-test chain and both flag branches separately, so the short-circuit form needs to be expanded into per-branch sequences. Try -O1 (the brief compiler) with the flag test as separate if/else arms that each re-fetch p.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794759243.7385411,
+  "score_before": 2005,
+  "score_after": 2005
+ },
+ {
+  "function": "func_8012913C",
+  "text": "Not matched. Best: revision 6260338557456bae2871, score 1410 (89.2%). Target 131 insns, no frame-size issue; the loop reads D_8011F340 (array of byte-offset pointers, offset idx*100), rec = 4 derefs (+4,+4,+4), float boxes at D_8011F308 + off (x) and D_8011F310 + off (y), each float re-loaded per comparison (caching it costs score). Written with arg1/arg3 as f32 args; u16 a1 flag (s32 worse, 2695 vs 1770). Remaining: target has 'move $a2,$s0' and 'move $a1,$zero' only once at entry; ours re-materializes a1=0 on several paths (from the a1=0/1 assignments in the two branches). Target tests (a1 & 0xFFFF) once at body top and a2 is kept from s0 at entry; ours reloads. Next: restructure the two a1 branches so a1 is assigned once (e.g., compute next index and a1 flip in one expression), and keep a2 = arg0 as a separate local set at entry. (A (a1 & 0xFFFF) == 0 test rewrite had no effect.)",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794767904.0515509,
+  "score_before": 2005,
+  "score_after": 1410
+ },
+ {
+  "function": "func_8012913C",
+  "text": "Small-model attempt at func_8012913C: 13 tries.\n  best 1560 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 2680 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2860 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 4645 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 5825 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nBest 1560 (-O1). Structure: do-while over table index with the 4-level pointer chain, OR-of-failed-tests box check, flag masked inside the outside block, neighbour walk with flag alternating. Left: register allocation (temp in v0 vs v1, a2/a3 constant 0xFFFF hoist, flag andi placement), not matched.",
+  "by": "manual-034bf61c29fb4242",
+  "created_at": 1795718922.324264,
+  "score_before": 1225,
+  "score_after": 1225
+ },
+ {
+  "function": "func_8012913C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_8012913C: 13 tries.\n  best 1560 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 2680 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2860 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 4645 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 5825 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nBest 1560 (-O1). Structure: do-while over table index with the 4-level pointer chain, OR-of-failed-tests box check, flag masked inside the outside block, neighbour walk with flag alternating. Left: register allocation (temp in v0 vs v1, a2/a3 constant 0xFFFF hoist, flag andi placement), not matched.",
+  "by": "manual-034bf61c29fb4242",
+  "created_at": 1795718929.417278,
+  "score_before": 1225,
+  "score_after": 1225
+ },
+ {
+  "function": "func_8012913C",
+  "text": "Small-model attempt at func_8012913C: 13 tries.\n  best 1560 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 2680 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2860 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 4645 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 5825 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nBest 1560 (-O1). Do-while over the table index, 4-level pointer chain, OR-of-failed-tests box check, flag masked inside the outside block, neighbour walk with flag alternating. Left: register allocation (temp in v0 vs v1, a2/a3 0xFFFF hoist, flag andi placement). Not matched.",
+  "by": "manual-034bf61c29fb4242",
+  "created_at": 1795718932.610539,
+  "score_before": 1225,
+  "score_after": 1225
  }
 ]
