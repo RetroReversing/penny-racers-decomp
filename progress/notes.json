@@ -9032,14 +9032,6 @@
   "score_after": 20252
  },
  {
-  "function": "func_80204410",
-  "text": "Released at the move-on budget. Best is rev 8b4232856157cfb03ed5 (4595, 78%): the same structure as func_80205198 (its sibling in code_80203B04). Five groups: one 3-way choice (D_8021E15F==0 && D_8021E160==0 gives a=b=c=(0xFF-D_8021E19E)&0xFFFF, else 0x64), func_801CA494(arg0,a,b,c,0), then 5 func_8014A4C8 calls with the constants (0x1F,0x3E,0xB,0x5E), (0x1F,0xA0,0xB,0x5F), (0x68,0x3E,0xB,0x60), (0x68,0xA0,0xB,0xD), (0x1F,0x2F,8,1), then four blocks of [if both D_8021E15F/160 zero: func_801CA494(arg0,FF,FF,FF,FF)] and [if D_8021E162 test: func_801CA494(arg0,64,64,64,FF)] interleaved with func_8014A4C8 calls (0x27,0x74,8,6), (0x27,0x5D,8,5), (0x27,0x46,8,7), (0x27,0x8B,8,0xC). D_8021E162 uses *((s8*)&D_8021E162 - 6) for the [-6] byte. Remaining mismatch: the target addresses D_8021E15F with lui/addiu into v1 and reads lb (v1) and lb 1(v1), with frame 0x20 (ra at 0x1c, s0 saved). Pointer locals gave 4733 (s1 saved, frame 0x28), so it is worse. Next: keep the scalar form but make the two loads one expression (`(p[0] == 0)` through the address of D_8021E15F rather than the scalar) without introducing a pointer that is kept across calls; or move the D_8021E160 read into the second test.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794712192.422265,
-  "score_before": 5210,
-  "score_after": 4595
- },
- {
   "function": "func_802040C4",
   "text": "No exact match. Saved best 7225 (Wwww) remains. Findings: the three float globals D_8011F308/30C/310 are consecutive f32s indexed by (arg1&0xFFFF)*25 (stride 100 bytes), index recomputed at each load (no CSE). Each float->int conversion is the usual gcc MIPS pattern: c.le.s against 2^31 with bc1tl to the subtract/or-0x80000000 path, fall-through trunc path. Shifts: R<<8, G<<3, B>>2 (B unsigned). Packing: ((R&F800)|(G&7C0)|(B&3E))|1 <<16 |1 | second-set. Target re-reads *arg0 fresh for each gfx write (lw from ($a0)), so use temp = *arg0; *arg0 = temp+8 each time, not a single p. Tried: (1) f2i with `if (f>=2^31)` sub-branch first: 11205; (2) reversed `if (f<2^31)` form: 15275 (worse). Next step: keep the f2i branch sense as in (1) but keep *arg0 re-reads as in the saved best and match the branch-likely ordering; the target's packing order (lui/ori for BA001402 before 0x300000 store) is also still off.",
   "by": "claude-haiku-5-5-22",
@@ -13262,14 +13254,6 @@
   "created_at": 1794727338.6037319,
   "score_before": 7225,
   "score_after": 7225
- },
- {
-  "function": "func_80204410",
-  "text": "Not matched. Best saved C is revision 8b4232856157cfb03ed5, scoring 4595 on recheck: scalar externs D_8021E15F, D_8021E160 (s8) and D_8021E162 (s8), and the m2c draft's control flow. Tried a sibling of func_80205198's structure (s8 arrays, D_8021E15F[0]/[1] with D_8021E162[-6]) with 0xFF as the 5th arg of each func_801CA494 call: 12168, worse, and the target's stack frame is 0x20 with sw ra at 0x1c and sw s0 at 0x18 (ours is 0x28). Lesson, shared with func_80205198: the array form is worse here; keep the scalar externs. Target re-materializes D_8021E15F's address into a register each time (lui/addiu then lb (reg), lb 1(reg)), so the scalar form's lui/lb %lo shape is the remaining mismatch. Next agent: start from the saved 4595 scalar form, fix the frame size first (0x20, s0 = arg0), then the constant 0xFF stack-arg.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794727481.444949,
-  "score_before": 4595,
-  "score_after": 4595
  },
  {
   "function": "func_80204AC8",
@@ -18542,14 +18526,6 @@
   "created_at": 1794740524.645443,
   "score_before": 5667,
   "score_after": 5667
- },
- {
-  "function": "func_80204410",
-  "text": "Best remains 4595 (saved draft, 78.3%). Tried: (1) separate externs for D_8021E15F/160/162 (no change); (2) one array base `s8 D_8021E15F[]` with [1],[3],[-3] offsets (no change, still lb via %lo each time); (3) `s8 *p = &D_8021E15F` local pointer (4753, worse: pointer lives in callee-saved s1, adds a 0x28 frame and saves s1). Target re-materializes the base each test as `lui $v1,%hi; addiu $v1,%lo; lb 0($v1)` / `lb 1($v1)` with $v1 scratch, frame 0x20 saving only $ra,$s0. So the base is NOT CSE'd across calls. Next idea: find a form that makes gcc recompute the address per use (e.g. read through a fresh `&` expression each time, or a macro that expands the address inline), keep the saved-register count at $s0 only. Also target's -6 read is `lb $v1,-6($a0)` with a0 reloaded, suggesting a second pointer to D_8021E162 rather than offset arithmetic.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794740539.263264,
-  "score_before": 4595,
-  "score_after": 4595
  },
  {
   "function": "func_802040C4",
@@ -24552,14 +24528,6 @@
   "score_after": 2665
  },
  {
-  "function": "func_80204410",
-  "text": "Best 4460 (78.9%), 213 vs 212 insns. Structure is right: 9 external calls, 5th stack arg always 0xFF (draft passed 0 in the first call; fixed). Remaining diff: target computes &D_8021E15F once per block (lui+addiu into v1) then lb 0(v1) and lb 1(v1); D_8021E162 is loaded via a0 with offset -6. Mine folds each byte load into %lo(sym) (18 lbs). Tried with no change: separate extern s8 with per-block lui; local s8 *p = &D_8021E15F; extern s8 arrays with [0]/[1]/[-6] indexing. Untried: a struct or u16 view of the flag pair, or compile_family(signedness).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794756056.497771,
-  "score_before": 4595,
-  "score_after": 4460
- },
- {
   "function": "func_8021AC64",
   "text": "Not matched. Best saved is 8381 (historical); my straight-line rewrite (revision f0424ab3688ff4bc285b) scored 13499 and dropped the function's loop: target is 175 insns with ra, s0-s4 saved at 0x4c-0x5c (frame 0x60+), ours is 76 insns with one s-register. The target has a loop over the table entries (addu/sll 1,3,2 index math repeated 11 times, lhu from ($s0) 13 times), so the structure is a loop writing a 0x64-stride record with 16-bit fields, not one record. The m2c-style draft (revision 1d3fdf2749e1f2fae649) is the better base; it compiles with warnings about int-to-pointer casts on D_801CE928 and D_801CEC2C, and those need proper pointer/declaration types. Next: re-derive the loop (the 0x64 stride and the per-iteration table at D_800DB1B8+0x2110..0x2116 suggests the loop reads a 4-entry u16 table per record), then re-check the register save set before tuning.",
   "by": "claude-haiku-5-5-21",
@@ -26894,14 +26862,6 @@
   "created_at": 1794759042.1596532,
   "score_before": 4721,
   "score_after": 4721
- },
- {
-  "function": "func_80204410",
-  "text": "Verified best 4460 (78.9%), 213 vs 212 insns. Structural miss: the target materializes the D_8021E15F base once per test as `lui $v1,%hi; addiu $v1,$v1,%lo`, then reads `lb 0($v1)` and `lb 1($v1)` (so D_8021E160 is D_8021E15F+1). Our compile emits `lui $v0` plus `lb %lo(...)($v0)` for each global, so the base is never held in a register. Tried: extern s8 D_8021E15F[] with [0]/[1] indexing, a local `s8 *p = &D_8021E15F` reloaded before each block; all scored 4460 with identical instructions. Untried: compile_variants or compile_family(signedness) per the tool hint, and making the (x==0 && y==0) test read through a single pointer that the compiler cannot fold. The D_8021E162 compares use `*((s8*)&D_8021E162 - 6)` (-6 from arg0 field), which also needs checking.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794759047.864158,
-  "score_before": 4460,
-  "score_after": 4460
  },
  {
   "function": "func_80032108",
@@ -34856,5 +34816,45 @@
   "created_at": 1794759222.746552,
   "score_before": 585,
   "score_after": 585
+ },
+ {
+  "function": "func_80204410",
+  "text": "Released at the move-on budget. Best is rev 8b4232856157cfb03ed5 (4595, 78%): the same structure as func_80205198 (its sibling in code_80203B04). Five groups: one 3-way choice (D_8021E15F==0 && D_8021E160==0 gives a=b=c=(0xFF-D_8021E19E)&0xFFFF, else 0x64), func_801CA494(arg0,a,b,c,0), then 5 func_8014A4C8 calls with the constants (0x1F,0x3E,0xB,0x5E), (0x1F,0xA0,0xB,0x5F), (0x68,0x3E,0xB,0x60), (0x68,0xA0,0xB,0xD), (0x1F,0x2F,8,1), then four blocks of [if both D_8021E15F/160 zero: func_801CA494(arg0,FF,FF,FF,FF)] and [if D_8021E162 test: func_801CA494(arg0,64,64,64,FF)] interleaved with func_8014A4C8 calls (0x27,0x74,8,6), (0x27,0x5D,8,5), (0x27,0x46,8,7), (0x27,0x8B,8,0xC). D_8021E162 uses *((s8*)&D_8021E162 - 6) for the [-6] byte. Remaining mismatch: the target addresses D_8021E15F with lui/addiu into v1 and reads lb (v1) and lb 1(v1), with frame 0x20 (ra at 0x1c, s0 saved). Pointer locals gave 4733 (s1 saved, frame 0x28), so it is worse. Next: keep the scalar form but make the two loads one expression (`(p[0] == 0)` through the address of D_8021E15F rather than the scalar) without introducing a pointer that is kept across calls; or move the D_8021E160 read into the second test.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794712192.422265,
+  "score_before": 5210,
+  "score_after": 4595
+ },
+ {
+  "function": "func_80204410",
+  "text": "Not matched. Best saved C is revision 8b4232856157cfb03ed5, scoring 4595 on recheck: scalar externs D_8021E15F, D_8021E160 (s8) and D_8021E162 (s8), and the m2c draft's control flow. Tried a sibling of func_80205198's structure (s8 arrays, D_8021E15F[0]/[1] with D_8021E162[-6]) with 0xFF as the 5th arg of each func_801CA494 call: 12168, worse, and the target's stack frame is 0x20 with sw ra at 0x1c and sw s0 at 0x18 (ours is 0x28). Lesson, shared with func_80205198: the array form is worse here; keep the scalar externs. Target re-materializes D_8021E15F's address into a register each time (lui/addiu then lb (reg), lb 1(reg)), so the scalar form's lui/lb %lo shape is the remaining mismatch. Next agent: start from the saved 4595 scalar form, fix the frame size first (0x20, s0 = arg0), then the constant 0xFF stack-arg.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794727481.444949,
+  "score_before": 4595,
+  "score_after": 4595
+ },
+ {
+  "function": "func_80204410",
+  "text": "Best remains 4595 (saved draft, 78.3%). Tried: (1) separate externs for D_8021E15F/160/162 (no change); (2) one array base `s8 D_8021E15F[]` with [1],[3],[-3] offsets (no change, still lb via %lo each time); (3) `s8 *p = &D_8021E15F` local pointer (4753, worse: pointer lives in callee-saved s1, adds a 0x28 frame and saves s1). Target re-materializes the base each test as `lui $v1,%hi; addiu $v1,%lo; lb 0($v1)` / `lb 1($v1)` with $v1 scratch, frame 0x20 saving only $ra,$s0. So the base is NOT CSE'd across calls. Next idea: find a form that makes gcc recompute the address per use (e.g. read through a fresh `&` expression each time, or a macro that expands the address inline), keep the saved-register count at $s0 only. Also target's -6 read is `lb $v1,-6($a0)` with a0 reloaded, suggesting a second pointer to D_8021E162 rather than offset arithmetic.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794740539.263264,
+  "score_before": 4595,
+  "score_after": 4595
+ },
+ {
+  "function": "func_80204410",
+  "text": "Best 4460 (78.9%), 213 vs 212 insns. Structure is right: 9 external calls, 5th stack arg always 0xFF (draft passed 0 in the first call; fixed). Remaining diff: target computes &D_8021E15F once per block (lui+addiu into v1) then lb 0(v1) and lb 1(v1); D_8021E162 is loaded via a0 with offset -6. Mine folds each byte load into %lo(sym) (18 lbs). Tried with no change: separate extern s8 with per-block lui; local s8 *p = &D_8021E15F; extern s8 arrays with [0]/[1]/[-6] indexing. Untried: a struct or u16 view of the flag pair, or compile_family(signedness).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794756056.497771,
+  "score_before": 4595,
+  "score_after": 4460
+ },
+ {
+  "function": "func_80204410",
+  "text": "Verified best 4460 (78.9%), 213 vs 212 insns. Structural miss: the target materializes the D_8021E15F base once per test as `lui $v1,%hi; addiu $v1,$v1,%lo`, then reads `lb 0($v1)` and `lb 1($v1)` (so D_8021E160 is D_8021E15F+1). Our compile emits `lui $v0` plus `lb %lo(...)($v0)` for each global, so the base is never held in a register. Tried: extern s8 D_8021E15F[] with [0]/[1] indexing, a local `s8 *p = &D_8021E15F` reloaded before each block; all scored 4460 with identical instructions. Untried: compile_variants or compile_family(signedness) per the tool hint, and making the (x==0 && y==0) test read through a single pointer that the compiler cannot fold. The D_8021E162 compares use `*((s8*)&D_8021E162 - 6)` (-6 from arg0 field), which also needs checking.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794759047.864158,
+  "score_before": 4460,
+  "score_after": 4460
  }
 ]
