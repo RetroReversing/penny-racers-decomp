@@ -4864,14 +4864,6 @@
   "score_after": 1
  },
  {
-  "function": "func_8013DF90",
-  "text": "Deep permuter: score 5187 \u2192 4057; 3 improvements; 202 candidates tested; 151 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935333",
-  "created_at": 1794359524.216583,
-  "score_before": 5187,
-  "score_after": 4057
- },
- {
   "function": "func_80165BDC",
   "text": "Deep permuter: score 9703 \u2192 8085; 4 improvements; 252 candidates tested; 73 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935573",
@@ -6718,14 +6710,6 @@
   "created_at": 1794709252.852371,
   "score_before": 120,
   "score_after": 120
- },
- {
-  "function": "func_8013DF90",
-  "text": "Loop over a 7-entry array of 0x8F0-byte records at D_8022A770 (i in 0..6), skipping records with e+2 == 0xFFFF or e+0x560 & 0x18; inner loop over the pointer table entry D_801687EC[D_8006FAF0+0x20] with 0x10-byte rows terminated by f32 == 0 at +4. Distance test on D_8011F2F0 records (+0x18/+0x1C/+0x20) against row floats, then func_8015E8E4(e) and e+6 |= 4. Scored 5266 (saved best 3120). Two blockers: (1) the sqrt in the test is not a known symbol here; the call target must be resolved (resolve_addresses) or it may be the sqrt.s instruction; (2) the frame is 0x38 with sdc1 $f20/$f22 and ra at 0x24, and s4/s5 roles are swapped (lui s4 vs our s5). Fix (1) first, then reorder the register use.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794709365.836032,
-  "score_before": 3120,
-  "score_after": 3120
  },
  {
   "function": "func_800E08B4",
@@ -10144,14 +10128,6 @@
   "score_after": 1160
  },
  {
-  "function": "func_8013DF90",
-  "text": "Not matched. Saved best 3120 (the goto-based candidate) is still the best. Two rewrites this session scored worse: a clean do/while with an e pointer (5256), and a version addressing the separate symbols by offset (D_8022A772+off, D_8022ACD0+off, D_8022AD07+off, D_8022A776+off, D_8022A770+off) (5146). Both keep more values live, so GCC saves s5..s7 and fp and grows the frame to 0x48. The target frame is 0x38: saves ra, s0..s4, fs0, fs1 only. So the live set must stay at four values plus the loop counter, with e recomputed from the offset. Target facts: outer counter s3 compared with 7 after andi 0xFFFF; temp_s4 = D_801687EC[*(u16*)(D_8006FAF0+0x20)]; idx = lhu(D_8022A772+off); flag test lhu(D_8022ACD0+off) & 0x18; q = D_8011F2F0 + idx*100; inner p walks 16-byte records while p[4] float != 0; byte lbu(D_8022AD07+off) compared with lhu(p); distance test vs 26.0f via sqrtf; func_8015E8E4(D_8022A770+off); then lhu/ori 4/sh at D_8022A776+off. Next: restore the 3120 candidate (get_candidate base saved_best) and reduce live variables, e.g. drop the separate q and recompute q from idx inside the inner test.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794724392.173883,
-  "score_before": 3120,
-  "score_after": 3120
- },
- {
   "function": "func_8013536C",
   "text": "Best score 75 (99.3%), revision 6ddea6ec8186cd2adaed. Only register differences remain: target does `andi $v0,$s0,0xffff` and computes the index in v0/v1 (`sll $v1,$v0,1; addu $v1,$v1,$v0; sll $v1,$v1,3; ...`), mine uses `andi $a0,$s0,0xffff` and v0 for the index. Tried: try_local_repairs families (branch_scalar_lifetime, dead_pointer_clear, allocation_initialization_order, declaration_order, signedness, branch_orientation): none improved (best variant 95). Collapsing the duplicate if/else that assigns temp_v0 gave no change. Untried: making temp_v0 u32 only in the second table lookup, or splitting `arg1 & 0xFFFF` into a separate local used only in the index multiplications.",
   "by": "claude-haiku-5-5-23",
@@ -13064,14 +13040,6 @@
   "score_after": 6142
  },
  {
-  "function": "func_8013DF90",
-  "text": "Saved best 3120 (the goto-shaped draft in the claim) is better than my clean do/while rewrite (5102, 59.5%). Structure from the target: temp = D_801687EC[*(u16*)(D_8006FAF0+0x20)]; if temp==NULL return; i (u16, s3) loop 0..6 with e = D_8022A770 + i*0x8F0; skip if e+2 (idx) == 0xFFFF or (e+0x560)&0x18; q = D_8011F2F0 + idx*0x64; p = temp; inner do-while on p with f=p+4 != 0.0f, step 0x10; compare *(u8*)(e+0x597) with *(u16*)p; dist test against 26.0f; func_8015E8E4(e); e+6 |= 4. Frame is 0x38 with ra,s0-s4 and f20/f22 saves (sdc1 $fs0/$fs1 = f20/f22), we use 0x40 and s5. Register/loop-shape differences: the target's `continue` jump uses beql to the i++ block, and the temp pointer lives in s4 (ours s5). Next: keep the goto-shape as the base, and make temp live in s4 by declaring it before i, and use `if (idx == 0xFFFF) continue` style for the skip.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794736435.2304902,
-  "score_before": 3120,
-  "score_after": 3120
- },
- {
   "function": "func_8014843C",
   "text": "Best saved 9540 (3.6%) is the closest; my later rewrites were worse (10115). Blocker: the first loop. Target is for (i=0;i<6;i++) D_8018A276[i]=0xFF, compiled as lui at,%hi(A276); addu at,at,v1; sb a0,%lo(at); addiu v1,1; slti 6; bnez (count up). Mine comes out counting down from 5 with base A27B (gcc reverses the loop), both with indexed and do/while forms. search_flags on the 9540 source: -O1 scores 3520, -fno-strength-reduce 8900. Next: try -O1 on the loop-written source to see if the loop is kept up-counting, then fix the post-loop branches: D_80189B34==2 writes A276[0..3] from D_8018BC38[0..2]; D_80189B34==1 switches on lh D_8021E1A2 with cases 2 and 3 and a default that compares to D_80189B34; loads of D_80189B36 & 0x40 choose the 1/2/3-byte writes. Cannot get closer until the loop direction matches.",
   "by": "claude-haiku-5-5-23",
@@ -13446,14 +13414,6 @@
   "created_at": 1794739000.698689,
   "score_before": 260,
   "score_after": 0
- },
- {
-  "function": "func_8013DF90",
-  "text": "Best 4647 (63.1%) at revision 07a4bd46d330694596b4; target frame 0x38 with 5 s-saves (s0..s4) plus $ra and $fs0/$fs1; mine is 0x40 with an extra $s6 save at 0x28. Structure is right: s4=temp=D_801687EC[*(u16*)(D_8006FAF0+0x20)]; s3=i with unsigned (u16)i<7 test; s1=(u16)i*0x8F0 offset used as D_8022A770+s1 at each field (e pointer local costs an extra s-reg: 5397); s2=q=D_8011F2F0+idx*0x64; s0=p walks temp by 0x10; f20/f22 hold 0.0f zero compares. Tried with no effect: dropping the f local, dropping idx, dist local before compare (all 4647 with identical instructions). Unexplored: write the sqrt NaN path explicitly, or try compile_variants on the inner-loop condition shape (p+4 test first vs body first). Where the extra saved reg comes from is still unknown; check last_diff for which value is spilled.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794739013.0168698,
-  "score_before": 3120,
-  "score_after": 3120
  },
  {
   "function": "func_8013BB54",
@@ -18958,14 +18918,6 @@
   "created_at": 1794755403.797725,
   "score_before": 2310,
   "score_after": 2310
- },
- {
-  "function": "func_8013DF90",
-  "text": "Unmatched. Best 5102 (59.5%), revision 561f1e41c0990f9c72c7 (do/while outer loop, `e` declared at top, inner walk on p += 0x10 until f32 at p+4 is 0). Saved best 3120 not reproduced. Remaining gap is frame and registers: target frame is 0x38 (ra at 0x24, f20 at 0x28, f22 at 0x30), ours 0x40 with an extra $s5 save; the target does lui/lhu of D_8006FAF0+0x20 as the first two instructions and keeps D_801687EC in $s4, ours uses $s5. Edits that only rename locals had no effect (2 compiles). Next, if pursued: make the first pointer `temp_s4` a u8* loaded straight from the indexed table, and check the sqrtf call is not inlined (target has a call, so keep it an extern). Left unfinished; the saved candidate is the best.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794755420.775171,
-  "score_before": 3120,
-  "score_after": 3120
  },
  {
   "function": "func_801AF8CC",
@@ -24712,14 +24664,6 @@
   "score_after": 125388
  },
  {
-  "function": "func_8013DF90",
-  "text": "Not matched. Saved best is 3120 (goto/__repair_rows version, revision be5cb6dbb4c4735236c7); get_candidate(base=saved_best) restores it. Session variants, none beat 3120: for-loop with early return 6000; u16 i with hoisted e and for-loop p/f update 4825; outer for(i) + original do-while, frame 0x40, 6281; while(i<7) + original do-while, frame 0x40, 5102; signedness family on temp_s4 no change. Target: frame 0x38, saves ra, s0-s4, fs0/fs1 (f20/f22) only. Every variant gets 0x40-0x48 frames with an extra s5/s6 register and sometimes f24, so one more value is live across the sqrtf/func_8015E8E4 calls than in the target. Target keeps temp_s4 in s4, loop index in s3 (recomputed 'andi $v0,$s3,0xffff' each iteration), and recomputes the i*0x8F0 address with a shift/add chain each time. Next: find a shape where f and temp_s4 occupy only s4 and f22, and check whether the 0x8F0 address is recomputed per use rather than kept in a pointer. Also try -O1 if the frame stays too large.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794765088.890433,
-  "score_before": 3120,
-  "score_after": 3120
- },
- {
   "function": "func_8014ABD8",
   "text": "EXACT under KMC -G0 -mips3 -mgp32 -mfp32 -O1, diagnostic37edce67791e9b210445, source revisiona974a46f9b0fda7c3998 (u32 arg0). suggest verified byte-exact and queued function-only bundle; automatic compiler changes OFF, needs application. Default O2 score715. Do not tune C further; apply queued exact bundle.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -25382,14 +25326,6 @@
   "created_at": 1794767020.748249,
   "score_before": 6365,
   "score_after": 6365
- },
- {
-  "function": "func_8013DF90",
-  "text": "Not matched. Best saved 3120 (historical draft; current rechecks of my drafts were 5187 goto-version rev 2cf65e224f61d4bcc714 and 6631 for-loop version rev 980cd5b568291b030b62, both worse). Target structure: frame 0x38; ra@0x24, s6/s5/s4/s3 saves, f20/f22 saved as sdc1. Loop variable is the entry index i in s3 (andi $v0,$s3,0xffff, i*0x8F0 via sll3/addu/sll4/subu), and the entry pointer e = D_8022A770 + i*0x8F0 is carried in a register that is advanced with addu $s4,$s4,$v0 (pointer-increment form, not per-iteration recompute). idx field read is lhu %lo(D_8022A772) with the +2 folded into the displacement. temp_s4 = D_801687EC[*(u16*)(D_8006FAF0+0x20)] is loaded first (lui D_8006FAF0 + lhu +0x20 + lui D_801687EC + addu + lw) and tested with beqz before the loop. The inner loop walks p += 0x10 testing f = *(f32*)(p+4) != 0 (mtc1 $zero, $f22 for the compare). Next: write the outer loop as a pointer walk (e advanced by 0x8F0), keep the null check of temp_s4 before the loop, and recheck the f22 compare form.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794767083.845897,
-  "score_before": 3120,
-  "score_after": 3120
  },
  {
   "function": "func_80198250",
@@ -39961,5 +39897,78 @@
   "created_at": 1795714425.340524,
   "score_before": 3400,
   "score_after": 3400
+ },
+ {
+  "function": "func_8013DF90",
+  "text": "Deep permuter: score 5187 \u2192 4057; 3 improvements; 202 candidates tested; 151 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935333",
+  "created_at": 1794359524.216583,
+  "score_before": 5187,
+  "score_after": 4057
+ },
+ {
+  "function": "func_8013DF90",
+  "text": "Loop over a 7-entry array of 0x8F0-byte records at D_8022A770 (i in 0..6), skipping records with e+2 == 0xFFFF or e+0x560 & 0x18; inner loop over the pointer table entry D_801687EC[D_8006FAF0+0x20] with 0x10-byte rows terminated by f32 == 0 at +4. Distance test on D_8011F2F0 records (+0x18/+0x1C/+0x20) against row floats, then func_8015E8E4(e) and e+6 |= 4. Scored 5266 (saved best 3120). Two blockers: (1) the sqrt in the test is not a known symbol here; the call target must be resolved (resolve_addresses) or it may be the sqrt.s instruction; (2) the frame is 0x38 with sdc1 $f20/$f22 and ra at 0x24, and s4/s5 roles are swapped (lui s4 vs our s5). Fix (1) first, then reorder the register use.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794709365.836032,
+  "score_before": 3120,
+  "score_after": 3120
+ },
+ {
+  "function": "func_8013DF90",
+  "text": "Not matched. Saved best 3120 (the goto-based candidate) is still the best. Two rewrites this session scored worse: a clean do/while with an e pointer (5256), and a version addressing the separate symbols by offset (D_8022A772+off, D_8022ACD0+off, D_8022AD07+off, D_8022A776+off, D_8022A770+off) (5146). Both keep more values live, so GCC saves s5..s7 and fp and grows the frame to 0x48. The target frame is 0x38: saves ra, s0..s4, fs0, fs1 only. So the live set must stay at four values plus the loop counter, with e recomputed from the offset. Target facts: outer counter s3 compared with 7 after andi 0xFFFF; temp_s4 = D_801687EC[*(u16*)(D_8006FAF0+0x20)]; idx = lhu(D_8022A772+off); flag test lhu(D_8022ACD0+off) & 0x18; q = D_8011F2F0 + idx*100; inner p walks 16-byte records while p[4] float != 0; byte lbu(D_8022AD07+off) compared with lhu(p); distance test vs 26.0f via sqrtf; func_8015E8E4(D_8022A770+off); then lhu/ori 4/sh at D_8022A776+off. Next: restore the 3120 candidate (get_candidate base saved_best) and reduce live variables, e.g. drop the separate q and recompute q from idx inside the inner test.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794724392.173883,
+  "score_before": 3120,
+  "score_after": 3120
+ },
+ {
+  "function": "func_8013DF90",
+  "text": "Saved best 3120 (the goto-shaped draft in the claim) is better than my clean do/while rewrite (5102, 59.5%). Structure from the target: temp = D_801687EC[*(u16*)(D_8006FAF0+0x20)]; if temp==NULL return; i (u16, s3) loop 0..6 with e = D_8022A770 + i*0x8F0; skip if e+2 (idx) == 0xFFFF or (e+0x560)&0x18; q = D_8011F2F0 + idx*0x64; p = temp; inner do-while on p with f=p+4 != 0.0f, step 0x10; compare *(u8*)(e+0x597) with *(u16*)p; dist test against 26.0f; func_8015E8E4(e); e+6 |= 4. Frame is 0x38 with ra,s0-s4 and f20/f22 saves (sdc1 $fs0/$fs1 = f20/f22), we use 0x40 and s5. Register/loop-shape differences: the target's `continue` jump uses beql to the i++ block, and the temp pointer lives in s4 (ours s5). Next: keep the goto-shape as the base, and make temp live in s4 by declaring it before i, and use `if (idx == 0xFFFF) continue` style for the skip.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794736435.2304902,
+  "score_before": 3120,
+  "score_after": 3120
+ },
+ {
+  "function": "func_8013DF90",
+  "text": "Best 4647 (63.1%) at revision 07a4bd46d330694596b4; target frame 0x38 with 5 s-saves (s0..s4) plus $ra and $fs0/$fs1; mine is 0x40 with an extra $s6 save at 0x28. Structure is right: s4=temp=D_801687EC[*(u16*)(D_8006FAF0+0x20)]; s3=i with unsigned (u16)i<7 test; s1=(u16)i*0x8F0 offset used as D_8022A770+s1 at each field (e pointer local costs an extra s-reg: 5397); s2=q=D_8011F2F0+idx*0x64; s0=p walks temp by 0x10; f20/f22 hold 0.0f zero compares. Tried with no effect: dropping the f local, dropping idx, dist local before compare (all 4647 with identical instructions). Unexplored: write the sqrt NaN path explicitly, or try compile_variants on the inner-loop condition shape (p+4 test first vs body first). Where the extra saved reg comes from is still unknown; check last_diff for which value is spilled.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794739013.0168698,
+  "score_before": 3120,
+  "score_after": 3120
+ },
+ {
+  "function": "func_8013DF90",
+  "text": "Unmatched. Best 5102 (59.5%), revision 561f1e41c0990f9c72c7 (do/while outer loop, `e` declared at top, inner walk on p += 0x10 until f32 at p+4 is 0). Saved best 3120 not reproduced. Remaining gap is frame and registers: target frame is 0x38 (ra at 0x24, f20 at 0x28, f22 at 0x30), ours 0x40 with an extra $s5 save; the target does lui/lhu of D_8006FAF0+0x20 as the first two instructions and keeps D_801687EC in $s4, ours uses $s5. Edits that only rename locals had no effect (2 compiles). Next, if pursued: make the first pointer `temp_s4` a u8* loaded straight from the indexed table, and check the sqrtf call is not inlined (target has a call, so keep it an extern). Left unfinished; the saved candidate is the best.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794755420.775171,
+  "score_before": 3120,
+  "score_after": 3120
+ },
+ {
+  "function": "func_8013DF90",
+  "text": "Not matched. Saved best is 3120 (goto/__repair_rows version, revision be5cb6dbb4c4735236c7); get_candidate(base=saved_best) restores it. Session variants, none beat 3120: for-loop with early return 6000; u16 i with hoisted e and for-loop p/f update 4825; outer for(i) + original do-while, frame 0x40, 6281; while(i<7) + original do-while, frame 0x40, 5102; signedness family on temp_s4 no change. Target: frame 0x38, saves ra, s0-s4, fs0/fs1 (f20/f22) only. Every variant gets 0x40-0x48 frames with an extra s5/s6 register and sometimes f24, so one more value is live across the sqrtf/func_8015E8E4 calls than in the target. Target keeps temp_s4 in s4, loop index in s3 (recomputed 'andi $v0,$s3,0xffff' each iteration), and recomputes the i*0x8F0 address with a shift/add chain each time. Next: find a shape where f and temp_s4 occupy only s4 and f22, and check whether the 0x8F0 address is recomputed per use rather than kept in a pointer. Also try -O1 if the frame stays too large.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794765088.890433,
+  "score_before": 3120,
+  "score_after": 3120
+ },
+ {
+  "function": "func_8013DF90",
+  "text": "Not matched. Best saved 3120 (historical draft; current rechecks of my drafts were 5187 goto-version rev 2cf65e224f61d4bcc714 and 6631 for-loop version rev 980cd5b568291b030b62, both worse). Target structure: frame 0x38; ra@0x24, s6/s5/s4/s3 saves, f20/f22 saved as sdc1. Loop variable is the entry index i in s3 (andi $v0,$s3,0xffff, i*0x8F0 via sll3/addu/sll4/subu), and the entry pointer e = D_8022A770 + i*0x8F0 is carried in a register that is advanced with addu $s4,$s4,$v0 (pointer-increment form, not per-iteration recompute). idx field read is lhu %lo(D_8022A772) with the +2 folded into the displacement. temp_s4 = D_801687EC[*(u16*)(D_8006FAF0+0x20)] is loaded first (lui D_8006FAF0 + lhu +0x20 + lui D_801687EC + addu + lw) and tested with beqz before the loop. The inner loop walks p += 0x10 testing f = *(f32*)(p+4) != 0 (mtc1 $zero, $f22 for the compare). Next: write the outer loop as a pointer walk (e advanced by 0x8F0), keep the null check of temp_s4 before the loop, and recheck the f22 compare form.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794767083.845897,
+  "score_before": 3120,
+  "score_after": 3120
+ },
+ {
+  "function": "func_8013DF90",
+  "text": "Small-model attempt at func_8013DF90: 12 tries.\n  best 1283 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 2380 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3218 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 4036 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 6529 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries, no match. Best -O1 score 1283 (saved 3470 under own). Worked: separate extern per field (D_8022A772, D_8022ACD0, D_8022AD07, D_8022A776), off = (i&0xFFFF)*0x8F0 per outer pass, for loop over list. Still differs: compiler hoists the 0.0f and 26.0f constants into fp regs and keeps an extra saved reg (s4/s5, frame 0x48 vs 0x38). Tried: local dist, local e pointer, inline offset at call, s32 idx, negated distance test, a local f for p+4, nested flag skip; none improved. Next: try a register-pressure variant of the list pointer and the constant placement.",
+  "by": "manual-dd0fa3b5115c4f50",
+  "created_at": 1795719721.702312,
+  "score_before": 4036,
+  "score_after": 4036,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:387bc904bb122bf75b0b4b7865601366b2bb267f182d2d44a8f10d12158a969a"
  }
 ]
