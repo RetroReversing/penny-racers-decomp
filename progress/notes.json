@@ -312,14 +312,6 @@
   "score_after": 205
  },
  {
-  "function": "n_alSeqpNew",
-  "text": "exact relocation-normalized SDK signature. Exact relocation-normalized 380-byte function fingerprint 96795b1d0bfac682684430ecb234634afec8115f; one name across selected SDK signatures, unique target fingerprint. Libraries: lib 2.0J / libgn_audio.a / sha256:83773681b9d74ee3604de5fb47656e56324ab79271e94fda2cac250bce8fa3e8; lib 2.0K / libgn_audio.a / sha256:1e602245b1f82445aeaf67225d3b1c1cde45bf5ceeb49f4e87a24238455adb64; lib 2.0L / libgn_audio.a / sha256:3b86f55b1ea10ba5444d889cb1dbe1790aba23e927d24134b3213718f086a92b. Name inferred from library code; not a verified C match.",
-  "by": "autopilot",
-  "created_at": 1794172069.874634,
-  "score_before": 1810,
-  "score_after": 1810
- },
- {
   "function": "__n_seqpReleaseVoice",
   "text": "exact relocation-normalized SDK signature. Exact relocation-normalized 284-byte function fingerprint 655cc2483984c851656dd72ecbfbbc8155bd145c; one name across selected SDK signatures, unique target fingerprint. Libraries: lib 2.0J / libgn_audio.a / sha256:83773681b9d74ee3604de5fb47656e56324ab79271e94fda2cac250bce8fa3e8; lib 2.0K / libgn_audio.a / sha256:1e602245b1f82445aeaf67225d3b1c1cde45bf5ceeb49f4e87a24238455adb64; lib 2.0L / libgn_audio.a / sha256:3b86f55b1ea10ba5444d889cb1dbe1790aba23e927d24134b3213718f086a92b. Name inferred from library code; not a verified C match.",
   "by": "autopilot",
@@ -22640,14 +22632,6 @@
   "score_after": 85
  },
  {
-  "function": "n_alSeqpNew",
-  "text": "Not matched; releasing on my own judgment, not at the move-on count. Best clean source: revision 631105f8d085898ea2a8, score 790, with `extern u8 D_80046DF4`. The saved best 780 relies on an artificial `int __repair_literal` loop bound; do not keep it. Remaining blocker: the target frame is 0x30 and ours is 0x28, so the target keeps 8 more bytes of locals or spills across the alHeapDBAlloc/__n_initChanState calls. No real local I tried changed the frame. Changing D_80046DF4 to s32 scored 980, so the load type is not the whole fix. Next step: find the extra live local that forces the 0x30 frame, then fix register choice.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794753176.813697,
-  "score_before": 780,
-  "score_after": 780
- },
- {
   "function": "n_alAudioFrame",
   "text": "Best 810 (91.5%), revision e1cdc5504c7d5a844683 (the source as compiled from my rewrite, with sp10 as a void* local, the do/while loops, and the (s32)(s2-arg0)>>3 store). Remaining diffs: (1) register swap: target keeps arg0 copy in s2 and arg2 in s3; ours puts them in s3/s2. Reordering the initialisations, swapping declaration order, and the s1-first ordering all made it worse or no change (845 and unchanged). (2) target loads D+0x2C into a0 BEFORE the sw of t into D+0x28, and does the subu/slt without a nop; ours stores t into D+0x28 in the branch delay slot (extra nop at row 28). Next try: read cur = *(s32*)(D+0x2C) into a local before the store to D+0x28, then if ((t - cur) < s1). Note the target's v0/v1 pattern for the first loop also differs (beqz v0 vs v1), which the same reorder should fix.",
   "by": "claude-haiku-5-5-22",
@@ -22792,14 +22776,6 @@
   "score_after": 980
  },
  {
-  "function": "n_alSeqpNew",
-  "text": "Saved best 780 (91.8%) kept; the 980 and 790 variants are worse. Target frame is 0x30 and mine is 0x28, so an 8-byte local or saved slot is missing; the lw/lbu of D_80046DF4 (s32 vs u8) and the early lw of temp_s2 also reorder. I did not find a local that adds the frame slot in the time available. Next step: test one extra s32 local used across the alHeapDBAlloc calls to force the 0x30 frame, then fix ordering of the field stores.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794753401.010779,
-  "score_before": 780,
-  "score_after": 780
- },
- {
   "function": "n_alAudioFrame",
   "text": "Best 810 (91.5%, revision 9d7b551e15050b5edd1f); not matched. The 810 is a direct transcription of the machine draft with D_80046DF4 loaded per use. Target loads D_80046DF4 once into a register ($v1) and keeps it live across the calls, and it stores the sample time (`sw $v0,0x28($v1)`) before the compare, with no nop after a branch. Diffs: the first loop's store of t to 0x28 is missing in the target's ordering, and the register holding the bank pointer is wrong ($a0 vs $v1). Next step: load `u8 *b = D_80046DF4` once in the else branch and use b->field everywhere; put the `t` store right after the call; then check the do/while exit branch order (target has beqz/bnez/bgtz at the end). Pointer-field offsets were 0x28 (sample time), 0x2C (play position), 0x50 (block size), 0x54 (output ptr).",
   "by": "claude-haiku-5-5-24",
@@ -22838,14 +22814,6 @@
   "created_at": 1794753443.1553779,
   "score_before": 1160,
   "score_after": 1160
- },
- {
-  "function": "n_alSeqpNew",
-  "text": "Stopping for this session at low effort. Best this claim: 790 with `extern u8 D_80046DF4`; 980 with `extern s32 D_80046DF4` (target uses lw for it). Blocking difference: stack frame. Target frame is -0x30 (ra at 0x2c, s2 0x28, s1 0x24, s0 0x20) and mine is -0x28. Adding a repair literal local did not change the frame. Next agent should find the 8 extra bytes of locals (try an s32 temp holding the first alHeapDBAlloc result, or a 16-byte local) before tuning registers.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794753463.826127,
-  "score_before": 780,
-  "score_after": 780
  },
  {
   "function": "_n_loadOutputBuffer",
@@ -34625,5 +34593,37 @@
   "created_at": 1794766252.688268,
   "score_before": 3100,
   "score_after": 3100
+ },
+ {
+  "function": "n_alSeqpNew",
+  "text": "exact relocation-normalized SDK signature. Exact relocation-normalized 380-byte function fingerprint 96795b1d0bfac682684430ecb234634afec8115f; one name across selected SDK signatures, unique target fingerprint. Libraries: lib 2.0J / libgn_audio.a / sha256:83773681b9d74ee3604de5fb47656e56324ab79271e94fda2cac250bce8fa3e8; lib 2.0K / libgn_audio.a / sha256:1e602245b1f82445aeaf67225d3b1c1cde45bf5ceeb49f4e87a24238455adb64; lib 2.0L / libgn_audio.a / sha256:3b86f55b1ea10ba5444d889cb1dbe1790aba23e927d24134b3213718f086a92b. Name inferred from library code; not a verified C match.",
+  "by": "autopilot",
+  "created_at": 1794172069.874634,
+  "score_before": 1810,
+  "score_after": 1810
+ },
+ {
+  "function": "n_alSeqpNew",
+  "text": "Not matched; releasing on my own judgment, not at the move-on count. Best clean source: revision 631105f8d085898ea2a8, score 790, with `extern u8 D_80046DF4`. The saved best 780 relies on an artificial `int __repair_literal` loop bound; do not keep it. Remaining blocker: the target frame is 0x30 and ours is 0x28, so the target keeps 8 more bytes of locals or spills across the alHeapDBAlloc/__n_initChanState calls. No real local I tried changed the frame. Changing D_80046DF4 to s32 scored 980, so the load type is not the whole fix. Next step: find the extra live local that forces the 0x30 frame, then fix register choice.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794753176.813697,
+  "score_before": 780,
+  "score_after": 780
+ },
+ {
+  "function": "n_alSeqpNew",
+  "text": "Saved best 780 (91.8%) kept; the 980 and 790 variants are worse. Target frame is 0x30 and mine is 0x28, so an 8-byte local or saved slot is missing; the lw/lbu of D_80046DF4 (s32 vs u8) and the early lw of temp_s2 also reorder. I did not find a local that adds the frame slot in the time available. Next step: test one extra s32 local used across the alHeapDBAlloc calls to force the 0x30 frame, then fix ordering of the field stores.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794753401.010779,
+  "score_before": 780,
+  "score_after": 780
+ },
+ {
+  "function": "n_alSeqpNew",
+  "text": "Stopping for this session at low effort. Best this claim: 790 with `extern u8 D_80046DF4`; 980 with `extern s32 D_80046DF4` (target uses lw for it). Blocking difference: stack frame. Target frame is -0x30 (ra at 0x2c, s2 0x28, s1 0x24, s0 0x20) and mine is -0x28. Adding a repair literal local did not change the frame. Next agent should find the 8 extra bytes of locals (try an s32 temp holding the first alHeapDBAlloc result, or a 16-byte local) before tuning registers.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794753463.826127,
+  "score_before": 780,
+  "score_after": 780
  }
 ]
