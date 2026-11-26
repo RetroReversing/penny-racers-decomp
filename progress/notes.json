@@ -6760,14 +6760,6 @@
   "score_after": 180
  },
  {
-  "function": "func_8022976C",
-  "text": "Recursive quicksort over float keys (D_8022E620, stride grp*24) with parallel u8 values (D_8022A720, stride grp*6); pivot index = (lo+hi)>>1 using sra. Clean rewrite (locals keys/vals, u16 i/j, pivot via s32 sum) scored 5695, worse than the saved 4256. Target keeps grp in $s1, lo in $t4, hi in $s2 and saves s0/s1/s2/ra (frame 0x20), and recomputes the D_8022E620 base per access; ours keeps one base and saves fewer regs. Next: declare grp/lo/hi as the saved register copies (use a 3-local copy form) and recompute bases per access. Tail (j+1<hi recursion) not verified against the target branch order.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794709148.493576,
-  "score_before": 4256,
-  "score_after": 4256
- },
- {
   "function": "func_8013536C",
   "text": "Not attempted beyond reading. The draft is a conditional on (s16)*(D_800DB1B8+0x2108)-1 == D_80126FF6 and D_8011F2FC[(arg1&0xFFFF)*0x64] != 0, then D_8006FB14[4] == 1 gating a display-list write (0x06000000 + D_80220ED8, then func_801CA140), then a second branch on the same s16 (== 1 vs == 2 vs other), and a 17-argument func_801CC150 call with the tail constants 0x60,0x2A,0x60,0x2A,0x60,0x15,0,0,0x13F,0xEF and D_80174A68/D_80175250. The draft's two identical call arms are suspicious and the ternaries on arg1 are no-ops; both need rechecking against the asm (lines 52 onwards). Stack-argument order of the 17-arg call is the likely hard part.",
   "by": "claude-haiku-5-5-20",
@@ -10264,14 +10256,6 @@
   "score_after": 1160
  },
  {
-  "function": "func_8022976C",
-  "text": "Best 5963 (52.6% match), revision edc3e3977c1d895a7eec: quicksort over f32 keys at D_8022E620 (row stride 0x18, element at +idx*4) and a u8 index array at D_8022A720 (row stride 6). Source: pivot = key[(lo+hi)>>1] with masks; for(;;){ while key[i]<pivot i++; while pivot<key[j] j--; if(i>=j) break; swap idx and key; i++; j--; } then recurse on (arg1, j-1) and (j+1, arg2), arg0 passed raw. Remaining diff: target frame 0x20 with ra,s0,s1,s2 saved and arg0 kept in $s1; ours is 0x30 with an extra s3 save because masked arg0 and the row base are reused across calls. Target recomputes the row base per access (lui/addiu $a0 then sll/addu chain). Tried: keys pointer local (6408, frame 0x28); inlined row expressions (5963); dropping tmp/ftmp/a/b temporaries (no change). Next: compute the row base once in the outer scope and check whether the recursion can take arg0 raw without the s3 save; keep i/j as the only long-lived s32 values.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794724229.418185,
-  "score_before": 4111,
-  "score_after": 4111
- },
- {
   "function": "func_8013DF90",
   "text": "Not matched. Saved best 3120 (the goto-based candidate) is still the best. Two rewrites this session scored worse: a clean do/while with an e pointer (5256), and a version addressing the separate symbols by offset (D_8022A772+off, D_8022ACD0+off, D_8022AD07+off, D_8022A776+off, D_8022A770+off) (5146). Both keep more values live, so GCC saves s5..s7 and fp and grows the frame to 0x48. The target frame is 0x38: saves ra, s0..s4, fs0, fs1 only. So the live set must stay at four values plus the loop counter, with e recomputed from the offset. Target facts: outer counter s3 compared with 7 after andi 0xFFFF; temp_s4 = D_801687EC[*(u16*)(D_8006FAF0+0x20)]; idx = lhu(D_8022A772+off); flag test lhu(D_8022ACD0+off) & 0x18; q = D_8011F2F0 + idx*100; inner p walks 16-byte records while p[4] float != 0; byte lbu(D_8022AD07+off) compared with lhu(p); distance test vs 26.0f via sqrtf; func_8015E8E4(D_8022A770+off); then lhu/ori 4/sh at D_8022A776+off. Next: restore the 3120 candidate (get_candidate base saved_best) and reduce live variables, e.g. drop the separate q and recompute q from idx inside the inner test.",
   "by": "claude-haiku-5-5-24",
@@ -12704,14 +12688,6 @@
   "score_after": 8585
  },
  {
-  "function": "func_8022976C",
-  "text": "Best 5291 (58.0%), revision 3157b7b509eb478d2964 (b04d1ad881d288c924ad is the same with tmp/ftmp moved into the loop body, same score). Stopping: five variants since the rewrite, and the remaining gap is structural. Source: quicksort over table tab: pivot = fl[(lo+hi)>>1], fl = D_8022E620 + tab*0x18 (f32 at idx*4), byte swap in D_8022A720 + tab*6, recursion on (tab, lo, i-1) and (tab, j+1, hi). Per-access `& 0xFFFF` expressions match the instruction count (126). Open items: frame 0x20 in target (saves ra,s0,s1,s2, no locals) vs mine 0x28; target keeps arg0 in $s1, arg2 in $s2, arg1 copied to $t4; target builds the table base once per block. Signedness of i (u32) changes nothing. Next: try recursion calls with the args as s32 locals (not `& 0xFFFF` on the call) and see whether the saved-register assignment follows.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794732531.6317399,
-  "score_before": 4111,
-  "score_after": 4111
- },
- {
   "function": "func_8014A79C",
   "text": "Not matched; best 1630 (69.2%), revision 65b107f8256878756cf8. Source: `rem = arg0;` first, then `tab = *(Tab8 *)D_80183718` (struct copy of u32 v[8]; per-element copies scored 4065 and the struct copy 1925), `acc = 0`, the `rem > 0x05F5E0FF` early return, then `scale = 0x10000000` and `for (s32 i = 0; i < 8; i++) { acc |= (rem / tab.v[i]) * scale; rem = rem % tab.v[i]; scale >>= 4; }`. Tried and no good: `u32 i` (1825, worse); inverting the range check into if/else (same 1630, compiler normalises it). Remaining diffs: the target's early-exit branch is `bnez` to the return block, mine is `beqz`, and the loop body differs in register/order: the target keeps the stack-copy base in $sp with `sll 2 / addu / lw` indexing, and `scale` in $a1 with the `mult` after `mflo`. The lui/ori of the 0x01234567 return constant is also placed differently. Next: try removing the local struct and indexing the copy through a u32 pointer to the stack array (`u32 *p = tab.v;`), and try writing the division result as a separate local before the `or`.",
   "by": "claude-haiku-5-5-21",
@@ -12888,14 +12864,6 @@
   "score_after": 800
  },
  {
-  "function": "func_8022976C",
-  "text": "Best 10745 (14.7%), revision 79cf06a1d6d6e2facc6b. The function is a recursive partition sort over groups: arg0&0xFFFF selects a group g; keys are f32 at D_8022E620 + g*0x18 + i*4 (six per group, lw/lwc1), ids are u8 at D_8022A720 + g*6 + i, swapped together with the keys; pivot = keys[((lo+hi)>>1)], indices masked with & 0xFFFF at every use (the target has ~15 andi). The draft's loop shape (inner while on keys[i] < pivot, then on pivot < keys[j], then swap when i<=j) is the standard one but the target masks each index and reloads the group base (lui/addiu D_8022E620) per use, which mine does not. The recursive calls take arg0 & 0xFFFF and the masked bounds. Next step: write each index as (u16) and recompute the group base inside the loops (no hoisted base pointer), then compare the stack (target saves ra@0x1C, s2@0x18, s1@0x14, frame gap to check). Not verified.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794733729.699904,
-  "score_before": 4111,
-  "score_after": 4111
- },
- {
   "function": "func_802153C4",
   "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: stack layout; first differing row 1; 39 differing rows (1 register, 6 stack, 10 operand, 12 reordered, 6 inserted, 4 deleted; advisory).\nTarget: sw $ra, 0x54($sp)\nCandidate: sw $s1, 0x4c($sp)\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n  = addiu $sp, $sp, -0x58\ni T: sw $ra, 0x54($sp) | C: sw $s1, 0x4c($sp)\no T: sw $s2, 0x50($sp) | C: lbu $s1, 0x6b($sp)\n< T: sw $s1, 0x4c($sp) | C: \nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nStuck at score 1631 (39 mismatch rows). Struct-field store form, u8-array form, and (u8*)&D_8021F02C+2 form all tie at 1631. Remaining leads: try_local_repairs families parameter_mask/parameter_width/sum_shape/global_address_table; the call to func_800DE41C takes 18 args with arg0&0xFF as the 5th; the two function-pointer args (&func_80215480, &func_802155CC) may need explicit casts or a declared prototype to change argument setup order.",
   "by": "api-route-llm-code-1",
@@ -13038,14 +13006,6 @@
   "created_at": 1794734892.058772,
   "score_before": 1080,
   "score_after": 1080
- },
- {
-  "function": "func_8022976C",
-  "text": "Not matched. Best revision 79cf06a1d6d6e2facc6b, score 10745 (14.7%). A recursive quicksort on (u16 table id, u16 lo, u16 hi). Target: prologue saves ra, s2, s1, s0 (frame 0x20+); arg0 is kept in s1 (`move $s1,$a0`), arg2 in s2, and every index is recomputed with `andi ...,0xffff` (about 15 andi). That means the lo/hi/i/j values are u16 in the original source (or the compiler re-truncates each use), so the next try should declare the locals as u16 (or cast each use) rather than s32 with a single masked copy. ids = D_8022A720 + idx*6, keys = D_8022E620 + idx*0x18 (f32 keys), pivot = keys[(lo+hi)>>1]. The masked-local variant (11005) and the draft (10745) both miss; neither gets the andi-per-use pattern.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794734971.874399,
-  "score_before": 4111,
-  "score_after": 4111
  },
  {
   "function": "func_8014BA14",
@@ -24832,14 +24792,6 @@
   "score_after": 54636
  },
  {
-  "function": "func_8022976C",
-  "text": "Not matched. Best 5595 (55.5%, target 126 insns vs ours 93), revision b02f5872503a3012aeb8. Structure is a recursive quicksort; the saved-best source uses s32 args and masks `& 0xFFFF` at each use (the target masks at use, not at copy). Read from the target: prologue saves ra, s2, s1, s0 (frame 0x20); `move s1,a0` (arg0), `move t4,a1` (arg1), `move s2,a2` (arg2), `move s0,s2`. Pivot index = `(s32)((arg1&0xFFFF)+(arg2&0xFFFF)) >> 1` (sra), keys at row*0x18 + idx*4 with row = (arg0&0xFFFF)*3<<3. Our build lacks the s0 save and the `lui/addiu` reload of D_8022E620 base. Tried and worse (5895): copying i = arg1 and j = arg2 unmasked. Next: make the saves match exactly (ra, s2, s1, s0 in that order), keep i/j as the unmasked copies from t4 and s0 (so the masks land in the expression, as the target does), then fix the recursive call arguments, which are the last `andi` pairs. Register allocation last.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794764423.3219268,
-  "score_before": 4111,
-  "score_after": 4111
- },
- {
   "function": "func_8002B534",
   "text": "Best candidate revision 879da389173a61c571d1, score 15851 (70.9%), target 546 insns vs candidate 500. Compile error fixed by removing the f32 alCents2Ratio(s16) prototype (shared context has alCents2Ratio(s32)). Remaining gap is structural: the target frame is 0x80 with ra/fp/s0-s7 saved at 0x74..0x50, while the candidate frame is 0x68 and saves at 0x5c..0x38, so the target holds about 0x18 more stack state and the call/argument order in the case 0x90 note-on path differs. The signedness family (sp20 as u16) changed nothing. Next steps, if someone retries: match the frame size first by finding the extra 0x18 bytes of locals (likely an event struct or spilled temporaries passed to alEvtqPostEvent/the callback at arg0+0x70), then re-check the argument order in the note-on block.",
   "by": "claude-haiku-5-5-23",
@@ -25694,14 +25646,6 @@
   "created_at": 1794766508.9306471,
   "score_before": 575,
   "score_after": 575
- },
- {
-  "function": "func_8022976C",
-  "text": "Not matched. Best: revision 4a87d06437221f1d9bc4, score 5705 (54.7%), a Hoare partition quicksort: keys = (f32*)(D_8022E620 + (arg0&0xFFFF)*24), ids = D_8022A720 + (arg0&0xFFFF)*6, pivot = keys[((lo&0xFFFF)+(hi&0xFFFF))>>1], i and j as u16, with a for(;;) loop and the two recursive calls at the end. Saved best 5595 is a different source. Structure now matches the target's control flow. Remaining diffs: register allocation for i (target a2) and j (target s0), and the arg moves before the loop (target copies arg2 to s0 and arg1 to t4 before the loads of keys[pivot]). Next: keep i/j as u32 locals (or s32 with explicit & 0xFFFF on each access) to force the a2/s0 split; then check the sltu for i<j, which the target does with masked values.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794766538.1638951,
-  "score_before": 4111,
-  "score_after": 4111
  },
  {
   "function": "func_8015248C",
@@ -39721,5 +39665,70 @@
   "score_before": 2435,
   "score_after": 2020,
   "handoff_inputs": "7d6ab19fd43b588fb9bd67b9d84d10cd2a9748f024bfaf8e453c8df33558880f:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:5c2835803b8d5cc5b698e99c6dfc075ef9b3a9a5c58d879b6b5ee8a8e414e799"
+ },
+ {
+  "function": "func_8022976C",
+  "text": "Recursive quicksort over float keys (D_8022E620, stride grp*24) with parallel u8 values (D_8022A720, stride grp*6); pivot index = (lo+hi)>>1 using sra. Clean rewrite (locals keys/vals, u16 i/j, pivot via s32 sum) scored 5695, worse than the saved 4256. Target keeps grp in $s1, lo in $t4, hi in $s2 and saves s0/s1/s2/ra (frame 0x20), and recomputes the D_8022E620 base per access; ours keeps one base and saves fewer regs. Next: declare grp/lo/hi as the saved register copies (use a 3-local copy form) and recompute bases per access. Tail (j+1<hi recursion) not verified against the target branch order.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794709148.493576,
+  "score_before": 4256,
+  "score_after": 4256
+ },
+ {
+  "function": "func_8022976C",
+  "text": "Best 5963 (52.6% match), revision edc3e3977c1d895a7eec: quicksort over f32 keys at D_8022E620 (row stride 0x18, element at +idx*4) and a u8 index array at D_8022A720 (row stride 6). Source: pivot = key[(lo+hi)>>1] with masks; for(;;){ while key[i]<pivot i++; while pivot<key[j] j--; if(i>=j) break; swap idx and key; i++; j--; } then recurse on (arg1, j-1) and (j+1, arg2), arg0 passed raw. Remaining diff: target frame 0x20 with ra,s0,s1,s2 saved and arg0 kept in $s1; ours is 0x30 with an extra s3 save because masked arg0 and the row base are reused across calls. Target recomputes the row base per access (lui/addiu $a0 then sll/addu chain). Tried: keys pointer local (6408, frame 0x28); inlined row expressions (5963); dropping tmp/ftmp/a/b temporaries (no change). Next: compute the row base once in the outer scope and check whether the recursion can take arg0 raw without the s3 save; keep i/j as the only long-lived s32 values.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794724229.418185,
+  "score_before": 4111,
+  "score_after": 4111
+ },
+ {
+  "function": "func_8022976C",
+  "text": "Best 5291 (58.0%), revision 3157b7b509eb478d2964 (b04d1ad881d288c924ad is the same with tmp/ftmp moved into the loop body, same score). Stopping: five variants since the rewrite, and the remaining gap is structural. Source: quicksort over table tab: pivot = fl[(lo+hi)>>1], fl = D_8022E620 + tab*0x18 (f32 at idx*4), byte swap in D_8022A720 + tab*6, recursion on (tab, lo, i-1) and (tab, j+1, hi). Per-access `& 0xFFFF` expressions match the instruction count (126). Open items: frame 0x20 in target (saves ra,s0,s1,s2, no locals) vs mine 0x28; target keeps arg0 in $s1, arg2 in $s2, arg1 copied to $t4; target builds the table base once per block. Signedness of i (u32) changes nothing. Next: try recursion calls with the args as s32 locals (not `& 0xFFFF` on the call) and see whether the saved-register assignment follows.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794732531.6317399,
+  "score_before": 4111,
+  "score_after": 4111
+ },
+ {
+  "function": "func_8022976C",
+  "text": "Best 10745 (14.7%), revision 79cf06a1d6d6e2facc6b. The function is a recursive partition sort over groups: arg0&0xFFFF selects a group g; keys are f32 at D_8022E620 + g*0x18 + i*4 (six per group, lw/lwc1), ids are u8 at D_8022A720 + g*6 + i, swapped together with the keys; pivot = keys[((lo+hi)>>1)], indices masked with & 0xFFFF at every use (the target has ~15 andi). The draft's loop shape (inner while on keys[i] < pivot, then on pivot < keys[j], then swap when i<=j) is the standard one but the target masks each index and reloads the group base (lui/addiu D_8022E620) per use, which mine does not. The recursive calls take arg0 & 0xFFFF and the masked bounds. Next step: write each index as (u16) and recompute the group base inside the loops (no hoisted base pointer), then compare the stack (target saves ra@0x1C, s2@0x18, s1@0x14, frame gap to check). Not verified.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794733729.699904,
+  "score_before": 4111,
+  "score_after": 4111
+ },
+ {
+  "function": "func_8022976C",
+  "text": "Not matched. Best revision 79cf06a1d6d6e2facc6b, score 10745 (14.7%). A recursive quicksort on (u16 table id, u16 lo, u16 hi). Target: prologue saves ra, s2, s1, s0 (frame 0x20+); arg0 is kept in s1 (`move $s1,$a0`), arg2 in s2, and every index is recomputed with `andi ...,0xffff` (about 15 andi). That means the lo/hi/i/j values are u16 in the original source (or the compiler re-truncates each use), so the next try should declare the locals as u16 (or cast each use) rather than s32 with a single masked copy. ids = D_8022A720 + idx*6, keys = D_8022E620 + idx*0x18 (f32 keys), pivot = keys[(lo+hi)>>1]. The masked-local variant (11005) and the draft (10745) both miss; neither gets the andi-per-use pattern.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794734971.874399,
+  "score_before": 4111,
+  "score_after": 4111
+ },
+ {
+  "function": "func_8022976C",
+  "text": "Not matched. Best 5595 (55.5%, target 126 insns vs ours 93), revision b02f5872503a3012aeb8. Structure is a recursive quicksort; the saved-best source uses s32 args and masks `& 0xFFFF` at each use (the target masks at use, not at copy). Read from the target: prologue saves ra, s2, s1, s0 (frame 0x20); `move s1,a0` (arg0), `move t4,a1` (arg1), `move s2,a2` (arg2), `move s0,s2`. Pivot index = `(s32)((arg1&0xFFFF)+(arg2&0xFFFF)) >> 1` (sra), keys at row*0x18 + idx*4 with row = (arg0&0xFFFF)*3<<3. Our build lacks the s0 save and the `lui/addiu` reload of D_8022E620 base. Tried and worse (5895): copying i = arg1 and j = arg2 unmasked. Next: make the saves match exactly (ra, s2, s1, s0 in that order), keep i/j as the unmasked copies from t4 and s0 (so the masks land in the expression, as the target does), then fix the recursive call arguments, which are the last `andi` pairs. Register allocation last.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794764423.3219268,
+  "score_before": 4111,
+  "score_after": 4111
+ },
+ {
+  "function": "func_8022976C",
+  "text": "Not matched. Best: revision 4a87d06437221f1d9bc4, score 5705 (54.7%), a Hoare partition quicksort: keys = (f32*)(D_8022E620 + (arg0&0xFFFF)*24), ids = D_8022A720 + (arg0&0xFFFF)*6, pivot = keys[((lo&0xFFFF)+(hi&0xFFFF))>>1], i and j as u16, with a for(;;) loop and the two recursive calls at the end. Saved best 5595 is a different source. Structure now matches the target's control flow. Remaining diffs: register allocation for i (target a2) and j (target s0), and the arg moves before the loop (target copies arg2 to s0 and arg1 to t4 before the loads of keys[pivot]). Next: keep i/j as u32 locals (or s32 with explicit & 0xFFFF on each access) to force the a2/s0 split; then check the sltu for i<j, which the target does with masked values.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794766538.1638951,
+  "score_before": 4111,
+  "score_after": 4111
+ },
+ {
+  "function": "func_8022976C",
+  "text": "Small-model attempt at func_8022976C: 13 tries.\n  best 1925 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 2345 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 4005 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 4575 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 5870 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n13 tries, not matched. Best at -O1: 1925 (flat u16 params, pivot via row pointer, loop pointers inline with & 0xFFFF on indices, i/j as s32). Left: target keeps the keys base in a separate pointer (addu t1 = idx*24 + base) and loads the pivot base first; register choices differ. Tried block-scoped keys/ids pointers (worse, 4975), masked sums in pivot (same), masked row index (same).",
+  "by": "manual-30cc7f1111b740b2",
+  "created_at": 1795718558.133882,
+  "score_before": 4575,
+  "score_after": 4575,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a61f348a82e406e4c0f161a316690155e53b2a98d297c41358bda211c83b2f18"
  }
 ]
