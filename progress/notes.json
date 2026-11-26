@@ -3312,14 +3312,6 @@
   "score_after": 3130
  },
  {
-  "function": "func_8015A414",
-  "text": "Deep permuter: score 9009 \u2192 6025; 2 improvements; 106 candidates tested; 67 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935519",
-  "created_at": 1794348538.163139,
-  "score_before": 9009,
-  "score_after": 6025
- },
- {
   "function": "n_alSndpSetVol",
   "text": "Deep permuter: score 347 \u2192 347; 0 improvements; 109 candidates tested; 6 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934883",
@@ -8800,14 +8792,6 @@
   "score_after": 5090
  },
  {
-  "function": "func_8015A414",
-  "text": "Released at the move-on budget. Best is the saved draft (rev 732b3860a9861eefcb05, historical 585; rechecked now at 9009, so the historical score is from different inputs). Structure is right in the source: if (D_80189DC1) { temp_s0=(arg1&0xFFFF)*100; if (inline(temp_s0) u16 !=0 && !=4 && D_8011F32E[temp_s0]!=5) { func_801CA140(); write 8-byte display-list header into *arg0 (0x06000000, &D_80220ED8); 7 func_801CC150 calls with the fixed argument sets, 4 func_801CA468 calls (D_8011F2FC[temp_s0], D_8018A148[0..2], and [3] only if D_80189C7C==1) } }. Mismatch: the target frame is 0x68 and saves s0-s5 with sw $ra at 0x60, so it keeps more values live across the calls (the current draft uses 0x60 and saves s0-s4 only). The target begins with the sp adjust, not the D_80189DC1 load, so the draft's evaluation order / hoisted temps are wrong. Tried: draft as-is (9009), 6 automatic local repairs (none better; a u16 arg1 gave 9189; a u8[] for D_8011F2FC gave 9384). Next: find which values the target keeps in s1..s5 (likely the per-call pointer temps, or a second struct pointer) by reading get_assembly from the function start, then restructure the locals before changing the call arguments.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794711046.608006,
-  "score_before": 585,
-  "score_after": 585
- },
- {
   "function": "func_8014B108",
   "text": "Not matched. Best 5675 (70.7%), saved from the variant with `u8 *b = D_8022A770;` and `s16 *p1 = D_8021E1A2;` / `s16 *p2 = D_8021E1A6;` as locals set at the top, using the literal byte offsets for D_8022A770 (0x596, 0x566+i, 0x562+i, 0x538, 6, 0x230). That beats the machine draft (6900 saved). Reordering the pointer loads to after the D_80189B34 check gave 5755 (worse, reverted). Target is 194 insns, mine 186. Target facts: prologue saves ra(0x24), s2(0x20), s1(0x1c), s0(0x18). It loads D_80189B34 into v1 first and compares to 2 before touching the other data. It keeps s1 = &D_8021E1A2 and s2 = &D_8022A770 as live pointers through the function (reads like lh 0(s1), lh 4(s1), lb 0x596(s2)). The 4-byte-stride loops use `sll v0,a0,2` (index*4) for D_80168D54 / D_8018D3A0 (7 iterations). Next step: force the two pointers to stay live (keep p1 and b in separate locals assigned at the top of the if-body, not inside a nested block), write the 7-iteration loop with `i*4` byte indexing, and check whether the `lui $s1,%hi(D_8021E1A2)` pair comes after the sw of s0 in the target. Released at move-on budget.",
   "by": "claude-haiku-5-5-23",
@@ -13398,14 +13382,6 @@
   "created_at": 1794727739.2371619,
   "score_before": 5100,
   "score_after": 5100
- },
- {
-  "function": "func_8015A414",
-  "text": "Stopping here: the remaining gap is structural and I could not close it with local edits. Best current candidate scores 8994 (revision 2dde2cbaafc1264108ae); the historical saved best of 585 could not be reproduced from the same source. Confirmed: table D_8011F32E is u16 (lhu), index is (arg&0xFFFF)*100, check on D_80189DC1 is a byte load. Target keeps ra and s0-s5 in a 0x68 frame and reloads the u16 entry for the `!= 5` test; my version CSEs that load. Untried: whether the four func_801CA468/func_801CC150 call blocks come from a loop or a helper, and a second read of the table via a separate expression. Next agent: start from the candidate, check the frame layout and the second table read first, then registers.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794727745.356406,
-  "score_before": 585,
-  "score_after": 585
  },
  {
   "function": "func_80207044",
@@ -18694,14 +18670,6 @@
   "created_at": 1794740706.219342,
   "score_before": 465,
   "score_after": 465
- },
- {
-  "function": "func_8015A414",
-  "text": "No match. My best is 7599 (61%), from the draft with the D_80189DC1/D_80189C7C checks and six func_801CC150 calls (13 stack args plus two pointers) written as plain C. Making the `!= 5` test a u16 compare, making D_8011F2FC a u8 array, and writing the third arg as (0x3F-x)<<16 all scored worse (9234). The saved best (585) rechecks at 9009 now, so its old score doesn't reproduce. Local repairs (6 variants) found nothing better. Target: frame 0x68 with ra plus s0-s5 saved; mine is 0x60, so one extra 8-byte local or saved slot is missing. The target loads D_80220ED8 as lui/addiu twice, and the state test is lhu compared against 0 and 4, then 5. Next: find the extra 8-byte frame item (likely a second temporary for the s32 store pair) and recheck the stack-argument order against the target's sw at 0x10..0x40.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794740719.317125,
-  "score_before": 585,
-  "score_after": 585
  },
  {
   "function": "func_80148DBC",
@@ -25040,14 +25008,6 @@
   "score_after": 1900
  },
  {
-  "function": "func_8015A414",
-  "text": "Not matched. Saved best 585 (Wwww.saved-progress) is the one to start from; my clean rewrites scored 9009-9409 (the inline_fn/s32-pointer forms and the explicit-index forms both worse). Target facts: frame 0x68 with six saved regs (s0 = record offset idx*100, s1 = arg0 kept across calls, s4 = 0xEF, s5 = 0x13F held as locals across calls). Index is (arg1&0xFFFF)*100 via sll/addu chain; record is u16 at D_8011F32E+off, the 0x5 test reloads the same u16 after the first one (target reloads with lui/addu/lhu, mine CSEs it). Target lhu ptr then 'sltu/xori/sltu/and' for (v!=0 && v!=4), then 'beqz' and a second reload-and-compare for ==5. Byte at D_8011F2FC+off is the record's first-byte source for func_801CA468. Constant 0x3F-(int)D_80189C78 is passed as (s16) via sll 16/sra 16. Next: keep arg0 in a local saved across calls (void **p = arg0 and use *p), try the 0x13F/0xEF locals as s32 without 'off' reuse, and test the ==5 reload as a separate statement. Three non-improving compiles were used; local constant locals alone changed nothing.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794756532.717238,
-  "score_before": 585,
-  "score_after": 585
- },
- {
   "function": "func_801E435C",
   "text": "Not matched. Best score 35 (97.9%), saved: return ((*(u16*)((u8*)D_801E97CA + (arg0&0xFF)*0x30) & *(u16*)((u8*)D_801E91D4 + (arg1&0xFF)*2)) >> ((arg1&0xFF)*4)) & 0xFF; the order with the D_801E97CA load first is what matched the target order. Remaining 7 diffs are register allocation: target uses $a0 for the D_801E97CA address temp and $v0 for the D_801E91D4 base, ours uses $at for both. Tried: separate s32 locals x and y (155, worse). Next: try an explicit u16 cast on the D_801E91D4 index (D_801E91D4[arg1&0xFF]) which may change the address temp, or try_local_repairs for allocation.",
   "by": "claude-haiku-5-5-23",
@@ -27022,14 +26982,6 @@
   "created_at": 1794759183.773443,
   "score_before": 6875,
   "score_after": 6875
- },
- {
-  "function": "func_8015A414",
-  "text": "Saved best 585 (inline_fn form, revision 732b3860a9861eefcb05) is the best source; my recompiles of it scored 9009. Replacing inline_fn with a direct cast lowers the score to 9074. Target first computes idx*0x64 as sll $s0,$v0,2 + addu (not sll 4), loads D_8011F32E via lhu with the same index, and reuses the index for the second check. The current C uses a shifted-by-4 index, so the mismatch starts at the index computation. Untried: write the multiply as idx*25 then <<2 so gcc emits sll 2 + addu, and check D_80189DC1 is read as u8 with lbu before the first branch. Stopped after 3 non-improving edits.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794759222.746552,
-  "score_before": 585,
-  "score_after": 585
  },
  {
   "function": "func_8012913C",
@@ -34856,5 +34808,53 @@
   "score_before": 3400,
   "score_after": 3400,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:48408ea278d5177a0dc513c9420fb2845b4f274759acf03befc7f1466a5ca5e9"
+ },
+ {
+  "function": "func_8015A414",
+  "text": "Deep permuter: score 9009 \u2192 6025; 2 improvements; 106 candidates tested; 67 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935519",
+  "created_at": 1794348538.163139,
+  "score_before": 9009,
+  "score_after": 6025
+ },
+ {
+  "function": "func_8015A414",
+  "text": "Released at the move-on budget. Best is the saved draft (rev 732b3860a9861eefcb05, historical 585; rechecked now at 9009, so the historical score is from different inputs). Structure is right in the source: if (D_80189DC1) { temp_s0=(arg1&0xFFFF)*100; if (inline(temp_s0) u16 !=0 && !=4 && D_8011F32E[temp_s0]!=5) { func_801CA140(); write 8-byte display-list header into *arg0 (0x06000000, &D_80220ED8); 7 func_801CC150 calls with the fixed argument sets, 4 func_801CA468 calls (D_8011F2FC[temp_s0], D_8018A148[0..2], and [3] only if D_80189C7C==1) } }. Mismatch: the target frame is 0x68 and saves s0-s5 with sw $ra at 0x60, so it keeps more values live across the calls (the current draft uses 0x60 and saves s0-s4 only). The target begins with the sp adjust, not the D_80189DC1 load, so the draft's evaluation order / hoisted temps are wrong. Tried: draft as-is (9009), 6 automatic local repairs (none better; a u16 arg1 gave 9189; a u8[] for D_8011F2FC gave 9384). Next: find which values the target keeps in s1..s5 (likely the per-call pointer temps, or a second struct pointer) by reading get_assembly from the function start, then restructure the locals before changing the call arguments.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794711046.608006,
+  "score_before": 585,
+  "score_after": 585
+ },
+ {
+  "function": "func_8015A414",
+  "text": "Stopping here: the remaining gap is structural and I could not close it with local edits. Best current candidate scores 8994 (revision 2dde2cbaafc1264108ae); the historical saved best of 585 could not be reproduced from the same source. Confirmed: table D_8011F32E is u16 (lhu), index is (arg&0xFFFF)*100, check on D_80189DC1 is a byte load. Target keeps ra and s0-s5 in a 0x68 frame and reloads the u16 entry for the `!= 5` test; my version CSEs that load. Untried: whether the four func_801CA468/func_801CC150 call blocks come from a loop or a helper, and a second read of the table via a separate expression. Next agent: start from the candidate, check the frame layout and the second table read first, then registers.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794727745.356406,
+  "score_before": 585,
+  "score_after": 585
+ },
+ {
+  "function": "func_8015A414",
+  "text": "No match. My best is 7599 (61%), from the draft with the D_80189DC1/D_80189C7C checks and six func_801CC150 calls (13 stack args plus two pointers) written as plain C. Making the `!= 5` test a u16 compare, making D_8011F2FC a u8 array, and writing the third arg as (0x3F-x)<<16 all scored worse (9234). The saved best (585) rechecks at 9009 now, so its old score doesn't reproduce. Local repairs (6 variants) found nothing better. Target: frame 0x68 with ra plus s0-s5 saved; mine is 0x60, so one extra 8-byte local or saved slot is missing. The target loads D_80220ED8 as lui/addiu twice, and the state test is lhu compared against 0 and 4, then 5. Next: find the extra 8-byte frame item (likely a second temporary for the s32 store pair) and recheck the stack-argument order against the target's sw at 0x10..0x40.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794740719.317125,
+  "score_before": 585,
+  "score_after": 585
+ },
+ {
+  "function": "func_8015A414",
+  "text": "Not matched. Saved best 585 (Wwww.saved-progress) is the one to start from; my clean rewrites scored 9009-9409 (the inline_fn/s32-pointer forms and the explicit-index forms both worse). Target facts: frame 0x68 with six saved regs (s0 = record offset idx*100, s1 = arg0 kept across calls, s4 = 0xEF, s5 = 0x13F held as locals across calls). Index is (arg1&0xFFFF)*100 via sll/addu chain; record is u16 at D_8011F32E+off, the 0x5 test reloads the same u16 after the first one (target reloads with lui/addu/lhu, mine CSEs it). Target lhu ptr then 'sltu/xori/sltu/and' for (v!=0 && v!=4), then 'beqz' and a second reload-and-compare for ==5. Byte at D_8011F2FC+off is the record's first-byte source for func_801CA468. Constant 0x3F-(int)D_80189C78 is passed as (s16) via sll 16/sra 16. Next: keep arg0 in a local saved across calls (void **p = arg0 and use *p), try the 0x13F/0xEF locals as s32 without 'off' reuse, and test the ==5 reload as a separate statement. Three non-improving compiles were used; local constant locals alone changed nothing.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794756532.717238,
+  "score_before": 585,
+  "score_after": 585
+ },
+ {
+  "function": "func_8015A414",
+  "text": "Saved best 585 (inline_fn form, revision 732b3860a9861eefcb05) is the best source; my recompiles of it scored 9009. Replacing inline_fn with a direct cast lowers the score to 9074. Target first computes idx*0x64 as sll $s0,$v0,2 + addu (not sll 4), loads D_8011F32E via lhu with the same index, and reuses the index for the second check. The current C uses a shifted-by-4 index, so the mismatch starts at the index computation. Untried: write the multiply as idx*25 then <<2 so gcc emits sll 2 + addu, and check D_80189DC1 is read as u8 with lbu before the first branch. Stopped after 3 non-improving edits.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794759222.746552,
+  "score_before": 585,
+  "score_after": 585
  }
 ]
