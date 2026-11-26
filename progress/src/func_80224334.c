@@ -31,7 +31,7 @@ void func_80224334(void *arg0) {
             }
         }
         temp_fv1 = M2C_FIELD(arg0, f32 *, 0x758);
-        if (temp_fv1 < *(s32 *)*(s32 *)(D_802D2C74 + (M2C_FIELD(arg0, u16 *, 0x536) * 0xC))) {
+        if (temp_fv1 < *(f32 *)*(s32 *)(D_802D2C74 + (M2C_FIELD(arg0, u16 *, 0x536) * 0xC))) {
             M2C_FIELD(arg0, f32 *, 0x758) = (f32) (temp_fv1 + M2C_FIELD(arg0, f32 *, 0x75C));
         }
         M2C_FIELD(arg0, f32 *, 0x748) = (f32) M2C_FIELD(arg0, f32 *, 0x748);
