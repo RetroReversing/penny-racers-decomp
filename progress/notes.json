@@ -7064,14 +7064,6 @@
   "score_after": 3760
  },
  {
-  "function": "func_80157A54",
-  "text": "Sibling of func_80157BBC (same shape, 5 iterations instead of 2, table bytes D_8016D898/D_8016D8A0 used as lbu indices, times 16, plus a copy C4[D8A0[i]*16] = C4[D898[i]*16] at the end of each iteration). Best 3915 (56.4%): u16* p=(u16*)(D_8016D8A8+i*2) temp-value first loop; second loop with s16 stores via D_802B27C4 + table*16. Repeated with a single-index do-while (same score 3915). Remaining diff: target keeps the first-loop byte offset s2<<1 shared into v1 = v0 + a1 (lui a1 / addiu a1 base reused across iterations, five addu), and the second loop's 'sll s1,s1,4' + 'addu at,at,s1' store order; f20/f22 and s4/s3 saved as in func_80157BBC (0x38 frame). Next idea: copy the func_80157BBC best structure (same frame and base-pointer handling) and change the constants (+0xC, -0x15C, bound 5, table index scale 16).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794708473.780937,
-  "score_before": 5314,
-  "score_after": 3915
- },
- {
   "function": "func_801578EC",
   "text": "Released early: the remaining gap is register allocation (pointer kept in $a3/$t0 instead of $v1, and the 0x1414FF00 constant hoisted to the top), which the last several source forms did not move. Best this session 4565 (saved 400 is historical). Next attempt would be named locals for the F5880800/F2000000 constants declared before the blocks, and a u16 cast in the final expression (*(u16*)(D_8011F32E + off)).",
   "by": "claude-haiku-5-5-22",
@@ -11016,14 +11008,6 @@
   "score_after": 400
  },
  {
-  "function": "func_80157A54",
-  "text": "Best 3700 (58.8%), saved. Key facts: D_8016D898 and D_8016D8A0 are BYTE arrays (target uses lbu), D_8016D8A8 and D_8016D8B4 are u16. First loop runs 5 iterations: `off=k*2; p=(u16*)((u8*)&D_8016D8A8+off); v=*p; *p=v+0xC; k++; if(*p>=0x169) *p=v-0x15C;`. Second loop (i<5) stores `(s16)(sinf(D_8016D8A8[off]*fs1/fs0)*D_8016D8B4[off])` into D_802B27C4 at byte offset D_8016D898[i]*16, then copies that slot to D_8016D8A0[i]*16. fs1/fs0 are f64 locals, which gives the sdc1 saves; frame must be 0x38 like func_80157BBC. Tried, worse: pointer-free `*(u16*)((u8*)&D_8016D8A8 + off)` form (4295). Target reloads `sll v0,s2,1` each iteration, so the counter is the loop variable with no separate pointer. Next: keep the 3700 form but make the second loop's index `off` reused for the byte-table loads.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794722651.557146,
-  "score_before": 3915,
-  "score_after": 3700
- },
- {
   "function": "func_8003E83C",
   "text": "Best verified 170 (17 insns vs target 18) with the saved_best source (revision a383765bcd50aa94c378, re-verified this session; my identical rewrite 337b9fa1fbe961dd70b7 scored the same 170). All 18 target instructions are present except one entry `move $t9,$a0`, and the entry `bnez` delay slot is a real instruction instead of the target's `nop` (branch offset 0x30 vs 0x34).\n\nTarget shape (sorted-list insert, 3-word node {next, priority, queue}):\n  addu $t9,$a0,$zero ; lw $t8,($a0) ; lw $t7,4($a1) ; lw $t6,4($t8) ; slt $at,$t6,$t7 ; bnez $at,.L870 ; nop\n.L858: addu $t9,$t8,$zero ; lw $t8,($t8) ; lw $t6,4($t8) ; slt $at,$t6,$t7 ; beqz $at,.L858 ; nop\n.L870: lw $t8,($t9) ; sw $t8,($a1) ; sw $a1,($t9) ; jr $ra ; sw $a0,8($a1)\ni.e. prev=$t9 starting at head, cur=$t8 starting at head->next, entry test then do-while backedge, and the store uses prev ($t9) while item->next comes from prev->next.\n\nTried and rejected: natural `while (nxt->priority >= key) { cur=nxt; nxt=nxt->next; }` (1140, beql); `cur=head; while (cur->next->priority>=key) cur=cur->next;` (950); entry-guarded do-while on cur->next (950); hoisted priority temp (1045); explicit prev/cur do-while (1045); the saved_best duplicated-assignment form with `if (cur)` branches (170, best). try_local_repairs families not run this session; 9 proposals remain on a383765bcd50aa94c378 (explicit_loop_backedge, signedness, byte_table_signedness, spill_declaration_order).\n\nLeft to try: get the entry `move $t9,$a0` emitted by making prev live across the whole function while cur is loaded separately (e.g. keep prev as a separate named variable that is only ever assigned from cur inside the loop and read at the store, and make the loop test read prev->next->priority so the top-tested rotation is not chosen); or accept that gcc-2.7.2-kmc rotates this loop and try search_flags/try_compiler on the 170 source (an -O1 build may keep the extra move).",
   "by": "api-route-llm-code-1",
@@ -14640,14 +14624,6 @@
   "score_after": 180
  },
  {
-  "function": "func_80157A54",
-  "text": "Not matched; best 3910 (56.5%) this session (saved 4356 for the indexed-temp variant). Same family as func_80157BBC: func_8013AE60(arg0&0xFFFF); loop i=0..4 over u16 D_8016D8A8: old=a[i]; a[i]=old+0xC; if (a[i]>=0x169) a[i]=old-0x15C; then loop i=0..4: D_802B27C4[D_8016D898[i]*16] (s16) = (s16)(s32)(__sinf((f32)((f64)a[i]*D_80183830/D_80183838)) * (f32)D_8016D8B4[i]); D_802B27C4[D_8016D8A0[i]*16] = D_802B27C4[D_8016D898[i]*16]. Frame 0x38 with ra 0x24, s4 0x20, s3 0x1C, s2 0x18 (index), s1 0x14, s0 0x10, fs1 0x30, fs0 0x28. Ours used an extra s5 save and 0x40 frame when a dst temp was introduced; dropping that temp helped (4356 -> 3910). Remaining diffs: the target keeps the loop index in s2 and computes byte offsets `sll v0,s2,1; addu v1,v0,a1` for the u16 loads (ours uses element access with andi), the base pointers are held in s4/s3 across the sinf call, and the second loop has `sll v0,s2,1` before the reset `move s2,$zero`. Next: express both loops with a shared byte-offset `off = i*2` and a `u16 *base = D_8016D8A8` local so the 0x38 frame and s4/s3 saves appear; the same tactic may apply to func_80157BBC (its best is 3125).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794734352.555251,
-  "score_before": 3700,
-  "score_after": 3700
- },
- {
   "function": "func_80208374",
   "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 1; 15 differing rows (3 branch target, 2 operand, 6 reordered, 2 inserted, 2 deleted; advisory).\nTarget: sw $ra, 0x1c($sp)\nCandidate: \nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n  = addiu $sp, $sp, -0x20\no T: sw $ra, 0x1c($sp) | C: \n  = sw $s0, 0x18($sp)\n  = lui $s0, %hi(D_8021E19E)\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.",
   "by": "api-route-llm-code-2",
@@ -14944,14 +14920,6 @@
   "score_after": 6142
  },
  {
-  "function": "func_80157A54",
-  "text": "Best 3910 (56.5%), revision 52bed1413f36915e8d1c (the candidate as given; compiled unchanged). Remaining diffs: (1) the first loop reloads D_8016D8A8[i] after the store and tests it with unsigned `sltiu v0,v0,0x169` (target, [19]-[20]); ours tests with an `andi`/slti form. Using `old + 0xC >= 0x169` for the test was worse (4135). (2) The target indexes the u16 table by `sll v0,i,1; addu v1,v0,a1` (one base, `lui a1,%hi(D_8016D8A8)` shared across the loops), ours recomputes the base per loop with `addiu +2` pointer steps. (3) the second loop writes to D_802B27C4 with `sll/addu` index math that the target keeps in s2 (i) rather than the pointer. Next: write the first loop as an index-based `D_8016D8A8[i]` (no pointer temporary), and keep the test as a u16 compare.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794735410.759619,
-  "score_before": 3700,
-  "score_after": 3700
- },
- {
   "function": "func_80219CF0",
   "text": "Re-checked the saved candidate (revision e5fb5ee661c2d4ac5530): 1596 (79.5%), no change from the recorded attempt. Remaining diffs are stack layout (target frame 0x50 with ra at 0x4c and s0 at 0x48; ours has no saved s0) and reordering. Previous agent's volatile u8* flag trick reproduces the byte reloads but not the saved-register layout. Untested next: keep p in a callee-saved register across the func_801FA30C call (e.g. read *((u16*)(p+0x3E)) into a local before the switch) and try compile_family(signedness) as the tool suggested.",
   "by": "claude-haiku-5-5-23",
@@ -15230,14 +15198,6 @@
   "created_at": 1794736445.4778728,
   "score_before": 5440,
   "score_after": 5440
- },
- {
-  "function": "func_80157A54",
-  "text": "Best 3910 (56.5%). Three compiles, no improvement: a pointer-based first loop compiled identically, and a repeated source was a no-op. Target (90 insns): calls func_8013AE60(arg0&0xFFFF); loop 1 uses index s2 with sll 1 hoisted before the loop, reloads the stored value (lhu after sh) and the i++ sits in a bnez delay slot; loop 2 loads k1/k2 doubles after loop 1 into fs1/fs0, index s2, s1=D898[i]<<4, sinf(D8A8[i]*k1/k2)*D8B4[i] through trunc.w.s to D802B27C4+s1, then copies to D8A0[i]<<4. Frame 0x38 with ra, s0..s4, fs0/fs1 saved. Mine uses s0 for the loop index and reuses it. Why it stops here: the register assignment for the loop index across the sinf call is decided by the compiler from the loop shape, which I have not matched yet. Next: keep the loop variable live across func_8013AE60 and the sinf call (e.g. read D8A8[i] into a local before the call), so the saves match s0..s4.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794736470.082645,
-  "score_before": 3700,
-  "score_after": 3700
  },
  {
   "function": "func_8014981C",
@@ -28424,14 +28384,6 @@
   "score_after": 23460
  },
  {
-  "function": "func_80157A54",
-  "text": "Not matched. Best 3910 (56.5%, 90 target insns vs 85 ours), revision 52bed1413f36915e8d1c. Our source does not follow the target's loop shape. Diffs: target keeps the loop counter in s2 and uses `sll v0,s2,1` + `addu v1,v0,a1` to index the u16 table D_8016D8A8 (a per-element u16 index, not a pointer walk), and the second loop reads back `lhu v0,(v1)` then `bnez v0`, so the first loop's reread is an unmasked u16 test rather than our `andi` plus `>= 0x169`. Target also has the trailing `move s2,zero` (second loop reset) which ours lacks. Next: rewrite the first loop with an explicit u16 index (`D_8016D8A8[i]`) and the second loop as the `if (D_8016D8A8[i] != 0)` test the bnez suggests, then compare. The sinf call (`__sinf`) and the 0x10 record stride (`* 16`) look right: target uses `sll` by 4 for the D_802B27C4 row stride.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794764623.2597241,
-  "score_before": 3700,
-  "score_after": 3700
- },
- {
   "function": "func_8014D458",
   "text": "Not matched. Best 2720 (70.7%, 93 target insns vs 81 ours), revision e8010a5c0fedf388a09e (the source as submitted). Remaining: (1) prologue saves order: target saves ra (0x18), s1 (0x14), s0 (0x10) with `move s1,a0` and `andi s0,s1,0xffff` after the saves, and our saves put s1 first. (2) The D_8011F32E index: target loads `lui v0,%hi(D_8011F32E)` then `lhu v0,%lo(...)(v0)` after `sll v1,v0,2`; ours builds `addiu v1,v1,%lo` first. So the first `*(u16*)(D_8011F32E + idx*0x64)` test should use the base directly, not an address temp. (3) The `D_8011F32E` lhu/bnel and bc1f branch shape differs from `if (fv > 360.0f)`: the target tests with the `c.lt`/`bc1f` in the other order. Next: use `idx = arg0 & 0xFFFF` as the masked local everywhere (target has andi s0,s1 twice), and try writing the 360.0f test as `if (!(fv <= 360.0f))`.",
   "by": "claude-haiku-5-5-20",
@@ -29710,14 +29662,6 @@
   "created_at": 1794766738.22766,
   "score_before": 60,
   "score_after": 60
- },
- {
-  "function": "func_80157A54",
-  "text": "Two loops over 5 entries: first updates u16 D_8016D8A8[i] (+0xC, wrap at 0x169 to -0x15C); second writes s16 into D_802B27C4 at offsets from D_8016D898[i]*16 and D_8016D8A0[i]*16, using (f32)__sinf of an f64 ratio. Best 3910 (56.5%). Tried with no change in asm: k1/k2/i/old declaration order, `old + 0xC` vs `+= 0xC`, pointer form `u16 *p = &D_8016D8A8[i]`. Remaining diff: target keeps the loop index in $s2 (move $s2,$zero; sll $v0,$s2,1; addu $v1,$v0,$a1 for each access). Candidate puts the index in $s0 and uses addiu pointer steps. Also the target reloads D_8016D8A8[i] after the store and only then compares. Next: try an explicit index variable used for both arrays (e.g. `s32 j = i*2` consumed by both loops), or compile_variants over index-form alternatives. Register choice is the main gap; structure of both loops already matches.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794766752.4748979,
-  "score_before": 3700,
-  "score_after": 3700
  },
  {
   "function": "func_8014D458",
@@ -36166,5 +36110,86 @@
   "score_before": 1393,
   "score_after": 955,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:d7ec5fc62335eee310dcd057a85f108a7e178bf9527f8c711fee0a38382a0e54"
+ },
+ {
+  "function": "func_80157A54",
+  "text": "Sibling of func_80157BBC (same shape, 5 iterations instead of 2, table bytes D_8016D898/D_8016D8A0 used as lbu indices, times 16, plus a copy C4[D8A0[i]*16] = C4[D898[i]*16] at the end of each iteration). Best 3915 (56.4%): u16* p=(u16*)(D_8016D8A8+i*2) temp-value first loop; second loop with s16 stores via D_802B27C4 + table*16. Repeated with a single-index do-while (same score 3915). Remaining diff: target keeps the first-loop byte offset s2<<1 shared into v1 = v0 + a1 (lui a1 / addiu a1 base reused across iterations, five addu), and the second loop's 'sll s1,s1,4' + 'addu at,at,s1' store order; f20/f22 and s4/s3 saved as in func_80157BBC (0x38 frame). Next idea: copy the func_80157BBC best structure (same frame and base-pointer handling) and change the constants (+0xC, -0x15C, bound 5, table index scale 16).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794708473.780937,
+  "score_before": 5314,
+  "score_after": 3915
+ },
+ {
+  "function": "func_80157A54",
+  "text": "Best 3700 (58.8%), saved. Key facts: D_8016D898 and D_8016D8A0 are BYTE arrays (target uses lbu), D_8016D8A8 and D_8016D8B4 are u16. First loop runs 5 iterations: `off=k*2; p=(u16*)((u8*)&D_8016D8A8+off); v=*p; *p=v+0xC; k++; if(*p>=0x169) *p=v-0x15C;`. Second loop (i<5) stores `(s16)(sinf(D_8016D8A8[off]*fs1/fs0)*D_8016D8B4[off])` into D_802B27C4 at byte offset D_8016D898[i]*16, then copies that slot to D_8016D8A0[i]*16. fs1/fs0 are f64 locals, which gives the sdc1 saves; frame must be 0x38 like func_80157BBC. Tried, worse: pointer-free `*(u16*)((u8*)&D_8016D8A8 + off)` form (4295). Target reloads `sll v0,s2,1` each iteration, so the counter is the loop variable with no separate pointer. Next: keep the 3700 form but make the second loop's index `off` reused for the byte-table loads.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794722651.557146,
+  "score_before": 3915,
+  "score_after": 3700
+ },
+ {
+  "function": "func_80157A54",
+  "text": "Not matched; best 3910 (56.5%) this session (saved 4356 for the indexed-temp variant). Same family as func_80157BBC: func_8013AE60(arg0&0xFFFF); loop i=0..4 over u16 D_8016D8A8: old=a[i]; a[i]=old+0xC; if (a[i]>=0x169) a[i]=old-0x15C; then loop i=0..4: D_802B27C4[D_8016D898[i]*16] (s16) = (s16)(s32)(__sinf((f32)((f64)a[i]*D_80183830/D_80183838)) * (f32)D_8016D8B4[i]); D_802B27C4[D_8016D8A0[i]*16] = D_802B27C4[D_8016D898[i]*16]. Frame 0x38 with ra 0x24, s4 0x20, s3 0x1C, s2 0x18 (index), s1 0x14, s0 0x10, fs1 0x30, fs0 0x28. Ours used an extra s5 save and 0x40 frame when a dst temp was introduced; dropping that temp helped (4356 -> 3910). Remaining diffs: the target keeps the loop index in s2 and computes byte offsets `sll v0,s2,1; addu v1,v0,a1` for the u16 loads (ours uses element access with andi), the base pointers are held in s4/s3 across the sinf call, and the second loop has `sll v0,s2,1` before the reset `move s2,$zero`. Next: express both loops with a shared byte-offset `off = i*2` and a `u16 *base = D_8016D8A8` local so the 0x38 frame and s4/s3 saves appear; the same tactic may apply to func_80157BBC (its best is 3125).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794734352.555251,
+  "score_before": 3700,
+  "score_after": 3700
+ },
+ {
+  "function": "func_80157A54",
+  "text": "Best 3910 (56.5%), revision 52bed1413f36915e8d1c (the candidate as given; compiled unchanged). Remaining diffs: (1) the first loop reloads D_8016D8A8[i] after the store and tests it with unsigned `sltiu v0,v0,0x169` (target, [19]-[20]); ours tests with an `andi`/slti form. Using `old + 0xC >= 0x169` for the test was worse (4135). (2) The target indexes the u16 table by `sll v0,i,1; addu v1,v0,a1` (one base, `lui a1,%hi(D_8016D8A8)` shared across the loops), ours recomputes the base per loop with `addiu +2` pointer steps. (3) the second loop writes to D_802B27C4 with `sll/addu` index math that the target keeps in s2 (i) rather than the pointer. Next: write the first loop as an index-based `D_8016D8A8[i]` (no pointer temporary), and keep the test as a u16 compare.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794735410.759619,
+  "score_before": 3700,
+  "score_after": 3700
+ },
+ {
+  "function": "func_80157A54",
+  "text": "Best 3910 (56.5%). Three compiles, no improvement: a pointer-based first loop compiled identically, and a repeated source was a no-op. Target (90 insns): calls func_8013AE60(arg0&0xFFFF); loop 1 uses index s2 with sll 1 hoisted before the loop, reloads the stored value (lhu after sh) and the i++ sits in a bnez delay slot; loop 2 loads k1/k2 doubles after loop 1 into fs1/fs0, index s2, s1=D898[i]<<4, sinf(D8A8[i]*k1/k2)*D8B4[i] through trunc.w.s to D802B27C4+s1, then copies to D8A0[i]<<4. Frame 0x38 with ra, s0..s4, fs0/fs1 saved. Mine uses s0 for the loop index and reuses it. Why it stops here: the register assignment for the loop index across the sinf call is decided by the compiler from the loop shape, which I have not matched yet. Next: keep the loop variable live across func_8013AE60 and the sinf call (e.g. read D8A8[i] into a local before the call), so the saves match s0..s4.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794736470.082645,
+  "score_before": 3700,
+  "score_after": 3700
+ },
+ {
+  "function": "func_80157A54",
+  "text": "Not matched. Best 3910 (56.5%, 90 target insns vs 85 ours), revision 52bed1413f36915e8d1c. Our source does not follow the target's loop shape. Diffs: target keeps the loop counter in s2 and uses `sll v0,s2,1` + `addu v1,v0,a1` to index the u16 table D_8016D8A8 (a per-element u16 index, not a pointer walk), and the second loop reads back `lhu v0,(v1)` then `bnez v0`, so the first loop's reread is an unmasked u16 test rather than our `andi` plus `>= 0x169`. Target also has the trailing `move s2,zero` (second loop reset) which ours lacks. Next: rewrite the first loop with an explicit u16 index (`D_8016D8A8[i]`) and the second loop as the `if (D_8016D8A8[i] != 0)` test the bnez suggests, then compare. The sinf call (`__sinf`) and the 0x10 record stride (`* 16`) look right: target uses `sll` by 4 for the D_802B27C4 row stride.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794764623.2597241,
+  "score_before": 3700,
+  "score_after": 3700
+ },
+ {
+  "function": "func_80157A54",
+  "text": "Two loops over 5 entries: first updates u16 D_8016D8A8[i] (+0xC, wrap at 0x169 to -0x15C); second writes s16 into D_802B27C4 at offsets from D_8016D898[i]*16 and D_8016D8A0[i]*16, using (f32)__sinf of an f64 ratio. Best 3910 (56.5%). Tried with no change in asm: k1/k2/i/old declaration order, `old + 0xC` vs `+= 0xC`, pointer form `u16 *p = &D_8016D8A8[i]`. Remaining diff: target keeps the loop index in $s2 (move $s2,$zero; sll $v0,$s2,1; addu $v1,$v0,$a1 for each access). Candidate puts the index in $s0 and uses addiu pointer steps. Also the target reloads D_8016D8A8[i] after the store and only then compares. Next: try an explicit index variable used for both arrays (e.g. `s32 j = i*2` consumed by both loops), or compile_variants over index-form alternatives. Register choice is the main gap; structure of both loops already matches.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794766752.4748979,
+  "score_before": 3700,
+  "score_after": 3700
+ },
+ {
+  "function": "func_80157A54",
+  "text": "haiku-pr24 (Haiku): saved best 232badd7 scores 2401 under the project profile and 2371 under -G0 -mips3 -mgp32 -mfp32 -O1 (trial 9a67295a24fc). The saved best keeps do-while fences and __repair_literal scaffolding, which cannot be in a match. Clean rewrites (no fences) score 3370 at -O2 (cast to unsigned short on the u16 indices, D_8016D898 indexed as unsigned char) and 2530 at -O1. Remaining rows: the target keeps the u16 base pointers in s4/s3, computes sll/addu pointer forms for D_8016D8A8, and loads D_8016D898 with lbu in a lui/addu pair inside the loop; first loop uses a reload of the stored value (sltiu, no andi).",
+  "by": "manual-c5ecf391d81f42b7",
+  "created_at": 1795714087.338799,
+  "score_before": 2361,
+  "score_after": 2361
+ },
+ {
+  "function": "func_80157A54",
+  "text": "[Released without compiling it once; notes not checked by a compile.] No compile reached 0; scaffolding in the saved best is not allowed in a match. Local rewrites measured in the notes.",
+  "by": "manual-c5ecf391d81f42b7",
+  "created_at": 1795714089.603894,
+  "score_before": 2361,
+  "score_after": 2361
+ },
+ {
+  "function": "func_80157A54",
+  "text": "haiku-pr30: two loops over 5 slots: a u16 counter += 12 wrapping at 0x169 (old - 0x15C), then sinf of (u16 * D_80183830 / D_80183838) scaled by a u16 and stored as a halfword with a copy between two slot offsets (<<4). Rewrite (f9_c1) scores 4919 vs saved 2811; the mismatch is the loop-body scheduling around the sinf call and the saved double constants. Released.",
+  "by": "manual-a3f89156f3b6431f",
+  "created_at": 1795716182.2885492,
+  "score_before": 4919,
+  "score_after": 4919,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:2e822b3dbbc0d6876d000c040e2472609d84692b70490c10fbbd4de36784127e"
  }
 ]
