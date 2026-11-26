@@ -8320,14 +8320,6 @@
   "score_after": 2665
  },
  {
-  "function": "func_80214260",
-  "text": "Not matched. Best saved is the m2c draft at 4685 (get_candidate base=saved_best). My rewrites: 6521 with explicit byte-offset globals and for-loops; 6016 with the float stores through a base pointer `fp = (u8*)&D_8011F2F0 + off; *(f32*)(fp+0x18)`, which fixed the stores (target keeps the base in a register). Remaining diffs:\n- First call args: target loads &D_3E9850 into $v0 first, then $a2=&D_3E4880, `move $a0,$a2`, `subu $a2,$v0,$a2`. Ours loads $a0 from D_3E4880 first. Writing the difference into a local `n` gave the same code (the compiler folds it).\n- Prologue: target saves $ra at 0x4C and $s0 at 0x48 with frame 0x50; ours spills differently.\n- Second half: target does read-modify-write `lhu; ori 0x20; sh` on each of D_8011F2F4 (+0, +2), D_8011F2F8, D_8011F2F6 with separate `lui %hi` each; ours merges some of these.\nNext step: fix the first-call evaluation order and the prologue with compile_variants; then the RMW stores.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794710653.491443,
-  "score_before": 4685,
-  "score_after": 4685
- },
- {
   "function": "func_802117AC",
   "text": "Saved best 4960 is the historical best (its source is not in my transcript, so restore it with get_candidate(base=\"saved_best\") before further work). My clean rewrite (revision b3d4051990226e0be72e) scores 10102, worse. Its structure is close to the target: the 0x2000 flag test on s0, the two func_800DE41C calls (18-arg prototype, f32 at index 9 and 15), the -0.5f/0.5f constants and the (f64) cvt/add sequence all look right. The main diff is the frame: the target is 0x50 with only ra and s0 saved; ours is 0x58 and also saves s1, so one extra value is live across a call. Suspects: a0 (s8 index) or v1 (s0 & 3) carried across the func_8014B854 call, or the s0 = 0 / s0 = call merge. Target recomputes `s0 & 3` and `s0 & 0x10` after each call, so write those as fresh expressions at each use. Next step: fix the extra saved register first, then the andi s0,8 placement. I stopped after one compile of this clean rewrite, so the frame fix is untested and the remaining work is in the next agent's hands.",
   "by": "claude-haiku-5-5-22",
@@ -12334,14 +12326,6 @@
   "created_at": 1794725163.6816242,
   "score_before": 15820,
   "score_after": 15820
- },
- {
-  "function": "func_80214260",
-  "text": "Not matched; releasing now because the remaining diffs are a 636-byte, 118-row structure (argument setup, loop shape, register allocation across four calls) that one draft cannot reach from this compile budget. Best saved 4685 (historical). My machine-draft-based source scored 6391 and is worse. Facts for the next agent: first call func_800294A0(&D_3E4880, &D_8030BD90, &D_3E9850 - &D_3E4880) with the diff arg computed as subu+sra 2 (s32-element pointer difference, so keep the externs as s32); the prologue saves ra(0x4c) and s0(0x48); the 0x20 OR on halfwords at D_8011F2F4 (stride 100) and three float stores of 255.0f at +0x18/+0x1C/+0x20 match in shape. The loop with four func calls and byte stores to D_8021B064/D_8021B014 uses a plain for loop, not the m2c goto. Start from saved_best rather than the m2c draft.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794725169.022362,
-  "score_before": 4685,
-  "score_after": 4685
  },
  {
   "function": "func_802117AC",
@@ -17278,14 +17262,6 @@
   "created_at": 1794739413.467744,
   "score_before": 4680,
   "score_after": 4680
- },
- {
-  "function": "func_80214260",
-  "text": "Cannot get closer from here: releasing as blocked. Restore point saved_best (historical 4685); my best of this session is revision 4a1f568e39b34055de99 at 6796, still behind it.\n\nBlockers, from the asm (159 insns, frame -0x50, saves only ra at 0x4C and s0 at 0x48):\n(1) First call: target loads D_3E9850 before D_3E4880 (`lui v0,D_3E9850` then `move $a0,$a2`); our build loads $a0 first. Changing the size into a local did not change it.\n(2) The three u16 `|= 0x20` stores at D_8011F2F4, D_8011F2F4+2 and D_8011F2F8 are each emitted as address rebuild + lhu + ori + sh, in an order the source has not matched.\n(3) Frame must be -0x50 with only ra and s0 saved. Any local kept live across a call pushes it to -0x58 (the earlier `a1` local did this). Do not keep row pointers or the array address live across calls.\n\nAsm facts (verified): loop 1 `for s0<4 func_80203BDC(s0)`; then func_80203BAC/D58/DA8; loop 2 over 3 rows at D_800DA26A+0x160+s0*0x178 with a 14-byte zero loop, row left in $a0 for func_80143DCC(row, D_800DA26A+0x160); `D_8021B079=0`; `D_8021EEB8 = u16 func_800DE41C(0,0,3,0, 0,0xFF,0,0, func_802040C4, 0*9)`; floats 255.0f at base+0x18/0x1C/0x20 where base = D_8011F2F0 + idx*100; loop 3 `D_8021B064[s0]=0; D_8021B014[s0]=0; func_80203BDC(s0); func_80149FA8(s0); func_80211E9C(s0); func_80205F64(s0&0xFF)`; func_80231C5C; func_802054D0; `func_800DE41C(0,0,3,0, 0x40,0,0, func_80214504, func_8021473C, 0*9)`.\n\nNext step for a future agent: start from saved_best, fix (3) first by removing every live local across calls, then (2), then (1). Do not repeat revision 4a1f568e39b34055de99 without those changes.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794739426.1417,
-  "score_before": 4685,
-  "score_after": 4685
  },
  {
   "function": "func_801C1424",
@@ -22576,14 +22552,6 @@
   "score_after": 65
  },
  {
-  "function": "func_80214260",
-  "text": "Not matched. Best current 6761 (57.4%); saved historical best 4685 from an older source, not reproduced. Frame: addiu sp,-0x50; saves ra at 0x4c and s0 at 0x48 (the 14 stack words for the func_800DE41C calls take 0x10..0x44). Order in target: func_800294A0 args built as lui/addiu D_3E9850 into v0 first, then a2=&D_3E4880, a0=a2 (move), a1=&D_8030BD90, then subu a2=v0-a2. My attempts put the subtraction the other way and omitted the early ra/s0 saves; compile_patch variants with a temp for the size (s32 and u8* end/start) gave identical instructions (score 6761 each). Remaining structure is written in the candidate: 4 x func_80203BDC(i) loop, func_80203BAC/D58/DA8, zeroing loop 3 rows x 14 bytes at D_800DA26A+0x160+i*0x178 (stride 376), D_8021B079=0, func_80143DCC(last row ptr, D_800DA26A+0x160), func_800DE41C 18 args (0,0,3,0,0,0xFF,0,0,func_802040C4, 9 zeros) stored to D_8021EEB8 (u16), then per-entry 100-byte stride (off=idx*0x64) u16 |=0x20 at D_8011F2F4, +2, D_8011F2F8 and f32 255.0 at D_8011F2F0+off+0x18/1C/20, 4-iteration loop (B064[i]=0, B014[i]=0, 80203BDC, 80149FA8, 80211E9C, 80205F64(i&0xff)), func_80231C5C, func_802054D0, final func_800DE41C second call (0x40,0,0,func_80214504,func_8021473C, 9 zeros). Untested next: check the 0x6761 with compile_family(family=\"signedness\") and try the loop ordering (the zero loop and float stores may be scheduled differently). Compile feedback was not reliable in this session: different edits returned identical diffs, so verify with last_diff before trusting a change. share_knowledge not used.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794754191.805265,
-  "score_before": 4685,
-  "score_after": 4685
- },
- {
   "function": "func_8021078C",
   "text": "Not matched. Best current: 3233 (revision 123e8e8a29e5a0841b3a, or 08834ad0329fbe53469a with extra case labels, same score). Structure is right: switch on the u16 state at p+0x3E, cases 0, 0x10, 0x11, 0x20, 0x21, with 0x10 falling into 0x11 and 0x20 into 0x21; the jump table is 34 entries (sltiu 0x22); func_800DE41C takes 18 args (0,0,3,0,0x4F,0,0,fn,then zeros). Remaining diffs: (1) the target keeps sp=&D_80190CB6 in s2 as a live pointer (lui+addiu at the top, sw ra/s2/s1/s0 order). My version folds it to absolute %lo addressing, so the source probably does not use a plain global pointer. (2) Hoisting q=&D_8021EEC2 to the top gives s0 an early lui and worsens the score to 4354; keep q local to case 0x20 only, but then p moves to s0 (4354); a scoped version was not tried further. (3) The jump table relocation refers to .rodata+0 instead of D_8021DD28; cases 1-0xF,0x12-0x1F added as no-op labels did not change the score. Next: find a source form where sp stays a pointer in a callee-saved register, and check the case 0x20 q block, which is only needed in that case.",
   "by": "claude-haiku-5-5-24",
@@ -24062,14 +24030,6 @@
   "created_at": 1794756254.5547168,
   "score_before": 4070,
   "score_after": 3275
- },
- {
-  "function": "func_80214260",
-  "text": "Not matched. Saved best is the m2c-derived draft (4685, historical, not reverified this session). My hand rewrite scored 7471 (53%); the one-line size-argument patch made no change. The target is a 636-byte function with 159 instructions. Structure matches the draft: func_800294A0 call, four func_80203BDC calls, func_80203BAC/D58/DA8, a 3x14-byte zeroing loop with stride 0x178 from D_800DA26A+0x160, then func_800DE41C with func_802040C4, func_80143DCC, and the tail (func_80231C5C, func_802054D0, final func_800DE41C with func_80214504/func_8021473C). Target frame is 0x50 with ra and s0 saved. Remaining differences: (1) argument address materialization order at the start (target loads D_3E9850 into v0 first, then D_3E4880 into a2 and moves a0 from a2); (2) the tail: target does the |0x20 read-modify-write on D_8011F2F4/F8 through an addu-built base with four addu, while ours uses lhu/sh on the same global addresses; (3) the float 255.0f stores at D_8011F2F0+0x18/1C/20 are scheduled differently. Next step for whoever takes it: verify the zeroing loop bounds (0x3 vs 0x4 row counts) and the func_80143DCC argument list against the target, since neither the draft nor my rewrite has confirmed those. Further permutation without that check is unlikely to close the gap.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794756257.552671,
-  "score_before": 4685,
-  "score_after": 4685
  },
  {
   "function": "func_80026E64",
@@ -30536,14 +30496,6 @@
   "score_after": 4605
  },
  {
-  "function": "func_80214260",
-  "text": "Not matched. Saved best is 4685 (historical). My clean rewrite (revision 5e9fcd358af61b3e77e0) scored 7676, worse. Findings: (1) the size computation 'D_3E9850 - D_3E4880' is emitted in the target with the end address loaded first into v0 and the start into a2, then 'subu a2,v0,a2' and 'move a0,a2' (the start address becomes the first argument to func_800294A0). Our version loads the start into a0 first, so the argument registers are swapped. Try writing the call as func_800294A0(D_3E4880, D_8030BD90, (s32)(D_3E9850 - D_3E4880)) with the end pointer named first. (2) The D_8011F2F4/F8 halfword OR-stores match the 'u16 *p' form used on func_8022F0E0 (lhu/sh, not lbu/sb). (3) Target frame is about 0x50 with ra and s0 saved; the 'for (j) for (i) row[i]=0' loop is not in the target as written (the target uses a single s0 loop index with 0xD/0xE counts), so recheck those loops. (4) The float stores 255.0f to D_8011F2F0+off+0x18..0x20 use swc1 with %lo(D_8011F308) in ours; check whether D_8011F308 is the same base address as D_8011F2F0+0x18.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794765328.478057,
-  "score_before": 4685,
-  "score_after": 4685
- },
- {
   "function": "func_80211C7C",
   "text": "Not matched. Best 3375 (75.1%, rev 21b451610feea04d6bf0; 128 vs 136 insns). Re-compiled the candidate this session: no change. Structural mismatch: target loads table bytes and computes index/stride in a different order (lui $t0 for D_8021F264, lbu from D_8021B650 etc. with addu $v1,$v1,$a1 x4), and has 2x bne with negu/and sequence for the j wrap; ours stores via sb to D_8021F260 with move $a0,$zero. Ideas untried: write the four lines as separate statements with u8 temporaries for the table entries; test -O1 (see proposal #339302416512 on repeated masked index/stride calculations). Local repair families not run.",
   "by": "claude-haiku-5-5-22",
@@ -32134,14 +32086,6 @@
   "created_at": 1794767520.718101,
   "score_before": 3275,
   "score_after": 3275
- },
- {
-  "function": "func_80214260",
-  "text": "Not matched; releasing with move-on because four source variants all score 7801 or the saved 4685, and none reproduces the target frame. Best saved: revision c6bd36f27c1c28197b61 (4685). Tried: explicit loops for row zeroing (p = D_800DA26A+0x160+j*0x178, inner k<14), and a local size = D_3E9850 - D_3E4880 before the first call. Each gives 7801 with identical diff. Target begins with addiu $sp,-0x50, sw $ra,0x4c, sw $s0,0x48, then lui $v0,%hi(D_3E9850) (size computed first). My compiles start lui $a0,%hi(D_3E4880) and have no matching frame rows, so the call's argument/size evaluation order or the frame cause is unresolved. Next worker: check the relocation/arg ordering first (compile_family signedness, or compare with find_similar for a func_800294A0 caller with the same prologue), then row-zero loop stride (addu $v0,$v0,$s0 x5).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794767520.839457,
-  "score_before": 4685,
-  "score_after": 4685
  },
  {
   "function": "func_8014A9F4",
@@ -35027,5 +34971,77 @@
   "created_at": 1794767396.6589382,
   "score_before": 2375,
   "score_after": 2375
+ },
+ {
+  "function": "func_80214260",
+  "text": "Not matched. Best saved is the m2c draft at 4685 (get_candidate base=saved_best). My rewrites: 6521 with explicit byte-offset globals and for-loops; 6016 with the float stores through a base pointer `fp = (u8*)&D_8011F2F0 + off; *(f32*)(fp+0x18)`, which fixed the stores (target keeps the base in a register). Remaining diffs:\n- First call args: target loads &D_3E9850 into $v0 first, then $a2=&D_3E4880, `move $a0,$a2`, `subu $a2,$v0,$a2`. Ours loads $a0 from D_3E4880 first. Writing the difference into a local `n` gave the same code (the compiler folds it).\n- Prologue: target saves $ra at 0x4C and $s0 at 0x48 with frame 0x50; ours spills differently.\n- Second half: target does read-modify-write `lhu; ori 0x20; sh` on each of D_8011F2F4 (+0, +2), D_8011F2F8, D_8011F2F6 with separate `lui %hi` each; ours merges some of these.\nNext step: fix the first-call evaluation order and the prologue with compile_variants; then the RMW stores.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794710653.491443,
+  "score_before": 4685,
+  "score_after": 4685
+ },
+ {
+  "function": "func_80214260",
+  "text": "Not matched; releasing now because the remaining diffs are a 636-byte, 118-row structure (argument setup, loop shape, register allocation across four calls) that one draft cannot reach from this compile budget. Best saved 4685 (historical). My machine-draft-based source scored 6391 and is worse. Facts for the next agent: first call func_800294A0(&D_3E4880, &D_8030BD90, &D_3E9850 - &D_3E4880) with the diff arg computed as subu+sra 2 (s32-element pointer difference, so keep the externs as s32); the prologue saves ra(0x4c) and s0(0x48); the 0x20 OR on halfwords at D_8011F2F4 (stride 100) and three float stores of 255.0f at +0x18/+0x1C/+0x20 match in shape. The loop with four func calls and byte stores to D_8021B064/D_8021B014 uses a plain for loop, not the m2c goto. Start from saved_best rather than the m2c draft.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794725169.022362,
+  "score_before": 4685,
+  "score_after": 4685
+ },
+ {
+  "function": "func_80214260",
+  "text": "Cannot get closer from here: releasing as blocked. Restore point saved_best (historical 4685); my best of this session is revision 4a1f568e39b34055de99 at 6796, still behind it.\n\nBlockers, from the asm (159 insns, frame -0x50, saves only ra at 0x4C and s0 at 0x48):\n(1) First call: target loads D_3E9850 before D_3E4880 (`lui v0,D_3E9850` then `move $a0,$a2`); our build loads $a0 first. Changing the size into a local did not change it.\n(2) The three u16 `|= 0x20` stores at D_8011F2F4, D_8011F2F4+2 and D_8011F2F8 are each emitted as address rebuild + lhu + ori + sh, in an order the source has not matched.\n(3) Frame must be -0x50 with only ra and s0 saved. Any local kept live across a call pushes it to -0x58 (the earlier `a1` local did this). Do not keep row pointers or the array address live across calls.\n\nAsm facts (verified): loop 1 `for s0<4 func_80203BDC(s0)`; then func_80203BAC/D58/DA8; loop 2 over 3 rows at D_800DA26A+0x160+s0*0x178 with a 14-byte zero loop, row left in $a0 for func_80143DCC(row, D_800DA26A+0x160); `D_8021B079=0`; `D_8021EEB8 = u16 func_800DE41C(0,0,3,0, 0,0xFF,0,0, func_802040C4, 0*9)`; floats 255.0f at base+0x18/0x1C/0x20 where base = D_8011F2F0 + idx*100; loop 3 `D_8021B064[s0]=0; D_8021B014[s0]=0; func_80203BDC(s0); func_80149FA8(s0); func_80211E9C(s0); func_80205F64(s0&0xFF)`; func_80231C5C; func_802054D0; `func_800DE41C(0,0,3,0, 0x40,0,0, func_80214504, func_8021473C, 0*9)`.\n\nNext step for a future agent: start from saved_best, fix (3) first by removing every live local across calls, then (2), then (1). Do not repeat revision 4a1f568e39b34055de99 without those changes.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794739426.1417,
+  "score_before": 4685,
+  "score_after": 4685
+ },
+ {
+  "function": "func_80214260",
+  "text": "Not matched. Best current 6761 (57.4%); saved historical best 4685 from an older source, not reproduced. Frame: addiu sp,-0x50; saves ra at 0x4c and s0 at 0x48 (the 14 stack words for the func_800DE41C calls take 0x10..0x44). Order in target: func_800294A0 args built as lui/addiu D_3E9850 into v0 first, then a2=&D_3E4880, a0=a2 (move), a1=&D_8030BD90, then subu a2=v0-a2. My attempts put the subtraction the other way and omitted the early ra/s0 saves; compile_patch variants with a temp for the size (s32 and u8* end/start) gave identical instructions (score 6761 each). Remaining structure is written in the candidate: 4 x func_80203BDC(i) loop, func_80203BAC/D58/DA8, zeroing loop 3 rows x 14 bytes at D_800DA26A+0x160+i*0x178 (stride 376), D_8021B079=0, func_80143DCC(last row ptr, D_800DA26A+0x160), func_800DE41C 18 args (0,0,3,0,0,0xFF,0,0,func_802040C4, 9 zeros) stored to D_8021EEB8 (u16), then per-entry 100-byte stride (off=idx*0x64) u16 |=0x20 at D_8011F2F4, +2, D_8011F2F8 and f32 255.0 at D_8011F2F0+off+0x18/1C/20, 4-iteration loop (B064[i]=0, B014[i]=0, 80203BDC, 80149FA8, 80211E9C, 80205F64(i&0xff)), func_80231C5C, func_802054D0, final func_800DE41C second call (0x40,0,0,func_80214504,func_8021473C, 9 zeros). Untested next: check the 0x6761 with compile_family(family=\"signedness\") and try the loop ordering (the zero loop and float stores may be scheduled differently). Compile feedback was not reliable in this session: different edits returned identical diffs, so verify with last_diff before trusting a change. share_knowledge not used.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794754191.805265,
+  "score_before": 4685,
+  "score_after": 4685
+ },
+ {
+  "function": "func_80214260",
+  "text": "Not matched. Saved best is the m2c-derived draft (4685, historical, not reverified this session). My hand rewrite scored 7471 (53%); the one-line size-argument patch made no change. The target is a 636-byte function with 159 instructions. Structure matches the draft: func_800294A0 call, four func_80203BDC calls, func_80203BAC/D58/DA8, a 3x14-byte zeroing loop with stride 0x178 from D_800DA26A+0x160, then func_800DE41C with func_802040C4, func_80143DCC, and the tail (func_80231C5C, func_802054D0, final func_800DE41C with func_80214504/func_8021473C). Target frame is 0x50 with ra and s0 saved. Remaining differences: (1) argument address materialization order at the start (target loads D_3E9850 into v0 first, then D_3E4880 into a2 and moves a0 from a2); (2) the tail: target does the |0x20 read-modify-write on D_8011F2F4/F8 through an addu-built base with four addu, while ours uses lhu/sh on the same global addresses; (3) the float 255.0f stores at D_8011F2F0+0x18/1C/20 are scheduled differently. Next step for whoever takes it: verify the zeroing loop bounds (0x3 vs 0x4 row counts) and the func_80143DCC argument list against the target, since neither the draft nor my rewrite has confirmed those. Further permutation without that check is unlikely to close the gap.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794756257.552671,
+  "score_before": 4685,
+  "score_after": 4685
+ },
+ {
+  "function": "func_80214260",
+  "text": "Not matched. Saved best is 4685 (historical). My clean rewrite (revision 5e9fcd358af61b3e77e0) scored 7676, worse. Findings: (1) the size computation 'D_3E9850 - D_3E4880' is emitted in the target with the end address loaded first into v0 and the start into a2, then 'subu a2,v0,a2' and 'move a0,a2' (the start address becomes the first argument to func_800294A0). Our version loads the start into a0 first, so the argument registers are swapped. Try writing the call as func_800294A0(D_3E4880, D_8030BD90, (s32)(D_3E9850 - D_3E4880)) with the end pointer named first. (2) The D_8011F2F4/F8 halfword OR-stores match the 'u16 *p' form used on func_8022F0E0 (lhu/sh, not lbu/sb). (3) Target frame is about 0x50 with ra and s0 saved; the 'for (j) for (i) row[i]=0' loop is not in the target as written (the target uses a single s0 loop index with 0xD/0xE counts), so recheck those loops. (4) The float stores 255.0f to D_8011F2F0+off+0x18..0x20 use swc1 with %lo(D_8011F308) in ours; check whether D_8011F308 is the same base address as D_8011F2F0+0x18.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794765328.478057,
+  "score_before": 4685,
+  "score_after": 4685
+ },
+ {
+  "function": "func_80214260",
+  "text": "Not matched; releasing with move-on because four source variants all score 7801 or the saved 4685, and none reproduces the target frame. Best saved: revision c6bd36f27c1c28197b61 (4685). Tried: explicit loops for row zeroing (p = D_800DA26A+0x160+j*0x178, inner k<14), and a local size = D_3E9850 - D_3E4880 before the first call. Each gives 7801 with identical diff. Target begins with addiu $sp,-0x50, sw $ra,0x4c, sw $s0,0x48, then lui $v0,%hi(D_3E9850) (size computed first). My compiles start lui $a0,%hi(D_3E4880) and have no matching frame rows, so the call's argument/size evaluation order or the frame cause is unresolved. Next worker: check the relocation/arg ordering first (compile_family signedness, or compare with find_similar for a func_800294A0 caller with the same prologue), then row-zero loop stride (addu $v0,$v0,$s0 x5).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794767520.839457,
+  "score_before": 4685,
+  "score_after": 4685
+ },
+ {
+  "function": "func_80214260",
+  "text": "haiku-pr16, -O1 profile (-G0 -mips3 -mgp32 -mfp32 -O1, not applied): clean rewrite scores 5 (work/func_80214260_v8.c in the session folder). Only row is the row address: target addu $a0,$v0,$a1, ours addu $a0,$a1,$v0. Tried: operand order, row staging in block temps, base[] indexing, s0*376 literal: no change. Volatile D_8021EEB8 off (v8) was needed; block char* for the three f32 stores needed; func_80143DCC(row,base) before s0=0. Handed back at 11 judged attempts.",
+  "by": "manual-209d2dfa17f14ee1",
+  "created_at": 1795712583.7929,
+  "score_before": 2483,
+  "score_after": 2483
+ },
+ {
+  "function": "func_80214260",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr16: -O1 clean rewrite stuck at score 5 (one addu operand order); see the note",
+  "by": "manual-209d2dfa17f14ee1",
+  "created_at": 1795712599.133919,
+  "score_before": 2483,
+  "score_after": 2483
  }
 ]
