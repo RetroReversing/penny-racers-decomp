@@ -6704,14 +6704,6 @@
   "score_after": 120
  },
  {
-  "function": "func_8013E27C",
-  "text": "func_8013E27C (code_8013CBBC, 58 insns, best 1550/26.7%\u2192 saved best 1550): decrement/replenish helper around globals D_80187BE0/D_80189DC2/D_8018D738/D_8018D73A/D_8018F5C2 (u16 slots, stride 124=0x7C). Flow: if (u16)D_80187BE0 < (u16)arg0 \u2192 return 0xFFFF; else a1 = D_8018F5C2; a0=0; if (arg0&0xFFFF) loop { val = *(u16*)(D_8018D73A + idx*124); a0++; idx = a0&0xFFFF; if (idx < arg0&0xFFFF) continue; } store 0xFFFF to *(u16*)(D_8018D73A + *(u16*)(D_8018D738 + val*124)*124) and *(u16*)(D_8018D738 + val*124); D_8018F5C2 = a1; D_80187BE0 -= arg0; if (D_80187BE0 == 0) D_80189DC2 = 0xFFFF; return D_80187BE0 (or 0xFFFF early). Best source = messy m2c-style candidate (saved best, revision 01b7a97575c42b212528, score 1550); my clean rewrites scored worse (3575\u2192 no, 4160, 2200). Remaining: exact C types/pointer casts (char[] vs u16[], pointer-from-int warnings) and branch/register rows. Waited on by nobody; released.",
-  "by": "opencode-flint-40b-free-1",
-  "created_at": 1794707666.458464,
-  "score_before": 1550,
-  "score_after": 1550
- },
- {
   "function": "func_800E15CC",
   "text": "Best 660 at revision 03e3f7255ed2b9546f41 (source: `u16 n; s32 cur;` with the do/while walk over the 100-byte records, tmp = n-1 passed as s32). Tried, all worse: u32 n (1375), signed s16 n (1230), u16 cast in while condition (660, no change), removing tmp (1375), 2015 for u32/s32 variants. Remaining diffs: target emits `sw $ra,0x18($sp)` before the first argument move; our draft drops it to a later position. Target loads D_800E1850 into $a1 and the loop compare is `bne $v0,$a2` on an andi'd cur with `sll $v1,$v0,1` in the delay slot; ours compares $a1 directly and swaps the lui into $a0. Likely needs a different loop shape (for-loop or cur kept as u16 with a separate index) to match the register and delay-slot layout.",
   "by": "claude-haiku-5-5-24",
@@ -10480,14 +10472,6 @@
   "score_after": 770
  },
  {
-  "function": "func_8013E27C",
-  "text": "Not matched; saved best 1550 (permuter, goto-based loop) still stands. My clean rewrite (u16 n/head/cur/idx/nxt; early return 0xFFFF if D_80187BE0<n; for-loop i!=n walking cur=*(u16*)(D_8018D73A+cur*0x7C); tail writes D_8018D73A[nxt*0x7C]=-1, D_8018D738[idx*0x7C]=0xFFFF, D_8018F5C2=cur, D_80187BE0-=n, D_80189DC2=-1 if zero, return head) scores 3015: wrong loop shape (target tests n!=0 with beqz before the loop, then a bottom-tested do-while) and the early compare is reordered (target computes andi $v1,$a3 first, then the lui/lhu of D_80187BE0). Untried: write the do-while explicitly with the n==0 guard outside, keep a0 as the raw arg and derive the u16 mask only in the compare.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794721404.859931,
-  "score_before": 1550,
-  "score_after": 1550
- },
- {
   "function": "func_80127030",
   "text": "Best 456 (85.7%), revision 2e2587b77141b587befd: Vec3f *func(Vec3f *dst, u32 b1, u32 b2, u32 b3, f32 a4, f32 a5, f32 a6) with tmp.x = *(f32*)&b2*a6 - a5**(f32*)&b3; tmp.y = *(f32*)&b3*a4 - a6**(f32*)&b1; tmp.z = *(f32*)&b1*a5 - a4**(f32*)&b2; *dst = tmp; return dst. Key finding: the middle three floats arrive in INTEGER registers (stored to caller home slots 0x14..0x1C and read back with lwc1); a4..a6 are real f32 stack args at 0x20..0x28. Inline casts beat locals (866 vs 456). Operand swaps and statement forms all stay at 456. Remaining diff: the first lwc1 is at 0x20 where the target reads 0x18 (stack/slot allocation of the bit-cast words), and the load order of the products. Untried: separate temporaries per product, or declaring b1..b3 as a struct of u32 so the home-slot layout matches.",
   "by": "claude-haiku-5-5-23",
@@ -13374,14 +13358,6 @@
   "created_at": 1794730531.914978,
   "score_before": 440,
   "score_after": 440
- },
- {
-  "function": "func_8013E27C",
-  "text": "No match. Best in this claim 2815 (revision 097339ab9b42ffc3a059: n = arg0&0xFFFF before guard `if (D_80187BE0 >= n)`, cur = D_8018F5C2, do-while on `*(u16*)(D_8018D73A + (cur&0xFFFF)*0x7C)` while i < n when n != 0, then j = *(u16*)(D_8018D738 + cur*0x7C), 0xFFFF stores, D_8018F5C2 = cur, D_80187BE0 -= arg0, return first, D_80189DC2 = 0xFFFF on zero). Saved historical 1550 is from another source. Tried without gain: (u16)arg0 inline guard with n declared later (5200, worse); base pointer local `char *base` (3120); index-variable form with k (3925). Remaining diff: target keeps arg0 in $a3 and reloads D_8018F5C2 into $a1 before the n test; ours uses $t0/$a0 and hoists the D_8018D73A lui/addiu before the loop differently. Untried: loop counter as s32 with the pre-guard n, or the guard with separate u16 cast on D_80187BE0.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794730531.990761,
-  "score_before": 1550,
-  "score_after": 1550
  },
  {
   "function": "func_8021AF20",
@@ -18512,14 +18488,6 @@
   "score_after": 1647
  },
  {
-  "function": "func_8013E27C",
-  "text": "Saved best 1550 (permuter) remains. Typed rewrites this session scored 2545-2910. Structure per target: a3=arg0&0xFFFF; if (D_80187BE0 < a3) return 0xFFFF (bnez to a shared return with ori v0,0xFFFF in delay slot); first=D_8018F5C2 (lhu), cur=first; loop i=0..n: cur=lhu(D_8018D73A + cur*0x7C) while (i<n), i.e. sltu-based bottom test; then store 0xFFFF to D_8018D73A + lhu(D_8018D738+cur*0x7C)*0x7C and to D_8018D738+cur*0x7C; D_8018F5C2=cur; D_80187BE0 -= n; if zero, D_80189DC2=0xFFFF; return first. Our compiles reload D_80187BE0 twice and reorder the D_8018F5C2 load; the target loads D_8018F5C2 into $a1 and keeps first in $t0. Untried: the loop as an explicit goto-style block with the first-load before the early test.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794748485.016449,
-  "score_before": 1550,
-  "score_after": 1550
- },
- {
   "function": "func_801AEEE8",
   "text": "Not matched; all tries 0%. Target: base v0 = D_800DB1B8+0x2108 (lui/addiu once), then all 0x24-ish halfword stores as sh <reg>,off(v0) with offsets 0..0x4E (one-off +0,+2,+4,+6,+8,+A,+C,+E,+20..+2E,+30..+36,+48..+4E), values 1,0,1,2,0xF0,0xF0,0,0,0,0,0xF0,0xF0,1,3,4,5,0x3C,0x4B,0x78,0x5A,0x3C,0x4B,0xB4,0xA5 mostly; then loop i=2..3 storing 0 at D+0x2108+(i&0xFF)*40 (sll/addu/sll). Problem: gcc folds `temp[k]` into absolute lui/%lo per store (22 separate lui) when base is a global array, so no base register survives. Need a way to force one base register (e.g. base pointer taken from the array once and kept live, or a struct pointer). Draft in 6d4db28 shows the M2C_FIELD form. Compiler gcc-2.7.2-kmc.",
   "by": "claude-haiku-5-5-21",
@@ -21136,14 +21104,6 @@
   "score_after": 1380
  },
  {
-  "function": "func_8013E27C",
-  "text": "func_8013E27C (232 B). Not matched; saved best 1550 (permuter) still stands; my clean rewrite scored 2625, worse by score. Semantics from asm: n = arg0 (u16); if D_80187BE0 < n return 0xFFFF; first = D_8018F5C2; walk n steps cur = u16 at D_8018D73A + cur*0x7C; then D_8018D73A[ u16 D_8018D738[cur*0x7C] *0x7C ] = 0xFFFF; D_8018D738[cur*0x7C] = 0xFFFF; D_8018F5C2 = cur; D_80187BE0 -= n; if D_80187BE0 == 0 then D_80189DC2 = 0xFFFF; return first. Target re-loads D_80187BE0 (lui/lhu twice: once for the early-out compare, once for the subtract) and copies arg via addu $a3,$a0,$zero, andi each use; the walk loop is compiled with the list head in $a1 and the counter in $a0. My version loads the global once and uses a separate andi temp for the compare, giving 48 differing rows. Next try: keep the compare on a fresh andi of the arg with the global reloaded (volatile-like reads), and write the walk loop with the head in a u16 var and an early zero-test (beqz on n before loop) as the target does.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794754532.1501708,
-  "score_before": 1550,
-  "score_after": 1550
- },
- {
   "function": "func_8013B0D4",
   "text": "No match. Saved best 15 (m2c-style, u8 locals, `*(D_8011F2F0 + ((arg1&0xFFFF)*0x64))`) still beats my rewrites. Best rewrite scored 580: `u32 **arg0, s32 arg1`, `idx = arg1 & 0xFFFF`, `extern u8` arrays indexed `[idx*0x64]`, RDP command words written as u32 with constants 0xE7000000/0xB6000000/0xFA000000 stored via lui-only, and 0xB900031D/0x504340 loaded through one temp `temp_v0` (this ordering matters: target keeps v0 for both). Remaining diffs: (1) target computes `andi $v0,$a1,0xffff` first, we put andi into $a1 (copying arg1 with a u16 local gives a stray `move $a3,$a1` at 1215); (2) the index multiply for the second D_8011F2FC load reuses $v1 in target but recomputes from $v0 in ours. Precomputing `off=((idx*3<<3)+idx)<<2` shared by both loads was worse (1080). Untried: making the second load's index come from a separate u16 local.",
   "by": "claude-haiku-5-5-20",
@@ -22926,14 +22886,6 @@
   "created_at": 1794757164.0611851,
   "score_before": 1065,
   "score_after": 1065
- },
- {
-  "function": "func_8013E27C",
-  "text": "Saved best 1550 (permuter, uses inline_fn and goto; not clean). My clean versions scored 2545 and 2625. Structure is right: the early test is `if (D_80187BE0 >= n)` (lhu, sltu, bnez skip), head = D_8018F5C2 (lhu into a1, copy to t0 for the return), loop n times over `a1 = *(u16*)(D_8018D73A + a1*124)` (0x7C = (x*32-x)*4), then idx=a1*124: store 0xFFFF to D_8018D73A[ (*(u16*)(D_8018D738+idx))*124 ] and to D_8018D738+idx; D_8018F5C2 = a1; D_80187BE0 -= n; ret = t0 (head) and D_80189DC2 = 0xFFFF when D_80187BE0 == 0. Remaining diff: register choice for the head (target keeps head in t0 and the loaded head in a1 and copies into a2/a1), and the `andi 0xffff` placements. Untried: a loop with the head variable declared u16 and the count as u16 compared with the andi'd arg.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794757168.994754,
-  "score_before": 1550,
-  "score_after": 1550
  },
  {
   "function": "func_80211E9C",
@@ -28712,14 +28664,6 @@
   "score_after": 23256
  },
  {
-  "function": "func_8013E27C",
-  "text": "Best 1550 (73.2%, 57 vs 58 instructions) using the goto-loop source (saved best). Remaining diffs are structural: the target copies arg0 into a3 and does andi $v1,$a3,0xffff before the early-out compare, and the loop-exit path differs in register use. Tried: early-return form (2625), u16 parameter (1550, no effect), do/while form (2600). Next: try a version that keeps the andi copy of arg0 explicit with a separate u16 local for the compare, and check whether the loop is a do-while with n==0 guard.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794765887.884545,
-  "score_before": 1550,
-  "score_after": 1550
- },
- {
   "function": "func_80132004",
   "text": "Blocked, nothing compiled. The machine draft fails: the jr at func_80132004.s line 399 needs a jump table that the imported data does not contain. The candidate C is an uncompiled hand draft using macros (DRAW_MAP, POSX, POSZ, COUNT, MODE) and several guessed externs; it has not been checked against the target. Next: add the jump table bytes (memory_regions.json entry) so the switch can be drafted, then compile the candidate and retune the extern types, which are the least certain part.",
   "by": "claude-haiku-5-5-21",
@@ -29062,14 +29006,6 @@
   "created_at": 1794766599.5695,
   "score_before": 220,
   "score_after": 220
- },
- {
-  "function": "func_8013E27C",
-  "text": "Best current O2 1550 reverified from saved goto source (a29ebe0f8142ee99ec9e). New O1 direction: ff95674e3223ccf5bc28 (unsigned inline load and unsigned D73A store, swapped comparison operand order) gives 510 under O1 versus O2 2305; search_flags confirms O1 best, no exact flag variant. Clean u16 first/cur/i for-loop O1 1660; changing return/ret to u16 worse 2060. Target preserves arg in a3, masks twice across guard, cur a1, first t0, counter a0. O1 candidate instead arg t0, first a2, cur a1, limit a3 and merges masks. It returns via a0 and jr delay move; target v0 directly. Next try changing initialized-result/common-return structure to branch-local return and test O1, retaining inline helper to avoid hoisting D73A base out of loop. No compiler suggestion yet as not exact.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794766601.539403,
-  "score_before": 1550,
-  "score_after": 1550
  },
  {
   "function": "func_80157F6C",
@@ -36974,5 +36910,125 @@
   "created_at": 1795727013.966196,
   "score_before": 105,
   "score_after": 105
+ },
+ {
+  "function": "func_8013E27C",
+  "text": "func_8013E27C (code_8013CBBC, 58 insns, best 1550/26.7%\u2192 saved best 1550): decrement/replenish helper around globals D_80187BE0/D_80189DC2/D_8018D738/D_8018D73A/D_8018F5C2 (u16 slots, stride 124=0x7C). Flow: if (u16)D_80187BE0 < (u16)arg0 \u2192 return 0xFFFF; else a1 = D_8018F5C2; a0=0; if (arg0&0xFFFF) loop { val = *(u16*)(D_8018D73A + idx*124); a0++; idx = a0&0xFFFF; if (idx < arg0&0xFFFF) continue; } store 0xFFFF to *(u16*)(D_8018D73A + *(u16*)(D_8018D738 + val*124)*124) and *(u16*)(D_8018D738 + val*124); D_8018F5C2 = a1; D_80187BE0 -= arg0; if (D_80187BE0 == 0) D_80189DC2 = 0xFFFF; return D_80187BE0 (or 0xFFFF early). Best source = messy m2c-style candidate (saved best, revision 01b7a97575c42b212528, score 1550); my clean rewrites scored worse (3575\u2192 no, 4160, 2200). Remaining: exact C types/pointer casts (char[] vs u16[], pointer-from-int warnings) and branch/register rows. Waited on by nobody; released.",
+  "by": "opencode-flint-40b-free-1",
+  "created_at": 1794707666.458464,
+  "score_before": 1550,
+  "score_after": 1550
+ },
+ {
+  "function": "func_8013E27C",
+  "text": "Not matched; saved best 1550 (permuter, goto-based loop) still stands. My clean rewrite (u16 n/head/cur/idx/nxt; early return 0xFFFF if D_80187BE0<n; for-loop i!=n walking cur=*(u16*)(D_8018D73A+cur*0x7C); tail writes D_8018D73A[nxt*0x7C]=-1, D_8018D738[idx*0x7C]=0xFFFF, D_8018F5C2=cur, D_80187BE0-=n, D_80189DC2=-1 if zero, return head) scores 3015: wrong loop shape (target tests n!=0 with beqz before the loop, then a bottom-tested do-while) and the early compare is reordered (target computes andi $v1,$a3 first, then the lui/lhu of D_80187BE0). Untried: write the do-while explicitly with the n==0 guard outside, keep a0 as the raw arg and derive the u16 mask only in the compare.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794721404.859931,
+  "score_before": 1550,
+  "score_after": 1550
+ },
+ {
+  "function": "func_8013E27C",
+  "text": "No match. Best in this claim 2815 (revision 097339ab9b42ffc3a059: n = arg0&0xFFFF before guard `if (D_80187BE0 >= n)`, cur = D_8018F5C2, do-while on `*(u16*)(D_8018D73A + (cur&0xFFFF)*0x7C)` while i < n when n != 0, then j = *(u16*)(D_8018D738 + cur*0x7C), 0xFFFF stores, D_8018F5C2 = cur, D_80187BE0 -= arg0, return first, D_80189DC2 = 0xFFFF on zero). Saved historical 1550 is from another source. Tried without gain: (u16)arg0 inline guard with n declared later (5200, worse); base pointer local `char *base` (3120); index-variable form with k (3925). Remaining diff: target keeps arg0 in $a3 and reloads D_8018F5C2 into $a1 before the n test; ours uses $t0/$a0 and hoists the D_8018D73A lui/addiu before the loop differently. Untried: loop counter as s32 with the pre-guard n, or the guard with separate u16 cast on D_80187BE0.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794730531.990761,
+  "score_before": 1550,
+  "score_after": 1550
+ },
+ {
+  "function": "func_8013E27C",
+  "text": "Saved best 1550 (permuter) remains. Typed rewrites this session scored 2545-2910. Structure per target: a3=arg0&0xFFFF; if (D_80187BE0 < a3) return 0xFFFF (bnez to a shared return with ori v0,0xFFFF in delay slot); first=D_8018F5C2 (lhu), cur=first; loop i=0..n: cur=lhu(D_8018D73A + cur*0x7C) while (i<n), i.e. sltu-based bottom test; then store 0xFFFF to D_8018D73A + lhu(D_8018D738+cur*0x7C)*0x7C and to D_8018D738+cur*0x7C; D_8018F5C2=cur; D_80187BE0 -= n; if zero, D_80189DC2=0xFFFF; return first. Our compiles reload D_80187BE0 twice and reorder the D_8018F5C2 load; the target loads D_8018F5C2 into $a1 and keeps first in $t0. Untried: the loop as an explicit goto-style block with the first-load before the early test.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794748485.016449,
+  "score_before": 1550,
+  "score_after": 1550
+ },
+ {
+  "function": "func_8013E27C",
+  "text": "func_8013E27C (232 B). Not matched; saved best 1550 (permuter) still stands; my clean rewrite scored 2625, worse by score. Semantics from asm: n = arg0 (u16); if D_80187BE0 < n return 0xFFFF; first = D_8018F5C2; walk n steps cur = u16 at D_8018D73A + cur*0x7C; then D_8018D73A[ u16 D_8018D738[cur*0x7C] *0x7C ] = 0xFFFF; D_8018D738[cur*0x7C] = 0xFFFF; D_8018F5C2 = cur; D_80187BE0 -= n; if D_80187BE0 == 0 then D_80189DC2 = 0xFFFF; return first. Target re-loads D_80187BE0 (lui/lhu twice: once for the early-out compare, once for the subtract) and copies arg via addu $a3,$a0,$zero, andi each use; the walk loop is compiled with the list head in $a1 and the counter in $a0. My version loads the global once and uses a separate andi temp for the compare, giving 48 differing rows. Next try: keep the compare on a fresh andi of the arg with the global reloaded (volatile-like reads), and write the walk loop with the head in a u16 var and an early zero-test (beqz on n before loop) as the target does.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794754532.1501708,
+  "score_before": 1550,
+  "score_after": 1550
+ },
+ {
+  "function": "func_8013E27C",
+  "text": "Saved best 1550 (permuter, uses inline_fn and goto; not clean). My clean versions scored 2545 and 2625. Structure is right: the early test is `if (D_80187BE0 >= n)` (lhu, sltu, bnez skip), head = D_8018F5C2 (lhu into a1, copy to t0 for the return), loop n times over `a1 = *(u16*)(D_8018D73A + a1*124)` (0x7C = (x*32-x)*4), then idx=a1*124: store 0xFFFF to D_8018D73A[ (*(u16*)(D_8018D738+idx))*124 ] and to D_8018D738+idx; D_8018F5C2 = a1; D_80187BE0 -= n; ret = t0 (head) and D_80189DC2 = 0xFFFF when D_80187BE0 == 0. Remaining diff: register choice for the head (target keeps head in t0 and the loaded head in a1 and copies into a2/a1), and the `andi 0xffff` placements. Untried: a loop with the head variable declared u16 and the count as u16 compared with the andi'd arg.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794757168.994754,
+  "score_before": 1550,
+  "score_after": 1550
+ },
+ {
+  "function": "func_8013E27C",
+  "text": "Best 1550 (73.2%, 57 vs 58 instructions) using the goto-loop source (saved best). Remaining diffs are structural: the target copies arg0 into a3 and does andi $v1,$a3,0xffff before the early-out compare, and the loop-exit path differs in register use. Tried: early-return form (2625), u16 parameter (1550, no effect), do/while form (2600). Next: try a version that keeps the andi copy of arg0 explicit with a separate u16 local for the compare, and check whether the loop is a do-while with n==0 guard.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794765887.884545,
+  "score_before": 1550,
+  "score_after": 1550
+ },
+ {
+  "function": "func_8013E27C",
+  "text": "Best current O2 1550 reverified from saved goto source (a29ebe0f8142ee99ec9e). New O1 direction: ff95674e3223ccf5bc28 (unsigned inline load and unsigned D73A store, swapped comparison operand order) gives 510 under O1 versus O2 2305; search_flags confirms O1 best, no exact flag variant. Clean u16 first/cur/i for-loop O1 1660; changing return/ret to u16 worse 2060. Target preserves arg in a3, masks twice across guard, cur a1, first t0, counter a0. O1 candidate instead arg t0, first a2, cur a1, limit a3 and merges masks. It returns via a0 and jr delay move; target v0 directly. Next try changing initialized-result/common-return structure to branch-local return and test O1, retaining inline helper to avoid hoisting D73A base out of loop. No compiler suggestion yet as not exact.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794766601.539403,
+  "score_before": 1550,
+  "score_after": 1550
+ },
+ {
+  "function": "func_8013E27C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Not compiled this session. Free-list style function with a 124-byte stride table, saved 1070. Not attempted.",
+  "by": "manual-5113716c0f6048d5",
+  "created_at": 1795708558.392027,
+  "score_before": 1070,
+  "score_after": 1070
+ },
+ {
+  "function": "func_8013E27C",
+  "text": "haiku-pr19: clean rewrite (u16 idx/first/k locals, the 124-byte record link read through a named s32 offset, the early return for BE0 < n, the BE0==0 tail store) scores 2315 at -O2 and 560 at -O1; saved best 1070 not beaten. Control flow matches at -O1 (only register rows left, 32). Tried: n as s32 (2705), k as s32 (2315), first/idx as s32 (2295), if-reordered (2515), no n local (1050 at -O1 / 2705 at -O2), offset inlined (2385).",
+  "by": "manual-c91bfeceda8d49c6",
+  "created_at": 1795713503.184742,
+  "score_before": 1070,
+  "score_after": 1070
+ },
+ {
+  "function": "func_8013E27C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Clean rewrite 2315 at -O2 (saved 1070); register rows left.",
+  "by": "manual-c91bfeceda8d49c6",
+  "created_at": 1795713503.721619,
+  "score_before": 1070,
+  "score_after": 1070
+ },
+ {
+  "function": "func_8013E27C",
+  "text": "Small-model attempt at func_8013E27C: 12 tries.\n  best 705 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 720 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1830 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2815 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3120 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 705 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial eb0d48682490fc3e60e1 (not applied).\nNot matched. Best -O1 score 705 (clean rewrite: early return if D_80187BE0 < n, u16 loop counter, for-loop over a1 chain with *124 indexing). Own (-O2) stays 4070, saved 1070. Left: regalloc (target keeps arg in a3 and loads D_8018F5C2 straight into a1), table lui/addu/lhu form inside the loop (we hoist the addiu base). Tried and worse: u16 array externs (1535), separate offsets at store (1370 at O1), unsigned n/i alone (1215, then 1010 with early-return).",
+  "by": "manual-aa3b5939ef8c4d6b",
+  "created_at": 1795725496.168061,
+  "score_before": 1070,
+  "score_after": 1070
+ },
+ {
+  "function": "func_8013E27C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_8013E27C: 12 tries.\n  best 705 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 720 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1830 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2815 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3120 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 705 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial eb0d48682490fc3e60e1 (not applied).\nNot matched. Best -O1 score 705 (clean rewrite: early return if D_80187BE0 < n, u16 loop counter, for-loop over a1 chain with *124 indexing). Own (-O2) stays 4070, saved 1070. Left: regalloc (target keeps arg in a3 and loads D_8018F5C2 straight into a1), table lui/addu/lhu form inside the loop (we hoist the addiu base). Tried and worse: u16 array externs (1535), separate offsets at store (1370 at O1), unsigned n/i alone (1215, then 1010 with early-return).",
+  "by": "manual-aa3b5939ef8c4d6b",
+  "created_at": 1795725496.299139,
+  "score_before": 1070,
+  "score_after": 1070
+ },
+ {
+  "function": "func_8013E27C",
+  "text": "Small-model attempt at func_8013E27C: 12 tries.\n  best 75 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 105 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1280 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2315 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2680 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 75 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 1c60fd0cdb2436e88cff (not applied).\nBest 75 under gcc-2.7.2-kmc -O1 (profile 1). Got there: masked argument computed once (m) for the compare, count n inside the guarded block, unsigned compare, per-iteration offset local (off = (a1&0xFFFF)*124) so the lui for D_8018D73A stays in the loop. Left: the first load's register is t0 (target a1), and gcc puts move a0,zero after the beqz (target before andi); one branch offset differs. Tried and worse: for loop (830), inline offset (680), declaration reorders (270), saved-first load (75 unchanged).",
+  "by": "manual-c5922e4430a248ee",
+  "created_at": 1795726647.698976,
+  "score_before": 1070,
+  "score_after": 1070
+ },
+ {
+  "function": "func_8013E27C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_8013E27C: 12 tries.\n  best 75 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 105 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1280 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2315 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2680 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 75 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 1c60fd0cdb2436e88cff (not applied).\nBest 75 under gcc-2.7.2-kmc -O1 (profile 1). Got there: masked argument computed once (m) for the compare, count n inside the guarded block, unsigned compare, per-iteration offset local (off = (a1&0xFFFF)*124) so the lui for D_8018D73A stays in the loop. Left: the first load's register is t0 (target a1), and gcc puts move a0,zero after the beqz (target before andi); one branch offset differs. Tried and worse: for loop (830), inline offset (680), declaration reorders (270), saved-first load (75 unchanged).",
+  "by": "manual-c5922e4430a248ee",
+  "created_at": 1795726649.529181,
+  "score_before": 1070,
+  "score_after": 1070
  }
 ]
