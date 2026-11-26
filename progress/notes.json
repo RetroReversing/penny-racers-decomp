@@ -7368,14 +7368,6 @@
   "score_after": 2525
  },
  {
-  "function": "func_80198858",
-  "text": "Best so far 2195 (67.7%), revision 1a53da4ece273d633b2d: direct-global if-chain on D_801C7469 (0,1,2,3), no locals. Logic decoded from asm: N=D_801C6BB9 (s8), A0/A1=D_801C6BB0[0..1], M=D_801C7068 (s8), K=D_801C7469 (u8). If N==0 return 0. K==0: a2=1 if A0!=M, else a2=1 if A1!=N-1. K==1: if A0==M or A0-1==M then (a2=1 if D_801C6BB1!=N-1) else a2=1. K==2: a2=1 if A0!=M; else if A1!=N-1 then a2=1 if N-1!=A1+1. K==3: if A0==M or A0+1==M then (a2=1 if B!=N-1) else a2=1. Unchanged: K==0 and K!=0 blocks differ in branch layout. Target shares the 'B!=N-1' tail between K==1 and K==3 via jumps (L944); the local-variable version scored 8545 (globals are re-read each use in target, do not cache). Untried: write the shared tail as a single goto-style block, or a combined condition for K==1/K==3, and check branch-likely (bnel) placement.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794709614.473983,
-  "score_before": 3960,
-  "score_after": 2195
- },
- {
   "function": "func_8019862C",
   "text": "Not matched. Compiler: the target is KMC gcc 2.7.2 (compiler map), not the claim's 2.8.1 profile. Under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 the m2c draft in the candidate scores 2295 (72.0%) via try_compiler; the best saved under 2.8.1 is 2050. Control flow of the target (from the asm): (1) a = D_801C7068 < 0x17 and D_801C6BE2 is a u16 array read with lhu at (b*0x18 + a)*2 == 0xFFFF; (2) D_801C7AB0 byte at +1 != 5 -> return 1; (3) p0 = D_801C7062[0], p1 = D_801C7062[1]. Branch A: p0==a and p1 == b+1 (beq) or p1 == b-1 -> return (D==1 || D==3). Branch B: p0 == a+1 -> (p1==b ? D==3 : 1). Branch C: p0 == a-1 and p1 == b -> (D==0 || D==2). Otherwise 1. My clean if/else rewrite of exactly this scored 7.3% under kmc (try_compiler with source), because gcc emits the branches in the draft's goto order (block_9 shared tail reached from two paths) rather than my nested order. Next: keep the draft's goto block_9/block_16 shape, compiled with gcc-2.7.2-kmc, then fix the lhu/index multiply order (target: sll 1; addu; sll 3; addu; sll 1) and the s8 loads.",
   "by": "claude-haiku-5-5-21",
@@ -11336,14 +11328,6 @@
   "score_after": 2565
  },
  {
-  "function": "func_80198858",
-  "text": "Best 2225 (67.2%), no match. Restart from revision 5b71556b5b7cecdb8fa8. Structure (verified against asm): if (D_801C6BB9 != 0) dispatch on u8 D_801C7469 in order 0,1,2,3, with A=D_801C6BB0[0], B=D_801C6BB0[1], E=D_801C7068 (s8), N=D_801C6BB9. mode0: A!=E -> 1, else B!=N-1 -> 1. mode1: if A!=E {A-1!=E -> 1 else check B} else check B (B!=N-1 -> 1). mode2: A!=E -> 1, else (B!=N-1 && A!=B+1) -> 1. mode3: if A!=E {A+1!=E -> 1 else check B} else check B. Result = a2 & 0xFF with a2 0/1. Early returns score badly (9305) because the target uses one exit with a2 set in branch delay slots; a single r variable with else-if chains scores 2225. Remaining diffs: (1) target checks N first with `lui/lb` then `beqz` to the epilogue, and loads mode in v0 after `move a2,$zero` (mine moves a1 and loads mode later); (2) the target loads D_801C6BB0 address into a1 once and reuses it (addiu a1,a1,%lo) rather than re-materializing lui for each byte; a local `s8 *p = D_801C6BB0;` read through p may reproduce this; (3) the `bnel` likely-branches with `addiu a2,zero,1` in the delay slot are what the target uses for every set-to-1, so writing `r = 1` as the last statement of each branch is the next shape to try. Untried: local pointer p for D_801C6BB0; mode dispatch via switch; compile_family signedness.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794724561.626872,
-  "score_before": 2195,
-  "score_after": 2195
- },
- {
   "function": "func_80198CC4",
   "text": "Best 1555 (79.2%), revision e4e633389c1bf0e4d477 (my clean C, not the m2c draft). Facts: D_801CA130 is u8 idx, stride 5 into D_801C7084 (v1 = byte - 0x2E unless hdr byte0 == 3) and D_801C7081 (+0x3C when (u8)(v1-0x16) < 0x14); D_801C7AB0 is a pointer to a byte struct (byte0 == 3 test, byte2 compared to idx); D_801C6BB9 is s8 (lb). Offset = (u16)arg0 * 100, store f32 (byte)*0.5 at D_8011F30C+off. Tried and worse: a1=1 moved before the store (1855); if/else with a1=1 in both arms (2370, target's `move $a1,$zero` at entry is lost). Remaining diff: the target keeps a1 = 1 in a beql delay slot (taken when D_801CA130 == byte2) and reloads D_801CA130 and D_801C7084 with a different register order. Next idea: write `s32 a1 = 0` as a function-scope local used by the entry `move $a1,$zero` order, then the rest of the body as in 1555; the delay-slot shape is the main unresolved structure.",
   "by": "claude-haiku-5-5-22",
@@ -15056,14 +15040,6 @@
   "score_after": 2586
  },
  {
-  "function": "func_80198858",
-  "text": "Sibling of func_80198A90, same array/T pattern with n = D_801C6BB9 and the test `n != 0` in place of `n < 0x17`, and the second-byte comparisons use n-1 and b[1]+1. Best 5435 (20%) with a switch(D_801C7469) version; the compiler emits a compare chain, while the target does `bnez m` to a dispatch then cases 1/2/3 by equality. Next: write the dispatch as if (m == 0) {case 0} else if chain, as was needed in the sibling, and check the cases against the target's branch senses.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794736591.592503,
-  "score_before": 2195,
-  "score_after": 2195
- },
- {
   "function": "func_8014D2B4",
   "text": "Best 4990 (52.4%, revision 4d2a9b92cdf1e5bf180f): func_8013AE60(arg0&0xFFFF) first; off=(u16)arg0*100; if (u16 at D_8011F32E+off)==0 copy F314->F338 and set the u16 to 1; F334[off] += 1.0f, wrap at >360 by subtracting 360; then f32 angle = (f64)F334[off]*D_80183760/D_80183768; F314[off] = sinf(angle)*20 - F338[off]; F31C[off] = cosf(angle)*30. Target frame 0x28 saves ra,s1,s0 and f20 (sdc1 f20) so the angle is held in a double across the calls; mine uses a 0x20 frame and f12 moves. Target keeps raw arg0 in $s1 (move s1,a0) and re-derives andi s0,s1 per use; the compiler CSEs repeated (arg0&0xFFFF) into one temp, so that alone does not change it (same 4990). Next: try a double local for the angle, and an explicit raw-arg local kept across the call.",
   "by": "claude-haiku-5-5-21",
@@ -15624,14 +15600,6 @@
   "score_after": null
  },
  {
-  "function": "func_80198858",
-  "text": "Best 3800 (44%, revision 5d64d54c033aa5829334). Target mode-switch semantics (m=D_801C7469, a=BB0[0], b=BB0[1], s=D_801C7068, n=D_801C6BB9): m==0 fails if a!=s or b!=n-1 (simple, no nesting). m==2 fails if a!=s, or (b!=n-1 and b+1!=n-1). m==1 and m==3 are as in the current C. Remaining diffs: dispatch order and register use; the m!=0 path sets v0=1 in the bnez delay slot, shared by all cases. Next idea: try an if-chain instead of switch, testing m==1 first.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794738939.879637,
-  "score_before": 2195,
-  "score_after": 2195
- },
- {
   "function": "func_80135C64",
   "text": "Not attempted (no compile). 881 insns; switch on u16 D_8011F32E[idx*100] (stride 0x64: idx*3*8+idx)*4) with 31 cases via jtbl_80182F80, whose bytes are NOT loaded in project data (read_data fails), so m2c can't draft and case->label mapping must be inferred by hand. Needs the rodata segment containing 0x80182F80 added to memory regions first. First case seen: loop s1=0..4 clearing D_8018A250[D_8011F2F0[idx*100]*5 + s1] = 0.",
   "by": "claude-opus-medium-1",
@@ -15646,14 +15614,6 @@
   "created_at": 1794738972.393017,
   "score_before": null,
   "score_after": null
- },
- {
-  "function": "func_80198858",
-  "text": "Best 2380 (65%) with an if/else-if chain on m=(u8)D_801C7469 instead of switch (m==0 uses a combined || check; m==2 nested as before). Source is in the last compile_and_diff, revision 5d64d54c033aa5829334 is the 3800 version, so rebuild from the chain form. Remaining diffs: the target keeps BB0 address in $a1 with addiu, and loads m in $v0 before the n==0 test.\n\nBest 2380 (65%, revision 9c702fa4b7c6797e203c): if/else-if chain on u8 m=D_801C7469 under if (n!=0), with n=D_801C6BB9, a=D_801C6BB0[0], b=D_801C6BB0[1], s=D_801C7068. m==0: fail if a!=s || b!=n-1. m==1: if a==s fail when b!=n-1, else fail when a-1!=s. m==2: fail if a!=s, else fail when b!=n-1 && b+1!=n-1. m==3: if a==s fail when b!=n-1, else fail when a+1!=s. Switch form scored 3800 and 5435. Moving the m load outside the n test scored 2465. Remaining diffs: target loads m before the n test and reuses v0=1 from the bnez delay slot; it keeps the BB0 address in $a1 via addiu, while mine reloads per access. Next: fix address CSE and BB0 pointer register choice, not the logic.\n\nBest saved 2380 (65%, revision 9c702fa4b7c6797e203c): if/else-if chain on u8 m=D_801C7469 under if (n!=0); per-m logic is in the earlier note. Tried locals a=BB0[0], b=BB0[1] (5670, worse: the compiler reloads the globals as sll/sra and mis-assigns registers). Moving the m load outside the n test scored 2465; switch form 3800/5435. Remaining diffs are register/CSE: target keeps the BB0 address in $a1 via addiu and loads m before the n test. Next: restore saved best via get_candidate(base=\"saved_best\"), then work on register choice for the BB0 pointer, not the logic.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794738974.389896,
-  "score_before": 2195,
-  "score_after": 2195
  },
  {
   "function": "func_801BFA1C",
@@ -21926,14 +21886,6 @@
   "created_at": 1794755748.519084,
   "score_before": 3210,
   "score_after": 3210
- },
- {
-  "function": "func_80198858",
-  "text": "Not matched. Best 2380 (65%) at revision 9c702fa4b7c6797e203c (the original n/m-switch chain with a2 result, D_801C6BB9 loaded first into a0 in the target). Pointer variant 's8 *p = D_801C6BB0' scored 4875 (worse). Target shape: n=lb D_801C6BB9 tested first (beqz a0 -> return 0 with a2=0); a2 is the result register (move a2,zero; addiu a2,zero,1); flag m=lbu D_801C7469 then a chain of bnel/beq comparing lb D_801C6BB0[0] with D_801C7068 and lb [1] with n-1. Remaining diffs are register choice (target puts n in a0, result in a2, the table address in a1 via addiu a1,a1,%lo(D_801C6BB0)) and branch order. Next: keep n in a0 by writing 'if (n == 0) return 0;' before the m read, and use an explicit s8 *a1 = D_801C6BB0 only in the branches that read it.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794755759.667234,
-  "score_before": 2195,
-  "score_after": 2195
  },
  {
   "function": "func_80028C68",
@@ -28368,14 +28320,6 @@
   "score_after": 1520
  },
  {
-  "function": "func_80198858",
-  "text": "Not matched; releasing now on the stated reason. Best is the saved 2380 (revision 9c702fa4b7c6797e203c), whose C logic matches the target's branches (decoded in the previous release note). Three further codegen-shape variants (global-direct, pointer p[], n-1 reloads) gave 2380, 2380 and 2880. The remaining 10-instruction gap is the target's reloads of D_801C6BB9 and its separate array-base lui/addiu, which these source forms did not reproduce; the next agent should test explicit per-branch reloads (e.g. compare p[1] against D_801C6BB9 - 1 written fresh in each branch, and a separate array-base expression) or a switch on D_801C7469 with the case-0 path reading n into a register first.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794765128.441854,
-  "score_before": 2195,
-  "score_after": 2195
- },
- {
   "function": "func_8014ABD8",
   "text": "EXACT under KMC -G0 -mips3 -mgp32 -mfp32 -O1, diagnostic37edce67791e9b210445, source revisiona974a46f9b0fda7c3998 (u32 arg0). suggest verified byte-exact and queued function-only bundle; automatic compiler changes OFF, needs application. Default O2 score715. Do not tune C further; apply queued exact bundle.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -29486,14 +29430,6 @@
   "created_at": 1794767083.845897,
   "score_before": 3120,
   "score_after": 3120
- },
- {
-  "function": "func_80198858",
-  "text": "Best 2380 (65%) at revision 3e24cae18e7421b74484: the machine-draft control flow with s32 n = D_801C6BB9, direct D_801C6BB0[] indexing, and return a2 & 0xFF. Not matched. Remaining diff: the target loads n (lb D_801C6BB9) first and tests beqz before any load of D_801C6BB0; the candidate hoists the `lui $a1,%hi(D_801C6BB0)` / `addiu` pair and the m load differently. Tried a local `s8 *p = D_801C6BB0` with s8 n: worse (2880). Untried: a2 as separate return branches (return 0 / return 1) to remove the a2 register and the `andi 0xFF`; declaring m as s32 rather than u8. Also D_801C6BB1 is loaded as the second array element in target (u8 ordering, so the candidate's 0xe0 vs 0xe8 branch offsets point at a bnel layout mismatch). Budget used.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794767091.6730509,
-  "score_before": 2195,
-  "score_after": 2195
  },
  {
   "function": "func_80198A90",
@@ -36687,5 +36623,101 @@
   "created_at": 1795726774.848971,
   "score_before": 2010,
   "score_after": 2010
+ },
+ {
+  "function": "func_80198858",
+  "text": "Best so far 2195 (67.7%), revision 1a53da4ece273d633b2d: direct-global if-chain on D_801C7469 (0,1,2,3), no locals. Logic decoded from asm: N=D_801C6BB9 (s8), A0/A1=D_801C6BB0[0..1], M=D_801C7068 (s8), K=D_801C7469 (u8). If N==0 return 0. K==0: a2=1 if A0!=M, else a2=1 if A1!=N-1. K==1: if A0==M or A0-1==M then (a2=1 if D_801C6BB1!=N-1) else a2=1. K==2: a2=1 if A0!=M; else if A1!=N-1 then a2=1 if N-1!=A1+1. K==3: if A0==M or A0+1==M then (a2=1 if B!=N-1) else a2=1. Unchanged: K==0 and K!=0 blocks differ in branch layout. Target shares the 'B!=N-1' tail between K==1 and K==3 via jumps (L944); the local-variable version scored 8545 (globals are re-read each use in target, do not cache). Untried: write the shared tail as a single goto-style block, or a combined condition for K==1/K==3, and check branch-likely (bnel) placement.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794709614.473983,
+  "score_before": 3960,
+  "score_after": 2195
+ },
+ {
+  "function": "func_80198858",
+  "text": "Best 2225 (67.2%), no match. Restart from revision 5b71556b5b7cecdb8fa8. Structure (verified against asm): if (D_801C6BB9 != 0) dispatch on u8 D_801C7469 in order 0,1,2,3, with A=D_801C6BB0[0], B=D_801C6BB0[1], E=D_801C7068 (s8), N=D_801C6BB9. mode0: A!=E -> 1, else B!=N-1 -> 1. mode1: if A!=E {A-1!=E -> 1 else check B} else check B (B!=N-1 -> 1). mode2: A!=E -> 1, else (B!=N-1 && A!=B+1) -> 1. mode3: if A!=E {A+1!=E -> 1 else check B} else check B. Result = a2 & 0xFF with a2 0/1. Early returns score badly (9305) because the target uses one exit with a2 set in branch delay slots; a single r variable with else-if chains scores 2225. Remaining diffs: (1) target checks N first with `lui/lb` then `beqz` to the epilogue, and loads mode in v0 after `move a2,$zero` (mine moves a1 and loads mode later); (2) the target loads D_801C6BB0 address into a1 once and reuses it (addiu a1,a1,%lo) rather than re-materializing lui for each byte; a local `s8 *p = D_801C6BB0;` read through p may reproduce this; (3) the `bnel` likely-branches with `addiu a2,zero,1` in the delay slot are what the target uses for every set-to-1, so writing `r = 1` as the last statement of each branch is the next shape to try. Untried: local pointer p for D_801C6BB0; mode dispatch via switch; compile_family signedness.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794724561.626872,
+  "score_before": 2195,
+  "score_after": 2195
+ },
+ {
+  "function": "func_80198858",
+  "text": "Sibling of func_80198A90, same array/T pattern with n = D_801C6BB9 and the test `n != 0` in place of `n < 0x17`, and the second-byte comparisons use n-1 and b[1]+1. Best 5435 (20%) with a switch(D_801C7469) version; the compiler emits a compare chain, while the target does `bnez m` to a dispatch then cases 1/2/3 by equality. Next: write the dispatch as if (m == 0) {case 0} else if chain, as was needed in the sibling, and check the cases against the target's branch senses.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794736591.592503,
+  "score_before": 2195,
+  "score_after": 2195
+ },
+ {
+  "function": "func_80198858",
+  "text": "Best 3800 (44%, revision 5d64d54c033aa5829334). Target mode-switch semantics (m=D_801C7469, a=BB0[0], b=BB0[1], s=D_801C7068, n=D_801C6BB9): m==0 fails if a!=s or b!=n-1 (simple, no nesting). m==2 fails if a!=s, or (b!=n-1 and b+1!=n-1). m==1 and m==3 are as in the current C. Remaining diffs: dispatch order and register use; the m!=0 path sets v0=1 in the bnez delay slot, shared by all cases. Next idea: try an if-chain instead of switch, testing m==1 first.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794738939.879637,
+  "score_before": 2195,
+  "score_after": 2195
+ },
+ {
+  "function": "func_80198858",
+  "text": "Best 2380 (65%) with an if/else-if chain on m=(u8)D_801C7469 instead of switch (m==0 uses a combined || check; m==2 nested as before). Source is in the last compile_and_diff, revision 5d64d54c033aa5829334 is the 3800 version, so rebuild from the chain form. Remaining diffs: the target keeps BB0 address in $a1 with addiu, and loads m in $v0 before the n==0 test.\n\nBest 2380 (65%, revision 9c702fa4b7c6797e203c): if/else-if chain on u8 m=D_801C7469 under if (n!=0), with n=D_801C6BB9, a=D_801C6BB0[0], b=D_801C6BB0[1], s=D_801C7068. m==0: fail if a!=s || b!=n-1. m==1: if a==s fail when b!=n-1, else fail when a-1!=s. m==2: fail if a!=s, else fail when b!=n-1 && b+1!=n-1. m==3: if a==s fail when b!=n-1, else fail when a+1!=s. Switch form scored 3800 and 5435. Moving the m load outside the n test scored 2465. Remaining diffs: target loads m before the n test and reuses v0=1 from the bnez delay slot; it keeps the BB0 address in $a1 via addiu, while mine reloads per access. Next: fix address CSE and BB0 pointer register choice, not the logic.\n\nBest saved 2380 (65%, revision 9c702fa4b7c6797e203c): if/else-if chain on u8 m=D_801C7469 under if (n!=0); per-m logic is in the earlier note. Tried locals a=BB0[0], b=BB0[1] (5670, worse: the compiler reloads the globals as sll/sra and mis-assigns registers). Moving the m load outside the n test scored 2465; switch form 3800/5435. Remaining diffs are register/CSE: target keeps the BB0 address in $a1 via addiu and loads m before the n test. Next: restore saved best via get_candidate(base=\"saved_best\"), then work on register choice for the BB0 pointer, not the logic.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794738974.389896,
+  "score_before": 2195,
+  "score_after": 2195
+ },
+ {
+  "function": "func_80198858",
+  "text": "Not matched. Best 2380 (65%) at revision 9c702fa4b7c6797e203c (the original n/m-switch chain with a2 result, D_801C6BB9 loaded first into a0 in the target). Pointer variant 's8 *p = D_801C6BB0' scored 4875 (worse). Target shape: n=lb D_801C6BB9 tested first (beqz a0 -> return 0 with a2=0); a2 is the result register (move a2,zero; addiu a2,zero,1); flag m=lbu D_801C7469 then a chain of bnel/beq comparing lb D_801C6BB0[0] with D_801C7068 and lb [1] with n-1. Remaining diffs are register choice (target puts n in a0, result in a2, the table address in a1 via addiu a1,a1,%lo(D_801C6BB0)) and branch order. Next: keep n in a0 by writing 'if (n == 0) return 0;' before the m read, and use an explicit s8 *a1 = D_801C6BB0 only in the branches that read it.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794755759.667234,
+  "score_before": 2195,
+  "score_after": 2195
+ },
+ {
+  "function": "func_80198858",
+  "text": "Not matched; releasing now on the stated reason. Best is the saved 2380 (revision 9c702fa4b7c6797e203c), whose C logic matches the target's branches (decoded in the previous release note). Three further codegen-shape variants (global-direct, pointer p[], n-1 reloads) gave 2380, 2380 and 2880. The remaining 10-instruction gap is the target's reloads of D_801C6BB9 and its separate array-base lui/addiu, which these source forms did not reproduce; the next agent should test explicit per-branch reloads (e.g. compare p[1] against D_801C6BB9 - 1 written fresh in each branch, and a separate array-base expression) or a switch on D_801C7469 with the case-0 path reading n into a register first.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794765128.441854,
+  "score_before": 2195,
+  "score_after": 2195
+ },
+ {
+  "function": "func_80198858",
+  "text": "Best 2380 (65%) at revision 3e24cae18e7421b74484: the machine-draft control flow with s32 n = D_801C6BB9, direct D_801C6BB0[] indexing, and return a2 & 0xFF. Not matched. Remaining diff: the target loads n (lb D_801C6BB9) first and tests beqz before any load of D_801C6BB0; the candidate hoists the `lui $a1,%hi(D_801C6BB0)` / `addiu` pair and the m load differently. Tried a local `s8 *p = D_801C6BB0` with s8 n: worse (2880). Untried: a2 as separate return branches (return 0 / return 1) to remove the a2 register and the `andi 0xFF`; declaring m as s32 rather than u8. Also D_801C6BB1 is loaded as the second array element in target (u8 ordering, so the candidate's 0xe0 vs 0xe8 branch offsets point at a bnel layout mismatch). Budget used.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794767091.6730509,
+  "score_before": 2195,
+  "score_after": 2195
+ },
+ {
+  "function": "func_80198858",
+  "text": "Small-model attempt at func_80198858: 13 tries.\n  best 2695 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3150 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 3150 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 3450 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3715 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n13 tries, no match. Best -O1 score 3150 (saved own-profile 1800 not beaten). Plain if/else chain per mode; mode re-read from the global each time; pointer alias p = D_801C6BB0 in modes 0 and 2 moved -O1 from 3740 to 3150. Still open: target keeps n in a0 and the result in a2 (ours a1/a0), and mode 1 and 3 compile to a different branch shape.",
+  "by": "manual-6ec156f44e504534",
+  "created_at": 1795718214.755521,
+  "score_before": 1800,
+  "score_after": 1800
+ },
+ {
+  "function": "func_80198858",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80198858: 13 tries.\n  best 2695 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3150 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 3150 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 3450 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3715 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n13 tries, no match. Best -O1 score 3150 (saved own-profile 1800 not beaten). Plain if/else chain per mode; mode re-read from the global each time; pointer alias p = D_801C6BB0 in modes 0 and 2 moved -O1 from 3740 to 3150. Still open: target keeps n in a0 and the result in a2 (ours a1/a0), and mode 1 and 3 compile to a different branch shape.",
+  "by": "manual-6ec156f44e504534",
+  "created_at": 1795718216.6018748,
+  "score_before": 1800,
+  "score_after": 1800
+ },
+ {
+  "function": "func_80198858",
+  "text": "Small-model attempt at func_80198858: 13 tries.\n  best 295 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 295 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 510 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1510 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2025 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 295 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 06cb1fb809e27d43e783 (not applied).\nClean rewrite as a branch tree on the flag global and the two bytes. Best 295 under gcc-2.7.2-kmc -O1 (own profile 2025, saved 1800). Left: register allocation (n in a2 not a0, result in a1 not a2, flag in a0 not v0), and the tail of the m==3 path (target reloads D_801C6BB9 and moves the byte into a0). The reload of D_801C7469 in the else-if chain helped (510 -> 295).",
+  "by": "manual-f403c9103dd34a4f",
+  "created_at": 1795726437.790472,
+  "score_before": 1800,
+  "score_after": 1800
+ },
+ {
+  "function": "func_80198858",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80198858: 13 tries.\n  best 295 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 295 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 510 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1510 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2025 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 295 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 06cb1fb809e27d43e783 (not applied).\nClean rewrite as a branch tree on the flag global and the two bytes. Best 295 under gcc-2.7.2-kmc -O1 (own profile 2025, saved 1800). Left: register allocation (n in a2 not a0, result in a1 not a2, flag in a0 not v0), and the tail of the m==3 path (target reloads D_801C6BB9 and moves the byte into a0). The reload of D_801C7469 in the else-if chain helped (510 -> 295).",
+  "by": "manual-f403c9103dd34a4f",
+  "created_at": 1795726438.3205152,
+  "score_before": 1800,
+  "score_after": 1800
  }
 ]
