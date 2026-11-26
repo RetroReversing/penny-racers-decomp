@@ -3128,14 +3128,6 @@
   "score_after": 3213
  },
  {
-  "function": "func_80026E64",
-  "text": "Deep permuter: score 1768 \u2192 1768; 0 improvements; 1000 candidates tested; 0 cached skips; 0 rejected; 7049s elapsed. Variant limit reached.",
-  "by": "Wwww.permuter-8589934755",
-  "created_at": 1794356829.8656151,
-  "score_before": 1768,
-  "score_after": 1768
- },
- {
   "function": "func_80025C50",
   "text": "Deep permuter: score 3650 \u2192 3260; 3 improvements; 82 candidates tested; 86 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934745",
@@ -5782,14 +5774,6 @@
   "created_at": 1794706364.3767,
   "score_before": 3390,
   "score_after": 3390
- },
- {
-  "function": "func_80026E64",
-  "text": "Score stuck at 1788 with the project profile (-G0 -mips3 -mgp32 -mfp32 -O2). Structure (calls, order, loop) is right; the gap is codegen shape:\n- TARGET uses a frame pointer: addiu $sp,$sp,-0x28; sw $ra,0x20; sw $fp,0x1c; sw $s0,0x18; move $fp,$sp; sw $a0,0x28($fp); epilogue move $sp,$fp + lw ra/fp/s0. The project flags omit the frame pointer, so the current C can never produce it.\n- TARGET also keeps the indirect callee in $s0 (lui $s0,%hi(D_800DA1E0); lw $s0,...; jalr $s0), i.e. it needs both the frame pointer AND a saved $s0.\n- TARGET contains dead/duplicated jump blocks (j .L80026F20 + nop immediately followed by j .L80026F48 + nop) and `j` over the if/else arm, i.e. un-threaded basic blocks typical of -O1, not -O2.\nMeasured with the same C: -O2 -fno-omit-frame-pointer = 2715, -O1 -fno-omit-frame-pointer = 1385 (best seen; frame 0x20 instead of 0x28 because jalr still uses $v0, not $s0), -O1/-O2 plain = 1788. search_flags found no better flag set for the project profile.\nLoop shape was tried as for(;;)/while(1)/do-while and if(!=NULL)/if(==NULL)continue, plus caching D_800DA1E0 in a local function pointer: all identical (1385 at O1-fno-omit-fp, 1788 at project flags). -fno-cross-jumping is not accepted by this cc1.\nLeft: find source that makes gcc-2.7.2 keep the callee in $s0 under -fno-omit-frame-pointer, and/or justify a per-range -O1 -fno-omit-frame-pointer profile for 0x80026E64 (see suggest/compiler_map).",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794706369.7115679,
-  "score_before": 1788,
-  "score_after": 1788
  },
  {
   "function": "func_80146E4C",
@@ -9688,14 +9672,6 @@
   "score_after": 200
  },
  {
-  "function": "func_80026E64",
-  "text": "Best candidate 1788 (71.6%, revision 8508de3096641e290f2d). The control flow and calls are right: D_800DA1E0=0; nuPiInit(); if (D_80000300==1) nuScCreateScheduler(2,1) else (0x1E,1); osViSetSpecialFeatures(0x5A); osCreateThread(D_8004AC60,3,func_80026250,0,D_80071F70,0xA); osStartThread(D_8004AC60); osSetThreadPri(D_8004AAB0,0); then for(;;) { if (D_800DA1E0) D_800DA1E0(); } with the if taken through jalr via $s0. Remaining diff is the frame: the target uses a frame pointer (`move $fp,$sp`, saves ra/fp/s0 at 0x20/0x1C/0x18, frame 0x28) and stores the a0 argument at 0x28($fp), i.e. the caller's arg home area. Ours uses a 0x20 frame with no fp. Likely cause: the arg's address is taken in a way that forces fp, or a variable-size local. Try a local that makes gcc keep the frame pointer, or check the varargs/K&R prototype idea from the proposal for a0 home area. Also the target's loop has dead `j` pairs, so the for(;;) shape may need a `break`-style exit that is never taken.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794720259.357481,
-  "score_before": 1788,
-  "score_after": 1788
- },
- {
   "function": "nuContMgrInit",
   "text": "nuContMgrInit (240 B, unit main). Saved best 200 (96.6%): the claim_function candidate, a do-while loop with var_v0 = var_a1 & 0xFF inside the loop. Remaining diff: the target keeps the return value in $v0 from the start (move $v0,$zero; andi $v0,$a1,0xff), and the constants 1/5 land in a0/a2 where mine go to a2/a3. Moving the andi out of the loop scored 280 (worse): it puts the result in $v1 and adds a nop/move. Not tried: returning `var_a1 & 0xFF` directly as an expression, and unsigned locals for var_a0/var_a1. Budget used: 3 non-improving compiles.",
   "by": "claude-haiku-5-5-22",
@@ -11256,14 +11232,6 @@
   "score_after": 35
  },
  {
-  "function": "func_80026E64",
-  "text": "Best verified source-only score 1598 (rev 9244002d88044e42ee1f): D_800DA1E0 declared `void (*volatile)()` plus `for(;;){ while(D_800DA1E0==NULL){} D_800DA1E0(); }`. The volatile declaration is required: it makes the loop re-load the pointer for the call (target does lui/lw for the test, then a second lui/lw before jalr). Non-volatile gives one load and score 1788.\n\nRemaining structural gaps vs target (63 insns; ours 48):\n1. Frame: target addiu sp,-0x28 with sw ra,0x20 / sw fp,0x1c / sw s0,0x18 and arg0 stored at 0x28($fp). Ours is -0x20 and never saves s0. Target's call target lives in $s0 (callee-saved), i.e. gcc believed the loaded pointer must survive a call. With -fno-omit-frame-pointer the frame becomes -0x20 with fp but still no s0 (score 1195).\n2. Target loop head is two unconditional jumps: `j .L80026F20` then `j .L80026F48` (loop body / exit) at .L80026F10, body test at .L80026F20, backedge `j .L80026F10` at .L80026F40. That two-jump head is the distinctive shape to reproduce; every loop form tried (for(;;), while(1), do/while(1), goto, if/continue, if/else continue, while-null-then-call, local fp copy) produced a single head jump.\n3. nuScCreateScheduler branch: target tests `lw v0,D_80000300; addiu v1,zero,1; bne v0,v1,.L80026EB0; nop` then calls with a0=2 in the fall-through and a0=0x1E out of line; ours inverts operand order (bne v1,v0) and swaps the two arms. Try `if (D_80000300 != 1) { nuScCreateScheduler(0x1E,1); } else { nuScCreateScheduler(2,1); }` or a switch on D_80000300 with cases 1 and default.\n\nTried and rejected: -O2 (2715), -O1 -fno-omit-frame-pointer (1195/1385), -fno-strength-reduce, -fno-schedule-insns, -fno-delayed-branch, -mno-abicalls, -g/-g3 (search_flags: project flags already best at 1598). Also tried removing the `p=&arg0` dummy, `*p=arg0`, local fp copies, `(*D_800DA1E0)()`, self-assign after call, double null tests.\n\nNext: get the s0-saved frame and the two-jump loop head; then fix the scheduler branch arm order.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794725372.043947,
-  "score_before": 1788,
-  "score_after": 1598
- },
- {
   "function": "func_8021AC64",
   "text": "Best 8565 (51%) at revision 3aab0b7ad04462e62790: `u16 *p = &D_80190CB4;` base pointer (target keeps &D_80190CB4 in $s0 and reads via lhu ($s0)), with every field store as a fresh expression `*(u8**)(D_8011F350 + *p*0x64)` (no local entry pointer). Target uses s1-s4 for arg0-3 (moved right after frame setup), frame 0x60; ours is 0x70, so an extra 0x10 of stack is being allocated, likely from the p local. Unresolved: stack size and save ordering. Entry-pointer local version scored 11515; plain-local version 13013.",
   "by": "claude-haiku-5-5-21",
@@ -12448,14 +12416,6 @@
   "score_after": 360
  },
  {
-  "function": "func_80026E64",
-  "text": "Best candidate: revision dfdbb6e54a57c6d8d49f, score 1510 (76.0%), 63-insn target vs 49 mine. Source: the nuPiInit / nuScCreateScheduler / osViSetSpecialFeatures / osCreateThread / osStartThread / osSetThreadPri sequence, then for(;;) { if (D_800DA1E0 != NULL) D_800DA1E0(); } with D_800DA1E0 as extern void (*volatile)(). The D_80000300 branch is right as written (2 in the == 1 arm, 0x1E in the else; swapping gives 1768). Local frame tweaks helped: `s32 pad[2];` next to `s32 *p; p = &arg0;` (1598 -> 1595), and `pad[0] = 0;` after `p = &arg0;` (1595 -> 1510). Remaining diffs: the target uses $fp as the frame base (move $fp,$sp twice; sw $a0,0x28($fp); sw $fp,0x1c($sp); lw $s0,0x18($sp)) and has three `j func_80026E64+0x58` tail jumps where mine branch to +0x90/+0xac, so the target has an extra copy of the loop tail. Next: try a second address-taken local (e.g. `p2 = &pad[1]`) to push GCC to an $fp frame, and look at the loop tail: target's beqz/j layout suggests the if-body is duplicated into the for(;;) tail. Did not try a local volatile.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794728991.900733,
-  "score_before": 1598,
-  "score_after": 1510
- },
- {
   "function": "fixed60ToF64",
   "text": "u64/s64-to-f64 conversion (soft-float). The C draft's control flow is right: zero check returns the raw pair; negate when hi sign bit set; right-shift loop while hi & 0xFFE00000 (exp++); else left-shift loop while !(hi & 0x100000) (exp--); pack (hi & 0xFFFFF) | sign | ((exp+0x433)<<20), then lo. Score 5810 (6%). Difference: the compiler emits negu/nor for the negate, but the target negates as xor with -1 then addiu 1, and carries with sltiu (hi = ~hi + (lo_new==0)); that rewrite scored 5860 (worse), so the negate is not the only gap. Also target keeps args in v0/v1 via move, with the sign constant lui 0x8000 in $a2 (xor a2,a2,a2 then the 0x80000000 is put in a2 only on the negative path), and the early zero test is `or a0,a0,a1; bnez`. Next steps: keep sign in a2 as a separate value, and check the exp loop: target shifts v1/v0 in place with `sll t9,v0,31; srl v1; or` (the exp count is in a0, and the final adds 0x433 with addiu then sll 20). Not yet tried: writing the two shift loops with u32 temporaries to force the same register flow.",
   "by": "claude-haiku-5-5-20",
@@ -12718,14 +12678,6 @@
   "created_at": 1794729993.093468,
   "score_before": 875,
   "score_after": 875
- },
- {
-  "function": "func_80026E64",
-  "text": "Best 1510 (76%), candidate dfdbb6e54a57c6d8d49f: `void func_80026E64(s32 arg0)` with `s32 *p; s32 pad[2];`, `p=&arg0; pad[0]=0; D_800DA1E0=NULL; nuPiInit(); if (D_80000300==1) nuScCreateScheduler(2,1) else (0x1E,1); osViSetSpecialFeatures(0x5A); osCreateThread(&D_8004AC60,3,&func_80026250,0,&D_80071F70,0xA); osStartThread(&D_8004AC60); osSetThreadPri(&D_8004AAB0,0); for(;;) if (D_800DA1E0) D_800DA1E0();`. Target frame is 0x28 with ra, fp and s0 saved, `move $fp,$sp`, and arg0 spilled via $fp (`sw $a0,0x28($fp)`); ours uses $sp with no fp. Removing pad[2] (1598) gives frame 0x20 and is worse, so pad sets the frame size but not the fp choice. Open: what makes GCC 2.7.2 choose a frame pointer here (not found by the p=&arg0 change alone). Untried: a local array indexed at runtime, and the loop layout (target jumps to loop head around the call). Moving on.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794729995.4571211,
-  "score_before": 1510,
-  "score_after": 1510
  },
  {
   "function": "func_80211A84",
@@ -13126,14 +13078,6 @@
   "created_at": 1794731290.232791,
   "score_before": 260,
   "score_after": 260
- },
- {
-  "function": "func_80026E64",
-  "text": "Not matched. Best 1510 (76%) from the s32 pad[2] + p=&arg0 draft (rev dfdbb6e54a57c6d8d49f). Target uses $fp (move $fp,$sp; arg0 stored at 0x28($fp); sw $fp at 0x1c) with frame 0x28, saves ra/fp/s0, and has three unconditional j's around the for(;;) head. Ours uses sp only. Adding an unused pointer to pad (q=&pad[0]) changed nothing. Next: find what makes GCC 2.7.2 select $fp here.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794731311.834924,
-  "score_before": 1510,
-  "score_after": 1510
  },
  {
   "function": "func_8014998C",
@@ -14664,14 +14608,6 @@
   "score_after": 3947
  },
  {
-  "function": "func_80026E64",
-  "text": "Best 1510 (76%, revision 12ead826b8df666f3e8d). Target: 0x28 frame with $fp base, saves $ra/$fp/$s0, stores $a0 at 0x28($fp); the loop loads D_800DA1E0 into $s0 for jalr. My C matches the call sequence and branch order (D_80000300==1 -> nuScCreateScheduler(2,1), else (0x1E,1)) but the frame is 0x20 off $sp with no $s0/$fp. Tried: no-pad (1697), &arg0 only (1598), &arg0 + pad[2] (1510), local fp copy in loop (1700, worse: loses the s0 reload). Untested: a local whose address forces a $fp frame, or a VLA/alloca-like local. Move-on budget reached.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794738453.25747,
-  "score_before": 1510,
-  "score_after": 1510
- },
- {
   "function": "__CSPHandleMetaMsg",
   "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
   "by": "claude-haiku-5-5-23",
@@ -15278,14 +15214,6 @@
   "created_at": 1794739671.772338,
   "score_before": 350,
   "score_after": 350
- },
- {
-  "function": "func_80026E64",
-  "text": "Best 1510 (76.0%), revision dfdbb6e54a57c6d8d49f: nuPiInit; D_800DA1E0=NULL; nuScCreateScheduler(D_80000300==1 ? 2 : 0x1E, 1); osViSetSpecialFeatures(0x5A); osCreateThread(&D_8004AC60,3,func_80026250,0,&D_80071F70,0xA); osStartThread; osSetThreadPri(&D_8004AAB0,0); infinite loop calling D_800DA1E0 if non-NULL. Target is 63 insns vs 49 mine: it has a real frame (move $fp,$sp twice, sw $fp 0x1c, sw $s0 0x18, sw $a0 0x28($fp)), which suggests the local p=&arg0 / pad[] is not what produces it. Target's first call's stores use $fp-relative arg0 and it has 14 more deleted instructions in the scheduler branch (jal nuScCreateScheduler with a0=2 then a1=1 in a delay slot). Next: drop pad[] and p, use a single local so the frame matches 0x28/0x20, then re-diff.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794739699.358952,
-  "score_before": 1510,
-  "score_after": 1510
  },
  {
   "function": "func_80160930",
@@ -19040,14 +18968,6 @@
   "score_after": 0
  },
  {
-  "function": "func_80026E64",
-  "text": "Not matched. Best 1510 (76.0%): the saved draft with nuPiInit, the D_80000300 == 1 branch selecting nuScCreateScheduler(2,1) else (0x1E,1), osViSetSpecialFeatures(0x5A), osCreateThread(&D_8004AC60, 3, func_80026250, 0, &D_80071F70, 0xA), osStartThread, osSetThreadPri(&D_8004AAB0, 0), and an infinite loop calling D_800DA1E0 when non-NULL. Target differs in the frame: it saves $fp, sets `move $fp, $sp` and stores a0 at 0x28($fp), so it uses a frame pointer (typical of a variable-size frame or address-taken local in gcc 2.7), and our build uses $sp with no $fp. Also the target branch ordering: `bne $v0,$v1` for the D_80000300 test with the 2 and 0x1E arms in the other order (target loads the constant into $v0 then tests against 1 in $v1). Removing the `p = &arg0` local made it worse (1600). Untried: keep `s32 *p = &arg0` and make the pad array larger, or add an alloca-like local to force $fp, then re-check the arm order (swap the if/else bodies).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794752539.314739,
-  "score_before": 1510,
-  "score_after": 1510
- },
- {
   "function": "func_80030E28",
   "text": "Not attempted this session; released unworked to end the session cleanly. Saved m2c draft does not compile (func.c:127 invalid unary * on an integer-typed field access; func.c:160 pointer-from-integer). Its switch structure (case 0x80/0x90 fallthrough via a bare else-block, goto loops over the voice list at arg0+0x64, loop_46/loop_63/loop_69/loop_77/loop_91 are all do-while list walks with next pointer at offset 0) is a reasonable skeleton, but the field types need settling first: arg0 is the seqplayer (voice list head at 0x64, 0x60 is per-channel array of 0x10 entries, 0x1C is a time/tick base, 0x20 an instrument table pointer, 0x2C a flag, 0x48 the event queue, 0x70 a callback), arg1 is the event with u16 type at 0 and fields at 8/9/0xA/0xB. Start by writing the voice struct layout (0x20 pointer, 0x28 f32 ratio, 0x2C f32 gain, 0x31 channel, 0x33/0x34/0x35 state, 0x37 flags), then rebuild the 0x90 note-on path and tune.",
   "by": "claude-haiku-5-5-23",
@@ -20792,14 +20712,6 @@
   "score_after": 4025
  },
  {
-  "function": "func_80026E64",
-  "text": "EXACT -O0 diagnostic match, captured source/profile in function-only suggestion (automatic profile changes off). No p/pad locals; while(1) callback loop, all earlier calls unchanged. for(;;) at -O0 score410 (missing j/nop+j/nop), while(1) exact. Target fp and unused arg0 spill are -O0 convention. Apply saved bundle instead of further -O2 tuning.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794755342.998689,
-  "score_before": 1510,
-  "score_after": 1510
- },
- {
   "function": "func_801948E0",
   "text": "Not matched. Saved best 2820 (historical) stands; my goto rewrite (revision ed45e6c18731d7608252) scores 9180 (47%), 128 insns vs target 174. Control flow worked out from asm (keep it): if (B9<=0) {*arg0 = D7AB8; return}. If (AB0[1]==5) { a2=&D7062; cond A: b0==T68 && ((b1==B9+1 && D7469!=1 && D7469!=3) || (b1==B9-1 && D7469!=0)) -> store 4; cond B: (b0==T68+1 || b0==T68-1) && D7063==B9 && D7469!=0 && D7469!=2 -> store 4 }. Then shared body: x = lhu(D6BB0 + ((B9*24+T68)*2)); x!=0xFFFF or D6B25==2 -> store 4; v = (D6B25==*arg0)?5 : (D6B25==1)?0x13 : (D6B25==3)?0x10 : none; D6B20=v if set; D6B22=0; D6B23=-1; D6B21=5; if (AB0[0]==4){D6B20+=0x2E; D6B21=0x33;} D6B24=1; if (D6B26) {func_8014B854(0x3B, arg0, a2); D6B26=0;}. Store 4 path = *arg0 = 4. Remaining diffs: target keeps arg0 in $a1 (mine copies to $t1 and uses extra temps), reads B9 from the lui/lb each time, and the block order differs (blez first, then the AB0 loads). Next: reorder the 5-path so the AB0 read is first and keep arg0 in a named u8 *a1 local.",
   "by": "claude-haiku-5-5-22",
@@ -21376,14 +21288,6 @@
   "score_after": 3275
  },
  {
-  "function": "func_80026E64",
-  "text": "Byte-exact at gcc-2.7.2-kmc -O0 (try_compiler verified); function-specific compiler suggestion filed with source. It cannot match at -O1/-O2 because of the fp frame and param spill. Source: void func_80026E64(void *arg){ D_800DA1E0=NULL; nuPiInit(); if (D_80000300==1) nuScCreateScheduler(2,1); else nuScCreateScheduler(0x1E,1); osViSetSpecialFeatures(0x5A); osCreateThread(D_8004AC60,3,func_80026250,NULL,D_80071F70,10); osStartThread(D_8004AC60); osSetThreadPri(D_8004AAB0,0); while(1){ if (D_800DA1E0!=NULL) (*D_800DA1E0)(); } } with u8[] externs and non-volatile fn ptr.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794756266.4325702,
-  "score_before": 1510,
-  "score_after": 1510
- },
- {
   "function": "func_800422C4",
   "text": "This is the KMC libgcc hand-written __muldi3-style helper. It has explicit `nop nop` hazard padding between multu/mflo in odd places, and the arguments are split across a0-a3 with v0/v1 used as a 64-bit result. GCC 2.7.2 doesn't emit these hand-placed nops at -O2 (-O2 attempt `u64 a*b` doesn't match). Neighbours func_80042250 (__cmpdi2/__ucmpdi2 with two entry points) and func_80042630 (div helper that saves ra in t5) are from the same asm.",
   "by": "claude-opus-medium-1",
@@ -21446,14 +21350,6 @@
   "created_at": 1794756317.3094442,
   "score_before": 8506,
   "score_after": 8506
- },
- {
-  "function": "func_80026E64",
-  "text": "Fresh exact O0 diagnostic recheck, captured in function-only suggest; auto compiler changes off. Current candidate559d7111e4b842873744 uses no locals, nonvolatile void(*)() global, u8[] thread/stack symbols, while(1) callback. O2 1887; O0 exact63instructions. Apply captured bundle; source tuning at O2 cannot yield fp frame/unused argument spill.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794756322.30624,
-  "score_before": 1510,
-  "score_after": 1510
  },
  {
   "function": "func_80129918",
@@ -22200,14 +22096,6 @@
   "score_after": 435
  },
  {
-  "function": "func_80026E64",
-  "text": "Confirmed exact target bytes in try_compiler at O0, source and compiler bundled with suggest and reverified. Default O1 cannot reproduce unoptimized retained argument store, fp prologue or unreachable jump sequence. No further C repair appropriate; needs pending profile suggestion applied, not dependency. Exact source uses no p/pad locals and while(1) callback loop.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794757420.6174269,
-  "score_before": 1510,
-  "score_after": 1510
- },
- {
   "function": "func_8013AE60",
   "text": "Best verified 765 (revision ee3b5103200ba8428732, source variant 2 of my batch). Target 42 insns, 4-iteration loop over 4 u16 slots.\n\nTarget shape (important):\n  move $a1,$zero ; lui/lhu $t1,D_80233EC0 ; andi $a0,$a0,0xFFFF ; off = arg0*100 in $a3 (sll/addu chain, final sll $a3,$v0,2) ; $t0 = &D_8011F2F2 ; addu $a2,$a3,$t0  (dst base = base+off, in a2)\n loop:\n  lbu idx = D_8011F2F0[off] ; v0 = k + idx ; *100 via sll 1/add/3/add/2 ; addu $v1,$v1,$t0 (add base) ; sll $a0,$a1,1 (i*2) ; addu $v1,$a0,$v1 ; lhu/andi 8 ; beqz ; addu $v1,$a0,$a2 in delay slot ; then ori 8 path / else sll $v1,$a1,1; addu $v1,$v1,$a2; andi 0xFFF7 ; sh ; addiu $a1,$a1,1 ; slti 4 ; bnez.\nSo both source and destination addresses are formed as (i*2 + baseptr) with i*2 in $a0, and the loop counter is $a1 with dst base in $a2.\n\nClosest attempt (765) already has exactly this address shape: `u16 *src = (u16 *)(i * 2 + (u32)(base + (k + D_8011F2F0[off]) * 100));` plus `*(u16 *)(i * 2 + (u32)(base + off))` in both branches. Remaining 27 rows are regalloc/scheduling: my loop counter lands in $a2 and dst base in $a1 (swapped vs target), and my build emits an extra `sll $a0,$a2,1` inside the source-address chain plus a per-iteration `addiu $a1,$a1,2` at the bottom instead of `addiu $a1,$a1,1`/`slti`.\n\nTried, all worse or equal: `u16 *dst` hoisted + `((u16*)dst)[i]`, `u32 i`, `int __repair_literal` for the *2, `(unsigned short)off` index cast, s8 D_8011F2F0, s16 D_80233EC0 (960/900/775/765), integer-sum forms `(u32)base + (u32)((k+idx)*100)` and `i*2 + ((u32)base + ...)`, and a hoisted `u8 *sp` source base (1690).\n\nNext ideas: try swapping the declaration order of `i` and `dst` (or making the destination pointer the first declared local) so $a1/$a2 assignments swap; try computing `s32 i2 = i * 2;` once at the top of the loop body and using `i2` in both addresses (target reuses one `sll $a0,$a1,1` for both paths); consider that the loop counter may be `arg0`-independent `u32` compared with `i < 4` unsigned (sltiu) \u2014 target uses slti so keep signed. Budget exhausted (move on at 4).",
   "by": "api-route-llm-code-2",
@@ -22262,14 +22150,6 @@
   "created_at": 1794757700.7062552,
   "score_before": 2870,
   "score_after": 2870
- },
- {
-  "function": "func_80026E64",
-  "text": "I compiled the known -O0-exact source at the address-range profile (-O1): score 1887. Under -O1 the fp frame, the a0 spill and the dead jumps of the loop cannot be reproduced. A compiler-profile suggestion (-O0) is already filed by earlier agents; this needs the user to apply it, not more C tuning.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794757713.996044,
-  "score_before": 1510,
-  "score_after": 1510
  },
  {
   "function": "func_801E2D18",
@@ -23046,14 +22926,6 @@
   "created_at": 1794758684.099933,
   "score_before": 5675,
   "score_after": 5675
- },
- {
-  "function": "func_80026E64",
-  "text": "Cannot match at -O2 (target has $fp frame + spilled arg = -O0). MATCHES byte-for-byte at -O0 via try_compiler; suggest() filed with source (D_800DA1E0=0; nuPiInit(); if(D_80000300==1) nuScCreateScheduler(2,1) else (0x1E,1); osViSetSpecialFeatures(0x5A); osCreateThread(D_8004AC60,3,func_80026250,0,D_80071F70,10); osStartThread; osSetThreadPri(D_8004AAB0,0); while(1){ if(D_800DA1E0) D_800DA1E0(); }). Apply -O0 profile.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794758686.1940851,
-  "score_before": 1510,
-  "score_after": 1510
  },
  {
   "function": "func_8014B108",
@@ -26416,14 +26288,6 @@
   "score_after": 1065
  },
  {
-  "function": "func_80026E64",
-  "text": "Fresh normal O1 judge score1887; exact same plausible C byte-exact under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O0 (try_compiler). Function-only suggest bundle refiled and verified; automatic changes off. Source has no locals, nonvolatile callback ptr, u8[] thread/stack symbols, while(1) callback loop. Apply pending bundle; further O1 C tuning cannot yield unused arg spill/fp frame/dead jumps.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794763379.302293,
-  "score_before": 1510,
-  "score_after": 1510
- },
- {
   "function": "func_80219CF0",
   "text": "Move-on budget exhausted (3/3 without improvement). Rechecked baseline 1596 (same as historical best); target 78 insns, ours 76.\n\nWhat already matches exactly: the index computation `andi/sll/addu/sll 3/addu/sll 2` for (arg0&0xFFFF)*100, the `lui/addiu/addu` base add, `lhu $v1,0x3e($a0)`, the switch dispatch (beqz / addiu $v0,1 / beq / nop / j / nop), the case-0 body, the `lui $s0,%hi(D_8021E19E)` + lbu/addiu/sb/lbu/sltiu/bnez sequence, the jal, `andi $v0,$v0,1` + `sll 2` + lui/addu/lwc1, all the sw $zero 0x24..0x38 stack argument stores, the jal func_800DE41C with `addu $a3,$zero,$zero` in the delay slot, and the trailing `sb $zero,($s0)`.\n\nRemaining gaps, in priority order:\n1. Prologue placement. Target saves `sw $ra,0x4c` / `sw $s0,0x48` immediately after `addiu $sp,$sp,-0x50`, before `andi $a0,$a0,0xffff`. Ours emits the same two stores after the `addu $a0,$v0,$v1` that forms p. Frame size (0x50) and the saved slots already agree, so this is purely where KMC 2.7.2 inserts the register saves. Nothing tried so far moves them: the switch form and the if/if form both keep them late.\n2. Float-constant materialisation order. Target stores 7.0f and 2.0f at their argument positions in call order: `lui $at,0x40e0 / mtc1 $at,$fv0 / nop / swc1 $fv0,0x28($sp)` then the same with 0x4000 into 0x2c. Ours hoists both constants before the argument stores into $f2/$f4 (`mtc1` with no `nop`) and stores them later. Target also keeps the array element in $f2 and stores it three times at 0x3c/0x40/0x44; ours spreads it over $f0/$f2/$f4.\n3. Call-argument register setup order. Target sets `addu $a0,$zero,$zero` / `addu $a1,$zero,$zero` / `addiu $a2,$zero,1` after all the stack stores and immediately before the jal, with `addu $a3,$zero,$zero` in the delay slot. Ours emits `move $a0`/`move $a1`/`addiu $a2`/`move $a3` early (as `move`, not `addu`), because 0,0,1,0 are literal constants in the call.\n\nTried and failed (all diagnostics): volatile u8* flag (1796), `(*flag)++` (1696), non-volatile flag pointer (1796), `*flag = *flag + 1` (1596, no change), moving `D_8021E19E = 0` before the call (2041), a `s32 k` temporary for the masked array index (1596, no change), rewriting the switch as two `if`s with a `u16 *st` local (parse error from the declaration placement; retry with the declaration at the top of the function).\n\nNext ideas not yet tried: retry the if/if form with `u16 *st` declared with the other locals at the top (that is the most likely way to move the saves, since it changes the entry basic block); declare the four leading call arguments as s32 locals initialised to 0/0/1/0 so GCC emits `addu $aN,$zero,$zero` instead of `move`; split the float literals into named `f32` locals declared just before the call so they materialise at their argument positions.",
   "by": "api-route-llm-code-2",
@@ -26766,14 +26630,6 @@
   "created_at": 1794764459.42111,
   "score_before": 19536,
   "score_after": 19536
- },
- {
-  "function": "func_80026E64",
-  "text": "SOLVED byte exact under -G0 -mips3 -mgp32 -mfp32 -O0. Trial 0174f1d16e834ab0ccff; suggest submitted and rechecked exact; automatic compiler changes disabled, bundle pending application. Removed unused p/pad; changed for(;;) to while(1) to generate two leading loop jumps. Do not tune -O1 or add fake padding. Exact source in compiler suggestion.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794764461.037109,
-  "score_before": 1510,
-  "score_after": 1510
  },
  {
   "function": "func_8015248C",
@@ -27624,14 +27480,6 @@
   "score_after": 38039
  },
  {
-  "function": "func_80026E64",
-  "text": "Confirmed current candidate plain C (no p/pad locals, nonvolatile callback, while(1)) is byte-exact under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O0. try_compiler with explicit source matches; suggest rechecked exact but automatic compiler changes off, bundle awaits application. Effective -O1 cannot match unoptimized prologue/argument spill/loop jumps. Do not tune source or artificial padding; apply function-specific compiler suggestion.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794765923.170403,
-  "score_before": 1510,
-  "score_after": 1510
- },
- {
   "function": "alEvtqPostEvent",
   "text": "Best 1775 (73.5%, 65 vs 67 instructions), the machine-draft-derived source with s0/s1/s2 locals, calls to func_800339C0/func_800382CC/func_80038390/func_800382AC. The target's real callees are alUnlink(s0), alCopy(arg1, s0+0xC, 0x10), alLink(s0) (not func_800382AC), and the list walk starts at (void**)((u8*)arg0+8). Renaming calls to these names, plus restructuring the loop (non-null-first, continue) and the if (s2==0) store, all scored worse (2265, 3525); the non-null-first variant fails because the target keeps the null test as the fall-through after the bnez. Next: start from the 1775 source, rename callees to alUnlink/alLink/alCopy, keep the original loop structure, and fix the s2 branch as beql s2,zero storing s1.",
   "by": "claude-haiku-5-5-22",
@@ -28016,14 +27864,6 @@
   "score_after": 4400
  },
  {
-  "function": "func_80026E64",
-  "text": "Freshly reverified plain startup C exactly matches gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O0. Submitted exact source/profile with suggest; auto compiler changes off, bundle awaits application. Effective -O1 still scores 1887; inherited artificial p/pad candidate 1510 is not a source fix. Apply pending function-only compiler bundle; no further C tuning warranted.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794767006.829227,
-  "score_before": 1510,
-  "score_after": 1510
- },
- {
   "function": "func_80214504",
   "text": "Range check #2: is this part of the game built by KMC GCC 2.7.2 -G0 -mips3 -mgp32 -mfp32 -O1? An agent's C for a function next to func_80214504 matches with it. Match func_80214504 as usual; then try_compiler(\"func_80214504\", \"gcc-2.7.2-kmc\", \"-G0 -mips3 -mgp32 -mfp32 -O1\"). Matching with KMC GCC 2.7.2 -G0 -mips3 -mgp32 -mfp32 -O1 and not with the project's compiler confirms the range; matching with the project's compiler only shows it was a quirk. Either answer helps.",
   "by": "autopilot",
@@ -28334,14 +28174,6 @@
   "created_at": 1794767768.733078,
   "score_before": 2770,
   "score_after": 2770
- },
- {
-  "function": "func_80026E64",
-  "text": "Already handled earlier in this same logical session: plain C exact at O0; fresh suggest checked exact and queued function-only bundle, auto compiler changes off. Queue returned function again after interruption without profile change. Do not repeat compiler trials or pad tuning; pending bundle is required next step.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794767769.174984,
-  "score_before": 1510,
-  "score_after": 1510
  },
  {
   "function": "func_80163E5C",
@@ -38655,5 +38487,246 @@
   "created_at": 1795726794.730753,
   "score_before": 3380,
   "score_after": 3380
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Deep permuter: score 1768 \u2192 1768; 0 improvements; 1000 candidates tested; 0 cached skips; 0 rejected; 7049s elapsed. Variant limit reached.",
+  "by": "Wwww.permuter-8589934755",
+  "created_at": 1794356829.8656151,
+  "score_before": 1768,
+  "score_after": 1768
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Score stuck at 1788 with the project profile (-G0 -mips3 -mgp32 -mfp32 -O2). Structure (calls, order, loop) is right; the gap is codegen shape:\n- TARGET uses a frame pointer: addiu $sp,$sp,-0x28; sw $ra,0x20; sw $fp,0x1c; sw $s0,0x18; move $fp,$sp; sw $a0,0x28($fp); epilogue move $sp,$fp + lw ra/fp/s0. The project flags omit the frame pointer, so the current C can never produce it.\n- TARGET also keeps the indirect callee in $s0 (lui $s0,%hi(D_800DA1E0); lw $s0,...; jalr $s0), i.e. it needs both the frame pointer AND a saved $s0.\n- TARGET contains dead/duplicated jump blocks (j .L80026F20 + nop immediately followed by j .L80026F48 + nop) and `j` over the if/else arm, i.e. un-threaded basic blocks typical of -O1, not -O2.\nMeasured with the same C: -O2 -fno-omit-frame-pointer = 2715, -O1 -fno-omit-frame-pointer = 1385 (best seen; frame 0x20 instead of 0x28 because jalr still uses $v0, not $s0), -O1/-O2 plain = 1788. search_flags found no better flag set for the project profile.\nLoop shape was tried as for(;;)/while(1)/do-while and if(!=NULL)/if(==NULL)continue, plus caching D_800DA1E0 in a local function pointer: all identical (1385 at O1-fno-omit-fp, 1788 at project flags). -fno-cross-jumping is not accepted by this cc1.\nLeft: find source that makes gcc-2.7.2 keep the callee in $s0 under -fno-omit-frame-pointer, and/or justify a per-range -O1 -fno-omit-frame-pointer profile for 0x80026E64 (see suggest/compiler_map).",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794706369.7115679,
+  "score_before": 1788,
+  "score_after": 1788
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Best candidate 1788 (71.6%, revision 8508de3096641e290f2d). The control flow and calls are right: D_800DA1E0=0; nuPiInit(); if (D_80000300==1) nuScCreateScheduler(2,1) else (0x1E,1); osViSetSpecialFeatures(0x5A); osCreateThread(D_8004AC60,3,func_80026250,0,D_80071F70,0xA); osStartThread(D_8004AC60); osSetThreadPri(D_8004AAB0,0); then for(;;) { if (D_800DA1E0) D_800DA1E0(); } with the if taken through jalr via $s0. Remaining diff is the frame: the target uses a frame pointer (`move $fp,$sp`, saves ra/fp/s0 at 0x20/0x1C/0x18, frame 0x28) and stores the a0 argument at 0x28($fp), i.e. the caller's arg home area. Ours uses a 0x20 frame with no fp. Likely cause: the arg's address is taken in a way that forces fp, or a variable-size local. Try a local that makes gcc keep the frame pointer, or check the varargs/K&R prototype idea from the proposal for a0 home area. Also the target's loop has dead `j` pairs, so the for(;;) shape may need a `break`-style exit that is never taken.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794720259.357481,
+  "score_before": 1788,
+  "score_after": 1788
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Best verified source-only score 1598 (rev 9244002d88044e42ee1f): D_800DA1E0 declared `void (*volatile)()` plus `for(;;){ while(D_800DA1E0==NULL){} D_800DA1E0(); }`. The volatile declaration is required: it makes the loop re-load the pointer for the call (target does lui/lw for the test, then a second lui/lw before jalr). Non-volatile gives one load and score 1788.\n\nRemaining structural gaps vs target (63 insns; ours 48):\n1. Frame: target addiu sp,-0x28 with sw ra,0x20 / sw fp,0x1c / sw s0,0x18 and arg0 stored at 0x28($fp). Ours is -0x20 and never saves s0. Target's call target lives in $s0 (callee-saved), i.e. gcc believed the loaded pointer must survive a call. With -fno-omit-frame-pointer the frame becomes -0x20 with fp but still no s0 (score 1195).\n2. Target loop head is two unconditional jumps: `j .L80026F20` then `j .L80026F48` (loop body / exit) at .L80026F10, body test at .L80026F20, backedge `j .L80026F10` at .L80026F40. That two-jump head is the distinctive shape to reproduce; every loop form tried (for(;;), while(1), do/while(1), goto, if/continue, if/else continue, while-null-then-call, local fp copy) produced a single head jump.\n3. nuScCreateScheduler branch: target tests `lw v0,D_80000300; addiu v1,zero,1; bne v0,v1,.L80026EB0; nop` then calls with a0=2 in the fall-through and a0=0x1E out of line; ours inverts operand order (bne v1,v0) and swaps the two arms. Try `if (D_80000300 != 1) { nuScCreateScheduler(0x1E,1); } else { nuScCreateScheduler(2,1); }` or a switch on D_80000300 with cases 1 and default.\n\nTried and rejected: -O2 (2715), -O1 -fno-omit-frame-pointer (1195/1385), -fno-strength-reduce, -fno-schedule-insns, -fno-delayed-branch, -mno-abicalls, -g/-g3 (search_flags: project flags already best at 1598). Also tried removing the `p=&arg0` dummy, `*p=arg0`, local fp copies, `(*D_800DA1E0)()`, self-assign after call, double null tests.\n\nNext: get the s0-saved frame and the two-jump loop head; then fix the scheduler branch arm order.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794725372.043947,
+  "score_before": 1788,
+  "score_after": 1598
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Best candidate: revision dfdbb6e54a57c6d8d49f, score 1510 (76.0%), 63-insn target vs 49 mine. Source: the nuPiInit / nuScCreateScheduler / osViSetSpecialFeatures / osCreateThread / osStartThread / osSetThreadPri sequence, then for(;;) { if (D_800DA1E0 != NULL) D_800DA1E0(); } with D_800DA1E0 as extern void (*volatile)(). The D_80000300 branch is right as written (2 in the == 1 arm, 0x1E in the else; swapping gives 1768). Local frame tweaks helped: `s32 pad[2];` next to `s32 *p; p = &arg0;` (1598 -> 1595), and `pad[0] = 0;` after `p = &arg0;` (1595 -> 1510). Remaining diffs: the target uses $fp as the frame base (move $fp,$sp twice; sw $a0,0x28($fp); sw $fp,0x1c($sp); lw $s0,0x18($sp)) and has three `j func_80026E64+0x58` tail jumps where mine branch to +0x90/+0xac, so the target has an extra copy of the loop tail. Next: try a second address-taken local (e.g. `p2 = &pad[1]`) to push GCC to an $fp frame, and look at the loop tail: target's beqz/j layout suggests the if-body is duplicated into the for(;;) tail. Did not try a local volatile.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794728991.900733,
+  "score_before": 1598,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Best 1510 (76%), candidate dfdbb6e54a57c6d8d49f: `void func_80026E64(s32 arg0)` with `s32 *p; s32 pad[2];`, `p=&arg0; pad[0]=0; D_800DA1E0=NULL; nuPiInit(); if (D_80000300==1) nuScCreateScheduler(2,1) else (0x1E,1); osViSetSpecialFeatures(0x5A); osCreateThread(&D_8004AC60,3,&func_80026250,0,&D_80071F70,0xA); osStartThread(&D_8004AC60); osSetThreadPri(&D_8004AAB0,0); for(;;) if (D_800DA1E0) D_800DA1E0();`. Target frame is 0x28 with ra, fp and s0 saved, `move $fp,$sp`, and arg0 spilled via $fp (`sw $a0,0x28($fp)`); ours uses $sp with no fp. Removing pad[2] (1598) gives frame 0x20 and is worse, so pad sets the frame size but not the fp choice. Open: what makes GCC 2.7.2 choose a frame pointer here (not found by the p=&arg0 change alone). Untried: a local array indexed at runtime, and the loop layout (target jumps to loop head around the call). Moving on.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794729995.4571211,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Not matched. Best 1510 (76%) from the s32 pad[2] + p=&arg0 draft (rev dfdbb6e54a57c6d8d49f). Target uses $fp (move $fp,$sp; arg0 stored at 0x28($fp); sw $fp at 0x1c) with frame 0x28, saves ra/fp/s0, and has three unconditional j's around the for(;;) head. Ours uses sp only. Adding an unused pointer to pad (q=&pad[0]) changed nothing. Next: find what makes GCC 2.7.2 select $fp here.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794731311.834924,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Best 1510 (76%, revision 12ead826b8df666f3e8d). Target: 0x28 frame with $fp base, saves $ra/$fp/$s0, stores $a0 at 0x28($fp); the loop loads D_800DA1E0 into $s0 for jalr. My C matches the call sequence and branch order (D_80000300==1 -> nuScCreateScheduler(2,1), else (0x1E,1)) but the frame is 0x20 off $sp with no $s0/$fp. Tried: no-pad (1697), &arg0 only (1598), &arg0 + pad[2] (1510), local fp copy in loop (1700, worse: loses the s0 reload). Untested: a local whose address forces a $fp frame, or a VLA/alloca-like local. Move-on budget reached.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794738453.25747,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Best 1510 (76.0%), revision dfdbb6e54a57c6d8d49f: nuPiInit; D_800DA1E0=NULL; nuScCreateScheduler(D_80000300==1 ? 2 : 0x1E, 1); osViSetSpecialFeatures(0x5A); osCreateThread(&D_8004AC60,3,func_80026250,0,&D_80071F70,0xA); osStartThread; osSetThreadPri(&D_8004AAB0,0); infinite loop calling D_800DA1E0 if non-NULL. Target is 63 insns vs 49 mine: it has a real frame (move $fp,$sp twice, sw $fp 0x1c, sw $s0 0x18, sw $a0 0x28($fp)), which suggests the local p=&arg0 / pad[] is not what produces it. Target's first call's stores use $fp-relative arg0 and it has 14 more deleted instructions in the scheduler branch (jal nuScCreateScheduler with a0=2 then a1=1 in a delay slot). Next: drop pad[] and p, use a single local so the frame matches 0x28/0x20, then re-diff.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794739699.358952,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Not matched. Best 1510 (76.0%): the saved draft with nuPiInit, the D_80000300 == 1 branch selecting nuScCreateScheduler(2,1) else (0x1E,1), osViSetSpecialFeatures(0x5A), osCreateThread(&D_8004AC60, 3, func_80026250, 0, &D_80071F70, 0xA), osStartThread, osSetThreadPri(&D_8004AAB0, 0), and an infinite loop calling D_800DA1E0 when non-NULL. Target differs in the frame: it saves $fp, sets `move $fp, $sp` and stores a0 at 0x28($fp), so it uses a frame pointer (typical of a variable-size frame or address-taken local in gcc 2.7), and our build uses $sp with no $fp. Also the target branch ordering: `bne $v0,$v1` for the D_80000300 test with the 2 and 0x1E arms in the other order (target loads the constant into $v0 then tests against 1 in $v1). Removing the `p = &arg0` local made it worse (1600). Untried: keep `s32 *p = &arg0` and make the pad array larger, or add an alloca-like local to force $fp, then re-check the arm order (swap the if/else bodies).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794752539.314739,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "EXACT -O0 diagnostic match, captured source/profile in function-only suggestion (automatic profile changes off). No p/pad locals; while(1) callback loop, all earlier calls unchanged. for(;;) at -O0 score410 (missing j/nop+j/nop), while(1) exact. Target fp and unused arg0 spill are -O0 convention. Apply saved bundle instead of further -O2 tuning.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794755342.998689,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Byte-exact at gcc-2.7.2-kmc -O0 (try_compiler verified); function-specific compiler suggestion filed with source. It cannot match at -O1/-O2 because of the fp frame and param spill. Source: void func_80026E64(void *arg){ D_800DA1E0=NULL; nuPiInit(); if (D_80000300==1) nuScCreateScheduler(2,1); else nuScCreateScheduler(0x1E,1); osViSetSpecialFeatures(0x5A); osCreateThread(D_8004AC60,3,func_80026250,NULL,D_80071F70,10); osStartThread(D_8004AC60); osSetThreadPri(D_8004AAB0,0); while(1){ if (D_800DA1E0!=NULL) (*D_800DA1E0)(); } } with u8[] externs and non-volatile fn ptr.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794756266.4325702,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Fresh exact O0 diagnostic recheck, captured in function-only suggest; auto compiler changes off. Current candidate559d7111e4b842873744 uses no locals, nonvolatile void(*)() global, u8[] thread/stack symbols, while(1) callback. O2 1887; O0 exact63instructions. Apply captured bundle; source tuning at O2 cannot yield fp frame/unused argument spill.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794756322.30624,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Confirmed exact target bytes in try_compiler at O0, source and compiler bundled with suggest and reverified. Default O1 cannot reproduce unoptimized retained argument store, fp prologue or unreachable jump sequence. No further C repair appropriate; needs pending profile suggestion applied, not dependency. Exact source uses no p/pad locals and while(1) callback loop.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794757420.6174269,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "I compiled the known -O0-exact source at the address-range profile (-O1): score 1887. Under -O1 the fp frame, the a0 spill and the dead jumps of the loop cannot be reproduced. A compiler-profile suggestion (-O0) is already filed by earlier agents; this needs the user to apply it, not more C tuning.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794757713.996044,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Cannot match at -O2 (target has $fp frame + spilled arg = -O0). MATCHES byte-for-byte at -O0 via try_compiler; suggest() filed with source (D_800DA1E0=0; nuPiInit(); if(D_80000300==1) nuScCreateScheduler(2,1) else (0x1E,1); osViSetSpecialFeatures(0x5A); osCreateThread(D_8004AC60,3,func_80026250,0,D_80071F70,10); osStartThread; osSetThreadPri(D_8004AAB0,0); while(1){ if(D_800DA1E0) D_800DA1E0(); }). Apply -O0 profile.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794758686.1940851,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Fresh normal O1 judge score1887; exact same plausible C byte-exact under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O0 (try_compiler). Function-only suggest bundle refiled and verified; automatic changes off. Source has no locals, nonvolatile callback ptr, u8[] thread/stack symbols, while(1) callback loop. Apply pending bundle; further O1 C tuning cannot yield unused arg spill/fp frame/dead jumps.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794763379.302293,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "SOLVED byte exact under -G0 -mips3 -mgp32 -mfp32 -O0. Trial 0174f1d16e834ab0ccff; suggest submitted and rechecked exact; automatic compiler changes disabled, bundle pending application. Removed unused p/pad; changed for(;;) to while(1) to generate two leading loop jumps. Do not tune -O1 or add fake padding. Exact source in compiler suggestion.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794764461.037109,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Confirmed current candidate plain C (no p/pad locals, nonvolatile callback, while(1)) is byte-exact under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O0. try_compiler with explicit source matches; suggest rechecked exact but automatic compiler changes off, bundle awaits application. Effective -O1 cannot match unoptimized prologue/argument spill/loop jumps. Do not tune source or artificial padding; apply function-specific compiler suggestion.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794765923.170403,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Freshly reverified plain startup C exactly matches gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O0. Submitted exact source/profile with suggest; auto compiler changes off, bundle awaits application. Effective -O1 still scores 1887; inherited artificial p/pad candidate 1510 is not a source fix. Apply pending function-only compiler bundle; no further C tuning warranted.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794767006.829227,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Already handled earlier in this same logical session: plain C exact at O0; fresh suggest checked exact and queued function-only bundle, auto compiler changes off. Queue returned function again after interruption without profile change. Do not repeat compiler trials or pad tuning; pending bundle is required next step.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794767769.174984,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Entry point: clears D_800DA1E0, nuPiInit, a scheduler (2 or 0x1E frames by D_80000300 == 1), osViSetSpecialFeatures(0x5A), osCreateThread(D_8004AC60, 3, func_80026250, 0, D_80071F70, 10), osStartThread, osSetThreadPri(D_8004AAB0, 0), then an endless loop calling D_800DA1E0 when set. Fresh C scores 2027 (saved 1510 not beaten); the loop and the thread-create stack argument are right, the remaining rows are the frame (fp) and the save of a0. Moving on.",
+  "by": "manual-2b1373017f1c4849",
+  "created_at": 1795709481.4934459,
+  "score_before": 2027,
+  "score_after": 2027,
+  "handoff_inputs": "7d6ab19fd43b588fb9bd67b9d84d10cd2a9748f024bfaf8e453c8df33558880f:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:ff9c4dd29de834ee8931ad4c1733c032f81e646c266261503311eba454da4a4b"
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Haiku pass (haiku-pr6): boot entry (nuPiInit, nuScCreateScheduler(2 or 0x1E, 1) on D_80000300 == 1, osViSetSpecialFeatures(0x5A), osCreateThread with the 0xA priority, osStartThread, osSetThreadPri, then a for(;;) loop that calls D_800DA1E0 when set). Target keeps a frame pointer ($fp = $sp, the arg0 store through $fp, $s0 and $fp saved): the address-taken arg0 with a fixed frame. Judge: 1735 at -O1 and -O2 for the m2c-shaped source. Not yet found: which local makes the compiler use $fp. The argument order of the scheduler call (2 vs 0x1E) and the compare sense are the other rows.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795710303.872684,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Boot entry; 1735; frame-pointer form not found. See note.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795710304.109788,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "haiku-pr19: clean rewrite of the boot routine (nuPiInit, scheduler by D_80000300, osViSetSpecialFeatures, osCreateThread/Start, SetThreadPri, then a volatile pointer loop) scores 1650 at -O1 and 3197 at -O2; saved -O2 best 1510 not beaten. The target keeps a frame pointer and stores arg0 at 0x28(fp) (address-taken parameter), and the scheduler arm order is the reverse of the natural if. Not matched; nothing submitted.",
+  "by": "manual-c91bfeceda8d49c6",
+  "created_at": 1795713773.15965,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Clean rewrite 3197 at -O2 (saved 1510); frame pointer and arm order left.",
+  "by": "manual-c91bfeceda8d49c6",
+  "created_at": 1795713774.117253,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Small-model attempt at func_80026E64: 12 tries.\n  best 1928 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 2133 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 2608 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3483 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3997 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries, no match. Best 1928 under gcc-2.7.2-kmc -O1 (own), vs saved near-miss 1510 (which needs volatile and a pad[] array, both refused). Target keeps a frame pointer ($fp) and saves $s0 with a 0x28 frame, with arg0 stored at 0x28($fp); every variant gave a 0x20 frame with no $fp. Loop pointer $s0 load/jalr not reproduced (CSE to $v0). Untried: an address-taken arg shape that forces fp frame, and the if/else layout with explicit j to join.",
+  "by": "manual-8bae1307a4d548ee",
+  "created_at": 1795725701.924618,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80026E64: 12 tries.\n  best 1928 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 2133 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 2608 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3483 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3997 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries, no match. Best 1928 under gcc-2.7.2-kmc -O1 (own), vs saved near-miss 1510 (which needs volatile and a pad[] array, both refused). Target keeps a frame pointer ($fp) and saves $s0 with a 0x28 frame, with arg0 stored at 0x28($fp); every variant gave a 0x20 frame with no $fp. Loop pointer $s0 load/jalr not reproduced (CSE to $v0). Untried: an address-taken arg shape that forces fp frame, and the if/else layout with explicit j to join.",
+  "by": "manual-8bae1307a4d548ee",
+  "created_at": 1795725704.156738,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "Small-model attempt at func_80026E64: 12 tries.\n  best 1928 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 2133 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 2608 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3483 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3997 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nfunc_80026E64 (penny-racers, 63 insns): best own score 1928 (saved near-miss 1510 used a pad[] array, refused). Target has a fp frame of 0x28 (sw a0 at fp+0x28, saves fp/s0/ra) and reloads D_800DA1E0 into s0 for jalr; no local, cast, or loop shape here produced that frame or the s0 reload. Tried: local fn ptr (folded), fn read before test, cast re-read, while loop, operand swaps, scheduler arm swap (worse), dropping &arg0 (worse), (*D)() call, block-scoped fn, if (D) test. Left: frame shape (fp use) is the gap.",
+  "by": "manual-8ca1ea1a76c94d53",
+  "created_at": 1795726669.317693,
+  "score_before": 1510,
+  "score_after": 1510
+ },
+ {
+  "function": "func_80026E64",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80026E64: 12 tries.\n  best 1928 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 2133 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 2608 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3483 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3997 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nfunc_80026E64 (penny-racers, 63 insns): best own score 1928 (saved near-miss 1510 used a pad[] array, refused). Target has a fp frame of 0x28 (sw a0 at fp+0x28, saves fp/s0/ra) and reloads D_800DA1E0 into s0 for jalr; no local, cast, or loop shape here produced that frame or the s0 reload. Tried: local fn ptr (folded), fn read before test, cast re-read, while loop, operand swaps, scheduler arm swap (worse), dropping &arg0 (worse), (*D)() call, block-scoped fn, if (D) test. Left: frame shape (fp use) is the gap.",
+  "by": "manual-8ca1ea1a76c94d53",
+  "created_at": 1795726671.5184882,
+  "score_before": 1510,
+  "score_after": 1510
  }
 ]
