@@ -36479,5 +36479,78 @@
   "created_at": 1795726606.678248,
   "score_before": 625,
   "score_after": 625
+ },
+ {
+  "function": "func_80221230",
+  "text": "Haiku pass (haiku-pr8). Fence-free clean C reaches 555 (lower is better; the saved best 145 uses do-while fences, banned for a match). Shape that works: u16 idx = arg1; if (idx >= 5) idx = 4; if (x < 10.0f) x = 10.0f; idx = idx * 6; record r = table(arg0+0x23C) + idx*4; read all six fields into locals first (t3=f4, t4=fc, t5=f14, t0=f0, t1=f8, t2=f10), then the three-range chain with res = t3/(t0-x) min t3, (t4-t3)/(t1-t0)*(x-t0)+t3, (t5-t4)/(t2-t1)*(x-t1)+t4, else t5. Left: float register allocation (x in $f6 not $f8 in the target, and the load order: 720 load-order and 720 declaration-order grids give 555 and 580). Not matched.",
+  "by": "manual-0994aa6d99844a10",
+  "created_at": 1795709776.366378,
+  "score_before": 145,
+  "score_after": 145
+ },
+ {
+  "function": "func_80221230",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Released after the fence-free search reached 555 (saved 145 is banned scaffolding). Left: float register allocation. See note.",
+  "by": "manual-0994aa6d99844a10",
+  "created_at": 1795709777.239438,
+  "score_before": 145,
+  "score_after": 145
+ },
+ {
+  "function": "func_80221230",
+  "text": "Haiku clean rewrite (session haiku-pr17), 8 judged candidates. Clean piecewise float function: /tmp/dd-haiku-pr17/work/f6/d2.c scores 625 at the app profile (gcc-2.7.2-kmc -O2 as the function has it); the saved best scores 145. Shape: index j = (u16) arg1 * 6 with arg1 clamped (if >= 5, 4), arg2 clamped to at least 10.0f, table pointer at +0x23C of arg0, six f32 fields at tab[j..j+5] (x0,x4,x8,xc,x10,x14); branch 1 (arg2 < x0): res = x4 / (x0 - arg2), min with x4; branch 2 (arg2 < x8): (xc - x4) / (x8 - x0) * (arg2 - x0) + x4; branch 3 (arg2 < x10): (x14 - xc) / (x10 - x8) * (arg2 - x8) + xc; else x14. Splitting the two quotient expressions into statements (d2) helped (745 -> 625). Remaining rows: register rows and the missing mov.s of the clamp (the target keeps the clamped 10.0f in the delay slot of the branch). Repair idea: split quotient-times-linear expressions into statements to match the target's fdiv/fmul/fadd order.",
+  "by": "manual-3be4557e41ac4704",
+  "created_at": 1795712744.108048,
+  "score_before": 145,
+  "score_after": 145
+ },
+ {
+  "function": "func_80221230",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Clean piecewise rewrite best 625 (saved best 145). Released after 8 judged candidates.",
+  "by": "manual-3be4557e41ac4704",
+  "created_at": 1795712747.981844,
+  "score_before": 145,
+  "score_after": 145
+ },
+ {
+  "function": "func_80221230",
+  "text": "Small-model attempt at func_80221230: 12 tries.\n  best 15 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 455 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 580 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 665 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1890 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nfunc_80221230 NOT matched after 12 tries. Best: score 15 under profile 1 (gcc-2.7.2-kmc -O1), 580 under own (saved own 145 is better there). Remaining diffs: the register choice for the offset and base (target puts the masked index in $v0 and the lw base in $v1, mine swaps them). Tried: base loaded before or after the mask, offset as pointer add, u16 offset, reusing arg2 as x (helped), separate index temp (helped). Best C (profile 1 = 15):\nf32 func_80221230(void *arg0, s32 arg1, f32 arg2) {\n    s32 idx;\n    s32 idx3;\n    s32 i;\n    s32 *base;\n    s32 off;\n    f32 *p;\n    f32 x0;\n    f32 y0;\n    f32 x1;\n    f32 y1;\n    f32 x2;\n    f32 y2;\n    f32 r;\n\n    idx = arg1;\n    if ((u16) idx >= 5) {\n        idx = 4;\n    }\n    if (arg2 < 10.0f) {\n        arg2 = 10.0f;\n    }\n    i = idx & 0xFFFF;\n    idx3 = i * 3;\n    idx = idx3 * 2;\n    off = (u16) idx;\n    base = *(s32 **) ((char *) arg0 + 0x23C);\n    p = (f32 *) (base + off);\n    y0 = p[1];\n    y1 = p[3];\n    y2 = p[5];\n    x0 = p[0];\n    x1 = p[2];\n    x2 = p[4];\n    if (arg2 < x0) {\n        r = y0 / (x0 - arg2);\n        if (y0 < r) {\n            r = y0;\n        }\n    } else if (arg2 < x1) {\n        r = (((y1 - y0) / (x1 - x0)) * (arg2 - x0)) + y0;\n    } else if (arg2 < x2) {\n        r = (((y2 - y1) / (x2 - x1)) * (arg2 - x1)) + y1;\n    } else {\n        r = y2;\n    }\n    return r;\n}",
+  "by": "manual-b46c60253aa64520",
+  "created_at": 1795716571.6813052,
+  "score_before": 145,
+  "score_after": 145,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:0b0c64f17f5f57bd6d06f1b563047dc41c1ad55939942735307dffe80b1f5567"
+ },
+ {
+  "function": "func_80221230",
+  "text": "Small-model attempt at func_80221230: 12 tries.\n  best 25 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 455 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 575 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 675 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1775 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 25 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 99817e76a2fcbb1b37d4 (not applied).\n12 tries, not matched. Best: profile gcc-2.7.2-kmc -O1 score 25 (saved own 145). Remaining diff is register choice: target keeps the loop index in $v1 and the struct pointer in $v0, mine puts the index in $a1 (the clamp variable). Tried: separate index temp, unsigned index, fresh clamp variable (worse), reordered loads, multiply-by-3, fewer temps (worse).",
+  "by": "manual-67d66c5a1dae4f57",
+  "created_at": 1795726111.631794,
+  "score_before": 145,
+  "score_after": 145
+ },
+ {
+  "function": "func_80221230",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80221230: 12 tries.\n  best 25 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 455 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 575 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 675 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1775 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 25 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 99817e76a2fcbb1b37d4 (not applied).\n12 tries, not matched. Best: profile gcc-2.7.2-kmc -O1 score 25 (saved own 145). Remaining diff is register choice: target keeps the loop index in $v1 and the struct pointer in $v0, mine puts the index in $a1 (the clamp variable). Tried: separate index temp, unsigned index, fresh clamp variable (worse), reordered loads, multiply-by-3, fewer temps (worse).",
+  "by": "manual-67d66c5a1dae4f57",
+  "created_at": 1795726111.722593,
+  "score_before": 145,
+  "score_after": 145
+ },
+ {
+  "function": "func_80221230",
+  "text": "Small-model attempt at func_80221230: 12 tries.\n  best 25 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 455 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 575 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 675 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1775 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nStart from the kept near-miss (25 under -O1). The only difference left is register choice: target keeps the index in $v1 and loads the base into $v1; ours reuses $a1 because var_a1 is dead after the mask. Tried 11 variants (separate index temp, mask repeated, u16 index, *3, temp for output, base in own var, decl reorder, >4U, 4U clamp): all 25 or worse (25 is the best). Not matched.",
+  "by": "manual-da33cb760587434a",
+  "created_at": 1795726966.660504,
+  "score_before": 145,
+  "score_after": 145
+ },
+ {
+  "function": "func_80221230",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80221230: 12 tries.\n  best 25 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 455 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 575 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 675 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1775 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nStart from the kept near-miss (25 under -O1). The only difference left is register choice: target keeps the index in $v1 and loads the base into $v1; ours reuses $a1 because var_a1 is dead after the mask. Tried 11 variants (separate index temp, mask repeated, u16 index, *3, temp for output, base in own var, decl reorder, >4U, 4U clamp): all 25 or worse (25 is the best). Not matched.",
+  "by": "manual-da33cb760587434a",
+  "created_at": 1795726967.7582982,
+  "score_before": 145,
+  "score_after": 145
  }
 ]
