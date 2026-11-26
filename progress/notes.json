@@ -6600,14 +6600,6 @@
   "score_after": 3400
  },
  {
-  "function": "nuContPakN64ToJis",
-  "text": "Best score 2310 (74.8%), revision a0f14a5c2646178a9227; saved best now 2310. Structure is right for the byte-mapping chain (0x1A/0x10/0x50/0x7C/0x75/0x70 ranges, DE/DF escape writes to a1 = arg1+1, a1 and t1 both advance). Remaining diffs are register allocation and table-loop shape: target keeps t1=dst, a1=escape pointer, hoists constants 0xDE/0xDF/0xF into t4/t6/t5 and has an 8-byte frame (addiu sp,-8) that I could not reproduce. Table lookup: key at D_80046DB1[2k], value at D_80046DB0[2k], terminated by key 0, not-found writes 0xF. The found-path tail (value store, then a1 += 1 without 0xF) is the part to match next. Tried: a clean do/while with array indexing (3340, worse); the m2c-style goto-based variant (2310).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794707983.227832,
-  "score_before": 2435,
-  "score_after": 2310
- },
- {
   "function": "func_800319F4",
   "text": "Best: revision 2a3fe01ef35d48bf72e5, score 160 (97.8%). Structure is right: do-while binary search over a 1-based table at entry->tbl (+0xC + 4*mid; record pointer at +4; record bytes [0]=k2 lo, [1]=k2 hi, [2]=k1 lo, [3]=k1 hi, unsigned). Entry = *(arg0+0x60) + (u8)arg3*16; hi = s16 at tbl+0xE; the func_800346B0 call happens when tbl==NULL before the hi>0 test; k1/k2 masked with &0xFF after the hi>0 check. The remaining ~8 differing instructions are in the miss-path compare chain: target does k1<rec[2], then rec[3]<k1 (shared lo=mid+1 tail), then k2<rec[0], then rec[1]<k2, and shares tail blocks. Tried, no better: nested if/else-if chain with the match test replaced (1895 and 2470), while-form loop with extra hi>0 test (830, 610), match-first && chain with swapped order (no effect), extern/record signedness (no effect). Untried: a goto-based layout reproducing the shared lo=mid+1 block, and compile_family(signedness) as suggested by the tool.",
   "by": "claude-haiku-5-5-21",
@@ -10112,14 +10104,6 @@
   "score_after": 0
  },
  {
-  "function": "nuContPakN64ToJis",
-  "text": "Not matched (best 3975, 56.7%, revision b9104236ffdc2741b995). Target: 8-byte frame (addiu sp,-8, no saves); 0xDE/0xDF/0xF constants kept in registers and hoisted before the loop; out=$t1=arg1, esc=$a1=arg1+1 set inside the arg2!=0 block. Class ranges: c-0x1A<0x1A -> +0x27; c-0x10<0xA -> +0x20; c-0x50<0x2C -> +0x61; c-0x7C<0xF -> out c+0x3A and esc 0xDE, both advanced; (c+0x75)&0xFF<5 -> c+0x3F, esc 0xDE; (c+0x70)&0xFF<5 -> c+0x3A, esc 0xDF. Else: scan D_80046DB1 with step 2 (keys at odd bytes, values at D_80046DB0+2k); found -> out=D_80046DB0[2k], not found -> 0xF; both paths advance esc once. Untried: s32 locals for the constants assigned before the loop; forcing the 8-byte frame. Masked-int compare variant (4175) was worse.\n\nNot matched. Best 3975 (56.7%) is in the earlier revision b9104236ffdc2741b995 (its C used `esc` set in the else-branch and `if (c == 0)` on u8 c), not the current 8444d70baa0f7fc96554 (4175). Target: 8-byte frame (addiu sp,-8, no saves); 0xDE/0xDF/0xF constants kept in registers and hoisted before the loop; out=$t1=arg1, esc=$a1=arg1+1 set inside the arg2!=0 block. Class ranges: c-0x1A<0x1A -> +0x27; c-0x10<0xA -> +0x20; c-0x50<0x2C -> +0x61; c-0x7C<0xF -> out c+0x3A and esc 0xDE, both advanced; (c+0x75)&0xFF<5 -> c+0x3F, esc 0xDE; (c+0x70)&0xFF<5 -> c+0x3A, esc 0xDF. Else: scan D_80046DB1 with step 2 (keys at odd bytes, values at D_80046DB0+2k); found -> out=D_80046DB0[2k], not found -> 0xF; both paths advance esc once. Untried: s32 locals for the constants assigned before the loop; forcing the 8-byte frame.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794721892.812313,
-  "score_before": 2310,
-  "score_after": 2310
- },
- {
   "function": "nuGfxTaskMgrInit",
   "text": "Best 770 (93.0%), saved as baseline. Target 110 insns, mine 109. The only remaining difference is the pre-loop setup. Target: `lui v0,%hi(D_800DAE98); addiu v0; addiu a0,v0,-8; move a1,v0` (loads the base once into v0, derives p into a0, copies q into a1 afterwards). Mine: `lui a1; addiu a1; addiu a0,a1,-8`, so q stays in a1 and the copy is absent, which shifts the `bnez v0` target from 0xd4 to 0xd0. Tried, all no better: (a) p computed before q -> 795; (b) p=(void**)((char*)D_800DAE98-8) -> 770; (c) loop-local `char *base = D_800DAE98;` used for both q and p -> 770, identical diff. Conclusion: the v0-then-move-to-a1 ordering is a register-allocation choice I could not steer from C source. Next idea if retried: the target's v0 is also the `bnez` test register, so try writing q as the value of a conditional or as a second read of D_800DAE98 after the p computation so gcc materializes it into v0 first.",
   "by": "claude-haiku-5-5-24",
@@ -12856,14 +12840,6 @@
   "score_after": 770
  },
  {
-  "function": "nuContPakN64ToJis",
-  "text": "Not matched; releasing now because this session's effort is spent and the remaining work is a multi-compile structural rewrite. Best 4570 (50.3%), revision 3e04cfa8aff8958fb37f. Semantics worked out from the asm (trust these over m2c): dst = arg1 (t1); dst2 = arg1+1 (a1); src = arg0; count = arg2 (u32). Per char c = src[i]: c==0 writes c; (u8)(c-0x1A)<0x1A -> c+0x27; (u8)(c-0x10)<0xA -> c+0x20; (u8)(c-0x50)<0x2C -> c+0x61; (u8)(c-0x7C)<0xF -> dst=c+0x3A, dst2=0xDE with an extra dst++ and dst2++; (u8)(c+0x75)<5 -> dst=c+0x3F, dst2=0xDE; (u8)(c+0x70)<5 -> dst=c+0x3A, dst2=0xDF; else if DB1[0]==0 write 0xF; else walk keys at D_80046DB1+2k until key==c or key==0 and write D_80046DB0[2k] or 0xF. Every iteration ends with dst++, dst2++, src++. The 4570 diff is structure and register roles: the target tests `andi a3,v1,0xff; bnez` with the raw byte in v1 used for the range compares, hoists 0xDE/0xDF/0xF into regs before the loop, and keeps the counter in t3. Next: write the range chain on the raw byte and a separate zero test on (c & 0xFF).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794732024.560158,
-  "score_before": 2310,
-  "score_after": 2310
- },
- {
   "function": "nuGfxTaskStart",
   "text": "Best verified 660 (90.9%), revision 1030b45cda5294aa6f1a (msg = D_8006A140 via void*; entry = arg2*8 + D_8006FF68; msg[0x0C/4] = (s32)&D_800DB1B0). Remaining diffs: the target loads the VALUE of D_800DB1B0 (lui v0 / lw v0) for the 0x0C store and reloads it after the flag branch, and the target loads D_80092C00 into v0 right before the second jal (lui/lw before `jal func_800339C0`) that the C does not reproduce. Replacing the 0x0C store with the value (730) made it worse. Also the entry[0]/entry[1] register order differs. Untried: D_800DB1B0 value read in both places with a local, and the second-call argument shape.",
   "by": "claude-haiku-5-5-20",
@@ -13136,14 +13112,6 @@
   "score_after": 1205
  },
  {
-  "function": "nuContPakN64ToJis",
-  "text": "First candidate scored 4570 (50.3%); not matched. Target starts with `move $t1,$a1` and `beqz $a2` (the loop guard comes first, with the dst2 pointer kept in $t1 and the index/count in $a1 incremented via addiu $a1,$a1,1 inside the loop), while the candidate computes addiu $t4,$a1,1 up front. Constants 0xDE/0xDF are materialised before the loop, and D_80046DB1 is loaded (lui/addiu) per branch rather than hoisted. Likely needs the loop written with explicit pointer walking (arg1 advanced by 2 for the 0x7C-range case) and the 0xDE/0xDF stores on dst2. Not attempted further in this claim.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794733347.403154,
-  "score_before": 2310,
-  "score_after": 2310
- },
- {
   "function": "func_8014A134",
   "text": "Best still 2010 (61.3%), no change. Tried this session with no effect on score: swapping k/i statement order; s32 -> u32 for k. Every variant keeps the first emitted op as andi $a0 (target: andi $a1 for arg1), plus an extra andi $v1 at the k product. Structural cause is unresolved. Untried: compile_family(signedness) per the tool's suggestion, or a version that computes the arg1 offset through a separate expression statement. Move-on budget exhausted.",
   "by": "claude-haiku-5-5-23",
@@ -13350,14 +13318,6 @@
   "created_at": 1794734814.5909069,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "nuContPakN64ToJis",
-  "text": "Best so far 3960 (56.9%), revision 7f02453c4c626a1e5b12. Improvements over the claimed draft: the do-while search (`kp+=2; off+=2; key=*kp;` with `if (key==c) break;` and `while (key != 0)`, then `if (key != 0) *dst = D_80046DB0[off]; else *dst = 0xF;`) beat the while-form (4570 -> 4125). Declaring `u8 *dst2;` with the `dst2 = arg1 + 1` init moved out (4125 -> 3960). Target keeps `dst = arg1` in t1 and a1 as the dst2 pointer (a1 incremented in place, `addiu a1,a1,1` x3); next: make dst2 the incremented arg register. Remaining diffs: bnez a3 vs t2 layout, `beqz $t1` extra check, branch targets. Not yet tried: arg1 itself as dst2 (arg1++ in place).\n\nReleasing: the remaining diffs are register allocation (dst/dst2 placement) and branch layout of the if-chain; three dst2 formulations (init, arg1++ in place, uninitialised) did not move the register choice in a correct source. Best correct version 4125 (090a344bca0920418873). Best overall 3960 is an invalid source (dst2 uninitialised, revision 7f02453c4c626a1e5b12); do not submit it. Next agent: try the if-chain with range tests written as explicit (u8) casts and c==0 test moved after the range tests.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794734714.222503,
-  "score_before": 2310,
-  "score_after": 2310
  },
  {
   "function": "func_80153D40",
@@ -22944,14 +22904,6 @@
   "score_after": 205
  },
  {
-  "function": "nuContPakN64ToJis",
-  "text": "N64ToJis (libultra ASCII->JIS). Baseline 2440, 92 insns both sides, 3/3 budget used without improvement.\n\nCurrent best source (revision 4b8121984b987e2a2277) already reproduces the whole branch chain, the table scan and the 0xDE/0xDF double-byte cases; all 57 differing rows are register/order noise that follows from two structural facts:\n\n1) Target prologue is `move $t1,$a1` then `addiu $a1,$a1,1`, i.e. the destination base is copied into t1 and $a1 itself is bumped by one at the top, and stores go through $t1. So the original almost certainly passed a pointer that was post-incremented in the source, e.g. `u8 *dst2 = dst++;` style \u2014 but GCC folded every spelling I tried (`dst2=dst+1`, `dst2=arg1+1`, `dst2=arg1; dst=dst2++`) into `addiu $t2,$a1,1` and left $a1 alone. Try instead declaring the parameter itself as the second pointer and doing `dst2 = arg1; arg1 += 1;` in the *statement* order that makes $a1 the live base (i.e. use arg1 as the primary dst and keep a separate `arg1 + 1` second pointer that GCC cannot fold). Note target never uses a t2 register at all.\n\n2) Target's table scan ends with `sll $v0,$t0,1; lui $at,%hi(D_80046DB1); addu $at,$at,$v0; lbu $v0,%lo(...)($at)` \u2014 a *recomputed* address from the entry counter t0, not the scan pointer. My source does exactly that (`D_80046DB1[n*2]`) and it matched shape, so keep it. The scan loop itself must keep the pointer in $v1 initialized as `lui/addiu` of D_80046DB1 (one addiu, not two) \u2014 my candidate emits an extra `lui $t6,%hi` + `addiu $t6,$t6,%lo` pair at the top because the `while (*kp != 0)` guard is hoisted; the target instead loads `lbu $v0,%lo(D_80046DB1)($v0)` via a lui-only base. Writing the guard as `if (D_80046DB1[0] == 0) { *dst = 0xF; } else { ... }` with the scan pointer then initialized inside the else (as in the previous saved candidate) reproduces the lui-only first load; combine that with fix (1).\n\nRemaining experiments are all in compile_family (signedness/declaration_order) and the pointer-spelling above.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794760049.578188,
-  "score_before": 2310,
-  "score_after": 2310
- },
- {
   "function": "func_8012A384",
   "text": "Not attempted to compile; the claim's candidate (cccdb2e6c59942644fdc) fails to compile: 'D_8012AB4C has an incomplete type' (Vec3 externs clash with the header types) and warnings on incompatible pointer assignments for the Group/Mesh pointer chain. Target is 386 insns, 1484 B. Structure: arg0 -> +0x50 -> +4 -> +4 gives Group** gp; outer loop over Group array until meshes==NULL; inner loop over Mesh (fields: n at +0, tris at +4, verts at +8, nverts at +0xC, base at +0xD); vertex loop writes D_8012AB98[base+v] with offsets from arg0+0x18/0x1C/0x20 added to the vertex; triangle loop compares three vertices and calls debug printf func_8003DE60 with strings D_8012AA48..D_8012AB20. The first lines of the target load D_8012AB64/AB4C/AB7C into s2/s1/s0. Next step: fix the declarations first (use the header's Vec3 if present, or give the globals a plain struct type), then compare against the assembly with the nested-loop shape.",
   "by": "claude-haiku-5-5-22",
@@ -26342,14 +26294,6 @@
   "created_at": 1794766113.042749,
   "score_before": 4330,
   "score_after": 4100
- },
- {
-  "function": "nuContPakN64ToJis",
-  "text": "Best 1990 (78.3%), not matched; best revision 81e18192e8b0088b9adf. Path: draft 4570 \u2192 2440 \u2192 'u8 *dst2 = arg1;' + 'dst2++' after the declarations (2245) \u2192 index-based DB1 loop (off/n, no kp pointer) (1990). Tried and worse: '*dst = D_80046DB0[n * 2]' (2550); using arg1 itself as the advancing pointer with dst as the store pointer (2185). Target: 'move t1,a1' is the first instruction (store pointer = copy of arg1), then 'addiu a1,a1,1' happens later, and the if-chain tail is one shared join at +0x14c; ours has the join at +0x15c, so the tail/prologue layout is off by 16 bytes. Remaining rows are mostly register allocation and branch targets. Next: find a source form where the store pointer (t1) is initialised by copying arg1 before any computation (perhaps 'u8 *dst = arg1;' declared as the first statement before 'src'), and test the loop tail as 'dst++; src++; dst2++;' in that order.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794766131.97238,
-  "score_before": 2310,
-  "score_after": 1990
  },
  {
   "function": "func_801FA4B0",
@@ -39374,5 +39318,61 @@
   "created_at": 1795715189.787124,
   "score_before": 1205,
   "score_after": 1205
+ },
+ {
+  "function": "nuContPakN64ToJis",
+  "text": "Best score 2310 (74.8%), revision a0f14a5c2646178a9227; saved best now 2310. Structure is right for the byte-mapping chain (0x1A/0x10/0x50/0x7C/0x75/0x70 ranges, DE/DF escape writes to a1 = arg1+1, a1 and t1 both advance). Remaining diffs are register allocation and table-loop shape: target keeps t1=dst, a1=escape pointer, hoists constants 0xDE/0xDF/0xF into t4/t6/t5 and has an 8-byte frame (addiu sp,-8) that I could not reproduce. Table lookup: key at D_80046DB1[2k], value at D_80046DB0[2k], terminated by key 0, not-found writes 0xF. The found-path tail (value store, then a1 += 1 without 0xF) is the part to match next. Tried: a clean do/while with array indexing (3340, worse); the m2c-style goto-based variant (2310).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794707983.227832,
+  "score_before": 2435,
+  "score_after": 2310
+ },
+ {
+  "function": "nuContPakN64ToJis",
+  "text": "Not matched (best 3975, 56.7%, revision b9104236ffdc2741b995). Target: 8-byte frame (addiu sp,-8, no saves); 0xDE/0xDF/0xF constants kept in registers and hoisted before the loop; out=$t1=arg1, esc=$a1=arg1+1 set inside the arg2!=0 block. Class ranges: c-0x1A<0x1A -> +0x27; c-0x10<0xA -> +0x20; c-0x50<0x2C -> +0x61; c-0x7C<0xF -> out c+0x3A and esc 0xDE, both advanced; (c+0x75)&0xFF<5 -> c+0x3F, esc 0xDE; (c+0x70)&0xFF<5 -> c+0x3A, esc 0xDF. Else: scan D_80046DB1 with step 2 (keys at odd bytes, values at D_80046DB0+2k); found -> out=D_80046DB0[2k], not found -> 0xF; both paths advance esc once. Untried: s32 locals for the constants assigned before the loop; forcing the 8-byte frame. Masked-int compare variant (4175) was worse.\n\nNot matched. Best 3975 (56.7%) is in the earlier revision b9104236ffdc2741b995 (its C used `esc` set in the else-branch and `if (c == 0)` on u8 c), not the current 8444d70baa0f7fc96554 (4175). Target: 8-byte frame (addiu sp,-8, no saves); 0xDE/0xDF/0xF constants kept in registers and hoisted before the loop; out=$t1=arg1, esc=$a1=arg1+1 set inside the arg2!=0 block. Class ranges: c-0x1A<0x1A -> +0x27; c-0x10<0xA -> +0x20; c-0x50<0x2C -> +0x61; c-0x7C<0xF -> out c+0x3A and esc 0xDE, both advanced; (c+0x75)&0xFF<5 -> c+0x3F, esc 0xDE; (c+0x70)&0xFF<5 -> c+0x3A, esc 0xDF. Else: scan D_80046DB1 with step 2 (keys at odd bytes, values at D_80046DB0+2k); found -> out=D_80046DB0[2k], not found -> 0xF; both paths advance esc once. Untried: s32 locals for the constants assigned before the loop; forcing the 8-byte frame.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794721892.812313,
+  "score_before": 2310,
+  "score_after": 2310
+ },
+ {
+  "function": "nuContPakN64ToJis",
+  "text": "Not matched; releasing now because this session's effort is spent and the remaining work is a multi-compile structural rewrite. Best 4570 (50.3%), revision 3e04cfa8aff8958fb37f. Semantics worked out from the asm (trust these over m2c): dst = arg1 (t1); dst2 = arg1+1 (a1); src = arg0; count = arg2 (u32). Per char c = src[i]: c==0 writes c; (u8)(c-0x1A)<0x1A -> c+0x27; (u8)(c-0x10)<0xA -> c+0x20; (u8)(c-0x50)<0x2C -> c+0x61; (u8)(c-0x7C)<0xF -> dst=c+0x3A, dst2=0xDE with an extra dst++ and dst2++; (u8)(c+0x75)<5 -> dst=c+0x3F, dst2=0xDE; (u8)(c+0x70)<5 -> dst=c+0x3A, dst2=0xDF; else if DB1[0]==0 write 0xF; else walk keys at D_80046DB1+2k until key==c or key==0 and write D_80046DB0[2k] or 0xF. Every iteration ends with dst++, dst2++, src++. The 4570 diff is structure and register roles: the target tests `andi a3,v1,0xff; bnez` with the raw byte in v1 used for the range compares, hoists 0xDE/0xDF/0xF into regs before the loop, and keeps the counter in t3. Next: write the range chain on the raw byte and a separate zero test on (c & 0xFF).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794732024.560158,
+  "score_before": 2310,
+  "score_after": 2310
+ },
+ {
+  "function": "nuContPakN64ToJis",
+  "text": "First candidate scored 4570 (50.3%); not matched. Target starts with `move $t1,$a1` and `beqz $a2` (the loop guard comes first, with the dst2 pointer kept in $t1 and the index/count in $a1 incremented via addiu $a1,$a1,1 inside the loop), while the candidate computes addiu $t4,$a1,1 up front. Constants 0xDE/0xDF are materialised before the loop, and D_80046DB1 is loaded (lui/addiu) per branch rather than hoisted. Likely needs the loop written with explicit pointer walking (arg1 advanced by 2 for the 0x7C-range case) and the 0xDE/0xDF stores on dst2. Not attempted further in this claim.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794733347.403154,
+  "score_before": 2310,
+  "score_after": 2310
+ },
+ {
+  "function": "nuContPakN64ToJis",
+  "text": "Best so far 3960 (56.9%), revision 7f02453c4c626a1e5b12. Improvements over the claimed draft: the do-while search (`kp+=2; off+=2; key=*kp;` with `if (key==c) break;` and `while (key != 0)`, then `if (key != 0) *dst = D_80046DB0[off]; else *dst = 0xF;`) beat the while-form (4570 -> 4125). Declaring `u8 *dst2;` with the `dst2 = arg1 + 1` init moved out (4125 -> 3960). Target keeps `dst = arg1` in t1 and a1 as the dst2 pointer (a1 incremented in place, `addiu a1,a1,1` x3); next: make dst2 the incremented arg register. Remaining diffs: bnez a3 vs t2 layout, `beqz $t1` extra check, branch targets. Not yet tried: arg1 itself as dst2 (arg1++ in place).\n\nReleasing: the remaining diffs are register allocation (dst/dst2 placement) and branch layout of the if-chain; three dst2 formulations (init, arg1++ in place, uninitialised) did not move the register choice in a correct source. Best correct version 4125 (090a344bca0920418873). Best overall 3960 is an invalid source (dst2 uninitialised, revision 7f02453c4c626a1e5b12); do not submit it. Next agent: try the if-chain with range tests written as explicit (u8) casts and c==0 test moved after the range tests.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794734714.222503,
+  "score_before": 2310,
+  "score_after": 2310
+ },
+ {
+  "function": "nuContPakN64ToJis",
+  "text": "N64ToJis (libultra ASCII->JIS). Baseline 2440, 92 insns both sides, 3/3 budget used without improvement.\n\nCurrent best source (revision 4b8121984b987e2a2277) already reproduces the whole branch chain, the table scan and the 0xDE/0xDF double-byte cases; all 57 differing rows are register/order noise that follows from two structural facts:\n\n1) Target prologue is `move $t1,$a1` then `addiu $a1,$a1,1`, i.e. the destination base is copied into t1 and $a1 itself is bumped by one at the top, and stores go through $t1. So the original almost certainly passed a pointer that was post-incremented in the source, e.g. `u8 *dst2 = dst++;` style \u2014 but GCC folded every spelling I tried (`dst2=dst+1`, `dst2=arg1+1`, `dst2=arg1; dst=dst2++`) into `addiu $t2,$a1,1` and left $a1 alone. Try instead declaring the parameter itself as the second pointer and doing `dst2 = arg1; arg1 += 1;` in the *statement* order that makes $a1 the live base (i.e. use arg1 as the primary dst and keep a separate `arg1 + 1` second pointer that GCC cannot fold). Note target never uses a t2 register at all.\n\n2) Target's table scan ends with `sll $v0,$t0,1; lui $at,%hi(D_80046DB1); addu $at,$at,$v0; lbu $v0,%lo(...)($at)` \u2014 a *recomputed* address from the entry counter t0, not the scan pointer. My source does exactly that (`D_80046DB1[n*2]`) and it matched shape, so keep it. The scan loop itself must keep the pointer in $v1 initialized as `lui/addiu` of D_80046DB1 (one addiu, not two) \u2014 my candidate emits an extra `lui $t6,%hi` + `addiu $t6,$t6,%lo` pair at the top because the `while (*kp != 0)` guard is hoisted; the target instead loads `lbu $v0,%lo(D_80046DB1)($v0)` via a lui-only base. Writing the guard as `if (D_80046DB1[0] == 0) { *dst = 0xF; } else { ... }` with the scan pointer then initialized inside the else (as in the previous saved candidate) reproduces the lui-only first load; combine that with fix (1).\n\nRemaining experiments are all in compile_family (signedness/declaration_order) and the pointer-spelling above.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794760049.578188,
+  "score_before": 2310,
+  "score_after": 2310
+ },
+ {
+  "function": "nuContPakN64ToJis",
+  "text": "Best 1990 (78.3%), not matched; best revision 81e18192e8b0088b9adf. Path: draft 4570 \u2192 2440 \u2192 'u8 *dst2 = arg1;' + 'dst2++' after the declarations (2245) \u2192 index-based DB1 loop (off/n, no kp pointer) (1990). Tried and worse: '*dst = D_80046DB0[n * 2]' (2550); using arg1 itself as the advancing pointer with dst as the store pointer (2185). Target: 'move t1,a1' is the first instruction (store pointer = copy of arg1), then 'addiu a1,a1,1' happens later, and the if-chain tail is one shared join at +0x14c; ours has the join at +0x15c, so the tail/prologue layout is off by 16 bytes. Remaining rows are mostly register allocation and branch targets. Next: find a source form where the store pointer (t1) is initialised by copying arg1 before any computation (perhaps 'u8 *dst = arg1;' declared as the first statement before 'src'), and test the loop tail as 'dst++; src++; dst2++;' in that order.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794766131.97238,
+  "score_before": 2310,
+  "score_after": 1990
  }
 ]
