@@ -7384,14 +7384,6 @@
   "score_after": 1520
  },
  {
-  "function": "func_80198B9C",
-  "text": "No match; best 4980 (revision 69ab6e525b0aa70c05cf, if-else chain on D_801C7469, loads inside each branch). Logic derived from the asm (s = D_801C7068 signed, a = D_801C6BB0[0], b = D_801C6BB0[1] (= D_801C6BB1), c = D_801C6BB9, t = s+1): if s >= 0x17 return 0; m==0: if a!=t r=1, else if b!=c r=(c != b-1); m==1: if (a==t || a-1==t) r=(b!=c) else r=1; m==2: if a!=t r=1, else if b!=c r=(c != b+1); m==3: if a!=t r=1 else r=(b!=c); m>3: r=0. Return r&0xFF. Target loads s once into a0 and tests `slti v0,a0,0x17` first; target checks m==0 with bnez, then m==1/2/3 with bne against constants set in delay slots. Loading a/b/c eagerly at the top (8515) is much worse; switch form with the same case bodies gave 5335 (jump-table-free but compare chain differs). Next: the if-else chain with `u8 m = D_801C7469` read once and the s local, to match the single lbu reused by bnez.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794709624.0502012,
-  "score_before": 5325,
-  "score_after": 4980
- },
- {
   "function": "func_80215480",
   "text": "Function: per-entry update of two f32 arrays (stride 0x64) at D_8011F320/F324, adding D_8011F308/F30C, then zeroing an entry when its value is outside the f64 range checks D_8021DE90/DE98 (F320) and D_8021DEA0/DEA8 (F324). Target shape: index t = i*0x64 (computed as ((i*2+i)*8+i)*4, one shift/add chain in v0, i kept in v1 via andi), each access is lui/addu/%lo folded into lwc1/swc1. Tried: (a) `s32 t=i*0x64` with `+=` on both arrays: 4725 (the candidate that folds %lo correctly, but ordering differs). (b) per-access `i*0x64` without a temp: 6865 (no %lo folding). (c) temps a,b for the loads: 4675, GCC reorders the loads anyway. Best saved remains 2525. Unresolved: the target loads F320, F308, adds, stores F320 before touching F324; GCC schedules the second array's load earlier, and i stays in a0 rather than v1. Next idea: keep the `t` form and try the store/load ordering with the stores split into separate statements after both loads. Did not reach a match.",
   "by": "claude-haiku-5-5-20",
@@ -11360,14 +11352,6 @@
   "score_after": 10
  },
  {
-  "function": "func_80198B9C",
-  "text": "Best 3860 (47.8%), revision 4e40c4e572ad9157cf96, not matched. Same four-arm predicate as func_80198A90 (see its note), with the roles swapped: range var a = D_801C7068 (slti 0x17), table bytes D_801C6BB0[0]/[1], other var D_801C6BB9, selector t = D_801C7469 (lbu). Arms: t==0: b0!=a+1 -> 1; else (b1!=BB9 && BB9!=b1-1) -> 1. t==1: b0==a+1 ? (b1!=BB9) : (b0-1!=a+1). t==2: b0!=a+1 -> 1; else (b1!=BB9 && BB9!=b1+1) -> 1. t==3: (b0!=a+1 || b1!=BB9). Other t and a>=0x17 give 0. Using a local pointer (s8 *p = D_801C6BB0) gave the 3860 gain; plain globals gave 3900. Remaining diff: the target re-reads D_801C7068 and the table in every arm (about 74 insns vs 61 here), so the layout of the per-arm tails and the forward branch to the epilogue (0x120 vs 0xec) differs. Next: write each arm's tail as separate statements with its own re-read of D_801C7068, so GCC cannot merge the a+1 compares.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794724587.5579169,
-  "score_before": 4980,
-  "score_after": 3860
- },
- {
   "function": "func_8019862C",
   "text": "Saved best is 2050 from an earlier attempt; my rewrite this claim scored 7085 (13.5%), so do not start from it. Verified logic from the asm (use it to write a new candidate): N=D_801C6BB9 (s8), P=D_801C7068 (s8), mode=D_801C7469 (u8), A=D_801C7062[0], B=D_801C7062[1], cell=*(u16*)(D_801C6BE2 + (N*24+P)*2), gate = (P < 0x17 signed) && cell == 0xFFFF; then if D_801C7AB0->byte1 (lbu at 1 from the pointer loaded from D_801C7AB0) != 5 -> flag 1; else: if A==P { if B==N+1 || B==N-1 -> flag = (mode==1 || mode==3) else flag 1 } else if A==P+1 { if B==N -> flag = (mode==3) else flag 1 } else if A==P-1 { if B!=N -> flag 1 else flag = (mode==0 || mode==2) } else flag 1. Return flag & 0xFF. The target loads P first (lui a1,%hi(D_801C7068)) and keeps it in a1 across the whole function; N is loaded later (a0). My rewrite got the logic right in outline but the register/branch order differs (I loaded N first into a3 and the cell index in v0), giving 93 differing rows. Next: write the gate with P loaded first and the cell address computed as (N*3*8+P)*2 with N in a0, and use the same bnel/beq shapes as the target (the target uses bnel/bne with the \"addiu a2,zero,1\" in the delay slot, so write a2=1 as the last statement of each branch). Untried: compile_family signedness.",
   "by": "claude-haiku-5-5-20",
@@ -15184,14 +15168,6 @@
   "score_after": 1585
  },
  {
-  "function": "func_80198B9C",
-  "text": "Best 3860 (47.8%, the first candidate, revision 4e40c4e572ad9157cf96). Two variants tried: pointer p=D_801C6BB0 (3860), direct D_801C6BB0[i] indexing (3900, worse). Target is 74 insns vs my 61: its branch targets are ~0x120 vs my 0xec, so the target emits extra code per branch. The target re-reads D_801C7068 and D_801C6BB0 separately in each arm (lui %hi(D_801C7068) x6, lb x5), and sets the result via a2/a1 with an explicit 'addiu v1,a0,1' per comparison, which suggests the arms are written as separate early returns (return 1 / return 0 per case) rather than a shared a2 flag. Next: rewrite the four arms as separate returns (return 1 in each failing test, return 0 at the end) and let the compiler duplicate the tail; check the remaining branch offsets before register tuning.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794736869.026145,
-  "score_before": 3860,
-  "score_after": 3860
- },
- {
   "function": "func_8013B704",
   "text": "Best this session: revision f8152f9a5920fb55a774, score 3350 (66.5%). Saved best 1720 is historical and not restored. Still differs in two ways. (1) The target copies the raw u16 arg into $t0 (`move $t0,$a1`) and re-derives `andi $v1,$t0,0xffff` at entry and after the first if-block; every variant tried (u16 arg1, s32 arg1 with (u16) casts, local idx) emits `andi` from $a1 and never the move. (2) The switch is now an if/else chain on v = lhu(D_8011F32E + idx*0x64) - 0xB, which fixed control flow, but the target's index math is ordered differently (idx*0x64 computed into $v1 then $at-based lui/addu for D_8011F32E), so registers and order remain. Untried: forcing idx to live in a separate local that is read after the if-block; hoisting the D_8018A264 base into a pointer local. Budget at 3/6 without improvement for the next variant.",
   "by": "claude-haiku-5-5-20",
@@ -15750,14 +15726,6 @@
   "created_at": 1794739107.5058932,
   "score_before": 9,
   "score_after": 9
- },
- {
-  "function": "func_80198B9C",
-  "text": "Best 3860 (47.8%), not matched. Target is 74 insns: entry loads D_801C7068 (lb), slti 0x17, beqz to end; then lbu D_801C7469 and a 4-way mode dispatch. The target re-loads D_801C7068 and D_801C6BB0/D_801C6BB9 separately in each mode arm (lui+lb each time), with the mode-0 arm reusing the first-loaded a0 for addiu v0,a0,1. Rewriting each arm to read globals directly (no local p) gave 3900, worse. Mine currently uses a shared local pointer p and produces 61 insns. Unexplored: a0-caching shape matching the mode-0 arm, and an order that loads BB0[1] before BB0[0] in mode 1/3.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794739115.184177,
-  "score_before": 3860,
-  "score_after": 3860
  },
  {
   "function": "func_80198CC4",
@@ -21830,14 +21798,6 @@
   "created_at": 1794755515.890681,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_80198B9C",
-  "text": "Best 3860 (47.8%) is the pointer version (p = D_801C6BB0; p[0], p[1] vs D_801C7068+1 and D_801C6BB9, switch on D_801C7469 0..3). Target reloads D_801C7068 in each block after the top-of-function load (block 0 reuses $a0), uses a $a1 pointer to D_801C6BB0 in block 0 and absolute lui/lb for D_801C6BB0 in blocks 1 and 3. Tried direct global reads per block, no pointer: worse, 3970 (46.3%), with extra load/compare insns. Untried next: restructure so each block starts with a fresh read of D_801C7068 (separate statements per case) and check the compare order of block 0's p[1] test against the beq/bnel shape. Stopped at 2/6 no-improvement: the remaining difference is the block structure, not registers, and two structural variants already lost ground.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794755516.199487,
-  "score_before": 3860,
-  "score_after": 3860
  },
  {
   "function": "func_8003E83C",
@@ -28408,14 +28368,6 @@
   "score_after": 1520
  },
  {
-  "function": "func_80198B9C",
-  "text": "Best: revision 4e40c4e572ad9157cf96, score 3860 (47.8%); source as submitted (switch-like if chain on D_801C7469 with p=D_801C6BB0 and the D_801C7068 < 0x17 guard). Target is 74 insns vs 61 for ours, and the difference is structural: the target reloads D_801C7068 (lui/lb/slti) at the top and again in each branch arm, and its branches jump to a shared exit at +0x120 instead of +0xec. Also the target loads D_801C7469 into v0 and uses bnez first, and loads D_801C6BB0 into a1 not a0. Tried: `return a2;` (no `& 0xFF`), `<= 0x16` guard, and a2 declared then assigned: all 3860 (no effect). Untried: write each arm as an independent condition with its own D_801C7068 read (no shared p), and a version with an early return 0 for D_801C7068 >= 0x17 at the top.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794765109.200118,
-  "score_before": 3860,
-  "score_after": 3860
- },
- {
   "function": "func_80198858",
   "text": "Not matched; releasing now on the stated reason. Best is the saved 2380 (revision 9c702fa4b7c6797e203c), whose C logic matches the target's branches (decoded in the previous release note). Three further codegen-shape variants (global-direct, pointer p[], n-1 reloads) gave 2380, 2380 and 2880. The remaining 10-instruction gap is the target's reloads of D_801C6BB9 and its separate array-base lui/addiu, which these source forms did not reproduce; the next agent should test explicit per-branch reloads (e.g. compare p[1] against D_801C6BB9 - 1 written fresh in each branch, and a separate array-base expression) or a switch on D_801C7469 with the case-0 path reading n into a register first.",
   "by": "claude-haiku-5-5-20",
@@ -29550,14 +29502,6 @@
   "created_at": 1794767110.2198,
   "score_before": 2565,
   "score_after": 2565
- },
- {
-  "function": "func_80198B9C",
-  "text": "Not matched. Best 3860 (47.8%) at revision 450620126234b5845c86 (cached-local form with p = D_801C6BB0). Re-reading the globals each time (direct D_801C6BB0[i] indexing) scores 3900, slightly worse. Target is 74 insns vs ours 61: target reloads D_801C7068 and D_801C6BB0 per check (6 lui for D_801C7068), uses the mode flag D_801C7469 in a lbu/bnez chain, and jumps past the whole block with beqz at +0x120. The mode dispatch is probably a switch or an if-chain with different nesting than ours; the 0x17 range test is the first branch. Next: try a switch(D_801C7469) with a separate early-return per case, and keep the `D_801C7068 < 0x17` test outside as the first branch.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794767130.8830578,
-  "score_before": 3860,
-  "score_after": 3860
  },
  {
   "function": "func_80198CC4",
@@ -36620,5 +36564,128 @@
   "created_at": 1795726895.2491488,
   "score_before": 3660,
   "score_after": 3660
+ },
+ {
+  "function": "func_80198B9C",
+  "text": "No match; best 4980 (revision 69ab6e525b0aa70c05cf, if-else chain on D_801C7469, loads inside each branch). Logic derived from the asm (s = D_801C7068 signed, a = D_801C6BB0[0], b = D_801C6BB0[1] (= D_801C6BB1), c = D_801C6BB9, t = s+1): if s >= 0x17 return 0; m==0: if a!=t r=1, else if b!=c r=(c != b-1); m==1: if (a==t || a-1==t) r=(b!=c) else r=1; m==2: if a!=t r=1, else if b!=c r=(c != b+1); m==3: if a!=t r=1 else r=(b!=c); m>3: r=0. Return r&0xFF. Target loads s once into a0 and tests `slti v0,a0,0x17` first; target checks m==0 with bnez, then m==1/2/3 with bne against constants set in delay slots. Loading a/b/c eagerly at the top (8515) is much worse; switch form with the same case bodies gave 5335 (jump-table-free but compare chain differs). Next: the if-else chain with `u8 m = D_801C7469` read once and the s local, to match the single lbu reused by bnez.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794709624.0502012,
+  "score_before": 5325,
+  "score_after": 4980
+ },
+ {
+  "function": "func_80198B9C",
+  "text": "Best 3860 (47.8%), revision 4e40c4e572ad9157cf96, not matched. Same four-arm predicate as func_80198A90 (see its note), with the roles swapped: range var a = D_801C7068 (slti 0x17), table bytes D_801C6BB0[0]/[1], other var D_801C6BB9, selector t = D_801C7469 (lbu). Arms: t==0: b0!=a+1 -> 1; else (b1!=BB9 && BB9!=b1-1) -> 1. t==1: b0==a+1 ? (b1!=BB9) : (b0-1!=a+1). t==2: b0!=a+1 -> 1; else (b1!=BB9 && BB9!=b1+1) -> 1. t==3: (b0!=a+1 || b1!=BB9). Other t and a>=0x17 give 0. Using a local pointer (s8 *p = D_801C6BB0) gave the 3860 gain; plain globals gave 3900. Remaining diff: the target re-reads D_801C7068 and the table in every arm (about 74 insns vs 61 here), so the layout of the per-arm tails and the forward branch to the epilogue (0x120 vs 0xec) differs. Next: write each arm's tail as separate statements with its own re-read of D_801C7068, so GCC cannot merge the a+1 compares.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794724587.5579169,
+  "score_before": 4980,
+  "score_after": 3860
+ },
+ {
+  "function": "func_80198B9C",
+  "text": "Best 3860 (47.8%, the first candidate, revision 4e40c4e572ad9157cf96). Two variants tried: pointer p=D_801C6BB0 (3860), direct D_801C6BB0[i] indexing (3900, worse). Target is 74 insns vs my 61: its branch targets are ~0x120 vs my 0xec, so the target emits extra code per branch. The target re-reads D_801C7068 and D_801C6BB0 separately in each arm (lui %hi(D_801C7068) x6, lb x5), and sets the result via a2/a1 with an explicit 'addiu v1,a0,1' per comparison, which suggests the arms are written as separate early returns (return 1 / return 0 per case) rather than a shared a2 flag. Next: rewrite the four arms as separate returns (return 1 in each failing test, return 0 at the end) and let the compiler duplicate the tail; check the remaining branch offsets before register tuning.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794736869.026145,
+  "score_before": 3860,
+  "score_after": 3860
+ },
+ {
+  "function": "func_80198B9C",
+  "text": "Best 3860 (47.8%), not matched. Target is 74 insns: entry loads D_801C7068 (lb), slti 0x17, beqz to end; then lbu D_801C7469 and a 4-way mode dispatch. The target re-loads D_801C7068 and D_801C6BB0/D_801C6BB9 separately in each mode arm (lui+lb each time), with the mode-0 arm reusing the first-loaded a0 for addiu v0,a0,1. Rewriting each arm to read globals directly (no local p) gave 3900, worse. Mine currently uses a shared local pointer p and produces 61 insns. Unexplored: a0-caching shape matching the mode-0 arm, and an order that loads BB0[1] before BB0[0] in mode 1/3.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794739115.184177,
+  "score_before": 3860,
+  "score_after": 3860
+ },
+ {
+  "function": "func_80198B9C",
+  "text": "Best 3860 (47.8%) is the pointer version (p = D_801C6BB0; p[0], p[1] vs D_801C7068+1 and D_801C6BB9, switch on D_801C7469 0..3). Target reloads D_801C7068 in each block after the top-of-function load (block 0 reuses $a0), uses a $a1 pointer to D_801C6BB0 in block 0 and absolute lui/lb for D_801C6BB0 in blocks 1 and 3. Tried direct global reads per block, no pointer: worse, 3970 (46.3%), with extra load/compare insns. Untried next: restructure so each block starts with a fresh read of D_801C7068 (separate statements per case) and check the compare order of block 0's p[1] test against the beq/bnel shape. Stopped at 2/6 no-improvement: the remaining difference is the block structure, not registers, and two structural variants already lost ground.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794755516.199487,
+  "score_before": 3860,
+  "score_after": 3860
+ },
+ {
+  "function": "func_80198B9C",
+  "text": "Best: revision 4e40c4e572ad9157cf96, score 3860 (47.8%); source as submitted (switch-like if chain on D_801C7469 with p=D_801C6BB0 and the D_801C7068 < 0x17 guard). Target is 74 insns vs 61 for ours, and the difference is structural: the target reloads D_801C7068 (lui/lb/slti) at the top and again in each branch arm, and its branches jump to a shared exit at +0x120 instead of +0xec. Also the target loads D_801C7469 into v0 and uses bnez first, and loads D_801C6BB0 into a1 not a0. Tried: `return a2;` (no `& 0xFF`), `<= 0x16` guard, and a2 declared then assigned: all 3860 (no effect). Untried: write each arm as an independent condition with its own D_801C7068 read (no shared p), and a version with an early return 0 for D_801C7068 >= 0x17 at the top.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794765109.200118,
+  "score_before": 3860,
+  "score_after": 3860
+ },
+ {
+  "function": "func_80198B9C",
+  "text": "Not matched. Best 3860 (47.8%) at revision 450620126234b5845c86 (cached-local form with p = D_801C6BB0). Re-reading the globals each time (direct D_801C6BB0[i] indexing) scores 3900, slightly worse. Target is 74 insns vs ours 61: target reloads D_801C7068 and D_801C6BB0 per check (6 lui for D_801C7068), uses the mode flag D_801C7469 in a lbu/bnez chain, and jumps past the whole block with beqz at +0x120. The mode dispatch is probably a switch or an if-chain with different nesting than ours; the 0x17 range test is the first branch. Next: try a switch(D_801C7469) with a separate early-return per case, and keep the `D_801C7068 < 0x17` test outside as the first branch.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794767130.8830578,
+  "score_before": 3860,
+  "score_after": 3860
+ },
+ {
+  "function": "func_80198B9C",
+  "text": "Same family as func_80198A90 with the roles swapped: gate D_801C7068 < 0x17, B = D_801C6BB0, the case on D_801C7469 (0..3) tests B[0] against gate+1 (and gate+1 +- 1 for m=1) and B[1] against D_801C6BB9 (+1 for m=2, -1 for m=0). Fresh C scores 6065; the saved best 2010 is not beaten. The case mapping was taken straight from the asm but the score says a branch is still wrong. Moving on.",
+  "by": "manual-2b1373017f1c4849",
+  "created_at": 1795709273.4933708,
+  "score_before": 6065,
+  "score_after": 6065,
+  "handoff_inputs": "b688799aaa7dd2dc2b93efaa45ddc8b053d8e914a257ee388a65e82d5951fbfe:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:68017d33b9be5a8b2fe8fe938bd5ae54bccc999aa5a675f71b13063ef2c8cf31"
+ },
+ {
+  "function": "func_80198B9C",
+  "text": "Haiku pass (haiku-pr6): a phase check on D_801C7068 (s8, < 0x17) and D_801C7469 (u8 mode 0..3) that reads D_801C6BB0[0], [1] (s8) against D_801C7068+1 and D_801C6BB9; each mode branches with its own compare (mode 1 treats p0-1 == D+1 as the p0 == D+1 path; modes 2 and 3 read p1+1 or not). Best: -O1 2585 (direct-index form, app -O2 score in the setup line above). Tried: a shared pointer p (3265 at -O1, the blocks reorder). Next: each block must keep the D_801C7469 load in its own order and the byte compare as lb/bnel pairs.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795710206.449814,
+  "score_before": 6065,
+  "score_after": 2625,
+  "handoff_inputs": "b688799aaa7dd2dc2b93efaa45ddc8b053d8e914a257ee388a65e82d5951fbfe:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:68017d33b9be5a8b2fe8fe938bd5ae54bccc999aa5a675f71b13063ef2c8cf31"
+ },
+ {
+  "function": "func_80198B9C",
+  "text": "Phase check rewritten from the assembly; -O1 2585, rows are block order and register. See note.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795710208.054713,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "b688799aaa7dd2dc2b93efaa45ddc8b053d8e914a257ee388a65e82d5951fbfe:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:68017d33b9be5a8b2fe8fe938bd5ae54bccc999aa5a675f71b13063ef2c8cf31"
+ },
+ {
+  "function": "func_80198B9C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr22: a branch-chain predicate over four globals; clean C with an accumulator and gotos: -O2 3355 (saved 2010). The target keeps the accumulator in a2 with the lbu of D_801C7469 reloaded in each arm; not exact in 3 tries.",
+  "by": "manual-4ca4d81790724b45",
+  "created_at": 1795714606.849304,
+  "score_before": 2010,
+  "score_after": 2010
+ },
+ {
+  "function": "func_80198B9C",
+  "text": "Small-model attempt at func_80198B9C: 12 tries.\n  best 505 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 505 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 690 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2625 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3305 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 505 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 67eb847bad8adf4589e6 (not applied).\n12 tries, not matched. Best 505 under gcc-2.7.2-kmc -O1 (try 9/10): global-read version of case 0 is not needed. Remaining differences: a0/a1 register swap for the phase value and the table pointer, and case 2 reloads D_801C6BB0[0] into a0 before D_801C7068 in the target. Direct reads in case 2 gave 1010, pointer reads gave 955.",
+  "by": "manual-bbe0e0bf851f4482",
+  "created_at": 1795725740.20838,
+  "score_before": 2010,
+  "score_after": 2010
+ },
+ {
+  "function": "func_80198B9C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80198B9C: 12 tries.\n  best 505 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 505 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 690 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2625 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3305 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 505 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 67eb847bad8adf4589e6 (not applied).\n12 tries, not matched. Best 505 under gcc-2.7.2-kmc -O1 (try 9/10): global-read version of case 0 is not needed. Remaining differences: a0/a1 register swap for the phase value and the table pointer, and case 2 reloads D_801C6BB0[0] into a0 before D_801C7068 in the target. Direct reads in case 2 gave 1010, pointer reads gave 955.",
+  "by": "manual-bbe0e0bf851f4482",
+  "created_at": 1795725740.415637,
+  "score_before": 2010,
+  "score_after": 2010
+ },
+ {
+  "function": "func_80198B9C",
+  "text": "Small-model attempt at func_80198B9C: 13 tries.\n  best 55 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 215 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 275 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2580 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3240 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 55 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 608cda24209dc38d4d62 (not applied).\nClean rewrite from the near-miss logic, with case 1 reading D_801C6BB1 (not p[1]) and direct array reads for p[0], block-scoped pointers in cases 0/2/3, no cur local. Best 55 under -O1 profile: only regalloc left (target keeps the flag in a2 and the case-0 pointer in a1; ours swapped). Tried: flag initialiser, pointer at function top, operand swap (worse 270), address-of pointer, return mask. Not matched.",
+  "by": "manual-486728dd8a10462b",
+  "created_at": 1795726773.7976131,
+  "score_before": 2010,
+  "score_after": 2010
+ },
+ {
+  "function": "func_80198B9C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80198B9C: 13 tries.\n  best 55 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 215 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 275 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2580 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3240 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 55 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 608cda24209dc38d4d62 (not applied).\nClean rewrite from the near-miss logic, with case 1 reading D_801C6BB1 (not p[1]) and direct array reads for p[0], block-scoped pointers in cases 0/2/3, no cur local. Best 55 under -O1 profile: only regalloc left (target keeps the flag in a2 and the case-0 pointer in a1; ours swapped). Tried: flag initialiser, pointer at function top, operand swap (worse 270), address-of pointer, return mask. Not matched.",
+  "by": "manual-486728dd8a10462b",
+  "created_at": 1795726774.848971,
+  "score_before": 2010,
+  "score_after": 2010
  }
 ]
