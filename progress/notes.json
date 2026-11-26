@@ -7208,14 +7208,6 @@
   "score_after": 649
  },
  {
-  "function": "func_80230EFC",
-  "text": "Not attempted beyond an empty stub (score 13705). The machine draft fails because the `jr` at func_80230EFC.s line 35 jumps through a table. Two 16-entry jump tables are used: D_80232E38 (indexed by byte at 0x879(s1)-1, if-chain on 0x53A(s1)) and D_80232E78 (indexed by lhu 0x53A(s1)-1). Both use sll 2 with a 0..14 bound check (sltiu 0xF). Structure from the asm: the function has a 0x58 frame, saves $ra/$s0-$s2, does a few gating checks (slti 4, lhu 0x53A, lbu 0x879) then picks a case per table and sets $s0 to 0, 1 or 4 before jumping to .L80230FC0. Next: read the two jump table words (read_data at D_80232E38/D_80232E78) to get the case targets, then write a switch with those 16 cases.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794710551.481326,
-  "score_before": 13705,
-  "score_after": 13705
- },
- {
   "function": "func_8015FEC0",
   "text": "Best current candidate is revision 661b568a9fda987224e7 at 3148 (82.4%). Saved best 2664 is still lower, so restore saved_best if you want its source. Kept findings: (1) the loop constant is 0.05f (0x3D4CCCCD), held in $fs0 and stored to the three f32 stack args of the second call; (2) D_8018D6D6 is a u8 array (target uses sb), so store with *(u8*); (3) the second func_800DE41C call needs f32 for its last three args, done via a cast typedef Fn18 so the first call's prototype stays; (4) the first block keeps the raw func_8013E364 result in s0 and the masked value in s2, with s0 masked after the first call. Remaining diffs: the target frame is 0x70 vs 0x68 here (sdc1 $f20 at 0x68 vs 0x60, so 8 bytes of stack space unexplained; the outgoing area already matches 0x48); the target puts `move $s3,$a0` before the loads; the `andi $s0` mask must sit after the first bnez, since putting it before the if gave 3278. Next step: find what takes the extra 8 bytes of frame (an unused-looking local that is address-taken, or an f32 array), then fix the s0 mask placement. Move-on reached at 5 compiles with no improvement over 3148.",
   "by": "claude-haiku-5-5-22",
@@ -10584,14 +10576,6 @@
   "score_after": 1185
  },
  {
-  "function": "func_80230EFC",
-  "text": "Best 4604 (66.8%), not matched. Structure is understood: early exits on u16@4 >= 6, s16@0x594 >= 4, u16@0x53A == 0; then `switch (a0[0x879])` with case 0 / case 1, each containing a switch on u16@0x53A (cases 1..10,12..14 -> s0=1; 11 -> s0=0; 15 -> s0=4; both jump tables D_80232E38 / D_80232E78 are identical). Then ret = func_800DE41C(0, a0[5], 3, 0, 0x20, 1, 0, func_8013F638, 10 zeros) (18 args total, stack args at 0x10..0x44); if ((u16)(ret+2) < 2) return; then a store of u16 into D_8011F330 + (u16)ret*100. Remaining diffs: (1) target's case-1 switch RE-LOADS lhu 0x53A (F84 block has lhu + addiu, case-0 block does not), so target has 139 insns vs ours 134; a source shape that forces that reload is the missing piece. (2) switch-layout/branch ordering of the 0x879 dispatch now matches (beqz v1 -> case0, addiu v0,1; beq -> case1, j default) only with the nested switch form that gave 4604. (3) Early-exit branch targets land at 0x200 vs 0x214 because of the 5-insn shortfall. Jump-table .rodata references produce a note about .rodata+0x0/0x40 with no ROM address; ignored for scoring. Untried: a volatile-free way to force the second reload, and ordering the s0-switch bodies differently.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794725127.3623948,
-  "score_before": 13602,
-  "score_after": 4604
- },
- {
   "function": "func_80140BEC",
   "text": "Best current source: revision aec8b6a43195ce7085f0, score 7210 (46.9%). Target 136 insns, mine 140. Learned: (1) context.h declares func_8013E49C(u16) with one arg; the target passes 2 args, so call via cast `((void (*)(s32, s32))func_8013E49C)(...)` and drop the extern (the extern line gives a conflicting-types error). (2) Declaring `s32 k = 0x80; f32 kf = 20.0f;` as locals helped (7958 -> 7210); target keeps 20.0f, 1.0f and 0.0f in callee-saved FP regs (sdc1 f20/f22/f24) and frame is 0x78, mine is 0x80. (3) Remaining diff: mine keeps arg0 in s6 and the 0x80 in s4; target keeps arg0 in s4 and 0x80 in s3, and loads D_80168814 entries with lwc1 %lo after lui/addu. (4) Tried: moving arg0 into a local idx (declaration-after-statement errors; no effect). Saved best 2599 does not reproduce from current source. Next step: restructure so the loop-invariant floats are kept live (not re-materialized) and arg0 is saved first.",
   "by": "claude-haiku-5-5-24",
@@ -13958,14 +13942,6 @@
   "created_at": 1794739107.5058932,
   "score_before": 9,
   "score_after": 9
- },
- {
-  "function": "func_80230EFC",
-  "text": "Not matched. Saved best 4139 (historical; recheck 4139) is the restore point. Do not use the current revision 2697db7ff77e8b80ee82 (4669) or aff12652902624860d97 as a base. The saved candidate has a stray `__repair_addr` line that must be removed.\n\nWhy it cannot get closer from here: two rewrites were worse (nested switch clean copy 4294, if/else-on-0x879 variant 4669). The logic is verified against the asm: both 0x879 cases use the same u16 0x53A switch through identical jump tables (D_80232E38 and D_80232E78, 15 entries, targets +0xB0 s0=1, +0xB8 s0=0 for case 11, +0xC0 s0=4 for case 15). The post-call branches (ret+2<2 return, D[a0596*5+s0] store, 1/0 store by a0596>=4, D[a0596*5]<<1 store, ret*100 via 2+1 shifts) also match.\n\nThe remaining diff is layout, not logic: (1) the target saves ra/s2/s1/s0 at 0x54/0x50/0x4C/0x48 and keeps s2=1 across the call, then does `addu s1,a0`; ours saves s1 first and does not use s2 early; (2) the target reloads 0x53A into $v0 for the 0x879 tests and keeps the lbu in $v1; ours loads it into $v1 and uses $a0 for the 0x879 byte; (3) our jump tables go to .rodata+0x0 and +0x40, which the ROM code does not reference, so the table placement is likely the blocker and needs a flags or unit check first; (4) the target's early beqz chain reaches 0x214 where ours reaches 0x200, so one instruction is missing or extra before the switch.\n\nNext step for a future agent: check whether the jump table placement can match (search_flags or try_compiler on this unit). If it can, fix the prologue and the 0x53A reload. Otherwise report it as blocked by the .rodata/table placement.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794739169.8489149,
-  "score_before": 4139,
-  "score_after": 4139
  },
  {
   "function": "func_80198250",
@@ -19008,14 +18984,6 @@
   "score_after": 2599
  },
  {
-  "function": "func_80230EFC",
-  "text": "Tried (all ~4294-4299, best saved remains 4139): (a) the saved best's misplaced `__repair_addr` line between switch cases removed, giving a clean two-level switch on a0[0x879] with inner switches on *(u16*)(a0+0x53A) (jump tables D_80232E38 / D_80232E78 are emitted correctly); (b) hoisting h = *(u16*)(a0+0x53A) with an early `if (h==0) return` (no effect); (c) u16 idx=(u16)ret before the store chain (worse, 4299). Remaining gap: target saves s2 and ra/s0/s1 in a 0x58 frame and reads 0x53A before 0x879 (target: lhu v0 then lbu v1 with beqz on each); ours reorders the 0x879 load first and loses the s2 save, so the ret/s2 liveness across the call is the thing to find. Not yet tried: keeping a0[0x596] or ret in a second long-lived temporary, or a switch whose default falls into the same store block. Clean source is the best starting point, not the saved 4139 one.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794754135.875204,
-  "score_before": 4139,
-  "score_after": 4139
- },
- {
   "function": "__osContAddressCrc",
   "text": "Best rechecked5 exactly one xor operand swap (target xor v0,v1,a2 candidate xor v0,a2,v1). C operand reversal and ^= plus casts u32 no effect. a2 s32 changes other registers30; combined feedback expression score65; swapping arg shift past XOR score200; u8 a2 no effect. Standard flag search no match. Local split_integer_phase65, paired lifetimes/declaration reorder no effect. Next investigate pseudo allocation by CRC accumulator/return narrow types.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -20672,14 +20640,6 @@
   "score_after": 10235
  },
  {
-  "function": "func_80230EFC",
-  "text": "Best verified 1919 (83.8%) at revision a5f21f65821a0473ae2e (saved_best). Structure is right; only register/order differences remain.\n\nWhat is already correct in that revision: early guards (u16 +4 < 6, s16 +0x594 < 4, u16 +0x53A != 0 with the value hoisted into a local u16 h), `s0 = 0` after the guards, the two-level switch on a0[0x879] with inner switches on the state (case 0 uses h, case 1 uses `*(volatile u16 *)(a0+0x53A)` so GCC re-emits the lhu and both jump tables D_80232E38 / D_80232E78 are generated), the 18-arg func_800DE41C call with 0x20 and 1 as stack args, the `(u16)(ret+2) < 2` early return, and the three separate stores with `(u16)ret*100` recomputed in place. `u32 off`/`u32 b` locals in the else branch were worth 340 points (1919 vs 2249).\n\nRemaining differences, in order of size:\n1. Prologue order: target saves ra,s2,s1,s0 then does `addu s1,a0,zero`; ours emits `sw s1`/`move s1,a0` before `sw ra`. Also the target's first `beqz` lands on the epilogue at 0x214 vs our 0x210 - 4 bytes of body still missing.\n2. Call argument setup: target stores 0x20 to 0x10(sp) and s2(=1) to 0x14(sp) BEFORE the lui/addiu of func_8013F638, then the zero stores, then move a0/addiu a2/move a3 in the jal delay slot region. Ours emits the arg registers first and the two stack stores after. Reordering the call's argument expressions (or assigning the 0x20 and 1 to named locals stored first) may fix this.\n3. The lookup in the mode==1, s0==0 branch: target keeps the (u16)ret index in $v0 and builds ret*100 with `sll v1,v0,1; addu v1,v1,v0; sll v1,v1,3; addu v1,v1,v0; sll v1,v1,2`; ours uses $a0 and drops the second `addu v1,v1,v0`. Target also loads `lb a0,0x596(s1)` AFTER the offset chain; ours loads it early into $a1 (one extra lb). Try making the 0x596 read appear after the offset computation (e.g. compute the destination offset into a variable used only at the store, and read the table byte in the store expression), and keep the index as a u16 temp that stays in $v0.\n4. Final else branch: target materializes D_802328DB into $a1 (`lui/addiu a1`) and indexes `lbu v0,($v0)`; ours still uses $at with %lo. Tried: integer address sums, u8*/u32 base locals, u16 off, u16 v temp - none moved it to a general register; the u32 off + u32 b form is the best so far but the base still folds into $at.\n\nTried and rejected (all worse or equal): per-path stores with a shared u16 idx temp (2249/4109/4829/4959), branch inversion of the mode test (4699), swapping the two switch cases (2569, also breaks the jump-table link), `s0` as u32 (equal), declaration reordering (equal), `*(u8*)((u32)D_802328DB + ...)` and `p[...]` pointer forms (equal, 2244).\n\nNext experiment: get_candidate(base=saved_best) then patch the else branch to keep a u16 index local and reorder the store offset computation so the 0x596 load follows it.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794756996.807486,
-  "score_before": 2959,
-  "score_after": 1919
- },
- {
   "function": "func_80166890",
   "text": "Not matched. Struct model: 0x64-byte entity at D_8011F2F0 with kind u8@0, timer u8@0xC, flag u8@0xD, f32 pos 0x18/0x1C/0x20, f28, f30/f34/f38, state u16@0x3E. Logic is right (kind-indexed copy, +20.0f, timer-=5 with flag=2, state 0/1 switch). At -O2 best is 2040 (73.8%). try_compiler gcc-2.7.2-kmc \"-G0 -mips3 -mgp32 -mfp32 -O1\" gives 220 (97.2%), equal to saved best. Remaining -O1 diffs: the kind-index multiply uses sll 4 where target uses sll 2, and the flag store is sw where target is sb to D_8011F2FD+a2. Next: at -O1, store the flag through a byte pointer (*(u8 *)((u8 *)D_8011F2F0 + idx*100 + 0xD) = 2) and compute the kind index as an explicit kind*100 offset, then re-check.",
   "by": "claude-haiku-5-5-23",
@@ -21102,14 +21062,6 @@
   "created_at": 1794758110.8444018,
   "score_before": 9125,
   "score_after": 9125
- },
- {
-  "function": "func_80230EFC",
-  "text": "Saved best is 1919 (86.1%) from the machine-draft source with `u32 off = (u16)ret * 100;`. Current candidate 7e45 (2554) is worse and should not be used. Tried: `u32 off = ret * 100;` (worse), and signedness of s0 (no change). Remaining diff in 1919: one extra `andi $a1,$v1,0xffff`, stack-order rows (sw $s1 at 0x4c before move $s1,$a0), and register rows from that. Untried: drop the (u16) cast in `if ((u16)(ret + 2) < 2)`, and try a plain s32 h. Pausing here: the unexplored ideas are small and each costs one compile, so a fresh agent can take them from 1919.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794758119.761996,
-  "score_before": 1919,
-  "score_after": 1919
  },
  {
   "function": "func_800DF1E0",
@@ -26406,14 +26358,6 @@
   "created_at": 1794767425.915659,
   "score_before": 4100,
   "score_after": 4100
- },
- {
-  "function": "func_80230EFC",
-  "text": "Best 1919 (86.1%) at revision 6f7bef0abdc27332a6ea. Only the stack/register layout differs: the target has an extra andi $v0,$v1,0xffff reused for the D_802328DB index, a nop at [87], and lb $a0,0x596($s1) placed after the sll/addu chain; our draft computes the andi twice (into a0 and a1) and loads D_802328DB with lui/addiu into a2 instead of a1. The C-level differences that matter are the ordering of (u16)ret*100 and the byte index (s8 at 0x596 times 5 plus s0). Replacing the else-branch with a u16 local shifted the register allocation and scored 2259 (worse). Untested: move the else-branch index computation into its own temporary, and check whether the big ternary stack arguments (0x10..0x1c) match the target's order. Stack args at 0x10/0x14/0x18/0x1c differ: target stores zero at 0x18 and v0 at 0x1c, ours is reversed.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794767443.7459378,
-  "score_before": 1919,
-  "score_after": 1919
  },
  {
   "function": "func_8021078C",
@@ -39500,5 +39444,69 @@
   "score_before": 1425,
   "score_after": 600,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:3bdcd639c7f6658b6dcbddf89c7e352840f20536b7d3b4ce8ddab9280540349d"
+ },
+ {
+  "function": "func_80230EFC",
+  "text": "Not attempted beyond an empty stub (score 13705). The machine draft fails because the `jr` at func_80230EFC.s line 35 jumps through a table. Two 16-entry jump tables are used: D_80232E38 (indexed by byte at 0x879(s1)-1, if-chain on 0x53A(s1)) and D_80232E78 (indexed by lhu 0x53A(s1)-1). Both use sll 2 with a 0..14 bound check (sltiu 0xF). Structure from the asm: the function has a 0x58 frame, saves $ra/$s0-$s2, does a few gating checks (slti 4, lhu 0x53A, lbu 0x879) then picks a case per table and sets $s0 to 0, 1 or 4 before jumping to .L80230FC0. Next: read the two jump table words (read_data at D_80232E38/D_80232E78) to get the case targets, then write a switch with those 16 cases.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794710551.481326,
+  "score_before": 13705,
+  "score_after": 13705
+ },
+ {
+  "function": "func_80230EFC",
+  "text": "Best 4604 (66.8%), not matched. Structure is understood: early exits on u16@4 >= 6, s16@0x594 >= 4, u16@0x53A == 0; then `switch (a0[0x879])` with case 0 / case 1, each containing a switch on u16@0x53A (cases 1..10,12..14 -> s0=1; 11 -> s0=0; 15 -> s0=4; both jump tables D_80232E38 / D_80232E78 are identical). Then ret = func_800DE41C(0, a0[5], 3, 0, 0x20, 1, 0, func_8013F638, 10 zeros) (18 args total, stack args at 0x10..0x44); if ((u16)(ret+2) < 2) return; then a store of u16 into D_8011F330 + (u16)ret*100. Remaining diffs: (1) target's case-1 switch RE-LOADS lhu 0x53A (F84 block has lhu + addiu, case-0 block does not), so target has 139 insns vs ours 134; a source shape that forces that reload is the missing piece. (2) switch-layout/branch ordering of the 0x879 dispatch now matches (beqz v1 -> case0, addiu v0,1; beq -> case1, j default) only with the nested switch form that gave 4604. (3) Early-exit branch targets land at 0x200 vs 0x214 because of the 5-insn shortfall. Jump-table .rodata references produce a note about .rodata+0x0/0x40 with no ROM address; ignored for scoring. Untried: a volatile-free way to force the second reload, and ordering the s0-switch bodies differently.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794725127.3623948,
+  "score_before": 13602,
+  "score_after": 4604
+ },
+ {
+  "function": "func_80230EFC",
+  "text": "Not matched. Saved best 4139 (historical; recheck 4139) is the restore point. Do not use the current revision 2697db7ff77e8b80ee82 (4669) or aff12652902624860d97 as a base. The saved candidate has a stray `__repair_addr` line that must be removed.\n\nWhy it cannot get closer from here: two rewrites were worse (nested switch clean copy 4294, if/else-on-0x879 variant 4669). The logic is verified against the asm: both 0x879 cases use the same u16 0x53A switch through identical jump tables (D_80232E38 and D_80232E78, 15 entries, targets +0xB0 s0=1, +0xB8 s0=0 for case 11, +0xC0 s0=4 for case 15). The post-call branches (ret+2<2 return, D[a0596*5+s0] store, 1/0 store by a0596>=4, D[a0596*5]<<1 store, ret*100 via 2+1 shifts) also match.\n\nThe remaining diff is layout, not logic: (1) the target saves ra/s2/s1/s0 at 0x54/0x50/0x4C/0x48 and keeps s2=1 across the call, then does `addu s1,a0`; ours saves s1 first and does not use s2 early; (2) the target reloads 0x53A into $v0 for the 0x879 tests and keeps the lbu in $v1; ours loads it into $v1 and uses $a0 for the 0x879 byte; (3) our jump tables go to .rodata+0x0 and +0x40, which the ROM code does not reference, so the table placement is likely the blocker and needs a flags or unit check first; (4) the target's early beqz chain reaches 0x214 where ours reaches 0x200, so one instruction is missing or extra before the switch.\n\nNext step for a future agent: check whether the jump table placement can match (search_flags or try_compiler on this unit). If it can, fix the prologue and the 0x53A reload. Otherwise report it as blocked by the .rodata/table placement.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794739169.8489149,
+  "score_before": 4139,
+  "score_after": 4139
+ },
+ {
+  "function": "func_80230EFC",
+  "text": "Tried (all ~4294-4299, best saved remains 4139): (a) the saved best's misplaced `__repair_addr` line between switch cases removed, giving a clean two-level switch on a0[0x879] with inner switches on *(u16*)(a0+0x53A) (jump tables D_80232E38 / D_80232E78 are emitted correctly); (b) hoisting h = *(u16*)(a0+0x53A) with an early `if (h==0) return` (no effect); (c) u16 idx=(u16)ret before the store chain (worse, 4299). Remaining gap: target saves s2 and ra/s0/s1 in a 0x58 frame and reads 0x53A before 0x879 (target: lhu v0 then lbu v1 with beqz on each); ours reorders the 0x879 load first and loses the s2 save, so the ret/s2 liveness across the call is the thing to find. Not yet tried: keeping a0[0x596] or ret in a second long-lived temporary, or a switch whose default falls into the same store block. Clean source is the best starting point, not the saved 4139 one.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794754135.875204,
+  "score_before": 4139,
+  "score_after": 4139
+ },
+ {
+  "function": "func_80230EFC",
+  "text": "Best verified 1919 (83.8%) at revision a5f21f65821a0473ae2e (saved_best). Structure is right; only register/order differences remain.\n\nWhat is already correct in that revision: early guards (u16 +4 < 6, s16 +0x594 < 4, u16 +0x53A != 0 with the value hoisted into a local u16 h), `s0 = 0` after the guards, the two-level switch on a0[0x879] with inner switches on the state (case 0 uses h, case 1 uses `*(volatile u16 *)(a0+0x53A)` so GCC re-emits the lhu and both jump tables D_80232E38 / D_80232E78 are generated), the 18-arg func_800DE41C call with 0x20 and 1 as stack args, the `(u16)(ret+2) < 2` early return, and the three separate stores with `(u16)ret*100` recomputed in place. `u32 off`/`u32 b` locals in the else branch were worth 340 points (1919 vs 2249).\n\nRemaining differences, in order of size:\n1. Prologue order: target saves ra,s2,s1,s0 then does `addu s1,a0,zero`; ours emits `sw s1`/`move s1,a0` before `sw ra`. Also the target's first `beqz` lands on the epilogue at 0x214 vs our 0x210 - 4 bytes of body still missing.\n2. Call argument setup: target stores 0x20 to 0x10(sp) and s2(=1) to 0x14(sp) BEFORE the lui/addiu of func_8013F638, then the zero stores, then move a0/addiu a2/move a3 in the jal delay slot region. Ours emits the arg registers first and the two stack stores after. Reordering the call's argument expressions (or assigning the 0x20 and 1 to named locals stored first) may fix this.\n3. The lookup in the mode==1, s0==0 branch: target keeps the (u16)ret index in $v0 and builds ret*100 with `sll v1,v0,1; addu v1,v1,v0; sll v1,v1,3; addu v1,v1,v0; sll v1,v1,2`; ours uses $a0 and drops the second `addu v1,v1,v0`. Target also loads `lb a0,0x596(s1)` AFTER the offset chain; ours loads it early into $a1 (one extra lb). Try making the 0x596 read appear after the offset computation (e.g. compute the destination offset into a variable used only at the store, and read the table byte in the store expression), and keep the index as a u16 temp that stays in $v0.\n4. Final else branch: target materializes D_802328DB into $a1 (`lui/addiu a1`) and indexes `lbu v0,($v0)`; ours still uses $at with %lo. Tried: integer address sums, u8*/u32 base locals, u16 off, u16 v temp - none moved it to a general register; the u32 off + u32 b form is the best so far but the base still folds into $at.\n\nTried and rejected (all worse or equal): per-path stores with a shared u16 idx temp (2249/4109/4829/4959), branch inversion of the mode test (4699), swapping the two switch cases (2569, also breaks the jump-table link), `s0` as u32 (equal), declaration reordering (equal), `*(u8*)((u32)D_802328DB + ...)` and `p[...]` pointer forms (equal, 2244).\n\nNext experiment: get_candidate(base=saved_best) then patch the else branch to keep a u16 index local and reorder the store offset computation so the 0x596 load follows it.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794756996.807486,
+  "score_before": 2959,
+  "score_after": 1919
+ },
+ {
+  "function": "func_80230EFC",
+  "text": "Saved best is 1919 (86.1%) from the machine-draft source with `u32 off = (u16)ret * 100;`. Current candidate 7e45 (2554) is worse and should not be used. Tried: `u32 off = ret * 100;` (worse), and signedness of s0 (no change). Remaining diff in 1919: one extra `andi $a1,$v1,0xffff`, stack-order rows (sw $s1 at 0x4c before move $s1,$a0), and register rows from that. Untried: drop the (u16) cast in `if ((u16)(ret + 2) < 2)`, and try a plain s32 h. Pausing here: the unexplored ideas are small and each costs one compile, so a fresh agent can take them from 1919.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794758119.761996,
+  "score_before": 1919,
+  "score_after": 1919
+ },
+ {
+  "function": "func_80230EFC",
+  "text": "Best 1919 (86.1%) at revision 6f7bef0abdc27332a6ea. Only the stack/register layout differs: the target has an extra andi $v0,$v1,0xffff reused for the D_802328DB index, a nop at [87], and lb $a0,0x596($s1) placed after the sll/addu chain; our draft computes the andi twice (into a0 and a1) and loads D_802328DB with lui/addiu into a2 instead of a1. The C-level differences that matter are the ordering of (u16)ret*100 and the byte index (s8 at 0x596 times 5 plus s0). Replacing the else-branch with a u16 local shifted the register allocation and scored 2259 (worse). Untested: move the else-branch index computation into its own temporary, and check whether the big ternary stack arguments (0x10..0x1c) match the target's order. Stack args at 0x10/0x14/0x18/0x1c differ: target stores zero at 0x18 and v0 at 0x1c, ours is reversed.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794767443.7459378,
+  "score_before": 1919,
+  "score_after": 1919
+ },
+ {
+  "function": "func_80230EFC",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Triage: two switch jump tables (D_80232E38, D_80232E78, 15 cases each) select a value that feeds a struct update; a clean rewrite needs the table contents read first. Not attempted in this session.",
+  "by": "manual-762503dc128b4f24",
+  "created_at": 1795714714.371927,
+  "score_before": 1669,
+  "score_after": 1669
  }
 ]
