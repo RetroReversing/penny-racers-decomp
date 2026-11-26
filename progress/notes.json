@@ -3928,14 +3928,6 @@
   "score_after": 35
  },
  {
-  "function": "func_8019A31C",
-  "text": "Deep permuter: score 4760 \u2192 3820; 2 improvements; 247 candidates tested; 80 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935602",
-  "created_at": 1794355425.8183942,
-  "score_before": 4760,
-  "score_after": 3820
- },
- {
   "function": "func_8002D520",
   "text": "Deep permuter: score 2985 \u2192 2985; 0 improvements; 148 candidates tested; 71 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934892",
@@ -6782,14 +6774,6 @@
   "created_at": 1794709658.398008,
   "score_before": 220,
   "score_after": 220
- },
- {
-  "function": "func_8019A31C",
-  "text": "Dispatch on (D_801C7068, D_801C6BB9) with a gate D_801C7AB0[1]==5, else tail call func_8019A4F8; returns r&0xFF. Target's group order (read from asm): M in{0,0x17} -> groups 0..3; then M==0x16 -> 4..7; then M==1 -> 8..11; else 12..15. Within each group N in{0,0x17}->base, N==1->+1, N==0x16->+2, else +3 (the 0x16 case is computed as (N!=0x16)?3:2 via xori/sltu/negu/andi/ori). Tried the reordered groups (0x16 before 1): 4675, worse than the saved 1530 (the saved candidate's group order M==1 before 0x16 is closer). Target reloads D_801C7AB0 and D_801C7068 per branch (lui/lb repeated), which the if-chain source doesn't reproduce. Unresolved: the delay-slot `addiu v0` placement and the repeated global reloads; the saved 1530 is the best. Next: keep the saved group order and try writing the N checks as the target computes them (sltiu+xori+sltiu+or for {0,0x17}).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794709671.6567008,
-  "score_before": 1530,
-  "score_after": 1530
  },
  {
   "function": "func_801AEAB0",
@@ -10232,14 +10216,6 @@
   "score_after": 5810
  },
  {
-  "function": "func_8019A31C",
-  "text": "Best saved 1530 (historical, revision 429a50861fe0b3118f8b; current rechecked 4760). Nested 16-leaf if/else on D_801C7068 x D_801C6BB9 under D_801C7AB0[1]==5, else func_8019A4F8(); return r&0xFF. Target 119 insns reloads D_801C7AB0 (lui/lw) and each global per comparison in $v0; ours hoists loads into $a0/$v1 and is 94 insns. Tried a switch-on-D_801C7068 variant: 10065, much worse. Untried: write each combination as independent top-level if-blocks so the compiler re-reads D_801C7AB0 per branch; or try compile_family(signedness). Budget effectively spent.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794724730.448475,
-  "score_before": 1530,
-  "score_after": 1530
- },
- {
   "function": "__osViSwapContext",
   "text": "Not matched; best 6255 (66.5%), revision 5c6db24bc888161aad7b (m2c-style draft with plain *(s32*)0xA44000xx). Writing the MMIO addresses as vs32 (already in context.h, do not typedef it again) made it worse (6480): the target loads D_800481F4 into s0 (lui s0 / lw s0) and reads the first MMIO word 0xA4400010 only after that, then lhu of s0, andi 2, beqz. So the statement order is: temp_s0 = D_800481F4 first, then the 0xA4400010 read, then the flag tests. Each MMIO store uses its own lui+ori+sw, so the address is materialised each time (vs32 is right for that). Target has 187 insns vs 172 in the 6255 candidate; the extra are the 0x10 flag reads and a second and/andi pair. Next: keep the 6255 form, but move the 0xA4400010 read to just before the first use in the (flags & 2) block so GCC emits it after the s0 load.",
   "by": "claude-haiku-5-5-24",
@@ -13176,14 +13152,6 @@
   "score_after": 1585
  },
  {
-  "function": "func_8019A31C",
-  "text": "func_8019A31C: 119-insn target; the machine draft (saved best 1530, revision 429a50861fe0b3118f8b; the fresh compile of the same source gave 4760) is a nested if on D_801C7068 (0/0x17, 1, 0x16, else) and D_801C6BB9 (0/0x17, 1, 0x16, else) returning 0..15, else func_8019A4F8(). Target reloads D_801C7AB0 and D_801C7068/D_801C6BB9 once per case (about 9 lui/lb pairs for each global), so the compiler does not CSE the globals across branches; the target also tests the D_801C7AB0[1]==5 check first with the call in the else. Failed: flattened per-case re-reads with call first (9305), so the call must stay in the else. Next idea: keep the 16-case nesting but write each sub-case's read of D_801C7068 directly in its own condition (one read per case), and check the else-call placement and the r&0xFF return order.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794737002.254344,
-  "score_before": 1530,
-  "score_after": 1530
- },
- {
   "function": "func_801AEAB0",
   "text": "Best 3210 (73.4%), revision 321176c6e36998bba690. Three func_800DE41C calls with 18 args (stack args at 0x10..0x44 mostly zero-filled). `extern volatile u16 D_801C7074;` forces the target's sh-then-lhu reload (3525 -> 3210). Remaining: our trailing `andi $v1,$v1,0xffff` after the reload should not exist (target uses bare lhu); the D_801C7AD0 sb lands earlier in ours than in the target; the final func_800294A0 argument setup (D_1B0E50/D_1F9030/D_802D6890) is out of order. Next: remove the andi (check index type) and move `D_801C7AD0 = 0` after the 0x7F call's arg setup. Claim lapsed before release, so these notes were added directly.\n\nBest 3210 (73.4%), revision 321176c6e36998bba690 (volatile u16 D_801C7074). Tried: (s32) cast on the index (no effect; andi persists). The andi after the lhu is still unexplained: try compile_family(signedness) per the tool hint. Other diffs: stack-arg stores and the D_801C7AD0 sb placement; func_800294A0 argument setup order (D_1B0E50/D_1F9030/D_802D6890) is out of order. Reclaimed once after an earlier lapse: the m2c draft is worse (3525 and up), always start from 321176c6e36998bba690.",
   "by": "claude-haiku-5-5-22",
@@ -13590,14 +13558,6 @@
   "created_at": 1794739262.282102,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_8019A31C",
-  "text": "Stopping here: the best is revision 5c3487fe5643219ebc72 (4760, 60%; target 119 insns, mine 94). Saved best 1530 is a different source and not reproduced by the text here. The gap is structural: target re-reads D_801C7AB0 (lui/lw) and D_801C7068 (lui/lb) before each compare and tests (x==0)|(x==0x17) as values (sltiu, xori, sltiu, or) before beqz; volatile was much worse (13440), `|` for `||` changed nothing. Next: rebuild the joins as value-form booleans and reload the globals per branch.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794739308.3873322,
-  "score_before": 1530,
-  "score_after": 1530
  },
  {
   "function": "func_80042630",
@@ -19256,14 +19216,6 @@
   "score_after": 4605
  },
  {
-  "function": "func_8019A31C",
-  "text": "Not matched. Best this session 4760 (60.0%) with a nested if/else-if table over D_801C7068 (0,1,0x16,other) and D_801C6BB9 (0/0x17, 1, 0x16, other), r = 4*row + col, returning r&0xFF; the else path tail-calls-like func_8019A4F8. Whether written with || or |, same score. Target (119 insns, frame -0x18) re-reads D_801C7AB0 and both globals for each comparison group (lui/lb pairs repeated 9x) and has the call-path prologue first; mine CSEs the global loads and starts with the lui of D_801C7AB0. Next: force per-test reloads (e.g. nested ifs each doing a fresh read of D_801C7068 and D_801C6BB9 in the branch they guard, as in the sibling func_8019862C where direct globals gave a better score than locals), and check the frame by keeping the func_8019A4F8 call in the else arm.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794755923.489025,
-  "score_before": 1530,
-  "score_after": 1530
- },
- {
   "function": "func_801FA028",
   "text": "Best rechecked score 1740 (87.0%), revision 0ffe0ae9500f694530dd (same as the draft in substance). Target: the comparisons are emitted as `0.0f < x` (c.lt.s with fv0=0 as first operand), and `mtc1 $zero,$fv0` is re-materialized after each use (3+ times), which my version does not reproduce. Rewriting `x > 0.0f` as `0.0f < x` made no difference (the compiler normalizes it). The entry is `mtc1 zero; c.lt.s 0,arg0; bc1t skip; mov.s ft0,arg0 (delay slot); neg.s ft0,arg0; mtc1 zero` \u2014 so a = arg0 is a register copy with the negation skipped by a branch, and the zero is reloaded afterwards. Next experiments: write the zero as a local float `zf = 0.0f` re-read after each branch, or test -O1 to see whether the constant reload survives; also the table index for `b < a` vs `a > b` branch-sense is unverified.",
   "by": "claude-haiku-5-5-20",
@@ -24832,14 +24784,6 @@
   "score_after": 715
  },
  {
-  "function": "func_8019A31C",
-  "text": "Best saved: 1530 (historical), not the 4760 current candidate. Target is 119 insns vs ~94 in the nested-if rewrite, and it re-reads the globals per use: D_801C7AB0 is loaded with lui/lw in several separate places, and D_801C7068 / D_801C6BB9 are reloaded inside each branch rather than cached in a0. The rewrite's single up-front load and its first compare (sltiu/xori on D_801C7068) do not match that. Next step: write each branch's comparison against the global directly (no local copies), and check the 0x16/0x17 branch order against the target's bne/beqz at the start. Not tried: -O1, or a switch form.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794765144.738834,
-  "score_before": 1530,
-  "score_after": 1530
- },
- {
   "function": "func_80198250",
   "text": "Best 775 (90.6%), candidate revision 2e655a137e9471ef9238 (same score as 94b7f9c9189f6b173e47). Structure: if D_801C6BB9!=0 and D_801C6BB0[D_801C6BB9*24+D_801C7068]==0xFFFF, then if D_801C7AB0[1]!=5 a1=1; else compare D_801C7062[0] with a2 (local copy of D_801C7068) and D_801C7062[1] with D_801C6BB9+1 (a1=(x==1)|(x==3)), or D_801C6BB9-1 (if x==0 a1=1); else if D_801C7062[0] is D_801C7068+/-1, a1=1 when D_801C7062[1]!=D_801C6BB9, or x==0/2; otherwise a1=1. Caching a2 as a local for the first path and globals for later reloads matched better than all-local (1965) or all-global (1335). Remaining diffs: target keeps D_801C7068 in $a2 and D_801C6BB9 in $a0 while ours swaps $v1/$a0 (register allocation), and the bne $v1,$v0 branch target is 0x9c vs 0xa8 (block order). Tried without change: local p0 read in the fall-through block; u32 a2 signedness. Next: try the x==0 branch as bnez-then-j form, or reorder the else-if chain so the p0 test comes before the p1 tests.",
   "by": "claude-haiku-5-5-23",
@@ -25518,14 +25462,6 @@
   "created_at": 1794767217.70782,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_8019A31C",
-  "text": "Not matched; releasing now because the target is far from every form tried. Target is 119 insns: it re-reads D_801C7AB0 and D_801C7068 (lui/lb) for each of about 12 comparisons and builds the result from sltiu/xori/or chains with j into a shared tail. Results: nested-if table (4760, saved best 1530 does not reproduce from the same source); flat if-sequence with r += (12105, far worse). Next: write the boolean chains as separate `s32 t = (cond);` expressions that match the sltiu/xori/or pattern, and check the saved 1530 baseline before any new edit. Current held revision a1e5e7989f3028dc0eee is worse than saved best; restore saved_best before reuse.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794767258.50312,
-  "score_before": 1530,
-  "score_after": 1530
  },
  {
   "function": "__osViSwapContext",
@@ -39920,5 +39856,102 @@
   "score_before": 6598,
   "score_after": 6225,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:794c00970b86dd92f075c7eccbe591a4aad4134db51cb375bee15716012a7260"
+ },
+ {
+  "function": "func_8019A31C",
+  "text": "Deep permuter: score 4760 \u2192 3820; 2 improvements; 247 candidates tested; 80 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935602",
+  "created_at": 1794355425.8183942,
+  "score_before": 4760,
+  "score_after": 3820
+ },
+ {
+  "function": "func_8019A31C",
+  "text": "Dispatch on (D_801C7068, D_801C6BB9) with a gate D_801C7AB0[1]==5, else tail call func_8019A4F8; returns r&0xFF. Target's group order (read from asm): M in{0,0x17} -> groups 0..3; then M==0x16 -> 4..7; then M==1 -> 8..11; else 12..15. Within each group N in{0,0x17}->base, N==1->+1, N==0x16->+2, else +3 (the 0x16 case is computed as (N!=0x16)?3:2 via xori/sltu/negu/andi/ori). Tried the reordered groups (0x16 before 1): 4675, worse than the saved 1530 (the saved candidate's group order M==1 before 0x16 is closer). Target reloads D_801C7AB0 and D_801C7068 per branch (lui/lb repeated), which the if-chain source doesn't reproduce. Unresolved: the delay-slot `addiu v0` placement and the repeated global reloads; the saved 1530 is the best. Next: keep the saved group order and try writing the N checks as the target computes them (sltiu+xori+sltiu+or for {0,0x17}).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794709671.6567008,
+  "score_before": 1530,
+  "score_after": 1530
+ },
+ {
+  "function": "func_8019A31C",
+  "text": "Best saved 1530 (historical, revision 429a50861fe0b3118f8b; current rechecked 4760). Nested 16-leaf if/else on D_801C7068 x D_801C6BB9 under D_801C7AB0[1]==5, else func_8019A4F8(); return r&0xFF. Target 119 insns reloads D_801C7AB0 (lui/lw) and each global per comparison in $v0; ours hoists loads into $a0/$v1 and is 94 insns. Tried a switch-on-D_801C7068 variant: 10065, much worse. Untried: write each combination as independent top-level if-blocks so the compiler re-reads D_801C7AB0 per branch; or try compile_family(signedness). Budget effectively spent.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794724730.448475,
+  "score_before": 1530,
+  "score_after": 1530
+ },
+ {
+  "function": "func_8019A31C",
+  "text": "func_8019A31C: 119-insn target; the machine draft (saved best 1530, revision 429a50861fe0b3118f8b; the fresh compile of the same source gave 4760) is a nested if on D_801C7068 (0/0x17, 1, 0x16, else) and D_801C6BB9 (0/0x17, 1, 0x16, else) returning 0..15, else func_8019A4F8(). Target reloads D_801C7AB0 and D_801C7068/D_801C6BB9 once per case (about 9 lui/lb pairs for each global), so the compiler does not CSE the globals across branches; the target also tests the D_801C7AB0[1]==5 check first with the call in the else. Failed: flattened per-case re-reads with call first (9305), so the call must stay in the else. Next idea: keep the 16-case nesting but write each sub-case's read of D_801C7068 directly in its own condition (one read per case), and check the else-call placement and the r&0xFF return order.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794737002.254344,
+  "score_before": 1530,
+  "score_after": 1530
+ },
+ {
+  "function": "func_8019A31C",
+  "text": "Stopping here: the best is revision 5c3487fe5643219ebc72 (4760, 60%; target 119 insns, mine 94). Saved best 1530 is a different source and not reproduced by the text here. The gap is structural: target re-reads D_801C7AB0 (lui/lw) and D_801C7068 (lui/lb) before each compare and tests (x==0)|(x==0x17) as values (sltiu, xori, sltiu, or) before beqz; volatile was much worse (13440), `|` for `||` changed nothing. Next: rebuild the joins as value-form booleans and reload the globals per branch.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794739308.3873322,
+  "score_before": 1530,
+  "score_after": 1530
+ },
+ {
+  "function": "func_8019A31C",
+  "text": "Not matched. Best this session 4760 (60.0%) with a nested if/else-if table over D_801C7068 (0,1,0x16,other) and D_801C6BB9 (0/0x17, 1, 0x16, other), r = 4*row + col, returning r&0xFF; the else path tail-calls-like func_8019A4F8. Whether written with || or |, same score. Target (119 insns, frame -0x18) re-reads D_801C7AB0 and both globals for each comparison group (lui/lb pairs repeated 9x) and has the call-path prologue first; mine CSEs the global loads and starts with the lui of D_801C7AB0. Next: force per-test reloads (e.g. nested ifs each doing a fresh read of D_801C7068 and D_801C6BB9 in the branch they guard, as in the sibling func_8019862C where direct globals gave a better score than locals), and check the frame by keeping the func_8019A4F8 call in the else arm.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794755923.489025,
+  "score_before": 1530,
+  "score_after": 1530
+ },
+ {
+  "function": "func_8019A31C",
+  "text": "Best saved: 1530 (historical), not the 4760 current candidate. Target is 119 insns vs ~94 in the nested-if rewrite, and it re-reads the globals per use: D_801C7AB0 is loaded with lui/lw in several separate places, and D_801C7068 / D_801C6BB9 are reloaded inside each branch rather than cached in a0. The rewrite's single up-front load and its first compare (sltiu/xori on D_801C7068) do not match that. Next step: write each branch's comparison against the global directly (no local copies), and check the 0x16/0x17 branch order against the target's bne/beqz at the start. Not tried: -O1, or a switch form.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794765144.738834,
+  "score_before": 1530,
+  "score_after": 1530
+ },
+ {
+  "function": "func_8019A31C",
+  "text": "Not matched; releasing now because the target is far from every form tried. Target is 119 insns: it re-reads D_801C7AB0 and D_801C7068 (lui/lb) for each of about 12 comparisons and builds the result from sltiu/xori/or chains with j into a shared tail. Results: nested-if table (4760, saved best 1530 does not reproduce from the same source); flat if-sequence with r += (12105, far worse). Next: write the boolean chains as separate `s32 t = (cond);` expressions that match the sltiu/xori/or pattern, and check the saved 1530 baseline before any new edit. Current held revision a1e5e7989f3028dc0eee is worse than saved best; restore saved_best before reuse.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794767258.50312,
+  "score_before": 1530,
+  "score_after": 1530
+ },
+ {
+  "function": "func_8019A31C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr16, -O1 profile (not applied): clean rewrite as four groups on the a-value (a in {0,0x17}, 1, 0x16, else), each a b-chain, scores 400 (work/func_8019A31C_v2.c). The rest is group A's layout: the target falls through from b != 0x17 into the return-0 block, then compares b with 1; with b==0x17 written as an else-if the compiler branches to a shared return. Tried: merged else, switch, boolean forms (1130 to 3580). Handed back at 8 judged attempts.",
+  "by": "manual-209d2dfa17f14ee1",
+  "created_at": 1795712960.676219,
+  "score_before": 3160,
+  "score_after": 3160
+ },
+ {
+  "function": "func_8019A31C",
+  "text": "haiku-pr23 (-O1): the saved best (1280 at -O1, 3160 at -O2) is still the lowest. A fresh 36-order grid of the four top-level groups (0/0x17, 1, 0x16, else) against the three inner tests (0/0x17, 1, 0x16) gave 2920 at best (ABC order, zero-group first, inner order 0/0x17, 0x16, 1 is the 2920 one), so the group order alone is not what the saved source does. The note from the earlier -O1 rewrite (400, work/func_8019A31C_v2.c) is not in the record, so it could not be re-run. Target reloads D_801C7AB0 and the two globals per compare; the -O1 candidate here does too but scores worse. Not matched.",
+  "by": "manual-4c00de5953994cc3",
+  "created_at": 1795714535.041609,
+  "score_before": 3160,
+  "score_after": 3160
+ },
+ {
+  "function": "func_8019A31C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Judged 36 group-order variants at -O1 (best 2920) plus the saved best (1280 at -O1); move on.",
+  "by": "manual-4c00de5953994cc3",
+  "created_at": 1795714539.2426739,
+  "score_before": 3160,
+  "score_after": 3160
+ },
+ {
+  "function": "func_8019A31C",
+  "text": "Profile probe: this saved C scores 1280 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (12 of its 12 nearest matched neighbours were built with it), 3160 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721190.375912,
+  "score_before": 3160,
+  "score_after": 1280,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:cc7dd14f989f00a2c2e402de71102e3d0ab9693019f3404f62a95bd8cecbed8e"
  }
 ]
