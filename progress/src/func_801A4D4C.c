@@ -1,3 +1,4 @@
+/* adapted from similar verified C in func_801A4C04 (matched), with its names changed by decompdecomp */
 extern u8 D_801C5EB0[];
 extern u8 D_801C5EC8[];
 typedef struct { u8 f0; u8 pad[4]; } Row_D_801C7081;
