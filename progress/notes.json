@@ -7168,14 +7168,6 @@
   "score_after": 1045
  },
  {
-  "function": "nuContMgr",
-  "text": "Best 140 (99.0%), revision 17ca9d36412287882eb7. Structure is correct: goto-dispatch on *(s16*)arg0 (0x1000 -> a228, <0x1001 then ==1 -> a168, ==0x1001 -> a284, ==0x1002 -> a314, else 0). Only the a228 block differs: target does `jal osContStartReadData` with `lw s0,8(arg0)` in the delay slot (load after the call, before osRecvMesg); the current C already puts that load after the call, and the remaining 6 differing rows (2 operands, 4 reordered) sit around that first call's arg setup. Next: try reordering so the a0 lui/addiu for D_800DE058 sits after the lw, or express the first call's arg via a temp. Frame and save order (s1 at 0x14, ra at 0x18, s0 at 0x10) already match.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794709810.961063,
-  "score_before": 4251,
-  "score_after": 140
- },
- {
   "function": "func_801FC4E0",
   "text": "Not attempted in this session (claimed late, released to keep the claim queue moving). Structure from the draft: a switch on D_8011F330[arg1&0xFFFF].st (Slot stride 100 bytes, st at offset 0) with 4 states; the state-1 and state-3 branches step D_802038C4 by 5 with clamps to 0xFF/0. After the switch it calls func_801CA140, writes a 2-word display-list header (0x06000000, D_80220ED8) through *arg0, then func_801CA468 and two func_801CB74C calls with D_801FFD40[0] and D_801FFD40[*(u16*)(D_8006FAF0+0x20)]. Draft has undeclared D_80203AC8, D_8011F330, D_80220ED8, D_801FFD30, D_801FFD40, D_8006FAF0 (declared in the candidate; re-check their types). Start from the draft; the switch-to-if chain shape needs checking against the jump table.",
   "by": "claude-haiku-5-5-20",
@@ -10904,14 +10896,6 @@
   "score_after": 4680
  },
  {
-  "function": "nuContMgr",
-  "text": "Best 140 (99.0%), no match. Restart from revision 17ca9d36412287882eb7 (the goto-based source with the __repair_record_arg0 struct; it is the saved best and compiles to 150 insns, same as target). Remaining diff is only ordering in the a228 path: target emits `lui a0,%hi(D_800DE058); addiu a0,a0,%lo(D_800DE058); jal osContStartReadData; lw s0,8(s1)` (the lw is in the delay slot), mine emits lui; jal; addiu (addiu in the delay slot) and then lw after. Moving `s0 = field_8` before the call scored 200 (worse), so do not do that. Untried: keep the call, make the field_8 read a separate statement after the first osRecvMesg, or express D_800DE058 as a local pointer assigned before the call. Also: the struct name __repair_record_arg0 is a placeholder; leave it unless you want to rename it.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794724863.9193962,
-  "score_before": 140,
-  "score_after": 140
- },
- {
   "function": "func_801C1424",
   "text": "Baseline compiled at 12496 (17.2%), revision 4d5717f2a249c6dac315; far from match, not iterated. Target frame is 0x60 (ours 0x58), saves ra, s0..s6 at 0x4c..0x30, and calls func_8013AE60 and __sinf. The m2c draft's 8-word local copy from D_801C6AC8 is wrong; the target copies D_801C6AC8 to a stack array (addiu a1,sp,0x10) before the call. Next: read the first 60 instructions with get_assembly and rebuild the call/copy sequence before any loop edits; the loops use s16 stores to D_80167FB8 at (j+8)*0x10+4 and D_80167FBC at j*0x10 (check the sign of the sin-to-s16 conversion and the 3.1415927f/180 constant order).",
   "by": "claude-haiku-5-5-22",
@@ -14264,14 +14248,6 @@
   "score_after": 1150
  },
  {
-  "function": "nuContMgr",
-  "text": "nuContMgr (600 bytes, 150 insns): best 140 (99.0%), revision d5fa4ccfa8075f892a65 (goto-shaped draft with labels a168/a228/a284/a314, drop the odd __repair_record_arg0 typedef name in favour of a plain cast, as already done in the saved source). Only the prologue differs: target saves s1 at 0x14 then copies arg0 into s1 (move $s1,$a0) before saving ra at 0x18; ours saves ra first. Declaring `void *s1 = arg0;` at the top had no effect. The jal osContStartReadData also sits 2 instructions earlier in ours. Next: try a temporary used only in the a168 path so that the s1 live range starts in the prologue, or compile_family(typed_temporary) per the tool hint.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794737230.588944,
-  "score_before": 140,
-  "score_after": 140
- },
- {
   "function": "func_801B4B6C",
   "text": "Best candidate revision bbd8778a020d486b99e0, score 1125 (88.6%). D_8011F32E must be declared as u8 array and read as *(u16 *)(D_8011F32E + idx*0x64); a u16 extern scales the index wrongly (sll 3 vs sll 2). Remaining diffs: D_8011F2F0 loads in block_8 use lui/addu/%lo form, andi $v0 vs $v1 in the taken path, and the D_8011F2FC store form (sb $v1,0xc($v0) vs sb $v0,%lo($at)). Direct array indexing for both tables scored 1210 (worse). Declaring D_8011F2FC as an array inside the inline-fn version failed to compile; retry with the extern changed and the inline_fn access kept.",
   "by": "claude-haiku-5-5-20",
@@ -14782,14 +14758,6 @@
   "created_at": 1794739358.609879,
   "score_before": 2963,
   "score_after": 2963
- },
- {
-  "function": "nuContMgr",
-  "text": "Best 140 (99.0%) at revision 17ca9d36412287882eb7 (the claimed candidate, unchanged); the current revision e5e3229f03da70f15898 has the same score and differs only by `s16 code = *(s16 *)arg0;`, so use 17ca9d36 as the base. All 150 instructions are present; the only difference is the prologue/first-block ordering: target stores $s1 at 0x14 before `sw $ra,0x18`, and does `move $s1,$a0` before the first jal; ours stores ra first. Tried with no effect: `void *s1 = arg0;` at the top; `s16 code` local; typed_temporary family (not applicable); search_flags (all -O1 variants, project flags best at 140). Why it can't get closer by simple edits: the compiler folds these shapes to identical output. Next agent: try reordering the a168/a284 bodies so osRecvMesg(s0) comes before osContStartReadData, or move the D_8006F970 load before the first if.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794739385.024726,
-  "score_before": 140,
-  "score_after": 140
  },
  {
   "function": "func_80027D00",
@@ -20646,14 +20614,6 @@
   "created_at": 1794755812.408156,
   "score_before": 1150,
   "score_after": 1150
- },
- {
-  "function": "nuContMgr",
-  "text": "Best 140 (99%, not matched); best revision 17ca9d36412287882eb7 (also adab04ced0ba6c151329 with `void *s1 = arg0` copy, same 140). All 150 instructions match in content; the only diff is the prologue: target does `addiu sp; sw $s1,0x14(sp); move $s1,$a0; sw $ra,0x18(sp)`, ours saves $ra first then $s1, then moves a0. This is GCC -O2 prologue scheduling of the arg0 copy into the callee-saved register relative to the ra save; the target pattern suggests s1 is live from the first instruction (the arg0 move is hoisted before the ra save). Tried: arg0 used directly (140), local copy s1 = arg0 (140), typed_temporary family (no applicable variants). Untried: making the first if-test read *(s16*)arg0 into a local s16 before the chain; compile_variants (its schema needs `patches` objects, not the shape I sent). Likely needs a structural shape change rather than register tuning.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794755853.785433,
-  "score_before": 140,
-  "score_after": 140
  },
  {
   "function": "func_801FC768",
@@ -26672,14 +26632,6 @@
   "score_after": 6255
  },
  {
-  "function": "nuContMgr",
-  "text": "Best: revision 17ca9d36412287882eb7, score 140 (99.0%), 150 insns each; all instructions identical, only the prologue order differs. Target: `sw $s1,0x14(sp)`, then `move $s1,$a0`, then `sw $ra,0x18(sp)`; ours stores ra first and moves s1 after. Frame and slots are right (0x20). Tried: `void *a; a = arg0;` alias and a dummy `s32 r` before the first test: both 140 (no effect). Untried: move the first `if` chain into a switch on *(s16*)arg0, or make the first statement assign s1 via a helper var that is used across the first osRecvMesg call, to force the s1 save before ra.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794765218.665605,
-  "score_before": 140,
-  "score_after": 140
- },
- {
   "function": "func_80028C68",
   "text": "Not matched; 1150 (92.1%) is the best, at revision 7109eb32fc537fba9778 (same C as 0809838c with the osMotorInit address written as (void*)((u8*)&D_800DE058 + 0)). Its score is unchanged, so that wrapper is only cosmetic. What is left is the case-0 block layout and register use: (1) the target's first beqz v0 on osPfsInitPak's result jumps forward to the `s0->unkC = 1` store placed late (0x22c); (2) the target keeps r in v1 and re-materializes &D_800DE058 with lui/addiu before the osMotorInit call, whereas mine keeps the address in s2. Source reorderings (r==0xA first, r!=0 nesting) made it worse (2270, 2400), so the case-0 order is correct and the remaining diff is the compiler's block placement for that if-chain. Next agent: try putting the `s0->unkC = 1` store in a separate statement after the if-chain (e.g. flag = (r == 0)) and check whether the target's late block then appears.",
   "by": "claude-haiku-5-5-20",
@@ -27576,14 +27528,6 @@
   "score_after": 1125
  },
  {
-  "function": "nuContMgr",
-  "text": "Best 140 (99.0%, 150 insns), revision 17ca9d36412287882eb7. Not matched. Remaining diff: target saves $s1 (0x14) before $ra (0x18) and does move $s1,$a0 after the stores; ours saves ra first. Also jal osContStartReadData ordering (rows 72/74). Flags checked by search_flags: no better (project -O1 gives 140). Source tries: moving s0=D_8006F970 before the D_8006F9D4 check gives 560 (worse). Why it can't get closer by my edits: the prologue store order and call order look like scheduling on the first block, not a C-statement change I can find. Next agent: try the a284/a228 paths reordered, or check whether the register save order follows a different local declaration (e.g. s0 declared in the a228 block). The __repair_record_arg0 typedef is my guess of arg0's layout, unverified.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794767286.286716,
-  "score_before": 140,
-  "score_after": 140
- },
- {
   "function": "__osViSwapContext",
   "text": "Not matched. Saved best 6255 (56%+). My rewrite with explicit s32/u8* field access scored 8145 (worse) and the m2c draft's D_800481F0/D_800481F4 handling does not match. Target order: `sw $s0,0x10($sp)`, load D_800481F4 into $s0, then lui $v0,0xa440 / lw $v0,0x10($v0) (reads 0xA4400010 status before the first osVirtualToPhysical call). Target writes 0xA4400000..0xA4400034 (display-processor style register block) in a fixed order: 0x04,0x08,0x14,0x18,0x1C,0x20,0x24,0x28,0x2C,0x0C,0x30,0x34. The tail copies 0x30 bytes in 16-byte steps from the old D_800481F4 block into the D_800481F0 block. Unresolved: whether the 0xA4400010 status read is a volatile pointer local, and how the 0x14-stride entry (s1 + s2*0x14) is typed. Recommend guess_struct on the block before retrying.",
   "by": "claude-haiku-5-5-22",
@@ -28271,14 +28215,6 @@
   "created_at": 1795643508.10014,
   "score_before": 0,
   "score_after": 0
- },
- {
-  "function": "nuContMgr",
-  "text": "Compiler detection: nuContMgr's saved C scores 60 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2, 140 under its own settings. Evidence: the judge's scores alone. Suggested on the project page for review; nothing was applied. Try its C with that compiler (try_compiler) before more source spellings.",
-  "by": "permuter-30064771962",
-  "created_at": 1795643818.226469,
-  "score_before": 140,
-  "score_after": 60
  },
  {
   "function": "_getRate",
@@ -38958,5 +38894,105 @@
   "score_before": 115,
   "score_after": 115,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:febc22b1d186ee0569217eaaa58f8e6b576050145c5bf582ebb0901b4b671c90"
+ },
+ {
+  "function": "nuContMgr",
+  "text": "Best 140 (99.0%), revision 17ca9d36412287882eb7. Structure is correct: goto-dispatch on *(s16*)arg0 (0x1000 -> a228, <0x1001 then ==1 -> a168, ==0x1001 -> a284, ==0x1002 -> a314, else 0). Only the a228 block differs: target does `jal osContStartReadData` with `lw s0,8(arg0)` in the delay slot (load after the call, before osRecvMesg); the current C already puts that load after the call, and the remaining 6 differing rows (2 operands, 4 reordered) sit around that first call's arg setup. Next: try reordering so the a0 lui/addiu for D_800DE058 sits after the lw, or express the first call's arg via a temp. Frame and save order (s1 at 0x14, ra at 0x18, s0 at 0x10) already match.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794709810.961063,
+  "score_before": 4251,
+  "score_after": 140
+ },
+ {
+  "function": "nuContMgr",
+  "text": "Best 140 (99.0%), no match. Restart from revision 17ca9d36412287882eb7 (the goto-based source with the __repair_record_arg0 struct; it is the saved best and compiles to 150 insns, same as target). Remaining diff is only ordering in the a228 path: target emits `lui a0,%hi(D_800DE058); addiu a0,a0,%lo(D_800DE058); jal osContStartReadData; lw s0,8(s1)` (the lw is in the delay slot), mine emits lui; jal; addiu (addiu in the delay slot) and then lw after. Moving `s0 = field_8` before the call scored 200 (worse), so do not do that. Untried: keep the call, make the field_8 read a separate statement after the first osRecvMesg, or express D_800DE058 as a local pointer assigned before the call. Also: the struct name __repair_record_arg0 is a placeholder; leave it unless you want to rename it.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794724863.9193962,
+  "score_before": 140,
+  "score_after": 140
+ },
+ {
+  "function": "nuContMgr",
+  "text": "nuContMgr (600 bytes, 150 insns): best 140 (99.0%), revision d5fa4ccfa8075f892a65 (goto-shaped draft with labels a168/a228/a284/a314, drop the odd __repair_record_arg0 typedef name in favour of a plain cast, as already done in the saved source). Only the prologue differs: target saves s1 at 0x14 then copies arg0 into s1 (move $s1,$a0) before saving ra at 0x18; ours saves ra first. Declaring `void *s1 = arg0;` at the top had no effect. The jal osContStartReadData also sits 2 instructions earlier in ours. Next: try a temporary used only in the a168 path so that the s1 live range starts in the prologue, or compile_family(typed_temporary) per the tool hint.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794737230.588944,
+  "score_before": 140,
+  "score_after": 140
+ },
+ {
+  "function": "nuContMgr",
+  "text": "Best 140 (99.0%) at revision 17ca9d36412287882eb7 (the claimed candidate, unchanged); the current revision e5e3229f03da70f15898 has the same score and differs only by `s16 code = *(s16 *)arg0;`, so use 17ca9d36 as the base. All 150 instructions are present; the only difference is the prologue/first-block ordering: target stores $s1 at 0x14 before `sw $ra,0x18`, and does `move $s1,$a0` before the first jal; ours stores ra first. Tried with no effect: `void *s1 = arg0;` at the top; `s16 code` local; typed_temporary family (not applicable); search_flags (all -O1 variants, project flags best at 140). Why it can't get closer by simple edits: the compiler folds these shapes to identical output. Next agent: try reordering the a168/a284 bodies so osRecvMesg(s0) comes before osContStartReadData, or move the D_8006F970 load before the first if.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794739385.024726,
+  "score_before": 140,
+  "score_after": 140
+ },
+ {
+  "function": "nuContMgr",
+  "text": "Best 140 (99%, not matched); best revision 17ca9d36412287882eb7 (also adab04ced0ba6c151329 with `void *s1 = arg0` copy, same 140). All 150 instructions match in content; the only diff is the prologue: target does `addiu sp; sw $s1,0x14(sp); move $s1,$a0; sw $ra,0x18(sp)`, ours saves $ra first then $s1, then moves a0. This is GCC -O2 prologue scheduling of the arg0 copy into the callee-saved register relative to the ra save; the target pattern suggests s1 is live from the first instruction (the arg0 move is hoisted before the ra save). Tried: arg0 used directly (140), local copy s1 = arg0 (140), typed_temporary family (no applicable variants). Untried: making the first if-test read *(s16*)arg0 into a local s16 before the chain; compile_variants (its schema needs `patches` objects, not the shape I sent). Likely needs a structural shape change rather than register tuning.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794755853.785433,
+  "score_before": 140,
+  "score_after": 140
+ },
+ {
+  "function": "nuContMgr",
+  "text": "Best: revision 17ca9d36412287882eb7, score 140 (99.0%), 150 insns each; all instructions identical, only the prologue order differs. Target: `sw $s1,0x14(sp)`, then `move $s1,$a0`, then `sw $ra,0x18(sp)`; ours stores ra first and moves s1 after. Frame and slots are right (0x20). Tried: `void *a; a = arg0;` alias and a dummy `s32 r` before the first test: both 140 (no effect). Untried: move the first `if` chain into a switch on *(s16*)arg0, or make the first statement assign s1 via a helper var that is used across the first osRecvMesg call, to force the s1 save before ra.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794765218.665605,
+  "score_before": 140,
+  "score_after": 140
+ },
+ {
+  "function": "nuContMgr",
+  "text": "Best 140 (99.0%, 150 insns), revision 17ca9d36412287882eb7. Not matched. Remaining diff: target saves $s1 (0x14) before $ra (0x18) and does move $s1,$a0 after the stores; ours saves ra first. Also jal osContStartReadData ordering (rows 72/74). Flags checked by search_flags: no better (project -O1 gives 140). Source tries: moving s0=D_8006F970 before the D_8006F9D4 check gives 560 (worse). Why it can't get closer by my edits: the prologue store order and call order look like scheduling on the first block, not a C-statement change I can find. Next agent: try the a284/a228 paths reordered, or check whether the register save order follows a different local declaration (e.g. s0 declared in the a228 block). The __repair_record_arg0 typedef is my guess of arg0's layout, unverified.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794767286.286716,
+  "score_before": 140,
+  "score_after": 140
+ },
+ {
+  "function": "nuContMgr",
+  "text": "Compiler detection: nuContMgr's saved C scores 60 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2, 140 under its own settings. Evidence: the judge's scores alone. Suggested on the project page for review; nothing was applied. Try its C with that compiler (try_compiler) before more source spellings.",
+  "by": "permuter-30064771962",
+  "created_at": 1795643818.226469,
+  "score_before": 140,
+  "score_after": 60
+ },
+ {
+  "function": "nuContMgr",
+  "text": "Moved on after 8 trials returning previously seen scored instruction diffs. Best source retained.",
+  "by": "manual-0d2866643d514aba",
+  "created_at": 1795713204.327512,
+  "score_before": 140,
+  "score_after": 140,
+  "handoff_inputs": "7d6ab19fd43b588fb9bd67b9d84d10cd2a9748f024bfaf8e453c8df33558880f:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:4f2cc8cb4493318513566168398180f35e006337e5211723fdaf39b80c87ee04"
+ },
+ {
+  "function": "nuContMgr",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Clean switch rewrite (cases ordered as the target lays them out, s0 loaded after the first osContStartReadData call) scores 140 at the current profile, 60 at -O1 -fschedule-insns2 (not exact). Remaining rows: the prologue store order of s1 and ra, and the jal/addiu placement for osContStartReadData in the 0x1000 case. Recall of the NuSystem source did not confirm a shape.",
+  "by": "manual-0d2866643d514aba",
+  "created_at": 1795713246.929923,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "7d6ab19fd43b588fb9bd67b9d84d10cd2a9748f024bfaf8e453c8df33558880f:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:4f2cc8cb4493318513566168398180f35e006337e5211723fdaf39b80c87ee04"
+ },
+ {
+  "function": "nuContMgr",
+  "text": "Small-model attempt at nuContMgr: 5 tries.\n  best 60 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 140 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1750 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 3791 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 6701 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nClean goto-structured rewrite (blocks a168, a228, a284, a314 in target order). Best under profile 4 (-O1 -fschedule-insns*): 60, same as saved; own profile 140. Remaining diff is only in the a228 block: target has lui/addiu/jal with lw s0 in the delay slot, ours puts addiu in the delay slot. Tried loading s0 before the start-read call (worse: 120) and a byte-offset field access (no change). Not matched after 5 tries (stopped early).",
+  "by": "manual-cb2ecdb6182e4013",
+  "created_at": 1795716241.2398899,
+  "score_before": 140,
+  "score_after": 140,
+  "handoff_inputs": "7d6ab19fd43b588fb9bd67b9d84d10cd2a9748f024bfaf8e453c8df33558880f:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:4f2cc8cb4493318513566168398180f35e006337e5211723fdaf39b80c87ee04"
+ },
+ {
+  "function": "nuContMgr",
+  "text": "Small-model attempt at nuContMgr: 12 tries.\n  best 60 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 140 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1750 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 3791 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 6701 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nClean rewrite with goto-labelled blocks in target order: best 60 under gcc-2.7.2-kmc -O1 -fschedule-insns (own profile 140 vs saved 140). Remaining diff: the 0x1000 block's jal osContStartReadData and lw $s0,8($s1) delay-slot placement. Tried: s0 load before the call (120), a->data at the call (750), raw byte offset (165), cast on the call arg (no change), truthiness tests on the callback (no change), s0 through the query tail (no change). Not matched.",
+  "by": "manual-4162a467ce974eec",
+  "created_at": 1795716476.2149692,
+  "score_before": 140,
+  "score_after": 140,
+  "handoff_inputs": "7d6ab19fd43b588fb9bd67b9d84d10cd2a9748f024bfaf8e453c8df33558880f:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:4f2cc8cb4493318513566168398180f35e006337e5211723fdaf39b80c87ee04"
  }
 ]
