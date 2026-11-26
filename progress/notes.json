@@ -3424,14 +3424,6 @@
   "score_after": 1215
  },
  {
-  "function": "func_8013F050",
-  "text": "Deep permuter: score 3485 \u2192 3180; 1 improvements; 88 candidates tested; 27 cached skips; 0 rejected; 7206s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935349",
-  "created_at": 1794348652.852818,
-  "score_before": 3485,
-  "score_after": 3180
- },
- {
   "function": "_n_sndpVoiceHandler",
   "text": "Deep permuter: score 105 \u2192 105; 0 improvements; 67 candidates tested; 48 cached skips; 0 rejected; 7207s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934875",
@@ -7088,14 +7080,6 @@
   "score_after": 4555
  },
  {
-  "function": "func_8013F050",
-  "text": "Improved 3495 -> 3278 but far from 0; move-on budget exhausted (3/3). Target: 97 insns, 0x40 frame, s0..s3 saved, fs0/fs1/fs2 saved at 0x28/0x30/0x38.\n\nWhat is confirmed and should be kept (revision 0c2411899aca2e54c297, score 3278):\n- Declare THREE separate symbols 4 bytes apart, `extern u8 D_8011F308[]; extern u8 D_8011F30C[]; extern u8 D_8011F310[];` and index each with the same byte offset. A single base array with +0/+4/+8 folded into %lo costs points (3485 -> 3473 when split, and the split form is what the ROM shows: each lwc1 has its own lui %hi/%lo pair).\n- `arg1` is `s8 *` for the 0x60 sentinel compare (`lb` + `beq $v0,-1`) but the 0x67 flag is read/written as unsigned (`lbu`/`sb`): write `if (arg1[i+0x60] != -1)` with s8* arg1 and `*(u8 *)(arg1 + 0x67 + i)` for the flag. Using u8* arg1 costs 100 (3378), using s8* for the flag too costs 100 (3278 vs 3378 both directions).\n- Loop must be `for (i = 0; i < 7; i++)` with the induction var incremented at the bottom; goto/continue rewrites score worse (3473/3858).\n- `idx = (arg0 & 0xFFFF) * 100;` computed once up front, then reused for the loop; the &0xFFFF must stay on arg0 (target does `andi $a0,$a0,0xffff` early).\n- sqrtf is func_80032310 (already renamed to sqrtf in the project).\n\nRemaining structural differences (all in the loop body, ~75 rows):\n1. Target keeps D_8022A772 out of a register: it emits `lui $v1,%hi(D_8022A772); addu $v1,$v1,$v0; lhu $v1,%lo(D_8022A772)($v1)` inside the loop, i.e. a fresh lui/addiu per iteration, whereas gcc-2.7.2-kmc -O2 hoists `lui/addiu $s2` before the loop. Declaring the row load volatile only added an `andi` and made it worse; declaring D_8022A772 as u16[] changed nothing. This is the single biggest remaining item.\n2. Target emits `beq $v0,$s2,.L` for the -1 test; kmc -O2 emits `beql`. Same branch-likely-vs-plain issue seen in func_801AEEE8; -mbranch-likely is rejected by every cc1 in this project, so this may be unreachable.\n3. Target's index math for the 0x8F0 row stride is `sll 3; addu; sll 4; subu; sll 4` (i*0x8F0 via i*9*16*16 - ...), which is what kmc already emits; only the base hoisting differs.\n4. FP register allocation: target uses f0/f2/f4 for dx/dy/dz and f24/f22/f20 for px/py/pz; ours uses f2/f4/f0. Follows from the mul/add scheduling: target emits `mul.s f0; nop; mul.s f2; add.s f0,f0,f2; mul.s f4; add.s f12,f0,f4` (a nop inserted after the first mul), ours interleaves the muls with the subs. Writing `dist = sqrtf(dx*dx + dy*dy + dz*dz)` as one expression changed nothing; try forcing the subs to complete before any mul (e.g. compute all three dx/dy/dz into separate named locals used only afterwards) if this is picked up again.\n\nUntried ideas: `-fno-...`/`-O1`/`-O2 -fstrength-reduce` flag sweeps on this exact C (search_flags), and declaring D_8022A772 as a `u16 *` pointer initialised inside the loop body.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794709833.61953,
-  "score_before": 848,
-  "score_after": 848
- },
- {
   "function": "func_80140BEC",
   "text": "Loop of up to 4 iterations (var_s0 0..3) calling func_8013E364 then func_800DE41C with D_80168814[var_s0*3..+2] (y uses -20.0f), then either a block of s16 stores into D_8011F2F0 + idx*0x64 (+2,+4,+6,+8 = 0x80, +0x3E = 0, +0x40 = 0x64 - var_s0*10), func_8013E818, and f32/s32 stores into D_8018D730/D_8018D6C4 at idx*0x7C, or func_8013E49C; then D_8011F2FD[(arg0&0xFFFF)*0x64] = 2. The draft as written (do/while, s32 temps) scored 7958, worse than the saved 2599. The target keeps the float constants and the D_80168814 base in separate reloads (lui/lwc1 %lo repeated x3) and keeps several pointers in s-registers across the call; the C here puts the loop body in a different order. Next: try the saved 2599 candidate and fix only the loop-carried temps, or split the float array indexing into three explicit loads. Not matched.",
   "by": "claude-haiku-5-5-20",
@@ -10568,14 +10552,6 @@
   "score_after": 4111
  },
  {
-  "function": "func_8013F050",
-  "text": "No match. Best rechecked 3485 (64.0%) with the m2c-style source (x,y,z loaded from D_8011F308 + (arg0&0xFFFF)*100 with +4/+8; loop i<7 over arg1+i [0x60] != -1; j = u16 D_8022A772[i*0x8F0]*100; dx/dy/dz; dist = sqrtf(...); if dist < arg1 f32 +0x70 and arg1[i+0x67]==0 then set 1 and return 1). Saved best 848 does not reproduce from this same source. Target facts: frame 0x40, saves ra,s0-s3 and fs0-fs2 (x,y,z kept in three f regs across sqrtf); loop at bottom with slti; sqrt.s with c.eq.s NaN check then jal sqrtf. Ours: frame 0x58, extra saves and different register use. A compact rewrite of the distance expression (3rd attempt) scored 5909, worse. Next step: keep x,y,z as f32 locals (they must be live across the sqrt call), drop dx/dy/dz temporaries, and reduce the locals so the frame drops to 0x40; then work on the loop shape (test at bottom).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794724282.379429,
-  "score_before": 848,
-  "score_after": 848
- },
- {
   "function": "func_8013E49C",
   "text": "Not worked on by the claiming agent (claimed at the end of a session, released unstarted). The machine draft is wrong: it references undeclared D_8018F5C2 / D_80187BE0 / D_8018D738 / D_8018D73A and uses u16 comparisons that gcc flags as always-true. Its structure is a linked-list walk over 0x7C-byte records (next index u16 at +0 of the record, sentinel 0xFFFF) with a tail index D_80189DC2 and a count D_80187BE0. Start by declaring the globals with correct types from the target's loads, then match the two branches (head == 0xFFFF path vs. append path) separately.",
   "by": "claude-haiku-5-5-21",
@@ -13728,14 +13704,6 @@
   "score_after": 1875
  },
  {
-  "function": "func_8013F050",
-  "text": "Saved best is 848, but get_candidate(saved_best) returned the same C as the current 3485 candidate, so the 848 source is not recoverable from this revision; recheck before building on it. Current candidates all score 3485 (64%). Target frame is 0x40: saves ra,s0-s3 and three FP regs (sdc1 $fs0-$fs2; x,y,z live across sqrtf). Ours use a 0x58 frame with s0-s5 and f20/f22/f24, so too many int values stay live. Target keeps -1 and 1 in s2/s3 and arg1 in s1. Tried: &0xFFFF mask vs u16 param, inlined squared-distance, split dx/dy/dz, `u32 i` (signedness family, 3680 worse). Next: find the int-pressure source (repeated arg1+i address or the j*100 index); check whether the callee sqrtf is inlined differently.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794735984.4043899,
-  "score_before": 848,
-  "score_after": 848
- },
- {
   "function": "func_8014B590",
   "text": "Not matched. Best current 8695 (10.3%, revision 91b78afb560fd29ab8dd); saved historical best 8400 is from a different source and was not reproduced. Semantics decoded: if ((arg&0xFF)<4) { ret=0; a=arg&0xFF; for i<14 { base[i+4]=D_8021F048[14a+i]; for j<8 *(u16*)(base+16i+0x1C+2j)=*(u16*)(D_8021F270+224a+16i+2j); } for i<8 { *(s32*)(base+0x11C+4i)=((s32*)(&D_8018D3A0+32a))[i]; base[0x14+i]=D_8021E22F[34i+272a]; } base[0x13C..0x13F]=0; sum=sum of base[4..319]; D_80189B38[0]=sum; func_8003DE60(D_80183750,sum,i) with 3 args (a3 is a stale leftover, not passed). Return ret&0xFF with ret=0xFF default. Tried: local a=arg&0xFF (9315, worse), u8 ret (no change), s8 base (no change), signedness family (no change). Remaining diffs: prologue save order (target saves ra at 0x14, then s0 at 0x10 before the andi test; ours saves s0 first), base register t0 loaded after the beqz in target, loop counters placed in t0/a2 differently, and table base registers differ. Untried: separate pointer per table, and loop counter as u8.",
   "by": "claude-haiku-5-5-24",
@@ -13870,14 +13838,6 @@
   "created_at": 1794736785.170773,
   "score_before": 1840,
   "score_after": 1585
- },
- {
-  "function": "func_8013F050",
-  "text": "Saved best 848 (historical, not reverified); best rechecked current is 3485 (revision 08bfee89effe0245bf15, u16 arg0 variant). Pointer-walk variant (p = arg1; p[0x60]/p[0x67]; p++) scored 3775, worse. Target frame is 0x40 with ra at 0x20 and s3 at 0x1c; every candidate builds a 0x58 frame with s2-s5 saved, so the structure of the loop (where the 7-entry scan and the D_8022A772 stride 0x8F0 indexing live) is the blocker. The `lb 0x60($v0)` target indexes via sll/addu chain of arg1+i rather than a pointer, so a plain index form may be closer. Not reachable with the current C after 3 compiles; move on unless someone has a different loop shape.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794736975.206796,
-  "score_before": 848,
-  "score_after": 848
  },
  {
   "function": "func_8019A31C",
@@ -20128,14 +20088,6 @@
   "score_after": 12595
  },
  {
-  "function": "func_8013F050",
-  "text": "Not matched. Fresh compile of this loop-over-7 distance test scores 3485 (64%); the saved best 848 is recorded as the same source but does not reproduce here, so compare get_candidate(base=\"saved_best\") before relying on it. Structure: x,y,z from D_8011F308 + (arg0&0xFFFF)*100 (+0,+4,+8); loop i<7 over arg1 flag bytes at +0x60 (skip if == -1); j = (u16)D_8022A772[i*0x8F0]*100; dist = sqrtf(dx\u00b2+dy\u00b2+dz\u00b2) against float at arg1+0x70; if below and arg1[i+0x67]==0 then set it to 1 and return 1. Remaining diffs: frame is -0x40 in target (ra@0x20-ish, s3@0x1C) but ours is -0x58 with extra saved s4/s5 and a moved s3 = a1 copy: the compiler keeps arg1 and i in saved regs; the j-based pointer arithmetic should use a single u8 base pointer for the i*0x8F0 row rather than the D_8022A772 array index. Try: declare the loop pointer 'u8 *row = D_8022A772 + i*0x8F0' and reduce live variables (dx/dy/dz temporaries) so only x,y,z,arg1,i,j are live.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794755660.86104,
-  "score_before": 848,
-  "score_after": 848
- },
- {
   "function": "func_80198250",
   "text": "Best 1065 (87.1%), revision e54136690fa7b0fc503d. Key fix: D_801C6BB0 must be u16 (s16 makes the ==0xFFFF guard constant 0). Source: p = D_801C7062 (s8 array); guard D_801C6BB9 != 0 && D_801C6BB0[D_801C6BB9*0x18 + D_801C7068] == 0xFFFF; ((u8*)D_801C7AB0)[1] == 5; then p[0]==D_801C7068 with p[1]==BB9+1 / BB9-1 branches and D_801C7469 switch; else-path (goto blk) reads p[0] vs D_801C7068\u00b11. Remaining diff: target reads D_801C7063 as a separate global in the final predicate (lui/lb %lo(D_801C7063)) and p[1] in the first block; using D_801C7063 in the blk predicate (1095) moves the extra lui instead of removing it. Untried: compile_family(signedness) on the 1065 revision; and whether D_801C7063 should be declared as the last-block read only. Budget 3/3 without improvement.",
   "by": "claude-haiku-5-5-21",
@@ -21550,14 +21502,6 @@
   "created_at": 1794758119.761996,
   "score_before": 1919,
   "score_after": 1919
- },
- {
-  "function": "func_8013F050",
-  "text": "Saved best 848 (historical, source not recoverable from shown data). Current candidates: f5f63b9d16cb (3485), 6cd7ea5df40a (3485, dx/dy/dz inlined into sqrtf argument, no effect). Target frame 0x40 with saves at 0x20/0x1c; ours 0x58 with extra s3/s4/s5 saves and ra at 0x38, so loop locals are over-allocated. Next: recover the 848 source via get_candidate(base=\"saved_best\"), then keep only x,y,z,dist as locals.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794758127.617644,
-  "score_before": 848,
-  "score_after": 848
  },
  {
   "function": "func_800DF1E0",
@@ -26854,14 +26798,6 @@
   "created_at": 1794766973.135489,
   "score_before": 5830,
   "score_after": 5830
- },
- {
-  "function": "func_8013F050",
-  "text": "Draft scores 3485 (64%) at revision 12c0be06f63f04ca14eb, worse than saved best 848 (prior agent; get_candidate base=saved_best). Target frame is 0x40 (mine 0x58, saves s3 and copies arg1 to s3): the loop keeps arg1 in a register across the sqrtf call, and mine has extra live variables. Try: drop the separate x/y/z/dx/dy/dz locals or compute the squared distance inline, and avoid the (arg1+i)[0x60] pointer form in favour of a single base pointer. Also the target's j is computed from u16 at D_8022A772 + i*0x8F0 with stride 2320 (0x8F0); check the element width (u16 vs s32) and whether it is *100 or *0x64 after the load. Untested.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794767005.657365,
-  "score_before": 848,
-  "score_after": 848
  },
  {
   "function": "func_80214504",
@@ -39230,5 +39166,95 @@
   "created_at": 1795716956.0145972,
   "score_before": 965,
   "score_after": 965
+ },
+ {
+  "function": "func_8013F050",
+  "text": "Deep permuter: score 3485 \u2192 3180; 1 improvements; 88 candidates tested; 27 cached skips; 0 rejected; 7206s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935349",
+  "created_at": 1794348652.852818,
+  "score_before": 3485,
+  "score_after": 3180
+ },
+ {
+  "function": "func_8013F050",
+  "text": "Improved 3495 -> 3278 but far from 0; move-on budget exhausted (3/3). Target: 97 insns, 0x40 frame, s0..s3 saved, fs0/fs1/fs2 saved at 0x28/0x30/0x38.\n\nWhat is confirmed and should be kept (revision 0c2411899aca2e54c297, score 3278):\n- Declare THREE separate symbols 4 bytes apart, `extern u8 D_8011F308[]; extern u8 D_8011F30C[]; extern u8 D_8011F310[];` and index each with the same byte offset. A single base array with +0/+4/+8 folded into %lo costs points (3485 -> 3473 when split, and the split form is what the ROM shows: each lwc1 has its own lui %hi/%lo pair).\n- `arg1` is `s8 *` for the 0x60 sentinel compare (`lb` + `beq $v0,-1`) but the 0x67 flag is read/written as unsigned (`lbu`/`sb`): write `if (arg1[i+0x60] != -1)` with s8* arg1 and `*(u8 *)(arg1 + 0x67 + i)` for the flag. Using u8* arg1 costs 100 (3378), using s8* for the flag too costs 100 (3278 vs 3378 both directions).\n- Loop must be `for (i = 0; i < 7; i++)` with the induction var incremented at the bottom; goto/continue rewrites score worse (3473/3858).\n- `idx = (arg0 & 0xFFFF) * 100;` computed once up front, then reused for the loop; the &0xFFFF must stay on arg0 (target does `andi $a0,$a0,0xffff` early).\n- sqrtf is func_80032310 (already renamed to sqrtf in the project).\n\nRemaining structural differences (all in the loop body, ~75 rows):\n1. Target keeps D_8022A772 out of a register: it emits `lui $v1,%hi(D_8022A772); addu $v1,$v1,$v0; lhu $v1,%lo(D_8022A772)($v1)` inside the loop, i.e. a fresh lui/addiu per iteration, whereas gcc-2.7.2-kmc -O2 hoists `lui/addiu $s2` before the loop. Declaring the row load volatile only added an `andi` and made it worse; declaring D_8022A772 as u16[] changed nothing. This is the single biggest remaining item.\n2. Target emits `beq $v0,$s2,.L` for the -1 test; kmc -O2 emits `beql`. Same branch-likely-vs-plain issue seen in func_801AEEE8; -mbranch-likely is rejected by every cc1 in this project, so this may be unreachable.\n3. Target's index math for the 0x8F0 row stride is `sll 3; addu; sll 4; subu; sll 4` (i*0x8F0 via i*9*16*16 - ...), which is what kmc already emits; only the base hoisting differs.\n4. FP register allocation: target uses f0/f2/f4 for dx/dy/dz and f24/f22/f20 for px/py/pz; ours uses f2/f4/f0. Follows from the mul/add scheduling: target emits `mul.s f0; nop; mul.s f2; add.s f0,f0,f2; mul.s f4; add.s f12,f0,f4` (a nop inserted after the first mul), ours interleaves the muls with the subs. Writing `dist = sqrtf(dx*dx + dy*dy + dz*dz)` as one expression changed nothing; try forcing the subs to complete before any mul (e.g. compute all three dx/dy/dz into separate named locals used only afterwards) if this is picked up again.\n\nUntried ideas: `-fno-...`/`-O1`/`-O2 -fstrength-reduce` flag sweeps on this exact C (search_flags), and declaring D_8022A772 as a `u16 *` pointer initialised inside the loop body.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794709833.61953,
+  "score_before": 848,
+  "score_after": 848
+ },
+ {
+  "function": "func_8013F050",
+  "text": "No match. Best rechecked 3485 (64.0%) with the m2c-style source (x,y,z loaded from D_8011F308 + (arg0&0xFFFF)*100 with +4/+8; loop i<7 over arg1+i [0x60] != -1; j = u16 D_8022A772[i*0x8F0]*100; dx/dy/dz; dist = sqrtf(...); if dist < arg1 f32 +0x70 and arg1[i+0x67]==0 then set 1 and return 1). Saved best 848 does not reproduce from this same source. Target facts: frame 0x40, saves ra,s0-s3 and fs0-fs2 (x,y,z kept in three f regs across sqrtf); loop at bottom with slti; sqrt.s with c.eq.s NaN check then jal sqrtf. Ours: frame 0x58, extra saves and different register use. A compact rewrite of the distance expression (3rd attempt) scored 5909, worse. Next step: keep x,y,z as f32 locals (they must be live across the sqrt call), drop dx/dy/dz temporaries, and reduce the locals so the frame drops to 0x40; then work on the loop shape (test at bottom).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794724282.379429,
+  "score_before": 848,
+  "score_after": 848
+ },
+ {
+  "function": "func_8013F050",
+  "text": "Saved best is 848, but get_candidate(saved_best) returned the same C as the current 3485 candidate, so the 848 source is not recoverable from this revision; recheck before building on it. Current candidates all score 3485 (64%). Target frame is 0x40: saves ra,s0-s3 and three FP regs (sdc1 $fs0-$fs2; x,y,z live across sqrtf). Ours use a 0x58 frame with s0-s5 and f20/f22/f24, so too many int values stay live. Target keeps -1 and 1 in s2/s3 and arg1 in s1. Tried: &0xFFFF mask vs u16 param, inlined squared-distance, split dx/dy/dz, `u32 i` (signedness family, 3680 worse). Next: find the int-pressure source (repeated arg1+i address or the j*100 index); check whether the callee sqrtf is inlined differently.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794735984.4043899,
+  "score_before": 848,
+  "score_after": 848
+ },
+ {
+  "function": "func_8013F050",
+  "text": "Saved best 848 (historical, not reverified); best rechecked current is 3485 (revision 08bfee89effe0245bf15, u16 arg0 variant). Pointer-walk variant (p = arg1; p[0x60]/p[0x67]; p++) scored 3775, worse. Target frame is 0x40 with ra at 0x20 and s3 at 0x1c; every candidate builds a 0x58 frame with s2-s5 saved, so the structure of the loop (where the 7-entry scan and the D_8022A772 stride 0x8F0 indexing live) is the blocker. The `lb 0x60($v0)` target indexes via sll/addu chain of arg1+i rather than a pointer, so a plain index form may be closer. Not reachable with the current C after 3 compiles; move on unless someone has a different loop shape.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794736975.206796,
+  "score_before": 848,
+  "score_after": 848
+ },
+ {
+  "function": "func_8013F050",
+  "text": "Not matched. Fresh compile of this loop-over-7 distance test scores 3485 (64%); the saved best 848 is recorded as the same source but does not reproduce here, so compare get_candidate(base=\"saved_best\") before relying on it. Structure: x,y,z from D_8011F308 + (arg0&0xFFFF)*100 (+0,+4,+8); loop i<7 over arg1 flag bytes at +0x60 (skip if == -1); j = (u16)D_8022A772[i*0x8F0]*100; dist = sqrtf(dx\u00b2+dy\u00b2+dz\u00b2) against float at arg1+0x70; if below and arg1[i+0x67]==0 then set it to 1 and return 1. Remaining diffs: frame is -0x40 in target (ra@0x20-ish, s3@0x1C) but ours is -0x58 with extra saved s4/s5 and a moved s3 = a1 copy: the compiler keeps arg1 and i in saved regs; the j-based pointer arithmetic should use a single u8 base pointer for the i*0x8F0 row rather than the D_8022A772 array index. Try: declare the loop pointer 'u8 *row = D_8022A772 + i*0x8F0' and reduce live variables (dx/dy/dz temporaries) so only x,y,z,arg1,i,j are live.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794755660.86104,
+  "score_before": 848,
+  "score_after": 848
+ },
+ {
+  "function": "func_8013F050",
+  "text": "Saved best 848 (historical, source not recoverable from shown data). Current candidates: f5f63b9d16cb (3485), 6cd7ea5df40a (3485, dx/dy/dz inlined into sqrtf argument, no effect). Target frame 0x40 with saves at 0x20/0x1c; ours 0x58 with extra s3/s4/s5 saves and ra at 0x38, so loop locals are over-allocated. Next: recover the 848 source via get_candidate(base=\"saved_best\"), then keep only x,y,z,dist as locals.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794758127.617644,
+  "score_before": 848,
+  "score_after": 848
+ },
+ {
+  "function": "func_8013F050",
+  "text": "Draft scores 3485 (64%) at revision 12c0be06f63f04ca14eb, worse than saved best 848 (prior agent; get_candidate base=saved_best). Target frame is 0x40 (mine 0x58, saves s3 and copies arg1 to s3): the loop keeps arg1 in a register across the sqrtf call, and mine has extra live variables. Try: drop the separate x/y/z/dx/dy/dz locals or compute the squared distance inline, and avoid the (arg1+i)[0x60] pointer form in favour of a single base pointer. Also the target's j is computed from u16 at D_8022A772 + i*0x8F0 with stride 2320 (0x8F0); check the element width (u16 vs s32) and whether it is *100 or *0x64 after the load. Untested.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794767005.657365,
+  "score_before": 848,
+  "score_after": 848
+ },
+ {
+  "function": "func_8013F050",
+  "text": "Haiku pass (haiku-pr6): nearest-slot search over 7 entries: skip entries whose byte at 0x60 + s0 is -1, take the record index from D_8022A772 + s0*2288 (u16), compare the distance from the point in D_8011F308 + arg0*100 (three floats at +0, +4, +8) with the float at arg1+0x70, and mark arg1[0x67 + s0] = 1 and return 1 on the first free hit, else return 0. Judge: 2323 at -O1 (5355 at -O2). The target keeps only three saved float registers and no extra pointer; our form keeps the record pointers in more registers. Next: keep the point in three locals as the target does and read the table entry once.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795710988.7319,
+  "score_before": 5355,
+  "score_after": 5355,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:567ed13da7ca1a3bcd06448a9daf4aee2b3d2e0f815d7343bbb6bb79a515d119"
+ },
+ {
+  "function": "func_8013F050",
+  "text": "Search loop; 2323 at -O1. See note.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795710989.4058602,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:567ed13da7ca1a3bcd06448a9daf4aee2b3d2e0f815d7343bbb6bb79a515d119"
+ },
+ {
+  "function": "func_8013F050",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr26: best under -G0 -mips3 -mgp32 -mfp32 -O1 is 1251 by prove_chain from a clean draft (statement_scope_weight). Remaining rows: the table bases lui/addiu are hoisted into s2/s3 (target reloads them each iteration), the flag constants 1 and -1 are not kept in registers, and guard pointers or constant locals made it worse (2714, 2589). Default O2 is about 4150.",
+  "by": "manual-41d32257dcbd48de",
+  "created_at": 1795715579.7676318,
+  "score_before": 1010,
+  "score_after": 1010
  }
 ]
