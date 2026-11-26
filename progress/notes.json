@@ -7096,14 +7096,6 @@
   "score_after": 3257
  },
  {
-  "function": "func_801FA7FC",
-  "text": "Straight-line rotation-matrix builder: a1..a3 f32 angles times D_801FB2B4, sinf/cosf of each, 16-float matrix at sp+0x10 (m3,m7,m11,m12..m14 = 0, m15 = 1.0f), guMtxF2L(m, arg0). Best 5809 (revision 25b28630556e2ea23eed; formulas m0=cy*cz-sx*sy*sz, m1=cy*sz+sx*sy*cz, m2=-cx*sy, m4=-cx*sz, m5=cx*cz, m6=sx, m8=sy*cz+sx*cy*sz, m9=sy*sz-sx*cy*cz, m10=cx*cy). Remaining gap: frame 0x90 vs target 0x88. Target saves ra@0x54, s0@0x50, and six doubles at 0x58..0x80 (fs0..fs5); mine puts s0 at 0x58 and carries an extra 8-byte save, so I hold one more fp value live across the calls than the target. Variants that failed: inlining the constant (6114), separate k local (5809, same score). Next: keep at most six live f32 across the sinf/cosf calls (e.g., compute the products of sx,cx,sy,cy,sz,cz into the matrix slots before the remaining calls), and get ra/s0 at 0x54/0x50.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794708282.442081,
-  "score_before": 5144,
-  "score_after": 5144
- },
- {
   "function": "func_800DE2E0",
   "text": "SOLVED, but needs a compiler-profile change that is not applied automatically. Byte-identical (score 0) with gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O1 (project default kmc -O2 gives 2860). A function-specific suggest() bundle with this exact source is queued; apply it and the function saves as matched.\n\nWinning C (note: no base pointer variable -- the header/tail stores must be written directly off the symbol with constant byte offsets so GCC CSEs the address into v0 and keeps the 0xFFFF constant in v1):\n\nextern s16 D_80126FF0;\nextern s16 D_80126FF4;\nextern u16 func_800E1850;\nextern s16 D_8011F300;\nextern s16 D_8011F302;\nextern s16 D_8011F2F1;\nextern s16 D_80126F9C;\n\nvoid func_800DE2E0(void) {\n    s32 var_a0;\n    u32 temp_v0;\n\n    D_80126FF0 = 0x140;\n    D_80126FF4 = 0;\n    func_800E1850 = 0xFFFF;\n    *(u16 *)((u8 *)&D_8011F300 + 0) = 0xFFFF;\n    *(u16 *)((u8 *)&D_8011F300 + 2) = 1;\n    *(u8 *)((u8 *)&D_8011F300 - 0xF) = 0;\n    var_a0 = 1;\n    do {\n        temp_v0 = (((var_a0 * 2 + var_a0) << 3) + var_a0) * 4;\n        *(u16 *)((u8 *)&D_8011F300 + temp_v0) = var_a0 - 1;\n        *(u16 *)((u8 *)&D_8011F302 + temp_v0) = var_a0 + 1;\n        *(u8 *)((u8 *)&D_8011F2F1 + temp_v0) = 0;\n        var_a0 = var_a0 + 1;\n    } while (var_a0 < 0x13F);\n    *(u16 *)((u8 *)&D_80126F9C + 0) = 0x13E;\n    *(u16 *)((u8 *)&D_80126F9C + 2) = 0xFFFF;\n    *(u8 *)((u8 *)&D_80126F9C - 0xF) = 0;\n}\n\nUse 0xFFFF (not -1) so both 0xFFFF stores share one `ori v1,$zero,0xffff`. The tail needs the third store (`sb $zero,-0xF($v0)` after `sh 0xFFFF,2($v0)`, i.e. `jr $ra` in the delay slot) -- omitting it is a large diff. `u32 temp_v0` and the `((x*2+x)<<3)+x)*4` index shape are required for the loop.\n\nSOLVED under a non-default compiler profile; blocked only on the user applying the queued suggestion. try_compiler confirms byte-identical (score 0) with gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O1; project default kmc -O2 gives 2860. A function-specific suggest() bundle carrying the exact matching source is already queued (automatic compiler changes are off). The exact winning C is in the note on this function.\n\nKey result for future work on this unit (0x800DE2E0..0x800E1700): it is built by gcc-2.8.1-pm-sn-as at -O1, not kmc -O2. Under that profile the remaining trick was to remove the `s16 *base` local and write the header/tail stores directly as `*(u16*)((u8*)&D_8011F300 + 0)`, `+2`, `*(u8*)((u8*)&D_8011F300 - 0xF)` so GCC CSEs the address into v0 and keeps 0xFFFF in v1 (pointer-variable version scores 75, explicit-offset version scores 0). Do not re-derive this under kmc -O2.",
   "by": "opencode-deepseek-v4.1-flash-free-5",
@@ -11168,14 +11160,6 @@
   "score_after": 2170
  },
  {
-  "function": "func_801FA7FC",
-  "text": "Claimed but not worked: this session ended on limited effort. The machine draft is unreliable: both branches are identical and the sin/cos calls are mis-scaled. The function builds a 4x4 rotation matrix (sinf/cosf of arg1..arg3 scaled by D_801FB2B4, a 0 / 1.0f tail, then guMtxF2L(&sp10, arg0)). Next agent should check get_assembly for the branch on temp_fs1 and rebuild the C from there.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794722197.420011,
-  "score_before": 5144,
-  "score_after": 5144
- },
- {
   "function": "func_801FA4B0",
   "text": "Stopped after one compile. Current best saved from an earlier attempt is 3257; my clean rewrite (revision 8b0bfea96eceb9253758, 8160) is worse. Target is 114 insns with an 8-byte frame (`addiu sp,-8`, `sdc1 $f20`) and f32 args passed in the integer regs of the arg slots (lwc1 from 0x10..0x24($sp)), which the rewrite does not reproduce. Target reads arg6/arg7 through `mtc1 $zero` compares with `bc1f`/`bc1fl` branches, and the early-return structure is different from the draft (goto-heavy m2c draft). Next: start from the saved 3257 candidate, not from this rewrite; work on the branch structure of the two |x|<1e-5 clamps (m2c `goto block_6/block_13`) before register allocation.",
   "by": "claude-haiku-5-5-23",
@@ -14560,14 +14544,6 @@
   "score_after": 30
  },
  {
-  "function": "func_801FA7FC",
-  "text": "Not matched. Saved best 5144 (historical machine lineage); my rewrite as a sin/cos matrix builder scored 7103 (26%), worse. Target 96 insns: it loads D_801FB2B4 once and reuses it (the draft reloads it per product) and keeps the three args in $f20/$f22/$f30 as callee-saved floats (sdc1 saves at 0x58/0x60/0x80). Its matrix terms use the sin/cos results in a register order I did not reproduce. Next agent: start from the saved 5144 draft and fix the constant reuse and the callee-saved float layout first, then the term order.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794732119.443447,
-  "score_before": 5144,
-  "score_after": 5144
- },
- {
   "function": "func_801E2BFC",
   "text": "Best saved 4190 (40.9%), not matched; the saved source is the one with separate d0..d4 symbols (D_801F18F8, D_801F18F9, D_801F18FA, D_801F18FB, D_801F18FC as separate externs). Later edits were worse or invalid: scalar symbols D_801F18E4..E7 and D_801C5E9C..9F are separate symbols in the target (each is its own lui/addiu), so the 4-byte copy should be written as four separate scalar assignments to separate extern u8 symbols, not as indexed array stores. My attempt at that (revision c35046680b0643e4421d) did not compile cleanly (a `u8` assignment warning and a frame that the target does not have at the top). Next step: make all of D_801C5E9C, D_801C5E9D, D_801C5E9E, D_801C5E9F, D_801F18E4..E7 distinct u8 externs; keep the d0..d4 loop as in the 4190 source; target's first real frame is only after the copy block.",
   "by": "claude-haiku-5-5-22",
@@ -15006,14 +14982,6 @@
   "created_at": 1794733642.040529,
   "score_before": 590,
   "score_after": 590
- },
- {
-  "function": "func_801FA7FC",
-  "text": "Release reason: this cannot get closer from the C side in the remaining budget. The math and instruction count match (96 vs 96) with the best candidate 3d5d55624ee5a4949ffe (5809, 39.4%). What remains is the frame: target is 0x88 (matrix 0x10..0x4C, s0 at 0x50, ra at 0x54, fs0..fs5 at 0x58..0x80), ours is 0x90, and the callee-saved FP allocation is shifted by one slot. Inlining the multiplies made it worse (7045). Next experiment if someone retries: s32 args with a union/type-pun to FP so the first instructions are mtc1 $a1 before lwc1 of the constant, and check whether an extra local is spilling.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794733660.1477098,
-  "score_before": 5144,
-  "score_after": 5144
  },
  {
   "function": "func_801FA4B0",
@@ -19846,14 +19814,6 @@
   "created_at": 1794748861.011737,
   "score_before": 1205,
   "score_after": 1145
- },
- {
-  "function": "func_801FA7FC",
-  "text": "Not attempted beyond the machine-style draft. The draft is not usable as-is: the `if (temp_fs1_2)` test reads a variable that is only assigned inside the branch, and both branches are identical. Needs a fresh read of the target assembly (384 bytes: a sin/cos rotation matrix built on the stack, then guMtxF2L(&sp10, arg0)) and a guess at the real branch condition on arg0 or the input vector before any compile. Unclaimed for the next agent.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794748868.808068,
-  "score_before": 5144,
-  "score_after": 5144
  },
  {
   "function": "func_801485C8",
@@ -26856,14 +26816,6 @@
   "score_after": 660
  },
  {
-  "function": "func_801FA7FC",
-  "text": "Rotation-matrix builder: converts arg1/arg2/arg3 (radians) to sin/cos via __sinf/__cosf, multiplies by D_801FB2B4 (rad->something scale), writes a 4x4 f32 matrix to sp+0x10..0x4C, then guMtxF2L(&m, arg0). Correct C structure is known and the instruction count already matches exactly (96 vs 96); only scheduling/register allocation differs.\n\nCurrent verified best this session: 4948 at revision 29769159ef487aabb5b4 (compile_and_diff 5068 baseline + try_local_repairs variant call_one_shot_scope wrapping the call in `do { } while (0)`). Original candidate 77f15357b5e2d5f68339 was a m2c draft with a bogus `if (temp_fs1_2)` branch duplicating the body twice and a `do/while(0)` around the call; replacing it with the straight-line version scored 5068.\n\nWorking source (revision c8670e390a27adca836d, score 5068):\n  f32 m[16]; f32 x,y,z,sx,cx,sy,cy,sz,cz,nx,t;\n  x = arg1 * D_801FB2B4; y = arg2 * D_801FB2B4; z = arg3 * D_801FB2B4;\n  sx=__sinf(x); cx=__cosf(x); sy=__sinf(y); cy=__cosf(y); sz=__sinf(z); cz=__cosf(z);\n  t = sx*sy; m[0]=cy*cz - t*sz; m[1]=cy*sz + t*cz; nx=-cx; m[2]=nx*sy; m[3]=0;\n  m[4]=nx*sz; m[5]=cx*cz; m[6]=sx; m[7]=0; t=sx*cy; m[8]=sy*cz + t*sz;\n  m[9]=sy*sz - t*cz; m[10]=cx*cy; m[11..14]=0; m[15]=1.0f; guMtxF2L(m, arg0);\nThis reproduces the target's arithmetic and stack slots exactly (0x10..0x4C) and the target's spill set (sdc1 $f20/$f22/$f24/$f26/$f28/$f30 at 0x58..0x80, frame 0x88, sw $ra,0x54, sw $s0,0x50).\n\nRemaining single mismatch class: the scheduler hoists the D_801FB2B4 load, the three mtc1/mul.s and parts of the save sequence above the prologue stores; the target emits the complete prologue first (addiu sp; sw ra; sw s0; sdc1 f30..f20 in descending order; addu s0,a0,zero) and only then lui/lwc1 + mtc1 $a1,$f8/mul.s $f20,$f8,$f0 etc. Also target's mul.s temps use $f8 while -O2 uses $f14. Everything else is register-order noise that follows from this.\n\nCompiler trials (diagnostic, not applied): -O1 = 4005 (correct $f8 temp and correct sdc1 save set, but spilling pairs as swc1 and 12 extra insns); -O2 -fno-schedule-insns2 = 8326; -O2 -fno-schedule-insns = 6676. So -O2 with normal scheduling is right; the issue is the source-level scheduling priority of the prologue vs the mul chain.\ntry_local_repairs families tried: call_one_shot_scope (4948, kept), split_scalar_lifetime (5809 worse), single_use_inline for nx (5068), arithmetic_operand_order for m[1]/m[8] (5068).\n\nNext step: keep 29769159ef487aabb5b4 and run try_local_repairs with declaration_order / scalar_storage_reuse / sum_shape families, plus try_local_repairs on a source where m[] is declared before the scalar temps (target's stack layout suggests the array is the first local). Not yet tried: declaring the three scaled angles as an f32 array of 3, and writing the matrix through a struct pointer instead of m[].",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794761086.252327,
-  "score_before": 5144,
-  "score_after": 4948
- },
- {
   "function": "func_80219B58",
   "text": "Cannot get closer than exact: search_flags with current supplied C VERIFIED SCORE ZERO at -G0 -mips3 -mgp32 -mfp32 -O1. Function-only compiler bundle submitted and checked exact by suggest; automatic compiler changes off. O2 difference is solely wrong optimization profile; more C tuning would discard correct original code. Release pending profile application, preserve revision 6328062d18c4c9bac656.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -30510,14 +30462,6 @@
   "created_at": 1794766236.946574,
   "score_before": 2180,
   "score_after": 2180
- },
- {
-  "function": "func_801FA7FC",
-  "text": "Best 4948 (saved, historical); current compile of the machine-draft-style source scores 5068 (47%). The instruction multiset matches the target (96 vs 96 insns); differences are only order and registers. Machine-draft layout: m[16] local array stored via sdc1/swc1, sin/cos calls via __sinf/__cosf, guMtxF2L(m, arg0) at the end. Target begins by loading D_801FB2B4 and computing x,y,z = arg*k, then the sx..cz calls. Next: reorder the m[] stores and temporaries to match the target store sequence (sdc1 f20/f22 with 0x58/0x60 stack slots), and look at which values are kept live across the sin/cos calls.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794766264.739323,
-  "score_before": 4948,
-  "score_after": 4948
  },
  {
   "function": "func_801FA4B0",
@@ -35682,5 +35626,61 @@
   "created_at": 1795715426.004051,
   "score_before": 915,
   "score_after": 915
+ },
+ {
+  "function": "func_801FA7FC",
+  "text": "Straight-line rotation-matrix builder: a1..a3 f32 angles times D_801FB2B4, sinf/cosf of each, 16-float matrix at sp+0x10 (m3,m7,m11,m12..m14 = 0, m15 = 1.0f), guMtxF2L(m, arg0). Best 5809 (revision 25b28630556e2ea23eed; formulas m0=cy*cz-sx*sy*sz, m1=cy*sz+sx*sy*cz, m2=-cx*sy, m4=-cx*sz, m5=cx*cz, m6=sx, m8=sy*cz+sx*cy*sz, m9=sy*sz-sx*cy*cz, m10=cx*cy). Remaining gap: frame 0x90 vs target 0x88. Target saves ra@0x54, s0@0x50, and six doubles at 0x58..0x80 (fs0..fs5); mine puts s0 at 0x58 and carries an extra 8-byte save, so I hold one more fp value live across the calls than the target. Variants that failed: inlining the constant (6114), separate k local (5809, same score). Next: keep at most six live f32 across the sinf/cosf calls (e.g., compute the products of sx,cx,sy,cy,sz,cz into the matrix slots before the remaining calls), and get ra/s0 at 0x54/0x50.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794708282.442081,
+  "score_before": 5144,
+  "score_after": 5144
+ },
+ {
+  "function": "func_801FA7FC",
+  "text": "Claimed but not worked: this session ended on limited effort. The machine draft is unreliable: both branches are identical and the sin/cos calls are mis-scaled. The function builds a 4x4 rotation matrix (sinf/cosf of arg1..arg3 scaled by D_801FB2B4, a 0 / 1.0f tail, then guMtxF2L(&sp10, arg0)). Next agent should check get_assembly for the branch on temp_fs1 and rebuild the C from there.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794722197.420011,
+  "score_before": 5144,
+  "score_after": 5144
+ },
+ {
+  "function": "func_801FA7FC",
+  "text": "Not matched. Saved best 5144 (historical machine lineage); my rewrite as a sin/cos matrix builder scored 7103 (26%), worse. Target 96 insns: it loads D_801FB2B4 once and reuses it (the draft reloads it per product) and keeps the three args in $f20/$f22/$f30 as callee-saved floats (sdc1 saves at 0x58/0x60/0x80). Its matrix terms use the sin/cos results in a register order I did not reproduce. Next agent: start from the saved 5144 draft and fix the constant reuse and the callee-saved float layout first, then the term order.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794732119.443447,
+  "score_before": 5144,
+  "score_after": 5144
+ },
+ {
+  "function": "func_801FA7FC",
+  "text": "Release reason: this cannot get closer from the C side in the remaining budget. The math and instruction count match (96 vs 96) with the best candidate 3d5d55624ee5a4949ffe (5809, 39.4%). What remains is the frame: target is 0x88 (matrix 0x10..0x4C, s0 at 0x50, ra at 0x54, fs0..fs5 at 0x58..0x80), ours is 0x90, and the callee-saved FP allocation is shifted by one slot. Inlining the multiplies made it worse (7045). Next experiment if someone retries: s32 args with a union/type-pun to FP so the first instructions are mtc1 $a1 before lwc1 of the constant, and check whether an extra local is spilling.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794733660.1477098,
+  "score_before": 5144,
+  "score_after": 5144
+ },
+ {
+  "function": "func_801FA7FC",
+  "text": "Not attempted beyond the machine-style draft. The draft is not usable as-is: the `if (temp_fs1_2)` test reads a variable that is only assigned inside the branch, and both branches are identical. Needs a fresh read of the target assembly (384 bytes: a sin/cos rotation matrix built on the stack, then guMtxF2L(&sp10, arg0)) and a guess at the real branch condition on arg0 or the input vector before any compile. Unclaimed for the next agent.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794748868.808068,
+  "score_before": 5144,
+  "score_after": 5144
+ },
+ {
+  "function": "func_801FA7FC",
+  "text": "Rotation-matrix builder: converts arg1/arg2/arg3 (radians) to sin/cos via __sinf/__cosf, multiplies by D_801FB2B4 (rad->something scale), writes a 4x4 f32 matrix to sp+0x10..0x4C, then guMtxF2L(&m, arg0). Correct C structure is known and the instruction count already matches exactly (96 vs 96); only scheduling/register allocation differs.\n\nCurrent verified best this session: 4948 at revision 29769159ef487aabb5b4 (compile_and_diff 5068 baseline + try_local_repairs variant call_one_shot_scope wrapping the call in `do { } while (0)`). Original candidate 77f15357b5e2d5f68339 was a m2c draft with a bogus `if (temp_fs1_2)` branch duplicating the body twice and a `do/while(0)` around the call; replacing it with the straight-line version scored 5068.\n\nWorking source (revision c8670e390a27adca836d, score 5068):\n  f32 m[16]; f32 x,y,z,sx,cx,sy,cy,sz,cz,nx,t;\n  x = arg1 * D_801FB2B4; y = arg2 * D_801FB2B4; z = arg3 * D_801FB2B4;\n  sx=__sinf(x); cx=__cosf(x); sy=__sinf(y); cy=__cosf(y); sz=__sinf(z); cz=__cosf(z);\n  t = sx*sy; m[0]=cy*cz - t*sz; m[1]=cy*sz + t*cz; nx=-cx; m[2]=nx*sy; m[3]=0;\n  m[4]=nx*sz; m[5]=cx*cz; m[6]=sx; m[7]=0; t=sx*cy; m[8]=sy*cz + t*sz;\n  m[9]=sy*sz - t*cz; m[10]=cx*cy; m[11..14]=0; m[15]=1.0f; guMtxF2L(m, arg0);\nThis reproduces the target's arithmetic and stack slots exactly (0x10..0x4C) and the target's spill set (sdc1 $f20/$f22/$f24/$f26/$f28/$f30 at 0x58..0x80, frame 0x88, sw $ra,0x54, sw $s0,0x50).\n\nRemaining single mismatch class: the scheduler hoists the D_801FB2B4 load, the three mtc1/mul.s and parts of the save sequence above the prologue stores; the target emits the complete prologue first (addiu sp; sw ra; sw s0; sdc1 f30..f20 in descending order; addu s0,a0,zero) and only then lui/lwc1 + mtc1 $a1,$f8/mul.s $f20,$f8,$f0 etc. Also target's mul.s temps use $f8 while -O2 uses $f14. Everything else is register-order noise that follows from this.\n\nCompiler trials (diagnostic, not applied): -O1 = 4005 (correct $f8 temp and correct sdc1 save set, but spilling pairs as swc1 and 12 extra insns); -O2 -fno-schedule-insns2 = 8326; -O2 -fno-schedule-insns = 6676. So -O2 with normal scheduling is right; the issue is the source-level scheduling priority of the prologue vs the mul chain.\ntry_local_repairs families tried: call_one_shot_scope (4948, kept), split_scalar_lifetime (5809 worse), single_use_inline for nx (5068), arithmetic_operand_order for m[1]/m[8] (5068).\n\nNext step: keep 29769159ef487aabb5b4 and run try_local_repairs with declaration_order / scalar_storage_reuse / sum_shape families, plus try_local_repairs on a source where m[] is declared before the scalar temps (target's stack layout suggests the array is the first local). Not yet tried: declaring the three scaled angles as an f32 array of 3, and writing the matrix through a struct pointer instead of m[].",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794761086.252327,
+  "score_before": 5144,
+  "score_after": 4948
+ },
+ {
+  "function": "func_801FA7FC",
+  "text": "Best 4948 (saved, historical); current compile of the machine-draft-style source scores 5068 (47%). The instruction multiset matches the target (96 vs 96 insns); differences are only order and registers. Machine-draft layout: m[16] local array stored via sdc1/swc1, sin/cos calls via __sinf/__cosf, guMtxF2L(m, arg0) at the end. Target begins by loading D_801FB2B4 and computing x,y,z = arg*k, then the sx..cz calls. Next: reorder the m[] stores and temporaries to match the target store sequence (sdc1 f20/f22 with 0x58/0x60 stack slots), and look at which values are kept live across the sin/cos calls.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794766264.739323,
+  "score_before": 4948,
+  "score_after": 4948
  }
 ]
