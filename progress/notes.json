@@ -3952,14 +3952,6 @@
   "score_after": 68018
  },
  {
-  "function": "func_8022F300",
-  "text": "Deep permuter: score 2190 \u2192 1765; 2 improvements; 131 candidates tested; 95 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935844",
-  "created_at": 1794359527.8594198,
-  "score_before": 2190,
-  "score_after": 1765
- },
- {
   "function": "alCents2Ratio",
   "text": "Deep permuter: score 1540 \u2192 1540; 0 improvements; 169 candidates tested; 136 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935082",
@@ -7446,14 +7438,6 @@
   "created_at": 1794709132.872009,
   "score_before": 4400,
   "score_after": 4400
- },
- {
-  "function": "func_8022F300",
-  "text": "Best 1430 (86.8%), revision 4720c629ba696a39c555. Why it cannot get closer: the remaining differences are the switch's jump table. The target loads the table from the named ROM symbol D_80232B40 (`lui $at,%hi(D_80232B40); lw $v0,%lo(D_80232B40)($at); jr $v0`), while C switch lowering emits a local .rodata table (\"?local\"), which the linker cannot place at D_80232B40. The table holds code addresses, so it cannot be written as C values. Structure otherwise matches: pointer form for D_801E99A0/A4/C0, volatile D_802330A0 reloads, early return when D_801E99C0==0, shared store for switch cases. Reported as a boundary issue: D_80232B40 needs a data region/symbol report before a match is possible.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794709140.702066,
-  "score_before": 1765,
-  "score_after": 1430
  },
  {
   "function": "func_8022976C",
@@ -11528,14 +11512,6 @@
   "score_after": 4200
  },
  {
-  "function": "func_8022F300",
-  "text": "Not matched. Best revision 034a047049614cc577a6 scores 1395 (87.2%); target 109 insns, mine 101.\n\nStructure (confirmed): four guarded counter updates, then a switch on u16 D_802330A0 (case 0..9 -> values 0x1A,0x16,2,4,6,8,0xA,0xC,0xE,0x10, default skip), store to u16 D_8006F9E8, then func_800DE38C(); func_800DE2E0(); and u16 D_8006FE58 = 0. Also D_801E99C0 != 0 gates the switch and increments.\n- Blocks A (D_801E99A0 == 1 && D_802330A0 != 0 -> state=2, dec) and B (D_801E99A4 == 1 && D_802330A0 < 9 -> state=2, inc) go through base pointers (`addiu $a0,$a0,%lo(...)`), as does the D_801E99C0 block. Blocks C and D (D_801E99AC / D_801E99A8 == 1 on the u16 at D_8006FAF0+0x20, >=2 dec / <9 inc) use direct symbols. This form is written in the revision above.\n\nRemaining diffs:\n- Prologue scheduling: the target loads the D_801E99A0 base before `sw $ra`; mine stores ra first.\n- Target reuses lui/addiu of D_801E99A0 twice (a0), mine gets a different register for the second u16 read (v1 vs v0).\n- The \"your code refers to .rodata+0\" note: the target's jump table is at the fixed ROM address D_80232B40. A compiler-generated table will not match that reference. Likely unfixable in C.\n\nLeft to try: reorder block A's load so the pointer load precedes the prologue (use an early `p` read), and set block B's D_802330A0 read through the same v0 register as the switch. Verify the .rodata note before spending more compiles on the register form.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794724021.350949,
-  "score_before": 1390,
-  "score_after": 1390
- },
- {
   "function": "func_80203DF8",
   "text": "Not matched (best 3715, 57.7%). Structure is right: stores through a pointer read from the table at D_8011F350 with stride 100 bytes, index D_8018BC3C (u16, reloaded each use). Source: extern s32 D_8011F350; #define ENT(i) (*(u8 **)((u8 *)&D_8011F350 + (i)*100)); *ENT(idx)=0; s16@2=arg1; s16@4=0; if((u8)arg0==2){[6]=arg2;[7]=arg3;[8]=arg4;} s16@10=0; @12=0; @14=0x140; @16=0xF0; *ENT(idx)=arg0. Remaining diff: target has no stack frame and reads arg4 from 0x13($sp) directly; candidate adds addiu $sp,-8 and reads 0x1b($sp), and computes the table address differently (addiu into $t0, pointer kept in $a0). parameter_width variants (arg0 as u8 or s8) gave no change. Untried: a different spill-free way to take the 5th arg, and a single-temp arrangement that keeps arg0 in $t1 from entry. Moving on.",
   "by": "claude-haiku-5-5-20",
@@ -14600,14 +14576,6 @@
   "score_after": 70
  },
  {
-  "function": "func_8022F300",
-  "text": "Best 4555 (58%) from a first draft; 0 improvements in 1 compile. Logic is right for the main body: four if-blocks on D_801E99A0/A4/AC/A8 (each sets flag to 2 or moves D_802330A0 / D_8006FB10 by 1 with bounds 0<..., <9, >=2), then if D_801E99C0 != 0 { D_801E99C0++; switch on D_802330A0 (0..9 -> 0x1A,0x16,2,4,6,8,0xA,0xC,0xE,0x10 stored to D_8006F9E8); call func_800DE38C; func_800DE2E0; D_8006FE58=0 }. Blocker: the target dispatches through a table in game data at D_80232B40 (lui/addu/lw/jr, no rodata), while gcc emits its own .rodata jump table, so the diff reports a .rodata reference with no ROM address. Matching needs a way to make gcc emit the indirect jump through an extern table (e.g. a function-pointer array or a data-based dispatch) rather than a switch; not tried. Also the statement order differs (target keeps the D_801E99A0 load first in the frame setup, and the sw ra/addiu sp order). Untested: extern u8 table and a computed-goto-like form via a function pointer.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794732501.0012648,
-  "score_before": 1390,
-  "score_after": 1390
- },
- {
   "function": "func_80231130",
   "text": "Not matched; best 2713 (76.2%), revision 8d8b6b7efa7b97760613. Do not use the m2c draft. Structure is right: outer do-while over u16 i, stride 0x178 (i*376, sll/addu/sll4/subu/sll3), call func_80025DBC(&D_800DA260 + off) first, then field stores, then inner do-while over j with offset off + j*8 for the stores at +0x1E and +0x22, then five sh at +0x5A..+0x62. Store widths already match: sh for the first six and the 0x5A..0x62 group, sw for +0xA..+0x16 and the inner pair, sb for +0x1A/+0x1B. Remaining diffs are frame and register allocation. Target frame is 0x20 with only ra, s2, s1, s0 saved; s2 holds &D_800DA260, s1 is i, s0 is off across the call. My best has a 0x28 frame with extra saves. Changing j to s32 made it much worse (4763), so keep j as u16. Next: keep &D_800DA260 as one loop-invariant base so the call and stores share it, and leave off as the only per-iteration temp that lives across the call.",
   "by": "claude-haiku-5-5-21",
@@ -14918,14 +14886,6 @@
   "created_at": 1794733683.214914,
   "score_before": 3257,
   "score_after": 3257
- },
- {
-  "function": "func_8022F300",
-  "text": "Best 2740 (74.8%), revision 05a4784dd483fe73c9ed. Full control flow recovered: four guarded counter updates (D_801E99A0 ==1 && D_802330A0 != 0 -> set 2, dec; D_801E99A4 ==1 && idx<9 -> set 2, inc; D_801E99AC ==1 && D_8006FB10>=2 -> dec; D_801E99A8 ==1 && D_8006FB10<9 -> inc), then if (D_801E99C0 != 0) { D_801E99C0++; switch on D_802330A0 (u16, cases 0..9 store 0x1A,0x16,2,4,6,8,0xA,0xC,0xE,0x10 into D_8006F9E8 as u16); func_800DE38C(); func_800DE2E0(); D_8006FE58 = 0; }. Blocker: the target's switch is a real jump table at D_80232B40 (jr via lw from %lo(D_80232B40)), while gcc emits its own .rodata table ('your code refers to .rodata+0'), so the table reference can't match. Non-table differences: target reloads &D_801E99A0 via a0 (lui a0 / addiu a0) and reuses a0 for each block, which mine does not (mine uses lui v1 per global). Next step: pointer locals (s32 *p = &D_801E99A0 etc.) to get the a0 reuse; the table itself may need the data unit, so report it as a table-bound boundary if it stays.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794733689.350667,
-  "score_before": 1390,
-  "score_after": 1390
  },
  {
   "function": "func_801E2BFC",
@@ -15262,14 +15222,6 @@
   "created_at": 1794734985.3652759,
   "score_before": 2210,
   "score_after": 2210
- },
- {
-  "function": "func_8022F300",
-  "text": "Best 2515 (76.9%), revision 46210c1b9e09b0644fdd: the 99A4 test/store written as `*(s32 *)((u8 *)&D_801E99A0 + 4)` (2740 -> 2515). Writing the 99A0 pair as `*(s32 *)&D_801E99A0` gave no change. Still open: (1) switch over D_802330A0 is a jump table at D_80232B40 (`sltiu v0,v1,0xA; sll; lui at; addu; lw; jr`); the build reports 'refers to .rodata+0x0 where the ROM's code has no address', so the table can't match from C. (2) Target keeps one base register `a0 = &D_801E99A0` across the 99A0/99A4 block and uses fresh `lui` for later blocks, and the 0x8006FAF0+0x20 counter block is clamped with `sltiu 2`/`sltiu 9` and a `nop` before the store. Next: apply the same &SYM+offset form to the 99AC/99A8/99C0 accesses; the jump-table reference is likely a blocker.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794735019.702303,
-  "score_before": 1390,
-  "score_after": 1390
  },
  {
   "function": "func_80210F70",
@@ -28896,14 +28848,6 @@
   "score_after": 880
  },
  {
-  "function": "func_8022F300",
-  "text": "Best score 2190 (79.9%), revision 4374a090abfdf02b9c40. Key finding: the target addresses D_801E99A0 and D_801E99A4 as separate globals (lui/addiu $a0 per block, then lw/sw through $a0), not as a cast offset from &D_801E99A0; using `s32 *p = &D_801E99A0;` then `p = &D_801E99A4;` per block gave the big gain (2740 -> 2190). Remaining diffs: (1) prologue order: target emits `addiu sp` and `sw ra` before `lui a0,%hi(D_801E99A0)`; ours hoists the lui above the frame setup (-O2 scheduling). (2) Target reloads D_802330A0 into $v0 for each use (lui v0/lhu v0); ours reuses $v1. (3) Target has a third `lui v0,%hi(D_802330A0)` for the `+= 1` block. Tried: signedness family on `u16 v` (no change, 2190). Not tried: a local `u16 idx = D_802330A0` read once per block, or one shared `s32 *p` for D_801E99AC/D_801E99A8. Switch body (jump table in original) not yet compared; check it once the prologue matches.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794764260.1530108,
-  "score_before": 1390,
-  "score_after": 1390
- },
- {
   "function": "func_80038010",
   "text": "Best 1137 (83.5%, 69 insns each), not matched. Current revision 8b385dae7d8a4cde27a4 (same score as c751b077348fbdc10ab1). Remaining differences: (1) stack layout. Target stores the u16 spill as `sh $v1,0x26($sp)` and reloads it with `lhu`; ours spills a word `sw $v1,0x24($sp)` and reloads with `lw`. Target's first local (sp10, used by `addiu $a1,$sp,0x10`/`lh $v0,0x10($sp)`) is at 0x10; ours is at 0x18. Frame is -0x50 in both, so keep the u8 sp12[0x8] local (removing it gives -0x48). (2) Load order: target loads arg0+4 into v0 before the arg0+8/0x1a/0xc loads into s4/s3/s2; moving the preamble loads regressed (1157/1137). Tried and no effect or worse: sp26 as s16 (no effect), declaration reordering (sp26 before sp10: no effect), dropping sp12 (1157, frame -0x48). Next idea: try the sp26 halfword local as a separate u16 declared before sp12 with the same sp10 placement, or test compile_family(signedness) on this revision.",
   "by": "claude-haiku-5-5-20",
@@ -30454,14 +30398,6 @@
   "created_at": 1794766498.333131,
   "score_before": 1455,
   "score_after": 1455
- },
- {
-  "function": "func_8022F300",
-  "text": "Not matched. Best 2190 (79.9%), revision 4374a090abfdf02b9c40. Structure is largely right (two guarded \u00b11 updates on D_802330A0 clamped 0..9, setting the flag to 2; two guarded updates on D_8006FB10; then if D_801E99C0 != 0: increment it, a 10-way switch on D_802330A0 storing a table value to D_8006F9E8, func_800DE38C(); func_800DE2E0(); D_8006FE58 = 0). Target: 109 insns, frame 0x18, reads D_802330A0 through a pointer (lhu/sh via one base register, x4 and x2); our version uses lui/%lo per global. The switch is a jr jump table (the machine draft failed to find the jtbl). Local repairs (signedness, declaration order, pointer global type, u32 global) all equal or worse; the u16 -> s16 change is equal. Next: express the D_802330A0 accesses through one pointer, and test whether the switch is an explicit table or an if-chain.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794766499.192487,
-  "score_before": 1390,
-  "score_after": 1390
  },
  {
   "function": "func_8021A994",
@@ -35748,5 +35684,78 @@
   "score_before": 6280,
   "score_after": 6280,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:82b90188fefdf92d68419d90bdf15a5569d419fcb86fcd7b56afb7986452322c"
+ },
+ {
+  "function": "func_8022F300",
+  "text": "Deep permuter: score 2190 \u2192 1765; 2 improvements; 131 candidates tested; 95 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935844",
+  "created_at": 1794359527.8594198,
+  "score_before": 2190,
+  "score_after": 1765
+ },
+ {
+  "function": "func_8022F300",
+  "text": "Best 1430 (86.8%), revision 4720c629ba696a39c555. Why it cannot get closer: the remaining differences are the switch's jump table. The target loads the table from the named ROM symbol D_80232B40 (`lui $at,%hi(D_80232B40); lw $v0,%lo(D_80232B40)($at); jr $v0`), while C switch lowering emits a local .rodata table (\"?local\"), which the linker cannot place at D_80232B40. The table holds code addresses, so it cannot be written as C values. Structure otherwise matches: pointer form for D_801E99A0/A4/C0, volatile D_802330A0 reloads, early return when D_801E99C0==0, shared store for switch cases. Reported as a boundary issue: D_80232B40 needs a data region/symbol report before a match is possible.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794709140.702066,
+  "score_before": 1765,
+  "score_after": 1430
+ },
+ {
+  "function": "func_8022F300",
+  "text": "Not matched. Best revision 034a047049614cc577a6 scores 1395 (87.2%); target 109 insns, mine 101.\n\nStructure (confirmed): four guarded counter updates, then a switch on u16 D_802330A0 (case 0..9 -> values 0x1A,0x16,2,4,6,8,0xA,0xC,0xE,0x10, default skip), store to u16 D_8006F9E8, then func_800DE38C(); func_800DE2E0(); and u16 D_8006FE58 = 0. Also D_801E99C0 != 0 gates the switch and increments.\n- Blocks A (D_801E99A0 == 1 && D_802330A0 != 0 -> state=2, dec) and B (D_801E99A4 == 1 && D_802330A0 < 9 -> state=2, inc) go through base pointers (`addiu $a0,$a0,%lo(...)`), as does the D_801E99C0 block. Blocks C and D (D_801E99AC / D_801E99A8 == 1 on the u16 at D_8006FAF0+0x20, >=2 dec / <9 inc) use direct symbols. This form is written in the revision above.\n\nRemaining diffs:\n- Prologue scheduling: the target loads the D_801E99A0 base before `sw $ra`; mine stores ra first.\n- Target reuses lui/addiu of D_801E99A0 twice (a0), mine gets a different register for the second u16 read (v1 vs v0).\n- The \"your code refers to .rodata+0\" note: the target's jump table is at the fixed ROM address D_80232B40. A compiler-generated table will not match that reference. Likely unfixable in C.\n\nLeft to try: reorder block A's load so the pointer load precedes the prologue (use an early `p` read), and set block B's D_802330A0 read through the same v0 register as the switch. Verify the .rodata note before spending more compiles on the register form.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794724021.350949,
+  "score_before": 1390,
+  "score_after": 1390
+ },
+ {
+  "function": "func_8022F300",
+  "text": "Best 4555 (58%) from a first draft; 0 improvements in 1 compile. Logic is right for the main body: four if-blocks on D_801E99A0/A4/AC/A8 (each sets flag to 2 or moves D_802330A0 / D_8006FB10 by 1 with bounds 0<..., <9, >=2), then if D_801E99C0 != 0 { D_801E99C0++; switch on D_802330A0 (0..9 -> 0x1A,0x16,2,4,6,8,0xA,0xC,0xE,0x10 stored to D_8006F9E8); call func_800DE38C; func_800DE2E0; D_8006FE58=0 }. Blocker: the target dispatches through a table in game data at D_80232B40 (lui/addu/lw/jr, no rodata), while gcc emits its own .rodata jump table, so the diff reports a .rodata reference with no ROM address. Matching needs a way to make gcc emit the indirect jump through an extern table (e.g. a function-pointer array or a data-based dispatch) rather than a switch; not tried. Also the statement order differs (target keeps the D_801E99A0 load first in the frame setup, and the sw ra/addiu sp order). Untested: extern u8 table and a computed-goto-like form via a function pointer.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794732501.0012648,
+  "score_before": 1390,
+  "score_after": 1390
+ },
+ {
+  "function": "func_8022F300",
+  "text": "Best 2740 (74.8%), revision 05a4784dd483fe73c9ed. Full control flow recovered: four guarded counter updates (D_801E99A0 ==1 && D_802330A0 != 0 -> set 2, dec; D_801E99A4 ==1 && idx<9 -> set 2, inc; D_801E99AC ==1 && D_8006FB10>=2 -> dec; D_801E99A8 ==1 && D_8006FB10<9 -> inc), then if (D_801E99C0 != 0) { D_801E99C0++; switch on D_802330A0 (u16, cases 0..9 store 0x1A,0x16,2,4,6,8,0xA,0xC,0xE,0x10 into D_8006F9E8 as u16); func_800DE38C(); func_800DE2E0(); D_8006FE58 = 0; }. Blocker: the target's switch is a real jump table at D_80232B40 (jr via lw from %lo(D_80232B40)), while gcc emits its own .rodata table ('your code refers to .rodata+0'), so the table reference can't match. Non-table differences: target reloads &D_801E99A0 via a0 (lui a0 / addiu a0) and reuses a0 for each block, which mine does not (mine uses lui v1 per global). Next step: pointer locals (s32 *p = &D_801E99A0 etc.) to get the a0 reuse; the table itself may need the data unit, so report it as a table-bound boundary if it stays.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794733689.350667,
+  "score_before": 1390,
+  "score_after": 1390
+ },
+ {
+  "function": "func_8022F300",
+  "text": "Best 2515 (76.9%), revision 46210c1b9e09b0644fdd: the 99A4 test/store written as `*(s32 *)((u8 *)&D_801E99A0 + 4)` (2740 -> 2515). Writing the 99A0 pair as `*(s32 *)&D_801E99A0` gave no change. Still open: (1) switch over D_802330A0 is a jump table at D_80232B40 (`sltiu v0,v1,0xA; sll; lui at; addu; lw; jr`); the build reports 'refers to .rodata+0x0 where the ROM's code has no address', so the table can't match from C. (2) Target keeps one base register `a0 = &D_801E99A0` across the 99A0/99A4 block and uses fresh `lui` for later blocks, and the 0x8006FAF0+0x20 counter block is clamped with `sltiu 2`/`sltiu 9` and a `nop` before the store. Next: apply the same &SYM+offset form to the 99AC/99A8/99C0 accesses; the jump-table reference is likely a blocker.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794735019.702303,
+  "score_before": 1390,
+  "score_after": 1390
+ },
+ {
+  "function": "func_8022F300",
+  "text": "Best score 2190 (79.9%), revision 4374a090abfdf02b9c40. Key finding: the target addresses D_801E99A0 and D_801E99A4 as separate globals (lui/addiu $a0 per block, then lw/sw through $a0), not as a cast offset from &D_801E99A0; using `s32 *p = &D_801E99A0;` then `p = &D_801E99A4;` per block gave the big gain (2740 -> 2190). Remaining diffs: (1) prologue order: target emits `addiu sp` and `sw ra` before `lui a0,%hi(D_801E99A0)`; ours hoists the lui above the frame setup (-O2 scheduling). (2) Target reloads D_802330A0 into $v0 for each use (lui v0/lhu v0); ours reuses $v1. (3) Target has a third `lui v0,%hi(D_802330A0)` for the `+= 1` block. Tried: signedness family on `u16 v` (no change, 2190). Not tried: a local `u16 idx = D_802330A0` read once per block, or one shared `s32 *p` for D_801E99AC/D_801E99A8. Switch body (jump table in original) not yet compared; check it once the prologue matches.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794764260.1530108,
+  "score_before": 1390,
+  "score_after": 1390
+ },
+ {
+  "function": "func_8022F300",
+  "text": "Not matched. Best 2190 (79.9%), revision 4374a090abfdf02b9c40. Structure is largely right (two guarded \u00b11 updates on D_802330A0 clamped 0..9, setting the flag to 2; two guarded updates on D_8006FB10; then if D_801E99C0 != 0: increment it, a 10-way switch on D_802330A0 storing a table value to D_8006F9E8, func_800DE38C(); func_800DE2E0(); D_8006FE58 = 0). Target: 109 insns, frame 0x18, reads D_802330A0 through a pointer (lhu/sh via one base register, x4 and x2); our version uses lui/%lo per global. The switch is a jr jump table (the machine draft failed to find the jtbl). Local repairs (signedness, declaration order, pointer global type, u32 global) all equal or worse; the u16 -> s16 change is equal. Next: express the D_802330A0 accesses through one pointer, and test whether the switch is an explicit table or an if-chain.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794766499.192487,
+  "score_before": 1390,
+  "score_after": 1390
+ },
+ {
+  "function": "func_8022F300",
+  "text": "State machine (globals as s32/u16 with pointer locals for the address-taken ones, switch over 10 cases with a guard at < 10): 2430 best over about eight variants; an if-chain 5340, a missing guard is unfaithful. Target keeps the jump-table dispatch and the D_8006FAF0 field in a different order than gcc emits. Saved best 905 still better. Not matched.",
+  "by": "manual-68913573ef2f4091",
+  "created_at": 1795710908.058025,
+  "score_before": 2430,
+  "score_after": 2430,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:ff17af66c3471f0b3669b6ca8380c39013bb69fd559e77595c5524a8d4f28a5e"
  }
 ]
