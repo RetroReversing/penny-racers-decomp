@@ -6072,14 +6072,6 @@
   "score_after": 940
  },
  {
-  "function": "func_80146970",
-  "text": "Best saved 915 (from earlier session). Current machine-draft form scored 2747. Target frame is 0x20 and saves $ra(0x18), $s1(0x14), $s0(0x10); it keeps &D_80190CB0 in $s1 across the calls (addiu $s1 after lui) and reloads through (s1) three times. My `u8 *p = &D_80190CB0` gets folded to lui/lbu %lo, so the pointer is never kept live. Next: force a live pointer across the calls (e.g. make the pointer's first use come after func_8014A870 and read *p through a second pointer local), and also check the second store to D_80189B36 (sb at %lo, twice). Not tried: volatile variants.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794706639.5718741,
-  "score_before": 915,
-  "score_after": 915
- },
- {
   "function": "func_8014A79C",
   "text": "Best 1625 (69%): `typedef struct { u32 v[8]; } Divs; Divs d = *(Divs*)D_80183718;` (target copies the 8-word table to a stack local with lw/sw pairs, so a struct copy works; element-wise copies scored 3855, pointer copies 3855). Then `if (arg0 > 0x05F5E0FFU) return 0x01234567;` (early return), `var_a3=0; weight=0x10000000; for i<8: var_a3 |= (arg0/d.v[i])*weight; arg0 %= d.v[i]; weight >>= 4; return var_a3;`. Remaining: target's loop is indexed (sll a0,2; addu sp; lw) not pointer-stepped; target's early-return is a shared block at the end (bnez to it, lui a3 0x123 / ori 0x4567 after the loop with j); ours falls through with beqz. Changing |= to += scored worse (1760). Division by zero check (divu; bnez; break 7) is emitted by the compiler from the division.",
   "by": "claude-haiku-5-5-22",
@@ -10104,14 +10096,6 @@
   "score_after": 1490
  },
  {
-  "function": "func_80146970",
-  "text": "Not matched. Best current candidate revision df3cc4c7fbbfab4adb60: 2602 (55.8%), where temp_v0 is reused as the 0x10-path zero (`temp_v0 = 0;`, then `if (temp_v0 & 0x20)`), which fixed the join. Historical saved best 915 is from a different source. Remaining structural gap: target keeps p=&D_80190CB0 in callee-saved $s1 across the func_80148688 call (lui+addiu once, then lbu 0($s1) and lhu -4($s1)); mine re-materializes lui/%lo at each use and the frame is 0x18 instead of 0x20 (ra, s1, s0 saved). Tried: extern-array form of D_80190CB0 (no effect). Untried: a struct overlay on D_80190CB0 so the base pointer is a non-constant value across the call; then fix the extra nop/branch-target offset (0xd8 vs 0xd0).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794720798.934798,
-  "score_before": 915,
-  "score_after": 915
- },
- {
   "function": "func_80149FA8",
   "text": "Unresolved: the saved best (historical 70, revision 353e643b) rechecks at 2575 now, so the 70 does not reproduce here. Target is a nested copy: outer i<0xE loads a pointer from the table D_802030CC (lui/addiu t2, sll i*4, addu, lw), dst = D_800DA26A+0x64+arg0*0x178+i*0x12 (arg0*0x178 = (arg0*3<<4 -arg0)<<3 style sll/addu/subu), inner j<9 copies halfwords. Both array (u32 D_802030CC[]) and pointer-to-pointer forms give 2575: the mismatch is the loop shape (target has 5 addu v0,v0,t2 and sll-by-1 scaling, so the table index is scaled differently). Untried: write the arg0 product as (arg0*0x178) via ((arg0*3)<<4 - arg0)<<3 and the inner loop as an unrolled 9-copy, or compile_family signedness.",
   "by": "claude-haiku-5-5-22",
@@ -13144,14 +13128,6 @@
   "score_after": 1825
  },
  {
-  "function": "func_80146970",
-  "text": "Current 2747 (53%) with candidate 9def453e0df7c198ac34; the saved best 915 is not reproduced by the same source (historical score only). Key difference: the target keeps the pointer `p = &D_80190CB0` live across the calls in s1 (`addiu s1,s1,%lo(D_80190CB0)` x3, then `lbu a1,(s1)`), giving frame 0x20 with ra, s0, s1 saved. Ours rematerialises the constant address each time (`lui a1,%hi(D_80190CB0)` / `lbu a1,%lo(...)`), so the frame is 0x18 and s1 is not saved. Untried: make p a non-constant pointer, e.g. assign it from a value the compiler can't fold (a call result or a volatile read), or use `*(p+k)` reads only after the first call, so the base survives in a callee-saved register. Also the target's first call is `func_8014A870(0x14, 3, D_80189CBE)` with the return kept in s0, and the store-then-clear of D_80189B36 uses `sb v1,(v0)` twice (a shared base pointer, not two %lo stores).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794730164.987456,
-  "score_before": 915,
-  "score_after": 915
- },
- {
   "function": "func_8014A79C",
   "text": "Best 3790 (28%), revision 02f8d63a331dd2ee9bb4: copy of D_80183718[0..7] into a u32 tab[8] local, range check `arg0 > 0x05F5E0FF` returns 0x01234567, then 8 steps of `acc |= (rem/tab[i]) * scale; rem %= tab[i]; scale >>= 4` starting at scale 0x10000000. Target: the copy is done AFTER arg0 is moved to $a2, through one base register $a1 = &D_80183718 with lw offsets 0,4,8,0xc..0x1c and sw to sp offsets 0..0x1c; the divu loop is unrolled into the same register flow. Unrolling the copy as eight `tab[i]=D[i]` statements scored 4065 (worse, gcc reloads lui/lw per element). Next: copy through a pointer `u32 *src = D_80183718;` with src[0..7] (so gcc uses one lui and offsets), and keep the copy before the range check. Not matched.",
   "by": "claude-haiku-5-5-24",
@@ -13590,14 +13566,6 @@
   "created_at": 1794731670.159014,
   "score_before": 755,
   "score_after": 755
- },
- {
-  "function": "func_80146970",
-  "text": "Not matched; move-on budget used. Best from my side: 2762 (53.1%) with the clean form in revision 45efdc9b603efb23bef8 (saved 915 is from another source, start from it if it's the saved best). Structure, following the asm: t=func_8014A870(0x14,3,D_80189CBE); if (t&3) func_8014B854(0x3B); p=&D_80190CB0; func_80148688(t&0xFF,*p); if (t&0x10) { t=0; if (D_80183BD4&0x1000) func_8014B854(0x3E); else { func_8014B854(0x3D); D_80189B36&=0xEF; D_80189C98=*(u16*)(p-4); } } if (t&0x20) { func_8014B854(0x3A); D_80189B36&=0xEF; D_80189C98=D_80190CAE; }. Target frame 0x20 with ra,s1,s0 saved and p kept in $s1 across calls (lhu -4($s1) reads D_80190CAC); mine gives frame 0x18 and rematerialises &D_80190CB0 each time (lui/addiu per use), so p is not live across calls. Next: make p survive the call (e.g. read *(p-4) before the first call into a local, or use a u8* taken from a volatile-free function-scope variable), and check the 0x3B branch's delay-slot ordering (target puts the 0x3B call before the s1 setup).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794731683.580755,
-  "score_before": 915,
-  "score_after": 915
  },
  {
   "function": "func_80042250",
@@ -14782,14 +14750,6 @@
   "created_at": 1794736279.7037141,
   "score_before": 70,
   "score_after": 70
- },
- {
-  "function": "func_80146970",
-  "text": "Best this session 1427 (rev db4de81a2e1230b21814); inherited saved_best 915. Structure is right (all 3 calls, both flag tests, both store pairs). Two residual issues:\n1) Target keeps &D_80190CB0 in $s1 across the func_80148688 and func_8014B854 calls (lui+addiu once, then `lbu $a1,($s1)` and `lhu $v0,-4($s1)`), giving a 0x20 frame with s1+s0 saved. Ours rematerializes `lui $a1,%hi(D_80190CB0)` at each use and a 0x18 frame. The pointer is live across the calls in the target, so the original probably held it in a variable that gcc could not rematerialize (e.g. a volatile pointer, or the address was passed/derived so it stays in a callee-saved reg).\n2) Target emits the D_80190CAC halfword load AFTER the `andi/sb` of D_80189B36 (`sb $v1,($v0); lhu $v0,-4($s1); sh`). Ours hoists the load before the sb. Tried: direct `D_80189B36 &= 0xEF;` (load hoisted, score 2602), and `q = &D_80189B36; *q &= 0xEF;` with q as a local (score 2292/1427 depending on placement) \u2014 the pointer form gets the right lui/addiu/lbu/andi/sb sequence but still hoists the D_80190CAC load. Remaining idea: make only that load volatile, `D_80189C98 = *(vu16 *)(p - 4);`, so gcc cannot move it above the sb, and/or declare p as `u8 *volatile p` to keep it in $s1. Also worth trying: `var_v0 = temp_v0 & 0x20;` computed before the 0x10 block and reused (target has `andi $v0,$s0,0x20` before the branch and again after the jal).",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794736344.273793,
-  "score_before": 915,
-  "score_after": 915
  },
  {
   "function": "func_8015248C",
@@ -18398,14 +18358,6 @@
   "created_at": 1794748496.923838,
   "score_before": 450,
   "score_after": 450
- },
- {
-  "function": "func_80146970",
-  "text": "Not matched. Best saved 915 does not reproduce; rechecked candidates score 2747 (p as local u8*) and 2777 (direct &D_80190CB0 - 4). Target keeps a 0x20 frame with ra/s0/s1 saved: temp_v0 lives in s0 and the pointer to D_80190CB0 is materialized once (lui+addiu into s1) and reused via lbu (s1) x3 and lhu -4(s1). Our versions re-materialize lui per use and use an 0x18 frame. Next try: make the pointer a local used in several places (including the lbu reads) so GCC keeps it in s1, and check that the first call's result is held in s0 across func_80148688.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794748518.201618,
-  "score_before": 915,
-  "score_after": 915
  },
  {
   "function": "func_80032108",
@@ -26200,14 +26152,6 @@
   "score_after": 10
  },
  {
-  "function": "func_80146970",
-  "text": "Unit is -O1. try_compiler -O1 best 55 (only s0/s1 swap between r and p): typedef struct{u8 a:3;u8 f:1;u8 b:4;} Flags; extern Flags D_80189B36 (the `&=0xEF` is a BITFIELD clear `D_80189B36.f=0` -> gives lui/addiu/lbu/andi/sb via reg). Body: r=func_8014A870(0x14,3,D_80189CBE); if(r&3)func_8014B854(0x3B); p=&D_80190CB0; func_80148688(r&0xFF,*p); if(r&0x10){r=0;a=0x3E; if(!(D_80183BD4&0x1000)){a=0x3D;D_80189B36.f=0; p-=4; D_80189C98=*(u16*)p;} func_8014B854(a);} if(r&0x20){func_8014B854(0x3A);D_80189B36.f=0;D_80189C98=D_80190CAE;}. Without `p-=4`, cse folds p-4 to D_80190CAC symbol (483). p at top of function: regs right but lui placed early (280). Using p-2 for CAE in last block: regs right but block1 folds (240). Tried decl order (no effect), p-=4 at block start (265). Next: find a way p isn't const-folded in block1 while r keeps priority for s0.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794762014.021327,
-  "score_before": 915,
-  "score_after": 915
- },
- {
   "function": "func_8013FE18",
   "text": "Best 7101 (76%), same as the saved attempt; one further compile gave no improvement. The target has a 0x20-byte frame saving ra,s2,s1,s0 and a leading `!= 5` test, while the C produces a 0x28 frame with an extra s2 spill and reloads D_8006F9E8 three times. Likely cause: the first switch on D_8011F32E gets split differently, and the early return path reuses the `r` value across the big block. Next step: restructure so the `!= 5` check and the case-0 path share one load of D_8006F9E8, drop the redundant pointer copy `q`, then fix stack layout before arithmetic. The sequence of F() stores in the case-0 block is not yet verified against the target.",
   "by": "claude-haiku-5-5-20",
@@ -27216,14 +27160,6 @@
   "score_after": 1596
  },
  {
-  "function": "func_80146970",
-  "text": "SOLVED byte-exact under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1; verified try_compiler and captured function-only suggest bundle with exact source. Automatic compiler changes off. Key change from prior55: u8 *p,*q; q=&D_80190CB0; p=q; resolves s0/s1 allocation exactly with no extra instructions. Flags bitfield .f=0, r=0 on 0x10 path, p-=4 before halfword read. Current O2 source4558 not evidence against exact O1 bundle. Apply suggestion to save match; no further tuning appropriate.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794763676.273921,
-  "score_before": 915,
-  "score_after": 915
- },
- {
   "function": "func_8014A9F4",
   "text": "Compiled proven PennyHalfwordRows stride0x178 struct source under O2=2195. O1 fresh565: all loop operations match; initial arg0 mask allocation/order and source-base addition differs. Tried switch, forward goto/table/end layout, u16 vs s32, explicit arg0=id&FF, id copy, pointer q copy, register qualifiers (all565/595), raw address form590. No exact match. Current a86df385833cdd269fd3 correct source but saved2180 slightly lowerO2. Original declaration func_80146E4C s32(u16) corrected to matched u16(u16) in trial. -O1 required for index loops; defaultO2 strength reduction prevents close target.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -27886,14 +27822,6 @@
   "created_at": 1794765007.292587,
   "score_before": 890,
   "score_after": 890
- },
- {
-  "function": "func_80146970",
-  "text": "Current profile drift: inherited historical915 rechecks2747. Rewrote control faithfully: buttons=0 at start of if(buttons&16), final if(buttons&32), p assignment after initial beep: score2502 O2, O1 diagnostic933 trial05786e7b696c80a3ad8c. Local 6 families no improvement. volatile pointee p improves O2 to2372 b4b1b876a658b51d1061. Array declaration alone no effect. Main obstacle compiler dissolves p=&D_80190CB0 and folds *(u16*)(p-4) to D_80190CAC; target retains p in s1 across call and lhu -4(s1). Target also retains &D_80189B36 in v0 for RMW instead of separate lo reloc load/store. Likely original uses broader structs or inline helper alias context; avoid arity changes, all target call args known.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794765015.1896682,
-  "score_before": 915,
-  "score_after": 915
  },
  {
   "function": "func_801BFA1C",
@@ -28608,14 +28536,6 @@
   "score_after": 1990
  },
  {
-  "function": "func_80146970",
-  "text": "Reconstructed and VERIFIED exact-byte O1 source ec21a2d27ab32053e994: MenuFlags{u8 a:3,f:1,b:4}, r=0 in16 path; q=&D_80190CB0;p=q; p-=4; bitfield f=0. Explicit try_compiler -O1 MATCH and suggest rechecks MATCH, automatic profile changes off. Apply compiler/source suggestion to save; do not tune O2/current historical915. Bundle pending application.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794766175.860415,
-  "score_before": 915,
-  "score_after": 915
- },
- {
   "function": "func_800DF2AC",
   "text": "Saved best 60 (same source as the local repair variants; only 12 register rows differ: mtc1 a1/a2/a3 and the lwc1 of arg4..arg6 land in different FP regs, target f24/f22/f20 and f30/f28/f26). A structurally closer variant scored 485 (94.8%): d1=arg3-arg6, d2=arg1-arg4 computed as locals first, then call func_801F9D8C((s32)d1,(s32)d2)&0xFFFF; a0 = (s32)(fa+45.0f), with 'if ((s16)t >= 0x168) a0 = t-0x168'; the chain of if/else-if on (u16)a0 with thresholds 0x5A, 0x5A+0x5A, 0xB4, 0x10E. Its remaining diff is a branch-form difference: target uses bnez v0 for the (s16) compare and a move in the delay slot, not beql. Next: keep the saved-best register layout, and try the local-d1/d2 form with 'if ((s16)t < 0x168) a0 = t' to get bnez + move, or try -O1 via search_flags.",
   "by": "claude-haiku-5-5-22",
@@ -29222,14 +29142,6 @@
   "created_at": 1794767481.450134,
   "score_before": 12568,
   "score_after": 12568
- },
- {
-  "function": "func_80146970",
-  "text": "Reconstructed exact O1 source cd7cca11607c5ec9ba76 and reverified MATCH with explicit try_compiler; suggest rechecks exact, function-only bundle pending application because auto compiler changes off. MenuFlags bitfield, r=0 bit16 path, q=&D_80190CB0;p=q; p-=4 halfword read. No further O2 candidate tuning justified; apply bundle to save.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794767491.2134268,
-  "score_before": 915,
-  "score_after": 915
  },
  {
   "function": "func_80156338",
@@ -37343,5 +37255,193 @@
   "created_at": 1795726301.33659,
   "score_before": 265,
   "score_after": 265
+ },
+ {
+  "function": "func_80146970",
+  "text": "Best saved 915 (from earlier session). Current machine-draft form scored 2747. Target frame is 0x20 and saves $ra(0x18), $s1(0x14), $s0(0x10); it keeps &D_80190CB0 in $s1 across the calls (addiu $s1 after lui) and reloads through (s1) three times. My `u8 *p = &D_80190CB0` gets folded to lui/lbu %lo, so the pointer is never kept live. Next: force a live pointer across the calls (e.g. make the pointer's first use come after func_8014A870 and read *p through a second pointer local), and also check the second store to D_80189B36 (sb at %lo, twice). Not tried: volatile variants.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794706639.5718741,
+  "score_before": 915,
+  "score_after": 915
+ },
+ {
+  "function": "func_80146970",
+  "text": "Not matched. Best current candidate revision df3cc4c7fbbfab4adb60: 2602 (55.8%), where temp_v0 is reused as the 0x10-path zero (`temp_v0 = 0;`, then `if (temp_v0 & 0x20)`), which fixed the join. Historical saved best 915 is from a different source. Remaining structural gap: target keeps p=&D_80190CB0 in callee-saved $s1 across the func_80148688 call (lui+addiu once, then lbu 0($s1) and lhu -4($s1)); mine re-materializes lui/%lo at each use and the frame is 0x18 instead of 0x20 (ra, s1, s0 saved). Tried: extern-array form of D_80190CB0 (no effect). Untried: a struct overlay on D_80190CB0 so the base pointer is a non-constant value across the call; then fix the extra nop/branch-target offset (0xd8 vs 0xd0).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794720798.934798,
+  "score_before": 915,
+  "score_after": 915
+ },
+ {
+  "function": "func_80146970",
+  "text": "Current 2747 (53%) with candidate 9def453e0df7c198ac34; the saved best 915 is not reproduced by the same source (historical score only). Key difference: the target keeps the pointer `p = &D_80190CB0` live across the calls in s1 (`addiu s1,s1,%lo(D_80190CB0)` x3, then `lbu a1,(s1)`), giving frame 0x20 with ra, s0, s1 saved. Ours rematerialises the constant address each time (`lui a1,%hi(D_80190CB0)` / `lbu a1,%lo(...)`), so the frame is 0x18 and s1 is not saved. Untried: make p a non-constant pointer, e.g. assign it from a value the compiler can't fold (a call result or a volatile read), or use `*(p+k)` reads only after the first call, so the base survives in a callee-saved register. Also the target's first call is `func_8014A870(0x14, 3, D_80189CBE)` with the return kept in s0, and the store-then-clear of D_80189B36 uses `sb v1,(v0)` twice (a shared base pointer, not two %lo stores).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794730164.987456,
+  "score_before": 915,
+  "score_after": 915
+ },
+ {
+  "function": "func_80146970",
+  "text": "Not matched; move-on budget used. Best from my side: 2762 (53.1%) with the clean form in revision 45efdc9b603efb23bef8 (saved 915 is from another source, start from it if it's the saved best). Structure, following the asm: t=func_8014A870(0x14,3,D_80189CBE); if (t&3) func_8014B854(0x3B); p=&D_80190CB0; func_80148688(t&0xFF,*p); if (t&0x10) { t=0; if (D_80183BD4&0x1000) func_8014B854(0x3E); else { func_8014B854(0x3D); D_80189B36&=0xEF; D_80189C98=*(u16*)(p-4); } } if (t&0x20) { func_8014B854(0x3A); D_80189B36&=0xEF; D_80189C98=D_80190CAE; }. Target frame 0x20 with ra,s1,s0 saved and p kept in $s1 across calls (lhu -4($s1) reads D_80190CAC); mine gives frame 0x18 and rematerialises &D_80190CB0 each time (lui/addiu per use), so p is not live across calls. Next: make p survive the call (e.g. read *(p-4) before the first call into a local, or use a u8* taken from a volatile-free function-scope variable), and check the 0x3B branch's delay-slot ordering (target puts the 0x3B call before the s1 setup).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794731683.580755,
+  "score_before": 915,
+  "score_after": 915
+ },
+ {
+  "function": "func_80146970",
+  "text": "Best this session 1427 (rev db4de81a2e1230b21814); inherited saved_best 915. Structure is right (all 3 calls, both flag tests, both store pairs). Two residual issues:\n1) Target keeps &D_80190CB0 in $s1 across the func_80148688 and func_8014B854 calls (lui+addiu once, then `lbu $a1,($s1)` and `lhu $v0,-4($s1)`), giving a 0x20 frame with s1+s0 saved. Ours rematerializes `lui $a1,%hi(D_80190CB0)` at each use and a 0x18 frame. The pointer is live across the calls in the target, so the original probably held it in a variable that gcc could not rematerialize (e.g. a volatile pointer, or the address was passed/derived so it stays in a callee-saved reg).\n2) Target emits the D_80190CAC halfword load AFTER the `andi/sb` of D_80189B36 (`sb $v1,($v0); lhu $v0,-4($s1); sh`). Ours hoists the load before the sb. Tried: direct `D_80189B36 &= 0xEF;` (load hoisted, score 2602), and `q = &D_80189B36; *q &= 0xEF;` with q as a local (score 2292/1427 depending on placement) \u2014 the pointer form gets the right lui/addiu/lbu/andi/sb sequence but still hoists the D_80190CAC load. Remaining idea: make only that load volatile, `D_80189C98 = *(vu16 *)(p - 4);`, so gcc cannot move it above the sb, and/or declare p as `u8 *volatile p` to keep it in $s1. Also worth trying: `var_v0 = temp_v0 & 0x20;` computed before the 0x10 block and reused (target has `andi $v0,$s0,0x20` before the branch and again after the jal).",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794736344.273793,
+  "score_before": 915,
+  "score_after": 915
+ },
+ {
+  "function": "func_80146970",
+  "text": "Not matched. Best saved 915 does not reproduce; rechecked candidates score 2747 (p as local u8*) and 2777 (direct &D_80190CB0 - 4). Target keeps a 0x20 frame with ra/s0/s1 saved: temp_v0 lives in s0 and the pointer to D_80190CB0 is materialized once (lui+addiu into s1) and reused via lbu (s1) x3 and lhu -4(s1). Our versions re-materialize lui per use and use an 0x18 frame. Next try: make the pointer a local used in several places (including the lbu reads) so GCC keeps it in s1, and check that the first call's result is held in s0 across func_80148688.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794748518.201618,
+  "score_before": 915,
+  "score_after": 915
+ },
+ {
+  "function": "func_80146970",
+  "text": "Unit is -O1. try_compiler -O1 best 55 (only s0/s1 swap between r and p): typedef struct{u8 a:3;u8 f:1;u8 b:4;} Flags; extern Flags D_80189B36 (the `&=0xEF` is a BITFIELD clear `D_80189B36.f=0` -> gives lui/addiu/lbu/andi/sb via reg). Body: r=func_8014A870(0x14,3,D_80189CBE); if(r&3)func_8014B854(0x3B); p=&D_80190CB0; func_80148688(r&0xFF,*p); if(r&0x10){r=0;a=0x3E; if(!(D_80183BD4&0x1000)){a=0x3D;D_80189B36.f=0; p-=4; D_80189C98=*(u16*)p;} func_8014B854(a);} if(r&0x20){func_8014B854(0x3A);D_80189B36.f=0;D_80189C98=D_80190CAE;}. Without `p-=4`, cse folds p-4 to D_80190CAC symbol (483). p at top of function: regs right but lui placed early (280). Using p-2 for CAE in last block: regs right but block1 folds (240). Tried decl order (no effect), p-=4 at block start (265). Next: find a way p isn't const-folded in block1 while r keeps priority for s0.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794762014.021327,
+  "score_before": 915,
+  "score_after": 915
+ },
+ {
+  "function": "func_80146970",
+  "text": "SOLVED byte-exact under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1; verified try_compiler and captured function-only suggest bundle with exact source. Automatic compiler changes off. Key change from prior55: u8 *p,*q; q=&D_80190CB0; p=q; resolves s0/s1 allocation exactly with no extra instructions. Flags bitfield .f=0, r=0 on 0x10 path, p-=4 before halfword read. Current O2 source4558 not evidence against exact O1 bundle. Apply suggestion to save match; no further tuning appropriate.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794763676.273921,
+  "score_before": 915,
+  "score_after": 915
+ },
+ {
+  "function": "func_80146970",
+  "text": "Current profile drift: inherited historical915 rechecks2747. Rewrote control faithfully: buttons=0 at start of if(buttons&16), final if(buttons&32), p assignment after initial beep: score2502 O2, O1 diagnostic933 trial05786e7b696c80a3ad8c. Local 6 families no improvement. volatile pointee p improves O2 to2372 b4b1b876a658b51d1061. Array declaration alone no effect. Main obstacle compiler dissolves p=&D_80190CB0 and folds *(u16*)(p-4) to D_80190CAC; target retains p in s1 across call and lhu -4(s1). Target also retains &D_80189B36 in v0 for RMW instead of separate lo reloc load/store. Likely original uses broader structs or inline helper alias context; avoid arity changes, all target call args known.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794765015.1896682,
+  "score_before": 915,
+  "score_after": 915
+ },
+ {
+  "function": "func_80146970",
+  "text": "Reconstructed and VERIFIED exact-byte O1 source ec21a2d27ab32053e994: MenuFlags{u8 a:3,f:1,b:4}, r=0 in16 path; q=&D_80190CB0;p=q; p-=4; bitfield f=0. Explicit try_compiler -O1 MATCH and suggest rechecks MATCH, automatic profile changes off. Apply compiler/source suggestion to save; do not tune O2/current historical915. Bundle pending application.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794766175.860415,
+  "score_before": 915,
+  "score_after": 915
+ },
+ {
+  "function": "func_80146970",
+  "text": "Reconstructed exact O1 source cd7cca11607c5ec9ba76 and reverified MATCH with explicit try_compiler; suggest rechecks exact, function-only bundle pending application because auto compiler changes off. MenuFlags bitfield, r=0 bit16 path, q=&D_80190CB0;p=q; p-=4 halfword read. No further O2 candidate tuning justified; apply bundle to save.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794767491.2134268,
+  "score_before": 915,
+  "score_after": 915
+ },
+ {
+  "function": "func_80146970",
+  "text": "haiku-pr1 (Haiku 5.5): saved best 802; submitted 675. Fix: the __base_D_80189B36 alias is kept only in the if arm; the tail store uses the global directly (a pointer alias live across the call took $s2, a saved register the target does not use). Remaining: the target recomputes x & 0x20 at the tail (andi v0,s0,0x20) where the draft reuses the register (var_v0 = temp & 0x20): recomputing in the test gave 1342 and 1527. Also the prologue/saves ($ra, $s1, $s0 order) differs (sw order).",
+  "by": "manual-a2e0c67556b34442",
+  "created_at": 1795708560.150094,
+  "score_before": 675,
+  "score_after": 675,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:c9ee6f442ee3bca4f0d5380907bc7f0401b5ec7ebf45223a4a6e9298a2bb4ca5"
+ },
+ {
+  "function": "func_80146970",
+  "text": "Best 675; see note.",
+  "by": "manual-a2e0c67556b34442",
+  "created_at": 1795708562.208095,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:c9ee6f442ee3bca4f0d5380907bc7f0401b5ec7ebf45223a4a6e9298a2bb4ca5"
+ },
+ {
+  "function": "func_80146970",
+  "text": "haiku-pr3b: flag dispatch (0x14 status call, bit 3 / bit 0x10 / bit 0x20 tests, D_80189B36 &= 0xEF, D_80189C98 from the table at -4 or D_80190CAE, calls 0x3B / 0x3D / 0x3E / 0x3A). Clean C scores 2317 to 3787 locally; the saved 675 has the frame right and the scheduling of its tests. Not solved.",
+  "by": "manual-5113716c0f6048d5",
+  "created_at": 1795708849.755815,
+  "score_before": 675,
+  "score_after": 675
+ },
+ {
+  "function": "func_80146970",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Saved 675 best. Clean forms 2317 to 3787 locally.",
+  "by": "manual-5113716c0f6048d5",
+  "created_at": 1795708849.892846,
+  "score_before": 675,
+  "score_after": 675
+ },
+ {
+  "function": "func_80146970",
+  "text": "Haiku clean rewrite (session haiku-pr17), 8 judged candidates. Flag handler: s0 = func_8014A870(0x14, 3, D_80189CBE); if (s0 & 3) call 0x3B; func_80148688((u8) s0, D_80190CB0); if (s0 & 0x10): s0 = 0, the call's argument is 0x3E when D_80183BD4 & 0x1000 else 0x3D (then D_80189B36 &= 0xEF and D_80189C98 = the u16 at D_80190CAC), then func_8014B854(arg); if (s0 & 0x20): call 0x3A, D_80189B36 &= 0xEF, D_80189C98 = the u16 at D_80190CAE. Best clean: /tmp/dd-haiku-pr17/work/n1/c5.c scores 2640 at the app profile; saved best 675. Remaining: the target keeps s1 = &D_80190CB0 as a saved register (the 0x20 frame), which the pointer local gives only partly. Not matched.",
+  "by": "manual-3be4557e41ac4704",
+  "created_at": 1795713310.1428869,
+  "score_before": 675,
+  "score_after": 675
+ },
+ {
+  "function": "func_80146970",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Clean flag handler best 2640 (saved 675). Released after 8 judged candidates.",
+  "by": "manual-3be4557e41ac4704",
+  "created_at": 1795713310.6924958,
+  "score_before": 675,
+  "score_after": 675
+ },
+ {
+  "function": "func_80146970",
+  "text": "haiku-pr30: state update routine: a call result r masked by 3, 0x10 and 0x20 bits, with a flag test on D_80183BD4 and per-branch byte/halfword stores. A structural rewrite (f12_c1) scores 3512 vs saved 675. The target's 0x10 block reuses the result register for 0 before the 0x20 test; the saved best has the right stores. Released.",
+  "by": "manual-a3f89156f3b6431f",
+  "created_at": 1795716542.8522508,
+  "score_before": 675,
+  "score_after": 675,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:c9ee6f442ee3bca4f0d5380907bc7f0401b5ec7ebf45223a4a6e9298a2bb4ca5"
+ },
+ {
+  "function": "func_80146970",
+  "text": "Small-model attempt at func_80146970: 13 tries.\n  best 160 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 180 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 560 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 870 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1807 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNot matched after 13 tries. Best: profile 1 (gcc-2.7.2-kmc -O1) at 160 (own -O2 at 5118; the saved C was 675 own, 615 under profile 3). Best C under profile 1: func_80146970 has flags var from func_8014A870; if (flags&3) call 0x3B; p = D_80190CB0; func_80148688(flags&0xFF, *p); if (flags&0x10) { if (D_80183BD4&0x1000) code=0x3E; else { code=0x3D; { u8 *q=&D_80189B36; *q &= 0xEF; } D_80189C98 = *(u16*)(p-4); } func_8014B854(code); flags=0; } if (flags&0x20) { func_8014B854(0x3A); { u8 *q=&D_80189B36; *q &= 0xEF; } D_80189C98 = D_80190CAE; }. Remaining diffs under O1: 'move $s0,$zero' placed after the jal instead of before the lui of D_80183BD4 (moving flags=0 to block start worsened it to 360); the 0x3D block's addiu a0 comes after the lui (target has it first); the pointer-store block is now identical. Tried and worse: flags=0 at top (360-410), separate q declared before the call (ordering wrong), q=pointer without block scope (420), D_80189B36 direct ($at form).",
+  "by": "manual-4486ea4287234d1d",
+  "created_at": 1795717015.6928341,
+  "score_before": 675,
+  "score_after": 675,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:c9ee6f442ee3bca4f0d5380907bc7f0401b5ec7ebf45223a4a6e9298a2bb4ca5"
+ },
+ {
+  "function": "func_80146970",
+  "text": "Small-model attempt at func_80146970: 13 tries.\n  best 410 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 560 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 570 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1070 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1707 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 410 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial d24f3ddd7bd2c20a2c24 (not applied).\n13 tries, no match. Best 410 under gcc-2.7.2-kmc -O1 (if/else on 0x1000 with mode 0x3E/0x3D, flags=0 first, byte clear through a u8 pointer q, lhu via p-4). Left: target branches bnez to the call (we beqz to the 0x3D path); the flag byte is loaded into v1 with pointer in v0 in the target, we swap them; the 0x3D li is sunk after the lhu under -O2. Lowest under gcc-2.8.1-pm-sn-as -O2 was 560.",
+  "by": "manual-efd1950cb9824592",
+  "created_at": 1795726143.186236,
+  "score_before": 675,
+  "score_after": 675
+ },
+ {
+  "function": "func_80146970",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80146970: 13 tries.\n  best 410 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 560 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 570 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1070 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1707 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 410 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial d24f3ddd7bd2c20a2c24 (not applied).\n13 tries, no match. Best 410 under gcc-2.7.2-kmc -O1 (if/else on 0x1000 with mode 0x3E/0x3D, flags=0 first, byte clear through a u8 pointer q, lhu via p-4). Left: target branches bnez to the call (we beqz to the 0x3D path); the flag byte is loaded into v1 with pointer in v0 in the target, we swap them; the 0x3D li is sunk after the lhu under -O2. Lowest under gcc-2.8.1-pm-sn-as -O2 was 560.",
+  "by": "manual-efd1950cb9824592",
+  "created_at": 1795726143.493016,
+  "score_before": 675,
+  "score_after": 675
+ },
+ {
+  "function": "func_80146970",
+  "text": "Small-model attempt at func_80146970: 12 tries.\n  best 210 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 230 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 560 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 870 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1707 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 210 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial d7c72960867e38266a78 (not applied).\nNot matched after 12 tries. Best 210 under gcc-2.7.2-kmc -O1 (own profile 1807, saved 675 under own stays best). Helped most: moving flags = 0 after the if/else and before the call (410 to 210); the else-form with 0x3E as the if branch keeps the join with a j. Left: target sets flags = 0 before the D_80183BD4 test (move in the 0x10 block's top), and the pointer for D_80189B36 lands in $v0 in target, $v1 here (regalloc).",
+  "by": "manual-0ba0a8d1d258471f",
+  "created_at": 1795727097.671055,
+  "score_before": 675,
+  "score_after": 675
+ },
+ {
+  "function": "func_80146970",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80146970: 12 tries.\n  best 210 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 230 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 560 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 870 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1707 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 210 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial d7c72960867e38266a78 (not applied).\nNot matched after 12 tries. Best 210 under gcc-2.7.2-kmc -O1 (own profile 1807, saved 675 under own stays best). Helped most: moving flags = 0 after the if/else and before the call (410 to 210); the else-form with 0x3E as the if branch keeps the join with a j. Left: target sets flags = 0 before the D_80183BD4 test (move in the 0x10 block's top), and the pointer for D_80189B36 lands in $v0 in target, $v1 here (regalloc).",
+  "by": "manual-0ba0a8d1d258471f",
+  "created_at": 1795727097.960834,
+  "score_before": 675,
+  "score_after": 675
  }
 ]
