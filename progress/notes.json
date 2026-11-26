@@ -7168,14 +7168,6 @@
   "score_after": 7885
  },
  {
-  "function": "func_80160930",
-  "text": "Not matched. Best saved remains 2780 (m2c draft). Re-compiled: typed rewrite (u8* arrays, u8 structs, 0x7C stride) scored 5663; restructured temp_v0 liveness scored 5663; compile of saved draft rechecks at 5460; u32-typed D_8011F304/D_8011F350 indexing scored 5825 (worse). Facts: target frame is 0x68 with saved s0-s3 and ra; s3 holds full v0 of func_8013E364 (later used as temp_v0 & 0xFFFF), s0 = v0 & 0xFFFF; s1 = struct ptr = arg0[2]*100 + D_8011F2F0 computed before checks; s2 = arg0 (move $s2,$a0). Target indexes 0x7C element stride via (s0<<5 - s0)<<2 for D_8018D6C4 store of arg0 and D_8018D6C0 byte stores at +0x18/+0x19, D_8018D6D7 byte store, D_8018D6C0+0x67+arg0[4] byte store = 1. Mismatch: our code uses sll 4 where target uses sll 2 for the 0x64/word indexing of D_8011F304 (suggests D_8011F304 is an s32 array indexed by element and D_8011F350 an array of 0x64-stride records, not byte pointers). Untested next step: declare D_8011F304 as s32[] and index with s1-relative element, keep temp_v0 live for the final &0xFFFF.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794710028.578072,
-  "score_before": 2780,
-  "score_after": 2780
- },
- {
   "function": "func_801655A8",
   "text": "Not matched. Saved best source (8506 historical) rechecked today under gcc-2.7.2-kmc -O2 scores 11026 (24.4%): our compile drops the ra/s0/s1 frame that the target has (target 146 insns, ours 127), so the calls to func_8013EB20/func_8013EC48/func_8013E49C aren't being kept in the frame as expected. Compiling with sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float scores 8370 (42.7%): the target's float constants are immediate lui/ori/mtc1 (not .rdata loads), so that compiler is wrong too; the target looks like kmc-style immediates with a frame. Structure in target matches the source: state==1 tested first, then state<2, state==0, else state==2; idx*100 is computed as off in v1 via sll/addu chain on the andi'd idx. Next step: check last_diff on kmc output to find why the frame and the 3 calls vanish; try idx computed as andi of a0 used in the chain (target uses v0 for idx, a0 for the call arg).",
   "by": "claude-haiku-5-5-22",
@@ -10952,14 +10944,6 @@
   "score_after": 4090
  },
  {
-  "function": "func_80160930",
-  "text": "Releasing early: the best source is revision 54377caf5d4d02c009de (4943, 65%), which is worse than the saved 2780 for this function, so restore that with get_candidate(base=\"saved_best\") before the next agent starts. The raw m2c draft is not usable (M2C_* macros, wrong types). Structural gap: the target frame is 0x68 with saved s0-s3 and ra at 0x60, and it moves $a0 into $s2 before the first call (arg0 is live across calls). My version has a 0x60 frame and no s3, so a second call-live value is missing. Also, func_8013E49C is already in the shared header with a different signature. Do not redeclare it (conflicting types error). Next step: find the second live value (likely the racer base pointer or the 0x898 field) and keep it in a local across func_800DE41C.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794725473.1251929,
-  "score_before": 2780,
-  "score_after": 2780
- },
- {
   "function": "func_801644F0",
   "text": "Not attempted to a score; I'm ending this session's batch here. The m2c draft does not compile: it uses undeclared D_8011F2F0, D_8016850C, D_8018D727, D_8018D730, D_8018D6C4 and treats func_80164740 as a data symbol (`&func_80164740`), which is probably a function address, not data. arg0 is a struct pointer with fields at +2 (u16 slot index), +4 (u16), +0x244 via the slot record, +0x560 (u16 flags, low 3 bits = counter), +0x55E (s16 countdown), +0x7C0/+0x7C4/+0x7C8 (f32), +0x898 (s32 state == 1). Start by declaring that struct and the 0x7C-stride table D_8018D727/D_8018D730/D_8018D6C4 before any matching work.",
   "by": "claude-haiku-5-5-22",
@@ -14670,14 +14654,6 @@
   "created_at": 1794739671.772338,
   "score_before": 350,
   "score_after": 350
- },
- {
-  "function": "func_80160930",
-  "text": "Not matched. Best this session: 5473 (61.4%) at revision d62251f53e9a70696f66; saved best 2780 is from an earlier source. Fixes that helped: the 9 f32 arguments to func_800DE41C must be declared f32 (prototype `s32 func_800DE41C(s32,s32,s32,s32,s32,s32,void*,void*,void*,f32 x9)`); without it the floats promote to double (8226). Do NOT redeclare func_8013E49C (it conflicts with the context header). Remaining diff: target frame is 0x68 (ra at 0x60, s0-s3 saved, zeroed 0x14 stack arg); mine is 0x60 with s0-s2 only. Target keeps arg0 in s2 and uses beql on the func_8013E364 result. Copying arg0 to a local `self` had no effect (5473 again). Next: find the second spilled temp across the calls (likely the func_8013E364 result kept live through the 0x258 call) before tuning registers.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794739715.417197,
-  "score_before": 2780,
-  "score_after": 2780
  },
  {
   "function": "func_80026D40",
@@ -19528,14 +19504,6 @@
   "score_after": 4960
  },
  {
-  "function": "func_80160930",
-  "text": "Releasing now (cannot get closer without a different structural hypothesis). Best: 5238 (63.1%), revision db555a45ecfecad918da; saved historical best 2780 is from another source. Target frame is 0x68 with ra and s0-s3 saved, arg0 held in s2, and the && condition compiles to a beql branch; mine is a 0x60 frame with arg0 in s1, so the prologue and register allocation differ throughout. func_800DE41C takes 18 args (drop the trailing 0.0f's); func_8013E49C is in context.h with one u16 arg, do not redeclare. Next step: restructure the && guard as nested ifs and add a local to grow the frame to 0x68, then recheck the prologue. Full working C is in the 'Working C' above: D_8011F2F0 record = arg0[2]*0x64; guard on arg0+0x898 == 1 and !(arg0 u16 0x560 & 0x28); D_8018D6C4/D_8018D6C0/D_8018D6D7 stride 0x7C; D_8011F350/D_8011F304 copy.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794754237.2073631,
-  "score_before": 2780,
-  "score_after": 2780
- },
- {
   "function": "func_802163B0",
   "text": "Not matched. Best 2770 at revision eee740cb1f51354dfd14 (switch on state at p+0x3E: case 0 init falls into case 0x10; 0x20 branch; 0x30 branch; other values return). Target frame 0x28 saves ra, s4, s3, s2, s1, s0 and uses s4=record, s1=&D_80190CA0 (lui/addiu kept in a register), s3=s1+2, s2=s1+4; s0 = func_8014A870(0x1E,7,0) result, flag-gated by andi 8/4/0x10/0x20 with s0=0 set inside the 0x10 branch. Remaining diff (2770): the target keeps &D_80190CA0 in s1 and uses s3/s2 as pointers; my compile folds these into absolute %lo addressing. Also target reads D_801C5E9C via a register pointer (lui/addiu, lbu 0/1). A version with those as local pointers (base, e9c, b0) scored 4132 and was worse, so it was reverted. Next: check the source form that makes the address a live register, and the sh/sb order in case 0x10.",
   "by": "claude-haiku-5-5-24",
@@ -20774,14 +20742,6 @@
   "created_at": 1794756411.809164,
   "score_before": 2820,
   "score_after": 2820
- },
- {
-  "function": "func_80160930",
-  "text": "Cannot get closer from here without a new structural idea. Best 4023 at revision 59c5c93d22d85728d939 (saved best 2780 is historical, different source). Frame analysis: the 5 int/stack words at 0x10..0x20 and 9 float stack args at 0x24..0x44 fill 0x48 bytes; the target frame is 0x68 with saves at 0x50(s0),0x54(s1),0x58(s2),0x5c(s3),0x60(ra), so there are 8 unexplained bytes at 0x48..0x50 (an extra local, or a 2-word temporary). Our frame is 0x60 with four saves. Keeping the full v0 in a local did not change the score. Next step: find the 8-byte local (try a s32 temp used after the func_800DE41C call, and check whether arg0 needs a copy in s2 before the lhu).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794756419.986033,
-  "score_before": 2780,
-  "score_after": 2780
  },
  {
   "function": "func_801493F0",
@@ -26374,14 +26334,6 @@
   "created_at": 1794765651.399338,
   "score_before": 1790,
   "score_after": 1790
- },
- {
-  "function": "func_80160930",
-  "text": "Not matched; releasing now. Best from this claim: revision ec9a574f3c1732cbeb7e, score 4084 (71%), 139 vs 142 insns. Why further tuning is not closing the gap: the 4084 shape masks func_8013E364's result early (s0), while the target keeps the full result in s3 across the 18-arg func_800DE41C call and masks after it; forcing that (revision 034e89a81fd08bb46b76, using tmp & 0xFFFF after the call) reorders the r+2 test and the arg0 move and scores 5155. The target frame is 0x68 with five saves (ra, s3, s2, s1, s0), the 4084 version has 0x60 with three s-saves plus s0. Next step for whoever picks it up: start from ec9a574f3c1732cbeb7e, move `move s2,a0` to be the first body statement (arg0 saved to s2 before the first field read), then add a use of the full tmp after the call to pin s3. Do not change the float-argument copies (they already match) or the D_802396AC/func_80160B68/func_801610E0 stack words.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794765652.3728,
-  "score_before": 2780,
-  "score_after": 2780
  },
  {
   "function": "func_80148B44",
@@ -39163,5 +39115,62 @@
   "score_before": 4110,
   "score_after": 2430,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:d1f5c5de74c92d14f48e345313903f4e59d1ade2099e72c6328423d9aa54e0eb"
+ },
+ {
+  "function": "func_80160930",
+  "text": "Not matched. Best saved remains 2780 (m2c draft). Re-compiled: typed rewrite (u8* arrays, u8 structs, 0x7C stride) scored 5663; restructured temp_v0 liveness scored 5663; compile of saved draft rechecks at 5460; u32-typed D_8011F304/D_8011F350 indexing scored 5825 (worse). Facts: target frame is 0x68 with saved s0-s3 and ra; s3 holds full v0 of func_8013E364 (later used as temp_v0 & 0xFFFF), s0 = v0 & 0xFFFF; s1 = struct ptr = arg0[2]*100 + D_8011F2F0 computed before checks; s2 = arg0 (move $s2,$a0). Target indexes 0x7C element stride via (s0<<5 - s0)<<2 for D_8018D6C4 store of arg0 and D_8018D6C0 byte stores at +0x18/+0x19, D_8018D6D7 byte store, D_8018D6C0+0x67+arg0[4] byte store = 1. Mismatch: our code uses sll 4 where target uses sll 2 for the 0x64/word indexing of D_8011F304 (suggests D_8011F304 is an s32 array indexed by element and D_8011F350 an array of 0x64-stride records, not byte pointers). Untested next step: declare D_8011F304 as s32[] and index with s1-relative element, keep temp_v0 live for the final &0xFFFF.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794710028.578072,
+  "score_before": 2780,
+  "score_after": 2780
+ },
+ {
+  "function": "func_80160930",
+  "text": "Releasing early: the best source is revision 54377caf5d4d02c009de (4943, 65%), which is worse than the saved 2780 for this function, so restore that with get_candidate(base=\"saved_best\") before the next agent starts. The raw m2c draft is not usable (M2C_* macros, wrong types). Structural gap: the target frame is 0x68 with saved s0-s3 and ra at 0x60, and it moves $a0 into $s2 before the first call (arg0 is live across calls). My version has a 0x60 frame and no s3, so a second call-live value is missing. Also, func_8013E49C is already in the shared header with a different signature. Do not redeclare it (conflicting types error). Next step: find the second live value (likely the racer base pointer or the 0x898 field) and keep it in a local across func_800DE41C.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794725473.1251929,
+  "score_before": 2780,
+  "score_after": 2780
+ },
+ {
+  "function": "func_80160930",
+  "text": "Not matched. Best this session: 5473 (61.4%) at revision d62251f53e9a70696f66; saved best 2780 is from an earlier source. Fixes that helped: the 9 f32 arguments to func_800DE41C must be declared f32 (prototype `s32 func_800DE41C(s32,s32,s32,s32,s32,s32,void*,void*,void*,f32 x9)`); without it the floats promote to double (8226). Do NOT redeclare func_8013E49C (it conflicts with the context header). Remaining diff: target frame is 0x68 (ra at 0x60, s0-s3 saved, zeroed 0x14 stack arg); mine is 0x60 with s0-s2 only. Target keeps arg0 in s2 and uses beql on the func_8013E364 result. Copying arg0 to a local `self` had no effect (5473 again). Next: find the second spilled temp across the calls (likely the func_8013E364 result kept live through the 0x258 call) before tuning registers.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794739715.417197,
+  "score_before": 2780,
+  "score_after": 2780
+ },
+ {
+  "function": "func_80160930",
+  "text": "Releasing now (cannot get closer without a different structural hypothesis). Best: 5238 (63.1%), revision db555a45ecfecad918da; saved historical best 2780 is from another source. Target frame is 0x68 with ra and s0-s3 saved, arg0 held in s2, and the && condition compiles to a beql branch; mine is a 0x60 frame with arg0 in s1, so the prologue and register allocation differ throughout. func_800DE41C takes 18 args (drop the trailing 0.0f's); func_8013E49C is in context.h with one u16 arg, do not redeclare. Next step: restructure the && guard as nested ifs and add a local to grow the frame to 0x68, then recheck the prologue. Full working C is in the 'Working C' above: D_8011F2F0 record = arg0[2]*0x64; guard on arg0+0x898 == 1 and !(arg0 u16 0x560 & 0x28); D_8018D6C4/D_8018D6C0/D_8018D6D7 stride 0x7C; D_8011F350/D_8011F304 copy.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794754237.2073631,
+  "score_before": 2780,
+  "score_after": 2780
+ },
+ {
+  "function": "func_80160930",
+  "text": "Cannot get closer from here without a new structural idea. Best 4023 at revision 59c5c93d22d85728d939 (saved best 2780 is historical, different source). Frame analysis: the 5 int/stack words at 0x10..0x20 and 9 float stack args at 0x24..0x44 fill 0x48 bytes; the target frame is 0x68 with saves at 0x50(s0),0x54(s1),0x58(s2),0x5c(s3),0x60(ra), so there are 8 unexplained bytes at 0x48..0x50 (an extra local, or a 2-word temporary). Our frame is 0x60 with four saves. Keeping the full v0 in a local did not change the score. Next step: find the 8-byte local (try a s32 temp used after the func_800DE41C call, and check whether arg0 needs a copy in s2 before the lhu).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794756419.986033,
+  "score_before": 2780,
+  "score_after": 2780
+ },
+ {
+  "function": "func_80160930",
+  "text": "Not matched; releasing now. Best from this claim: revision ec9a574f3c1732cbeb7e, score 4084 (71%), 139 vs 142 insns. Why further tuning is not closing the gap: the 4084 shape masks func_8013E364's result early (s0), while the target keeps the full result in s3 across the 18-arg func_800DE41C call and masks after it; forcing that (revision 034e89a81fd08bb46b76, using tmp & 0xFFFF after the call) reorders the r+2 test and the arg0 move and scores 5155. The target frame is 0x68 with five saves (ra, s3, s2, s1, s0), the 4084 version has 0x60 with three s-saves plus s0. Next step for whoever picks it up: start from ec9a574f3c1732cbeb7e, move `move s2,a0` to be the first body statement (arg0 saved to s2 before the first field read), then add a use of the full tmp after the call to pin s3. Do not change the float-argument copies (they already match) or the D_802396AC/func_80160B68/func_801610E0 stack words.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794765652.3728,
+  "score_before": 2780,
+  "score_after": 2780
+ },
+ {
+  "function": "func_80160930",
+  "text": "Small-model attempt at func_80160930: 12 tries.\n  best 20 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 195 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 3160 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3344 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 4449 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries. Best -O1 score 20 (4 register differences left: the store of 0xFF's offset expression, the 1 store and its register order). Own -O2 is 955 saved, not improved. Remaining diffs: addu order of (off + &D_8018D6C0+0x67) + p4 and the register holding constant 1.",
+  "by": "manual-a21067659648432b",
+  "created_at": 1795718778.882303,
+  "score_before": 5001,
+  "score_after": 3354,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:365df5182ba5d025d40eb1c2b95f0d258461979233068ac0d62417d453f93ce2"
  }
 ]
