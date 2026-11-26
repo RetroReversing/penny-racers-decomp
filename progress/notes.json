@@ -7256,14 +7256,6 @@
   "score_after": 1565
  },
  {
-  "function": "func_801AEC94",
-  "text": "Best 4846 (67.4%), not matched. Clean rewrite with u16 loops over 0x240 (halfword D_801C6BE0=0xFFFF, byte D_801C7AD8=0xFF) and over 0xC8 with inner k<4 halfword fill at q = D_801C7470 + j*8 (q passed to func_801D65BC after the loops, like the target's a1); D_801C7080 + j*5 stores (4,0,-1,-1,-1) under `if (D_801C5EA1 == 0)`; two func_800DE41C calls (0x42/0x50, 0xFF, D_8019E400/D_8019E4B8, nine trailing zero stack args). Remaining diff: gcc loads D_801C5EA1 before the first stores, but the target stores 4 to D_801C7AB8/D_801C7469 first, then loads EA1; the target also re-reads EA1 inside the j loop (lbu + bnel). Pointer form for the D_801C5E9E stores made no change. Untried: a local read of EA1 before the j loop, and reordering the top stores vs the if.\n\nBest 4846 (67.4%), not matched. The source in the saved candidate is a clean rewrite. Remaining diff: the D_801C5EA1 read. gcc loads EA1 before the first stores; the target stores 4 to D_801C7AB8/D_801C7469 first, then loads EA1 (lbu + bnez), and re-reads EA1 inside the j loop (lbu + bnel). Tried with no score change: pointer `e = D_801C5E9E` for the 9E/9F stores; a local `flag = D_801C5EA1` read after the two 4-stores (identical code). Untried: volatile-free ways to force the load after the stores (e.g. put the stores after the if block), and checking whether the 0x7 call arg order / the D_801C7AB6 store position is the second diff. Frame is 0x50 with only ra and s0 saved.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794710904.924532,
-  "score_before": 5826,
-  "score_after": 4846
- },
- {
   "function": "func_8019917C",
   "text": "Not matched; saved best 6160 is the older attempt. Three rewrites this session were worse: goto-chain form 8705, nested if/else-if form 12555 (values materialised via sltu/xori, wrong block order), and reloading D_801C7074 per use made no difference. Decoded control flow (use it to rebuild): arg0 is u32 **dl pointer (lw a0,0(a2); addiu +8; sw back). idx=(u16)arg1; st=lhu D_8011F330[idx*100]; st==0 -> store 1 and return; st!=1 -> return. st==1: A=lhu D_8011F32E[(u16)D_801C7074*100]. If (A-7)<2u or A==6 -> cond_x; else if (A-9)>=2u and A!=0xD: if (A-0xF)<2u {D801C707B==0 -> emit934C; ==1 -> emit390; else tail}; else {D801C7AB8 in {4,0} or D801C6B30==0 -> emit934C, else emit390}; else (A in 9,10,0xD) -> emit934C. cond_x: D801C7469 != 4 && != 0 && D801C6B30 != 0 -> emit390, else emit934C. emit934C: dl[0]=0xFA000000, dl[1]=D_8011F2FC[idx*100]|0xFF00. emit390: dl[0]=0xFA000000, dl[1]=0x96969664. tail: dl[0]=0xF9000000, dl[1]=1. Why it cannot get closer from C alone yet: the target emits a pure branch chain with beql/bnel delay-slot nops and reloads each global per condition; GCC merges the shared emit blocks differently. Needs a hand-ordered goto version that matches block order (emit934C placed before cond_x in the target's fallthrough), or a different parsing of the nested && chains. Target is 150 insns.",
   "by": "claude-haiku-5-5-21",
@@ -10704,14 +10696,6 @@
   "score_after": 6180
  },
  {
-  "function": "func_801AEC94",
-  "text": "Best 4846 (67.4%), revision 4fcfa798d87da1744a12 (same as 7a7cf78 for scoring). Structure matches: D_801C7AB8/D_801C7469=4; D_801C5EA1 branch; 0x240 halfword loop on D_801C6BE0 + byte loop on D_801C7AD8; 200-iteration outer loop (stride 8 into D_801C7470 with 4 halfwords, stride 5 into D_801C7080 when D_801C5EA1==0); func_801D65BC(7, last a1, -1, 0xFFFF); func_8021F5F0; func_801AEEE8; func_801AEFBC; two func_800DE41C calls (18 args: 4 regs + 14 stack words 0x10..0x44). Remaining diffs: (1) gcc reloads/hoists D_801C5EA1 differently; target loads it once after the sb's and branches bnez at 0x5c. (2) D_801C5E9E byte clears: target uses one lui+addiu pointer then sb 0/sb 1 (a local pointer did not change the score). (3) signedness variant on loop counter i (s16) is worse (5996). Next: restructure the top so the D_801C5EA1 test reads once into a local, then retry the first branch's stores in target order; leave registers for last.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794727005.758732,
-  "score_before": 4696,
-  "score_after": 4696
- },
- {
   "function": "func_80194E60",
   "text": "Not matched. Target has a real stack frame (addiu sp,-0x18; sw ra,0x10(sp)) because it calls func_8014B854(0x3B, arg0, D_801C6BB9); the machine draft's body was dropped in my one compile (scored 16035, 9.4%), so that candidate is useless. Facts: arg0 is u8*, result byte stored via *arg0 at end (var_v0 / var_v0_2); top test D_801C6BB9 < 0x17 (lb, slti); then D_801C7AB0[1]==5. Global reads reload with lui/lb each time between branches (D_801C7062 two bytes at +0/+1, D_801C7068, D_801C6BB9, D_801C7469 lbu). Lookup index (BB9*0x18 + D7068)*2 into a u16 table at D_801C6C10 compared with 0xFFFF. Next pass: rebuild from the target top-down, keeping the frame and the call, one branch per if with fresh global reads.",
   "by": "claude-haiku-5-5-20",
@@ -14086,14 +14070,6 @@
   "created_at": 1794740218.3225029,
   "score_before": 5675,
   "score_after": 5675
- },
- {
-  "function": "func_801AEC94",
-  "text": "Best 9001 (39.5%), revision ab9d1e8c5c34d3493f18. Structure matches: two init loops (0x240 u16 fill into D_801C6BE0 and u8 fill into D_801C7AD8; 0xC8 outer loop with 4 inner u16 fills into D_801C7470 and 5-byte D_801C7080 records), then func_801D65BC(7,...), func_8021F5F0, func_801AEEE8, func_801AEFBC, two func_800DE41C calls. Remaining diffs: the D_801C5E9E byte pair (target writes +0 and +1 of D_801C5E9E; my u8 array index shifted the address by one in one spot) and the D_801C7082 read. Target frame is -0x50 with ra and s0 saved. Use u8 pointer locals to get the +1 offsets right.\n\nBest 5691 (61.8%), revision 4d81a5ae1da1a73c1e73 (u16 loop vars i/j, i*4 and i*5 indices). Two more attempts (pointer-to-D_801C5E9E as u8*, and as s16 with (u8*)&) left the score at 5691, so the pointer form is not the cause. Remaining diffs by last_diff: (1) the target's `if (D_801C5EA1==0)` test loads once into v0 and branches with bnez v0, ours loads into v1 (register only); (2) the target stores D_801C5E9E's two bytes through one address register (addiu v0 then sb 0(v0), sb 1(v0)), ours emits lui $at for each byte; (3) the else block's D_801C7082 loads should use one base register (lbu v1,(v0) / lbu v0,1(v0)) and the D_801C6BB9 store comes before the D_801C5E9C block in the target, ours after; (4) the target's D_801C7AB6 clear sits between the D_801C5E9C store and the loops, ours after the loops' tail. Next: restructure the else branch to read p = D_801C7082 once and write 7068 then 6BB9 before the D_801C5E9C block; if the byte stores still reorder, try a compile_variants over the else-block ordering.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794740248.0007749,
-  "score_before": 3691,
-  "score_after": 3691
  },
  {
   "function": "func_801271A0",
@@ -20728,14 +20704,6 @@
   "score_after": 435
  },
  {
-  "function": "func_801AEC94",
-  "text": "Init routine: sets D_801C7AB8/D_801C7469=4, branches on D_801C5EA1 (defaults 0xB to D_801C6BB9/D_801C7068 and zeroes D_801C5E9E[0..1], else copies D_801C7082[0..1]), stores &D_801C5E9C to D_801C7AB0, clears D_801C7AB6, fills D_801C6BE0[0x240]=0xFFFF and D_801C7AD8[0x240]=0xFF, loops i<0xC8 filling 4 halfwords at D_801C7470+i*8 with 0xFFFF and (if D_801C5EA1==0) 5 bytes at D_801C7080+i*5, then calls func_801D65BC(7, row_ptr_last, -1, 0xFFFF), func_8021F5F0, func_801AEEE8, func_801AEFBC, and two func_800DE41C calls (18 args, stack-passed; 0x42/0x50 with 0xFF, D_8019E400/D_8019E4B8). Best 5661 (62%). Remaining diffs: the target loads D_801C5EA1 after the two 4-stores and reuses one base register for D_801C5E9E; mine hoists the D_801C5EA1 load before the stores and uses separate lui/%lo per store. Tried: pointer alias for D_801C5E9E (no change), unsigned flag types (no change). Next: compile_family signedness/order experiments, or write the first stores in a different order to force the load after them.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794758377.343275,
-  "score_before": 3691,
-  "score_after": 3691
- },
- {
   "function": "func_80129C88",
   "text": "Not matched; releasing at the move-on budget. Best is the original draft (revision 8ce54fe1296706da2d1f), 9535 (54.8%) on the current baseline; the saved 4030 is not reproducible from the same text. Tried one structural variant: hoisted the (arg2&0xFF)*2 offset, converted loops to while, and staged start/node pointers. It regressed to 14100 (33.1%): the target recomputes i*100 each time as ((i<<1)+i)<<3 + i)<<2 and reloads D_8011F340 via lui/lw per block, and it reads arg0+4 and arg0+6 directly rather than through a start variable. Target is 211 insns with three list walks over the 100-byte node table at D_8011F340 (next u16 at 0xA/0xE, alternate at 8/0xC) and bit 8 set/clear on D_8011F2F2[i*100 + (arg2&0xFF)*2]. Next step for a future agent: keep the original draft's loop shape, and first match the first loop's entry (lhu a3,4(a0) then lhu t1,6(a0) before the index math) before touching the other two loops.",
   "by": "claude-haiku-5-5-24",
@@ -21478,14 +21446,6 @@
   "created_at": 1794759378.192309,
   "score_before": 13558,
   "score_after": 4269
- },
- {
-  "function": "func_801AEC94",
-  "text": "Not matched. Best: 820 (94.5%) under KMC GCC -O1 (-G0 -mips3 -mgp32 -mfp32 -O1), vs 5661 at project -O2. Source is the machine draft with two changes: the D_801C7080 writes go through a pointer q = D_801C7080 + i*5 (q[0]=4, q[1]=0, q[2..4]=0xFF), which at -O1 removes the per-store lui/addiu; everything else as the draft. Remaining diffs: register allocation only at the top of the outer loop (target keeps a2=-1 hoisted for the q stores; mine uses 0xFF in a2 and reloads 4 into t0); target's inner-loop j is kept in $v1 and reused; a0 is andi'd into v0 for the q index in the target but into v1 in mine. Tried: q[2..4]=-1 (820, same), a hoisted s32 m1=-1 (860, worse). Next: try making the q index a u16 i-based loop variable so the compiler keeps i in $a0 and the sb constant in $a2 (target a2=-1), or a separate pointer for D_801C7470 so temp_a1 is a register not recomputed per i.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794759385.5739782,
-  "score_before": 3691,
-  "score_after": 3691
  },
  {
   "function": "func_8013CBBC",
@@ -25966,14 +25926,6 @@
   "created_at": 1794768033.243884,
   "score_before": 6160,
   "score_after": 6160
- },
- {
-  "function": "func_801AEC94",
-  "text": "No match. Best saved 5661 (62.0%, 160 vs 149 insns). Tried and rejected: 0xFF as a local u8 (6021, worse); pointer form for D_801C5E9E (p[0]=0; p[1]=0; still 5661, the compiler emits lui $at per store); pointer q=D_801C7082 for the else branch (no effect). Target facts still open: frame 0x50 saving $ra and $s0; $s0=0xFF is set in the delay slot of jal func_8021F5F0 and reused as stack arg 6 in both func_800DE41C calls; the target does the two 4-stores to D_801C7AB8/D_801C7469 before loading D_801C5EA1, but the candidate hoists the D_801C5EA1 load to the top, so the store order is the main structural gap. The D_801C5EA1 test sits inside the outer i<0xC8 loop with i++ in a bnel delay slot. Next steps: find a C shape that keeps the 4-stores ahead of the flag load (e.g., separate the flag read from the first if), then fix the D_801C5E9E stores so the base register is shared; leave register numbering for last.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794768042.127358,
-  "score_before": 3691,
-  "score_after": 3691
  },
  {
   "function": "func_801AF8CC",
@@ -39885,5 +39837,71 @@
   "created_at": 1795716177.938638,
   "score_before": 3015,
   "score_after": 3015
+ },
+ {
+  "function": "func_801AEC94",
+  "text": "Best 4846 (67.4%), not matched. Clean rewrite with u16 loops over 0x240 (halfword D_801C6BE0=0xFFFF, byte D_801C7AD8=0xFF) and over 0xC8 with inner k<4 halfword fill at q = D_801C7470 + j*8 (q passed to func_801D65BC after the loops, like the target's a1); D_801C7080 + j*5 stores (4,0,-1,-1,-1) under `if (D_801C5EA1 == 0)`; two func_800DE41C calls (0x42/0x50, 0xFF, D_8019E400/D_8019E4B8, nine trailing zero stack args). Remaining diff: gcc loads D_801C5EA1 before the first stores, but the target stores 4 to D_801C7AB8/D_801C7469 first, then loads EA1; the target also re-reads EA1 inside the j loop (lbu + bnel). Pointer form for the D_801C5E9E stores made no change. Untried: a local read of EA1 before the j loop, and reordering the top stores vs the if.\n\nBest 4846 (67.4%), not matched. The source in the saved candidate is a clean rewrite. Remaining diff: the D_801C5EA1 read. gcc loads EA1 before the first stores; the target stores 4 to D_801C7AB8/D_801C7469 first, then loads EA1 (lbu + bnez), and re-reads EA1 inside the j loop (lbu + bnel). Tried with no score change: pointer `e = D_801C5E9E` for the 9E/9F stores; a local `flag = D_801C5EA1` read after the two 4-stores (identical code). Untried: volatile-free ways to force the load after the stores (e.g. put the stores after the if block), and checking whether the 0x7 call arg order / the D_801C7AB6 store position is the second diff. Frame is 0x50 with only ra and s0 saved.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794710904.924532,
+  "score_before": 5826,
+  "score_after": 4846
+ },
+ {
+  "function": "func_801AEC94",
+  "text": "Best 4846 (67.4%), revision 4fcfa798d87da1744a12 (same as 7a7cf78 for scoring). Structure matches: D_801C7AB8/D_801C7469=4; D_801C5EA1 branch; 0x240 halfword loop on D_801C6BE0 + byte loop on D_801C7AD8; 200-iteration outer loop (stride 8 into D_801C7470 with 4 halfwords, stride 5 into D_801C7080 when D_801C5EA1==0); func_801D65BC(7, last a1, -1, 0xFFFF); func_8021F5F0; func_801AEEE8; func_801AEFBC; two func_800DE41C calls (18 args: 4 regs + 14 stack words 0x10..0x44). Remaining diffs: (1) gcc reloads/hoists D_801C5EA1 differently; target loads it once after the sb's and branches bnez at 0x5c. (2) D_801C5E9E byte clears: target uses one lui+addiu pointer then sb 0/sb 1 (a local pointer did not change the score). (3) signedness variant on loop counter i (s16) is worse (5996). Next: restructure the top so the D_801C5EA1 test reads once into a local, then retry the first branch's stores in target order; leave registers for last.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794727005.758732,
+  "score_before": 4696,
+  "score_after": 4696
+ },
+ {
+  "function": "func_801AEC94",
+  "text": "Best 9001 (39.5%), revision ab9d1e8c5c34d3493f18. Structure matches: two init loops (0x240 u16 fill into D_801C6BE0 and u8 fill into D_801C7AD8; 0xC8 outer loop with 4 inner u16 fills into D_801C7470 and 5-byte D_801C7080 records), then func_801D65BC(7,...), func_8021F5F0, func_801AEEE8, func_801AEFBC, two func_800DE41C calls. Remaining diffs: the D_801C5E9E byte pair (target writes +0 and +1 of D_801C5E9E; my u8 array index shifted the address by one in one spot) and the D_801C7082 read. Target frame is -0x50 with ra and s0 saved. Use u8 pointer locals to get the +1 offsets right.\n\nBest 5691 (61.8%), revision 4d81a5ae1da1a73c1e73 (u16 loop vars i/j, i*4 and i*5 indices). Two more attempts (pointer-to-D_801C5E9E as u8*, and as s16 with (u8*)&) left the score at 5691, so the pointer form is not the cause. Remaining diffs by last_diff: (1) the target's `if (D_801C5EA1==0)` test loads once into v0 and branches with bnez v0, ours loads into v1 (register only); (2) the target stores D_801C5E9E's two bytes through one address register (addiu v0 then sb 0(v0), sb 1(v0)), ours emits lui $at for each byte; (3) the else block's D_801C7082 loads should use one base register (lbu v1,(v0) / lbu v0,1(v0)) and the D_801C6BB9 store comes before the D_801C5E9C block in the target, ours after; (4) the target's D_801C7AB6 clear sits between the D_801C5E9C store and the loops, ours after the loops' tail. Next: restructure the else branch to read p = D_801C7082 once and write 7068 then 6BB9 before the D_801C5E9C block; if the byte stores still reorder, try a compile_variants over the else-block ordering.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794740248.0007749,
+  "score_before": 3691,
+  "score_after": 3691
+ },
+ {
+  "function": "func_801AEC94",
+  "text": "Init routine: sets D_801C7AB8/D_801C7469=4, branches on D_801C5EA1 (defaults 0xB to D_801C6BB9/D_801C7068 and zeroes D_801C5E9E[0..1], else copies D_801C7082[0..1]), stores &D_801C5E9C to D_801C7AB0, clears D_801C7AB6, fills D_801C6BE0[0x240]=0xFFFF and D_801C7AD8[0x240]=0xFF, loops i<0xC8 filling 4 halfwords at D_801C7470+i*8 with 0xFFFF and (if D_801C5EA1==0) 5 bytes at D_801C7080+i*5, then calls func_801D65BC(7, row_ptr_last, -1, 0xFFFF), func_8021F5F0, func_801AEEE8, func_801AEFBC, and two func_800DE41C calls (18 args, stack-passed; 0x42/0x50 with 0xFF, D_8019E400/D_8019E4B8). Best 5661 (62%). Remaining diffs: the target loads D_801C5EA1 after the two 4-stores and reuses one base register for D_801C5E9E; mine hoists the D_801C5EA1 load before the stores and uses separate lui/%lo per store. Tried: pointer alias for D_801C5E9E (no change), unsigned flag types (no change). Next: compile_family signedness/order experiments, or write the first stores in a different order to force the load after them.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794758377.343275,
+  "score_before": 3691,
+  "score_after": 3691
+ },
+ {
+  "function": "func_801AEC94",
+  "text": "Not matched. Best: 820 (94.5%) under KMC GCC -O1 (-G0 -mips3 -mgp32 -mfp32 -O1), vs 5661 at project -O2. Source is the machine draft with two changes: the D_801C7080 writes go through a pointer q = D_801C7080 + i*5 (q[0]=4, q[1]=0, q[2..4]=0xFF), which at -O1 removes the per-store lui/addiu; everything else as the draft. Remaining diffs: register allocation only at the top of the outer loop (target keeps a2=-1 hoisted for the q stores; mine uses 0xFF in a2 and reloads 4 into t0); target's inner-loop j is kept in $v1 and reused; a0 is andi'd into v0 for the q index in the target but into v1 in mine. Tried: q[2..4]=-1 (820, same), a hoisted s32 m1=-1 (860, worse). Next: try making the q index a u16 i-based loop variable so the compiler keeps i in $a0 and the sb constant in $a2 (target a2=-1), or a separate pointer for D_801C7470 so temp_a1 is a register not recomputed per i.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794759385.5739782,
+  "score_before": 3691,
+  "score_after": 3691
+ },
+ {
+  "function": "func_801AEC94",
+  "text": "No match. Best saved 5661 (62.0%, 160 vs 149 insns). Tried and rejected: 0xFF as a local u8 (6021, worse); pointer form for D_801C5E9E (p[0]=0; p[1]=0; still 5661, the compiler emits lui $at per store); pointer q=D_801C7082 for the else branch (no effect). Target facts still open: frame 0x50 saving $ra and $s0; $s0=0xFF is set in the delay slot of jal func_8021F5F0 and reused as stack arg 6 in both func_800DE41C calls; the target does the two 4-stores to D_801C7AB8/D_801C7469 before loading D_801C5EA1, but the candidate hoists the D_801C5EA1 load to the top, so the store order is the main structural gap. The D_801C5EA1 test sits inside the outer i<0xC8 loop with i++ in a bnel delay slot. Next steps: find a C shape that keeps the 4-stores ahead of the flag load (e.g., separate the flag read from the first if), then fix the D_801C5E9E stores so the base register is shared; leave register numbering for last.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794768042.127358,
+  "score_before": 3691,
+  "score_after": 3691
+ },
+ {
+  "function": "func_801AEC94",
+  "text": "Hand-off of func_801AEC94: best 5006 (102 differing rows) in work/a3.c.\n\nRemaining rows (marker | target | candidate):\n  > |  | addiu $sp, $sp, -0x50\n  > |  | lui $v1, %hi(D_801C5EA1)\n  > |  | lbu $v1, %lo(D_801C5EA1)($v1)\n  i | addiu $sp, $sp, -0x50 | addiu $v0, $zero, 4\n  < | addiu $v0, $zero, 4 | \n  < | lui $v0, %hi(D_801C5EA1) | \n  < | lbu $v0, %lo(D_801C5EA1)($v0) | \n  r | bnez $v0, 0x5c | bnez $v1, 0x64\n  > |  | addiu $a3, $zero, -1\n  r | lui $v0, %hi(D_801C5E9E) | lui $at, %hi(D_801C5E9E)\n  | | addiu $v0, $v0, %lo(D_801C5E9E) | sb $zero, %lo(D_801C5E9E)($at)\n  > |  | lui $at, %hi(D_801C5E9F)\n  i | sb $zero, ($v0) | sb $zero, %lo(D_801C5E9F)($at)\n  i | j func_801AEC94+0x7c | j func_801AEC94+0x88\n  o | sb $zero, 1($v0) | move $a0, $zero\n  | | addiu $v0, $v0, %lo(D_801C7082) | lbu $v0, %lo(D_801C7082)($v0)\n  > |  | lui $v1, %hi(D_801C7083)\n  i | lbu $v1, ($v0) | lbu $v1, %lo(D_801C7083)($v1)\n  r | sb $v1, %lo(D_801C7068)($at) | sb $v0, %lo(D_801C7068)($at)\n  < | lbu $v0, 1($v0) | \n  < | lui $at, %hi(D_801C6BB9) | \n  < | sb $v0, %lo(D_801C6BB9)($at) | \n  o | lui $v0, %hi(D_801C5E9C) | \n  o | addiu $v0, $v0, %lo(D_801C5E9C) | \n  o | lui $at, %hi(D_801C7AB0) | \n  o | sw $v0, %lo(D_801C7AB0)($at) | \n  i | lui $at, %hi(D_801C7AB6) | lui $at, %hi(D_801C6BB9)\n  i | sb $zero, %lo(D_801C7AB6)($at) | sb $v1, %lo(D_801C6BB9)($at)\n  r | lui $a3, %hi(D_801C6BE0) | lui $t0, %hi(D_801C6BE0)\n  r | addiu $a3, $a3, %lo(D_801C6BE0) | addiu $t0, $t0, %lo(D_801C6BE0)\n  o |  | lui $v0, %hi(D_801C5E9C)\n  o |  | addiu $v0, $v0, %lo(D_801C5E9C)\n  o |  | lui $at, %hi(D_801C7AB0)\n  o |  | sw $v0, %lo(D_801C7AB0)($at)\n  > |  | lui $at, %hi(D_801C7AB6)\n  > |  | sb $zero, %lo(D_801C7AB6)($at)\n  o |  | addiu $a0, $a0, 1\n  r | addu $v1, $v1, $a3 | addu $v1, $v1, $t0\n  o | addiu $a0, $a0, 1 | \n  i | bnez $v0, 0xac | bnez $v0, 0xb4\n  ... 62 more (fast_judge.py --diff --rows all)\n\nRegister pairs (explain_regs.py):\n  $v0 where the target has $v1 (9 rows):\n  why not $v1: block-local: local-alloc gives quantities registers in priority order and $v1 was taken or tied up in that block (also in $v1: pseudo 73 (4.67), pseudo 80 (0.33)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $v1: block-local: local-alloc gives quantities registers in priority order and $v1 was taken or tied up in that block (also in $v1: pseudo 73 (4.67), pseudo 80 (0.33)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $v1: block-local: local-alloc gives quantities registers in priority order and $v1 was taken or tied up in that block (also in $v1: pseudo 73 (4.67), pseudo 80 (0.33)). Move it: change its refs/length against those, or make it global (a use in another block).\n  $v1 where the target has $v0 (4 rows):\n  why not $v0: $v0 is live across it (a fixed use: an argument, return value or call-clobbered register), so it can never get it: shorten its life or move the use of $v0.\n  why not $v0: block-local: local-alloc gives quantities registers in priority order and $v0 was taken or tied up in that block (also in $v0: pseudo 75 (6.00), pseudo 77 (0.50)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $v0: block-local: local-alloc gives quantities registers in priority order and $v0 was taken or tied up in that block (also in $v0: pseudo 75 (6.00), pseudo 77 (0.50)). Move it: change its refs/length against those, or make it global (a use in another block).\n  $t0 where the target has $a3 (3 rows):\n  why not $a3: pseudo 76 conflicts with it and was allocated first (priority 0.11 > 0.10) into $a3: raise this one's priority (more refs, shorter life) or lower that one's, or end the overlap.\n  why not $a3: pseudo 76 conflicts with it and was allocated first (priority 0.11 > 0.05) into $a3: raise this one's priority (more refs, shorter life) or lower that one's, or end the overlap.\n  $t2 where the target has $t1 (3 rows):\n  why not $t",
+  "by": "manual-762503dc128b4f24",
+  "created_at": 1795714646.654659,
+  "score_before": 5006,
+  "score_after": 5006,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:561ebce8ad2b9e029be59833b92e3aa3cdb081c9f8eb945987e7168f1c3bf71f"
+ },
+ {
+  "function": "func_801AEC94",
+  "text": "Stopped after about 8 attempts: -O1 560 (default submitted 5006, saved 3154). See hand-off note.",
+  "by": "manual-762503dc128b4f24",
+  "created_at": 1795714662.0629199,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:561ebce8ad2b9e029be59833b92e3aa3cdb081c9f8eb945987e7168f1c3bf71f"
  }
 ]
