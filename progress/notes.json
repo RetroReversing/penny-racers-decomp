@@ -3272,14 +3272,6 @@
   "score_after": 4207
  },
  {
-  "function": "func_80235074",
-  "text": "Deep permuter: score 3550 \u2192 3130; 1 improvements; 40 candidates tested; 102 cached skips; 0 rejected; 7207s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935864",
-  "created_at": 1794357184.495829,
-  "score_before": 3550,
-  "score_after": 3130
- },
- {
   "function": "n_alSndpSetVol",
   "text": "Deep permuter: score 347 \u2192 347; 0 improvements; 109 candidates tested; 6 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934883",
@@ -7230,14 +7222,6 @@
   "created_at": 1794708703.3965418,
   "score_before": 3253,
   "score_after": 3253
- },
- {
-  "function": "func_80235074",
-  "text": "Best 3550 (48.5%): u8[] externs for the five bases D_80237640/42/44/48/4A, idx = (arg0&0xFFFF)*12 and (arg1&0xFFFF)*12 in temporaries, then five copy statements (u16, u16, f32, u16, u8). The target's shape: idx recomputed per access (sll 1; addu a0; sll 2 -> a0*12), each access as lui %hi(SYM) / addu base+idx / lhu %lo(SYM)(reg), with 10 separate addu and lui pairs (69 insns). My temporaries CSE the address into one addiu %lo pointer (39 insns). Inline (arg&0xFFFF)*0xC per access gave 4995 (worse), since gcc hoists the lui. Not tried: writing each access as its own statement with separate index expression AND a distinct temporary per field, or using the global symbol directly (D_80237640 + off with off variable) to keep %lo folded into the load.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794708755.5191228,
-  "score_before": 3550,
-  "score_after": 3550
  },
  {
   "function": "func_80157E30",
@@ -11384,14 +11368,6 @@
   "score_after": 0
  },
  {
-  "function": "func_80235074",
-  "text": "Not matched. Best: revision 92cc32b0c008dd2a4bd3 or c38a2653b6bbc48d7f3c (score 3550, 48.5%; target 69 insns, mine 39). Function copies one 12-byte record (u16, u16, f32, u16, u8 fields) from index arg1 to index arg0 across five arrays D_80237640/42/44/48/4A. Target recomputes (arg&0xFFFF)*12 with andi $a0,0xFFFF per statement and emits lui %hi(SYM) + addu + lhu/sh %lo(SYM) per access. Tried: shared temp_v0/temp_v1 (3550, best); per-statement recomputed temps (3550, same); inline (arg&0xFFFF)*0xC per statement (4995, worse; compiler folds %lo into addiu and reuses base); &ARRAY[idx] form (4995). Remaining diff: compiler keeps arg1 in a1 and emits an extra shift/add chain and its own lui/addu order; target keeps arg0 in a0 and re-derives the index. Next: try declaring the args as u16 (matching andi-per-use), and try a single temp per side reassigned before each statement; then check the f32 lwc1/swc1 pair ordering.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794723851.747257,
-  "score_before": 3550,
-  "score_after": 3550
- },
- {
   "function": "func_802155CC",
   "text": "Not matched. Current compile of revision 550638a018e502931fb2 scores 5240 (29%). Saved 778 for the same text does not reproduce here, so treat 778 as unverified.\n\nTarget facts (78 insns, frame 0x38, saves ra,s0-s5):\n- arg0 is kept in s4 (move s4,a0 right after the prologue). arg1 is kept in s0, then reused as the inner loop counter j.\n- idx = (arg1&0xFFFF)*25 is kept in s5; the outer loop hoists s1 = idx<<2 (byte offset for the f32 tables).\n- Outer loop i in s2: s3 = ((i&0xFF)<<6) - 0x40. Inner loop j in s0 with `(u8)j < 6` (sltiu 6).\n- The two float args are read per iteration: lwc1 D_8011F320[s1], trunc, mfc1, add s3, sll 16 (sign-extended by sra 16 at the call); same for D_8011F324 with ((j&0xFF)<<6) - 0x40.\n- Call func_8014A4C8(s4, a1, a2, 0xB, 0) with sw $zero,0x10(sp).\n- D_8021F032[0..2] are loaded (lbu) into a1..a3 for func_801CA494(s4, ..., 0xFF with the 0xFF at 0x10(sp)).\n\nCurrent mismatch: mine puts arg0 into s5 (move s5,a0) and idx into s4, so the registers are swapped from the target. Also the frame order of saves differs (the target saves s5 at 0x2C and s4 at 0x28 in that order, after ra).\n\nLeft to try: write the variable names to match the registers: make the local that holds idx be declared after arg0 is copied (`s32 base = arg0;` used for every call). Also check that the lui of D_8021F032 in the target happens after the first func_801CA140 call returns, not before.",
   "by": "claude-haiku-5-5-24",
@@ -14384,14 +14360,6 @@
   "score_after": 2461
  },
  {
-  "function": "func_80235074",
-  "text": "Copies five fields (u16 @0, u16 @2, f32 @4, u16 @8, u8 @10) of 12-byte elements of globals D_80237640..D_8023764A from index arg1 to index arg0, both masked 0xFFFF and scaled by 12 (sll 1; addu; sll 2). Saved best is 3445. Tried this session: separate globals with shared index (3550), struct-array Elem (6170), inline per-access index (4995), separate i/j index locals (3550). Target is 69 insns vs our 39: it reloads `lui %hi(SYM)` + `addu` base for every access (about 19 lui, 10 addu of the dst index), and its arg1 index lives in $a1 with a separate $v0 scaled index, so the compiler is not CSE-ing the global addresses. Unresolved: need a source shape that stops address CSE (possibly volatile-qualified access or per-field index recomputation with different types). Move-on budget exhausted.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794732231.950114,
-  "score_before": 3445,
-  "score_after": 3445
- },
- {
   "function": "func_8022FDF0",
   "text": "Best 15 (rev 78fe561ff369cada2dd8), 23/23 insns, only 3 register rows differ. Target tail: `addu $a0,$a0,$v1; andi $v0,$a0,0xffff; lui $a0,%hi(D_80232868); addu $a0,$a0,$v0; jal; lbu $a0,%lo($a0)`. Baseline C: `func_801D65BC(D_80232868[(u16)(arg0 + (((u16)arg1)*10))], arg1);` gives `addu $v1,$a0,$v1; andi $v1,$v1,0xffff`. Tried: hoisting index into u16/u32 locals (score 15, unchanged), `arg0 += ((u16)arg1)*10` then `D_80232868[(u16)arg0]` (25, worse), `arg0 = (u16)(...)` (25), `(u16)arg0 + (u16)arg1*10` (880), `*(u8*)((u8*)D_80232868 + idx)` (30). Declaration order of extra locals: no effect. Remaining idea: get the index sum's result pseudo coalesced into $a0 (target) rather than $v1 \u2014 e.g. an expression whose result is the same pseudo as arg0 without an extra copy, possibly `arg0 = (u16)(arg0 + (u16)arg1*10);` combined with using arg0 directly as the array index and passing arg1 unchanged. Also untested: making the array `u8*` non-volatile, or passing `arg0 & 0xFFFF`-style two-conversion trick from knowledge #339302416415.",
   "by": "api-route-llm-code-2",
@@ -14744,14 +14712,6 @@
   "score_after": 6820
  },
  {
-  "function": "func_80235074",
-  "text": "Best 1280 (81.4%), revision 9232fe13090437d4ea00. Record is 12 bytes: u16 a @0, u16 b @2, f32 c @4 (lwc1/swc1), u16 d @8, u8 e @0xA; declared as `typedef struct {u16 a; u16 b; f32 c; u16 d; u8 e;} Rec; extern Rec D_80237640[];`. Shape is right: load all five fields of index i into temps first, copy j into i, then store temps into j. Remaining diff is registers only: the target masks arg0 (i) first into a0 and builds i*12 in v1, j*12 in v0; mine masks arg1 first (andi a1) and puts j in a1/v1 and i in v0. Declaration order (i,j vs j,i) made no difference. Next step: write i and j so that the first andi is on arg0 with i used in the first loads, e.g. compute the j index only after the five i loads, or name the index variables from the argument order. Tried: swapping declaration order (no change).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794733533.8761868,
-  "score_before": 3445,
-  "score_after": 1280
- },
- {
   "function": "func_80205D48",
   "text": "Best current 1010 (rev dc8dbbc8e4906f50898a), 47/47 insns; saved 740 is stale/unverified. Working C: `f32 __cosf(f32); extern s32 D_8021B098; extern f64 D_8021DBA0; extern f64 D_8021DBA8;` body: `if ((arg2 & 0xFF) == 0) D_8021B098 = 0; half = arg0 / 2.0f; d1 = (f64)(arg1 * 30.0f); q = D_8021DBA0 / d1; t = (f64)D_8021B098; if (*(volatile s32 *)&D_8021B098 < 0) t += D_8021DBA8; r = ((-__cosf((f32)(q * t))) * half) + half; D_8021B098 += 1; return (s32)r;`. The volatile re-read of D_8021B098 for the bgez is required (non-volatile CSEs it and drops an instruction: 1020). Remaining diffs: (1) target emits prologue `addiu sp; sw ra,0x10; sdc1 fs0,0x18` BEFORE `andi $a2,$a2,0xff`, ours emits andi first; (2) target loads the double-conversion operand with `lwc1 $f4,%lo(D_8021B098)($at)` while ours uses `lw $v0,%lo; mtc1`; (3) target's bgez compare load is `lui $v0,%hi; lw $v0,%lo($v0)` (macro form) while the volatile-pointer cast forces `addiu $v0,$v0,%lo; lw $v0,($v0)`; (4) final `add.s $f20,$f0,$f20` must write back into the same register as `half` (ours uses $f0). Tried: plain (non-volatile) compare (1020), `extern vs32` (1210), local s32 copy. Next ideas: avoid the pointer cast by reading through a second volatile-declared alias symbol so the address stays a %lo macro; and get the sum written back into `half` by writing `half = half - cos*half;` / `return (s32)half;`.",
   "by": "api-route-llm-code-2",
@@ -14998,14 +14958,6 @@
   "created_at": 1794734671.767355,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_80235074",
-  "text": "Swap of two 12-byte records over fields at offsets 0x0,0x2,0x4,0x8,0xA of D_80237640 (0x6 gap). Best saved remains 6365 (struct Rec{u16 a,b,c,pad,d,e} with Rec *x,*y). Tried, both worse at 6980: (a) byte-offset `*(u16*)(D_x + (arg&0xFFFF)*0xC)` per access; (b) separate extern u16 arrays per field indexed `[(arg&0xFFFF)*6]`. Target does one `lui %hi(sym)` per access and folds the field offset into %lo, and it loads the first record's fields into a0 before the swap; neither shape reproduced. Untested: copy x->a into a local, then store, to force load-then-store grouping.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794734717.74524,
-  "score_before": 1280,
-  "score_after": 1280
  },
  {
   "function": "func_80164364",
@@ -28128,14 +28080,6 @@
   "score_after": 645
  },
  {
-  "function": "func_80235074",
-  "text": "Not matched. Best saved 1710 (75.2%, 69 insns = target 69). Source: five fields of a 12-byte record at D_80237640 + (u16 index)*12, copied from index arg1 to index arg0 and back, with the field types: u16 @+0 (D_80237640), u16 @+2 (D_80237642), f32 @+4 (D_80237644, lwc1/swc1), u16 @+8 (D_80237648), u8 @+10 (D_8023764A, lbu/sb). Use `*(u16 *)((u8 *)&D_80237640 + ia)` with ia=(arg0&0xFFFF)*12 and ib the same for arg1; the typed f32/u8 casts were the big win (2640 -> 1710). Remaining diff is register allocation only: the target masks arg0 into $a0 and keeps it live (andi $a0,$a0,0xffff; sll $v1,$a0,1; addu $v1,$v1,$a0 = 3*idx, then the scale by 4), and the loads use $a2/$a3 for the per-field lui/addu/lhu chain, with the float in $f2. Mine uses $a1 for the first mask and $f0 for the float. Declaration order swap made it worse (1720). A struct-array version (Rec D_80237640[]) scored 2980 because it shares one lui across fields, which the target does not. Next: try the mask into arg0's own register (write `arg0 = (arg0 & 0xFFFF)` style or use arg0 directly in the first expression), and try ib computed from arg1 after the first two copies.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794762906.7420921,
-  "score_before": 1280,
-  "score_after": 1280
- },
- {
   "function": "func_800DF428",
   "text": "Not attempted. 2364 B function with a jump table (jr at func_800DF428.s line 298). The machine draft failed with \"Unable to determine jump table\". Start from get_function(section=\"brief\") for the table's address and case count, then write the switch explicitly with the jump-table data read via read_data.",
   "by": "claude-haiku-5-5-22",
@@ -30070,14 +30014,6 @@
   "created_at": 1794766355.773441,
   "score_before": 570,
   "score_after": 570
- },
- {
-  "function": "func_80235074",
-  "text": "Saved best 1710 (75%), revision 6b4eaffcd9345e5a1a69: a 12-byte record swap of five fields (u16@0, u16@2, f32@4, u16@8, u8@10) on D_80237640..D_8023764A, index = (arg&0xFFFF)*12 computed as (x*3)<<2. Target does all five ia loads into temporaries before computing ib, then loads and stores ib into ia field by field, then stores the saved ia temporaries to ib. Tried: u16 params (same 1710); saved temporaries a..e with ib computed after the loads (2370, worse both orders). The target loads ia values with the lui/addu pattern, so the saved temporaries are probably not separate C locals: it may be the swap via a single temp per field. Next: test a per-field temp swap (tmp = field[ia]; field[ia] = field[ib]; field[ib] = tmp) with the f32 field first.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794766357.975998,
-  "score_before": 1280,
-  "score_after": 1280
  },
  {
   "function": "func_802174DC",
@@ -35793,5 +35729,78 @@
   "score_before": 1338,
   "score_after": 1338,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:147190b96fa6f09f4a93fe0924a73b849c3bc7c21dacaa5e37ff00b2e819bdff"
+ },
+ {
+  "function": "func_80235074",
+  "text": "Deep permuter: score 3550 \u2192 3130; 1 improvements; 40 candidates tested; 102 cached skips; 0 rejected; 7207s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935864",
+  "created_at": 1794357184.495829,
+  "score_before": 3550,
+  "score_after": 3130
+ },
+ {
+  "function": "func_80235074",
+  "text": "Best 3550 (48.5%): u8[] externs for the five bases D_80237640/42/44/48/4A, idx = (arg0&0xFFFF)*12 and (arg1&0xFFFF)*12 in temporaries, then five copy statements (u16, u16, f32, u16, u8). The target's shape: idx recomputed per access (sll 1; addu a0; sll 2 -> a0*12), each access as lui %hi(SYM) / addu base+idx / lhu %lo(SYM)(reg), with 10 separate addu and lui pairs (69 insns). My temporaries CSE the address into one addiu %lo pointer (39 insns). Inline (arg&0xFFFF)*0xC per access gave 4995 (worse), since gcc hoists the lui. Not tried: writing each access as its own statement with separate index expression AND a distinct temporary per field, or using the global symbol directly (D_80237640 + off with off variable) to keep %lo folded into the load.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794708755.5191228,
+  "score_before": 3550,
+  "score_after": 3550
+ },
+ {
+  "function": "func_80235074",
+  "text": "Not matched. Best: revision 92cc32b0c008dd2a4bd3 or c38a2653b6bbc48d7f3c (score 3550, 48.5%; target 69 insns, mine 39). Function copies one 12-byte record (u16, u16, f32, u16, u8 fields) from index arg1 to index arg0 across five arrays D_80237640/42/44/48/4A. Target recomputes (arg&0xFFFF)*12 with andi $a0,0xFFFF per statement and emits lui %hi(SYM) + addu + lhu/sh %lo(SYM) per access. Tried: shared temp_v0/temp_v1 (3550, best); per-statement recomputed temps (3550, same); inline (arg&0xFFFF)*0xC per statement (4995, worse; compiler folds %lo into addiu and reuses base); &ARRAY[idx] form (4995). Remaining diff: compiler keeps arg1 in a1 and emits an extra shift/add chain and its own lui/addu order; target keeps arg0 in a0 and re-derives the index. Next: try declaring the args as u16 (matching andi-per-use), and try a single temp per side reassigned before each statement; then check the f32 lwc1/swc1 pair ordering.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794723851.747257,
+  "score_before": 3550,
+  "score_after": 3550
+ },
+ {
+  "function": "func_80235074",
+  "text": "Copies five fields (u16 @0, u16 @2, f32 @4, u16 @8, u8 @10) of 12-byte elements of globals D_80237640..D_8023764A from index arg1 to index arg0, both masked 0xFFFF and scaled by 12 (sll 1; addu; sll 2). Saved best is 3445. Tried this session: separate globals with shared index (3550), struct-array Elem (6170), inline per-access index (4995), separate i/j index locals (3550). Target is 69 insns vs our 39: it reloads `lui %hi(SYM)` + `addu` base for every access (about 19 lui, 10 addu of the dst index), and its arg1 index lives in $a1 with a separate $v0 scaled index, so the compiler is not CSE-ing the global addresses. Unresolved: need a source shape that stops address CSE (possibly volatile-qualified access or per-field index recomputation with different types). Move-on budget exhausted.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794732231.950114,
+  "score_before": 3445,
+  "score_after": 3445
+ },
+ {
+  "function": "func_80235074",
+  "text": "Best 1280 (81.4%), revision 9232fe13090437d4ea00. Record is 12 bytes: u16 a @0, u16 b @2, f32 c @4 (lwc1/swc1), u16 d @8, u8 e @0xA; declared as `typedef struct {u16 a; u16 b; f32 c; u16 d; u8 e;} Rec; extern Rec D_80237640[];`. Shape is right: load all five fields of index i into temps first, copy j into i, then store temps into j. Remaining diff is registers only: the target masks arg0 (i) first into a0 and builds i*12 in v1, j*12 in v0; mine masks arg1 first (andi a1) and puts j in a1/v1 and i in v0. Declaration order (i,j vs j,i) made no difference. Next step: write i and j so that the first andi is on arg0 with i used in the first loads, e.g. compute the j index only after the five i loads, or name the index variables from the argument order. Tried: swapping declaration order (no change).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794733533.8761868,
+  "score_before": 3445,
+  "score_after": 1280
+ },
+ {
+  "function": "func_80235074",
+  "text": "Swap of two 12-byte records over fields at offsets 0x0,0x2,0x4,0x8,0xA of D_80237640 (0x6 gap). Best saved remains 6365 (struct Rec{u16 a,b,c,pad,d,e} with Rec *x,*y). Tried, both worse at 6980: (a) byte-offset `*(u16*)(D_x + (arg&0xFFFF)*0xC)` per access; (b) separate extern u16 arrays per field indexed `[(arg&0xFFFF)*6]`. Target does one `lui %hi(sym)` per access and folds the field offset into %lo, and it loads the first record's fields into a0 before the swap; neither shape reproduced. Untested: copy x->a into a local, then store, to force load-then-store grouping.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794734717.74524,
+  "score_before": 1280,
+  "score_after": 1280
+ },
+ {
+  "function": "func_80235074",
+  "text": "Not matched. Best saved 1710 (75.2%, 69 insns = target 69). Source: five fields of a 12-byte record at D_80237640 + (u16 index)*12, copied from index arg1 to index arg0 and back, with the field types: u16 @+0 (D_80237640), u16 @+2 (D_80237642), f32 @+4 (D_80237644, lwc1/swc1), u16 @+8 (D_80237648), u8 @+10 (D_8023764A, lbu/sb). Use `*(u16 *)((u8 *)&D_80237640 + ia)` with ia=(arg0&0xFFFF)*12 and ib the same for arg1; the typed f32/u8 casts were the big win (2640 -> 1710). Remaining diff is register allocation only: the target masks arg0 into $a0 and keeps it live (andi $a0,$a0,0xffff; sll $v1,$a0,1; addu $v1,$v1,$a0 = 3*idx, then the scale by 4), and the loads use $a2/$a3 for the per-field lui/addu/lhu chain, with the float in $f2. Mine uses $a1 for the first mask and $f0 for the float. Declaration order swap made it worse (1720). A struct-array version (Rec D_80237640[]) scored 2980 because it shares one lui across fields, which the target does not. Next: try the mask into arg0's own register (write `arg0 = (arg0 & 0xFFFF)` style or use arg0 directly in the first expression), and try ib computed from arg1 after the first two copies.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794762906.7420921,
+  "score_before": 1280,
+  "score_after": 1280
+ },
+ {
+  "function": "func_80235074",
+  "text": "Saved best 1710 (75%), revision 6b4eaffcd9345e5a1a69: a 12-byte record swap of five fields (u16@0, u16@2, f32@4, u16@8, u8@10) on D_80237640..D_8023764A, index = (arg&0xFFFF)*12 computed as (x*3)<<2. Target does all five ia loads into temporaries before computing ib, then loads and stores ib into ia field by field, then stores the saved ia temporaries to ib. Tried: u16 params (same 1710); saved temporaries a..e with ib computed after the loads (2370, worse both orders). The target loads ia values with the lui/addu pattern, so the saved temporaries are probably not separate C locals: it may be the swap via a single temp per field. Next: test a per-field temp swap (tmp = field[ia]; field[ia] = field[ib]; field[ib] = tmp) with the f32 field first.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794766357.975998,
+  "score_before": 1280,
+  "score_after": 1280
+ },
+ {
+  "function": "func_80235074",
+  "text": "Record swap of five fields at 0,2,4,8,10 of a 12-byte stride on D_80237640..D_8023764A, index (arg&0xFFFF)*12. Fresh C (typed u16/f32/u8 casts through byte offsets, temps for the i fields, copy j into i, store temps into j) scores 2370 here; saved best 1450 (from the notes) not reproduced. Tried in this claim: (u16)arg vs arg&0xFFFF indices (2370 both), second index declared after the first loads (2370). Earlier agents tried struct arrays (2980), per-access index (4995), separate index locals (3550). Remaining diff is register allocation and the per-access lui/addu order. Moving on after 3 fresh attempts, since the notes already cover the shape space.",
+  "by": "manual-2b1373017f1c4849",
+  "created_at": 1795708310.811508,
+  "score_before": 2370,
+  "score_after": 2370,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:46c990f8f0800b476de8e77322798a284040190324520aa813655afd6e78124a"
  }
 ]
