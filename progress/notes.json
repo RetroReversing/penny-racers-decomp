@@ -2888,14 +2888,6 @@
   "score_after": 12687
  },
  {
-  "function": "func_80210D88",
-  "text": "Deep permuter: score 4674 \u2192 4674; 0 improvements; 60 candidates tested; 12 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935773",
-  "created_at": 1794356707.5478241,
-  "score_before": 4674,
-  "score_after": 4674
- },
- {
   "function": "n_alAudioFrame",
   "text": "Deep permuter: score 1020 \u2192 1020; 0 improvements; 17 candidates tested; 150 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934836",
@@ -7680,14 +7672,6 @@
   "score_after": 1580
  },
  {
-  "function": "func_80210D88",
-  "text": "Two index strides in use: the pointer/byte/float arrays D_8011F340, D_8011F2F0, D_8011F308 are indexed by arg0*4 (sll $s1,$v0,2), while D_8011F318 and the t-indexed table use arg0*0x64 (sll/addu chain = *100). My rewrite with i=arg0*4 scored 6145 (saved best 5445 is better, the draft kept). Target frame is larger (sw $ra at 0x1c, s0-s2 saved) and holds arg0 in $s2 via move before the andi, which the rewrite does not reproduce. Tail (f32 +=360 path, D_8021E231 index) not verified.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794709127.388135,
-  "score_before": 5445,
-  "score_after": 5445
- },
- {
   "function": "func_8013DD2C",
   "text": "func_8013DD2C (272 B). Attempted a hoisted version (t0/t4/t1/t5 read once before the loops, dst pointer computed up front, store at dst + ((i<<5)+0x1F-j)*2, source *(u16*)(D_800DB1B0 + (j*t5+t4)*0x280 + (i*t1+t0)*2) with `extern u8 *D_800DB1B0`): 6445, worse than the saved 4400. Target shows the four table fields are re-addressed per field from `off` (lui/addu/lhu each time), and the multiply `j*t5` is done in the outer loop with `mult $a2,$t5`, while the inner `i*t1` uses `mult $a1,$t1`. The register and address order differ from the hoisted form: the target computes off via (idx<<2 + idx)<<3 = idx*40 first. Untried: keep the per-field re-reads inside the loop body instead of hoisting, and write the store address as the sum t2+t3 (D_80168166<<11 plus D_80126FF6<<12 base) before the loop.",
   "by": "claude-haiku-5-5-23",
@@ -12016,14 +12000,6 @@
   "score_after": 2087
  },
  {
-  "function": "func_80210D88",
-  "text": "Not matched. Best revision 4c28374813d7bd3799dc (also 71d17525671f8c2027e3, same score) scores 5734 (53%). Target 126 insns, mine 110.\n\nTarget shape (confirmed from assembly):\n- Frame 0x20, saves ra, s2, s1, s0. s2 = arg0; s1 = (arg0&0xFFFF)*100 (computed as v*25 then <<2). The outer if reads `**(u8**)((u8*)&D_8011F340 + s1) == 0`.\n- Body: D_8011F308[s1] = (f32)(((f64)D_8011F2F0_byte[s1]) * D_8021DDB0 + D_8021DDB8 - (f64)D_8021EECC). The conversion sequence is cvt.d.w / mul.d / add.d / cvt.d.s / sub.d / cvt.s.d.\n- temp_a3 = (s8)D_8021E231[D_8021E15F*0x110 + D_8011F2F0_byte[s1]].\n- func_8012AD20( D_8011F304_u16[ D_80190C98_u16[a3*2] * 100 ], (a3<<5) + &D_8021F0A0, a3&0xFF, D_8021F036[a3] ).\n- Then if D_8011F2F0_byte[s1] != *(u8*)(&D_8021EECC - 0xC): D_8011F318[idx] = 333.0f, idx recomputed from s2 (the target recomputes the record offset, not reusing s1). Else D_8011F318[s1] -= 1.0f, then reload and if < 0 add 360.0f.\n\nMismatch: my frame is 0x28 (one extra save) and arg0 is not held in s2. Register and stack allocation differ: the target keeps s2=arg0 across the call and recomputes (arg0&0xFFFF)*100 in the 333 path.\n\nLeft to try: write the 333-path index as `(s32)((arg0 & 0xFFFF) * 0x64)` from a saved `base = arg0` local declared before the call, so gcc keeps arg0 live in s2 instead of spilling to a 4th save. Also try declaring temp_s1 as u32.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794724098.213752,
-  "score_before": 4856,
-  "score_after": 4856
- },
- {
   "function": "func_800E08B4",
   "text": "Not matched. Best 5991 (27.8%) from my index-based quicksort: pivot = D_800E1EE0[idx[(lo+hi)/2]] (float table indexed by u16 idx), i/j Hoare partition with `while (tbl[idx[i]] < pivot) i++; while (pivot < tbl[idx[j]]) j--; if (i<j) swap idx[i],idx[j], i++, j--; else break;`, then recurse on (lo, i-1) if lo < i-1 and on (j+1, hi) if j+1 < hi. The logic is right per the asm, but the compiled shape is wrong: the target frame is 0x20 and saves only ra,s0,s1,s2 (it copies arg0 into t0 and keeps idx in s1), while mine uses 0x28 and an extra spill, and it strength-reduces to pointer increments (addiu \u00b12) which the target does not do. Next try: write the loops with explicit index arithmetic `idx[i]` on a s32 i (no pointer temporaries), drop the tmp local (swap through a second lhu-style expression), and keep hi in a local so the mid computation is `(lo+hi)/2` with the sra/sll sequence.",
   "by": "claude-haiku-5-5-22",
@@ -15224,14 +15200,6 @@
   "score_after": 800
  },
  {
-  "function": "func_80210D88",
-  "text": "Partial. Best this session 5975 (51.0%, revision be7f0beeac4041a94731, same score as the recorded attempt; the keep-local variant b9df2c276ae8a31f0180 had no effect). Remaining differences: the target keeps arg0 & 0xFFFF in s2 across the call to func_8012AD20 and saves s0-s2 and ra in the prologue; mine does not. Target reads D_8011F2F0 with lbu (byte table) in two places, mine reads it with lw and lwc1, so that symbol's element type is probably wrong. Target's address is `addu` of index*100 with the table base. Untried: give D_8011F2F0 a u8-typed read at the index and float reads at another offset; check the call arg order against the target's sw/move sequence. The m2c draft had a compile error (typedef redefinition) and is fixed in the current revision.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794732620.8579662,
-  "score_before": 4856,
-  "score_after": 4856
- },
- {
   "function": "func_80149110",
   "text": "Not matched. Saved best 898 is from an earlier attempt; this session's candidates scored 3675 (single loop), 4270 (two loops), and 4270 again after an equivalent condition rewrite. Restore from saved_best, do not build on my candidates. Target facts from the assembly: prologue `addiu sp,-0x18; sw ra,0x14; sw s0,0x10` (ra stored first, my C stores s0 first, so the save order differs at the very top); calls func_801FA30C and tests (result & 1); two near-identical do-while loops, one per branch. Fall-through branch: a2=0xFF; taken branch: a2=0. Loop body: if (a2 >= D_80189CC9[i] && !(D_8018A277[i] & 0x10)) { a2 = D_80189CC9[i]; s0 = i; }; i++; loop while i <= D_8018A276 (loaded once into a3). Return s0 & 0xFF. Next: get the ra-then-s0 save order from the frame (declare the call result first, and keep s0 as the only saved local), then fix loop register roles (table index in a0, best in a2, scale in a1) before anything else.",
   "by": "claude-haiku-5-5-21",
@@ -15832,14 +15800,6 @@
   "score_after": 2310
  },
  {
-  "function": "func_80210D88",
-  "text": "Not matched. Best revision 7f9ac74fe5dfbc54494a, score 5450 (55.3%). Source: u8 arrays with byte offsets (no struct); temp_s1 = (arg0&0xFFFF)*0x64 (confirmed: index*25*4); q = *(u8**)(D_8011F340+s1); if (*q==0) { ... }. Target facts: prologue saves ra(0x1c), s2(0x18), s1(0x14), s0(0x10); s2 = move of arg0 kept across the first call, and `andi v1,s2,0xffff` is recomputed later; s0 = &D_8021EECC (lui/addiu) used for lwc1 and the -0xC compare; the double math is ((f64)D_8011F2F0[s1]*D_8021DDB0 + D_8021DDB8) - (f64)D_8021EECC. Main gap: ours keeps arg0 in a0 and uses no s2, so the frame is 0x20 with fewer saves. Next: force arg0 to be used after the call (store it in a local before the first call, or use arg0 in the else branch as the target does) so gcc keeps it in s2. The two compile attempts at this step gave the same 5450, so the arg0 use pattern is the next thing to change.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794734871.989552,
-  "score_before": 4856,
-  "score_after": 4856
- },
- {
   "function": "func_80153D40",
   "text": "Best 2923 (67.5%), unchanged after 3 non-improving compiles, and I am stopping here at low effort. Target frame is 0x20 (ra at 0x18, s1 at 0x14, s0 at 0x10) and computes idx*100 via sll/addu chains; my frame is 0x18, so an 8-byte local or temp is likely missing. Tried: (a) re-reading (u16)arg0 for the table index (3218, worse); (b) f64 local for the sin argument (still 2923). Target keeps the raw arg in $s1 (`move $s1,$a0`) and the masked value in $s0 for the call. Next idea: find the extra 8-byte stack local, e.g. an f64 temp kept across the call, so the frame grows to 0x20.",
   "by": "claude-haiku-5-5-24",
@@ -16350,14 +16310,6 @@
   "created_at": 1794736146.916111,
   "score_before": 1355,
   "score_after": 1355
- },
- {
-  "function": "func_80210D88",
-  "text": "Best 5445 (55.3%), 122 target insns, C compiles to 110. Structure is right: idx=(arg0&0xFFFF)*100 used as byte offset into D_8011F340 (ptr table, **ptr==0 gate), D_8011F2F0 u8 table, D_8011F308 f32 table, D_8011F318 f32 table; f64 math for D_8011F308; then D_8021E231 s8 index, D_80190C98 u16 table *100, D_8011F304 u16 table, call func_8012AD20(u16, ptr, s32, u8); != branch writes 333.0f, == branch subtracts 1.0f and adds 360.0f when negative. Target prologue saves ra,s2,s1,s0 and keeps raw arg0 in $s2 across the call, re-deriving andi/*100 in the != path. Writing (arg0&0xFFFF)*0x64 again in the != branch is CSE'd back to temp_s1 and changes nothing. Open: prologue save set and the s2 raw-arg lifetime. Next try: keep arg0 live with an explicit s32 copy used after the call, or a u16 parameter.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794736149.9476202,
-  "score_before": 4856,
-  "score_after": 4856
  },
  {
   "function": "func_80149220",
@@ -30208,14 +30160,6 @@
   "score_after": 28785
  },
  {
-  "function": "func_80210D88",
-  "text": "Move-on budget exhausted (3/3 compiles without improvement; best 5445, unchanged since the inherited attempt).\n\nWhat is verified: the m2c draft's `**(u8 **)(...)` is invalid C; rewriting it as `*(u8 *)(*(u8 **)(D_8011F340 + temp_s1)) == 0` compiles and keeps 5445 (patch revision 9c1ace7dfefe7b8a237a). Also fixed the callee declaration to the matched definition `void func_8012AD20(s32, u16 *, s32, s32)` and cast arg1 to u16* \u2014 no score change. Trying to keep arg0 live by recomputing `(arg0 & 0xFFFF) * 0x64` inside the 333.0f branch had no effect (GCC CSEs it back to temp_s1).\n\nRemaining structural gap, all in the prologue/index: the target keeps arg0 in $s2 (`addu $s2,$a0,$zero`) and saves $ra/$s2/$s1/$s0, and at .L80210F2C it recomputes the *100 byte offset from $s2 with sll/addu/sll/addu/sll. Our build never allocates $s2, so the index is computed once and the 333.0f path reuses $s1. To reproduce it the 333.0f store must be reached with arg0 still live in a callee-saved register across the func_8012AD20 call while temp_s1 stays in $s1. Untried ideas: (a) make the 333.0f path index through a separately-typed expression that GCC will not CSE with temp_s1, e.g. `((f32 *)(D_8011F318))[(u16)arg0 * 0x19]` (index 25 f32 = 100 bytes) versus the byte-offset form used elsewhere; (b) declare the byte-offset temp as `u32`/`s32` in one place and `s32` in the other so the two computations differ in signedness and cannot be merged; (c) move the temp_s1 assignment inside the if-block so the guard uses arg0 directly. Note the range 0x80203B04-0x80212000 is confirmed KMC -O1 (7 functions), and -O1 scored 5402 vs -O2 6686 on the raw draft, so -O1 is worth retrying once the $s2 lifetime is fixed.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794764509.095602,
-  "score_before": 4856,
-  "score_after": 4856
- },
- {
   "function": "func_80157BBC",
   "text": "Not matched. Asking to release now: this draft cannot get closer by local edits. Its loop structure (two pointer bases, wrong index math, an i++/i-- hack in the first loop) differs from the target's single index in s2 with one base reused via a2, so each compile only shifts registers. Current 3135 is worse than saved best 3045. Next step for anyone retrying: rewrite both loops from get_assembly (one s2 index, base in a2, sll s2,1 offsets, the sw $ra/$s4 frame), then tune the __sinf section.",
   "by": "claude-haiku-5-5-22",
@@ -31734,14 +31678,6 @@
   "created_at": 1794766508.9306471,
   "score_before": 575,
   "score_after": 575
- },
- {
-  "function": "func_80210D88",
-  "text": "Not matched. Best 5445 (55%), revision 6c94b0443a0594f5af83 (same C as 6ad64da with x = arg0 & 0xFFFF; no change). The C is right in shape: pointer check **(u8**)(D_8011F340+s1), f32 at D_8011F308+s1 from the f64 expression, a3 = lb D_8021E231[(D_8021E15F*0x110)+D_8011F2F0[s1]], the func_8012AD20 call, then the 333.0f / -1.0f / +360.0f branch. Problem: target keeps the masked arg in s2 across the call (andi v1,s2,0xffff reused in a delay slot on the bnel) and saves s0..s2 plus ra (frame 0x20). Our draft uses only s0,s1 and recomputes from a0. Next: make arg0 live across the call (e.g. use the masked value again after the call in the else path), then check the 4-register save set.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794766521.801853,
-  "score_before": 4856,
-  "score_after": 4856
  },
  {
   "function": "func_8022976C",
@@ -34916,5 +34852,69 @@
   "created_at": 1794767796.3750029,
   "score_before": 1200,
   "score_after": 1200
+ },
+ {
+  "function": "func_80210D88",
+  "text": "Deep permuter: score 4674 \u2192 4674; 0 improvements; 60 candidates tested; 12 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935773",
+  "created_at": 1794356707.5478241,
+  "score_before": 4674,
+  "score_after": 4674
+ },
+ {
+  "function": "func_80210D88",
+  "text": "Two index strides in use: the pointer/byte/float arrays D_8011F340, D_8011F2F0, D_8011F308 are indexed by arg0*4 (sll $s1,$v0,2), while D_8011F318 and the t-indexed table use arg0*0x64 (sll/addu chain = *100). My rewrite with i=arg0*4 scored 6145 (saved best 5445 is better, the draft kept). Target frame is larger (sw $ra at 0x1c, s0-s2 saved) and holds arg0 in $s2 via move before the andi, which the rewrite does not reproduce. Tail (f32 +=360 path, D_8021E231 index) not verified.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794709127.388135,
+  "score_before": 5445,
+  "score_after": 5445
+ },
+ {
+  "function": "func_80210D88",
+  "text": "Not matched. Best revision 4c28374813d7bd3799dc (also 71d17525671f8c2027e3, same score) scores 5734 (53%). Target 126 insns, mine 110.\n\nTarget shape (confirmed from assembly):\n- Frame 0x20, saves ra, s2, s1, s0. s2 = arg0; s1 = (arg0&0xFFFF)*100 (computed as v*25 then <<2). The outer if reads `**(u8**)((u8*)&D_8011F340 + s1) == 0`.\n- Body: D_8011F308[s1] = (f32)(((f64)D_8011F2F0_byte[s1]) * D_8021DDB0 + D_8021DDB8 - (f64)D_8021EECC). The conversion sequence is cvt.d.w / mul.d / add.d / cvt.d.s / sub.d / cvt.s.d.\n- temp_a3 = (s8)D_8021E231[D_8021E15F*0x110 + D_8011F2F0_byte[s1]].\n- func_8012AD20( D_8011F304_u16[ D_80190C98_u16[a3*2] * 100 ], (a3<<5) + &D_8021F0A0, a3&0xFF, D_8021F036[a3] ).\n- Then if D_8011F2F0_byte[s1] != *(u8*)(&D_8021EECC - 0xC): D_8011F318[idx] = 333.0f, idx recomputed from s2 (the target recomputes the record offset, not reusing s1). Else D_8011F318[s1] -= 1.0f, then reload and if < 0 add 360.0f.\n\nMismatch: my frame is 0x28 (one extra save) and arg0 is not held in s2. Register and stack allocation differ: the target keeps s2=arg0 across the call and recomputes (arg0&0xFFFF)*100 in the 333 path.\n\nLeft to try: write the 333-path index as `(s32)((arg0 & 0xFFFF) * 0x64)` from a saved `base = arg0` local declared before the call, so gcc keeps arg0 live in s2 instead of spilling to a 4th save. Also try declaring temp_s1 as u32.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794724098.213752,
+  "score_before": 4856,
+  "score_after": 4856
+ },
+ {
+  "function": "func_80210D88",
+  "text": "Partial. Best this session 5975 (51.0%, revision be7f0beeac4041a94731, same score as the recorded attempt; the keep-local variant b9df2c276ae8a31f0180 had no effect). Remaining differences: the target keeps arg0 & 0xFFFF in s2 across the call to func_8012AD20 and saves s0-s2 and ra in the prologue; mine does not. Target reads D_8011F2F0 with lbu (byte table) in two places, mine reads it with lw and lwc1, so that symbol's element type is probably wrong. Target's address is `addu` of index*100 with the table base. Untried: give D_8011F2F0 a u8-typed read at the index and float reads at another offset; check the call arg order against the target's sw/move sequence. The m2c draft had a compile error (typedef redefinition) and is fixed in the current revision.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794732620.8579662,
+  "score_before": 4856,
+  "score_after": 4856
+ },
+ {
+  "function": "func_80210D88",
+  "text": "Not matched. Best revision 7f9ac74fe5dfbc54494a, score 5450 (55.3%). Source: u8 arrays with byte offsets (no struct); temp_s1 = (arg0&0xFFFF)*0x64 (confirmed: index*25*4); q = *(u8**)(D_8011F340+s1); if (*q==0) { ... }. Target facts: prologue saves ra(0x1c), s2(0x18), s1(0x14), s0(0x10); s2 = move of arg0 kept across the first call, and `andi v1,s2,0xffff` is recomputed later; s0 = &D_8021EECC (lui/addiu) used for lwc1 and the -0xC compare; the double math is ((f64)D_8011F2F0[s1]*D_8021DDB0 + D_8021DDB8) - (f64)D_8021EECC. Main gap: ours keeps arg0 in a0 and uses no s2, so the frame is 0x20 with fewer saves. Next: force arg0 to be used after the call (store it in a local before the first call, or use arg0 in the else branch as the target does) so gcc keeps it in s2. The two compile attempts at this step gave the same 5450, so the arg0 use pattern is the next thing to change.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794734871.989552,
+  "score_before": 4856,
+  "score_after": 4856
+ },
+ {
+  "function": "func_80210D88",
+  "text": "Best 5445 (55.3%), 122 target insns, C compiles to 110. Structure is right: idx=(arg0&0xFFFF)*100 used as byte offset into D_8011F340 (ptr table, **ptr==0 gate), D_8011F2F0 u8 table, D_8011F308 f32 table, D_8011F318 f32 table; f64 math for D_8011F308; then D_8021E231 s8 index, D_80190C98 u16 table *100, D_8011F304 u16 table, call func_8012AD20(u16, ptr, s32, u8); != branch writes 333.0f, == branch subtracts 1.0f and adds 360.0f when negative. Target prologue saves ra,s2,s1,s0 and keeps raw arg0 in $s2 across the call, re-deriving andi/*100 in the != path. Writing (arg0&0xFFFF)*0x64 again in the != branch is CSE'd back to temp_s1 and changes nothing. Open: prologue save set and the s2 raw-arg lifetime. Next try: keep arg0 live with an explicit s32 copy used after the call, or a u16 parameter.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794736149.9476202,
+  "score_before": 4856,
+  "score_after": 4856
+ },
+ {
+  "function": "func_80210D88",
+  "text": "Move-on budget exhausted (3/3 compiles without improvement; best 5445, unchanged since the inherited attempt).\n\nWhat is verified: the m2c draft's `**(u8 **)(...)` is invalid C; rewriting it as `*(u8 *)(*(u8 **)(D_8011F340 + temp_s1)) == 0` compiles and keeps 5445 (patch revision 9c1ace7dfefe7b8a237a). Also fixed the callee declaration to the matched definition `void func_8012AD20(s32, u16 *, s32, s32)` and cast arg1 to u16* \u2014 no score change. Trying to keep arg0 live by recomputing `(arg0 & 0xFFFF) * 0x64` inside the 333.0f branch had no effect (GCC CSEs it back to temp_s1).\n\nRemaining structural gap, all in the prologue/index: the target keeps arg0 in $s2 (`addu $s2,$a0,$zero`) and saves $ra/$s2/$s1/$s0, and at .L80210F2C it recomputes the *100 byte offset from $s2 with sll/addu/sll/addu/sll. Our build never allocates $s2, so the index is computed once and the 333.0f path reuses $s1. To reproduce it the 333.0f store must be reached with arg0 still live in a callee-saved register across the func_8012AD20 call while temp_s1 stays in $s1. Untried ideas: (a) make the 333.0f path index through a separately-typed expression that GCC will not CSE with temp_s1, e.g. `((f32 *)(D_8011F318))[(u16)arg0 * 0x19]` (index 25 f32 = 100 bytes) versus the byte-offset form used elsewhere; (b) declare the byte-offset temp as `u32`/`s32` in one place and `s32` in the other so the two computations differ in signedness and cannot be merged; (c) move the temp_s1 assignment inside the if-block so the guard uses arg0 directly. Note the range 0x80203B04-0x80212000 is confirmed KMC -O1 (7 functions), and -O1 scored 5402 vs -O2 6686 on the raw draft, so -O1 is worth retrying once the $s2 lifetime is fixed.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794764509.095602,
+  "score_before": 4856,
+  "score_after": 4856
+ },
+ {
+  "function": "func_80210D88",
+  "text": "Not matched. Best 5445 (55%), revision 6c94b0443a0594f5af83 (same C as 6ad64da with x = arg0 & 0xFFFF; no change). The C is right in shape: pointer check **(u8**)(D_8011F340+s1), f32 at D_8011F308+s1 from the f64 expression, a3 = lb D_8021E231[(D_8021E15F*0x110)+D_8011F2F0[s1]], the func_8012AD20 call, then the 333.0f / -1.0f / +360.0f branch. Problem: target keeps the masked arg in s2 across the call (andi v1,s2,0xffff reused in a delay slot on the bnel) and saves s0..s2 plus ra (frame 0x20). Our draft uses only s0,s1 and recomputes from a0. Next: make arg0 live across the call (e.g. use the masked value again after the call in the else path), then check the 4-register save set.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794766521.801853,
+  "score_before": 4856,
+  "score_after": 4856
  }
 ]
