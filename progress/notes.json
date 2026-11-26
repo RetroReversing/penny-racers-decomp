@@ -37107,5 +37107,102 @@
   "created_at": 1795726896.129762,
   "score_before": 1060,
   "score_after": 1060
+ },
+ {
+  "function": "func_801B7584",
+  "text": "haiku-pr19: clean rewrite (copy the 4-byte header into the D_801C5E9C block, then a do-while copy of 5 bytes per record for i < D_801C5E9E, then a for loop writing records 4,0,FF,FF,FF up to 200) scores 4700 at -O2 and 3990 at -O1; saved 1585 not beaten. Target facts: the four header globals are one base (lui v1 once, sb at 0..3), the count is re-read through that base each iteration, and the record table stride is 5 with a shared byte offset for source and destination. Tried: array-form globals (7635, base pointer 7520), offset-indexed copy (6185 at -O2 / 5720 at -O1), while-with-break (4700), s32 counter (8015). Not matched.",
+  "by": "manual-c91bfeceda8d49c6",
+  "created_at": 1795713613.932425,
+  "score_before": 1005,
+  "score_after": 1005
+ },
+ {
+  "function": "func_801B7584",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Clean rewrite 4700 at -O2 (saved 1585); header globals block not matched.",
+  "by": "manual-c91bfeceda8d49c6",
+  "created_at": 1795713614.458046,
+  "score_before": 1005,
+  "score_after": 1005
+ },
+ {
+  "function": "func_801B7584",
+  "text": "haiku-pr26: near match, 5 under -G0 -mips3 -mgp32 -mfp32 -O1 (default O2 is far). One row left: the source pointer's add is `addu $v1,$a1,$v1` where the target has `addu $v1,$v1,$a1` (same registers, operand order; explain_regs: arg1 prefers $a1 as an incoming copy and the constant 4 is in $a1 in the fill loop). Tried, all 5 or worse: src = arg1 + k*5 / k*5 + arg1 / &arg1[k*5] / shared off local / base copy of arg1 / decl order swap (60). prove_chain --combine 8 from here: no child improves. Candidate C (scratch deleted at stop):\nextern u8 D_801C5E9C[];\nextern u8 D_801C5E9E[];\nextern u8 D_801C7080[];\n\nvoid func_801B7584(u8 *arg0, u8 *arg1)\n{\n    u8 k;\n\n    D_801C5E9C[0] = arg0[0];\n    D_801C5E9C[1] = arg0[1];\n    D_801C5E9C[2] = arg0[2];\n    D_801C5E9C[3] = arg0[3];\n    k = 0;\n    if (D_801C5E9C[2] != 0) {\n        do {\n            u8 *dst = D_801C7080 + k * 5;\n            u8 *src = arg1 + k * 5;\n            dst[0] = src[0];\n            dst[1] = src[1];\n            dst[2] = src[2];\n            dst[3] = src[3];\n            dst[4] = src[4];\n            k++;\n        } while (k < D_801C5E9E[0]);\n    }\n    for (; k < 200; k++) {\n\n            s8 *dst = (s8 *) (D_801C7080 + k * 5);\n            dst[0] = 4;\n            dst[1] = 0;\n            dst[2] = -1;\n            dst[3] = -1;\n            dst[4] = -1;\n}\n}",
+  "by": "manual-41d32257dcbd48de",
+  "created_at": 1795715710.835406,
+  "score_before": 1005,
+  "score_after": 1005
+ },
+ {
+  "function": "func_801B7584",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr26: near match, 5 under -O1 (one addu operand order). Full note on this function.",
+  "by": "manual-41d32257dcbd48de",
+  "created_at": 1795715718.3003688,
+  "score_before": 1005,
+  "score_after": 1005
+ },
+ {
+  "function": "func_801B7584",
+  "text": "Small-model attempt at func_801B7584: 14 tries.\n  best 1595 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1595 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 3105 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3300 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 4880 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n14 tries, best 1595 under gcc-2.7.2-kmc -O1 (own 5700). Tried: direct globals (worse, folded to %lo), byte-array global with pointer, count pointer &D_801C5E9E (worse), masked index math, i*4+i second loop (small gain), operand order of addu src/dst (no change). Remaining diff: extra addiu for the count pointer, register allocation of the loop bases, and the second loop's andi/move shape.",
+  "by": "manual-14daa2cca123475a",
+  "created_at": 1795716378.066616,
+  "score_before": 1005,
+  "score_after": 1005
+ },
+ {
+  "function": "func_801B7584",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_801B7584: 14 tries.\n  best 1595 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1595 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 3105 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3300 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 4880 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n14 tries, best 1595 under gcc-2.7.2-kmc -O1 (own 5700). Tried: direct globals (worse, folded to %lo), byte-array global with pointer, count pointer &D_801C5E9E (worse), masked index math, i*4+i second loop (small gain), operand order of addu src/dst (no change). Remaining diff: extra addiu for the count pointer, register allocation of the loop bases, and the second loop's andi/move shape.",
+  "by": "manual-14daa2cca123475a",
+  "created_at": 1795716381.169489,
+  "score_before": 1005,
+  "score_after": 1005
+ },
+ {
+  "function": "func_801B7584",
+  "text": "Small-model attempt at func_801B7584: 14 tries.\n  best 1595 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1595 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 3105 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3300 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 4880 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n14 tries, best 1595 under gcc-2.7.2-kmc -O1 (own 5700). Tried: direct globals (folded to %lo, worse), byte-array global with pointer, count pointer &D_801C5E9E (worse), masked index math, i*4+i second loop (small gain), addu operand order for src and dst (no change). Remaining diff: extra addiu for the count pointer, loop base register allocation, second loop andi/move shape.",
+  "by": "manual-14daa2cca123475a",
+  "created_at": 1795716390.1362638,
+  "score_before": 1005,
+  "score_after": 1005
+ },
+ {
+  "function": "func_801B7584",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 1265 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (321 functions of this project were built with it), the saved C scores 1585 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721198.100509,
+  "score_before": 1585,
+  "score_after": 1265,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:8a265b24ae5bcc4de1bdf1516ad30be88a750d24b9eecb67ed93a9d4c24ee310"
+ },
+ {
+  "function": "func_801B7584",
+  "text": "Small-model attempt at func_801B7584: 14 tries.\n  best 205 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 205 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 4990 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 5195 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 6040 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 205 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 5e3c0aeced78bf279eac (not applied).\nNot matched. Best under profile 1 (-O1) is 205 (own profile 6080, saved own 1585 kept). Clean rewrite: 5-byte copy loop then 5-store fill loop to 200 with a carried offset (off = k*4, dst = base + (off + k)); the carried offset cut 555 to 205. Left: target copies the andi'd index into a second register before the compare (move $v1,$v0), and the register allocation differs in both loops. Tried: char vs u8 dst (s8 needed for -1), guarded do-while, while loops, u8 vs u32 counter (worse).",
+  "by": "manual-9c2bbdb9ff7e4be7",
+  "created_at": 1795726092.3567748,
+  "score_before": 1005,
+  "score_after": 1005
+ },
+ {
+  "function": "func_801B7584",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_801B7584: 14 tries.\n  best 205 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 205 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 4990 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 5195 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 6040 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 205 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 5e3c0aeced78bf279eac (not applied).\nNot matched. Best under profile 1 (-O1) is 205 (own profile 6080, saved own 1585 kept). Clean rewrite: 5-byte copy loop then 5-store fill loop to 200 with a carried offset (off = k*4, dst = base + (off + k)); the carried offset cut 555 to 205. Left: target copies the andi'd index into a second register before the compare (move $v1,$v0), and the register allocation differs in both loops. Tried: char vs u8 dst (s8 needed for -1), guarded do-while, while loops, u8 vs u32 counter (worse).",
+  "by": "manual-9c2bbdb9ff7e4be7",
+  "created_at": 1795726095.41586,
+  "score_before": 1005,
+  "score_after": 1005
+ },
+ {
+  "function": "func_801B7584",
+  "text": "Small-model attempt at func_801B7584: 15 tries.\n  best 180 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 180 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1965 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2730 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 4635 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 180 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 0c0cc6c94862ca141ff5 (not applied).\nClean rewrite with block-scoped dst per loop and masked counter. Best 180 under -O1 (near-miss start 205). Remaining diffs: register allocation in both loops (target keeps counter in a2, reloads base into a3 in the second loop); the second loop's offset order (k*4 then +k then base) and the store register differ. Tried: offset computed first, shared counter with the first loop, u8 second counter, src-before-dst order, dst-before-src (255). Not matched.",
+  "by": "manual-e45f5b7f31cb4112",
+  "created_at": 1795726967.2799711,
+  "score_before": 1005,
+  "score_after": 1005
+ },
+ {
+  "function": "func_801B7584",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_801B7584: 15 tries.\n  best 180 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 180 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1965 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2730 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 4635 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 180 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 0c0cc6c94862ca141ff5 (not applied).\nClean rewrite with block-scoped dst per loop and masked counter. Best 180 under -O1 (near-miss start 205). Remaining diffs: register allocation in both loops (target keeps counter in a2, reloads base into a3 in the second loop); the second loop's offset order (k*4 then +k then base) and the store register differ. Tried: offset computed first, shared counter with the first loop, u8 second counter, src-before-dst order, dst-before-src (255). Not matched.",
+  "by": "manual-e45f5b7f31cb4112",
+  "created_at": 1795726967.534505,
+  "score_before": 1005,
+  "score_after": 1005
  }
 ]
