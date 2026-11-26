@@ -7088,14 +7088,6 @@
   "score_after": 898
  },
  {
-  "function": "func_80157BBC",
-  "text": "Best saved score 2945 (62.2%), from source using u8* base externs for D_8016D8C0/C4/C8, first loop as do-while with p=(u16*)(D_8016D8C0+i*2) and q-offset read from D_8016D8C8+i*2; second loop reads D_80183840/48 into locals a,b and stores s16 to D_802B2784+(i+2)*16 with (s16)(s32)(__sinf((f32)x)*(f32)D8C4[i]). Tried and worse: u16 array externs (4359); shared byte-offset variable off for both bases (3161); cached q/r base pointers in second loop (3055). Remaining diff: target keeps f20/f22 (fs0/fs1) and s3/s4 live across the __sinf call, giving a 0x38 frame with sw of s4, sdc1 f20/f22 at 0x28/0x30; my frames are 0x28-0x30 and s4 is not saved. Also target computes &D8C0 and &D8C8 with lui/addiu in a2/a1 and indexes via v0=i*2 then addu into a0 and v0 (two separate addu per base) before the first loop's lhu; my code CSEs the base into a0 with an extra addiu per iteration. Next idea: write the second loop with base pointers that stay live across the call (s4=&D8C0, s3=&D8C4), and check the first loop's index as one shared byte offset feeding two addu.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794708419.4426198,
-  "score_before": 3286,
-  "score_after": 2945
- },
- {
   "function": "func_8015248C",
   "text": "Best 3783 (revision 90e3365e8e57e8b492f5, or 9380d62ec411fd38a6cc with a=arg0 local; both 3783). Structure: i=arg0&0xFFFF; func_8013AE60(i); off=i*100; F334[off] = (f32)((f64)F334[off] + D_801837C0); if (D_801837C8 <= (f64)v) F334[off] = (f32)(D_801837C8 - v); then F320[off] and F324[off] = (f32)((f64)__sinf(F334[off]) * D_801837D0 + D_801837D8). Target frame 0x30 saves $ra@0x18, $s1@0x14 (arg0 live across the call), $s0@0x10, $fs1@0x28 (D_801837D0), $fs0@0x20 (D_801837D8); mine is 0x18 with no $s1 and no fs saves. Things that made it worse: f64 constant locals (4752) and keeping arg0 in a separate local and re-masking (no change). Remaining gap: the compiler does not keep the two f64 constants live across the sinf calls, because my expression reloads them each time. Next: write the two doubles as locals loaded before the first sinf call, and make the store of F334 use a saved pointer so arg0 stays in $s1.",
   "by": "claude-haiku-5-5-24",
@@ -11128,14 +11120,6 @@
   "score_after": 3783
  },
  {
-  "function": "func_80157BBC",
-  "text": "Best 2570 (67.0%), saved candidate is the revision with `u16 *p = (u16*)((u8*)&D_8016D8C0 + off)` and `q` from D_8016D8C8, with `off` set after the increment (`off = k*2` at the loop tail), second loop using `fs1 = D_80183840; fs0 = D_80183848;` as f64 locals (gives the sdc1 f20/f22 saves; frame must be 0x38). Remaining: the target keeps &D_8016D8C0 in $s4 and reuses it in the second loop, which my version does not. Tried and worse: `off = k*2` at loop head (3060); inlining `k*2` into the pointer expressions (3060). Next idea: a single `u16 *base = (u16*)&D_8016D8C0;` used by both loops so gcc keeps it in $s4.\n\nBest 2570 (67.0%), saved. Working shape: `p = (u16*)((u8*)&D_8016D8C0 + off)`, `q` likewise from D_8016D8C8, with `off` set after the increment (`off = k*2` at loop tail). Second loop uses `fs1 = D_80183840; fs0 = D_80183848;` as f64 locals (gives the sdc1 f20/f22 saves; frame must be 0x38), index `*(u16*)((u8*)&D_8016D8C0 + off)` and `*(u16*)((u8*)&D_8016D8C4 + off)` with `off = i*2`, store at `(u8*)&D_802B2784 + j*16` with `j = i+2`. Remaining diff: target keeps &D_8016D8C0 in $s4 and sets s2=0 before loading the base, and saves ra at 0x24/s4 at 0x20; mine saves ra at 0x20. Tried, worse: `off = k*2` at loop head (3060); inlining k*2 (3060); a shared `u16 *base = &D_8016D8C0` (2950 / 2660 when only one use was swapped). Next: try the first loop's pointer as `base` with the second loop unchanged, and move the `i = 0` assignment after the first loop.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794722396.51486,
-  "score_before": 2945,
-  "score_after": 2570
- },
- {
   "function": "func_80157E30",
   "text": "Best 3010 (61.8%, 79 insns each), revision 345130a38c47722555d7. Target frame is 0x20 (saves ra@0x18, s1@0x14, s0@0x10); body: s1=arg0, s0=arg0&0xFFFF, jal func_8013AE60(s0); off=s0*0x64 (computed as s0*25*4). Flag check on u16 D_8011F32E[off]==0 copies D_8011F308[off] to D_8011F334[off] and sets flag=1. Angle D_8016D8D0 += double D_80183868, clamp when 360.0f < angle (sub.s 360). Tail: sin(angle*D_80183870/D_80183878) via __sinf, *100.0f (lui 0x42C8), + D_8011F334[off], store to D_8011F308[off]. Open diffs: float constants should be single-precision `mtc1` for 360/100 instead of ldc1 (the target uses f32 literals for 100.0f and 360.0f), and the candidate loads D_8016D8D0 from the wrong symbol at one point. Next: use 360.0f and 100.0f as f32 literals and check whether D_80183878/D_80183870 are ldc1 in the target (they are). Not fully resolved.",
   "by": "claude-haiku-5-5-20",
@@ -14632,14 +14616,6 @@
   "score_after": 1092
  },
  {
-  "function": "func_80157BBC",
-  "text": "Best 2620 (66%) at revision 3f32e73bdaa26c498323 (keep it). Shape: func_8013AE60(arg0&0xFFFF) with a=D_8016D8C0 and c=D_8016D8C4 assigned before the call; loop1 for i<2 with v=a[i]+b[i] (b=D_8016D8C8), a[i]=v, if a[i]>=0x169 a[i]=v-0x168; k1/k2 loaded from D_80183840/48; loop2 for i<2 with j=i+2 and *(s16*)((u8*)D_802B2784+(j<<4)) = (s16)(s32)(__sinf((f32)((f64)a[i]*k1/k2))*(f32)c[i]). Remaining: target keeps a byte offset (sll s0,s2,1 then addu with s4/s3 pointers) and frame 0x38 with sw ra at 0x24, s4 saved; ours frame 0x28. Byte-offset rewrite of loop2 (off += 2) scored 2820. Why it can't get closer with these shapes: the pointer/offset split across the two loops is decided by gcc, and the untried option is a while loop with an explicit byte pointer walked through both arrays. Move-on budget exhausted.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794732704.751425,
-  "score_before": 2570,
-  "score_after": 2570
- },
- {
   "function": "func_80025C50",
   "text": "Best saved 940 (revision abc3cd07, get_candidate saved_best). The same text rechecks to 3650 (58%) now, so the saved score may be stale. Blocker: the target scales the loop indices with sll/subu sequences (2288 = 143*16 and 376 = 47*8), and the loop-2 store/call interleaving differs. Why it can't get closer in this pass: each fix I tried reorders the call and the stores differently and the compile budget is spent. Next session: start from saved_best, compare the j loop against the target's sll/subu layout, and check whether the loop bodies are two separate functions' worth of code. Move-on budget exhausted for this claim.",
   "by": "claude-haiku-5-5-20",
@@ -14942,14 +14918,6 @@
   "created_at": 1794734161.1638012,
   "score_before": 2075,
   "score_after": 2075
- },
- {
-  "function": "func_80157BBC",
-  "text": "Not matched; best 3125 (59.9%). Semantics: func_8013AE60(arg0&0xFFFF); loop i=0..1: pa[i]=(pa[i]+pb[i]) with pa=D_8016D8C0, pb=D_8016D8C8 (u16), then if (pa[i]>=0x169) pa[i]=v-0x168; second loop i=0..1: *(s16*)(D_802B2784 + (i+2)*16) = (s16)(s32)(__sinf((f32)((f64)pa[i]*D_80183840/D_80183848)) * (f32)D_8016D8C4[i]). Frame 0x38: ra 0x24, s4 0x20 (holds &D_8016D8C0), s3 0x1C (holds &D_8016D8C4), s2 0x18 (i), s1 0x14, s0 0x10, fs1 0x30 (=D_80183840), fs0 0x28 (=D_80183848). Target keeps the array bases in callee-saved regs (s4,s3) and indexes with `sll v0,s2,1; addu a0,v0,a2; addu v0,v0,a1` (byte offsets), while ours uses move/addiu pointer bumps. Remaining diffs: the pointer-bump style of the second loop and the missing s3/s4 base saves; the first loop's bnel vs bnez. Next: use one index variable s2 with byte offsets (`off = i*2`), keep both bases as locals live across the sinf call so they land in s3/s4, and make the store of the first loop reuse the stored value (`lhu` reload) as in the target.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794734201.3881311,
-  "score_before": 2570,
-  "score_after": 2570
  },
  {
   "function": "func_80215480",
@@ -15294,14 +15262,6 @@
   "created_at": 1794735390.8249311,
   "score_before": 2075,
   "score_after": 2075
- },
- {
-  "function": "func_80157BBC",
-  "text": "Best 3045 (60.9%) at revision 1647b4f822bc7efbc5d6. Structure: func_8013AE60(arg0&0xFFFF); loop1 over i=0..1 with off=i*2 adds D_8016D8C8[off] to D_8016D8C0[off] (u16), then subtracts 0x168 when >=0x169; loop2 computes __sinf((f64)u16(D_8016D8C0+off)*D_80183840/D_80183848) times u16(D_8016D8C4+off) and stores s16 at D_802B2784+((i+2)*16). Frame is 0x38 and saves ra,s4,s3,s2,s1,s0,f20,f22 (constants kept in fs0/fs1 across the sinf call). Remaining diffs: target keeps base pointers D_8016D8C0 in $s4 and D_8016D8C4 in $s3 across the loop (I used temporaries), and loop1 address pair is a2/a1 with a0=off+a2 and v0=off+a1 computed once per iteration (I recompute). Next: declare pointer locals that stay live across the calls (u8 *s4 = D_8016D8C0; u8 *s3 = D_8016D8C4) and use off-plus-pointer addresses, so GCC allocates the saved registers the target uses.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794735390.864508,
-  "score_before": 2570,
-  "score_after": 2570
  },
  {
   "function": "func_8014B410",
@@ -28944,14 +28904,6 @@
   "score_after": 28785
  },
  {
-  "function": "func_80157BBC",
-  "text": "Not matched. Asking to release now: this draft cannot get closer by local edits. Its loop structure (two pointer bases, wrong index math, an i++/i-- hack in the first loop) differs from the target's single index in s2 with one base reused via a2, so each compile only shifts registers. Current 3135 is worse than saved best 3045. Next step for anyone retrying: rewrite both loops from get_assembly (one s2 index, base in a2, sll s2,1 offsets, the sw $ra/$s4 frame), then tune the __sinf section.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794764509.581236,
-  "score_before": 2570,
-  "score_after": 2570
- },
- {
   "function": "func_8015BD20",
   "text": "Not attempted to completion. 528 insns; the saved best (49757, 16 prior attempts) only covers the state==0 init branch (4 Ent16 records at D_80189970 with stride 64, then a 4x loop writing D_8018B530/40/50/60 at s1<<8 + i<<6, then D_8018D66A[s1]=0 and state=1). The non-zero-state branch is not written. Frame is 0x78 with ra/s0-s2 saved. Next step: read the remaining assembly pages (get_assembly start=52) and write the state!=0 path before tuning the init loop, which is probably where the mismatch is.",
   "by": "claude-haiku-5-5-23",
@@ -30358,14 +30310,6 @@
   "created_at": 1794766631.944404,
   "score_before": 898,
   "score_after": 898
- },
- {
-  "function": "func_80157BBC",
-  "text": "Not matched. Best 2895 (lower is better), revision 20f9cc1c87ceff579ef0: first loop body uses 'off = (u16)(*(u16*)(pa+i*2) + *(u16*)(pb+i*2)); *(u16*)(pa+i*2) = off;' with the wrap test on off - 0x168 (from the i*2 index version, c93cf8c52b20a059f1c4 at 3135). Earlier best 1647b4f822bc7efbc5d6 scored 3045 with the off/i++/i-- form. Target (78 insns): frame with ra at 0x24 and s4 at 0x20; the first loop keeps i in s2 and indexes with sll v0,s2,1 then addu from pa (a2) and pb (a1); the second loop reuses i=s2 after 'move s2,zero'; the D_8016D8C0 / D_8016D8C4 bases are loaded once into s4 and a2 and reused. Ours still uses strength-reduced pointer increments and keeps the counter in s0, and the target's lhu/sh pair order differs. Local repairs: the (u16) temp variant won; a helper-inline loop bound and u32 counter were worse. Next: share one index s2 across both loops, one base register per table, and the second loop's i starting from the first loop's zero.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794766632.087865,
-  "score_before": 2570,
-  "score_after": 2570
  },
  {
   "function": "func_80153D40",
@@ -35784,5 +35728,61 @@
   "score_before": 2075,
   "score_after": 2075,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:5ca840fe75d4086d2ddfbc2f8152cc4292962ec38b63c10a3ce20be22d52f6a7"
+ },
+ {
+  "function": "func_80157BBC",
+  "text": "Best saved score 2945 (62.2%), from source using u8* base externs for D_8016D8C0/C4/C8, first loop as do-while with p=(u16*)(D_8016D8C0+i*2) and q-offset read from D_8016D8C8+i*2; second loop reads D_80183840/48 into locals a,b and stores s16 to D_802B2784+(i+2)*16 with (s16)(s32)(__sinf((f32)x)*(f32)D8C4[i]). Tried and worse: u16 array externs (4359); shared byte-offset variable off for both bases (3161); cached q/r base pointers in second loop (3055). Remaining diff: target keeps f20/f22 (fs0/fs1) and s3/s4 live across the __sinf call, giving a 0x38 frame with sw of s4, sdc1 f20/f22 at 0x28/0x30; my frames are 0x28-0x30 and s4 is not saved. Also target computes &D8C0 and &D8C8 with lui/addiu in a2/a1 and indexes via v0=i*2 then addu into a0 and v0 (two separate addu per base) before the first loop's lhu; my code CSEs the base into a0 with an extra addiu per iteration. Next idea: write the second loop with base pointers that stay live across the call (s4=&D8C0, s3=&D8C4), and check the first loop's index as one shared byte offset feeding two addu.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794708419.4426198,
+  "score_before": 3286,
+  "score_after": 2945
+ },
+ {
+  "function": "func_80157BBC",
+  "text": "Best 2570 (67.0%), saved candidate is the revision with `u16 *p = (u16*)((u8*)&D_8016D8C0 + off)` and `q` from D_8016D8C8, with `off` set after the increment (`off = k*2` at the loop tail), second loop using `fs1 = D_80183840; fs0 = D_80183848;` as f64 locals (gives the sdc1 f20/f22 saves; frame must be 0x38). Remaining: the target keeps &D_8016D8C0 in $s4 and reuses it in the second loop, which my version does not. Tried and worse: `off = k*2` at loop head (3060); inlining `k*2` into the pointer expressions (3060). Next idea: a single `u16 *base = (u16*)&D_8016D8C0;` used by both loops so gcc keeps it in $s4.\n\nBest 2570 (67.0%), saved. Working shape: `p = (u16*)((u8*)&D_8016D8C0 + off)`, `q` likewise from D_8016D8C8, with `off` set after the increment (`off = k*2` at loop tail). Second loop uses `fs1 = D_80183840; fs0 = D_80183848;` as f64 locals (gives the sdc1 f20/f22 saves; frame must be 0x38), index `*(u16*)((u8*)&D_8016D8C0 + off)` and `*(u16*)((u8*)&D_8016D8C4 + off)` with `off = i*2`, store at `(u8*)&D_802B2784 + j*16` with `j = i+2`. Remaining diff: target keeps &D_8016D8C0 in $s4 and sets s2=0 before loading the base, and saves ra at 0x24/s4 at 0x20; mine saves ra at 0x20. Tried, worse: `off = k*2` at loop head (3060); inlining k*2 (3060); a shared `u16 *base = &D_8016D8C0` (2950 / 2660 when only one use was swapped). Next: try the first loop's pointer as `base` with the second loop unchanged, and move the `i = 0` assignment after the first loop.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794722396.51486,
+  "score_before": 2945,
+  "score_after": 2570
+ },
+ {
+  "function": "func_80157BBC",
+  "text": "Best 2620 (66%) at revision 3f32e73bdaa26c498323 (keep it). Shape: func_8013AE60(arg0&0xFFFF) with a=D_8016D8C0 and c=D_8016D8C4 assigned before the call; loop1 for i<2 with v=a[i]+b[i] (b=D_8016D8C8), a[i]=v, if a[i]>=0x169 a[i]=v-0x168; k1/k2 loaded from D_80183840/48; loop2 for i<2 with j=i+2 and *(s16*)((u8*)D_802B2784+(j<<4)) = (s16)(s32)(__sinf((f32)((f64)a[i]*k1/k2))*(f32)c[i]). Remaining: target keeps a byte offset (sll s0,s2,1 then addu with s4/s3 pointers) and frame 0x38 with sw ra at 0x24, s4 saved; ours frame 0x28. Byte-offset rewrite of loop2 (off += 2) scored 2820. Why it can't get closer with these shapes: the pointer/offset split across the two loops is decided by gcc, and the untried option is a while loop with an explicit byte pointer walked through both arrays. Move-on budget exhausted.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794732704.751425,
+  "score_before": 2570,
+  "score_after": 2570
+ },
+ {
+  "function": "func_80157BBC",
+  "text": "Not matched; best 3125 (59.9%). Semantics: func_8013AE60(arg0&0xFFFF); loop i=0..1: pa[i]=(pa[i]+pb[i]) with pa=D_8016D8C0, pb=D_8016D8C8 (u16), then if (pa[i]>=0x169) pa[i]=v-0x168; second loop i=0..1: *(s16*)(D_802B2784 + (i+2)*16) = (s16)(s32)(__sinf((f32)((f64)pa[i]*D_80183840/D_80183848)) * (f32)D_8016D8C4[i]). Frame 0x38: ra 0x24, s4 0x20 (holds &D_8016D8C0), s3 0x1C (holds &D_8016D8C4), s2 0x18 (i), s1 0x14, s0 0x10, fs1 0x30 (=D_80183840), fs0 0x28 (=D_80183848). Target keeps the array bases in callee-saved regs (s4,s3) and indexes with `sll v0,s2,1; addu a0,v0,a2; addu v0,v0,a1` (byte offsets), while ours uses move/addiu pointer bumps. Remaining diffs: the pointer-bump style of the second loop and the missing s3/s4 base saves; the first loop's bnel vs bnez. Next: use one index variable s2 with byte offsets (`off = i*2`), keep both bases as locals live across the sinf call so they land in s3/s4, and make the store of the first loop reuse the stored value (`lhu` reload) as in the target.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794734201.3881311,
+  "score_before": 2570,
+  "score_after": 2570
+ },
+ {
+  "function": "func_80157BBC",
+  "text": "Best 3045 (60.9%) at revision 1647b4f822bc7efbc5d6. Structure: func_8013AE60(arg0&0xFFFF); loop1 over i=0..1 with off=i*2 adds D_8016D8C8[off] to D_8016D8C0[off] (u16), then subtracts 0x168 when >=0x169; loop2 computes __sinf((f64)u16(D_8016D8C0+off)*D_80183840/D_80183848) times u16(D_8016D8C4+off) and stores s16 at D_802B2784+((i+2)*16). Frame is 0x38 and saves ra,s4,s3,s2,s1,s0,f20,f22 (constants kept in fs0/fs1 across the sinf call). Remaining diffs: target keeps base pointers D_8016D8C0 in $s4 and D_8016D8C4 in $s3 across the loop (I used temporaries), and loop1 address pair is a2/a1 with a0=off+a2 and v0=off+a1 computed once per iteration (I recompute). Next: declare pointer locals that stay live across the calls (u8 *s4 = D_8016D8C0; u8 *s3 = D_8016D8C4) and use off-plus-pointer addresses, so GCC allocates the saved registers the target uses.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794735390.864508,
+  "score_before": 2570,
+  "score_after": 2570
+ },
+ {
+  "function": "func_80157BBC",
+  "text": "Not matched. Asking to release now: this draft cannot get closer by local edits. Its loop structure (two pointer bases, wrong index math, an i++/i-- hack in the first loop) differs from the target's single index in s2 with one base reused via a2, so each compile only shifts registers. Current 3135 is worse than saved best 3045. Next step for anyone retrying: rewrite both loops from get_assembly (one s2 index, base in a2, sll s2,1 offsets, the sw $ra/$s4 frame), then tune the __sinf section.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794764509.581236,
+  "score_before": 2570,
+  "score_after": 2570
+ },
+ {
+  "function": "func_80157BBC",
+  "text": "Not matched. Best 2895 (lower is better), revision 20f9cc1c87ceff579ef0: first loop body uses 'off = (u16)(*(u16*)(pa+i*2) + *(u16*)(pb+i*2)); *(u16*)(pa+i*2) = off;' with the wrap test on off - 0x168 (from the i*2 index version, c93cf8c52b20a059f1c4 at 3135). Earlier best 1647b4f822bc7efbc5d6 scored 3045 with the off/i++/i-- form. Target (78 insns): frame with ra at 0x24 and s4 at 0x20; the first loop keeps i in s2 and indexes with sll v0,s2,1 then addu from pa (a2) and pb (a1); the second loop reuses i=s2 after 'move s2,zero'; the D_8016D8C0 / D_8016D8C4 bases are loaded once into s4 and a2 and reused. Ours still uses strength-reduced pointer increments and keeps the counter in s0, and the target's lhu/sh pair order differs. Local repairs: the (u16) temp variant won; a helper-inline loop bound and u32 counter were worse. Next: share one index s2 across both loops, one base register per table, and the second loop's i starting from the first loop's zero.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794766632.087865,
+  "score_before": 2570,
+  "score_after": 2570
  }
 ]
