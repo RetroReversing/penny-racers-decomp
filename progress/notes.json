@@ -7576,14 +7576,6 @@
   "score_after": 4025
  },
  {
-  "function": "func_80149B38",
-  "text": "Structure is right: temp_s0=arg1*0x178; temp_s3=*(u8*)(D_800DA260+1+s0); call func_800DE41C(0,s3,1,0,0x5C,0xFF,D_8018F5D0+arg0*0x1A0,0,&func_8020FED8,arg2,arg3,0,0,-10.0f,0,0.02f,0.02f,0.02f)&0xFFFF; store *(void**)(*(char**)(D_8011F340+lhu(D_8011F304+s1*100)*100)+4)=D_80237DC0+s3*12; call func_8012AD20(lhu(D_8011F304+s1*100), D_8021F0A0+(arg0<<5), s3, *(u8*)(D_800DA26A+0x160+s0+s3)). Use byte-typed externs (char arrays) so offsets are not scaled by 4. Best so far is 1205 (saved, from an earlier candidate; not the one I wrote). Mine: 3089 (plain), 2729 (pointer temp_p for the last byte load). Remaining diff: prologue saves ra,s3,s2,s1,s0 in a 0x60 frame and s2 holds arg0 across the call. Copying arg0 into a local at the top (temp_s2 = arg0) made no change to the instructions. Untried: compile_family(signedness), and keeping arg0 live across the call via a struct or explicit volatile order.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794708647.8000882,
-  "score_before": 1205,
-  "score_after": 1205
- },
- {
   "function": "func_80148260",
   "text": "Best 6270 (47.3%), from the m2c-style rewrite with array indexing: `D_8018D140[(arg1&0xFF)*0x12C/2 + i]` loops, mask loop over D_8018D3A0[(arg0&0xFF)<<5 + j*4], inner k<0x20 bit loop, tail branch on (arg1&0xFF)==1 copying 8 entries. Target facts: no stack frame at all (candidates always add `addiu $sp,-8`, so the function needs fewer live locals or no spilled temps); arg0 is kept in $t1 across the first loop; x*0x12C is computed as ((x<<2)+x)<<4 - ... <<2 (i.e. 75x*4), with the base `D_8018D140 + 300*x` in a0. Tried a pointer `dst = D_8018D140 + (arg1&0xFF)*0x96` version: 6505 (worse, wrong scaling is a suspect, it should be a byte offset of 0x12C not 0x96 shorts). Next: keep the 6270 source, reduce live variables (drop `cnt` and `n`, reuse one counter), and check the j/k inner loop order so the tail's `arg1&0xFF` is recomputed rather than kept live.\n\nBest 6145 (48.3%, revision da3017c2d6101f022e77): array-indexed loops, n reused for the tail (no separate cnt). Target has no stack frame; candidates always add `addiu $sp,-8` and keep a0/t0 live, so reducing live locals is the lever. Target computes the row offset 0x12C*x as 75*4*x. Pointer `dst = D_8018D140 + x*0x96` scored worse (6505). Next: a single unreassigned u16 row-base local, with the tail store through it.",
   "by": "claude-haiku-5-5-24",
@@ -12016,14 +12008,6 @@
   "score_after": 6142
  },
  {
-  "function": "func_80149B38",
-  "text": "Not matched. Target is 99 insns, 396 bytes, frame 0x60 with ra,s0-s3 saved. Calls func_800DE41C (18 args: 4 in regs, 14 on stack, incl. -10.0f at 0x34 and 0.02f x3 at 0x3C/0x40/0x44) then func_8012AD20.\n\nFindings from the target:\n- temp_s0 = arg1*0x178 kept live across the call. temp_s3 = u8 at (&D_800DA260 + 1 + temp_s0), held in s3.\n- Ptr arg = (char*)&D_8018F5D0 + arg0*0x1A0.\n- temp_s1 = (u16)return; kept in s1.\n- D_8011F304 is a u16 array indexed by BYTE offset temp_s1*100 (not s32 pointer arithmetic). D_8011F340 is an s32 pointer table, also indexed by byte offset (v*100). The store goes to 4 of that pointer: *(void**)(p+4) = &D_80237DC0 + s3*12.\n- The func_8012AD20 call re-reads D_8011F304[temp_s1*100] (a second lhu, not CSE'd across the store), passes arg0<<5 + &D_8021F0A0, s3, and byte at (&D_800DA26A + 0x160 + temp_s0 + s3).\n\nAttempts:\n- Typed s32 pointer arithmetic (current candidate 3769) and byte-typed u16 array indexing (4059): both far from target, with a wrong multiply/shift structure and the stack-arg setup reordered. Neither improved on the first compile.\n- The saved-best text (recorded 1205) is byte-identical to the first candidate here and compiles to 3769 today, so the 1205 score does not reproduce. Treat saved 1205 as unverified.\n\nLeft to try: a local temp_a0 = temp_s1*0x64 reused across the store and the call (the target keeps a0 live, and its lhu's reload memory); restore the arg ordering so the stack stores of the 14 call args come before the jal in the target order; verify the D_800DA26A/D_800DA260 types (u8 array vs s32) against the lbu/lhu rows before further tuning.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794723544.420971,
-  "score_before": 1205,
-  "score_after": 1205
- },
- {
   "function": "func_8014BB30",
   "text": "Not matched. Target 106 insns, 424 bytes. Shape: 12 independent tests of the form `if (*(s32*)(&D_8018D3xx + ((arg0&0xFF)<<5)) & MASK) var |= BIT;`, returning var & 0xFFFF. Each test recomputes the index and reloads the table: the target does not CSE the index (andi/sll/lui/addu/lw repeated per test).\n\nAttempts this session (current rechecked scores):\n- Shared local `idx = (arg0&0xFF)<<5`: 11210. Target reloads per test, so this is worse.\n- Index inlined in every test, all `var |= bit` ifs: 10980 (best this session). Remaining diffs: the target emits `lui $v1,0x80; and; bnel` for the 0x800000 test and `ori $a1,$a1,4` on a branch, which my form does not reproduce; the target also starts the sequence by initializing var with a branch rather than a constant store.\n- Saved-best 9350 is from another source and does not reproduce here.\n\nLeft to try: write the first test as `var = (cond) ? 0x800 : 0` and the others as `var |= ...` in the target order; check whether the bit-tests use `&` with a 32-bit constant (lui+and) versus `andi` for masks <= 0xFFFF (the target uses lui+and for 0x800000 and 0x1000000); vary the loop-free test order to see which order the target uses.",
   "by": "claude-haiku-5-5-24",
@@ -16360,14 +16344,6 @@
   "score_after": 2210
  },
  {
-  "function": "func_80149B38",
-  "text": "Not matched. Best this session: 3439 (65% match, 96 vs 99 insns), revision e37ce72ac5d88bf87991; saved best 1205 is still better. Layout read from target: s0=arg1*0x178, s3=lbu(D_800DA261+s0); first call func_800DE41C(0,s3,1,0,0x5C,0xFF,&D_8018F5D0+arg0*0x1A0,0,func_8020FED8,arg2,arg3,0,0,-10f,0,.02f,.02f,.02f) & 0xFFFF into s1; rec offset = s1*100 (0x64); p=*(D_8011F340+ (u16)D_8011F304[s1*100]*100); *(p+4)=D_80237DC0+s3*12; func_8012AD20(u16 D_8011F304[s1*100], D_8021F0A0+arg0*32, s3, lbu(D_800DA26A+0x160+s0+s3)). Remaining diffs: frame (target saves $ra,$s3,$s2,$s1,$s0 at 0x58..0x48 and keeps arg0 in $s2 across the first call, we spill differently); target re-derives the lhu index address twice with lui/addu on D_8011F304 (no separate local pointer). Adding s2=arg0 local made no difference. Next: try a local u16 index variable for the two lhu reads, and the D_8011F304 base pointer as a local; keep s3 as u8. Also the prototype of func_8012AD20 disagrees with the exact-matched definition (void(s32,u16*,s32,s32)); check that first.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794734985.429763,
-  "score_before": 1205,
-  "score_after": 1205
- },
- {
   "function": "func_8022F300",
   "text": "Best 2515 (76.9%), revision 46210c1b9e09b0644fdd: the 99A4 test/store written as `*(s32 *)((u8 *)&D_801E99A0 + 4)` (2740 -> 2515). Writing the 99A0 pair as `*(s32 *)&D_801E99A0` gave no change. Still open: (1) switch over D_802330A0 is a jump table at D_80232B40 (`sltiu v0,v1,0xA; sll; lui at; addu; lw; jr`); the build reports 'refers to .rodata+0x0 where the ROM's code has no address', so the table can't match from C. (2) Target keeps one base register `a0 = &D_801E99A0` across the 99A0/99A4 block and uses fresh `lui` for later blocks, and the 0x8006FAF0+0x20 counter block is clamped with `sltiu 2`/`sltiu 9` and a `nop` before the store. Next: apply the same &SYM+offset form to the 99AC/99A8/99C0 accesses; the jump-table reference is likely a blocker.",
   "by": "claude-haiku-5-5-20",
@@ -16830,14 +16806,6 @@
   "created_at": 1794736149.9476202,
   "score_before": 4856,
   "score_after": 4856
- },
- {
-  "function": "func_80149B38",
-  "text": "Best verified here: 2729 (72.4%), revision d3c197c58301c1f595da (use this, not the historical saved_best 1205, which did not reproduce on this source). Key fix: D_800DA260/D_800DA26A/D_8011F304/D_8011F340/D_8018F5D0/D_8021F0A0/D_80237DC0 must be u8 arrays indexed in bytes; as s32 the offsets scale by 4. Body then has the target's instruction set: temp_s0=arg1*0x178; temp_s3=D_800DA260[1+temp_s0]; s1=func_800DE41C(...)&0xFFFF (stack args 0x5C,0xFF,D_8018F5D0+arg0*0x1A0,0,&func_8020FED8,a2,a3,0,0,-10.0f,0,0.02f x3); store *(u8**)(*(u8**)(D_8011F340+lhu(D_8011F304+s1*100)*100)+4)=D_80237DC0+s3*12; temp_s0=D_800DA26A+0x160+s0+s3, then func_8012AD20(lhu(D_8011F304+s1*100), D_8021F0A0+(arg0<<5), s3, *(u8*)temp_s0). Remaining diffs are prologue/register order only: target saves $ra,$s3,$s2,$s1,$s0 and keeps arg0 in $s2, s1 holds the call result, s3 the type byte; ours saves $s0 first and allocates differently. Tried this session without gain: temp pointer variable (no change), temp_s3 as s32 (3590, worse, adds andi $0xff and extra saves). Untried: splitting arg1*0x178 into its own statement, and a separate u8 temp for D_800DA26A[...] read before the lhu.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794736168.1449652,
-  "score_before": 1205,
-  "score_after": 1205
  },
  {
   "function": "func_80149220",
@@ -24176,14 +24144,6 @@
   "score_after": 980
  },
  {
-  "function": "func_80149B38",
-  "text": "Not matched. Current 3089 (68.7%, 99 target insns vs 96), revision e22565d4fe3370bb74c7; saved best 1205 is from an earlier source. Logic: s0=arg1*0x178; s3=u8 at D_800DA260+1+s0; s1=(u16)func_800DE41C(0,s3,1,0, 0x5C,0xFF, D_8018F5D0+arg0*0x1A0, 0, &func_8020FED8, arg2, arg3, 0,0, -10.0f,0, 0.02f,0.02f,0.02f); idx=s1*0x64; *(void**)(*(void**)(D_8011F340+D_8011F304[idx]*0x64)+4) = D_80237DC0+s3*12; s2=arg0<<5; func_8012AD20(u16 D_8011F304[idx], D_8021F0A0+s2, s3, u8 at D_800DA26A+0x160+s0+s3); return s1. The target has a 6-register prologue (ra, s3, s2, s1, s0) and keeps s2 as a copy of arg0 from the start; mine saves s0 first and copies arg0 late. Remaining: saved-register order and the byte load: the target computes the address into $s0 and loads (s0) with a separate addiu of D_8021F0A0 into $a1. Untried: a pointer local for the byte (u8 *p = (s8*)&D_800DA26A + 0x160 + s0 + s3) and an s2 = arg0 copy before the first call.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794755217.490546,
-  "score_before": 1205,
-  "score_after": 1205
- },
- {
   "function": "func_801542F8",
   "text": "Display-list writer: 8 Gfx words (w0,w1) appended via *g with 8-byte bump each command (lw v1,(g); addiu v0,v1,8; sw v0,(g)). Constants: F D48001F/D_802D7388; F5480800 (also reused in the 6th command, kept in a2); 07014050; E6000000,0; F4000000/0707C07C; E7000000,0; F5480800/00014050; F2000000 (kept in a3)/0007C07C; last command w0 = ((0x7C - D_8011F32E[i].v) & 0xFFF) | 0xF2000000 (w1 0x7C07C via t0). Note the target reuses the F5480800 and F2000000 words from registers (a2, a3) rather than re-materialising them: that is what the 8-statement version misses (score 3155 with the 0x7C fix; saved best 265 with (v&0xFFF) which is wrong). Next: express each repeated constant as one shared local (u32 w_f5=0xF5480800, w_f2=0xF2000000) and emit the stores in target order with one bump per command; the w1 for the second F5480800 command is 0x14050 (not 0x07014050).",
   "by": "claude-haiku-5-5-23",
@@ -31376,14 +31336,6 @@
   "score_after": 941
  },
  {
-  "function": "func_80149B38",
-  "text": "Not matched. Saved best is 1205 (historical, better than all of mine). My best this session was 2719 (72.5%, revision d83c8345d89382b12669): the structure is right, and the remaining differences are ordering and register choice. Decoded structure:\n- frame 0x60; saves ra at 0x58, s3 0x54, s2 0x50, s1 0x4C, s0 0x48. s0 = arg1*0x178 (47*arg1<<3); s3 = *(u8*)((u8*)&D_800DA260 + 1 + s0).\n- call func_800DE41C(0, s3, 1, 0, 0x5C, 0xFF, &D_8018F5D0 + arg0*0x1A0, 0, &func_8020FED8, arg2, arg3, 0, 0, -10.0f, 0, 0.02f, 0.02f, 0.02f) & 0xFFFF -> s1.\n- a0 = s1*0x64; idx = *(u16*)(D_8011F304 + a0); p = *(void**)(D_8011F340 + idx*0x64); *(void**)((u8*)p + 4) = D_80237DC0 + s3*12.\n- then func_8012AD20(*(u16*)(D_8011F304 + a0), D_8021F0A0 + arg0*0x20, s3, *(u8*)(s0 + (&D_800DA26A + 0x160) + s3)); return s1.\nTarget ordering after the store: sll s2 (arg0*32), lui/addiu D_8021F0A0, lui/addiu of (D_800DA26A+0x160), addu s0 += that, addu s0 += s3, lui/lhu for D_8011F304, addu a1 = s2 + D_8021F0A0 (last), lbu a3,0(s0). The best candidate computed D_8021F0A0 first and gets lbu via temp_s0 in a u8 pointer; the remaining diff is the placement of `sll s2` (it must follow the store) and the lhu/addu order. Try compile_patch on revision d83c8345d89382b12669 changing only the position of the arg0*0x20 term; the 2734 variants (moving the offset to its own statement) did not help.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794764891.555789,
-  "score_before": 1205,
-  "score_after": 1205
- },
- {
   "function": "func_8014D2B4",
   "text": "Best candidate: revision 38b0dc11ec6dd6d3bd1b, score 3810 (from 4990). Only change vs. the 4d2a9b92 source: `temp_s0 = (u16)arg0;` instead of `arg0 & 0xFFFF`. Target structure: frame 0x28 saves ra, s1 (raw arg0), s0 (masked index) and fs0 (double/float temp). Index is computed as ((i*2+i)*8+i)*4 = 100*i, so `*0x64` is right. Target keeps raw arg in s1 across func_8013AE60 and re-masks it in the fallthrough and tail paths. Tried and not better: func_8013AE60((u16)arg0) (5055 / 4830 variants), off lines using temp_s0 instead of re-masking (5140 / 5155), u16 temp_s0 and u16 off (3900-4150), arg0 = temp_s0 reassignment (3970). Open problem: the candidate still saves s1 at 0x14 and puts ra at 0x14, while the target has ra at 0x18 and s1 at 0x14. Untried: a volatile-free version where the raw arg stays live through the call, e.g. keep arg0 used after the sinf/cosf path, or a s32 idx local copied from arg0 before the call.",
   "by": "claude-haiku-5-5-24",
@@ -32958,14 +32910,6 @@
   "created_at": 1794766879.466283,
   "score_before": 7040,
   "score_after": 7040
- },
- {
-  "function": "func_80149B38",
-  "text": "Saved best 1205 (prior agent) stays best. Best of my trials: 2879 (revision 1aed74fd4d108955fe7f): D_800DA260 / D_800DA26A / D_8018F5D0 / D_8021F0A0 declared as u8 arrays (byte-indexed, matching lbu and +1 offset), D_8011F304 as u16 read via *(u16*)((u8*)D_8011F304 + temp_a0) (matches lhu D_8011F304(addr) with addu base). Remaining: target computes the D_8011F304 index with sll $v0,$v0,2 where mine uses sll 4; and target's stores/prologue order (sw $ra first, then s3,s2,s1,s0) differs; the target loads D_8021F0A0 address with lui/addiu after the D_8011F304 lhu. Untested: keep the 1205 saved source's structure but apply the u8/u16 typing above; check whether the temp_a0 index is (s1*0x64)/4 at word granularity (sll 2) not byte offset.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794766886.266381,
-  "score_before": 1205,
-  "score_after": 1205
  },
  {
   "function": "func_80152720",
@@ -34643,5 +34587,61 @@
   "score_before": null,
   "score_after": null,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:9a7c9944cc9c92e143d9234968e36ee302bcc053bef609c8bae81a9f71668eba"
+ },
+ {
+  "function": "func_80149B38",
+  "text": "Structure is right: temp_s0=arg1*0x178; temp_s3=*(u8*)(D_800DA260+1+s0); call func_800DE41C(0,s3,1,0,0x5C,0xFF,D_8018F5D0+arg0*0x1A0,0,&func_8020FED8,arg2,arg3,0,0,-10.0f,0,0.02f,0.02f,0.02f)&0xFFFF; store *(void**)(*(char**)(D_8011F340+lhu(D_8011F304+s1*100)*100)+4)=D_80237DC0+s3*12; call func_8012AD20(lhu(D_8011F304+s1*100), D_8021F0A0+(arg0<<5), s3, *(u8*)(D_800DA26A+0x160+s0+s3)). Use byte-typed externs (char arrays) so offsets are not scaled by 4. Best so far is 1205 (saved, from an earlier candidate; not the one I wrote). Mine: 3089 (plain), 2729 (pointer temp_p for the last byte load). Remaining diff: prologue saves ra,s3,s2,s1,s0 in a 0x60 frame and s2 holds arg0 across the call. Copying arg0 into a local at the top (temp_s2 = arg0) made no change to the instructions. Untried: compile_family(signedness), and keeping arg0 live across the call via a struct or explicit volatile order.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794708647.8000882,
+  "score_before": 1205,
+  "score_after": 1205
+ },
+ {
+  "function": "func_80149B38",
+  "text": "Not matched. Target is 99 insns, 396 bytes, frame 0x60 with ra,s0-s3 saved. Calls func_800DE41C (18 args: 4 in regs, 14 on stack, incl. -10.0f at 0x34 and 0.02f x3 at 0x3C/0x40/0x44) then func_8012AD20.\n\nFindings from the target:\n- temp_s0 = arg1*0x178 kept live across the call. temp_s3 = u8 at (&D_800DA260 + 1 + temp_s0), held in s3.\n- Ptr arg = (char*)&D_8018F5D0 + arg0*0x1A0.\n- temp_s1 = (u16)return; kept in s1.\n- D_8011F304 is a u16 array indexed by BYTE offset temp_s1*100 (not s32 pointer arithmetic). D_8011F340 is an s32 pointer table, also indexed by byte offset (v*100). The store goes to 4 of that pointer: *(void**)(p+4) = &D_80237DC0 + s3*12.\n- The func_8012AD20 call re-reads D_8011F304[temp_s1*100] (a second lhu, not CSE'd across the store), passes arg0<<5 + &D_8021F0A0, s3, and byte at (&D_800DA26A + 0x160 + temp_s0 + s3).\n\nAttempts:\n- Typed s32 pointer arithmetic (current candidate 3769) and byte-typed u16 array indexing (4059): both far from target, with a wrong multiply/shift structure and the stack-arg setup reordered. Neither improved on the first compile.\n- The saved-best text (recorded 1205) is byte-identical to the first candidate here and compiles to 3769 today, so the 1205 score does not reproduce. Treat saved 1205 as unverified.\n\nLeft to try: a local temp_a0 = temp_s1*0x64 reused across the store and the call (the target keeps a0 live, and its lhu's reload memory); restore the arg ordering so the stack stores of the 14 call args come before the jal in the target order; verify the D_800DA26A/D_800DA260 types (u8 array vs s32) against the lbu/lhu rows before further tuning.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794723544.420971,
+  "score_before": 1205,
+  "score_after": 1205
+ },
+ {
+  "function": "func_80149B38",
+  "text": "Not matched. Best this session: 3439 (65% match, 96 vs 99 insns), revision e37ce72ac5d88bf87991; saved best 1205 is still better. Layout read from target: s0=arg1*0x178, s3=lbu(D_800DA261+s0); first call func_800DE41C(0,s3,1,0,0x5C,0xFF,&D_8018F5D0+arg0*0x1A0,0,func_8020FED8,arg2,arg3,0,0,-10f,0,.02f,.02f,.02f) & 0xFFFF into s1; rec offset = s1*100 (0x64); p=*(D_8011F340+ (u16)D_8011F304[s1*100]*100); *(p+4)=D_80237DC0+s3*12; func_8012AD20(u16 D_8011F304[s1*100], D_8021F0A0+arg0*32, s3, lbu(D_800DA26A+0x160+s0+s3)). Remaining diffs: frame (target saves $ra,$s3,$s2,$s1,$s0 at 0x58..0x48 and keeps arg0 in $s2 across the first call, we spill differently); target re-derives the lhu index address twice with lui/addu on D_8011F304 (no separate local pointer). Adding s2=arg0 local made no difference. Next: try a local u16 index variable for the two lhu reads, and the D_8011F304 base pointer as a local; keep s3 as u8. Also the prototype of func_8012AD20 disagrees with the exact-matched definition (void(s32,u16*,s32,s32)); check that first.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794734985.429763,
+  "score_before": 1205,
+  "score_after": 1205
+ },
+ {
+  "function": "func_80149B38",
+  "text": "Best verified here: 2729 (72.4%), revision d3c197c58301c1f595da (use this, not the historical saved_best 1205, which did not reproduce on this source). Key fix: D_800DA260/D_800DA26A/D_8011F304/D_8011F340/D_8018F5D0/D_8021F0A0/D_80237DC0 must be u8 arrays indexed in bytes; as s32 the offsets scale by 4. Body then has the target's instruction set: temp_s0=arg1*0x178; temp_s3=D_800DA260[1+temp_s0]; s1=func_800DE41C(...)&0xFFFF (stack args 0x5C,0xFF,D_8018F5D0+arg0*0x1A0,0,&func_8020FED8,a2,a3,0,0,-10.0f,0,0.02f x3); store *(u8**)(*(u8**)(D_8011F340+lhu(D_8011F304+s1*100)*100)+4)=D_80237DC0+s3*12; temp_s0=D_800DA26A+0x160+s0+s3, then func_8012AD20(lhu(D_8011F304+s1*100), D_8021F0A0+(arg0<<5), s3, *(u8*)temp_s0). Remaining diffs are prologue/register order only: target saves $ra,$s3,$s2,$s1,$s0 and keeps arg0 in $s2, s1 holds the call result, s3 the type byte; ours saves $s0 first and allocates differently. Tried this session without gain: temp pointer variable (no change), temp_s3 as s32 (3590, worse, adds andi $0xff and extra saves). Untried: splitting arg1*0x178 into its own statement, and a separate u8 temp for D_800DA26A[...] read before the lhu.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794736168.1449652,
+  "score_before": 1205,
+  "score_after": 1205
+ },
+ {
+  "function": "func_80149B38",
+  "text": "Not matched. Current 3089 (68.7%, 99 target insns vs 96), revision e22565d4fe3370bb74c7; saved best 1205 is from an earlier source. Logic: s0=arg1*0x178; s3=u8 at D_800DA260+1+s0; s1=(u16)func_800DE41C(0,s3,1,0, 0x5C,0xFF, D_8018F5D0+arg0*0x1A0, 0, &func_8020FED8, arg2, arg3, 0,0, -10.0f,0, 0.02f,0.02f,0.02f); idx=s1*0x64; *(void**)(*(void**)(D_8011F340+D_8011F304[idx]*0x64)+4) = D_80237DC0+s3*12; s2=arg0<<5; func_8012AD20(u16 D_8011F304[idx], D_8021F0A0+s2, s3, u8 at D_800DA26A+0x160+s0+s3); return s1. The target has a 6-register prologue (ra, s3, s2, s1, s0) and keeps s2 as a copy of arg0 from the start; mine saves s0 first and copies arg0 late. Remaining: saved-register order and the byte load: the target computes the address into $s0 and loads (s0) with a separate addiu of D_8021F0A0 into $a1. Untried: a pointer local for the byte (u8 *p = (s8*)&D_800DA26A + 0x160 + s0 + s3) and an s2 = arg0 copy before the first call.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794755217.490546,
+  "score_before": 1205,
+  "score_after": 1205
+ },
+ {
+  "function": "func_80149B38",
+  "text": "Not matched. Saved best is 1205 (historical, better than all of mine). My best this session was 2719 (72.5%, revision d83c8345d89382b12669): the structure is right, and the remaining differences are ordering and register choice. Decoded structure:\n- frame 0x60; saves ra at 0x58, s3 0x54, s2 0x50, s1 0x4C, s0 0x48. s0 = arg1*0x178 (47*arg1<<3); s3 = *(u8*)((u8*)&D_800DA260 + 1 + s0).\n- call func_800DE41C(0, s3, 1, 0, 0x5C, 0xFF, &D_8018F5D0 + arg0*0x1A0, 0, &func_8020FED8, arg2, arg3, 0, 0, -10.0f, 0, 0.02f, 0.02f, 0.02f) & 0xFFFF -> s1.\n- a0 = s1*0x64; idx = *(u16*)(D_8011F304 + a0); p = *(void**)(D_8011F340 + idx*0x64); *(void**)((u8*)p + 4) = D_80237DC0 + s3*12.\n- then func_8012AD20(*(u16*)(D_8011F304 + a0), D_8021F0A0 + arg0*0x20, s3, *(u8*)(s0 + (&D_800DA26A + 0x160) + s3)); return s1.\nTarget ordering after the store: sll s2 (arg0*32), lui/addiu D_8021F0A0, lui/addiu of (D_800DA26A+0x160), addu s0 += that, addu s0 += s3, lui/lhu for D_8011F304, addu a1 = s2 + D_8021F0A0 (last), lbu a3,0(s0). The best candidate computed D_8021F0A0 first and gets lbu via temp_s0 in a u8 pointer; the remaining diff is the placement of `sll s2` (it must follow the store) and the lhu/addu order. Try compile_patch on revision d83c8345d89382b12669 changing only the position of the arg0*0x20 term; the 2734 variants (moving the offset to its own statement) did not help.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794764891.555789,
+  "score_before": 1205,
+  "score_after": 1205
+ },
+ {
+  "function": "func_80149B38",
+  "text": "Saved best 1205 (prior agent) stays best. Best of my trials: 2879 (revision 1aed74fd4d108955fe7f): D_800DA260 / D_800DA26A / D_8018F5D0 / D_8021F0A0 declared as u8 arrays (byte-indexed, matching lbu and +1 offset), D_8011F304 as u16 read via *(u16*)((u8*)D_8011F304 + temp_a0) (matches lhu D_8011F304(addr) with addu base). Remaining: target computes the D_8011F304 index with sll $v0,$v0,2 where mine uses sll 4; and target's stores/prologue order (sw $ra first, then s3,s2,s1,s0) differs; the target loads D_8021F0A0 address with lui/addiu after the D_8011F304 lhu. Untested: keep the 1205 saved source's structure but apply the u8/u16 typing above; check whether the temp_a0 index is (s1*0x64)/4 at word granularity (sll 2) not byte offset.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794766886.266381,
+  "score_before": 1205,
+  "score_after": 1205
  }
 ]
