@@ -3480,14 +3480,6 @@
   "score_after": 14973
  },
  {
-  "function": "func_8013E188",
-  "text": "Deep permuter: score 6165 \u2192 5570; 2 improvements; 25 candidates tested; 137 cached skips; 0 rejected; 7204s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935334",
-  "created_at": 1794357126.598088,
-  "score_before": 6165,
-  "score_after": 5570
- },
- {
   "function": "func_8013B0D4",
   "text": "Deep permuter: score 1415 \u2192 1215; 1 improvements; 139 candidates tested; 34 cached skips; 0 rejected; 7219s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935318",
@@ -6894,14 +6886,6 @@
   "created_at": 1794177315.804642,
   "score_before": null,
   "score_after": null
- },
- {
-  "function": "func_8013E188",
-  "text": "Two loops over 64 elements of stride 0x7C (i*124 = ((i<<5)-i)<<2) plus a 62-element linked-list setup. Loop 1: zero f32 at +0x10, +0xC, and f32 at D_8018D6C8+off; s16 0 at D_8018D6D4+off; s16 i at D_8018D736+off. Loop 2 (i=1..0x3E): s16 i-1 at D_8018D738+off, s16 i+1 at D_8018D73A+off. Then D_8018F5C2=0, D_80189DC2=0x3F, and four fixed stores. Saved best 1200. Notes from my attempts: the target keeps 0.0f in $f0 (mtc1 $zero,$f0 once before loop 1) and stores it with swc1; my forms emitted sw $zero (int store) so write the zero as a float variable (f32 z = 0.0f) hoisted before the loop. The target also hoists &D_8018D6C0 into $a1 and computes the element address v1=off+$a1 for the +0x10/+0xC stores, while the other arrays use lui/addu $at,off. Best attempt in my runs: 5955 with separate arrays and p=D_8018D6C0+off. Next: a float zero local and the separate-array form.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794707617.0690198,
-  "score_before": 1200,
-  "score_after": 1200
  },
  {
   "function": "func_800DE38C",
@@ -11062,14 +11046,6 @@
   "created_at": 1794721446.6863842,
   "score_before": 610,
   "score_after": 610
- },
- {
-  "function": "func_8013E188",
-  "text": "Not matched. Target 61 insns. Findings: (1) first loop stores 0.0f as swc1 from $f0 (mtc1 $zero,$f0 once before the loop), so keep the constant in a f32 local `z = 0.0f` rather than writing literal 0.0f (literal gives sw $zero). (2) Target keeps the base D_8018D6C0 in $a1 and loop counter i in $a0 with `move $a0,$zero` as the first instruction; a `u8 *base` local set before the loop gives a lui/addiu pair in the wrong place (lui a2 before the loop) and i ends up in $a1. Best this session: 5850 (u8 *base + f32 z variant, i loop var); direct array-indexed variant with z gave 5960. Saved best 1200 (other source) remains better. Unresolved: second loop's constant -1 is materialised via `ori $a0,$zero,0xffff` before `sh`, and D_8018F5C2 / D_80189DC2 stores appear at the end in the target, not after the first loop as written. Try reordering the declarations so i is the first-declared register and base is computed inside the loop-init expression.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794721456.5892742,
-  "score_before": 1200,
-  "score_after": 1200
  },
  {
   "function": "func_800DE2E0",
@@ -20112,14 +20088,6 @@
   "score_after": 450
  },
  {
-  "function": "func_8013E188",
-  "text": "Saved best 1200 remains (1.2% region not reached in mine). My rewrite (one struct base D_8018D6C0 with stride 0x7C and fields at +8/+0xC/+0x10/+0x14/+0x76) scored 6025: wrong. The target treats D_8018D6C8, D_8018D6D4, D_8018D736, D_8018D738, D_8018D73A as separate globals indexed by i*4 / i*124 (the loop body shows `sll v0,v0,2; addu at,at,v0` for the stores to D_8018D6C8/D6D4/D736, and `sll v1,v0,5; subu; sll 2` (=i*124) for D738/D73A). Also floats: mtc1 $zero,$f0 once then swc1 $f0 to three addresses (0.0f shared). Next: write each global as its own array with the exact element stride the target uses (check the sll chain per store), declare the f32 zero once, and keep the first loop's ordering (swc1 0x10 and 0xC before D6C8).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794748517.887033,
-  "score_before": 1200,
-  "score_after": 1200
- },
- {
   "function": "func_80146970",
   "text": "Not matched. Best saved 915 does not reproduce; rechecked candidates score 2747 (p as local u8*) and 2777 (direct &D_80190CB0 - 4). Target keeps a 0x20 frame with ra/s0/s1 saved: temp_v0 lives in s0 and the pointer to D_80190CB0 is materialized once (lui+addiu into s1) and reused via lbu (s1) x3 and lhu -4(s1). Our versions re-materialize lui per use and use an 0x18 frame. Next try: make the pointer a local used in several places (including the lbu reads) so GCC keeps it in s1, and check that the first call's result is held in s0 across func_80148688.",
   "by": "claude-haiku-5-5-23",
@@ -22296,14 +22264,6 @@
   "score_after": 1
  },
  {
-  "function": "func_8013E188",
-  "text": "Not matched; releasing because two rewrites of the seeded candidate both scored worse than saved best 1200 (6510, then 6720) and the diff points at a structural mismatch I could not resolve. Keep saved best 1200, not the seeded candidate f12f21b42d253e4f2e80 (it has a stray __repair_addr local). Target is 61 insns. Observed target: loop 1 (i=0..0x3F, off = i*0x7C computed as ((i<<5)-i)<<2 with i in a0) keeps base D_8018D6C0 in a1 via lui/addiu and does f32 zero stores (mtc1 $zero,$f0; swc1) at base+off+0x10, base+off+0xC, and D_8018D6C8+off; the candidate instead emits sw $zero to D_8018D6D0/D_8018D6CC/D_8018D6C8 with separate lui per store, so the three f32 stores are being split across different symbols. Likely fix: express the three f32 stores as one struct-typed record pointer (base + off) with fields at 0x0, 0xC, 0x10 and a separate D_8018D6C8 record, so GCC can hoist the base. Loop 2 (i=1..0x3E) stores halfword i-1 to D_8018D738+off and i+1 to D_8018D73A+off, then D_8018D738+0 = 0xFFFF, +2 = 1, +0x1E84 = 0x3E, +0x1E86 = 0xFFFF. D_80187BE0 = 0x40, D_8018F5C2 = 0, D_80189DC2 = 0x3F are the globals. Next agent: start from the saved best, not a seed, and test the struct-record idea first.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794753887.243156,
-  "score_before": 1200,
-  "score_after": 1200
- },
- {
   "function": "func_80156180",
   "text": "Best current: score 80 (97.4%) with this source: void func_80156180(s32 arg0){ u16 temp_s0; u16 temp_a0; s32 temp_v1; temp_s0 = arg0; func_8013AE60(temp_s0); temp_v1 = temp_s0 * 100; temp_a0 = *((volatile u16 *)(D_8011F32E + temp_v1)); *((volatile u16 *)(D_8011F32E + temp_v1)) = temp_a0 + 2; if (*((volatile u16 *)(D_8011F32E + temp_v1)) >= 0x80) *((volatile u16 *)(D_8011F32E + temp_v1)) = temp_a0 - 0x7D; } with extern volatile u8 D_8011F32E[]; and void func_8013AE60(u16). Single-path function: s0=(u16)arg0; call; v1=s0*100 (sll/addu chain); load/store u16 at D+v1; second reload compared with 0x80. The saved_best 30 is a different, semantically wrong source (+7, 0x100, -0xF8) and should not be trusted as a match. Remaining diffs: stack save order (ra at 0x14 stored before s0 at 0x10 in target) and andi placement; frame is 0x18. Try declaring the ra-saving path differently or re-check the andi/s0 ordering.",
   "by": "claude-haiku-5-5-22",
@@ -23174,14 +23134,6 @@
   "created_at": 1794755091.5339541,
   "score_before": 60,
   "score_after": 60
- },
- {
-  "function": "func_8013E188",
-  "text": "Not matched. Saved historical best 1200 (permuter) remains the stored best; my rechecked attempts scored 5850 (best of mine, revision c4d2d8f377e3abe0733a: base local = D_8018D6C0 before loop, f32 zero local, loop i u16 over 0x40 with off=i*0x7C, stores via base+off+0x10/+0xC, second loop i=1..0x3E writing (i-1,i+1) at D_8018D738/D_8018D73A, then the four fixed entries at 0, 2, 0x1E84, 0x1E86). Remaining diffs: target hoists the base address (lui/addiu of D_8018D6C0 into a1) and zero float (mtc1 $zero,$f0) before the loop with i in a0 and andi/sll/subu chain on a0; my compiles put these in different registers (a1/a2) and emit sw $zero/sh $a1 with separate lui $at for D_8018D736 each iteration. Also the final two stores use ori $a0,$zero,0xFFFF held in a register (sh $a0,0($v1)), which mine does not reproduce. Tried: direct D_8018D6C0+off (5955), pointer p=base+off (6510, sw $zero), zero local without base local (5960). Next: keep base and zero locals, write the last two stores with a shared u16 -1 temp, and compare loop variable as s32 vs u16.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794755093.3970292,
-  "score_before": 1200,
-  "score_after": 1200
  },
  {
   "function": "func_80029938",
@@ -25102,14 +25054,6 @@
   "created_at": 1794757948.135523,
   "score_before": 1055,
   "score_after": 870
- },
- {
-  "function": "func_8013E188",
-  "text": "Move-on budget exhausted (4 compiles without improvement; best this session 5375 at revision 405987c628a854b3aa07; saved_best rechecks at 6165 with current inputs). Restore 405987c628a854b3aa07 as the continuation base; do not start from 634af80abacc240116b9 (5695) or the __repair_addr saved_best source (6165).\n\nAlready matching at 5375: the i*0x7C addressing (sll 5 / subu / sll 2), both swc1 $f0,0x10/0xC($v1) stores with mtc1 $zero,$f0 hoisted before the loop, swc1 %lo(D_8018D6C8)($at), sh %lo(D_8018D6D4)($at) and sh $a0,%lo(D_8018D736)($at) each via lui $at + addu $at,$at,$v0, the sltiu <0x40 back edge, and the final block as one base register $v1 = &D_8018D738 with immediate stores 0x0/0x2/0x1E84/0x1E86 (reached through s16* e[] indexing, not four separate symbol stores).\n\nRemaining differences: (1) block scheduling \u2014 target emits addiu $v0,$zero,0x40 / lui $at / sh D_80187BE0 first, then move $a0,$zero, lui+addiu $a1,D_8018D6C0, mtc1; candidates emit the D_80187BE0 store after the base-pointer setup and put the D_8018D736 store before the D_8018D6C8 store. Try assigning the base pointer after the global store and moving the h76 store to the end of the loop body. (2) second loop: target re-initialises a fresh counter with addiu $a0,$zero,1 and andi $v0,$a0,0xffff before the label; candidates reuse the first loop's register \u2014 try a distinct u16 counter for loop 2. (3) register allocation: target keeps base in $a1, counter in $a0; candidates land on $a0/$a2 or $a3. (4) final block: target uses ori $a0,$zero,0xffff once and reuses it for both -1 stores; candidate materialises two constants \u2014 try one shared s16 temp (e.g. s16 m1 = -1;) for both stores.\n\nTried and rejected: T1/Rec struct-per-record indexing (5695, worse), *(f32*)(off + (u32)base) offset-first casts (no change), and the global_scalar_type / signedness / declaration_order / byte_table_signedness / address_temporary local repair families (no improvement).",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794757994.9823139,
-  "score_before": 1200,
-  "score_after": 1200
  },
  {
   "function": "func_801E3640",
@@ -30960,14 +30904,6 @@
   "score_after": 75
  },
  {
-  "function": "func_8013E188",
-  "text": "Cannot get closer with the budget left. Best this session 6150 (0.0%), candidate revision f347b1d3a35b059a9f8d, far behind the saved 1200, so the saved best stands. Structure: D_80187BE0 = 0x40; loop i in 0..0x3F with off = i*0x7C writes 0.0f to base+off+0x10 and base+off+0xC (base = D_8018D6C0), 0.0f to D_8018D6C8+off, 0 (s16) to D_8018D6D4+off and i to D_8018D736+off; D_8018F5C2 = 0; D_80189DC2 = 0x3F; loop i in 1..0x3E sets D_8018D738+off = i-1 and D_8018D73A+off = i+1 (s16); then four fixed s16 writes at D_8018D738 offsets 0, 2, 0x1E84, 0x1E86. The target stores the 0.0f values with swc1 from $f0 (mtc1 $zero,$f0 loaded once), but a literal 0.0f folds to sw $zero. The float zero has to come from a float variable the compiler keeps in $f0. Untried: hoist f32 zero = 0.0f before the loop. This unit also contains func_8013E49C, which uses the same D_8018D738/73A tables.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794765844.807625,
-  "score_before": 1200,
-  "score_after": 1200
- },
- {
   "function": "func_801E2020",
   "text": "Blocked, not matched. Best 23256 (57.7%). The machine draft failed because the jr jump table (switch on D_8011F2F0[arg0].unk3E, cases 0/2/3/4/900) has no bytes in the imported data; the compile also reports unresolved .rodata+0x0 and +0x28. The C in the candidate is a hand-written attempt. Structure differs from the first instructions: the target saves 0x40-byte frame regs in a different order, loads D_801F1888 before the switch, and keeps port in $s0 with the index reloaded as sll $s1,$s0,1. Next: add the jump table to memory data (or report its address) so the switch lowers the same way, then retune the register/save order.",
   "by": "claude-haiku-5-5-21",
@@ -31502,14 +31438,6 @@
   "created_at": 1794766714.025142,
   "score_before": 400,
   "score_after": 400
- },
- {
-  "function": "func_8013E188",
-  "text": "New cleaner O1 direction: candidate 5b58f053c1b8c904ffa3 (or d03773c455585e8797d9 with identical endpoint inline helper) scores 715 under O1 vs 5385 O2. Chained assignment to floats is essential: D6C8=Pair(D6C0+off)->y=Pair(...)->z=0.0f gives target swc1 ordering, Pair has pad[12],float y,z and gives target shared base+offset for +12/+16. Literal independent assignments use sw zero and wrong symbols. Ends struct did not stop folding final stores into four symbol-address writes; inline set_ends also no effect. Remaining O1: offset/address register swap in first loop and second loop mask, endpoint base should be v1 with addiu D738 and stores offsets0,2,0x1e84,0x1e86. Current folds four relocations. Next try endpoint pointer from loop variable i-i or declare true external aggregate D738 instead of casting char array; judge normally. No exact compiler bundle yet.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794766714.1154509,
-  "score_before": 1200,
-  "score_after": 1200
  },
  {
   "function": "func_8014C0FC",
@@ -35255,5 +35183,109 @@
   "created_at": 1795712909.478273,
   "score_before": 640,
   "score_after": 640
+ },
+ {
+  "function": "func_8013E188",
+  "text": "Deep permuter: score 6165 \u2192 5570; 2 improvements; 25 candidates tested; 137 cached skips; 0 rejected; 7204s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935334",
+  "created_at": 1794357126.598088,
+  "score_before": 6165,
+  "score_after": 5570
+ },
+ {
+  "function": "func_8013E188",
+  "text": "Two loops over 64 elements of stride 0x7C (i*124 = ((i<<5)-i)<<2) plus a 62-element linked-list setup. Loop 1: zero f32 at +0x10, +0xC, and f32 at D_8018D6C8+off; s16 0 at D_8018D6D4+off; s16 i at D_8018D736+off. Loop 2 (i=1..0x3E): s16 i-1 at D_8018D738+off, s16 i+1 at D_8018D73A+off. Then D_8018F5C2=0, D_80189DC2=0x3F, and four fixed stores. Saved best 1200. Notes from my attempts: the target keeps 0.0f in $f0 (mtc1 $zero,$f0 once before loop 1) and stores it with swc1; my forms emitted sw $zero (int store) so write the zero as a float variable (f32 z = 0.0f) hoisted before the loop. The target also hoists &D_8018D6C0 into $a1 and computes the element address v1=off+$a1 for the +0x10/+0xC stores, while the other arrays use lui/addu $at,off. Best attempt in my runs: 5955 with separate arrays and p=D_8018D6C0+off. Next: a float zero local and the separate-array form.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794707617.0690198,
+  "score_before": 1200,
+  "score_after": 1200
+ },
+ {
+  "function": "func_8013E188",
+  "text": "Not matched. Target 61 insns. Findings: (1) first loop stores 0.0f as swc1 from $f0 (mtc1 $zero,$f0 once before the loop), so keep the constant in a f32 local `z = 0.0f` rather than writing literal 0.0f (literal gives sw $zero). (2) Target keeps the base D_8018D6C0 in $a1 and loop counter i in $a0 with `move $a0,$zero` as the first instruction; a `u8 *base` local set before the loop gives a lui/addiu pair in the wrong place (lui a2 before the loop) and i ends up in $a1. Best this session: 5850 (u8 *base + f32 z variant, i loop var); direct array-indexed variant with z gave 5960. Saved best 1200 (other source) remains better. Unresolved: second loop's constant -1 is materialised via `ori $a0,$zero,0xffff` before `sh`, and D_8018F5C2 / D_80189DC2 stores appear at the end in the target, not after the first loop as written. Try reordering the declarations so i is the first-declared register and base is computed inside the loop-init expression.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794721456.5892742,
+  "score_before": 1200,
+  "score_after": 1200
+ },
+ {
+  "function": "func_8013E188",
+  "text": "Saved best 1200 remains (1.2% region not reached in mine). My rewrite (one struct base D_8018D6C0 with stride 0x7C and fields at +8/+0xC/+0x10/+0x14/+0x76) scored 6025: wrong. The target treats D_8018D6C8, D_8018D6D4, D_8018D736, D_8018D738, D_8018D73A as separate globals indexed by i*4 / i*124 (the loop body shows `sll v0,v0,2; addu at,at,v0` for the stores to D_8018D6C8/D6D4/D736, and `sll v1,v0,5; subu; sll 2` (=i*124) for D738/D73A). Also floats: mtc1 $zero,$f0 once then swc1 $f0 to three addresses (0.0f shared). Next: write each global as its own array with the exact element stride the target uses (check the sll chain per store), declare the f32 zero once, and keep the first loop's ordering (swc1 0x10 and 0xC before D6C8).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794748517.887033,
+  "score_before": 1200,
+  "score_after": 1200
+ },
+ {
+  "function": "func_8013E188",
+  "text": "Not matched; releasing because two rewrites of the seeded candidate both scored worse than saved best 1200 (6510, then 6720) and the diff points at a structural mismatch I could not resolve. Keep saved best 1200, not the seeded candidate f12f21b42d253e4f2e80 (it has a stray __repair_addr local). Target is 61 insns. Observed target: loop 1 (i=0..0x3F, off = i*0x7C computed as ((i<<5)-i)<<2 with i in a0) keeps base D_8018D6C0 in a1 via lui/addiu and does f32 zero stores (mtc1 $zero,$f0; swc1) at base+off+0x10, base+off+0xC, and D_8018D6C8+off; the candidate instead emits sw $zero to D_8018D6D0/D_8018D6CC/D_8018D6C8 with separate lui per store, so the three f32 stores are being split across different symbols. Likely fix: express the three f32 stores as one struct-typed record pointer (base + off) with fields at 0x0, 0xC, 0x10 and a separate D_8018D6C8 record, so GCC can hoist the base. Loop 2 (i=1..0x3E) stores halfword i-1 to D_8018D738+off and i+1 to D_8018D73A+off, then D_8018D738+0 = 0xFFFF, +2 = 1, +0x1E84 = 0x3E, +0x1E86 = 0xFFFF. D_80187BE0 = 0x40, D_8018F5C2 = 0, D_80189DC2 = 0x3F are the globals. Next agent: start from the saved best, not a seed, and test the struct-record idea first.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794753887.243156,
+  "score_before": 1200,
+  "score_after": 1200
+ },
+ {
+  "function": "func_8013E188",
+  "text": "Not matched. Saved historical best 1200 (permuter) remains the stored best; my rechecked attempts scored 5850 (best of mine, revision c4d2d8f377e3abe0733a: base local = D_8018D6C0 before loop, f32 zero local, loop i u16 over 0x40 with off=i*0x7C, stores via base+off+0x10/+0xC, second loop i=1..0x3E writing (i-1,i+1) at D_8018D738/D_8018D73A, then the four fixed entries at 0, 2, 0x1E84, 0x1E86). Remaining diffs: target hoists the base address (lui/addiu of D_8018D6C0 into a1) and zero float (mtc1 $zero,$f0) before the loop with i in a0 and andi/sll/subu chain on a0; my compiles put these in different registers (a1/a2) and emit sw $zero/sh $a1 with separate lui $at for D_8018D736 each iteration. Also the final two stores use ori $a0,$zero,0xFFFF held in a register (sh $a0,0($v1)), which mine does not reproduce. Tried: direct D_8018D6C0+off (5955), pointer p=base+off (6510, sw $zero), zero local without base local (5960). Next: keep base and zero locals, write the last two stores with a shared u16 -1 temp, and compare loop variable as s32 vs u16.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794755093.3970292,
+  "score_before": 1200,
+  "score_after": 1200
+ },
+ {
+  "function": "func_8013E188",
+  "text": "Move-on budget exhausted (4 compiles without improvement; best this session 5375 at revision 405987c628a854b3aa07; saved_best rechecks at 6165 with current inputs). Restore 405987c628a854b3aa07 as the continuation base; do not start from 634af80abacc240116b9 (5695) or the __repair_addr saved_best source (6165).\n\nAlready matching at 5375: the i*0x7C addressing (sll 5 / subu / sll 2), both swc1 $f0,0x10/0xC($v1) stores with mtc1 $zero,$f0 hoisted before the loop, swc1 %lo(D_8018D6C8)($at), sh %lo(D_8018D6D4)($at) and sh $a0,%lo(D_8018D736)($at) each via lui $at + addu $at,$at,$v0, the sltiu <0x40 back edge, and the final block as one base register $v1 = &D_8018D738 with immediate stores 0x0/0x2/0x1E84/0x1E86 (reached through s16* e[] indexing, not four separate symbol stores).\n\nRemaining differences: (1) block scheduling \u2014 target emits addiu $v0,$zero,0x40 / lui $at / sh D_80187BE0 first, then move $a0,$zero, lui+addiu $a1,D_8018D6C0, mtc1; candidates emit the D_80187BE0 store after the base-pointer setup and put the D_8018D736 store before the D_8018D6C8 store. Try assigning the base pointer after the global store and moving the h76 store to the end of the loop body. (2) second loop: target re-initialises a fresh counter with addiu $a0,$zero,1 and andi $v0,$a0,0xffff before the label; candidates reuse the first loop's register \u2014 try a distinct u16 counter for loop 2. (3) register allocation: target keeps base in $a1, counter in $a0; candidates land on $a0/$a2 or $a3. (4) final block: target uses ori $a0,$zero,0xffff once and reuses it for both -1 stores; candidate materialises two constants \u2014 try one shared s16 temp (e.g. s16 m1 = -1;) for both stores.\n\nTried and rejected: T1/Rec struct-per-record indexing (5695, worse), *(f32*)(off + (u32)base) offset-first casts (no change), and the global_scalar_type / signedness / declaration_order / byte_table_signedness / address_temporary local repair families (no improvement).",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794757994.9823139,
+  "score_before": 1200,
+  "score_after": 1200
+ },
+ {
+  "function": "func_8013E188",
+  "text": "Cannot get closer with the budget left. Best this session 6150 (0.0%), candidate revision f347b1d3a35b059a9f8d, far behind the saved 1200, so the saved best stands. Structure: D_80187BE0 = 0x40; loop i in 0..0x3F with off = i*0x7C writes 0.0f to base+off+0x10 and base+off+0xC (base = D_8018D6C0), 0.0f to D_8018D6C8+off, 0 (s16) to D_8018D6D4+off and i to D_8018D736+off; D_8018F5C2 = 0; D_80189DC2 = 0x3F; loop i in 1..0x3E sets D_8018D738+off = i-1 and D_8018D73A+off = i+1 (s16); then four fixed s16 writes at D_8018D738 offsets 0, 2, 0x1E84, 0x1E86. The target stores the 0.0f values with swc1 from $f0 (mtc1 $zero,$f0 loaded once), but a literal 0.0f folds to sw $zero. The float zero has to come from a float variable the compiler keeps in $f0. Untried: hoist f32 zero = 0.0f before the loop. This unit also contains func_8013E49C, which uses the same D_8018D738/73A tables.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794765844.807625,
+  "score_before": 1200,
+  "score_after": 1200
+ },
+ {
+  "function": "func_8013E188",
+  "text": "New cleaner O1 direction: candidate 5b58f053c1b8c904ffa3 (or d03773c455585e8797d9 with identical endpoint inline helper) scores 715 under O1 vs 5385 O2. Chained assignment to floats is essential: D6C8=Pair(D6C0+off)->y=Pair(...)->z=0.0f gives target swc1 ordering, Pair has pad[12],float y,z and gives target shared base+offset for +12/+16. Literal independent assignments use sw zero and wrong symbols. Ends struct did not stop folding final stores into four symbol-address writes; inline set_ends also no effect. Remaining O1: offset/address register swap in first loop and second loop mask, endpoint base should be v1 with addiu D738 and stores offsets0,2,0x1e84,0x1e86. Current folds four relocations. Next try endpoint pointer from loop variable i-i or declare true external aggregate D738 instead of casting char array; judge normally. No exact compiler bundle yet.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794766714.1154509,
+  "score_before": 1200,
+  "score_after": 1200
+ },
+ {
+  "function": "func_8013E188",
+  "text": "haiku-pr19: clean rewrite (zero the table block with one f32 zero local, the base pointer set before it, the counter zeroed before the first loop, u16 stores of 0xFFFF) scores 60 at -O1 (only register rows left, 12) and 6365 at -O2; the saved -O2 best 955 is not beaten, so nothing submitted. Not matched. Notes: the float stores need a float local zero (mtc1 $zero,$f0 once) or cc folds them to integer zeros; the tail stores 0xFFFF as u16.",
+  "by": "manual-c91bfeceda8d49c6",
+  "created_at": 1795713728.1435761,
+  "score_before": 955,
+  "score_after": 955
+ },
+ {
+  "function": "func_8013E188",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Clean rewrite 60 at -O1, 6365 at -O2; register rows left.",
+  "by": "manual-c91bfeceda8d49c6",
+  "created_at": 1795713728.607463,
+  "score_before": 955,
+  "score_after": 955
+ },
+ {
+  "function": "func_8013E188",
+  "text": "haiku-pr23 (-G0 -mips3 -mgp32 -mfp32 -O1, not the project -O2): 60 is the best of 24 statement orders of the init (D_80187BE0=0x40; i=0; base=D_8018D6C0 as u8*; zero=0.0f as f32) x 24 declaration orders x 120 orders of the loop-one stores. The statement order that gives 60 is written in the grid as init ABCD, then loop 1 (u16 i, off=i*0x7C, f32 zero at base+off+0x10, +0xC and D_8018D6C8+off, s16 0 at D_8018D6D4+off, s16 i at D_8018D736+off), D_8018F5C2=0, D_80189DC2=0x3F, loop 2 (i=1..0x3E, s16 i-1 at D_8018D738+off, i+1 at D_8018D73A+off), then u16 0xFFFF at D738+0, s16 1 at +2, s16 0x3E at +0x1E84, u16 0xFFFF at +0x1E86. Left at 60: the target keeps i in $a0 and base in $a1 (ours: i in $a1, base in $a2) and its D_80187BE0 store leads the block. Worse: a pointer tail for the four endpoint stores (1455), s32 counter (1650), i=0 before base only (300), endpoints with -1 (not better). Not matched.",
+  "by": "manual-4c00de5953994cc3",
+  "created_at": 1795714149.526405,
+  "score_before": 955,
+  "score_after": 955
+ },
+ {
+  "function": "func_8013E188",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Tried the -O1 profile grid: best 60 (init, declaration and loop-one store orders; pointer tail, s32 counter worse). Register rows left: i and base swap registers. The note has the details; moving on.",
+  "by": "manual-4c00de5953994cc3",
+  "created_at": 1795714159.1367419,
+  "score_before": 955,
+  "score_after": 955
  }
 ]
