@@ -6096,14 +6096,6 @@
   "score_after": 1365
  },
  {
-  "function": "func_80148688",
-  "text": "Not matched. Best saved score 2830 (inherited); my four attempts scored 3830, 3055, 3000 and 3145, so none improved it. Logic is understood: a2 = &D_80189CBF, or &D_80189CB7 when (u8)arg1==0; a3 = a2+1. arg0&1 decrements *a2 (wrapping to *a3-1 when it is 0); arg0&2 increments *a2 or sets it to 0 when it equals *a3-1. D_80183BD3 = *a2, then D_80183BD3+1 (u16) = table[(u8)arg1*300 + 2*D_80183BD3 + 6] from D_8018D140, also stored as u16 at a2+5. Remaining diff is layout. The target selects CBF in the fallthrough and CB7 in the taken branch, computes a3 in a delay slot, and computes the a2+5 pointer before the arg0&1 test. It also reloads *a2 after the nonzero check. Swapping the arm order (the branch on (u8)arg1 != 0) made it worse (3145). Next step: check whether the a2+5 pointer must be formed before the arg0 tests, and look at the signedness family for the u8 decrements.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794706606.950774,
-  "score_before": 2830,
-  "score_after": 2830
- },
- {
   "function": "func_80149A80",
   "text": "Best 395 (91%): `extern u8 D_8011F2F0[]`, `i=(arg0&0xFFFF)*100; u8*p=D_8011F2F0+i; s32 k=D_8011F2FC[i]; if (*(u16*)(p+0x3E)==0) { s32 t=(k&0xFFFF)*36; *(f32*)(D_8022108C+t)=*(f32*)(p+0x18); ...0x1C->D_80221090, 0x20->D_80221094, 0x24->D_80221080, 0x28->D_80221084, 0x2C->D_80221088; *(u16*)(p+0x3E)=1; }`. Remaining: target loads k (lbu) and computes the lui/addu base BEFORE the flag lhu+bnez, and applies the andi 0xFFFF after the branch; ours puts the flag lhu first. Forcing that order via temps failed (965, 415 for variants that hoisted t before the if).",
   "by": "claude-haiku-5-5-22",
@@ -10192,14 +10184,6 @@
   "score_after": 3290
  },
  {
-  "function": "func_80148688",
-  "text": "Not matched. Saved best 2810 (permuter). My clean rewrite (p/lim pointers, default CB7 path) scored 2910; an if/else arm version scored 3150, so the default-first version is better. Confirmed facts: the store of the u16 result is `sh v0,0(a2+5)` and `sh v0,1(&D_80183BD3)`, so D_80183BD4 is written through a byte base; the table read is `lhu v0,6(v1)` with v1 = table + cur*2 + (arg1&0xFF)*0x12C and table = D_8018D140. Target arm order: a2 = D_80189CBF is set first and `bnez` on arg1&0xFF skips the D_80189CB7 arm, so CBF is the nonzero arm and CB7 is the zero arm. Remaining diff is the control-flow layout of the two `arg0&1` / `arg0&2` blocks and the a3=a2+1 placement (before the arg0 tests). Untried: write the lim pointer as `(u8*)p + 1` inside the arms, or compute `*lim - 1` once before the arg0&1 test.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794720712.783027,
-  "score_before": 2810,
-  "score_after": 2810
- },
- {
   "function": "func_8014A204",
   "text": "Best 480 (90.5%) at revision 0f8dce5c874c516240a3: `off0 = (arg0 & 0xFFFF) * 100; off1 = (arg1 & 0xFFFF) * 100;` (stride 100 bytes confirmed by the sll/addu chain), dx/dy/dz = *(f32*)(D_8011F30x + off0) - *(f32*)(D_8011F30x + off1) with char-array externs, `return sqrtf(dx*dx + dy*dy + dz*dz);`. Remaining diff is register/order only: the target saves $ra first (`sw $ra,0x10($sp)` at line 1) where ours saves it after the body, and the target's dx lands in $f6 with dz in $f0/$f2. Tried: sum as dx*dx+(dy*dy+dz*dz) (585); declaring dz first (480 again, different registers, not a match). Untried: a frame-forcing use of $ra to move the sw earlier, and per-component temporaries declared in a different order.",
   "by": "claude-haiku-5-5-23",
@@ -13152,14 +13136,6 @@
   "score_after": 0
  },
  {
-  "function": "func_80148688",
-  "text": "Target (204 bytes, gcc-2.7.2-kmc -O2) structure: pointer a2 selects D_80189CBF (if arg1&0xFF != 0) else D_80189CB7; a3=a2+1; `addiu $t0,$a2,5` is computed before the arg0&1 branch and used for the final sh at 0(t0). Final store to D_80183BD4 is `sh v0,1(a0)` with a0=&D_80183BD3, so the D_80183BD4 store is CSE'd off the BD3 base (write as *(u16*)((u8*)&D_80183BD3+1)). The lbu of D_80183BD3 after the store is real. Tried and all worse than saved best 2810: m2c-style (2910), explicit u16 *p5 after the pointer select (2855), idx local with inverted if (3110). Problem in each: gcc puts the pointer in a0 and moves arg0 into another register, whereas target keeps arg0 in a0 and the pointer in a2. Untried: take the pointer select as a ternary and read arg0 before it, or use separate selected pointers for the two branches. Saved best 2810 unchanged.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794729786.6256142,
-  "score_before": 2810,
-  "score_after": 2810
- },
- {
   "function": "func_8003E644",
   "text": "Not matched; best stays 2870 (rev c6a61de4370db9990a02 source, also reconfirmed 2870 at 22ccf6865e5ccc61f265). Key finding: target starts with `addu $s2,$ra,$zero` (no stack frame, no save of s2 or ra), saves the return address in $s2 and returns via `jr $s2` at the end (.L8003E6F8). Ours uses a normal frame (addiu sp,-0x18; sw ra). The body is otherwise clear: base=D_800DD360 indexed by arg0, r=*(Ring**)(base+arg0); if r && r->unk8 < r->unk10: idx=(r->unkC+cnt)%r->unk10 (signed div with break 7 / break 6 guards), r->unk14[idx] = *(s32*)(base+arg0+4), r->unk8=cnt+1; if (*r->unk0) { func_8003E884(r); func_8003E83C(D_800470D8); }. Unresolved: the ra-in-s2 prologue; not reachable by the usual frame. Possibly needs a different function boundary (check whether the leading `addu s2,ra` belongs to a caller stub) or not_c review.",
   "by": "claude-haiku-5-5-23",
@@ -13614,14 +13590,6 @@
   "created_at": 1794730780.3290062,
   "score_before": 2870,
   "score_after": 2870
- },
- {
-  "function": "func_80148688",
-  "text": "No match. Best this claim 2995 (41.2%, revision 742259259e5c34afeeda): p = D_80189CBF (or D_80189CB7 when (arg1&0xFF)==0), q = p+1, t = p+5 before the bit-0 block; bit 0: if *p != 0 then *p -= 1 else *p = *q - 1; bit 1: if *p == (u8)(*q-1) then *p = 0 else *p += 1; D_80183BD3 = *p; v = *(u16*)(D_8018D140 + (arg1&0xFF)*0x12C + D_80183BD3*2 + 6); *(u16*)t = v; D_80183BD4 = v. Remaining diff: target keeps p in $a2 and q in $a3 with the arg1 andi tested first; ours moves a0 into a register first. Tried: t computed early (2995, best), sel local (3250, worse), CB7/CBF else-form (no change). Untried: writing the arg1 test as `if (arg1 & 0xFF)` with CBF in the taken branch (to flip the branch sense), and swapping p/q roles. Saved best 2810 is from another source.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794730805.375019,
-  "score_before": 2810,
-  "score_after": 2810
  },
  {
   "function": "func_801270B0",
@@ -14792,14 +14760,6 @@
   "score_after": 5440
  },
  {
-  "function": "func_80148688",
-  "text": "Best 1450 (71.5%), revision 561217077154251c2b70. Control flow matches; the remaining diff is register allocation: target keeps arg0 in $a0 and the pointer in $a2, ours moves arg0 into $a2 and the pointer into $a0. Two register-steering experiments are not worth more compiles here: a plain pointer declared after the arg tests would only reorder declarations that gcc already ignores. Move on; revisit with the arg-test-first ordering if another agent has time.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794735288.901663,
-  "score_before": 1450,
-  "score_after": 1450
- },
- {
   "function": "func_801E2BFC",
   "text": "Best saved 5595 (21.1%), revision 800a0025110dd688744b (the pointer-based dst/src/b0..b4 version). Current working revision 3b744f4c8afd6a52b94e (direct (&SYM)[off] indexing) scored 9120 and should be discarded. Why it stalls: target keeps dst in a0 (addiu a0,a0,%lo(D_801F18E4)) and src in v1 (lui/addiu of D_801C5E9C) and reuses them for the four byte copies; GCC re-materializes lui $v0,%hi(D_801C5E9C) for every byte in both C forms. Loop: target hoists five dst bases (D_801F18F8..FC) into t2,t1,t0,a3,a2 and computes off=i*5 once per iteration as v1 (sll v1,a1,2; addu v1,v1,a1), then addu a0,v1,base per store; C versions instead get a loop-carried pointer (addiu a0,a0,5). Untried: loop counter tested as sltiu 0xC8 with off split from i. Zero-fill loop i=8..0x17 on D_801F18E0 already emits lui/addu/sb matching shape.",
   "by": "claude-haiku-5-5-24",
@@ -15150,14 +15110,6 @@
   "created_at": 1794736580.7003882,
   "score_before": 2586,
   "score_after": 2586
- },
- {
-  "function": "func_80148688",
-  "text": "Best this session 1390 (rev 15d0d51f38e8abb10cdb); inherited best 1450 (561217077154251c2b70). Target is 51 insns, ours 51 \u2014 shape is right; only register allocation and the D_80183BD3/D_8018D140 address forms differ.\n\nEstablished:\n- Target keeps p in $a2, q in $a3, arg0 in $a0, arg1 in $a1. Ours keeps p in $a0 and arg0 in $a2 (roles swapped), so every target `lbu/sb ($a2)` shows as `($a0)` and the `andi $v0,$a0,1|2` masks read $a2.\n- Target materialises D_80183BD3 once into $a0 (lui+addiu) then `sb $v0,($a0)` and `sh $v0,1($a0)`. Ours emits two $at-based absolute stores (`lui $at,%hi(D_80183BD3); sb $a0,%lo(...)($at)` and `lui $at,%hi(D_80183BD4); sh %lo(D_80183BD4)($at)`).\n- Target hoists `lui/addiu $a1,%hi(D_8018D140)` right after the D_80183BD3 store, before the sll chain; ours emits it after the chain into $v1.\n- Best (1390) source is the if/else assigning p AND q inside each arm:\n    if ((arg1 & 0xFF) == 0) { p = D_80189CB7; q = p + 1; } else { p = D_80189CBF; q = p + 1; }\n  It reproduces the target's `bnez $v0,.L` + delay-slot `addiu $a3,$a2,1`.\n- Tried, no better: ternary select (1665), declaration order q before p (1450), precomputed `sel = arg1 & 0xFF` (1450), `q = D_80189CB7 + 1` (1450), local `g = D_80183BD3` base with the ternary (1665).\n\nUntested next steps:\n1. From rev 15d0d51f38e8abb10cdb add a D_80183BD3 base pointer:\n     u8 *g;  ...  g = D_80183BD3; g[0] = *p; row = D_8018D140 + (arg1 & 0xFF) * 0x12C;\n     cell = (u16 *)(row + g[0] * 2); v = cell[3]; *p5 = v; *(u16 *)(g + 1) = v;\n2. To fix the a0/a2 swap, compute `t1 = arg0 & 1; t2 = arg0 & 2;` as locals before p is assigned so arg0 stays in $a0 and p falls to $a2.\n3. Hoist the table base: `u8 *tbl = D_8018D140;` declared with the others, then `row = tbl + (arg1 & 0xFF) * 0x12C;`.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794736586.408625,
-  "score_before": 1450,
-  "score_after": 1390
  },
  {
   "function": "func_80198858",
@@ -17222,14 +17174,6 @@
   "created_at": 1794741520.780086,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_80148688",
-  "text": "Best verified score 1390 (revision 15d0d51f38e8abb10cdb, source identical to the one that scores 1390). Move-on budget exhausted (3/3 without improvement).\n\nTarget is 51 insns; every attempt also produced 51 except the last (53).\n\nWhat is already right: the two-phase *p/*q logic, the `arg0 & 1` / `arg0 & 2` decrement/increment with beql, the 0x12C row stride computation (sll 2 / addu / sll 4 / subu / sll 2) and the final lhu 6 / sh / sh.\n\nRemaining differences, all in one cluster:\n1. Target starts `andi $v0,$a1,0xff` FIRST, then `lui/addiu $a2,%hi/%lo(D_80189CBF)`, `bnez $v0,.L801486A8`, `addiu $a3,$a2,1`, then the D_80189CB7 pair and `addiu $a3,$a2,1`. My candidate emits an extra `move $a2,$a0` / `move $a3,$a1` prologue and computes the D_80189CB7 address inside the branch. Writing `p = &D_80189CBF; q = p+1; if ((arg1&0xFF)==0) { p=&D_80189CB7; q=p+1; }` moved the loads before the branch but added a `move $a3,$a1` and grew to 53 insns (score 1530). The original almost certainly wrote the `arg1 & 0xFF` test once into a temp used by both the branch and the later stride, e.g. `if ((arg1 & 0xFF) != 0) { p = D_80189CBF; q = p+1; } else { p = D_80189CB7; q = p+1; }` with the andi hoisted \u2014 try keeping a single `u32 sel = arg1 & 0xFF;` temp and both address pairs computed unconditionally.\n2. Target keeps D_80183BD3's address in $a0 for the whole tail: `lui/addiu $a0,%hi/%lo(D_80183BD3)`, `lbu $v0,($a2)`, `sb $v0,($a0)`, later `lbu $v1,($a0)` (re-read after the store) and `sh $v0,1($a0)`. Declaring the symbol as a scalar `extern u8 D_80183BD3;` still produced `lui $at,%hi` + `sb %lo(...)($at)` (score 1390, no change). A `volatile u8 *g = &D_80183BD3;` kept it in a register but cost extra moves. Best bet: keep the array form and read through a plain `u8 *gp = D_80183BD3;` local, then `gp[0] = *p; ... v = *(u16*)(base + sel*0x12C + gp[0]*2 + 6); ... *(u16*)(gp+1) = v;` so the base pointer stays live.\n3. Ordering: target computes the D_8018D140 base (`lui/addiu $a1`) BEFORE the stride shifts; my candidate emits it after. Hoisting `base = &D_8018D140;` above the shift expression (already tried) did not move it; try assigning base before the `*g = *p` store.\n\nNo inline asm, no non-C evidence; this is ordinary C that should match with the right pointer/hoisting shape.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794741530.7865431,
-  "score_before": 1390,
-  "score_after": 1390
  },
  {
   "function": "func_8016608C",
@@ -26464,14 +26408,6 @@
   "score_after": 58449
  },
  {
-  "function": "func_80148688",
-  "text": "Not attempted: unit code_8014674C is -O1 throughout (several exact -O1 matches filed via suggest); retry once the user switches this unit's flags to -O1.\n\nUnit is -O1. try_compiler -O1 (explicit source; instruction-identical, regs only): best 245 = s32 args, if((arg1&0xFF)==0){p=CB7;q=p+1;}else{p=CBF;q=p+1;} p5=(u16*)(p+5); plain *p-1/*p+1 (no volatile); D_80183BD3[0]=*p; i=arg1&0xFF; row=D_8018D140; row+=i*0x12C; v=*(u16*)(row+D_80183BD3[0]*2+6); *p5=v; *(u16*)(D_80183BD3+1)=v. Remaining: gcc emits `move a3,a1` at entry and puts q in a1, D_80183BD3 in a1 (target: arg1 stays a1, q=a3, BD3=a0, base into a1). Writing row=(arg1&0xFF)*0x12C+D_8018D140 (no base-first) removes the move (455) but loads base after the multiply. Tried: decl orders, d pointer local, struct Row array (885), u16/u8 params (930), default-first if. Next: find a form that keeps base-first without the arg1 copy (e.g. u8* base local assigned right before use, or index via u16 array).",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794761672.878227,
-  "score_before": 1390,
-  "score_after": 1390
- },
- {
   "function": "func_8015657C",
   "text": "Not attempted to completion. 962 instructions, frame 0x90, saves s0-s7 and fs0-fs3. Prologue builds the 18-argument call to func_800DE41C: stack args at 0x10..0x40 (0x51, 0xFF, &D_8016D588, &func_8013AE60, 0, float consts 0x44AE8000 / 0x42680000 / 0xC4958000 / 1.0f loaded via lui/ori/mtc1 into fv0/fs2/fs1/fs0), then a0-a2 zero/zero/2. The existing stub only covers this first call; the body continues for ~900 more instructions with calls to func_80152720, func_80155F30/7C/A0, func_8015601C, func_80156180, func_801561FC, func_80156338 (all declared extern in the candidate). Needs: the rest of the body read via get_assembly paging (start=52 onward), a check that the stack-arg ordering matches, and callee signatures. Best score 94207 is only the first call. Too large for the move-on budget without splitting; a split_function or boundary review could make the pieces tractable.",
   "by": "claude-haiku-5-5-23",
@@ -28464,14 +28400,6 @@
   "score_after": 5830
  },
  {
-  "function": "func_80148688",
-  "text": "Rechecked1390. Default p=D_80189CBF,q=p+1 before if(arg1==0) scored1450 O2, revision561217077154251c2b70. Six local repair families no improvement. O1 much closer: historical baseline445; default selection505 trialbce091118ad98483e6d4; volatile reload removal unchanged O1. O1 default source differs only9 register, initial andi ordering, base D_8018D140 loaded too late. row=base;row+=idx worsens635; arg1&=255;row=base;row+=arg1*300 gives450. No exact profile, not suggested. Target resembles O1, needs original C staging for base register a1 and computed offset v0, index v1.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794764953.111592,
-  "score_before": 1390,
-  "score_after": 1390
- },
- {
   "function": "func_80149220",
   "text": "Not matched. Best of mine: 5582 (51.8%, revision 455836e43b6fb9d3341d); saved historical best 3253 is better. Adding an s7 (0xFFFF) local made it 6332, so the 455836 version is the base. Why I'm stopping here: the target keeps arg1 in fp and arg2 in s6 across the calls, saves 10 registers in a 0x40 frame, and the draft's save set (no s7, no fp) is wrong at the root. Fixing that means choosing a variable set that the compiler allocates to these exact registers, which the two variants did not do. Full control-flow decode is in the notes of the previous release (structure is: s4 default 0x2FFF/0x4FFF; the arg0==8 block with a do-while over D_8018D140 + 0x12C*arg3; the `!(s1&0xFF)` s2=7 rule; the `v<8` loop calling func_801496B0(arg3&0xFF, s2&0xFF, arg2&0xFF) with s2=(s2+1)&7; then ((u16*)&D_8018A288)[v1] or D_8018A288 when arg1&0xFF==0). Next agent: start from 455836 and try declaring arg1/arg2 as u8 locals (fp, s6) so the saves follow the target.",
   "by": "claude-haiku-5-5-20",
@@ -29272,14 +29200,6 @@
   "score_after": 4100
  },
  {
-  "function": "func_80148688",
-  "text": "Recreated prior O1 best245 with explicit source (plain *p loads, i=arg1&255; row=base;row+=i*300). Normal O2 2265, don't retain as new best. New O1 tail arg1 overwrite255; explicit d base pointer350; i*=300 before base660. All retain extra move a3,a1 and swapped q/base regs; no exact profile. Prior O2 saved1390 best preserved. Needs O1 original lifetime/ABI staging.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794766131.9133801,
-  "score_before": 1390,
-  "score_after": 1390
- },
- {
   "function": "nuContPakN64ToJis",
   "text": "Best 1990 (78.3%), not matched; best revision 81e18192e8b0088b9adf. Path: draft 4570 \u2192 2440 \u2192 'u8 *dst2 = arg1;' + 'dst2++' after the declarations (2245) \u2192 index-based DB1 loop (off/n, no kp pointer) (1990). Tried and worse: '*dst = D_80046DB0[n * 2]' (2550); using arg1 itself as the advancing pointer with dst as the store pointer (2185). Target: 'move t1,a1' is the first instruction (store pointer = copy of arg1), then 'addiu a1,a1,1' happens later, and the if-chain tail is one shared join at +0x14c; ours has the join at +0x15c, so the tail/prologue layout is off by 16 bytes. Remaining rows are mostly register allocation and branch targets. Next: find a source form where the store pointer (t1) is initialised by copying arg1 before any computation (perhaps 'u8 *dst = arg1;' declared as the first statement before 'src'), and test the loop tail as 'dst++; src++; dst2++;' in that order.",
   "by": "claude-haiku-5-5-24",
@@ -29944,14 +29864,6 @@
   "score_after": 2963
  },
  {
-  "function": "func_80148688",
-  "text": "Tested new O1 typed row forms from plain-load candidate984c3cfa19e3f49222d1 (normalO2 2170). u16 cell base followed by +=i*150 matches historical best245 triald71c67ba612a954fca9f; pointer-to-array300 stride445; indexed2d load930; arithmetic (i*75)<<2 gives445. No closer than prior245. Six current-profile local repairs unchanged2170 or worse. Profile remains O2 though correct load duplication/base form resembles O1; retain historical1390 and O1 trial as leads, no exact source.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794767446.224463,
-  "score_before": 1390,
-  "score_after": 1390
- },
- {
   "function": "func_802306F0",
   "text": "Not matched. Best 9041 (42.0%) at revision 21bc1c2d1393e9f330e1, a rough first draft. Main suspect: the data base. The target addresses 0x800DA260 directly (diff rows 102/103) while ours reaches 0x800DA3D8, so D_800DA26A is probably the wrong symbol. Its stride 0x178 with offsets 0x1B, 0x16E suggests one struct array based at D_800DA260 (per-entry 0x178 bytes; the u16 at +0x16E is the entry's list index). Redeclare as one base array and reference fields by offset. Also the draft's stack frame is one slot too large (ours sw ra at 0x34, target at 0x30), and the 14-byte sp10 array is probably 16 bytes or two arrays. Not tested. Machine draft had pointer-type warnings for D_800DA260 (u16 vs array); fix those first.",
   "by": "claude-haiku-5-5-20",
@@ -30510,14 +30422,6 @@
   "created_at": 1794769292.520361,
   "score_before": 2300,
   "score_after": 2300
- },
- {
-  "function": "func_80148688",
-  "text": "Cannot compile: compile_and_diff/suggest fail with project error \"Add func_80192670 to the function layout in progress/decompdecomp.json\". EXACT MATCH at KMC GCC -O1 via try_compiler (verified earlier). Source: params (u8 arg0, u8 arg1); extern u16 D_8018D140[][150]; if(arg1==0){p=D_80189CB7;q=p+1;}else{p=D_80189CBF;q=p+1;} p5=(u16*)(p+5); if(arg0&1){if(*p!=0)*p=*p-1;else *p=*q-1;} if(arg0&2){if(*p!=*q-1)*p=*p+1;else *p=0;} D_80183BD3[0]=*p; *(u16*)(D_80183BD3+1) = *p5 = D_8018D140[arg1][D_80183BD3[0]+3]; (chain order matters). Unit -O2 blocks saving.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794779924.6010208,
-  "score_before": 1390,
-  "score_after": 1390
  },
  {
   "function": "func_801D663C",
@@ -36299,5 +36203,158 @@
   "score_before": 1820,
   "score_after": 1420,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:1093dcf788703ec4627d05126301793a345331fbd96951b86e24a1a7045e5ef1"
+ },
+ {
+  "function": "func_80148688",
+  "text": "Not matched. Best saved score 2830 (inherited); my four attempts scored 3830, 3055, 3000 and 3145, so none improved it. Logic is understood: a2 = &D_80189CBF, or &D_80189CB7 when (u8)arg1==0; a3 = a2+1. arg0&1 decrements *a2 (wrapping to *a3-1 when it is 0); arg0&2 increments *a2 or sets it to 0 when it equals *a3-1. D_80183BD3 = *a2, then D_80183BD3+1 (u16) = table[(u8)arg1*300 + 2*D_80183BD3 + 6] from D_8018D140, also stored as u16 at a2+5. Remaining diff is layout. The target selects CBF in the fallthrough and CB7 in the taken branch, computes a3 in a delay slot, and computes the a2+5 pointer before the arg0&1 test. It also reloads *a2 after the nonzero check. Swapping the arm order (the branch on (u8)arg1 != 0) made it worse (3145). Next step: check whether the a2+5 pointer must be formed before the arg0 tests, and look at the signedness family for the u8 decrements.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794706606.950774,
+  "score_before": 2830,
+  "score_after": 2830
+ },
+ {
+  "function": "func_80148688",
+  "text": "Not matched. Saved best 2810 (permuter). My clean rewrite (p/lim pointers, default CB7 path) scored 2910; an if/else arm version scored 3150, so the default-first version is better. Confirmed facts: the store of the u16 result is `sh v0,0(a2+5)` and `sh v0,1(&D_80183BD3)`, so D_80183BD4 is written through a byte base; the table read is `lhu v0,6(v1)` with v1 = table + cur*2 + (arg1&0xFF)*0x12C and table = D_8018D140. Target arm order: a2 = D_80189CBF is set first and `bnez` on arg1&0xFF skips the D_80189CB7 arm, so CBF is the nonzero arm and CB7 is the zero arm. Remaining diff is the control-flow layout of the two `arg0&1` / `arg0&2` blocks and the a3=a2+1 placement (before the arg0 tests). Untried: write the lim pointer as `(u8*)p + 1` inside the arms, or compute `*lim - 1` once before the arg0&1 test.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794720712.783027,
+  "score_before": 2810,
+  "score_after": 2810
+ },
+ {
+  "function": "func_80148688",
+  "text": "Target (204 bytes, gcc-2.7.2-kmc -O2) structure: pointer a2 selects D_80189CBF (if arg1&0xFF != 0) else D_80189CB7; a3=a2+1; `addiu $t0,$a2,5` is computed before the arg0&1 branch and used for the final sh at 0(t0). Final store to D_80183BD4 is `sh v0,1(a0)` with a0=&D_80183BD3, so the D_80183BD4 store is CSE'd off the BD3 base (write as *(u16*)((u8*)&D_80183BD3+1)). The lbu of D_80183BD3 after the store is real. Tried and all worse than saved best 2810: m2c-style (2910), explicit u16 *p5 after the pointer select (2855), idx local with inverted if (3110). Problem in each: gcc puts the pointer in a0 and moves arg0 into another register, whereas target keeps arg0 in a0 and the pointer in a2. Untried: take the pointer select as a ternary and read arg0 before it, or use separate selected pointers for the two branches. Saved best 2810 unchanged.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794729786.6256142,
+  "score_before": 2810,
+  "score_after": 2810
+ },
+ {
+  "function": "func_80148688",
+  "text": "No match. Best this claim 2995 (41.2%, revision 742259259e5c34afeeda): p = D_80189CBF (or D_80189CB7 when (arg1&0xFF)==0), q = p+1, t = p+5 before the bit-0 block; bit 0: if *p != 0 then *p -= 1 else *p = *q - 1; bit 1: if *p == (u8)(*q-1) then *p = 0 else *p += 1; D_80183BD3 = *p; v = *(u16*)(D_8018D140 + (arg1&0xFF)*0x12C + D_80183BD3*2 + 6); *(u16*)t = v; D_80183BD4 = v. Remaining diff: target keeps p in $a2 and q in $a3 with the arg1 andi tested first; ours moves a0 into a register first. Tried: t computed early (2995, best), sel local (3250, worse), CB7/CBF else-form (no change). Untried: writing the arg1 test as `if (arg1 & 0xFF)` with CBF in the taken branch (to flip the branch sense), and swapping p/q roles. Saved best 2810 is from another source.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794730805.375019,
+  "score_before": 2810,
+  "score_after": 2810
+ },
+ {
+  "function": "func_80148688",
+  "text": "Best 1450 (71.5%), revision 561217077154251c2b70. Control flow matches; the remaining diff is register allocation: target keeps arg0 in $a0 and the pointer in $a2, ours moves arg0 into $a2 and the pointer into $a0. Two register-steering experiments are not worth more compiles here: a plain pointer declared after the arg tests would only reorder declarations that gcc already ignores. Move on; revisit with the arg-test-first ordering if another agent has time.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794735288.901663,
+  "score_before": 1450,
+  "score_after": 1450
+ },
+ {
+  "function": "func_80148688",
+  "text": "Best this session 1390 (rev 15d0d51f38e8abb10cdb); inherited best 1450 (561217077154251c2b70). Target is 51 insns, ours 51 \u2014 shape is right; only register allocation and the D_80183BD3/D_8018D140 address forms differ.\n\nEstablished:\n- Target keeps p in $a2, q in $a3, arg0 in $a0, arg1 in $a1. Ours keeps p in $a0 and arg0 in $a2 (roles swapped), so every target `lbu/sb ($a2)` shows as `($a0)` and the `andi $v0,$a0,1|2` masks read $a2.\n- Target materialises D_80183BD3 once into $a0 (lui+addiu) then `sb $v0,($a0)` and `sh $v0,1($a0)`. Ours emits two $at-based absolute stores (`lui $at,%hi(D_80183BD3); sb $a0,%lo(...)($at)` and `lui $at,%hi(D_80183BD4); sh %lo(D_80183BD4)($at)`).\n- Target hoists `lui/addiu $a1,%hi(D_8018D140)` right after the D_80183BD3 store, before the sll chain; ours emits it after the chain into $v1.\n- Best (1390) source is the if/else assigning p AND q inside each arm:\n    if ((arg1 & 0xFF) == 0) { p = D_80189CB7; q = p + 1; } else { p = D_80189CBF; q = p + 1; }\n  It reproduces the target's `bnez $v0,.L` + delay-slot `addiu $a3,$a2,1`.\n- Tried, no better: ternary select (1665), declaration order q before p (1450), precomputed `sel = arg1 & 0xFF` (1450), `q = D_80189CB7 + 1` (1450), local `g = D_80183BD3` base with the ternary (1665).\n\nUntested next steps:\n1. From rev 15d0d51f38e8abb10cdb add a D_80183BD3 base pointer:\n     u8 *g;  ...  g = D_80183BD3; g[0] = *p; row = D_8018D140 + (arg1 & 0xFF) * 0x12C;\n     cell = (u16 *)(row + g[0] * 2); v = cell[3]; *p5 = v; *(u16 *)(g + 1) = v;\n2. To fix the a0/a2 swap, compute `t1 = arg0 & 1; t2 = arg0 & 2;` as locals before p is assigned so arg0 stays in $a0 and p falls to $a2.\n3. Hoist the table base: `u8 *tbl = D_8018D140;` declared with the others, then `row = tbl + (arg1 & 0xFF) * 0x12C;`.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794736586.408625,
+  "score_before": 1450,
+  "score_after": 1390
+ },
+ {
+  "function": "func_80148688",
+  "text": "Best verified score 1390 (revision 15d0d51f38e8abb10cdb, source identical to the one that scores 1390). Move-on budget exhausted (3/3 without improvement).\n\nTarget is 51 insns; every attempt also produced 51 except the last (53).\n\nWhat is already right: the two-phase *p/*q logic, the `arg0 & 1` / `arg0 & 2` decrement/increment with beql, the 0x12C row stride computation (sll 2 / addu / sll 4 / subu / sll 2) and the final lhu 6 / sh / sh.\n\nRemaining differences, all in one cluster:\n1. Target starts `andi $v0,$a1,0xff` FIRST, then `lui/addiu $a2,%hi/%lo(D_80189CBF)`, `bnez $v0,.L801486A8`, `addiu $a3,$a2,1`, then the D_80189CB7 pair and `addiu $a3,$a2,1`. My candidate emits an extra `move $a2,$a0` / `move $a3,$a1` prologue and computes the D_80189CB7 address inside the branch. Writing `p = &D_80189CBF; q = p+1; if ((arg1&0xFF)==0) { p=&D_80189CB7; q=p+1; }` moved the loads before the branch but added a `move $a3,$a1` and grew to 53 insns (score 1530). The original almost certainly wrote the `arg1 & 0xFF` test once into a temp used by both the branch and the later stride, e.g. `if ((arg1 & 0xFF) != 0) { p = D_80189CBF; q = p+1; } else { p = D_80189CB7; q = p+1; }` with the andi hoisted \u2014 try keeping a single `u32 sel = arg1 & 0xFF;` temp and both address pairs computed unconditionally.\n2. Target keeps D_80183BD3's address in $a0 for the whole tail: `lui/addiu $a0,%hi/%lo(D_80183BD3)`, `lbu $v0,($a2)`, `sb $v0,($a0)`, later `lbu $v1,($a0)` (re-read after the store) and `sh $v0,1($a0)`. Declaring the symbol as a scalar `extern u8 D_80183BD3;` still produced `lui $at,%hi` + `sb %lo(...)($at)` (score 1390, no change). A `volatile u8 *g = &D_80183BD3;` kept it in a register but cost extra moves. Best bet: keep the array form and read through a plain `u8 *gp = D_80183BD3;` local, then `gp[0] = *p; ... v = *(u16*)(base + sel*0x12C + gp[0]*2 + 6); ... *(u16*)(gp+1) = v;` so the base pointer stays live.\n3. Ordering: target computes the D_8018D140 base (`lui/addiu $a1`) BEFORE the stride shifts; my candidate emits it after. Hoisting `base = &D_8018D140;` above the shift expression (already tried) did not move it; try assigning base before the `*g = *p` store.\n\nNo inline asm, no non-C evidence; this is ordinary C that should match with the right pointer/hoisting shape.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794741530.7865431,
+  "score_before": 1390,
+  "score_after": 1390
+ },
+ {
+  "function": "func_80148688",
+  "text": "Not attempted: unit code_8014674C is -O1 throughout (several exact -O1 matches filed via suggest); retry once the user switches this unit's flags to -O1.\n\nUnit is -O1. try_compiler -O1 (explicit source; instruction-identical, regs only): best 245 = s32 args, if((arg1&0xFF)==0){p=CB7;q=p+1;}else{p=CBF;q=p+1;} p5=(u16*)(p+5); plain *p-1/*p+1 (no volatile); D_80183BD3[0]=*p; i=arg1&0xFF; row=D_8018D140; row+=i*0x12C; v=*(u16*)(row+D_80183BD3[0]*2+6); *p5=v; *(u16*)(D_80183BD3+1)=v. Remaining: gcc emits `move a3,a1` at entry and puts q in a1, D_80183BD3 in a1 (target: arg1 stays a1, q=a3, BD3=a0, base into a1). Writing row=(arg1&0xFF)*0x12C+D_8018D140 (no base-first) removes the move (455) but loads base after the multiply. Tried: decl orders, d pointer local, struct Row array (885), u16/u8 params (930), default-first if. Next: find a form that keeps base-first without the arg1 copy (e.g. u8* base local assigned right before use, or index via u16 array).",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794761672.878227,
+  "score_before": 1390,
+  "score_after": 1390
+ },
+ {
+  "function": "func_80148688",
+  "text": "Rechecked1390. Default p=D_80189CBF,q=p+1 before if(arg1==0) scored1450 O2, revision561217077154251c2b70. Six local repair families no improvement. O1 much closer: historical baseline445; default selection505 trialbce091118ad98483e6d4; volatile reload removal unchanged O1. O1 default source differs only9 register, initial andi ordering, base D_8018D140 loaded too late. row=base;row+=idx worsens635; arg1&=255;row=base;row+=arg1*300 gives450. No exact profile, not suggested. Target resembles O1, needs original C staging for base register a1 and computed offset v0, index v1.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794764953.111592,
+  "score_before": 1390,
+  "score_after": 1390
+ },
+ {
+  "function": "func_80148688",
+  "text": "Recreated prior O1 best245 with explicit source (plain *p loads, i=arg1&255; row=base;row+=i*300). Normal O2 2265, don't retain as new best. New O1 tail arg1 overwrite255; explicit d base pointer350; i*=300 before base660. All retain extra move a3,a1 and swapped q/base regs; no exact profile. Prior O2 saved1390 best preserved. Needs O1 original lifetime/ABI staging.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794766131.9133801,
+  "score_before": 1390,
+  "score_after": 1390
+ },
+ {
+  "function": "func_80148688",
+  "text": "Tested new O1 typed row forms from plain-load candidate984c3cfa19e3f49222d1 (normalO2 2170). u16 cell base followed by +=i*150 matches historical best245 triald71c67ba612a954fca9f; pointer-to-array300 stride445; indexed2d load930; arithmetic (i*75)<<2 gives445. No closer than prior245. Six current-profile local repairs unchanged2170 or worse. Profile remains O2 though correct load duplication/base form resembles O1; retain historical1390 and O1 trial as leads, no exact source.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794767446.224463,
+  "score_before": 1390,
+  "score_after": 1390
+ },
+ {
+  "function": "func_80148688",
+  "text": "Cannot compile: compile_and_diff/suggest fail with project error \"Add func_80192670 to the function layout in progress/decompdecomp.json\". EXACT MATCH at KMC GCC -O1 via try_compiler (verified earlier). Source: params (u8 arg0, u8 arg1); extern u16 D_8018D140[][150]; if(arg1==0){p=D_80189CB7;q=p+1;}else{p=D_80189CBF;q=p+1;} p5=(u16*)(p+5); if(arg0&1){if(*p!=0)*p=*p-1;else *p=*q-1;} if(arg0&2){if(*p!=*q-1)*p=*p+1;else *p=0;} D_80183BD3[0]=*p; *(u16*)(D_80183BD3+1) = *p5 = D_8018D140[arg1][D_80183BD3[0]+3]; (chain order matters). Unit -O2 blocks saving.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794779924.6010208,
+  "score_before": 1390,
+  "score_after": 1390
+ },
+ {
+  "function": "func_80148688",
+  "text": "haiku-pr1 (Haiku 5.5): saved best 760 (m2c draft with a p || v test on an uninitialized v and two identical arms; vu8 reads). Residual: the target reads *p again through $a2 and the store to D_80183BD3[0] is done once before the q pointer is formed; the q pointer is formed after the stores in the target. Tried: q as D_8018D140 + offset (1380), dropping the do-while around the cell pointer (1040). Not solved.",
+  "by": "manual-a2e0c67556b34442",
+  "created_at": 1795708413.6737971,
+  "score_before": 760,
+  "score_after": 760
+ },
+ {
+  "function": "func_80148688",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Stuck at 760; see note.",
+  "by": "manual-a2e0c67556b34442",
+  "created_at": 1795708421.654649,
+  "score_before": 760,
+  "score_after": 760
+ },
+ {
+  "function": "func_80148688",
+  "text": "Two-counter update of D_80189CB7/CBF (a2 and a3 = a2+1, chosen by a1 & 0xFF), a0 bit 0 decrements, bit 1 increments with wrap to 0 when it equals a3-1, then D_80183BD3 = *a2 and a table lookup of D_8018D140 + 60*(a1&0xFF) + 2*val + 6 stored to a2+5 and D_80183BD3+1. Fresh C scores 3580 (default CBF first, which is the target layout; 4325 with the other order); saved best 760 not beaten. Moving on.",
+  "by": "manual-2b1373017f1c4849",
+  "created_at": 1795709370.748801,
+  "score_before": 3580,
+  "score_after": 3580,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:60aa1f719a2b66fd9242e068f8dce5161bf796ca9fedcc8c8d15386f9587f887"
+ },
+ {
+  "function": "func_80148688",
+  "text": "haiku-pr19: clean rewrites (7 judged, both profiles) scored 2960 at -O2 (best) and 1195 at -O1; none beat the saved 760. Target facts: the (arg1 & 0xFF) == 0 arm (CB7) is the fall-through, so write it first; q = p + 1 set in each arm; the two counters are updated with the new value stored once at the join (m2c shape, val = ...; *p = val;); the target reloads *p in each arm instead of reusing the test value. Remaining rows are register and order rows (regalloc 20).",
+  "by": "manual-c91bfeceda8d49c6",
+  "created_at": 1795713354.589673,
+  "score_before": 760,
+  "score_after": 760
+ },
+ {
+  "function": "func_80148688",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Clean rewrites stay far above the saved 760; released.",
+  "by": "manual-c91bfeceda8d49c6",
+  "created_at": 1795713356.777792,
+  "score_before": 760,
+  "score_after": 760
+ },
+ {
+  "function": "func_80148688",
+  "text": "Small-model attempt at func_80148688: 12 tries.\n  best 60 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 60 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1505 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2060 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2485 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 60 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial a1bdedda92ef5a6f478d (not applied).\nNot matched after 12 tries. Best 205 under gcc-2.7.2-kmc -O1 (own O2 ~2485). Matches the control flow, stores and the lhu/sh tail; remaining diff is regalloc: target keeps the andi result in v0 and puts p in a2/q in a3, ours puts p in a1/q in a2 because the index k stays live in a3. Tried: index-first (worse), index recomputed from arg1 (390), u8 k (585), inlined base (560), declaration reorders (no change).",
+  "by": "manual-e990afecd2c74661",
+  "created_at": 1795725489.910204,
+  "score_before": 760,
+  "score_after": 760
+ },
+ {
+  "function": "func_80148688",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80148688: 12 tries.\n  best 60 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 60 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1505 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2060 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2485 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 60 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial a1bdedda92ef5a6f478d (not applied).\nNot matched after 12 tries. Best 205 under gcc-2.7.2-kmc -O1 (own O2 ~2485). Matches the control flow, stores and the lhu/sh tail; remaining diff is regalloc: target keeps the andi result in v0 and puts p in a2/q in a3, ours puts p in a1/q in a2 because the index k stays live in a3. Tried: index-first (worse), index recomputed from arg1 (390), u8 k (585), inlined base (560), declaration reorders (no change).",
+  "by": "manual-e990afecd2c74661",
+  "created_at": 1795725494.583149,
+  "score_before": 760,
+  "score_after": 760
  }
 ]
