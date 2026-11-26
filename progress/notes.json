@@ -3320,14 +3320,6 @@
   "score_after": 1455
  },
  {
-  "function": "func_8022F0E0",
-  "text": "Deep permuter: score 6544 \u2192 6164; 3 improvements; 65 candidates tested; 43 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935842",
-  "created_at": 1794348553.824805,
-  "score_before": 6544,
-  "score_after": 6164
- },
- {
   "function": "func_80214860",
   "text": "Deep permuter: score 8855 \u2192 8855; 0 improvements; 111 candidates tested; 0 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935795",
@@ -8296,14 +8288,6 @@
   "score_after": 265
  },
  {
-  "function": "func_8022F0E0",
-  "text": "Best rechecked: revision 72343da7f52c9a86b242, score 6264 (53.2%): struct Elem {u16 a,b,c; u8 pad[94]} with D_8011F2F4[r].a/.b/.c |= 0x20 (r = func_800DE41C(...) & 0xFFFF). The historical 1200 does not reproduce (saved draft rechecks at 6544). Facts: D_8011F2F4 / D_8011F2F8 are accessed as u16 (lhu/ori/sh), not u8; elem stride is 100 bytes; +0 and +2 hit F2F4, +4 hits F2F8. Calls: func_800DE38C(); func_800DE2E0(); D_802330A0=2 (sh); func_8021F6A0(1); then 4 func_800DE41C calls with a0..a3=(0,0,3,0), stack 0x10..0x44 = (0, 0xFF, 0, 0, &func_80138B1C, 9 zeros); 2nd call (0,0,3,0,2,0xFF,0,0,&D_8021FAA4, zeros); 3rd (..4,0xFF,..,&D_80220824); 4th (0,0,3,0,0xC8,0,0,&func_8022F300,&func_8022F4B4, zeros); D_8006FB10=1. Remaining diff: gcc hoists the later callee address loads and zero stores before the first call, while the target loads each just before its use. Try one statement per call, with the address taken inline at each call site, and compare with the stack-store order (target stores 0x10..0x44 in order).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794710536.845333,
-  "score_before": 1200,
-  "score_after": 1200
- },
- {
   "function": "func_80211C7C",
   "text": "Best 3060 (77.5%), revision 92955fdfe02ecc8e6d8c (the pointer `u8 *p = &D_8021F264;` version). Remaining diff: the target computes `-(v0<4) & v0` as negu/and and loads D_8021B650-653 via lbu off the same base; ours emits move $a2,$zero/beqz. Rewrites tried with no change: `(temp_v0 & -(temp_v0 < 4)) * 4`, and `(temp_v0 < 4 ? temp_v0 : 0) * 4`. Untried: compile_family(signedness) on revision 92955fdfe02ecc8e6d8c, and reordering the four byte stores so the target's lbu/addu order appears.",
   "by": "claude-haiku-5-5-24",
@@ -12390,14 +12374,6 @@
   "created_at": 1794724908.6892102,
   "score_before": 444,
   "score_after": 444
- },
- {
-  "function": "func_8022F0E0",
-  "text": "Not matched. Saved best 1200 (from an earlier attempt, source not reproduced here). My two rewrites this claim scored 6264 (53.2%). Structure (verified from asm, same family as func_801AEAB0): func_800DE38C(); func_800DE2E0(); sh 2 to D_802330A0; func_8021F6A0(1); then four func_800DE41C calls with 18 args (4 regs + 14 stack words at 0x10..0x44): (0,0,3,0, 0,0xFF,0, NULL, &func_80138B1C) -> r=v0&0xFFFF; D_8011F2F4[r*100] |= 0x20 (lhu/ori/sh), D_8011F2F4[r*100+2] |= 0x20, D_8011F2F8[r*100] |= 0x20; then (0,0,3,0, 2,0xFF,0, NULL, &D_8021FAA4); (0,0,3,0, 4,0xFF,0, NULL, &D_80220824); (0,0,3,0, 0xC8,0,0, &func_8022F300, &func_8022F4B4) ; then sh 1 to D_8006FAF0+0x20. Important: func_80138B1C, func_8022F300, func_8022F4B4, D_8021FAA4 and D_80220824 are DATA (take their address with la/addiu), so declare them as extern u8 arrays, not functions. The failing part is scheduling: the target stores all 14 stack words and the address words before setting a0..a3 (the `addiu a0 ...` / `move a0,$zero` are in the delay/after the stack stores), and it keeps 0xFF in s0 across the first two calls (see `addiu $s0,$zero,0xFF` right after the first jal). Untried: write 0xFF through a local that is set before the first call (I did: no effect); reorder the stack stores by declaring the 14 stack values as a struct or local array so the compiler emits them in order. Restart from the saved best.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794724975.178692,
-  "score_before": 1200,
-  "score_after": 1200
  },
  {
   "function": "func_80211C7C",
@@ -17238,14 +17214,6 @@
   "created_at": 1794738955.807629,
   "score_before": null,
   "score_after": null
- },
- {
-  "function": "func_8022F0E0",
-  "text": "Not matched. Best now: rev 43521c7305f75d0867fd (6264 by the last recorded score, 53%; saved best 1200 is from a different source). 134 vs 134 insns, so this is ordering and register work, not missing code. Found: D_8011F2F4 is a u16 array (target uses lhu/sh at +0, +2 and the OR on the third halfword at D_8011F2F4+4 with temp_v1 index), so write those as `*(u16 *)(D_8011F2F4 + off) |= 0x20` and not lbu/sb. Remaining diff: the two stack-arg blocks for func_800DE41C (sw $zero,0x1c..0x30 and sw $v0,0x20) are reordered against the target and the lhu/sh pairs are interleaved differently. Next: write the func_800DE41C argument stores in the target's order (a0..a3 moves, then the stack words) and check whether D_8011F2F8 is the same halfword base as D_8011F2F4+4.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794738972.352702,
-  "score_before": 1200,
-  "score_after": 1200
  },
  {
   "function": "func_80139F14",
@@ -22712,14 +22680,6 @@
   "score_after": 885
  },
  {
-  "function": "func_8022F0E0",
-  "text": "Not matched. Saved best 1200 is still the best; the m2c draft scores 6544. Confirmed: the D_8011F2F4/F2F8 updates are halfword (lhu/sh), so the byte-typed draft was wrong; `*(u16 *)(D_8011F2F4 + temp) |= 0x20` fixes width and scores 6264. Remaining: (1) the 18-argument calls to func_800DE41C are emitted with stack stores and register moves in a different order (target places a0-a3 zeros first, then sw of 0x1c..0x30); the arg list and possibly a varargs-style prototype need working out, and the target's func_80138B1C address-of is loaded after the a0-a3 setup. (2) The target reuses one loaded halfword across the D_8011F2F4 and D_8011F2F6 updates; my code loads D_8011F2F6/F8 separately, so the target likely computes the three slots from one base with +2 folded. Next: fix the call prototype first, then the base-pointer sharing.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794754028.344498,
-  "score_before": 1200,
-  "score_after": 1200
- },
- {
   "function": "func_800E067C",
   "text": "Not matched. Best source (revision efb546e11bc1a1760a54, goto loop_1 form, lim = D_80233EC0 loaded before loop) scores 8815 (37.9%); saved best 4605 is a different source. Structure is right: loop over 100-byte records from func_800E1850; if D_8011F2F1[off]==2: p=*(void**)(D_8011F340+off), q=p->4 (no null check on p), if q && (r=q->4) then s=r->4 and three f32 stores D_8011F334/338/33C = (f32)((f64)(s->40-s->50)*D_800E1E70 + (f64)s->50 + (f64)D_8011F308/30C/310[off]) with 42/52 and 44/54; else copies. Then cur=*(u16*)(D_8011F300+(cur&0xFFFF)*100); if cur!=0xFFFF && cur>=lim goto loop_1. Remaining diff: target hoists the f64 constant load (ldc1 D_800E1E70), the 0xFFFF constant (ori $a3) and the D_80233EC0 load before the loop and keeps them in registers; gcc reloads them inside. Index register order ($v0/$v1 swapped in the x*100 chain). Next: try declaring the f64 constant and limit as locals loaded before the loop (or as a register-friendly temp), and try writing the x*100 chain as separate statements to match the target's sll/addu order.",
   "by": "claude-haiku-5-5-22",
@@ -24134,14 +24094,6 @@
   "created_at": 1794755976.3631082,
   "score_before": 1065,
   "score_after": 1065
- },
- {
-  "function": "func_8022F0E0",
-  "text": "Current best 6264 (variant 3 of local repairs, revision 51ffd3d5dcae200ee7a4): the D_8011F2F4/F8 flag read-modify-writes typed as u16 (lhu/sh, which the target uses; char gives lbu/sb and scored 6544). Remaining diff: the call-argument and store ordering, not the flag types: target calls func_8021F6A0(1) right after `D_802330A0 = 2` as jal then addiu a0 in the delay slot, and the 18-arg func_800DE41C argument stores (sw $zero/sw $v0 to 0x1c..0x30($sp)) are scheduled before the a0..a3 moves in a different order; ours does the moves first. Saved best 1200 is from a different earlier source with the same C shape; its diff should be checked before further tuning. Tried: u16 flags (6264), do-while on func_800DE38C (no change). Next: restore saved best (get_candidate base=saved_best), apply the u16 flag types to it if it still has char flags, and compare. Released at the no-improvement budget.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794755976.84549,
-  "score_before": 1200,
-  "score_after": 1200
  },
  {
   "function": "func_801FC4E0",
@@ -30856,14 +30808,6 @@
   "score_after": 825
  },
  {
-  "function": "func_8022F0E0",
-  "text": "Not matched. Saved best is 1200 (different source, historical). Best this session is 6264 (revision 90f0dfff1924a06b7844): the D_8011F2F4 / D_8011F2F8 accesses must be u16 (lhu/sh, not lbu/sb), written as '*(u16 *)(D_8011F2F4 + temp) |= 0x20' etc. Remaining diff: the target computes the index as '(s32)(func_800DE41C(...) & 0xFFFF) * 0x64' and reuses one base pointer for the +2 access, while ours rendered the +2 access as a separate global load. Putting the three OR-stores into one u16 * pointer (variant 0f70cc99) scored 6644, worse. The calls: target loads func_80138B1C's address with a 'lui/addu' pair before the first call, and passes the 18-argument call's stack words in the order 0x1c,0x20,0x24...0x30; ours puts the constant zeros into the stack slots before the first call, which is not what the target does. Next: fix the first call's argument setup (func pointer then zeros) and the (s32)&0xFFFF index, then retry the three stores. Confirm the declared prototype for func_800DE41C (argument count is 18 in all calls here).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794765303.314827,
-  "score_before": 1200,
-  "score_after": 1200
- },
- {
   "function": "func_800E067C",
   "text": "Cannot get closer with the budget left: best this session is 5585 (60.6%, candidate 2a1500c10f1e42d8ca90), behind the saved 4605. Structure is right (do-while over idx with a D_8011F2F1==2 branch, a three-level pointer chain for the fields 0x40/0x42/0x44/0x50/0x52/0x54, and a next=D_8011F300[idx].f0 loop condition with next!=0xFFFF && next>=D_80233EC0). Remaining diffs are hoisting: the target loads D_800E1E70 (ldc1 into $f4), 0xFFFF (a3), 2 (t0) and D_80233EC0 (a2) before the loop, and file-scope locals for them had no effect. Signedness of idx (s16) is worse at 6795. Untried: a typed struct for the 100-byte record with the pointers at 0x40/0x44 and a record pointer local, which would make the pointer chain explicit instead of offset arithmetic.",
   "by": "claude-haiku-5-5-23",
@@ -32584,14 +32528,6 @@
   "score_after": 2770
  },
  {
-  "function": "func_8022F0E0",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794767550.150251,
-  "score_before": 1200,
-  "score_after": 1200
- },
- {
   "function": "func_8014A9F4",
   "text": "Released because its agent stopped (the app restarted); its attempts are kept.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -32654,14 +32590,6 @@
   "created_at": 1794767788.3459451,
   "score_before": 941,
   "score_after": 941
- },
- {
-  "function": "func_8022F0E0",
-  "text": "SOLVED but blocked by project flags: the current C matches byte-exactly (score 0) with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (verified via search_flags/try_compiler and filed with suggest()). Under the project's -O2 it scores 6264. Key C details: the three flag ORs must be u16 lvalues (*(u16*)(D_8011F2F4+temp_v1) |= 0x20 etc.) so they emit lhu/ori/sh, and temp_v1 = (ret & 0xFFFF) * 0x64. No further C work is needed; only the compiler profile.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794767796.3750029,
-  "score_before": 1200,
-  "score_after": 1200
  },
  {
   "function": "func_8014A080",
@@ -34916,5 +34844,77 @@
   "score_before": null,
   "score_after": null,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:aedef6dc36619239a6ae44a02d1e367230f0784b52638908175030ae202df8fb"
+ },
+ {
+  "function": "func_8022F0E0",
+  "text": "Deep permuter: score 6544 \u2192 6164; 3 improvements; 65 candidates tested; 43 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935842",
+  "created_at": 1794348553.824805,
+  "score_before": 6544,
+  "score_after": 6164
+ },
+ {
+  "function": "func_8022F0E0",
+  "text": "Best rechecked: revision 72343da7f52c9a86b242, score 6264 (53.2%): struct Elem {u16 a,b,c; u8 pad[94]} with D_8011F2F4[r].a/.b/.c |= 0x20 (r = func_800DE41C(...) & 0xFFFF). The historical 1200 does not reproduce (saved draft rechecks at 6544). Facts: D_8011F2F4 / D_8011F2F8 are accessed as u16 (lhu/ori/sh), not u8; elem stride is 100 bytes; +0 and +2 hit F2F4, +4 hits F2F8. Calls: func_800DE38C(); func_800DE2E0(); D_802330A0=2 (sh); func_8021F6A0(1); then 4 func_800DE41C calls with a0..a3=(0,0,3,0), stack 0x10..0x44 = (0, 0xFF, 0, 0, &func_80138B1C, 9 zeros); 2nd call (0,0,3,0,2,0xFF,0,0,&D_8021FAA4, zeros); 3rd (..4,0xFF,..,&D_80220824); 4th (0,0,3,0,0xC8,0,0,&func_8022F300,&func_8022F4B4, zeros); D_8006FB10=1. Remaining diff: gcc hoists the later callee address loads and zero stores before the first call, while the target loads each just before its use. Try one statement per call, with the address taken inline at each call site, and compare with the stack-store order (target stores 0x10..0x44 in order).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794710536.845333,
+  "score_before": 1200,
+  "score_after": 1200
+ },
+ {
+  "function": "func_8022F0E0",
+  "text": "Not matched. Saved best 1200 (from an earlier attempt, source not reproduced here). My two rewrites this claim scored 6264 (53.2%). Structure (verified from asm, same family as func_801AEAB0): func_800DE38C(); func_800DE2E0(); sh 2 to D_802330A0; func_8021F6A0(1); then four func_800DE41C calls with 18 args (4 regs + 14 stack words at 0x10..0x44): (0,0,3,0, 0,0xFF,0, NULL, &func_80138B1C) -> r=v0&0xFFFF; D_8011F2F4[r*100] |= 0x20 (lhu/ori/sh), D_8011F2F4[r*100+2] |= 0x20, D_8011F2F8[r*100] |= 0x20; then (0,0,3,0, 2,0xFF,0, NULL, &D_8021FAA4); (0,0,3,0, 4,0xFF,0, NULL, &D_80220824); (0,0,3,0, 0xC8,0,0, &func_8022F300, &func_8022F4B4) ; then sh 1 to D_8006FAF0+0x20. Important: func_80138B1C, func_8022F300, func_8022F4B4, D_8021FAA4 and D_80220824 are DATA (take their address with la/addiu), so declare them as extern u8 arrays, not functions. The failing part is scheduling: the target stores all 14 stack words and the address words before setting a0..a3 (the `addiu a0 ...` / `move a0,$zero` are in the delay/after the stack stores), and it keeps 0xFF in s0 across the first two calls (see `addiu $s0,$zero,0xFF` right after the first jal). Untried: write 0xFF through a local that is set before the first call (I did: no effect); reorder the stack stores by declaring the 14 stack values as a struct or local array so the compiler emits them in order. Restart from the saved best.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794724975.178692,
+  "score_before": 1200,
+  "score_after": 1200
+ },
+ {
+  "function": "func_8022F0E0",
+  "text": "Not matched. Best now: rev 43521c7305f75d0867fd (6264 by the last recorded score, 53%; saved best 1200 is from a different source). 134 vs 134 insns, so this is ordering and register work, not missing code. Found: D_8011F2F4 is a u16 array (target uses lhu/sh at +0, +2 and the OR on the third halfword at D_8011F2F4+4 with temp_v1 index), so write those as `*(u16 *)(D_8011F2F4 + off) |= 0x20` and not lbu/sb. Remaining diff: the two stack-arg blocks for func_800DE41C (sw $zero,0x1c..0x30 and sw $v0,0x20) are reordered against the target and the lhu/sh pairs are interleaved differently. Next: write the func_800DE41C argument stores in the target's order (a0..a3 moves, then the stack words) and check whether D_8011F2F8 is the same halfword base as D_8011F2F4+4.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794738972.352702,
+  "score_before": 1200,
+  "score_after": 1200
+ },
+ {
+  "function": "func_8022F0E0",
+  "text": "Not matched. Saved best 1200 is still the best; the m2c draft scores 6544. Confirmed: the D_8011F2F4/F2F8 updates are halfword (lhu/sh), so the byte-typed draft was wrong; `*(u16 *)(D_8011F2F4 + temp) |= 0x20` fixes width and scores 6264. Remaining: (1) the 18-argument calls to func_800DE41C are emitted with stack stores and register moves in a different order (target places a0-a3 zeros first, then sw of 0x1c..0x30); the arg list and possibly a varargs-style prototype need working out, and the target's func_80138B1C address-of is loaded after the a0-a3 setup. (2) The target reuses one loaded halfword across the D_8011F2F4 and D_8011F2F6 updates; my code loads D_8011F2F6/F8 separately, so the target likely computes the three slots from one base with +2 folded. Next: fix the call prototype first, then the base-pointer sharing.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794754028.344498,
+  "score_before": 1200,
+  "score_after": 1200
+ },
+ {
+  "function": "func_8022F0E0",
+  "text": "Current best 6264 (variant 3 of local repairs, revision 51ffd3d5dcae200ee7a4): the D_8011F2F4/F8 flag read-modify-writes typed as u16 (lhu/sh, which the target uses; char gives lbu/sb and scored 6544). Remaining diff: the call-argument and store ordering, not the flag types: target calls func_8021F6A0(1) right after `D_802330A0 = 2` as jal then addiu a0 in the delay slot, and the 18-arg func_800DE41C argument stores (sw $zero/sw $v0 to 0x1c..0x30($sp)) are scheduled before the a0..a3 moves in a different order; ours does the moves first. Saved best 1200 is from a different earlier source with the same C shape; its diff should be checked before further tuning. Tried: u16 flags (6264), do-while on func_800DE38C (no change). Next: restore saved best (get_candidate base=saved_best), apply the u16 flag types to it if it still has char flags, and compare. Released at the no-improvement budget.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794755976.84549,
+  "score_before": 1200,
+  "score_after": 1200
+ },
+ {
+  "function": "func_8022F0E0",
+  "text": "Not matched. Saved best is 1200 (different source, historical). Best this session is 6264 (revision 90f0dfff1924a06b7844): the D_8011F2F4 / D_8011F2F8 accesses must be u16 (lhu/sh, not lbu/sb), written as '*(u16 *)(D_8011F2F4 + temp) |= 0x20' etc. Remaining diff: the target computes the index as '(s32)(func_800DE41C(...) & 0xFFFF) * 0x64' and reuses one base pointer for the +2 access, while ours rendered the +2 access as a separate global load. Putting the three OR-stores into one u16 * pointer (variant 0f70cc99) scored 6644, worse. The calls: target loads func_80138B1C's address with a 'lui/addu' pair before the first call, and passes the 18-argument call's stack words in the order 0x1c,0x20,0x24...0x30; ours puts the constant zeros into the stack slots before the first call, which is not what the target does. Next: fix the first call's argument setup (func pointer then zeros) and the (s32)&0xFFFF index, then retry the three stores. Confirm the declared prototype for func_800DE41C (argument count is 18 in all calls here).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794765303.314827,
+  "score_before": 1200,
+  "score_after": 1200
+ },
+ {
+  "function": "func_8022F0E0",
+  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794767550.150251,
+  "score_before": 1200,
+  "score_after": 1200
+ },
+ {
+  "function": "func_8022F0E0",
+  "text": "SOLVED but blocked by project flags: the current C matches byte-exactly (score 0) with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (verified via search_flags/try_compiler and filed with suggest()). Under the project's -O2 it scores 6264. Key C details: the three flag ORs must be u16 lvalues (*(u16*)(D_8011F2F4+temp_v1) |= 0x20 etc.) so they emit lhu/ori/sh, and temp_v1 = (ret & 0xFFFF) * 0x64. No further C work is needed; only the compiler profile.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794767796.3750029,
+  "score_before": 1200,
+  "score_after": 1200
  }
 ]
