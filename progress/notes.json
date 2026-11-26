@@ -7080,14 +7080,6 @@
   "score_after": 4091
  },
  {
-  "function": "func_800DF2AC",
-  "text": "No match; best 130 (98.6%, revision f946c39507d7863fd512). Same instruction count (95) and same ops; only register allocation and order of the float subtractions differ. Target: mtc1 a1->f24, mtc1 a2->f22, lwc1 f30 from 0x60($sp), f28 from 0x64, and `sub.s f2,f24,f30` at row 22 (i.e. arg1 - arg4 held in f24/f30). Swapping the two inline_fn arguments in func_801F9D8C(...) gave 135 (worse). Remaining: try a different variable split for arg1/arg4 (e.g. a local f32 copy of arg4 read after the first call) rather than statement reordering.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794709537.444195,
-  "score_before": 130,
-  "score_after": 130
- },
- {
   "function": "func_80215480",
   "text": "Best 2525 (69.5%): source `s32 i = arg0 & 0xFFFF; s32 t = i * 0x64; f32 v;` with `*(f32*)(D_8011F320+t) += *(f32*)(D_8011F308+t)`, same for F324/F30C, then `v = F320[t]`, `if (DE90 <= v || v <= DE98) *(u32*)(F320 + (arg0&0xFFFF)*0x64) = 0;`, `v = F324[...]` with index ((i*2+i)*8+i)*4, DEA0/DEA8 check zeroing F324+i*0x64. f64 v adds an unwanted addiu sp,-8 frame (use f32 v). Remaining diffs: target loads F308 into $f2 and F30C into $f2 (we use $f4); target computes lui $at once for the F320 store chain; second store uses swc1 $f0 to F324. Dead `t = i * 2;` line may be unnecessary; removing it is an untested next experiment. Claim lapsed mid-session; another agent may hold it now.",
   "by": "claude-haiku-5-5-24",
@@ -10792,14 +10784,6 @@
   "score_after": 848
  },
  {
-  "function": "func_800DF2AC",
-  "text": "Best now 70 (from 130) via try_local_repairs variant 3: arg0 declared u8 instead of s32 (`void func_800DF2AC(u8 arg0, f32 ...)`). Candidate revision f14722ac54e5c351b8a0 (source = revision f946c39507d7863fd512 with that one change). Remaining diff is float register allocation only (no instruction-set difference): target loads arg1..arg6 into f24/f22/f28/f30/f20/f26 in a different order than my C; e.g. `lwc1 $f30,0x60($sp)` and `sub.s $f2,$f24,$f30` where mine has `sub.s $f2,$f22,$f24`. Tried: local_width, signedness, narrowing, parameter_width repairs (variants 1,2,4,5,6 equal or worse). Untried ideas: declaring temp_fv1 as a separate local for each sub-expression (arg3-arg6, arg1-arg4 computed into named f32 locals before the if chain), and restructuring the four-way angle-sector if chain into a single computed temp to change float live ranges.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794724284.959908,
-  "score_before": 130,
-  "score_after": 70
- },
- {
   "function": "func_8013E49C",
   "text": "Not worked on by the claiming agent (claimed at the end of a session, released unstarted). The machine draft is wrong: it references undeclared D_8018F5C2 / D_80187BE0 / D_8018D738 / D_8018D73A and uses u16 comparisons that gcc flags as always-true. Its structure is a linked-list walk over 0x7C-byte records (next index u16 at +0 of the record, sentinel 0xFFFF) with a tail index D_80189DC2 and a count D_80187BE0. Start by declaring the globals with correct types from the target's loads, then match the two branches (head == 0xFFFF path vs. append path) separately.",
   "by": "claude-haiku-5-5-21",
@@ -14128,14 +14112,6 @@
   "score_after": 400
  },
  {
-  "function": "func_800DF2AC",
-  "text": "Not matched. Best in-session candidate 485 (94.8%), revision 3eec1d4850a0f400ebad: signature changed to `u8 arg0` (machine draft s32 gave 545). Remaining diffs: target keeps `move $s0,$a0` before the jal with `andi $s0,0xFF` in the delay slot; target uses `bnez $v0` on the `(s16)t >= 0x168` test where mine emits `beql`, with `move $a0,$v1` in the fallthrough; FP register allocation differs (a1->$f24, a2->$f22, a3->$f20; lwc1 0x60/0x64/0x68 into $f30/$f28/$f26). Not helpful: moving `var_a0 = temp` before the if, and subtracting in place (`temp_fv1_2 -= 0x168`), which the local pass reverted. Next: compile_family(signedness) on the 485 revision; restructure the four-way range chain so the (u32)(x&0xFFFF)<0x5A tests order as the target expects.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794736279.7037141,
-  "score_before": 70,
-  "score_after": 70
- },
- {
   "function": "func_8015248C",
   "text": "Best 2115 (72.8%), 78 target insns vs 75 mine. Structure: call func_8013AE60(arg0&0xFFFF) first; off=(u16)arg0*100; v=(f32)(F334[off] + D_801837C0) store back; a conditional fixup on D_801837C8; then F320[off] and F324[off] = (f32)(sinf(F334[off])*D_801837D0 + D_801837D8). Target keeps the raw arg0 in $s1 (move s1,a0 before andi s0,s1,0xffff), frame is 0x30 with ra,s1,s0 and f20/f22 saved, and the D_801837C8 test is c.le.d with bc1fl (not c.lt.d with bc1t). Tried: masked idx local with call first and the flipped compare: 3667 (worse, frame changed). Not tried: keep raw arg0 in a separate local used after the call; a double-precision local for v.",
   "by": "claude-haiku-5-5-21",
@@ -14206,14 +14182,6 @@
   "created_at": 1794736597.061104,
   "score_before": 2586,
   "score_after": 2586
- },
- {
-  "function": "func_800DF2AC",
-  "text": "Best 165 (98.2%), revision c55ccec36879bbbcb9b7 (the inline_fn/inline_fn2 version of the saved draft). Structure matches: *arg8 = (f32)(func_801F9D8C(arg3-arg6, arg1-arg4)&0xFFFF) first; if (arg0&0xFF): v=(s32)(ang+45.0f), a=(s16)v<0x168?v:v-0x168; four u16 range tests against 0x5A (arg3-arg6, arg1-arg4, arg6-arg3, arg4-arg1 in that order), then *arg7 = (f32)(func_801F9D8C(var, arg5-arg2)&0xFFFF). Remaining 23 rows are all float register allocation: target keeps arg4 in $f30 and arg5/arg6 in $f24/$f26 with mtc1 $a1 into $f24 and $a2 into $f22; ours uses $f22/$f24/$f28. Reordering declarations (temp_fv1 vs var_fv0) and int-type swaps did not change the score. Untried: write each subtraction as a separate f32 temporary before the calls so GCC assigns the stack loads differently, or compile_variants over declaration orders of arg-independent locals.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794736637.660778,
-  "score_before": 70,
-  "score_after": 70
  },
  {
   "function": "func_8014843C",
@@ -14398,14 +14366,6 @@
   "created_at": 1794737769.758232,
   "score_before": 3081,
   "score_after": 3081
- },
- {
-  "function": "func_800DF2AC",
-  "text": "Not matched. Best 60 (rechecked 60). The candidate is being edited by a concurrent repair runner: revision cb788e25795b916edd9f (u32 temp_fv1_2) was changed to 28b31dc653b0b8c26032 (`unsigned short temp_fv1_2`) between my compile_patch calls, and further same-function edits were refused. Re-check the current revision's score before relying on either. Remaining diffs: float register allocation (target mtc1 args go to $f24/$f20/$f30; mine $f20/$f22/$f28) and the tail ladder (target has `move $a0,$v1` and `addiu $a0,$v1,-0x168`, mine lacks it). Tried: a `s32 temp_fv1_2` rewrite with flattened control flow scored 955 (worse). Next: restore the 60 structure, then reorder the float arg conversions before touching the tail.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794737912.110602,
-  "score_before": 60,
-  "score_after": 60
  },
  {
   "function": "func_80231E30",
@@ -20432,14 +20392,6 @@
   "score_after": 10
  },
  {
-  "function": "func_800DF2AC",
-  "text": "Not matched. Best 485 (94.8%, 95 target insns vs 94), revision 7d375dfb2c0e9af502bc. Parameters: (u8 arg0, f32 arg1..arg3 in a1..a3, f32 arg4..arg6 on stack 0x10..0x18, f32 *arg7 at 0x1C, f32 *arg8 at 0x20). Logic: ang=func_801F9D8C((s32)(arg3-arg6),(s32)(arg1-arg4))&0xFFFF; *arg8=(f32)ang; if arg0&0xFF: a=(s32)(ang+45.0f); if (s16)a>=0x168 a-=0x168; sector on (u16)a: [0,0x5A) arg3-arg6, [0x5A,0xB4) arg1-arg4, [0xB4,0x10E) arg6-arg3, [0x10E,0x168) arg4-arg1, else return; then *arg7=(f32)(func_801F9D8C((s32)fv,(s32)(arg5-arg2))&0xFFFF). Remaining diff is only float register numbering: target keeps arg3=$f20, arg2=$f22, arg1=$f24, arg6=$f26, arg5=$f28, arg4=$f30; mine maps arg1->$f22, arg2->$f28, arg4->$f26, arg5->$f30, arg6->$f24. Also the target branches bnez/beqz on the sector test (mine beql). Tried (no change, all 485): inverting the s16 check, s16 '>' 0x167, u16 0x5AU literal, computing t before ang, and folding the second call into *arg7. Untried: changing which float is declared first, or using separate f32 locals for each stack argument copy.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794755091.5339541,
-  "score_before": 60,
-  "score_after": 60
- },
- {
   "function": "func_80029938",
   "text": "Rechecked score1 saved candidate is WRONG: osCreateMesgQueue receives sp+0x24, target sp+0x28. Three new equivalent valid address expressions (msgbuf-24, blk+24, &blk.flag16+6) all score468; GCC CSE keeps queue address in s0 across first call, adds s1 for type and grows frame. Do not accept score1 as semantic evidence. Need source construct preventing queue-address CSE with correct sp+0x28. Existing extensive trials documented same blocker; no new viable experiment this pass.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -25184,14 +25136,6 @@
   "score_after": 7086
  },
  {
-  "function": "func_800DF2AC",
-  "text": "Best stays 60 (saved_best rev 0043d061cd7a8e91eb74) after 7 compiles without improvement.\n\nWhat the target really is (95 insns, 380 bytes, gcc-2.7.2-kmc -O1): 9 args, arg0 in a0, arg1/2/3 in a1/a2/a3 (mtc1 f24/f22/f20), arg4/5/6 on stack 0x60/0x64/0x68 -> f30/f28/f26, arg7 -> s2, arg8 -> s1. temp_fv1 = (f32)(func_801F9D8C((s32)(arg3-arg6),(s32)(arg1-arg4)) & 0xFFFF); *arg8 = it; if (arg0 & 0xFF) { ... }. var_a0 = (s32)(temp_fv1+45.0f) (0x42340000 = 45.0f), if ((s16)var_a0 >= 0x168) var_a0 -= 0x168, then four 0x5A-wide windows on var_a0 (0, 0x5A, 0xB4, 0x10E) selecting var_fv0 = arg3-arg6 / arg1-arg4 / arg6-arg3 / arg4-arg1, and finally *arg7 = (f32)(func_801F9D8C((s32)var_fv0,(s32)(arg5-arg2)) & 0xFFFF) (swc1 to 0(s2)).\n\nWhat I tried: (1) batch of 4 variants replacing inline_fn(x,y)/(s32) with explicit (s32)(x-y) and hoisting the differences into locals - all 60, zero rows changed. (2) try_local_repairs signedness/narrowing/parameter_mask - 60/60/120. (3) compile_and_diff with a cleaned-up straight-line rewrite (phantoms removed, no do/while(0)) - 485: it lost the non-likely branch. Target has `slti $v0,$v0,0x168; bnez $v0,.L800DF36C; addu $a0,$v1,$zero; addiu $a0,$v1,-0x168`; the cleaned version gives `beql $v0,$zero,...` and coalesces var_a0 into v1. Conclusion: the permuter's `do/while(0)` wrapper and the trailing `if (temp_fv1_2)` phantom are load-bearing - they keep temp_fv1_2 live past the clamp so var_a0 stays a separate register (a0) and the branch stays non-likely. Do not delete them.\n\nRemaining 12 differing rows are all regalloc: (a) arg2 and arg4 swap float registers (target arg2=f22, arg4=f30; candidate arg2=f30, arg4=f22) - all sub.s operands follow from that; (b) at the final call site target does sub.s f0,f30,f24 / sub.s f2,f28,f22 / trunc.w.s f4,f0 / trunc.w.s f0,f2 while candidate uses f4/f0/f2/f2. Both look like local-alloc qty ordering, so try declaration order, extra f32 locals for arg2/arg4, or reordering which parameter appears first in the final call expression.\n\nNext experiment (validated anchor, untested) is queued on the saved_best revision.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794762056.2112582,
-  "score_before": 60,
-  "score_after": 60
- },
- {
   "function": "func_80215850",
   "text": "Best: revision c420363d87c166352d31, score 4269 (85.1%), 287 insns both sides, compiles. Remaining differences: (1) prologue saves ra/s2/s1/s0 at 0x54/0x50/0x4c/0x48 in target, while ours stores s0/s1/s2/ra in a different order (scheduling; try declaring s1/s2 differently or moving the s2 computation); (2) target writes the flag as sb to ($s2) directly, ours folds to 0x18($s1), so s2 is probably a separate live pointer in the target: try s2 = (u8 *)&D_80190C98 + 0x18 as the only use site of s2; (3) target has one beql (branch-likely) near instruction 51, which ours emits as beq; likely the `if (D_801C5EA2 == 2)` inside case 0x0 or a short-circuit check. Tried splitting the else-if on D_801C5EA2 into a separate if: worse (4879), do not repeat. Not yet tried: reordering case 0x0 check versus D_801C5EA2 test.",
   "by": "claude-haiku-5-5-21",
@@ -27334,14 +27278,6 @@
   "created_at": 1794766131.97238,
   "score_before": 2310,
   "score_after": 1990
- },
- {
-  "function": "func_800DF2AC",
-  "text": "Saved best 60 (same source as the local repair variants; only 12 register rows differ: mtc1 a1/a2/a3 and the lwc1 of arg4..arg6 land in different FP regs, target f24/f22/f20 and f30/f28/f26). A structurally closer variant scored 485 (94.8%): d1=arg3-arg6, d2=arg1-arg4 computed as locals first, then call func_801F9D8C((s32)d1,(s32)d2)&0xFFFF; a0 = (s32)(fa+45.0f), with 'if ((s16)t >= 0x168) a0 = t-0x168'; the chain of if/else-if on (u16)a0 with thresholds 0x5A, 0x5A+0x5A, 0xB4, 0x10E. Its remaining diff is a branch-form difference: target uses bnez v0 for the (s16) compare and a move in the delay slot, not beql. Next: keep the saved-best register layout, and try the local-d1/d2 form with 'if ((s16)t < 0x168) a0 = t' to get bnez + move, or try -O1 via search_flags.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794766235.500868,
-  "score_before": 60,
-  "score_after": 60
  },
  {
   "function": "func_801FA4B0",
@@ -38914,5 +38850,96 @@
   "created_at": 1795716333.993325,
   "score_before": 20,
   "score_after": 20
+ },
+ {
+  "function": "func_800DF2AC",
+  "text": "No match; best 130 (98.6%, revision f946c39507d7863fd512). Same instruction count (95) and same ops; only register allocation and order of the float subtractions differ. Target: mtc1 a1->f24, mtc1 a2->f22, lwc1 f30 from 0x60($sp), f28 from 0x64, and `sub.s f2,f24,f30` at row 22 (i.e. arg1 - arg4 held in f24/f30). Swapping the two inline_fn arguments in func_801F9D8C(...) gave 135 (worse). Remaining: try a different variable split for arg1/arg4 (e.g. a local f32 copy of arg4 read after the first call) rather than statement reordering.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794709537.444195,
+  "score_before": 130,
+  "score_after": 130
+ },
+ {
+  "function": "func_800DF2AC",
+  "text": "Best now 70 (from 130) via try_local_repairs variant 3: arg0 declared u8 instead of s32 (`void func_800DF2AC(u8 arg0, f32 ...)`). Candidate revision f14722ac54e5c351b8a0 (source = revision f946c39507d7863fd512 with that one change). Remaining diff is float register allocation only (no instruction-set difference): target loads arg1..arg6 into f24/f22/f28/f30/f20/f26 in a different order than my C; e.g. `lwc1 $f30,0x60($sp)` and `sub.s $f2,$f24,$f30` where mine has `sub.s $f2,$f22,$f24`. Tried: local_width, signedness, narrowing, parameter_width repairs (variants 1,2,4,5,6 equal or worse). Untried ideas: declaring temp_fv1 as a separate local for each sub-expression (arg3-arg6, arg1-arg4 computed into named f32 locals before the if chain), and restructuring the four-way angle-sector if chain into a single computed temp to change float live ranges.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794724284.959908,
+  "score_before": 130,
+  "score_after": 70
+ },
+ {
+  "function": "func_800DF2AC",
+  "text": "Not matched. Best in-session candidate 485 (94.8%), revision 3eec1d4850a0f400ebad: signature changed to `u8 arg0` (machine draft s32 gave 545). Remaining diffs: target keeps `move $s0,$a0` before the jal with `andi $s0,0xFF` in the delay slot; target uses `bnez $v0` on the `(s16)t >= 0x168` test where mine emits `beql`, with `move $a0,$v1` in the fallthrough; FP register allocation differs (a1->$f24, a2->$f22, a3->$f20; lwc1 0x60/0x64/0x68 into $f30/$f28/$f26). Not helpful: moving `var_a0 = temp` before the if, and subtracting in place (`temp_fv1_2 -= 0x168`), which the local pass reverted. Next: compile_family(signedness) on the 485 revision; restructure the four-way range chain so the (u32)(x&0xFFFF)<0x5A tests order as the target expects.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794736279.7037141,
+  "score_before": 70,
+  "score_after": 70
+ },
+ {
+  "function": "func_800DF2AC",
+  "text": "Best 165 (98.2%), revision c55ccec36879bbbcb9b7 (the inline_fn/inline_fn2 version of the saved draft). Structure matches: *arg8 = (f32)(func_801F9D8C(arg3-arg6, arg1-arg4)&0xFFFF) first; if (arg0&0xFF): v=(s32)(ang+45.0f), a=(s16)v<0x168?v:v-0x168; four u16 range tests against 0x5A (arg3-arg6, arg1-arg4, arg6-arg3, arg4-arg1 in that order), then *arg7 = (f32)(func_801F9D8C(var, arg5-arg2)&0xFFFF). Remaining 23 rows are all float register allocation: target keeps arg4 in $f30 and arg5/arg6 in $f24/$f26 with mtc1 $a1 into $f24 and $a2 into $f22; ours uses $f22/$f24/$f28. Reordering declarations (temp_fv1 vs var_fv0) and int-type swaps did not change the score. Untried: write each subtraction as a separate f32 temporary before the calls so GCC assigns the stack loads differently, or compile_variants over declaration orders of arg-independent locals.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794736637.660778,
+  "score_before": 70,
+  "score_after": 70
+ },
+ {
+  "function": "func_800DF2AC",
+  "text": "Not matched. Best 60 (rechecked 60). The candidate is being edited by a concurrent repair runner: revision cb788e25795b916edd9f (u32 temp_fv1_2) was changed to 28b31dc653b0b8c26032 (`unsigned short temp_fv1_2`) between my compile_patch calls, and further same-function edits were refused. Re-check the current revision's score before relying on either. Remaining diffs: float register allocation (target mtc1 args go to $f24/$f20/$f30; mine $f20/$f22/$f28) and the tail ladder (target has `move $a0,$v1` and `addiu $a0,$v1,-0x168`, mine lacks it). Tried: a `s32 temp_fv1_2` rewrite with flattened control flow scored 955 (worse). Next: restore the 60 structure, then reorder the float arg conversions before touching the tail.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794737912.110602,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_800DF2AC",
+  "text": "Not matched. Best 485 (94.8%, 95 target insns vs 94), revision 7d375dfb2c0e9af502bc. Parameters: (u8 arg0, f32 arg1..arg3 in a1..a3, f32 arg4..arg6 on stack 0x10..0x18, f32 *arg7 at 0x1C, f32 *arg8 at 0x20). Logic: ang=func_801F9D8C((s32)(arg3-arg6),(s32)(arg1-arg4))&0xFFFF; *arg8=(f32)ang; if arg0&0xFF: a=(s32)(ang+45.0f); if (s16)a>=0x168 a-=0x168; sector on (u16)a: [0,0x5A) arg3-arg6, [0x5A,0xB4) arg1-arg4, [0xB4,0x10E) arg6-arg3, [0x10E,0x168) arg4-arg1, else return; then *arg7=(f32)(func_801F9D8C((s32)fv,(s32)(arg5-arg2))&0xFFFF). Remaining diff is only float register numbering: target keeps arg3=$f20, arg2=$f22, arg1=$f24, arg6=$f26, arg5=$f28, arg4=$f30; mine maps arg1->$f22, arg2->$f28, arg4->$f26, arg5->$f30, arg6->$f24. Also the target branches bnez/beqz on the sector test (mine beql). Tried (no change, all 485): inverting the s16 check, s16 '>' 0x167, u16 0x5AU literal, computing t before ang, and folding the second call into *arg7. Untried: changing which float is declared first, or using separate f32 locals for each stack argument copy.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794755091.5339541,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_800DF2AC",
+  "text": "Best stays 60 (saved_best rev 0043d061cd7a8e91eb74) after 7 compiles without improvement.\n\nWhat the target really is (95 insns, 380 bytes, gcc-2.7.2-kmc -O1): 9 args, arg0 in a0, arg1/2/3 in a1/a2/a3 (mtc1 f24/f22/f20), arg4/5/6 on stack 0x60/0x64/0x68 -> f30/f28/f26, arg7 -> s2, arg8 -> s1. temp_fv1 = (f32)(func_801F9D8C((s32)(arg3-arg6),(s32)(arg1-arg4)) & 0xFFFF); *arg8 = it; if (arg0 & 0xFF) { ... }. var_a0 = (s32)(temp_fv1+45.0f) (0x42340000 = 45.0f), if ((s16)var_a0 >= 0x168) var_a0 -= 0x168, then four 0x5A-wide windows on var_a0 (0, 0x5A, 0xB4, 0x10E) selecting var_fv0 = arg3-arg6 / arg1-arg4 / arg6-arg3 / arg4-arg1, and finally *arg7 = (f32)(func_801F9D8C((s32)var_fv0,(s32)(arg5-arg2)) & 0xFFFF) (swc1 to 0(s2)).\n\nWhat I tried: (1) batch of 4 variants replacing inline_fn(x,y)/(s32) with explicit (s32)(x-y) and hoisting the differences into locals - all 60, zero rows changed. (2) try_local_repairs signedness/narrowing/parameter_mask - 60/60/120. (3) compile_and_diff with a cleaned-up straight-line rewrite (phantoms removed, no do/while(0)) - 485: it lost the non-likely branch. Target has `slti $v0,$v0,0x168; bnez $v0,.L800DF36C; addu $a0,$v1,$zero; addiu $a0,$v1,-0x168`; the cleaned version gives `beql $v0,$zero,...` and coalesces var_a0 into v1. Conclusion: the permuter's `do/while(0)` wrapper and the trailing `if (temp_fv1_2)` phantom are load-bearing - they keep temp_fv1_2 live past the clamp so var_a0 stays a separate register (a0) and the branch stays non-likely. Do not delete them.\n\nRemaining 12 differing rows are all regalloc: (a) arg2 and arg4 swap float registers (target arg2=f22, arg4=f30; candidate arg2=f30, arg4=f22) - all sub.s operands follow from that; (b) at the final call site target does sub.s f0,f30,f24 / sub.s f2,f28,f22 / trunc.w.s f4,f0 / trunc.w.s f0,f2 while candidate uses f4/f0/f2/f2. Both look like local-alloc qty ordering, so try declaration order, extra f32 locals for arg2/arg4, or reordering which parameter appears first in the final call expression.\n\nNext experiment (validated anchor, untested) is queued on the saved_best revision.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794762056.2112582,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_800DF2AC",
+  "text": "Saved best 60 (same source as the local repair variants; only 12 register rows differ: mtc1 a1/a2/a3 and the lwc1 of arg4..arg6 land in different FP regs, target f24/f22/f20 and f30/f28/f26). A structurally closer variant scored 485 (94.8%): d1=arg3-arg6, d2=arg1-arg4 computed as locals first, then call func_801F9D8C((s32)d1,(s32)d2)&0xFFFF; a0 = (s32)(fa+45.0f), with 'if ((s16)t >= 0x168) a0 = t-0x168'; the chain of if/else-if on (u16)a0 with thresholds 0x5A, 0x5A+0x5A, 0xB4, 0x10E. Its remaining diff is a branch-form difference: target uses bnez v0 for the (s16) compare and a move in the delay slot, not beql. Next: keep the saved-best register layout, and try the local-d1/d2 form with 'if ((s16)t < 0x168) a0 = t' to get bnez + move, or try -O1 via search_flags.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794766235.500868,
+  "score_before": 60,
+  "score_after": 60
+ },
+ {
+  "function": "func_800DF2AC",
+  "text": "Haiku haiku-pr7: saved best 60, 12 register rows, all float: the f22/f30 pair is swapped for the two float parameters and the sub.s temporaries. Profile trials (-mfp64 2605, -O1 60, -mips2 1345, -fno-strength-reduce 1645, -G8 -mips2 1695, -O3 1645): none better than -O2 -mfp32. Not matched; the saved C still has inline_fn and goto scaffolding to strip.",
+  "by": "manual-74526d26d6b14065",
+  "created_at": 1795709905.943159,
+  "score_before": 60,
+  "score_after": 60,
+  "handoff_inputs": "7d6ab19fd43b588fb9bd67b9d84d10cd2a9748f024bfaf8e453c8df33558880f:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:8a5bbd8cfc6ec93783ab49e7445747ff5ad93bee8d1ef76a37291ebbad8ab551"
+ },
+ {
+  "function": "func_800DF2AC",
+  "text": "Haiku pass (haiku-pr6): an angle picker: a diff of two floats, a call to func_801F9D8C with the masked result stored to *arg8, then, when arg0 is set, (s32)(value + 45) folded into [0, 0x168) and one of four 0x5A ranges choosing the diff for a second call whose result goes to *arg7. A clean rewrite from the assembly scores 405. The saved best (m2c form, the 0x5A ranges in do/goto) scores 60 at -O2 and -O1, and the last 12 rows are register allocation (arg2 and arg4 swapped between $f22 and $f30, and the second sub.s in $f2 versus $f0). Next: a float statement order that gives arg4 the higher float register.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795710400.90649,
+  "score_before": 60,
+  "score_after": 60,
+  "handoff_inputs": "7d6ab19fd43b588fb9bd67b9d84d10cd2a9748f024bfaf8e453c8df33558880f:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:8a5bbd8cfc6ec93783ab49e7445747ff5ad93bee8d1ef76a37291ebbad8ab551"
+ },
+ {
+  "function": "func_800DF2AC",
+  "text": "Saved best 60 is the starting point; 12 register rows remain (float arg registers). See note.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795710401.9254038,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "7d6ab19fd43b588fb9bd67b9d84d10cd2a9748f024bfaf8e453c8df33558880f:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:8a5bbd8cfc6ec93783ab49e7445747ff5ad93bee8d1ef76a37291ebbad8ab551"
  }
 ]
