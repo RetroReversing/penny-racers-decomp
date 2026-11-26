@@ -1,0 +1,1 @@
+s32 func_80205D48(f32, f32, u8); extern u8 D_8021B068, D_8021B084; extern s32 D_8021B308; void func_8020C994(void){ D_8021B308 = D_8021B068 ? 0x14 : func_80205D48(20.0f, 2.0f, D_8021B084); }
