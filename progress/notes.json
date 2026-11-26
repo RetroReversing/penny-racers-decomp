@@ -7152,14 +7152,6 @@
   "score_after": 2599
  },
  {
-  "function": "func_80028C68",
-  "text": "Best saved candidate scores 1150 (92.1%), structure right: switch on (s16)(arg0->unk0-0x2001), 8 cases, default returns 0, then osSendMesg(arg0->unk4,0,1); return 1. Target recomputes &D_800DE058 with lui/addiu right before each jal (case 0, both osPfsInitPak and osMotorInit); ours CSEs it into $s2 and reuses it. Casting the second call's address ((void*)&D_800DE058) had no effect. Remaining diffs: layout of case 0 (target: store s0->unkC=1 path then jump to shared tail .L80028E7C with sw v1,8(s0) in delay slots; the r==0xA branch returns to the 0xA/0xB handling), and case 2 (target uses lbu of arg0->unk18 compare with 1 after bnel). Next idea: write case 0 with explicit gotos/flattened ifs to match block order, and try splitting the address into a separate statement to avoid CSE across the two calls.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794709851.8428311,
-  "score_before": 1150,
-  "score_after": 1150
- },
- {
   "function": "func_8015A728",
   "text": "Switch on the u16 at D_8011F32E + idx*0x64 (cases 0,1,2). Case 1 and case 2 each test four s32 fields of D_801E99C0 / D_801E9994 at offsets 0,0x70,0xE0,0x150 for ==1; then walk a linked list starting at func_800E1850 via the u16 at D_8011F300 + cur*0x64 until 0xFFFF; case 1 sets 0x10 in D_8011F2F2[cur].f0 unless the byte at D_8011F2F0 + cur*0x64 is 0x63 (and cur != idx); case 2 clears 0x10. Then store the next state (2, 1, or 1 for case 0, which also zeros D_80187CF0). Candidate written as a clean switch scored 6120, worse than the saved 5820. The target loads the state into a0 before the switch, computes the address with lui/addiu of D_8011F32E once and reuses it, and uses beq against constants 1 and 2 in an order that differs from the C switch. Next: write the case 1 / case 2 bodies as the if chains in the target order (beq 1 first, then slti 2), keep the idx in a2 (move a2,a0) rather than a0. Not matched.",
   "by": "claude-haiku-5-5-20",
@@ -10768,14 +10760,6 @@
   "score_after": 1530
  },
  {
-  "function": "func_80028C68",
-  "text": "Not matched; best 1150 (92.1%), revision 0809838c1f85f1e5e006. The dispatch and all calls are right. The remaining difference is in case 0 only: the target materialises &D_800DE058 (lui a0 / addiu a0) fresh before each of its two uses (osPfsInitPak, then osMotorInit), and then does `move v1,v0` / `bnez v1` on the result. The candidate hoists the address into s2 (lui s2 / addiu s2) across the first call and moves it from s2 for the second. Also the branch targets differ by one block (beqz to 0x22c vs 0x214). Next: put the second osMotorInit call's &D_800DE058 in its own statement, or split case 0 so the second call sits behind the `r == 0xA` test in a separate block, to stop GCC CSEing the address into a callee-saved register.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794724732.8193028,
-  "score_before": 1150,
-  "score_after": 1150
- },
- {
   "function": "func_801984DC",
   "text": "Best this claim 3000 (64.2%) at revision b213ae598a5bc23cd037; historical saved best is 2925, not beaten. The m2c draft is a goto-based mess that does not compile; use this logic instead. Asm 0..90: gate `D_801C6BB9 < 0x17` (signed slti) and `D_801C6C10[(a*24 + D_801C7068)] == 0xFFFF` (u16, a=D_801C6BB9). Then if ((u8*)D_801C7AB0)[1] != 5 -> a1=1. Else if D_801C7062 == D_801C7068: byte1 of D_801C7062 == a+1 -> a1=(D_801C7469==2); == a-1 -> a1=(D_801C7469==1 || ==3); else a1=1. Else if D_801C7062 == D_801C7068\u00b11: D_801C7063 != a -> a1=1, else a1=(D_801C7469==0 || ==2). Else a1=1. Return a1 & 0xFF. Lessons: hoisting globals into locals at function top gives 7020 (target reads each global lazily); pointer local `s8 *p=&D_801C7062` gives 3135; a late `b = D_801C7068` local gives 3220. Remaining: target addresses D_801C7062 via `addiu $v1,D_801C7062` then `lb 0(v1)`/`lb 1(v1)` in one block and keeps D_801C7068 in $a2 across the branches. Untried: reproduce the first block as the target's exact order (load D_801C7062 byte0 first, compare with D_801C7068, then byte1 with a and a+1 / a-1).",
   "by": "claude-haiku-5-5-22",
@@ -14128,14 +14112,6 @@
   "score_after": 2450
  },
  {
-  "function": "func_80028C68",
-  "text": "func_80028C68 (libultra pfs dispatcher, switch on (s16)(arg0->unk0-0x2001), 8 cases): best 1150 (92.1%), revision d745a373c7b9a9838961, first-draft shape from the machine suggestion with SubPfs/ArgPfs structs and the libultra prototypes. Remaining diffs: target materializes &D_800DE058 with lui a0 + addiu a0 at each use (the second in case 0's osMotorInit call is a fresh lui/addiu), while ours hoists the address into s2 and moves it; the osPfsInitPak return is kept in v1 in the target (move $v1,$v0 + bnez $v1) while ours uses a0. Branch layout of the r==0 / r==0xA chain also differs (beqz 0x22c vs 0x214). Next: try passing the address directly as an expression in each call (no shared local), and try an if/else-if rewrite of case 0 with `r = osPfsInitPak(...)` assigned into s0->unk8 directly.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794737181.955141,
-  "score_before": 1150,
-  "score_after": 1150
- },
- {
   "function": "func_801B4B6C",
   "text": "Best candidate revision bbd8778a020d486b99e0, score 1125 (88.6%). D_8011F32E must be declared as u8 array and read as *(u16 *)(D_8011F32E + idx*0x64); a u16 extern scales the index wrongly (sll 3 vs sll 2). Remaining diffs: D_8011F2F0 loads in block_8 use lui/addu/%lo form, andi $v0 vs $v1 in the taken path, and the D_8011F2FC store form (sb $v1,0xc($v0) vs sb $v0,%lo($at)). Direct array indexing for both tables scored 1210 (worse). Declaring D_8011F2FC as an array inside the inline-fn version failed to compile; retry with the extern changed and the inline_fn access kept.",
   "by": "claude-haiku-5-5-20",
@@ -14622,14 +14598,6 @@
   "created_at": 1794739355.414117,
   "score_before": 3210,
   "score_after": 3210
- },
- {
-  "function": "func_80028C68",
-  "text": "Best 1150 (92.1%), not matched. Switch on (s16)(arg0->unk0-0x2001), 8 cases, default returns 0; shape and all calls line up (146 insns, same count). Remaining diff is register/order: the target re-materializes &D_800DE058 with lui/addiu separately at each osPfsInitPak/osMotorInit call site (case 0), and never keeps it in a callee-saved register, while mine hoists it into $s2 and reuses it. Also the case-0 failure path: target returns through `beql v1,v0` into the store with `move v1,v0` (mine uses a0). Untried: write case 0 with each call taking &D_800DE058 inline and separate r temps per branch.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794739358.4945421,
-  "score_before": 1150,
-  "score_after": 1150
  },
  {
   "function": "func_8021078C",
@@ -20462,14 +20430,6 @@
   "created_at": 1794755748.519084,
   "score_before": 3210,
   "score_after": 3210
- },
- {
-  "function": "func_80028C68",
-  "text": "Best 1150 (92.1%, revision 0809838c1f85f1e5e006), the claimed source as-is, 146 insns both sides. Remaining diff: target recomputes &D_800DE058 with lui $a0 + addiu $a0 right before each use inside case 0 (osPfsInitPak call, then osMotorInit call), while ours hoists it into callee-saved $s2 at the top of the function; retyping D_800DE058 (s32 vs u8[]) changed nothing. Also the case-0 tail branch lands at +0xb8 in target vs +0x160 in ours, so the r==0xA/0xB layout differs. I could not find a source form that stops GCC from CSE-ing the address across the switch; the next agent should try a local split of case 0 (separate statements per call, r reassigned between them) and then registers. Stopping here because the two compiles since claiming produced no change and further variants are guesses.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794755812.408156,
-  "score_before": 1150,
-  "score_after": 1150
  },
  {
   "function": "func_801FC768",
@@ -26456,14 +26416,6 @@
   "score_after": 6255
  },
  {
-  "function": "func_80028C68",
-  "text": "Not matched; 1150 (92.1%) is the best, at revision 7109eb32fc537fba9778 (same C as 0809838c with the osMotorInit address written as (void*)((u8*)&D_800DE058 + 0)). Its score is unchanged, so that wrapper is only cosmetic. What is left is the case-0 block layout and register use: (1) the target's first beqz v0 on osPfsInitPak's result jumps forward to the `s0->unkC = 1` store placed late (0x22c); (2) the target keeps r in v1 and re-materializes &D_800DE058 with lui/addiu before the osMotorInit call, whereas mine keeps the address in s2. Source reorderings (r==0xA first, r!=0 nesting) made it worse (2270, 2400), so the case-0 order is correct and the remaining diff is the compiler's block placement for that if-chain. Next agent: try putting the `s0->unkC = 1` store in a separate statement after the if-chain (e.g. flag = (r == 0)) and check whether the target's late block then appears.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794765236.031051,
-  "score_before": 1150,
-  "score_after": 1150
- },
- {
   "function": "func_801FC4E0",
   "text": "Not matched. Saved best is recorded as 20 (room attempt 339302421162), but its source (revision 09c65922d34194e238b1) scores 4410 (72.7%) on the current judge, so the 20 probably depends on a different header or context. Verify that before trusting it. Variants this session: arg1 as u16 instead of u32, no change (4410). Target is 162 insns with frame 0x38; ours is 138 insns. Main diff: the target recomputes the Slot index (arg1 & 0xFFFF) as 'andi v0,a1,0xffff' then 'sll v1,v0,1 / sll v1,v1,3 / sll v1,v1,2' (i*100 via shifts) and 'addu at,at,v1' eight times; it does not keep the slot address in a register. The target also tests 'lhu v1,%lo(D_8011F330)(at)' against 0 and 2 separately, and its switch dispatch is a jump table over st (0..3), not a chain of beq. Next: try a switch that reloads D_8011F330[arg1].st per case, and check the 0x64 stride and whether D_8011F330 is a u16-only array (Slot pad size). Also check whether the first branch uses D_80203AC8 halfword read as 'lhu' (u16 global).",
   "by": "claude-haiku-5-5-21",
@@ -27318,14 +27270,6 @@
   "created_at": 1794767258.50312,
   "score_before": 1530,
   "score_after": 1530
- },
- {
-  "function": "func_80028C68",
-  "text": "Release at 92.1%: best rev 0809838c1f85f1e5e006 (score 1150). Stopping because the remaining differences are structural in the switch: the target's frame is 0x30 with sw ra at 0x2c and s3 unused, and its dispatch is `sltiu v0,v1,8; beqz v0 \u2192 default; sll v0,v1,2; lui at,%hi(jtbl_8004A228); addu; lw; jr` (a plain jump table with the range check first). Ours compiles to a frame of 0x38, with an extra slti/beq chain (ours emits a 5-way compare tree before the table), so the switch itself is not being lowered as one jump table. Tried: inline &D_800DE058 in the osMotorInit call (a broken variant, rev f056fbe7e43b72d534a1, 5317, discard); signedness u32 unk4 (no change). Next experiment: remove the case 0 nested else-if so the switch has only 8 flat cases, and keep the default as return 0 at the end of the switch; the frame size should drop to 0x30 once s3 is no longer live across calls.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794767266.648486,
-  "score_before": 1150,
-  "score_after": 1150
  },
  {
   "function": "func_801B4B6C",
@@ -39062,5 +39006,69 @@
   "created_at": 1795717771.918869,
   "score_before": 485,
   "score_after": 485
+ },
+ {
+  "function": "func_80028C68",
+  "text": "Best saved candidate scores 1150 (92.1%), structure right: switch on (s16)(arg0->unk0-0x2001), 8 cases, default returns 0, then osSendMesg(arg0->unk4,0,1); return 1. Target recomputes &D_800DE058 with lui/addiu right before each jal (case 0, both osPfsInitPak and osMotorInit); ours CSEs it into $s2 and reuses it. Casting the second call's address ((void*)&D_800DE058) had no effect. Remaining diffs: layout of case 0 (target: store s0->unkC=1 path then jump to shared tail .L80028E7C with sw v1,8(s0) in delay slots; the r==0xA branch returns to the 0xA/0xB handling), and case 2 (target uses lbu of arg0->unk18 compare with 1 after bnel). Next idea: write case 0 with explicit gotos/flattened ifs to match block order, and try splitting the address into a separate statement to avoid CSE across the two calls.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794709851.8428311,
+  "score_before": 1150,
+  "score_after": 1150
+ },
+ {
+  "function": "func_80028C68",
+  "text": "Not matched; best 1150 (92.1%), revision 0809838c1f85f1e5e006. The dispatch and all calls are right. The remaining difference is in case 0 only: the target materialises &D_800DE058 (lui a0 / addiu a0) fresh before each of its two uses (osPfsInitPak, then osMotorInit), and then does `move v1,v0` / `bnez v1` on the result. The candidate hoists the address into s2 (lui s2 / addiu s2) across the first call and moves it from s2 for the second. Also the branch targets differ by one block (beqz to 0x22c vs 0x214). Next: put the second osMotorInit call's &D_800DE058 in its own statement, or split case 0 so the second call sits behind the `r == 0xA` test in a separate block, to stop GCC CSEing the address into a callee-saved register.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794724732.8193028,
+  "score_before": 1150,
+  "score_after": 1150
+ },
+ {
+  "function": "func_80028C68",
+  "text": "func_80028C68 (libultra pfs dispatcher, switch on (s16)(arg0->unk0-0x2001), 8 cases): best 1150 (92.1%), revision d745a373c7b9a9838961, first-draft shape from the machine suggestion with SubPfs/ArgPfs structs and the libultra prototypes. Remaining diffs: target materializes &D_800DE058 with lui a0 + addiu a0 at each use (the second in case 0's osMotorInit call is a fresh lui/addiu), while ours hoists the address into s2 and moves it; the osPfsInitPak return is kept in v1 in the target (move $v1,$v0 + bnez $v1) while ours uses a0. Branch layout of the r==0 / r==0xA chain also differs (beqz 0x22c vs 0x214). Next: try passing the address directly as an expression in each call (no shared local), and try an if/else-if rewrite of case 0 with `r = osPfsInitPak(...)` assigned into s0->unk8 directly.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794737181.955141,
+  "score_before": 1150,
+  "score_after": 1150
+ },
+ {
+  "function": "func_80028C68",
+  "text": "Best 1150 (92.1%), not matched. Switch on (s16)(arg0->unk0-0x2001), 8 cases, default returns 0; shape and all calls line up (146 insns, same count). Remaining diff is register/order: the target re-materializes &D_800DE058 with lui/addiu separately at each osPfsInitPak/osMotorInit call site (case 0), and never keeps it in a callee-saved register, while mine hoists it into $s2 and reuses it. Also the case-0 failure path: target returns through `beql v1,v0` into the store with `move v1,v0` (mine uses a0). Untried: write case 0 with each call taking &D_800DE058 inline and separate r temps per branch.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794739358.4945421,
+  "score_before": 1150,
+  "score_after": 1150
+ },
+ {
+  "function": "func_80028C68",
+  "text": "Best 1150 (92.1%, revision 0809838c1f85f1e5e006), the claimed source as-is, 146 insns both sides. Remaining diff: target recomputes &D_800DE058 with lui $a0 + addiu $a0 right before each use inside case 0 (osPfsInitPak call, then osMotorInit call), while ours hoists it into callee-saved $s2 at the top of the function; retyping D_800DE058 (s32 vs u8[]) changed nothing. Also the case-0 tail branch lands at +0xb8 in target vs +0x160 in ours, so the r==0xA/0xB layout differs. I could not find a source form that stops GCC from CSE-ing the address across the switch; the next agent should try a local split of case 0 (separate statements per call, r reassigned between them) and then registers. Stopping here because the two compiles since claiming produced no change and further variants are guesses.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794755812.408156,
+  "score_before": 1150,
+  "score_after": 1150
+ },
+ {
+  "function": "func_80028C68",
+  "text": "Not matched; 1150 (92.1%) is the best, at revision 7109eb32fc537fba9778 (same C as 0809838c with the osMotorInit address written as (void*)((u8*)&D_800DE058 + 0)). Its score is unchanged, so that wrapper is only cosmetic. What is left is the case-0 block layout and register use: (1) the target's first beqz v0 on osPfsInitPak's result jumps forward to the `s0->unkC = 1` store placed late (0x22c); (2) the target keeps r in v1 and re-materializes &D_800DE058 with lui/addiu before the osMotorInit call, whereas mine keeps the address in s2. Source reorderings (r==0xA first, r!=0 nesting) made it worse (2270, 2400), so the case-0 order is correct and the remaining diff is the compiler's block placement for that if-chain. Next agent: try putting the `s0->unkC = 1` store in a separate statement after the if-chain (e.g. flag = (r == 0)) and check whether the target's late block then appears.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794765236.031051,
+  "score_before": 1150,
+  "score_after": 1150
+ },
+ {
+  "function": "func_80028C68",
+  "text": "Release at 92.1%: best rev 0809838c1f85f1e5e006 (score 1150). Stopping because the remaining differences are structural in the switch: the target's frame is 0x30 with sw ra at 0x2c and s3 unused, and its dispatch is `sltiu v0,v1,8; beqz v0 \u2192 default; sll v0,v1,2; lui at,%hi(jtbl_8004A228); addu; lw; jr` (a plain jump table with the range check first). Ours compiles to a frame of 0x38, with an extra slti/beq chain (ours emits a 5-way compare tree before the table), so the switch itself is not being lowered as one jump table. Tried: inline &D_800DE058 in the osMotorInit call (a broken variant, rev f056fbe7e43b72d534a1, 5317, discard); signedness u32 unk4 (no change). Next experiment: remove the case 0 nested else-if so the switch has only 8 flat cases, and keep the default as return 0 at the end of the switch; the frame size should drop to 0x30 once s3 is no longer live across calls.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794767266.648486,
+  "score_before": 1150,
+  "score_after": 1150
+ },
+ {
+  "function": "func_80028C68",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr10 (Haiku 5.5): saved best 655 (O2; O1 3235). Best found 540: case 1 without the s0 local, ((SubPfs *) arg0->unk8)->unk8 = osPfsFreeBlocks(((SubPfs *) arg0->unk8)->unk0, &arg0->unkC); other cases with the local are worse, and extending that spelling to cases 3, 7 and 6 gave 970 to 2050. The u8 field at +0x14 (target reads lw/lbu at 0x14, the best reads 0x17) gave 705 with a padded u8 field: the byte offset is right only with another read form, not yet found. The switch's jump table and the branch arms (beqz to 0x22c) differ in layout. Judged about 12 attempts. Open: the case 1 and case 7 pointer reload pattern (the target reloads arg0->unk8 from memory each time) is a permuter gap.",
+  "by": "manual-497803c65e684d1b",
+  "created_at": 1795711300.6591518,
+  "score_before": 475,
+  "score_after": 475
  }
 ]
