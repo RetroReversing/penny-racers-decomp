@@ -9200,14 +9200,6 @@
   "score_after": 1960
  },
  {
-  "function": "func_80204E30",
-  "text": "Move-on budget exhausted (8/8 compiles, best 3768 = 82.7%). Best source revision: 4ca94c5f9f6f5b6e5dbc (score 3768, 216 insns vs target 218). Recompile that, not the older saved_best blob, which still contains the dead `if (D_8021E162) {A} else {A}` duplicates.\n\nStructure is now settled and should be kept:\n- 4x func_8014A4C8(arg0,0xA3/0xEC,0x38/0x9A/0x29,0xB/8,0x67/0x68/0x69/0x19/4) then repeated blocks: drawWhite check (D_8021E15F[0]==3 && [1]==0) -> func_801CA494(arg0,0xFF,0xFF,0xFF,0xFF); D_8021E162 test -> func_801CA494(arg0,0x64,0x64,0x64,0xFF); func_8014A4C8(arg0,0xAB,0x6E/0x57/0x40/0x85,8,6/5/7/0xC).\n- D_8021E162 predicates per block: (q[0]!=2||q[-6]!=1), (q[0]!=1||q[-6]!=q[0]), (q[0]!=0||q[-6]!=1), (q[0]!=3||q[-6]!=1). Last block target uses `lui $a0; addiu $a0; lb $v1,($a0); ... beq $v1,$v0` (reuses $v1 for q[-6] compare against q[0]).\n- Opening block: keep the do/while(0) wrapper and the var_a1/var_a2/var_a3 temporaries; they are what produce `sw $v0,0x10($sp)` + `addu $a1/$a2,$a3` and the j .L tail merge. Plain if/else without them scores 4570.\n\nSingle remaining structural gap: the target materialises each table base with `lui $a0,%hi(SYM); addiu $a0,$a0,%lo(SYM)` and then uses `lb $v1,($a0)`, `lb $v0,1($a0)`, `lb $v1,-6($a0)`; every C form tried lets gcc-2.7.2-kmc fold %lo into the load (`lb $v1,%lo(SYM)($v1)` x18) or hoist the base into $s1 (frame 0x28). Tried and failed, all scored 4450-14258: local `s8 *p = D_8021E15F` reused across blocks; per-block scoped `{s8 *p = ...;}`; `typedef struct{s8 a,b;} P2` view; literal `(s8*)0x8021E15F` (gives `lui $v1,0x8022; lb -0x1EA1($v1)`); `static __inline__` helpers taking the base pointer (folded, and chkA/chkB are not linkable symbols so it also warns); `extern volatile s8` tables (worst: lbu + sll/sra sign-extension, base in $s1, frame 0x28).\n\nNext idea not yet tried: force the address to live in a register by a use of the pointer *value* rather than a constant-offset load (the only way gcc emits the addiu form), e.g. keep a pointer that is also stored to a stack slot or compared against a second pointer, while keeping the frame at 0x20 with only ra+s0 saved. Also untested: try_compiler/search_flags on this function (only gcc-2.7.2-kmc -O2 has been tried).",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794712600.296532,
-  "score_before": 3768,
-  "score_after": 3768
- },
- {
   "function": "func_800DECCC",
   "text": "Best 9328 (54%, revision 381e386514d723367671): a recursive linked-list unlink over 100-byte records. Key fixes that helped: the data arrays must be u8[] (not s32 scalars, as the m2c draft declared them, which scaled offsets by 4); the record at D_8011F340 holds a POINTER (lw), so read it as *(u8 **)(D_8011F340 + idx*100) and then lhu at +0xC / +0xA. Remaining diff: the target saves only ra and s0 (frame 0x18) and recomputes the index (andi 0xFFFF, then the x*100 shift/add chain) after each recursive call; my version keeps (arg0&0xFFFF)*100 live across the calls, so it saves s0-s3 and ra (frame 0x38). Changing arg0 from u16 to s32 had no effect. Untested next step: write each access with a fresh expression (e.g. in separate helper macros expanding to the same index chain) so GCC does not CSE the index across the recursive calls. The first recursive branch in the target uses F304[idx] for both calls; check that the second call's index is the reloaded var, not the first one.",
   "by": "claude-haiku-5-5-24",
@@ -13294,14 +13286,6 @@
   "created_at": 1794727628.662753,
   "score_before": 8822,
   "score_after": 8822
- },
- {
-  "function": "func_80204E30",
-  "text": "Not matched; releasing now. Best saved 3768 (historical, from the older attempt; its source is the draft with the `do { } while(0)` and the identical `if (D_8021E162)` arms). Clean rewrite scores 4570 with the frame and call count right. Why it can't close quickly from here: the remaining diff is that the target re-materializes `lui $a0,%hi(D_8021E15F); addiu $a0` before each block and loads p[0]/p[1]/q[-6] off $a0, while every C form I tried either folds the %lo into lb offsets or keeps the pointer across blocks; the prologue store order (ra then s0) also differs. Next: try `s8 *p = &D_8021E15F[0];` declared inside each block so GCC emits the address per block, and check the saved best's dead if/else arms as a compiler artefact.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794727644.665639,
-  "score_before": 3768,
-  "score_after": 3768
  },
  {
   "function": "func_80206848",
@@ -18550,14 +18534,6 @@
   "created_at": 1794740608.883232,
   "score_before": 18147,
   "score_after": 11092
- },
- {
-  "function": "func_80204E30",
-  "text": "Not matched. Best saved is 3678 (saved_best, goto/do-while shape). This session: (1) direct D_8021E15F[0]/[1] reads everywhere, no p local: 4570 (79%); (2) block-local `s8 *p = D_8021E15F;` in each check: no change (4570). Function-scope p variant: 4628, p spilled to $s1 and frame becomes -0x28. Target facts: frame -0x20, saves only $ra (0x1c) and $s0 (0x18), $s0 = arg0. Target loads the address once per block via lui/addiu into $a0 and reads p[0], p[1] through $a0 (lb 0($a0), lb 1($a0)); later D_8021E162 reads use -6($a0)-style offsets. First block computes v=(0xFF-D_8021E19E)&0xFFFF into $a1/$a2/$a3 and stores 0xFF at 0x10($sp). Remaining differences are register/order from the address-CSE pattern. Untested: a single `if` whose condition reads through one pointer for both p[0] and p[1] while the later blocks differ from the first. Budget exhausted.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794740627.9297311,
-  "score_before": 3678,
-  "score_after": 3678
  },
  {
   "function": "func_80206164",
@@ -25992,14 +25968,6 @@
   "score_after": 2005
  },
  {
-  "function": "func_80204E30",
-  "text": "No match. Best this session: revision a7eb477c99700498a85e, score 4570 (direct globals D_8021E15F[0]/[1], no pointer, call duplicated in if/else for the first block, t=(0xFF-D_8021E19E)&0xFFFF). Saved best is 3678 from a different source, not recovered. Tried: pointer p=D_8021E15F for all D_8021E15F tests (4628, worse). Target facts: prologue has 0x20 frame with sw $ra 0x1C, sw $s0 0x18, move $s0,$a0; the D_8021E15F address is rebuilt via lui/addiu $a0 and loaded as lb 0($a0), lb 1($a0); D_8021E162 uses lb -6 offsets. The fifth arg 0xFF is stored to 0x10($sp) on both paths. Next step: restore the 3678 candidate with get_candidate(base=saved_best) and fix stack frame size (0x20 not 0x28) and the $a0 pointer reuse across the first block, which the current drafts get wrong.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794758266.2537081,
-  "score_before": 3678,
-  "score_after": 3678
- },
- {
   "function": "func_80219B58",
   "text": "MATCHES at KMC -O1 (suggestion submitted with exact C). Key points: the local c is u32 (u8 adds an andi, s32 gives sra), and it is loaded from D_8011F2F0[idx].unk0 before the gfx writes. Waiting for the -O1 profile.",
   "by": "claude-opus-medium-1",
@@ -26934,14 +26902,6 @@
   "created_at": 1794759268.9961689,
   "score_before": 6450,
   "score_after": 6240
- },
- {
-  "function": "func_80204E30",
-  "text": "Sibling of func_80205198 (same unit, same D_8021E15F/E162/E19E globals). Best this session 6090 (72.0%, revision d19bd7275545d2d7e019), using #define E15F (*(s8*)&D_8021E15F) and E160 for the second byte, with compares E15F==3 / E160==0. Saved best 3678 is a different source. Remaining diff: target reloads the address per use (lui+addiu $a0 then lb 0($a0), lb 1($a0), lb -6($a0)), i.e. D_8021E162 is read as lb at offset -6 from the same $a0 base; my version uses separate lui/lb per access. The prologue is also off: the target saves $ra at 0x1c and $s0 at 0x18 with the store order differing. Untried: a single s8 *p = (s8*)&D_8021E15F with p[0], p[1], p[-6] for E162 (the local-pointer form gave no change on 80205198); compile_family signedness; if/else on the first call to mirror the target's branch order. Stopped after 3 non-improving edits.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794759285.46041,
-  "score_before": 3678,
-  "score_after": 3678
  },
  {
   "function": "func_802040C4",
@@ -29030,14 +28990,6 @@
   "created_at": 1794761951.853166,
   "score_before": 3581,
   "score_after": 3581
- },
- {
-  "function": "func_80204E30",
-  "text": "Not matched. Best reproduced this session: 4268 (80.4%, target 218 insns vs 217), revision c9e538d2f8c4df8eae12, the candidate with local p = D_8021E15F. Saved best 3678 (different source) does not reproduce with current inputs. Tried since: removing p and reading D_8021E15F[0]/[1] directly (4570, worse); block-local q inside each if (4570, no change). Why it cannot get closer in this session: the remaining differences are structural. The target keeps arg0 in $s0 via move before the first call, has frame 0x20 with ra at 0x1c and s0 at 0x18, and reloads D_8021E15F fresh before each condition. The candidate keeps p in $s1 across calls (frame 0x28, extra sw $s1). Next: copy arg0 to a local that survives the calls, and make p die before the first call to bring the frame to 0x20. Then check the var_a1/a2/a3 = 0x64 vs 0xFF ordering in the else branch. Callees: func_801CA494(s32 x5), func_8014A4C8(s32 x5). Globals: D_8021E15F (s8 array, [0]/[1]), D_8021E162 (s8, indexed [0] and [-6]), D_8021E19E (u8).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794761955.995851,
-  "score_before": 3678,
-  "score_after": 3678
  },
  {
   "function": "func_8015F33C",
@@ -34856,5 +34808,53 @@
   "created_at": 1794759552.551222,
   "score_before": 4378,
   "score_after": 4378
+ },
+ {
+  "function": "func_80204E30",
+  "text": "Move-on budget exhausted (8/8 compiles, best 3768 = 82.7%). Best source revision: 4ca94c5f9f6f5b6e5dbc (score 3768, 216 insns vs target 218). Recompile that, not the older saved_best blob, which still contains the dead `if (D_8021E162) {A} else {A}` duplicates.\n\nStructure is now settled and should be kept:\n- 4x func_8014A4C8(arg0,0xA3/0xEC,0x38/0x9A/0x29,0xB/8,0x67/0x68/0x69/0x19/4) then repeated blocks: drawWhite check (D_8021E15F[0]==3 && [1]==0) -> func_801CA494(arg0,0xFF,0xFF,0xFF,0xFF); D_8021E162 test -> func_801CA494(arg0,0x64,0x64,0x64,0xFF); func_8014A4C8(arg0,0xAB,0x6E/0x57/0x40/0x85,8,6/5/7/0xC).\n- D_8021E162 predicates per block: (q[0]!=2||q[-6]!=1), (q[0]!=1||q[-6]!=q[0]), (q[0]!=0||q[-6]!=1), (q[0]!=3||q[-6]!=1). Last block target uses `lui $a0; addiu $a0; lb $v1,($a0); ... beq $v1,$v0` (reuses $v1 for q[-6] compare against q[0]).\n- Opening block: keep the do/while(0) wrapper and the var_a1/var_a2/var_a3 temporaries; they are what produce `sw $v0,0x10($sp)` + `addu $a1/$a2,$a3` and the j .L tail merge. Plain if/else without them scores 4570.\n\nSingle remaining structural gap: the target materialises each table base with `lui $a0,%hi(SYM); addiu $a0,$a0,%lo(SYM)` and then uses `lb $v1,($a0)`, `lb $v0,1($a0)`, `lb $v1,-6($a0)`; every C form tried lets gcc-2.7.2-kmc fold %lo into the load (`lb $v1,%lo(SYM)($v1)` x18) or hoist the base into $s1 (frame 0x28). Tried and failed, all scored 4450-14258: local `s8 *p = D_8021E15F` reused across blocks; per-block scoped `{s8 *p = ...;}`; `typedef struct{s8 a,b;} P2` view; literal `(s8*)0x8021E15F` (gives `lui $v1,0x8022; lb -0x1EA1($v1)`); `static __inline__` helpers taking the base pointer (folded, and chkA/chkB are not linkable symbols so it also warns); `extern volatile s8` tables (worst: lbu + sll/sra sign-extension, base in $s1, frame 0x28).\n\nNext idea not yet tried: force the address to live in a register by a use of the pointer *value* rather than a constant-offset load (the only way gcc emits the addiu form), e.g. keep a pointer that is also stored to a stack slot or compared against a second pointer, while keeping the frame at 0x20 with only ra+s0 saved. Also untested: try_compiler/search_flags on this function (only gcc-2.7.2-kmc -O2 has been tried).",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794712600.296532,
+  "score_before": 3768,
+  "score_after": 3768
+ },
+ {
+  "function": "func_80204E30",
+  "text": "Not matched; releasing now. Best saved 3768 (historical, from the older attempt; its source is the draft with the `do { } while(0)` and the identical `if (D_8021E162)` arms). Clean rewrite scores 4570 with the frame and call count right. Why it can't close quickly from here: the remaining diff is that the target re-materializes `lui $a0,%hi(D_8021E15F); addiu $a0` before each block and loads p[0]/p[1]/q[-6] off $a0, while every C form I tried either folds the %lo into lb offsets or keeps the pointer across blocks; the prologue store order (ra then s0) also differs. Next: try `s8 *p = &D_8021E15F[0];` declared inside each block so GCC emits the address per block, and check the saved best's dead if/else arms as a compiler artefact.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794727644.665639,
+  "score_before": 3768,
+  "score_after": 3768
+ },
+ {
+  "function": "func_80204E30",
+  "text": "Not matched. Best saved is 3678 (saved_best, goto/do-while shape). This session: (1) direct D_8021E15F[0]/[1] reads everywhere, no p local: 4570 (79%); (2) block-local `s8 *p = D_8021E15F;` in each check: no change (4570). Function-scope p variant: 4628, p spilled to $s1 and frame becomes -0x28. Target facts: frame -0x20, saves only $ra (0x1c) and $s0 (0x18), $s0 = arg0. Target loads the address once per block via lui/addiu into $a0 and reads p[0], p[1] through $a0 (lb 0($a0), lb 1($a0)); later D_8021E162 reads use -6($a0)-style offsets. First block computes v=(0xFF-D_8021E19E)&0xFFFF into $a1/$a2/$a3 and stores 0xFF at 0x10($sp). Remaining differences are register/order from the address-CSE pattern. Untested: a single `if` whose condition reads through one pointer for both p[0] and p[1] while the later blocks differ from the first. Budget exhausted.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794740627.9297311,
+  "score_before": 3678,
+  "score_after": 3678
+ },
+ {
+  "function": "func_80204E30",
+  "text": "No match. Best this session: revision a7eb477c99700498a85e, score 4570 (direct globals D_8021E15F[0]/[1], no pointer, call duplicated in if/else for the first block, t=(0xFF-D_8021E19E)&0xFFFF). Saved best is 3678 from a different source, not recovered. Tried: pointer p=D_8021E15F for all D_8021E15F tests (4628, worse). Target facts: prologue has 0x20 frame with sw $ra 0x1C, sw $s0 0x18, move $s0,$a0; the D_8021E15F address is rebuilt via lui/addiu $a0 and loaded as lb 0($a0), lb 1($a0); D_8021E162 uses lb -6 offsets. The fifth arg 0xFF is stored to 0x10($sp) on both paths. Next step: restore the 3678 candidate with get_candidate(base=saved_best) and fix stack frame size (0x20 not 0x28) and the $a0 pointer reuse across the first block, which the current drafts get wrong.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794758266.2537081,
+  "score_before": 3678,
+  "score_after": 3678
+ },
+ {
+  "function": "func_80204E30",
+  "text": "Sibling of func_80205198 (same unit, same D_8021E15F/E162/E19E globals). Best this session 6090 (72.0%, revision d19bd7275545d2d7e019), using #define E15F (*(s8*)&D_8021E15F) and E160 for the second byte, with compares E15F==3 / E160==0. Saved best 3678 is a different source. Remaining diff: target reloads the address per use (lui+addiu $a0 then lb 0($a0), lb 1($a0), lb -6($a0)), i.e. D_8021E162 is read as lb at offset -6 from the same $a0 base; my version uses separate lui/lb per access. The prologue is also off: the target saves $ra at 0x1c and $s0 at 0x18 with the store order differing. Untried: a single s8 *p = (s8*)&D_8021E15F with p[0], p[1], p[-6] for E162 (the local-pointer form gave no change on 80205198); compile_family signedness; if/else on the first call to mirror the target's branch order. Stopped after 3 non-improving edits.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794759285.46041,
+  "score_before": 3678,
+  "score_after": 3678
+ },
+ {
+  "function": "func_80204E30",
+  "text": "Not matched. Best reproduced this session: 4268 (80.4%, target 218 insns vs 217), revision c9e538d2f8c4df8eae12, the candidate with local p = D_8021E15F. Saved best 3678 (different source) does not reproduce with current inputs. Tried since: removing p and reading D_8021E15F[0]/[1] directly (4570, worse); block-local q inside each if (4570, no change). Why it cannot get closer in this session: the remaining differences are structural. The target keeps arg0 in $s0 via move before the first call, has frame 0x20 with ra at 0x1c and s0 at 0x18, and reloads D_8021E15F fresh before each condition. The candidate keeps p in $s1 across calls (frame 0x28, extra sw $s1). Next: copy arg0 to a local that survives the calls, and make p die before the first call to bring the frame to 0x20. Then check the var_a1/a2/a3 = 0x64 vs 0xFF ordering in the else branch. Callees: func_801CA494(s32 x5), func_8014A4C8(s32 x5). Globals: D_8021E15F (s8 array, [0]/[1]), D_8021E162 (s8, indexed [0] and [-6]), D_8021E19E (u8).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794761955.995851,
+  "score_before": 3678,
+  "score_after": 3678
  }
 ]
