@@ -6592,14 +6592,6 @@
   "score_after": 800
  },
  {
-  "function": "func_8013EA90",
-  "text": "Three clamped byte fields: a = arg0[0x17]+arg1, b = arg0[0x18]+arg2, c = arg0[0x19]+arg3, each clamped to [0,0xFF] (0 if <0, 0xFF if >=0x100), then stored back. Target loads all three bytes first, then does the adds and clamp ladder (sll 16 sign test on raw value, bgez, slti/beql). Best saved is 1025 (1170 rechecked, m2c-style with u8 fields and s16 locals). Tried: clamp of a without neg check, loads/adds after clamps (1785), and loads-first then clamp ladder with the s16 locals (1765, register and branch-order diffs only). Next: keep the loads-first order, and try the 8013EA18 idiom (s16 locals, `if (x<0) x=0; else if (x>=0x100) x=0xFF;`) with the sign test on the sum before the copy.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794707478.713769,
-  "score_before": 1025,
-  "score_after": 1025
- },
- {
   "function": "func_80127030",
   "text": "Best 456 (85.7%): the three register-passed floats a1..a3 must be taken as s32 and read through *(f32*)&aN inline (not declared f32, which gives mtc1 and a different stack layout). Source: typedef struct {f32 x,y,z;} Vec3F; Vec3F *func(Vec3F *out, s32 a1, s32 a2, s32 a3, f32 p4, f32 p5, f32 p6) { tmp.x = (*(f32*)&a2 * p6) - (p5 * *(f32*)&a3); tmp.y = (*(f32*)&a3 * p4) - (p6 * *(f32*)&a1); tmp.z = (*(f32*)&a1 * p5) - (p4 * *(f32*)&a2); *out = tmp; return out; }. Cross product: out.x=p2*p6-p5*p3, out.y=p3*p4-p6*p1, out.z=p1*p5-p4*p2. Remaining: register-only (f0/f2 swapped, p4 reload from 0x20(sp) placed later than target).",
   "by": "claude-haiku-5-5-22",
@@ -10640,14 +10632,6 @@
   "score_after": 770
  },
  {
-  "function": "func_8013EA90",
-  "text": "Saved best 1025 (m2c-style, s16 locals with `temp & 0x8000` sign tests). Target is frameless and uses $a0 directly as the base: all three lbu loads come first (t1=0x17, v1=0x18, t0=0x19), then t1 = t1+a1 is written into $a1 and sign-tested via `sll $a1,$a1,16; bgez`, i.e. (s16)sum < 0 -> 0, else if >=0x100 -> 0xFF (beql with 0xFF in delay slot). Tried this session: separate if/else-if clamps interleaved with each sum (2705); byte locals loaded first then clamps (2305); three sums computed first then `&0x8000` clamps (1170, but adds a 0x18 frame and copies $a0 to $t0). Not tried: keeping arg0 as u8* with direct arg0[0x17] writes but sums in arg1/arg2/arg3 names (to reuse $a1 for the t1 sum), and reversing the clamp order so the v1 chain comes last.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794721394.49379,
-  "score_before": 1025,
-  "score_after": 1025
- },
- {
   "function": "func_8013E27C",
   "text": "Not matched; saved best 1550 (permuter, goto-based loop) still stands. My clean rewrite (u16 n/head/cur/idx/nxt; early return 0xFFFF if D_80187BE0<n; for-loop i!=n walking cur=*(u16*)(D_8018D73A+cur*0x7C); tail writes D_8018D73A[nxt*0x7C]=-1, D_8018D738[idx*0x7C]=0xFFFF, D_8018F5C2=cur, D_80187BE0-=n, D_80189DC2=-1 if zero, return head) scores 3015: wrong loop shape (target tests n!=0 with beqz before the loop, then a bottom-tested do-while) and the early compare is reordered (target computes andi $v1,$a3 first, then the lui/lhu of D_80187BE0). Untried: write the do-while explicitly with the n==0 guard outside, keep a0 as the raw arg and derive the u16 mask only in the compare.",
   "by": "claude-haiku-5-5-20",
@@ -13574,14 +13558,6 @@
   "created_at": 1794730388.205987,
   "score_before": 1080,
   "score_after": 1080
- },
- {
-  "function": "func_8013EA90",
-  "text": "Not matched. Function clamps three u8 fields at offsets 0x17/0x18/0x19 of arg0 after adding arg1/arg2/arg3: each sum is a 32-bit value; if its low 16 bits are negative (test is `sll 16; bgez`, i.e. bit 15 / (s16)x<0) it is set to 0, else if (s16)x >= 0x100 it is set to 0xFF; then stored as bytes. Best forms tried: s32 locals with `temp & 0x8000` and `(s16)var >= 0x100` gave 1430 (closest, andi/beqz instead of sll/bgez); s16 locals with `< 0` gave 1765; s32 with `(s16)x < 0` gave 1870. Saved historical best is 1025 (different source), not reproduced here. Remaining gaps: the target keeps the first sum in $a1 and tests `sll $a1,$a1,16; bgez` (no andi), and the second/third clamps use `sll v0,v1,16; sra; slti` with the 0-branch taken via `j` into the shared store block; register allocation is t1/v1/t0 for the three values. Next step: start from revision with 1430 form and try to get the sum-sign test as `(s16)temp < 0` with the stores ordered t1,v1,t0 and the 0-value as a shared join.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794730431.230127,
-  "score_before": 1025,
-  "score_after": 1025
  },
  {
   "function": "func_8013AE60",
@@ -18992,14 +18968,6 @@
   "score_after": 440
  },
  {
-  "function": "func_8013EA90",
-  "text": "Saved best 1025 (m2c-shaped draft with s16 temps and & 0x8000 tests) still stands. Target is three clamps to [0,255] of (arg0[0x17..0x19] + arg)/s16: lbu, addu, sll 16/sra (sign of the s16 sum tested with bgez), then slti 0x100 with beql ... addiu 0xFF. My clean `if (r<0) r=0; else if (r>=0x100) r=0xFF` on u8 field gives 1765 (the sum is kept in a1/t1 and the branch order differs). Tried the mixed s16 temp version: 3235 (worse). Untried: write the clamp as `s16 t = (s16)(sum)` with explicit (s16) cast and compare `t < 0` after the sra; also the 0x8000 mask version with the first clamp written as separate statements.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794748473.649934,
-  "score_before": 1025,
-  "score_after": 1025
- },
- {
   "function": "func_801FA240",
   "text": "Not matched. Saved best 1647 (m2c-derived with sp10/sp14/sp18 stack temps). Clean rewrite (dx,dy,dz locals, len=sqrtf(...), inv=1/len, scale, call func_801F9C8C(dx,dz)) scores 3131. Target: sqrt.s inline with NaN check (c.eq.s) then jal sqrtf; the differences are stack layout: target stores the three differences to 0x10/0x14/0x18(sp) as f32 and reloads them (lwc1 0x38(sp) for the arg), with an 0x20 frame and ra saved at 0x20. Mine uses sdc1/ldc1 callee-saved f20/f22 pairs because locals are kept in registers. Next: force the dx/dy/dz into stack memory (e.g. take their address or write them through a local array) so GCC spills them to 0x10/0x14/0x18(sp), then scale in place and call func_801F9C8C(sp10, sp18) with the middle component left on the stack.",
   "by": "claude-haiku-5-5-23",
@@ -21784,14 +21752,6 @@
   "score_after": 60
  },
  {
-  "function": "func_8013EA90",
-  "text": "Clamp-3-bytes helper: adds arg1/arg2/arg3 to u8 fields 0x17/0x18/0x19 of arg0 and clamps each to 0..0xFF, storing back with sb.\n\nTarget shape (36 insns, no frame, no callee-saved regs): three lbu into t1/v1/t0, `addu $a1,$t1,$a1` then `addu $t1,$a1,$zero` (the s16 copy), `sll $a1,$a1,16; bgez $a1,<else>` \u2014 i.e. the sign test is done on the *sum* register a1 (16-bit shifted), while the 0x100 check uses `sll $v0,$t1,16; sra $v0,$v0,16; slti $v0,$v0,0x100; beql $v0,$zero,<set 0xFF>`. Same pattern for the other two channels with v1 and t0.\n\nBest verified here: 1170 (revision 8c26511f31c2baa966d0 / fa0e4d81d9f7db08d594) with the m2c-style draft using M2C_FIELD(u8*) loads, s16 temp_a1 + s16 var_t1/var_v1/var_t0, `temp_a1 & 0x8000` sign test and separate `>= 0x100` test. That reproduces the target control flow (bgez on the shifted sum, beql + addiu 0xFF) but costs a 0x18 stack frame plus `move $t0,$a0` (arg0 gets copied because it is also used as a temp), so 38 insns vs 36 and score 1170. The plain u8*-pointer version scores 1765 (gcc folds the three `if (x<0) x=0; else if (x>=0x100) x=0xFF;` into a different order and uses `move $t0,$a0`).\n\nRemaining gap to close: (1) eliminate the stack frame / the `move $t0,$a0` copy \u2014 the target keeps arg0 in a0 throughout and uses t1/v1/t0 as the three value registers; (2) get the sign test emitted as `sll $a1,$a1,16; bgez $a1` on the sum register instead of `sll $v0,$v0,16; sra`. Ideas untested: s32 locals with (s16) casts in the comparisons; keeping arg0 as `u8 *` but naming the sum variable so it stays in a1; or writing the clamps as `x = (s16)x; if (x < 0) ... else if (x >= 0x100) ...` with an explicit s16 cast. See next_experiment.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794754678.451076,
-  "score_before": 1025,
-  "score_after": 1025
- },
- {
   "function": "func_80127870",
   "text": "Not matched. Why release now: the first two compiles were 12205 (loop) and 13935 (3-block macro), both far from the 144-insn target, and the difference is instruction ordering and register choice in an unrolled block, which the next compile can't fix by one edit. Keep the median-of-three logic in the notes above. Next agent: first confirm the stack-argument layout (arg4 at 0x10($sp) loaded first), then write one block for offset 0 only and compare the first 48 instructions before replicating the other two components.",
   "by": "claude-haiku-5-5-22",
@@ -23318,14 +23278,6 @@
   "created_at": 1794756913.9833212,
   "score_before": 435,
   "score_after": 435
- },
- {
-  "function": "func_8013EA90",
-  "text": "Not matched; saved best 1025 remains best. Logic verified: three u8 fields at 0x17/0x18/0x19 of arg0 get delta arg1/arg2/arg3 added, then clamp: negative (bit 0x8000 of the s32 sum, tested before sign-extension, `sll 16; bgez`) -> 0; else if >=0x100 -> 0xFF; stored as u8. Best of mine: 1170 (67.5%) with `s16 temp_a1; s16 var_*` and `u8 *arg0`; the target has no stack frame, but my s16 temp/s32 temp variants add addiu sp (0x18/0x10). Remaining diffs: the target loads all three bytes first (lbu t1/v1/t0), then does the adds, then the clamps; the frame and `move t0,a0` come from my arg0 handling. Untried: `void *arg0` with `*(u8*)((s8*)arg0+off)` gave the same 1170 but also a frame; try a single s16 temp chain in the order the target uses (sum into a1 and copy into t1 before clamping).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794756918.754718,
-  "score_before": 1025,
-  "score_after": 1025
  },
  {
   "function": "func_8015CB40",
@@ -28104,14 +28056,6 @@
   "score_after": 14955
  },
  {
-  "function": "func_8013EA90",
-  "text": "Exact -O1 trial09c854843282d191ed56 submitted suggest source/profile bundle; automatic profile changes disabled. Source uses s16 g,b,r declaration; initial reads r=arg0[23];g=arg0[24];b=arg0[25]; then r=r+arg1;arg1=r;g+=arg2;b+=arg3. Explicit <<16 sign tests. The r+=arg1 before arg1=r is crucial: reverse arg1=r+arg1;r=arg1 score35 due load order. Retrieve submitted exact bundle for further work.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794764023.672332,
-  "score_before": 1025,
-  "score_after": 455
- },
- {
   "function": "func_80134C68",
   "text": "1184-byte / 296-insn HUD/display-list function, no match. Saved best 13929. Draft (clean, all calls resolved) scored 14779 (50.0%), not better. Remaining diff is prologue and register allocation: target frame is 0x58 with ra/s2/s1/s0 saved and `lui $s2,%hi(D_800DB1B8+0x2108)` kept as the base; my build uses a 0x60 frame and holds the lh base in $s3. Next step: keep one base register for D_800DB1B8+0x2108 (the three `*(s16*)(D_800DB1B8+0x2108)` reads all reuse it), which should cut a frame slot and drop s3; then check the early-return/nest order of the func_801CA468 loop vs the switch. The sel switch (0xFF, 0, 1) gets a jump-table-free compare chain (bne), matching the target.",
   "by": "claude-haiku-5-5-23",
@@ -29040,14 +28984,6 @@
   "score_after": 255
  },
  {
-  "function": "func_8013EA90",
-  "text": "Exact -O1 source 5070488550646167518c submitted verified suggest bundle. Key: s16 r,g,b in that order; initial loads r=p23,g=p24,b=p25; r=r+arg1;arg1=r;g+=arg2;b+=arg3; then inherited clamps. Reverse assignment ordering was O1 35. O2 current 1010; do not tune without applying bundle.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794765489.087818,
-  "score_before": 455,
-  "score_after": 455
- },
- {
   "function": "func_80140BEC",
   "text": "No match. Best fresh score 5425 (60.1%), from the goto-label loop variant with 0x80 literal stores (revision a8f3288aa0392ced289e). Plain do-while variants score 7859 and are worse. Target frame is 0x78 and spills f24 (sdc1/ldc1 0x70($sp), mtc1 $at,$f24 with 0x3f80 = 1.0f) plus s0-s5, fp and s7; the drafts use 0x70 with f20 and no f24. This points to a float/double temp live across the calls that the draft lacks, not a register-order issue. Constraints I could not resolve in the time I had: exact temp type for the f24 value, and whether the 1.0f args are a local. Next step for someone else: try a named f32 local initialised to 1.0f and used for the three trailing args, then check whether the frame grows to 0x78; keep the goto loop shape. Saved-best source (2599) declares func_8013E49C(s32,s32), which conflicts with context.h (u16 arg), so compile with func_8013E49C(u16).",
   "by": "claude-haiku-5-5-20",
@@ -29734,14 +29670,6 @@
   "created_at": 1794766478.096561,
   "score_before": 255,
   "score_after": 255
- },
- {
-  "function": "func_8013EA90",
-  "text": "Reverified cleaned C under O1 this session: byte exact. Resubmitted exact source/profile through suggest. Pending automatic-disabled compiler profile application. Current O2 scheduling gap persists; do not repeat O2 local tuning.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794766479.058539,
-  "score_before": 455,
-  "score_after": 455
  },
  {
   "function": "func_8020E650",
@@ -36072,5 +36000,137 @@
   "created_at": 1795714274.32851,
   "score_before": 1855,
   "score_after": 1855
+ },
+ {
+  "function": "func_8013EA90",
+  "text": "Three clamped byte fields: a = arg0[0x17]+arg1, b = arg0[0x18]+arg2, c = arg0[0x19]+arg3, each clamped to [0,0xFF] (0 if <0, 0xFF if >=0x100), then stored back. Target loads all three bytes first, then does the adds and clamp ladder (sll 16 sign test on raw value, bgez, slti/beql). Best saved is 1025 (1170 rechecked, m2c-style with u8 fields and s16 locals). Tried: clamp of a without neg check, loads/adds after clamps (1785), and loads-first then clamp ladder with the s16 locals (1765, register and branch-order diffs only). Next: keep the loads-first order, and try the 8013EA18 idiom (s16 locals, `if (x<0) x=0; else if (x>=0x100) x=0xFF;`) with the sign test on the sum before the copy.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794707478.713769,
+  "score_before": 1025,
+  "score_after": 1025
+ },
+ {
+  "function": "func_8013EA90",
+  "text": "Saved best 1025 (m2c-style, s16 locals with `temp & 0x8000` sign tests). Target is frameless and uses $a0 directly as the base: all three lbu loads come first (t1=0x17, v1=0x18, t0=0x19), then t1 = t1+a1 is written into $a1 and sign-tested via `sll $a1,$a1,16; bgez`, i.e. (s16)sum < 0 -> 0, else if >=0x100 -> 0xFF (beql with 0xFF in delay slot). Tried this session: separate if/else-if clamps interleaved with each sum (2705); byte locals loaded first then clamps (2305); three sums computed first then `&0x8000` clamps (1170, but adds a 0x18 frame and copies $a0 to $t0). Not tried: keeping arg0 as u8* with direct arg0[0x17] writes but sums in arg1/arg2/arg3 names (to reuse $a1 for the t1 sum), and reversing the clamp order so the v1 chain comes last.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794721394.49379,
+  "score_before": 1025,
+  "score_after": 1025
+ },
+ {
+  "function": "func_8013EA90",
+  "text": "Not matched. Function clamps three u8 fields at offsets 0x17/0x18/0x19 of arg0 after adding arg1/arg2/arg3: each sum is a 32-bit value; if its low 16 bits are negative (test is `sll 16; bgez`, i.e. bit 15 / (s16)x<0) it is set to 0, else if (s16)x >= 0x100 it is set to 0xFF; then stored as bytes. Best forms tried: s32 locals with `temp & 0x8000` and `(s16)var >= 0x100` gave 1430 (closest, andi/beqz instead of sll/bgez); s16 locals with `< 0` gave 1765; s32 with `(s16)x < 0` gave 1870. Saved historical best is 1025 (different source), not reproduced here. Remaining gaps: the target keeps the first sum in $a1 and tests `sll $a1,$a1,16; bgez` (no andi), and the second/third clamps use `sll v0,v1,16; sra; slti` with the 0-branch taken via `j` into the shared store block; register allocation is t1/v1/t0 for the three values. Next step: start from revision with 1430 form and try to get the sum-sign test as `(s16)temp < 0` with the stores ordered t1,v1,t0 and the 0-value as a shared join.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794730431.230127,
+  "score_before": 1025,
+  "score_after": 1025
+ },
+ {
+  "function": "func_8013EA90",
+  "text": "Saved best 1025 (m2c-shaped draft with s16 temps and & 0x8000 tests) still stands. Target is three clamps to [0,255] of (arg0[0x17..0x19] + arg)/s16: lbu, addu, sll 16/sra (sign of the s16 sum tested with bgez), then slti 0x100 with beql ... addiu 0xFF. My clean `if (r<0) r=0; else if (r>=0x100) r=0xFF` on u8 field gives 1765 (the sum is kept in a1/t1 and the branch order differs). Tried the mixed s16 temp version: 3235 (worse). Untried: write the clamp as `s16 t = (s16)(sum)` with explicit (s16) cast and compare `t < 0` after the sra; also the 0x8000 mask version with the first clamp written as separate statements.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794748473.649934,
+  "score_before": 1025,
+  "score_after": 1025
+ },
+ {
+  "function": "func_8013EA90",
+  "text": "Clamp-3-bytes helper: adds arg1/arg2/arg3 to u8 fields 0x17/0x18/0x19 of arg0 and clamps each to 0..0xFF, storing back with sb.\n\nTarget shape (36 insns, no frame, no callee-saved regs): three lbu into t1/v1/t0, `addu $a1,$t1,$a1` then `addu $t1,$a1,$zero` (the s16 copy), `sll $a1,$a1,16; bgez $a1,<else>` \u2014 i.e. the sign test is done on the *sum* register a1 (16-bit shifted), while the 0x100 check uses `sll $v0,$t1,16; sra $v0,$v0,16; slti $v0,$v0,0x100; beql $v0,$zero,<set 0xFF>`. Same pattern for the other two channels with v1 and t0.\n\nBest verified here: 1170 (revision 8c26511f31c2baa966d0 / fa0e4d81d9f7db08d594) with the m2c-style draft using M2C_FIELD(u8*) loads, s16 temp_a1 + s16 var_t1/var_v1/var_t0, `temp_a1 & 0x8000` sign test and separate `>= 0x100` test. That reproduces the target control flow (bgez on the shifted sum, beql + addiu 0xFF) but costs a 0x18 stack frame plus `move $t0,$a0` (arg0 gets copied because it is also used as a temp), so 38 insns vs 36 and score 1170. The plain u8*-pointer version scores 1765 (gcc folds the three `if (x<0) x=0; else if (x>=0x100) x=0xFF;` into a different order and uses `move $t0,$a0`).\n\nRemaining gap to close: (1) eliminate the stack frame / the `move $t0,$a0` copy \u2014 the target keeps arg0 in a0 throughout and uses t1/v1/t0 as the three value registers; (2) get the sign test emitted as `sll $a1,$a1,16; bgez $a1` on the sum register instead of `sll $v0,$v0,16; sra`. Ideas untested: s32 locals with (s16) casts in the comparisons; keeping arg0 as `u8 *` but naming the sum variable so it stays in a1; or writing the clamps as `x = (s16)x; if (x < 0) ... else if (x >= 0x100) ...` with an explicit s16 cast. See next_experiment.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794754678.451076,
+  "score_before": 1025,
+  "score_after": 1025
+ },
+ {
+  "function": "func_8013EA90",
+  "text": "Not matched; saved best 1025 remains best. Logic verified: three u8 fields at 0x17/0x18/0x19 of arg0 get delta arg1/arg2/arg3 added, then clamp: negative (bit 0x8000 of the s32 sum, tested before sign-extension, `sll 16; bgez`) -> 0; else if >=0x100 -> 0xFF; stored as u8. Best of mine: 1170 (67.5%) with `s16 temp_a1; s16 var_*` and `u8 *arg0`; the target has no stack frame, but my s16 temp/s32 temp variants add addiu sp (0x18/0x10). Remaining diffs: the target loads all three bytes first (lbu t1/v1/t0), then does the adds, then the clamps; the frame and `move t0,a0` come from my arg0 handling. Untried: `void *arg0` with `*(u8*)((s8*)arg0+off)` gave the same 1170 but also a frame; try a single s16 temp chain in the order the target uses (sum into a1 and copy into t1 before clamping).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794756918.754718,
+  "score_before": 1025,
+  "score_after": 1025
+ },
+ {
+  "function": "func_8013EA90",
+  "text": "Exact -O1 trial09c854843282d191ed56 submitted suggest source/profile bundle; automatic profile changes disabled. Source uses s16 g,b,r declaration; initial reads r=arg0[23];g=arg0[24];b=arg0[25]; then r=r+arg1;arg1=r;g+=arg2;b+=arg3. Explicit <<16 sign tests. The r+=arg1 before arg1=r is crucial: reverse arg1=r+arg1;r=arg1 score35 due load order. Retrieve submitted exact bundle for further work.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794764023.672332,
+  "score_before": 1025,
+  "score_after": 455
+ },
+ {
+  "function": "func_8013EA90",
+  "text": "Exact -O1 source 5070488550646167518c submitted verified suggest bundle. Key: s16 r,g,b in that order; initial loads r=p23,g=p24,b=p25; r=r+arg1;arg1=r;g+=arg2;b+=arg3; then inherited clamps. Reverse assignment ordering was O1 35. O2 current 1010; do not tune without applying bundle.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794765489.087818,
+  "score_before": 455,
+  "score_after": 455
+ },
+ {
+  "function": "func_8013EA90",
+  "text": "Reverified cleaned C under O1 this session: byte exact. Resubmitted exact source/profile through suggest. Pending automatic-disabled compiler profile application. Current O2 scheduling gap persists; do not repeat O2 local tuning.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794766479.058539,
+  "score_before": 455,
+  "score_after": 455
+ },
+ {
+  "function": "func_8013EA90",
+  "text": "haiku-pr3b: RGB byte clamp (lbu x3 at 0x17..0x19, add a1..a3, clamp to 0..0xFF with signed 16-bit test). Clean C with s16 locals and (r << 16) < 0 / ((r << 16) >> 16) >= 0x100 tests scores 285 in the app (best so far 235 saved). Remaining rows: copy t1 = sum kept (cse folds it), arg0 kept in a0 (the sum-into-a1 order), and the clamp branch shapes. Local judge of the saved best reads 515, not 235: the saved source does not reproduce locally, so judge against the app.",
+  "by": "manual-5113716c0f6048d5",
+  "created_at": 1795707659.558789,
+  "score_before": 285,
+  "score_after": 285,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:afc3fa6b77c52fc4a05e2d57b18da7e4297378bd17efd8ab09adddfd3519d61c"
+ },
+ {
+  "function": "func_8013EA90",
+  "text": "About 20 judged spellings. Best clean candidate 285 in the app vs saved 235. Saved best does not reproduce locally (515).",
+  "by": "manual-5113716c0f6048d5",
+  "created_at": 1795707662.0415711,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:afc3fa6b77c52fc4a05e2d57b18da7e4297378bd17efd8ab09adddfd3519d61c"
+ },
+ {
+  "function": "func_8013EA90",
+  "text": "haiku-pr1 (Haiku 5.5): TOOL PROBLEM: get_candidate(base=saved_best) returns a source that rescores 515 (current app and local), while the recorded best is 235 (source f85b93cc9534 in get_function history). That source cannot be fetched (get_candidate rejects the hash; measured_option and regional_alternative are unavailable). Clamp shape: the target is three clamps on s16 values with a beql (r = 255 in the delay slot); a clean s32 clamp rewrite scored 1980. Not solved.",
+  "by": "manual-a2e0c67556b34442",
+  "created_at": 1795708627.076885,
+  "score_before": 285,
+  "score_after": 285,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:afc3fa6b77c52fc4a05e2d57b18da7e4297378bd17efd8ab09adddfd3519d61c"
+ },
+ {
+  "function": "func_8013EA90",
+  "text": "Recorded best 235 not fetchable; see note.",
+  "by": "manual-a2e0c67556b34442",
+  "created_at": 1795708629.3758411,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:afc3fa6b77c52fc4a05e2d57b18da7e4297378bd17efd8ab09adddfd3519d61c"
+ },
+ {
+  "function": "func_8013EA90",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr10 (Haiku 5.5): saved best 515 (O2). Fixes that held: the target's sign tests are (short) casts (not char), the sum goes into arg1 (arg1 = arg0[23] + arg1; r = arg1), and the blue clamp is (short) b >= 256; best 20 (4 regalloc rows: r and b exchange t1/t0). The 20 needs the do-while fences around the g store (if (r) {g += arg2} else {g += arg2}) and without them 640: scaffolding, not a match. Tried: 6 declaration orders, 6 load orders, 8 integer-type spellings, load placement, sum spellings, 6 cast/compare spellings (~45 judged). Open: a fence-free form that swaps r and b's registers (a weight or live-range permuter gap).",
+  "by": "manual-497803c65e684d1b",
+  "created_at": 1795710786.2990239,
+  "score_before": 235,
+  "score_after": 235
+ },
+ {
+  "function": "func_8013EA90",
+  "text": "haiku-pr24 (Haiku): saved best f85b93cc measures 515 at -G0 -mips3 -mgp32 -mfp32 -O2 (trial 25a57cc8) and 540 at -O1 (trial 0db6255d). The function clamps three bytes at +0x17, +0x18, +0x19 after adding a1..a3. Clean rewrites (sum, then (s16) < 0 gives 0, (s16) >= 0x100 gives 0xFF) score 1980 at -O2 and 695 at -O1. The target keeps the sum in a register it copies (addu t1,a1,zero) and branches on the sign of the 16-bit value with sll 16 / bgez, which a plain if-chain does not reproduce.",
+  "by": "manual-c5ecf391d81f42b7",
+  "created_at": 1795714647.089508,
+  "score_before": 235,
+  "score_after": 235
+ },
+ {
+  "function": "func_8013EA90",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Not exact; see the note.",
+  "by": "manual-c5ecf391d81f42b7",
+  "created_at": 1795714648.864497,
+  "score_before": 235,
+  "score_after": 235
  }
 ]
