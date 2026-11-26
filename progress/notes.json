@@ -7200,14 +7200,6 @@
   "score_after": 960
  },
  {
-  "function": "func_801513E4",
-  "text": "Not matched. Best this session 4095 (revision 8b5c85cf864172267f7f): typed version with u8 D_8011F338 (f32 read at +idx*100), `if (temp_fv1 >= 2147483648.0f)` ternary-less body as in m2c draft, D_8016D0C4 u8 index into u32 D_8016D0B0, then 7 blocks. Saved best 1230 is the m2c M2C_FIELD draft (restore via saved_best). Remaining mismatch: (1) compiler adds `addiu $sp,$sp,-8` for the float path, which the target does not have; (2) branch shape: target is `c.le.s $f0,$f2 (2^31 vs f); bc1tl` with sub.s in the delay slot, my if-form gives `c.lt.s` / bc1f (swapping branches scored 4345, worse). Next: keep >= form, try a float temp declared inside the block or cast the subtraction into a separate statement to avoid the stack spill; the last block's constants 0xFA000000/0xF87800FF are correct.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794708541.3635259,
-  "score_before": 1230,
-  "score_after": 1230
- },
- {
   "function": "func_8014B410",
   "text": "Target structure (decoded): i=s0 in 0..3, j in 0..7. Phase 1: sp10[j] = base[idx + (s8)base[idx] + 2] with idx=0x110*i+34*j (base=D_8021E22F, lb for the first load, lbu for the second). Then func_80149CC4(i,1,8,base+0x110*i). Phase 2 per j: base[idx]=0; k=0; while (k < (s8)D_8021E230[idx]) { if ((s8)base[idx+k+2]==sp10[j]) {base[idx]=k; break;} k++; }. The control flow is right; the problem is registers and frame. The target saves ra,s0,s1,s2 in a 0x30 frame and keeps base in s2 and sp10 in s1, with no s3/s4. Best: 6232 (base-pointer version, 'u8 *base = D_8021E22F'). Variants that failed: separate sp10 array indexing (6372, frame 0x38 with s3); per-row pointer row=base+0x110*i (8142); sp pointer alias (6297, extra s3). Untried: writing the loop with pointer increments, or a single idx pointer 'p = base + idx' to shrink live registers.",
   "by": "claude-haiku-5-5-23",
@@ -11328,14 +11320,6 @@
   "score_after": 3783
  },
  {
-  "function": "func_801513E4",
-  "text": "Not matched. Best saved in-session: 4095 at revision 188a9de60d2257ec5eb5 (the saved historical best is 1230 from a different source; use get_candidate saved_best to compare before trusting it). RDP display-list builder, same family as func_801578EC. Two attempts so far: the arg0 pointer as a local `p` (score 4430, worse) and the unsigned f32->index conversion with 2147483648.0f (4430). Target facts: first command uses the pointer in place (`lw $v1,($a0)`, no copy into a2/a3); the f32->index conversion is `lui $at,0x4f00` (2^31 as f32), `bc1tl`, `andi $a1,$a1,0xffff` in both paths, and `lui $v0,0x8000` ORed in the >= path; target has mfc1 from $f0 for the >= path and $f2 for the other. Stopping here: the conversion branch shape is the blocker, and the two rewrites moved the score the wrong way. Next: keep the 4095 form and change only the conversion to match the target's branch order (bc1tl with the andi in the delay slot).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794723037.885955,
-  "score_before": 1230,
-  "score_after": 1230
- },
- {
   "function": "__vsPan",
   "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 0; 15 differing rows (1 opcode, 12 register, 1 inserted, 1 deleted; advisory).\nTarget: \nCandidate: lw $v1, 0x20($a0)\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n> T:  | C: lw $v1, 0x20($a0)\nr T: lbu $v1, 0x31($a0) | C: lbu $v0, 0x31($a0)\nr T: lw $v0, 0x60($a1) | C: lw $a0, 0x60($a1)\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.",
   "by": "api-route-llm-code-2",
@@ -15440,14 +15424,6 @@
   "score_after": 1596
  },
  {
-  "function": "func_801513E4",
-  "text": "Machine draft compiles at 4095 (57.3%); the saved 1230 record cannot be reproduced from its source text, so treat 1230 as historical. Confirmed diffs against the target: the target loads the float at D_8011F338+idx*100 and branches with bc1tl (the >=2^31 path ORs in 0x80000000 via lui $v0,0x8000 and or into $a1), not the bc1f shape the draft gives; the first store pair in the target is `lw $v1,($a0)` then `addiu $v0,$v1,8`, so the arg pointer is loaded into $v1 directly (draft reloads via $a2). The row-value word 0x0007C07C is built as `lui ...; ori` in the target, not as a literal 0x7C07C in the second word of the F2 pair. Next: rewrite the float-to-u16 branch to the bc1tl form and copy the store order from the target assembly, then fix the constants.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794735472.671801,
-  "score_before": 1230,
-  "score_after": 1230
- },
- {
   "function": "func_8014A204",
   "text": "Best 480 (90.5%). Target = 3 float diffs from D_8011F308/30C/310 indexed by (arg&0xFFFF)*100, then sqrtf(dx*dx+dy*dy+dz*dz) with the standard sqrt.s + c.eq.s + jal sqrtf sequence. All instructions present; residual diffs are (a) target stores $ra at 0x10($sp) in the first prologue slot while ours stores it after the index arithmetic, (b) fp register allocation (target uses $f6/$f4/$f0/$f12, ours $f2/$f4/$f0/$f12) and (c) one extra mul.s placement plus a missing nop before mul.s $f4. Tried: sum via += chain (630), right-assoc sum (585), separate s1/s2/s3 locals (480), reversed declarations (480), +0.0f (740). Untested idea: give sqrtf an explicit prototype (extern f32 sqrtf(f32);) so it is not an implicit builtin; that may make gcc emit the $ra store in the prologue slot as the target does. Also worth trying: declaring the tables as f32[] instead of char[] with pointer arithmetic done in bytes.",
   "by": "api-route-llm-code-2",
@@ -15782,14 +15758,6 @@
   "created_at": 1794736494.857465,
   "score_before": 2735,
   "score_after": 2735
- },
- {
-  "function": "func_801513E4",
-  "text": "Not matched. Saved best 1230 (historical m2c draft, `void **arg0, s32 arg1`) did not reproduce this session. Variants on this session scored 4095 to 4555: the void*-pointer form with `(u8*)temp+8` and the u32*-form with u16 arg1. Recurring diffs: (1) target starts directly with `lw $v1,($a0)` on the caller slot, while every variant copies arg0 into another register (`move $a2,$a0`), which adds a shift in the register order; (2) target's float >=2^31 path uses `bc1tl` with `lui $v0,0x8000; or $a1,$a1,$v0`, while mine uses `bc1f` and needs a stack frame (`addiu $sp,-8`); (3) the last two display words 0x00094250 and 0x0007C07C are checked against raw 0x0007C07C at diff row 95. Next: keep arg0 unshadowed (use `*arg0` loads inline, not a temp), write the 0x80000000 OR as an explicit `(s32)(f - 2147483648.0f) | 0x80000000` ternary to get bc1tl, and only then reorder the store blocks.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794736494.921111,
-  "score_before": 1230,
-  "score_after": 1230
  },
  {
   "function": "func_8014081C",
@@ -22374,14 +22342,6 @@
   "created_at": 1794754644.272622,
   "score_before": 60,
   "score_after": 60
- },
- {
-  "function": "func_801513E4",
-  "text": "No match. Saved best 1230 (m2c form, in brief) remains the baseline. A u16/u32-cursor rewrite scored 4095. Target differences: (1) the float-to-u16 index path needs the target's exact branch shape: `bc1tl` on the `>= 2^31` compare with `lui $v0,0x8000; or $a1,$a1,$v0` in the true arm, and `lui $at,0x4f00; mtc1 $at,$f0` (the 2^31 constant) hoisted before the compare. Our version put the cursor copy (`move $a2,$a0`) first, which the target does not do. (2) Target loads the cursor with `lw $v1,($a0)` and writes `addiu $v0,$v1,8`, so the first command uses $v1 as the cursor and $a2 holds the value after, not the other way round. (3) D_8011F338 indexed as `(arg1&0xFFFF)*0x64` with the `andi $a1,$a1,0xffff` before the shifts. Next: keep the m2c float branch, switch the cursor to a `void *` local, and check the 0x071FF200 / 0x07094250 constants in the target's `lui`+`ori` order.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794754658.1472902,
-  "score_before": 1230,
-  "score_after": 1230
  },
  {
   "function": "func_8013EA90",
@@ -29296,14 +29256,6 @@
   "score_after": 23132
  },
  {
-  "function": "func_801513E4",
-  "text": "Not matched. Best at gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1: score 525 (94.5%). The revision here is the -O2 compile of the same source (3675 at project -O2), so compile it with -O1 to reproduce the 525. Source: the m2c draft with D_8016D0C4 declared u8 (target uses lbu), the float-to-int test `if (temp_fv1 <= 2.1474836e9f) var_v0 = (s32)temp_fv1; else var_v0 = (s32)(temp_fv1 - 2.1474836e9f) | 0x80000000;` followed by `var_v0 &= 0xFFFF;` before the table index, store words as ((s32*)p)[0/1] with the m2c constants. Remaining diff at -O1: target loads the first word into v1 and copies with move $a2,$v1 (regalloc only); the branch is bc1tl to the plain-conversion arm while the candidate emits bc1fl. Swapping the arms with '>' gave 1020; writing the compare as 2.147e9 >= temp gave the same 525. Target has no stack frame; the candidate's addiu sp,-8 is from the float subtract arm. Next: try a form that keeps the subtract entirely in the fall-through arm, and compare -O1 vs -O2 again.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794764777.904242,
-  "score_before": 1230,
-  "score_after": 1230
- },
- {
   "function": "func_801FC2F8",
   "text": "Rechecked saved best score1035. Removing inherited exploratory break restores bb3771b19409e411a730. search_flags: O1/no-schedule-insns1030, default1035, none match. Tested static inline reset_state(u16 i) called with2: still constant-folds index, score3680; not useful. Target runtime 2*36 has no loop, while best u16 for loop preserves multiply but adds truncations/backedge/hoists1000f. Remaining local repairs for best exhausted. Preserve best; need a new original-C structure retaining runtime index without loop, perhaps different inline arrangement; simple helper does not.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -30662,14 +30614,6 @@
   "created_at": 1794766829.679211,
   "score_before": 2300,
   "score_after": 2300
- },
- {
-  "function": "func_801513E4",
-  "text": "Not matched. Probably an -O1 function (like func_8015601C). Under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (try_compiler), my best is 780 (91.9%), not a match. The project's -O2 default scores much worse (compile_and_diff recorded 4820 at -O2), so check -O1 with search_flags before tuning.\n\nBest C shape so far (-O1): dl = *arg0; *arg0 = dl + 2; p = dl; dl[0] = 0xFD900000; f = *(f32 *)(D_8011F338 + (arg1 & 0xFFFF) * 100); if (f >= 2.1474836e9f) idx = (s32)(f - 2.1474836e9f) & 0xFFFF; else idx = ((s32)f | 0x80000000) & 0xFFFF; p[1] = D_8016D0B0[D_8016D0C4[idx]]; then the remaining commands 0xF5900000/0x07094250, 0xE6000000/0, 0xF3000000/0x071FF200, 0xE7000000/0, 0xF5880800/0x94250, 0xF2000000/0x7C07C, 0xFA000000/0xF87800FF, each as `dl = *arg0; *arg0 = dl + 2; dl[0]=..; dl[1]=..;`.\n\nRemaining diffs at -O1: (1) the target uses c.le.s with bc1tl to the sub path, and the lui 0x8000 / or sits on the non-subtract path, so the if/else sides may be swapped; (2) ours spills a -8 stack frame (addiu sp,-8) that the target does not have, probably from the f32 local or the float-to-int cast; (3) the p copy (move a2,v1) must stay or the first dl store loses its register.\n\nNext: remove the f32 local (inline the cast load), recheck the frame, then the if-sides.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794766829.785137,
-  "score_before": 1230,
-  "score_after": 1230
  },
  {
   "function": "func_80164364",
@@ -35739,5 +35683,70 @@
   "created_at": 1794766928.948982,
   "score_before": 1207,
   "score_after": 1207
+ },
+ {
+  "function": "func_801513E4",
+  "text": "Not matched. Best this session 4095 (revision 8b5c85cf864172267f7f): typed version with u8 D_8011F338 (f32 read at +idx*100), `if (temp_fv1 >= 2147483648.0f)` ternary-less body as in m2c draft, D_8016D0C4 u8 index into u32 D_8016D0B0, then 7 blocks. Saved best 1230 is the m2c M2C_FIELD draft (restore via saved_best). Remaining mismatch: (1) compiler adds `addiu $sp,$sp,-8` for the float path, which the target does not have; (2) branch shape: target is `c.le.s $f0,$f2 (2^31 vs f); bc1tl` with sub.s in the delay slot, my if-form gives `c.lt.s` / bc1f (swapping branches scored 4345, worse). Next: keep >= form, try a float temp declared inside the block or cast the subtraction into a separate statement to avoid the stack spill; the last block's constants 0xFA000000/0xF87800FF are correct.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794708541.3635259,
+  "score_before": 1230,
+  "score_after": 1230
+ },
+ {
+  "function": "func_801513E4",
+  "text": "Not matched. Best saved in-session: 4095 at revision 188a9de60d2257ec5eb5 (the saved historical best is 1230 from a different source; use get_candidate saved_best to compare before trusting it). RDP display-list builder, same family as func_801578EC. Two attempts so far: the arg0 pointer as a local `p` (score 4430, worse) and the unsigned f32->index conversion with 2147483648.0f (4430). Target facts: first command uses the pointer in place (`lw $v1,($a0)`, no copy into a2/a3); the f32->index conversion is `lui $at,0x4f00` (2^31 as f32), `bc1tl`, `andi $a1,$a1,0xffff` in both paths, and `lui $v0,0x8000` ORed in the >= path; target has mfc1 from $f0 for the >= path and $f2 for the other. Stopping here: the conversion branch shape is the blocker, and the two rewrites moved the score the wrong way. Next: keep the 4095 form and change only the conversion to match the target's branch order (bc1tl with the andi in the delay slot).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794723037.885955,
+  "score_before": 1230,
+  "score_after": 1230
+ },
+ {
+  "function": "func_801513E4",
+  "text": "Machine draft compiles at 4095 (57.3%); the saved 1230 record cannot be reproduced from its source text, so treat 1230 as historical. Confirmed diffs against the target: the target loads the float at D_8011F338+idx*100 and branches with bc1tl (the >=2^31 path ORs in 0x80000000 via lui $v0,0x8000 and or into $a1), not the bc1f shape the draft gives; the first store pair in the target is `lw $v1,($a0)` then `addiu $v0,$v1,8`, so the arg pointer is loaded into $v1 directly (draft reloads via $a2). The row-value word 0x0007C07C is built as `lui ...; ori` in the target, not as a literal 0x7C07C in the second word of the F2 pair. Next: rewrite the float-to-u16 branch to the bc1tl form and copy the store order from the target assembly, then fix the constants.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794735472.671801,
+  "score_before": 1230,
+  "score_after": 1230
+ },
+ {
+  "function": "func_801513E4",
+  "text": "Not matched. Saved best 1230 (historical m2c draft, `void **arg0, s32 arg1`) did not reproduce this session. Variants on this session scored 4095 to 4555: the void*-pointer form with `(u8*)temp+8` and the u32*-form with u16 arg1. Recurring diffs: (1) target starts directly with `lw $v1,($a0)` on the caller slot, while every variant copies arg0 into another register (`move $a2,$a0`), which adds a shift in the register order; (2) target's float >=2^31 path uses `bc1tl` with `lui $v0,0x8000; or $a1,$a1,$v0`, while mine uses `bc1f` and needs a stack frame (`addiu $sp,-8`); (3) the last two display words 0x00094250 and 0x0007C07C are checked against raw 0x0007C07C at diff row 95. Next: keep arg0 unshadowed (use `*arg0` loads inline, not a temp), write the 0x80000000 OR as an explicit `(s32)(f - 2147483648.0f) | 0x80000000` ternary to get bc1tl, and only then reorder the store blocks.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794736494.921111,
+  "score_before": 1230,
+  "score_after": 1230
+ },
+ {
+  "function": "func_801513E4",
+  "text": "No match. Saved best 1230 (m2c form, in brief) remains the baseline. A u16/u32-cursor rewrite scored 4095. Target differences: (1) the float-to-u16 index path needs the target's exact branch shape: `bc1tl` on the `>= 2^31` compare with `lui $v0,0x8000; or $a1,$a1,$v0` in the true arm, and `lui $at,0x4f00; mtc1 $at,$f0` (the 2^31 constant) hoisted before the compare. Our version put the cursor copy (`move $a2,$a0`) first, which the target does not do. (2) Target loads the cursor with `lw $v1,($a0)` and writes `addiu $v0,$v1,8`, so the first command uses $v1 as the cursor and $a2 holds the value after, not the other way round. (3) D_8011F338 indexed as `(arg1&0xFFFF)*0x64` with the `andi $a1,$a1,0xffff` before the shifts. Next: keep the m2c float branch, switch the cursor to a `void *` local, and check the 0x071FF200 / 0x07094250 constants in the target's `lui`+`ori` order.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794754658.1472902,
+  "score_before": 1230,
+  "score_after": 1230
+ },
+ {
+  "function": "func_801513E4",
+  "text": "Not matched. Best at gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1: score 525 (94.5%). The revision here is the -O2 compile of the same source (3675 at project -O2), so compile it with -O1 to reproduce the 525. Source: the m2c draft with D_8016D0C4 declared u8 (target uses lbu), the float-to-int test `if (temp_fv1 <= 2.1474836e9f) var_v0 = (s32)temp_fv1; else var_v0 = (s32)(temp_fv1 - 2.1474836e9f) | 0x80000000;` followed by `var_v0 &= 0xFFFF;` before the table index, store words as ((s32*)p)[0/1] with the m2c constants. Remaining diff at -O1: target loads the first word into v1 and copies with move $a2,$v1 (regalloc only); the branch is bc1tl to the plain-conversion arm while the candidate emits bc1fl. Swapping the arms with '>' gave 1020; writing the compare as 2.147e9 >= temp gave the same 525. Target has no stack frame; the candidate's addiu sp,-8 is from the float subtract arm. Next: try a form that keeps the subtract entirely in the fall-through arm, and compare -O1 vs -O2 again.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794764777.904242,
+  "score_before": 1230,
+  "score_after": 1230
+ },
+ {
+  "function": "func_801513E4",
+  "text": "Not matched. Probably an -O1 function (like func_8015601C). Under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (try_compiler), my best is 780 (91.9%), not a match. The project's -O2 default scores much worse (compile_and_diff recorded 4820 at -O2), so check -O1 with search_flags before tuning.\n\nBest C shape so far (-O1): dl = *arg0; *arg0 = dl + 2; p = dl; dl[0] = 0xFD900000; f = *(f32 *)(D_8011F338 + (arg1 & 0xFFFF) * 100); if (f >= 2.1474836e9f) idx = (s32)(f - 2.1474836e9f) & 0xFFFF; else idx = ((s32)f | 0x80000000) & 0xFFFF; p[1] = D_8016D0B0[D_8016D0C4[idx]]; then the remaining commands 0xF5900000/0x07094250, 0xE6000000/0, 0xF3000000/0x071FF200, 0xE7000000/0, 0xF5880800/0x94250, 0xF2000000/0x7C07C, 0xFA000000/0xF87800FF, each as `dl = *arg0; *arg0 = dl + 2; dl[0]=..; dl[1]=..;`.\n\nRemaining diffs at -O1: (1) the target uses c.le.s with bc1tl to the sub path, and the lui 0x8000 / or sits on the non-subtract path, so the if/else sides may be swapped; (2) ours spills a -8 stack frame (addiu sp,-8) that the target does not have, probably from the f32 local or the float-to-int cast; (3) the p copy (move a2,v1) must stay or the first dl store loses its register.\n\nNext: remove the f32 local (inline the cast load), recheck the frame, then the if-sides.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794766829.785137,
+  "score_before": 1230,
+  "score_after": 1230
+ },
+ {
+  "function": "func_801513E4",
+  "text": "Display list as Gfx records with a float-indexed table lookup: 6280-8075 over about nine variants (store order, conversion forms, table index spellings). The saved best (765, m2c-shape with fences) is far better. Not matched.",
+  "by": "manual-68913573ef2f4091",
+  "created_at": 1795710847.420189,
+  "score_before": 6280,
+  "score_after": 6280,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:82b90188fefdf92d68419d90bdf15a5569d419fcb86fcd7b56afb7986452322c"
  }
 ]
