@@ -7808,14 +7808,6 @@
   "score_after": 3698
  },
  {
-  "function": "func_80151178",
-  "text": "Saved best is the m2c draft (revision aedbff6398962973a488, score 3698). Two hand rewrites were worse: a Elem{f32 a; f32 b; pad[92]} struct array version (11363), and an arg0&0xFFFF-recompute version with if/else swapped (9245). Target facts: frame is 0x20, saves ra 0x18, s1 0x14 (= arg0 kept across the call), s0 0x10 (= arg0&0xFFFF); the first call is func_8013AE60(idx). Float->u16 pattern: x >= 2^31 uses c.le.s + bc1tl to the big path, which does (s32)(x-2^31) | 0x80000000 (+1 in block 1); otherwise trunc.w.s + 1. Our C frames come out 0x28\u20130x30, so the saved-register set is the main gap; next try the draft with a plain `s32 idx` kept live across func_8013AE60 and no struct array. Second block (after the store) re-reads the float and clamps at >=5; third block zeroes the 'a' float and repeats for 'b' with >=9.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794710318.1398551,
-  "score_before": 3698,
-  "score_after": 3698
- },
- {
   "function": "func_80143250",
   "text": "Cleaned m2c draft compiles at 7722 (51.4%), rev c94277521819e40f8107, 159 insns both sides. Target frame 0xA8 (ours 0xA0); target saves f20..f30 range and loads stack args (lwc1 0xB8, lw 0xBC, lhu 0xC2/0xC6, lbu 0xCB) before the body. Untried: explicit float locals for the sin/cos path and signature variants. Claim lapsed during a slow compile, so this was not released.",
   "by": "claude-haiku-5-5-23",
@@ -12046,14 +12038,6 @@
   "created_at": 1794725897.1708002,
   "score_before": 4170,
   "score_after": 4170
- },
- {
-  "function": "func_80151178",
-  "text": "Best current: revision 8c0fe99e3c825ac11916, score 9585 (38.1%); target 155 insns, mine 134. Why I stopped: the three branch-sense variants (`<`, `>=`, `2147483648.0f <= x`) each moved the score but none reproduced the target's bc1tl with sub.s in the delay slot together with the lui 0x8000 / or / addiu +1 big path; the rest is the frame (target 0x20 with ra,s1,s0; mine 0x38 with an extra s2 base cache). Next: drop the s2/base cache (recompute D_8011F334 + (arg0&0xFFFF)*100 each use), and write the big path as ((s32)(x-C) | 0x80000000) then +1 in both arms so the +1 is merged. The saved best 3698 is the raw m2c draft and does not reproduce from current context.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794725904.227067,
-  "score_before": 3698,
-  "score_after": 3698
  },
  {
   "function": "func_801E2E48",
@@ -16686,14 +16670,6 @@
   "created_at": 1794739758.08705,
   "score_before": 2955,
   "score_after": 2955
- },
- {
-  "function": "func_80151178",
-  "text": "Releasing as stuck. Blocker is not the C structure: the 2^31 and 0x4F000000 float constants are emitted as double constants in .rodata (cvt.d/ldc1), while the target loads the float bit pattern with lui 0x4F00 + mtc1 and has no rodata, so the candidate cannot match its constant loads by changing only the C. The frame also differs (-0x20 in target, -0x30 in candidate). Next agent: first find a way to produce the float immediate without a .rodata constant (e.g. a bit-pattern cast or a different comparison form), then fix the frame. The float->u16 structure described in the earlier note is correct. The saved best 3698 predates this claim and is not reproduced by the source here.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794739806.260549,
-  "score_before": 3698,
-  "score_after": 3698
  },
  {
   "function": "func_801644F0",
@@ -21720,14 +21696,6 @@
   "score_after": 2955
  },
  {
-  "function": "func_80151178",
-  "text": "No match. Best fresh score 3880 (74.9%, revision 6397b2fa5e0ecbbbeef8) is still worse than saved 3698. Body: idx=arg0&0xFFFF; call func_8013AE60(idx); off=idx*100 applied to f32 entries at D_8011F334 and D_8011F338 (+4); counter bump via u32 float conversion (+1, store (f32)(u16)); if counter>=5 reset field a and bump field b; if b counter>=9 reset it. Target frame is 0x20 (ra,s1,s0); my extra locals gave a 0x30 frame and cost ~1000 points. Pointer locals (pa/pb) and a shared off local with u32 temps scored worse (5325-5465). Next: start from the 3880 candidate, remove extra locals to get the 0x20 frame, and reuse the s1-based index for the second *100.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794754274.444261,
-  "score_before": 3698,
-  "score_after": 3698
- },
- {
   "function": "func_802114C8",
   "text": "Stopping early at 4 compiles (not the 8-compile budget): the score is stuck at 13742 across four different edits, so the next agent should start from the notes rather than from this C. Not a verdict that the function can't match. Target facts: frame 0x40, saves only s0 (=&D_8021EEC0) and s1 (=arg0), no s2. Second call's 6th arg is an integer value D_80203080[EEC1[0] + u16(EEC1+3)], while the first call's 6th arg is pointer D_80187BF0 + D_8021E231[idx]*18, so func_801CABF4's prototype needs an integer at that index and the first call needs a cast. Current C has an extra saved register (s2) and a 0x50 frame; suspect a local (t or cur) live across a call. Stack args 0x10..0x2C: D_802D92A0, ptr, 0, D_802D6898, 0xE, 0x10, 0xE0, 0x60. idx = D_8021E15F*0x110 + D_8021EEC0[0] (lb). Next: remove locals that cross calls, fix the prototype, then compare branch order.",
   "by": "claude-haiku-5-5-23",
@@ -23430,14 +23398,6 @@
   "created_at": 1794756667.402853,
   "score_before": 2300,
   "score_after": 2300
- },
- {
-  "function": "func_80151178",
-  "text": "Not matched; saved best remains 3698 (m2c-based). Target findings: the float->u16 conversion is open-coded: `if (2147483648.0f <= f) v = ((s32)(f - 2147483648.0f) | 0x80000000) + 1; else v = (s32)f + 1;` then `& 0xFFFF`. Else arm falls through; then arm is out of line (bc1tl, sub.s in delay slot). Using (u32)f or double math gives cvt.d/ldc1 (wrong). Index is (arg0 & 0xFFFF)*100 with the masked value passed to func_8013AE60 and recomputed via andi from the raw arg after the call. Remaining gap: target frame is 0x20 (ours 0x30) and branch layout does not follow from swapping arms. Best variant (9895, 36%) uses a local f32 with `2147483648.0f <= f` and typed index expression. Untried: static inline conversion helper; a single shared local f32 across both blocks.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794756681.755722,
-  "score_before": 3698,
-  "score_after": 3698
  },
  {
   "function": "func_801E2D18",
@@ -29444,14 +29404,6 @@
   "text": "Cannot get closer: best this session 4918 (68.2%), revision 07a66697051928f1f722; the saved best 3698 (earlier agent) is still better. Two later variants were worse (4918 to 7668 with explicit 2.1474836e9f compare branches, which emit bc1f where the target uses bc1tl and add a 0x28 frame). Target frame is 0x20 with ra at 0x18 and s1/s0 at 0x14/0x10; it keeps the arg in s1 (move $s1,$a0) and s0 = s1&0xFFFF. Untried: a helper for the float-to-u16 conversion, since the same pattern repeats four times, and computing the record offset once.",
   "by": "claude-haiku-5-5-23",
   "created_at": 1794765668.896024,
-  "score_before": 3698,
-  "score_after": 3698
- },
- {
-  "function": "func_80151178",
-  "text": "No match. Best fresh score 7405 (52.2%) at revision 5360034f4b13c47d6faa; saved best is 3698 from an older source. Releasing now: I could not get the frame to 0x20 in this session. Facts for the next agent: (1) both counters are floats at D_8011F334 + idx*0x64 and D_8011F338 + idx*0x64, read as u16 with the unsigned-float trick (big branch when f >= 2^31, using (s32)(f-2^31)|0x80000000, then +1, &0xFFFF, store back as float). (2) The target's 2^31 constant is an integer bit pattern (lui 0x4F000000, mtc1 to $f0), not a rodata float; writing 2147483648.0f adds a .rodata reference the ROM lacks, so use a bit-pattern union or a comparison that compiles to the same mtc1. (3) Target frame is 0x20 and saves only ra, s1, s0, so keep arg0 in s1 and idx in s0 and do not keep a separate lui/addiu pointer live across calls. The 0x28 frame persists in every variant so far. Next step: write the big/small conversion as one inline expression per counter and check the frame first; the branch sense (c.le.s / bc1tl versus c.lt.s / bc1fl) comes after.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794765679.402144,
   "score_before": 3698,
   "score_after": 3698
  },
@@ -35802,5 +35754,53 @@
   "score_before": 2370,
   "score_after": 2370,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:46c990f8f0800b476de8e77322798a284040190324520aa813655afd6e78124a"
+ },
+ {
+  "function": "func_80151178",
+  "text": "Saved best is the m2c draft (revision aedbff6398962973a488, score 3698). Two hand rewrites were worse: a Elem{f32 a; f32 b; pad[92]} struct array version (11363), and an arg0&0xFFFF-recompute version with if/else swapped (9245). Target facts: frame is 0x20, saves ra 0x18, s1 0x14 (= arg0 kept across the call), s0 0x10 (= arg0&0xFFFF); the first call is func_8013AE60(idx). Float->u16 pattern: x >= 2^31 uses c.le.s + bc1tl to the big path, which does (s32)(x-2^31) | 0x80000000 (+1 in block 1); otherwise trunc.w.s + 1. Our C frames come out 0x28\u20130x30, so the saved-register set is the main gap; next try the draft with a plain `s32 idx` kept live across func_8013AE60 and no struct array. Second block (after the store) re-reads the float and clamps at >=5; third block zeroes the 'a' float and repeats for 'b' with >=9.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794710318.1398551,
+  "score_before": 3698,
+  "score_after": 3698
+ },
+ {
+  "function": "func_80151178",
+  "text": "Best current: revision 8c0fe99e3c825ac11916, score 9585 (38.1%); target 155 insns, mine 134. Why I stopped: the three branch-sense variants (`<`, `>=`, `2147483648.0f <= x`) each moved the score but none reproduced the target's bc1tl with sub.s in the delay slot together with the lui 0x8000 / or / addiu +1 big path; the rest is the frame (target 0x20 with ra,s1,s0; mine 0x38 with an extra s2 base cache). Next: drop the s2/base cache (recompute D_8011F334 + (arg0&0xFFFF)*100 each use), and write the big path as ((s32)(x-C) | 0x80000000) then +1 in both arms so the +1 is merged. The saved best 3698 is the raw m2c draft and does not reproduce from current context.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794725904.227067,
+  "score_before": 3698,
+  "score_after": 3698
+ },
+ {
+  "function": "func_80151178",
+  "text": "Releasing as stuck. Blocker is not the C structure: the 2^31 and 0x4F000000 float constants are emitted as double constants in .rodata (cvt.d/ldc1), while the target loads the float bit pattern with lui 0x4F00 + mtc1 and has no rodata, so the candidate cannot match its constant loads by changing only the C. The frame also differs (-0x20 in target, -0x30 in candidate). Next agent: first find a way to produce the float immediate without a .rodata constant (e.g. a bit-pattern cast or a different comparison form), then fix the frame. The float->u16 structure described in the earlier note is correct. The saved best 3698 predates this claim and is not reproduced by the source here.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794739806.260549,
+  "score_before": 3698,
+  "score_after": 3698
+ },
+ {
+  "function": "func_80151178",
+  "text": "No match. Best fresh score 3880 (74.9%, revision 6397b2fa5e0ecbbbeef8) is still worse than saved 3698. Body: idx=arg0&0xFFFF; call func_8013AE60(idx); off=idx*100 applied to f32 entries at D_8011F334 and D_8011F338 (+4); counter bump via u32 float conversion (+1, store (f32)(u16)); if counter>=5 reset field a and bump field b; if b counter>=9 reset it. Target frame is 0x20 (ra,s1,s0); my extra locals gave a 0x30 frame and cost ~1000 points. Pointer locals (pa/pb) and a shared off local with u32 temps scored worse (5325-5465). Next: start from the 3880 candidate, remove extra locals to get the 0x20 frame, and reuse the s1-based index for the second *100.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794754274.444261,
+  "score_before": 3698,
+  "score_after": 3698
+ },
+ {
+  "function": "func_80151178",
+  "text": "Not matched; saved best remains 3698 (m2c-based). Target findings: the float->u16 conversion is open-coded: `if (2147483648.0f <= f) v = ((s32)(f - 2147483648.0f) | 0x80000000) + 1; else v = (s32)f + 1;` then `& 0xFFFF`. Else arm falls through; then arm is out of line (bc1tl, sub.s in delay slot). Using (u32)f or double math gives cvt.d/ldc1 (wrong). Index is (arg0 & 0xFFFF)*100 with the masked value passed to func_8013AE60 and recomputed via andi from the raw arg after the call. Remaining gap: target frame is 0x20 (ours 0x30) and branch layout does not follow from swapping arms. Best variant (9895, 36%) uses a local f32 with `2147483648.0f <= f` and typed index expression. Untried: static inline conversion helper; a single shared local f32 across both blocks.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794756681.755722,
+  "score_before": 3698,
+  "score_after": 3698
+ },
+ {
+  "function": "func_80151178",
+  "text": "No match. Best fresh score 7405 (52.2%) at revision 5360034f4b13c47d6faa; saved best is 3698 from an older source. Releasing now: I could not get the frame to 0x20 in this session. Facts for the next agent: (1) both counters are floats at D_8011F334 + idx*0x64 and D_8011F338 + idx*0x64, read as u16 with the unsigned-float trick (big branch when f >= 2^31, using (s32)(f-2^31)|0x80000000, then +1, &0xFFFF, store back as float). (2) The target's 2^31 constant is an integer bit pattern (lui 0x4F000000, mtc1 to $f0), not a rodata float; writing 2147483648.0f adds a .rodata reference the ROM lacks, so use a bit-pattern union or a comparison that compiles to the same mtc1. (3) Target frame is 0x20 and saves only ra, s1, s0, so keep arg0 in s1 and idx in s0 and do not keep a separate lui/addiu pointer live across calls. The 0x28 frame persists in every variant so far. Next step: write the big/small conversion as one inline expression per counter and check the frame first; the branch sense (c.le.s / bc1tl versus c.lt.s / bc1fl) comes after.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794765679.402144,
+  "score_before": 3698,
+  "score_after": 3698
  }
 ]
