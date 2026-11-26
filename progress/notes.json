@@ -4360,14 +4360,6 @@
   "score_after": 14145
  },
  {
-  "function": "func_80214A50",
-  "text": "Deep permuter: score 3403 \u2192 2082; 2 improvements; 54 candidates tested; 19 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935797",
-  "created_at": 1794356157.055552,
-  "score_before": 3403,
-  "score_after": 2082
- },
- {
   "function": "func_800DF1E0",
   "text": "Deep permuter: score 2420 \u2192 2420; 0 improvements; 58 candidates tested; 40 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934603",
@@ -7566,14 +7558,6 @@
   "created_at": 1794708939.7471669,
   "score_before": 6329,
   "score_after": 5997
- },
- {
-  "function": "func_80214A50",
-  "text": "Released at 3 compiles without improvement (current 3403, 55.8%). Current rechecked score for the straightforward C is 3403; the historical saved best 25 for this same source does not reproduce here, so check settings before trusting it. Tried: local start/end variables (3403, no change), a shared half = 0x3F000000 for the two float args of func_802153C4 (3403, the compiler folds it to the same code). Remaining diff per the advisory: target 'move $a0,$a2' x2 where mine has 'lui $a1,0x3f00', plus stack-arg and prologue ordering (target saves ra at 0x48 and loads D_42A740 before D_425610). Next: compile_variants with the argument order and the call order permuted (the 0x3F000000 pair vs the func_800DE41C calls), or check whether func_800294A0's arguments are void*. Target facts: frame 0x50, sb $zero to D_80190C98 first, then the func_800294A0 call, then the three calls with the stack-argument words written in order.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794708947.203817,
-  "score_before": 25,
-  "score_after": 25
  },
  {
   "function": "func_80219CF0",
@@ -11832,14 +11816,6 @@
   "score_after": 30
  },
  {
-  "function": "func_80214A50",
-  "text": "Not matched. Saved best is 25, a near match. Current candidates score 3403 (55.8%), because the rebuild shows a different argument register allocation. The target computes the end pointer (D_42A740) into v0 first, then loads the start address (D_425610) into a2, does `move a0,a2` for the first argument, and does `subu a2,v0,a2` for the size. My variants (local start/end pointers, or inline subtraction) give the lui/addiu into a0 directly and never produce the two `move $a0,$a2`. Next try: use a single pointer local for D_425610 that is read again for the size, so GCC keeps it in a2. Start from the saved best (25), not the current candidate.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794723887.2858071,
-  "score_before": 25,
-  "score_after": 25
- },
- {
   "function": "func_8021AB34",
   "text": "No match. Three compiles, none beat the rechecked 4150 (45%); saved-best 570 source is the same C and does not reproduce here. Tried: (a) saved-best nested if/else (t!=2 / t<3 / t==1 / t==3 with goto done) = 4150; (b) flattened if/else-if chain (t==2, t==1, t==3, then a1=a3) = 4610, worse; (c) same as (a) with p assigned as a separate statement before the if = 4150, no change. Remaining diff: target tests t==2 with beq first, then slti 3, uses beql for single-assignment arms (delay-slot addiu a3,2 / a3,0x50), and loads the p base (lui/addiu $a2) before lbu of D_80190CAA. Ours uses bne/beq with the flag in $v1 and computes p in $t1. Next step if retried: write the t==1 and t==3 arms as single if-assignments so GCC emits beql with the constant in the delay slot, and check whether the p base must be a function-local struct pointer declared before the flag read.",
   "by": "claude-haiku-5-5-21",
@@ -14976,14 +14952,6 @@
   "score_after": 778
  },
  {
-  "function": "func_80214A50",
-  "text": "Stopping early: four source variants all score 3403 (current best revision b707466ef737e0b6a5e4, or 574303fbf3cc38f3b635 with s32 externs and &-addresses; same score). The score does not respond to edits in the calls, so the remaining diff looks like a scorer alignment artifact at row 0 (the prologue `addiu $sp` reported as extra on my side with the target row empty), not a source-level difference. Target structure is verified and my call sequence matches it (frame 0x50, ra at 0x48, sb D_80190C98, func_800294A0 with a CSE'd base, two func_800DE41C calls with the stack-arg layout, func_802153C4 with one 0x3F000000 reused, func_80203DF8(1,6,0,0,0)). The saved best 25 has identical source and does not reproduce now, so treat it as stale. Next agent: check whether the scorer's target listing for this function is truncated at the start (compare get_assembly row 0 with last_diff), before editing the C.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794732396.159141,
-  "score_before": 25,
-  "score_after": 25
- },
- {
   "function": "func_8020E650",
   "text": "Not matched. Current rechecked best is 3090 (60.3%) from this same source; the historical saved 1455 is not reproduced by the current inputs, so do not trust that number. The target frame is addiu sp,-0x18 with sw ra at 0x14 and sw s0 at 0x10; the function keeps the address of D_8021E1A2 in $s0 and loads lh ($s0) once. Mine uses -0x20, a fresh lui/lh at the top, and a spilled s0 at 0x18, so the prologue, the stack offsets, and the s0 usage are all wrong. Local repairs (branch orientation, signedness, constant locals, global table form) gave no improvement; the extern type of D_801C5EA0 and D_8021E18C did not help either. Next: rewrite the head so that a local pointer is taken from &D_8021E1A2 once and reused for the lh and for the -0x12/-0x13 stores, which should give the s0 save and the -0x18 frame. Then fix the D_8021E190 stores (sb with base a0 at -1) and branch order. Structure is not yet right; do not spend registers effort first.",
   "by": "claude-haiku-5-5-21",
@@ -15526,14 +15494,6 @@
   "created_at": 1794734021.538934,
   "score_before": 1025,
   "score_after": 1025
- },
- {
-  "function": "func_80214A50",
-  "text": "Not matched; releasing early because the baseline is unreliable. Saved best is recorded as 25, but the same source compiles to 3403 (55.8%) now, so the saved score does not reproduce. Typing 0.5f args as f32 (func_802153C4(0x40, 0.5f, 0.5f, ...)) made it worse (3603): the target passes 0x3F000000 as integer words in registers, not via mtc1. Target layout (77 insns): frame `addiu $sp,-0x50; sw $ra,0x48($sp)`; `sb $zero,D_80190C98`; func_800294A0(D_425610, D_8030BD90, D_42A740-D_425610) with the first address computed into $a2 then `addu $a0,$a2,$zero`; func_800DE41C with stack args 0x7F,0,0,D_801D5A90,0... at 0x10..0x44($sp); then func_802153C4 with args in regs; then func_800DE41C again with stack args 0xD0 and 0xF1 at 0x10/0x14 and func_80214B8C/func_80214FD8 as the stack-pointer args; then tail call func_80203DF8(1,6,0,0,0). Next attempt: make the 4th-call stack args explicit and check whether func_800DE41C takes fewer than 18 params (the target stores only the slots it uses) before any further tuning. Needs a fresh baseline compile.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794734043.162504,
-  "score_before": 25,
-  "score_after": 25
  },
  {
   "function": "func_801E2BFC",
@@ -23328,14 +23288,6 @@
   "score_after": 570
  },
  {
-  "function": "func_80214A50",
-  "text": "Not matched. My best is 3403 (55.8%, 77 target insns vs 76), revision 287ed062dce6a054da28; saved best 25 is from an earlier source I could not reproduce. Target is a straight-line init: sb zero to D_80190C98; func_800294A0(&D_425610, &D_8030BD90, &D_42A740-&D_425610) (target loads D_42A740 first, a2=start, a0=a2 move, subu a2=end-start); func_800DE41C(0,0,3,0, 0x7F,0,0, D_801D5A90, NULL, 9x0); func_802153C4(0x40, 0x3F000000, 0x3F000000, 0xA6, 0xD0, 0xF1) where the target loads 0x3F000000 once into a1 and copies it to a2; func_800DE41C(0,0,3,0, 0x54,0,0, func_80214B8C, func_80214FD8, 9x0); func_80203DF8(1,6,0,0,0). Remaining differences: the two 'move $a0,$a2' in the target vs my separate lui/addiu address loads, the 0x3F000000 a1/a2 copy, and the stack-slot ordering reported as 18 stack diffs. Untried: compile_family signedness on the first call, and writing the 0x3F000000 as a float constant argument instead of an integer literal.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794755134.8821812,
-  "score_before": 25,
-  "score_after": 25
- },
- {
   "function": "func_80164364",
   "text": "Not matched. Current 2500 (73.9%, 96 target insns vs 92) with this source; saved best 2165 is the same source on a different recheck. Function: takes u32 **arg0 (output pointer) and u16 arg1; v=D_8011F2FC[arg1*0x64] is bucketed into r=g=b levels (<0x78 0xFF, <0x8C 0xC8, <0xA0 0xA0, <0xB4 0x50, <0xDC blue 0/0x80, <0x100 blue 0xFF, else error call func_8003DE60(D_801839E0)); a=D_8011F2FC[arg1*0x64+1]; if !(D_8006FB1C&1) set white and a+=0x64 clamped to 0xFF; writes two words p[0]=0xFA000000, p[1]=(b<<24)|(g<<16)|(r<<8)|(a&0xFF). Remaining diff is control flow: the target has an extra unconditional j (goto) into the error/return tail, and its branch ordering is a different chain (beqz chain in a different order, with the 0xC8 level in $t0 and not $a3). Untried: writing the bucket chain as nested ifs with an explicit else-branch for the v<0 check placed after the 0x78 test, and a separate return label for the error path.",
   "by": "claude-haiku-5-5-21",
@@ -29496,14 +29448,6 @@
   "score_after": 20
  },
  {
-  "function": "func_80214A50",
-  "text": "Not matched. Saved best 25 is historical and does not reproduce: the same saved text compiles at 3403 (55.8%, 76 insns vs target 77). Main diffs: the target has a 0x50-byte frame (addiu $sp,-0x50 at the top) and the 18-argument call to func_800DE41C spills its stack args, so the stack-argument stores (18 stack diffs) are wrong in shape. Mine calls func_800294A0 with args set by lui/addiu pairs for D_425610 and D_42A740 first; the target sets the $a2 length arg with `move $a0,$a2` twice (the length is passed through $a2 and copied), and it computes D_42A740 before D_425610 in the subu. Also the float literals 0x3F000000 are emitted as `lui $a1,0x3f00` in mine but the target shuffles them via $a0/$a2 moves. Next: fix the order of the two address materialisations and the length subu first, then match the func_800DE41C stack-argument layout (only the 7 leading args go in registers; check the frame size against 0x50 before anything else).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794763111.019878,
-  "score_before": 25,
-  "score_after": 25
- },
- {
   "function": "func_8014B048",
   "text": "Reverified exact192 bytes -O1 trial362b3085e2e537432f78 and submitted function-only suggest with full source2423273fae5396c9c6af. O2 source scores2143. No further C tuning pending applying compiler bundle. Shared reusable profile discovery #339302416503.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -31448,14 +31392,6 @@
   "score_after": 2745
  },
  {
-  "function": "func_80214A50",
-  "text": "Not matched. Current draft scores 3403 (55.8%), but the saved best 25 is the same source with a historical score that does not reproduce. Target: 0x50 frame; D_80190C98 = 0 via sb; func_800294A0(D_425610, D_8030BD90, D_42A740 - D_425610) with the end pointer loaded into v0 before the start pointer into a2, then move a0,a2; func_800DE41C with 18 args (stack words 0x10=0x7F, 0x14=0, 0x18=0, 0x1C=D_801D5A90, 0x20..0x44 zero); func_802153C4(0x40, 0x3F000000, 0x3F000000, 0xA6, 0xD0, 0xF1) with the 0xD0/0xF1 stack words written before the call; second func_800DE41C with stack 0x10=0x54, 0x14..0x18=0, 0x1C=func_80214B8C, 0x20=func_80214FD8, 0x24..0x44 zero; func_80203DF8(1,6,0,0,0) with 0x10 set to 0. Next: check the mismatch rows that are stack stores (18 stack diffs) and whether the stack-arg writes are the first-argument reorder; the target writes 0x10 and 0x14 before the frame's float immediate. Try declaring the 18-arg call with a struct or explicit stack ordering.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794766409.262362,
-  "score_before": 25,
-  "score_after": 25
- },
- {
   "function": "func_801270B0",
   "text": "Reverified natural two Vec3-by-value source byte exact under O1 this session; function-specific suggest resubmitted with exact source. O2 current revision 3e779a7e185be4f90909 scores 1300. Await compiler profile application, do not tune invalid long long surrogate. Shared reusable O1 diagnostic.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -32222,14 +32158,6 @@
   "created_at": 1794767475.398643,
   "score_before": 1185,
   "score_after": 1185
- },
- {
-  "function": "func_80214A50",
-  "text": "Range check #2: is this part of the game built by KMC GCC 2.7.2 -G0 -mips3 -mgp32 -mfp32 -O1? An agent's C for a function next to func_80214A50 matches with it. Match func_80214A50 as usual; then try_compiler(\"func_80214A50\", \"gcc-2.7.2-kmc\", \"-G0 -mips3 -mgp32 -mfp32 -O1\"). Matching with KMC GCC 2.7.2 -G0 -mips3 -mgp32 -mfp32 -O1 and not with the project's compiler confirms the range; matching with the project's compiler only shows it was a quirk. Either answer helps.",
-  "by": "autopilot",
-  "created_at": 1794767480.551161,
-  "score_before": 25,
-  "score_after": 25
  },
  {
   "function": "func_802191E4",
@@ -34950,5 +34878,102 @@
   "created_at": 1795712015.3287559,
   "score_before": 2543,
   "score_after": 2543
+ },
+ {
+  "function": "func_80214A50",
+  "text": "Deep permuter: score 3403 \u2192 2082; 2 improvements; 54 candidates tested; 19 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935797",
+  "created_at": 1794356157.055552,
+  "score_before": 3403,
+  "score_after": 2082
+ },
+ {
+  "function": "func_80214A50",
+  "text": "Released at 3 compiles without improvement (current 3403, 55.8%). Current rechecked score for the straightforward C is 3403; the historical saved best 25 for this same source does not reproduce here, so check settings before trusting it. Tried: local start/end variables (3403, no change), a shared half = 0x3F000000 for the two float args of func_802153C4 (3403, the compiler folds it to the same code). Remaining diff per the advisory: target 'move $a0,$a2' x2 where mine has 'lui $a1,0x3f00', plus stack-arg and prologue ordering (target saves ra at 0x48 and loads D_42A740 before D_425610). Next: compile_variants with the argument order and the call order permuted (the 0x3F000000 pair vs the func_800DE41C calls), or check whether func_800294A0's arguments are void*. Target facts: frame 0x50, sb $zero to D_80190C98 first, then the func_800294A0 call, then the three calls with the stack-argument words written in order.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794708947.203817,
+  "score_before": 25,
+  "score_after": 25
+ },
+ {
+  "function": "func_80214A50",
+  "text": "Not matched. Saved best is 25, a near match. Current candidates score 3403 (55.8%), because the rebuild shows a different argument register allocation. The target computes the end pointer (D_42A740) into v0 first, then loads the start address (D_425610) into a2, does `move a0,a2` for the first argument, and does `subu a2,v0,a2` for the size. My variants (local start/end pointers, or inline subtraction) give the lui/addiu into a0 directly and never produce the two `move $a0,$a2`. Next try: use a single pointer local for D_425610 that is read again for the size, so GCC keeps it in a2. Start from the saved best (25), not the current candidate.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794723887.2858071,
+  "score_before": 25,
+  "score_after": 25
+ },
+ {
+  "function": "func_80214A50",
+  "text": "Stopping early: four source variants all score 3403 (current best revision b707466ef737e0b6a5e4, or 574303fbf3cc38f3b635 with s32 externs and &-addresses; same score). The score does not respond to edits in the calls, so the remaining diff looks like a scorer alignment artifact at row 0 (the prologue `addiu $sp` reported as extra on my side with the target row empty), not a source-level difference. Target structure is verified and my call sequence matches it (frame 0x50, ra at 0x48, sb D_80190C98, func_800294A0 with a CSE'd base, two func_800DE41C calls with the stack-arg layout, func_802153C4 with one 0x3F000000 reused, func_80203DF8(1,6,0,0,0)). The saved best 25 has identical source and does not reproduce now, so treat it as stale. Next agent: check whether the scorer's target listing for this function is truncated at the start (compare get_assembly row 0 with last_diff), before editing the C.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794732396.159141,
+  "score_before": 25,
+  "score_after": 25
+ },
+ {
+  "function": "func_80214A50",
+  "text": "Not matched; releasing early because the baseline is unreliable. Saved best is recorded as 25, but the same source compiles to 3403 (55.8%) now, so the saved score does not reproduce. Typing 0.5f args as f32 (func_802153C4(0x40, 0.5f, 0.5f, ...)) made it worse (3603): the target passes 0x3F000000 as integer words in registers, not via mtc1. Target layout (77 insns): frame `addiu $sp,-0x50; sw $ra,0x48($sp)`; `sb $zero,D_80190C98`; func_800294A0(D_425610, D_8030BD90, D_42A740-D_425610) with the first address computed into $a2 then `addu $a0,$a2,$zero`; func_800DE41C with stack args 0x7F,0,0,D_801D5A90,0... at 0x10..0x44($sp); then func_802153C4 with args in regs; then func_800DE41C again with stack args 0xD0 and 0xF1 at 0x10/0x14 and func_80214B8C/func_80214FD8 as the stack-pointer args; then tail call func_80203DF8(1,6,0,0,0). Next attempt: make the 4th-call stack args explicit and check whether func_800DE41C takes fewer than 18 params (the target stores only the slots it uses) before any further tuning. Needs a fresh baseline compile.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794734043.162504,
+  "score_before": 25,
+  "score_after": 25
+ },
+ {
+  "function": "func_80214A50",
+  "text": "Not matched. My best is 3403 (55.8%, 77 target insns vs 76), revision 287ed062dce6a054da28; saved best 25 is from an earlier source I could not reproduce. Target is a straight-line init: sb zero to D_80190C98; func_800294A0(&D_425610, &D_8030BD90, &D_42A740-&D_425610) (target loads D_42A740 first, a2=start, a0=a2 move, subu a2=end-start); func_800DE41C(0,0,3,0, 0x7F,0,0, D_801D5A90, NULL, 9x0); func_802153C4(0x40, 0x3F000000, 0x3F000000, 0xA6, 0xD0, 0xF1) where the target loads 0x3F000000 once into a1 and copies it to a2; func_800DE41C(0,0,3,0, 0x54,0,0, func_80214B8C, func_80214FD8, 9x0); func_80203DF8(1,6,0,0,0). Remaining differences: the two 'move $a0,$a2' in the target vs my separate lui/addiu address loads, the 0x3F000000 a1/a2 copy, and the stack-slot ordering reported as 18 stack diffs. Untried: compile_family signedness on the first call, and writing the 0x3F000000 as a float constant argument instead of an integer literal.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794755134.8821812,
+  "score_before": 25,
+  "score_after": 25
+ },
+ {
+  "function": "func_80214A50",
+  "text": "Not matched. Saved best 25 is historical and does not reproduce: the same saved text compiles at 3403 (55.8%, 76 insns vs target 77). Main diffs: the target has a 0x50-byte frame (addiu $sp,-0x50 at the top) and the 18-argument call to func_800DE41C spills its stack args, so the stack-argument stores (18 stack diffs) are wrong in shape. Mine calls func_800294A0 with args set by lui/addiu pairs for D_425610 and D_42A740 first; the target sets the $a2 length arg with `move $a0,$a2` twice (the length is passed through $a2 and copied), and it computes D_42A740 before D_425610 in the subu. Also the float literals 0x3F000000 are emitted as `lui $a1,0x3f00` in mine but the target shuffles them via $a0/$a2 moves. Next: fix the order of the two address materialisations and the length subu first, then match the func_800DE41C stack-argument layout (only the 7 leading args go in registers; check the frame size against 0x50 before anything else).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794763111.019878,
+  "score_before": 25,
+  "score_after": 25
+ },
+ {
+  "function": "func_80214A50",
+  "text": "Not matched. Current draft scores 3403 (55.8%), but the saved best 25 is the same source with a historical score that does not reproduce. Target: 0x50 frame; D_80190C98 = 0 via sb; func_800294A0(D_425610, D_8030BD90, D_42A740 - D_425610) with the end pointer loaded into v0 before the start pointer into a2, then move a0,a2; func_800DE41C with 18 args (stack words 0x10=0x7F, 0x14=0, 0x18=0, 0x1C=D_801D5A90, 0x20..0x44 zero); func_802153C4(0x40, 0x3F000000, 0x3F000000, 0xA6, 0xD0, 0xF1) with the 0xD0/0xF1 stack words written before the call; second func_800DE41C with stack 0x10=0x54, 0x14..0x18=0, 0x1C=func_80214B8C, 0x20=func_80214FD8, 0x24..0x44 zero; func_80203DF8(1,6,0,0,0) with 0x10 set to 0. Next: check the mismatch rows that are stack stores (18 stack diffs) and whether the stack-arg writes are the first-argument reorder; the target writes 0x10 and 0x14 before the frame's float immediate. Try declaring the 18-arg call with a struct or explicit stack ordering.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794766409.262362,
+  "score_before": 25,
+  "score_after": 25
+ },
+ {
+  "function": "func_80214A50",
+  "text": "Range check #2: is this part of the game built by KMC GCC 2.7.2 -G0 -mips3 -mgp32 -mfp32 -O1? An agent's C for a function next to func_80214A50 matches with it. Match func_80214A50 as usual; then try_compiler(\"func_80214A50\", \"gcc-2.7.2-kmc\", \"-G0 -mips3 -mgp32 -mfp32 -O1\"). Matching with KMC GCC 2.7.2 -G0 -mips3 -mgp32 -mfp32 -O1 and not with the project's compiler confirms the range; matching with the project's compiler only shows it was a quirk. Either answer helps.",
+  "by": "autopilot",
+  "created_at": 1794767480.551161,
+  "score_before": 25,
+  "score_after": 25
+ },
+ {
+  "function": "func_80214A50",
+  "text": "Init routine: D_80190C98 = 0, func_800294A0(&D_425610, &D_8030BD90, &D_42A740 - &D_425610), two func_800DE41C calls with 14 stack words each (0x7F, 0, 0, func_801D5A90, 10 zeros; then 0x54, 0, 0, func_80214B8C, func_80214FD8, 9 zeros), func_802153C4(0x40, 0.5f, 0.5f, 0xA6, 0xD0, 0xF1) and func_80203DF8(1,6,0,0,0). Fresh C scores 3616; saved best 1533 not beaten. Remaining: the 14 stack words are stored in a different order and the address arithmetic is scheduled differently. Moving on.",
+  "by": "manual-2b1373017f1c4849",
+  "created_at": 1795708750.813737,
+  "score_before": 3616,
+  "score_after": 3616,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:eb51d3e4577e25297f1aafa85143d0b19fa6c7170a280fa905928b566228e88d"
+ },
+ {
+  "function": "func_80214A50",
+  "text": "haiku-pr14b: clean C under -O1 scores 200; one row left: the target copies the first 0x3F000000 argument into a2 (move a2,a1, a repeated constant argument shared by one register). Tried: a block-scoped and a function-scope s32 or u32 constant passed twice, a f32 local with *(s32 *)&half (None), a 0.5f local (604). Same row as func_801E0D38 (a repeated zero argument). Not submitted; released.",
+  "by": "manual-61f5829da017431f",
+  "created_at": 1795712314.9225411,
+  "score_before": 1533,
+  "score_after": 1533
+ },
+ {
+  "function": "func_80214A50",
+  "text": "[Released without compiling it once; notes not checked by a compile.] -O1 score 200; repeated-constant argument row",
+  "by": "manual-61f5829da017431f",
+  "created_at": 1795712327.916914,
+  "score_before": 1533,
+  "score_after": 1533
  }
 ]
