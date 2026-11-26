@@ -9016,14 +9016,6 @@
   "score_after": 20252
  },
  {
-  "function": "func_80206BC0",
-  "text": "Not matched. Best: 5136 (76.0%), revision f77e1ed5a4a67f0e6238 (213 vs 214 insns). Structure is right: the four `if (D_8021B0C0 != k)` blocks each choose between `func_801CA494(arg0,0x64,0x64,0x64,0xFF)` and `func_801CA494(arg0,0xFF x4)`, followed by `func_8014A4C8(arg0,0x70,y,z,k)`. Remaining diffs are instruction ordering and register choice around the `addiu $s5,$zero,0xff` constant and the `beq`/`j` branch targets, which shift by 4 bytes. Tried and rejected: ternary `c = cond ? 0x64 : 0xFF` (16546); hoisting `full = 0xFF` into a local everywhere (11416); sharing `full` only in the trailing call (same 5136, no gain). Next: compile_family(family=\"branch_orientation\") on the 76% revision, and try swapping the order of the `0xFF` else-arm and the `0x64` arm (write `!=` as `==` with the arms swapped). Start from f77e1ed5a4a67f0e6238.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794712261.619597,
-  "score_before": 2523,
-  "score_after": 2523
- },
- {
   "function": "func_80206848",
   "text": "Released at the move-on budget. Best rebuilt source is rev 865db46d1de3a2f53426 (7048, 68%). The saved best (6373) is the earlier m2c-with-repairs draft, which has junk (__repair_constant, __repair_rows) and should not be reused as a model. Control flow, decoded from the asm: switch on D_8011F32E[arg0&0xFFFF].f0 (stride 100, u16 at +0). Case 0: if *(D_8011F350[D_8018BC3C].p)==0 set state=1. Case 1: s1=func_8014A870(0x1E,7,0); if s1&1 {func_8014B854(0x3B); B0C0--}; if s1&2 {func_8014B854(0x3B); B0C0++}; B0C0&=3; if s1&0x10 {func_8014B854(0x3D); switch B0C0: 0 -> func_80203DF8(2,6,0,0,0), AFDC=2, B060=4; 1 -> same call, AFDC=AFE0=2, B060=0x2A; 2 -> AFDC=AFE0=2, B060=0x1C; 3 -> AFDC=AFE0=2, B060=0x26; then state=3}; if s1&0x20 {func_8014B854(0x3A); func_80203DF8(2,6,0,0,0); AFDC=2; B060=0; state=3}. Case 3: if deref==0 { func_800DE38C(); func_800DE2E0(); func_80231C5C(); func_801CF468(D_8018BC3C,0,0,0); D_80168BB0=B060 }. Mismatch: target frame is 0x28 and saves only ra, s0, s1; my rebuilt source gets 0x30 with s2 and s3, so the compiler is keeping arg0 and an index in extra registers. In the target, the slot index is recomputed from s0 (andi v0,s0,0xffff; then the sll/addu chain) at every use and the case-0 store is written at the top. Next: try a single `u16 idx` local set from arg0 at the top (then compare frame size first), and check whether the case-1 0x10 block shares the set-state store with the 0x20 block (the target seems to do the sh once after the if-chain, not per case).",
   "by": "claude-haiku-5-5-20",
@@ -13174,14 +13166,6 @@
   "created_at": 1794727338.6037319,
   "score_before": 7225,
   "score_after": 7225
- },
- {
-  "function": "func_80206BC0",
-  "text": "Not matched. Saved best 2523 is from an older attempt whose exact source I could not reproduce from the machine draft text. Recompiling the draft with declared var_a1..var_a3 ladders and &D_ addresses scored 10364 (51.5%); 3 compiles without improvement. Why I stopped: the target frame is 0x68 (ra at 0x60, s5 at 0x5c, s4 at 0x58 ... s0 at 0x48) and mine is 0x60, so the outgoing-argument area differs; the 16-argument func_801CCE7C calls probably need the stack-arg layout, and the target stores 0xFF into an outgoing slot (`sw $s5,0x10($sp)`) before a call. Next steps: (1) fix the frame first by matching the outgoing area size (check the 16-arg call's stack slots 0x10..0x3C); (2) the target keeps 0xFF in $s5 across calls and uses `addiu $s5,$zero,0xff` 17 times, so the 0x64/0xFF choice is probably a shared local, not per-call variables; (3) the target's `move $s4,$a0` keeps arg0 in $s4, not $s0. Compare against find_similar for the func_801CCE7C call shape before rewriting.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794727510.98886,
-  "score_before": 2523,
-  "score_after": 2523
  },
  {
   "function": "func_801F93FC",
@@ -18398,14 +18382,6 @@
   "created_at": 1794740559.2688398,
   "score_before": 4345,
   "score_after": 4345
- },
- {
-  "function": "func_80206BC0",
-  "text": "Best from my trials: 5136 (76%), using explicit if/else blocks. Each `if (D_8021B0C0 != k) func_801CA494(arg0,0x64,0x64,0x64,0xFF) else func_801CA494(arg0,0xFF,0xFF,0xFF,0xFF)` call takes a 5th argument of 0xFF in both branches, and the target keeps 0xFF in $s5 across the function (17 uses). Ternaries for the colour args compile branchless (sltiu/negu) and score 16546, so avoid them. Binding 0xFF to a local `k` and using it everywhere scored 11416, worse; the compiler then hoists move $s4,$a0 and reorders the calls. Still open: reproduce the $s5=0xFF hold without reordering the four jal sites; target calls are func_801CA140, func_801CA494 (5 args, a4 slot at 0x10), func_801CCE7C (two calls, 17 args), func_8014A4C8, func_801CA468. The saved best of 2523 belongs to an earlier source (not mine), so restore it with get_candidate(base=\"saved_best\") before tuning.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794740594.933981,
-  "score_before": 2523,
-  "score_after": 2523
  },
  {
   "function": "func_80232480",
@@ -24384,14 +24360,6 @@
   "score_after": 8348
  },
  {
-  "function": "func_80206BC0",
-  "text": "Not matched. Best saved score 2523 (historical, from the m2c draft with 4-arg func_801CA494 calls; not reverified). My 5-arg version scores 5136 (76%): the 5th stack arg is 0xFF in every func_801CA494 call, so the draft's 4-arg calls are wrong. Remaining diff: the target keeps 0xFF in s5 and stores it at 0x10 before the first 0x78 call, and also keeps 0x40/0x20/0x13F/0xEF in s3..s0 for the two 17-arg func_801CCE7C calls (the frame saves s0..s5, 0x68 bytes). Tried: local s32 ff=0xFF for all 0xFF stack args (9091, worse, reorders everything); ff only on the first call (5136, no change). Untried: hoisting 0x40/0x20/0x13F/0xEF into locals while keeping the 0xFF literals; and the target stores the 0x64/0xFF arg pair in a different order inside each if/else.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794756190.3164532,
-  "score_before": 2523,
-  "score_after": 2523
- },
- {
   "function": "func_8015FEC0",
   "text": "Not matched. Best current candidate ee8db1c13a678a3b7742 scores 3338 (81.3%); saved historical best is 2664 from an uncompiled older draft. Fixes that worked: (1) removed the local decl of func_8013E49C (context.h has 1-arg u16 proto) and cast calls as ((s32 (*)(s32,s32))func_8013E49C)(a,b); (2) func_800DE41C prototype params 16-18 must be f32 (target passes 0.05f constant 0x3D4CCCCD as float stack args kept in $fs0; note the constant is 0.05f, not 0.1f); (3) D_8018D6D6 store is sb (u8 cast). Declaring `f32 kf` and assigning `kf = 0.05f;` right before the do-loop is in the best source. Remaining diffs: target frame is 0x70 with sw $ra at 0x64 and s4..s0 at 0x60..0x50 plus sdc1 $f20 at 0x68; mine is 0x68 (missing 8 bytes of locals, perhaps another f32/double local or larger outgoing area). Target loads 0x55e with signed lh and uses blez; switching temp_v0_3 to s16 alone made it worse (3625) in the earlier state, so retry together with frame change. Target also has a third move $s3,$a0 and andi $s2 ordering; registers differ (s0/s1/s2 roles). Next experiments: add an extra s32/f32 local to reach 0x70 frame; try s16 temp_v0_3 after that.",
   "by": "claude-haiku-5-5-20",
@@ -26638,14 +26606,6 @@
   "created_at": 1794759029.665421,
   "score_before": 280,
   "score_after": 280
- },
- {
-  "function": "func_80206BC0",
-  "text": "Not matched. Best: revision 0427a672b3eb47e48db1, score 8951 (58.1%). Source: the m2c draft with the 0xFF value held in a local `ff` (s32 ff = 0xFF at top), used for the alpha arg of every func_801CA494 call and for the rgb 0xFF branch. The 0x68 frame needs s0..s5 saved; `ff` is what makes gcc keep s5. Tried and worse: swapping the ternary to `if (D == i) ff else 0x64` (10211). Remaining diff: target evaluates `addiu $v0,$zero,0xff` before the branch and stores it to 0x10($sp) in both arms, then uses it as the alpha. Target ordering: `move $s4,$a0` right after the first jal func_801CA140, with s-register saves ordered ra,s5,s4,s3,s2,s1,s0. Next: keep the original `D != i ? 0x64 : ff` orientation (the 0427 version) and try writing the alpha as a separate local (`s32 alpha = 0xFF`) that is set before each branch, and arg0 as a local `s32 base = arg0` to force the s4 copy. Compile-check the func_801CCE7C 17-argument calls, which match the target's 13 stack slots.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794759038.315846,
-  "score_before": 2523,
-  "score_after": 2523
  },
  {
   "function": "func_801580F4",
@@ -34898,5 +34858,45 @@
   "created_at": 1794759822.987378,
   "score_before": 465,
   "score_after": 465
+ },
+ {
+  "function": "func_80206BC0",
+  "text": "Not matched. Best: 5136 (76.0%), revision f77e1ed5a4a67f0e6238 (213 vs 214 insns). Structure is right: the four `if (D_8021B0C0 != k)` blocks each choose between `func_801CA494(arg0,0x64,0x64,0x64,0xFF)` and `func_801CA494(arg0,0xFF x4)`, followed by `func_8014A4C8(arg0,0x70,y,z,k)`. Remaining diffs are instruction ordering and register choice around the `addiu $s5,$zero,0xff` constant and the `beq`/`j` branch targets, which shift by 4 bytes. Tried and rejected: ternary `c = cond ? 0x64 : 0xFF` (16546); hoisting `full = 0xFF` into a local everywhere (11416); sharing `full` only in the trailing call (same 5136, no gain). Next: compile_family(family=\"branch_orientation\") on the 76% revision, and try swapping the order of the `0xFF` else-arm and the `0x64` arm (write `!=` as `==` with the arms swapped). Start from f77e1ed5a4a67f0e6238.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794712261.619597,
+  "score_before": 2523,
+  "score_after": 2523
+ },
+ {
+  "function": "func_80206BC0",
+  "text": "Not matched. Saved best 2523 is from an older attempt whose exact source I could not reproduce from the machine draft text. Recompiling the draft with declared var_a1..var_a3 ladders and &D_ addresses scored 10364 (51.5%); 3 compiles without improvement. Why I stopped: the target frame is 0x68 (ra at 0x60, s5 at 0x5c, s4 at 0x58 ... s0 at 0x48) and mine is 0x60, so the outgoing-argument area differs; the 16-argument func_801CCE7C calls probably need the stack-arg layout, and the target stores 0xFF into an outgoing slot (`sw $s5,0x10($sp)`) before a call. Next steps: (1) fix the frame first by matching the outgoing area size (check the 16-arg call's stack slots 0x10..0x3C); (2) the target keeps 0xFF in $s5 across calls and uses `addiu $s5,$zero,0xff` 17 times, so the 0x64/0xFF choice is probably a shared local, not per-call variables; (3) the target's `move $s4,$a0` keeps arg0 in $s4, not $s0. Compare against find_similar for the func_801CCE7C call shape before rewriting.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794727510.98886,
+  "score_before": 2523,
+  "score_after": 2523
+ },
+ {
+  "function": "func_80206BC0",
+  "text": "Best from my trials: 5136 (76%), using explicit if/else blocks. Each `if (D_8021B0C0 != k) func_801CA494(arg0,0x64,0x64,0x64,0xFF) else func_801CA494(arg0,0xFF,0xFF,0xFF,0xFF)` call takes a 5th argument of 0xFF in both branches, and the target keeps 0xFF in $s5 across the function (17 uses). Ternaries for the colour args compile branchless (sltiu/negu) and score 16546, so avoid them. Binding 0xFF to a local `k` and using it everywhere scored 11416, worse; the compiler then hoists move $s4,$a0 and reorders the calls. Still open: reproduce the $s5=0xFF hold without reordering the four jal sites; target calls are func_801CA140, func_801CA494 (5 args, a4 slot at 0x10), func_801CCE7C (two calls, 17 args), func_8014A4C8, func_801CA468. The saved best of 2523 belongs to an earlier source (not mine), so restore it with get_candidate(base=\"saved_best\") before tuning.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794740594.933981,
+  "score_before": 2523,
+  "score_after": 2523
+ },
+ {
+  "function": "func_80206BC0",
+  "text": "Not matched. Best saved score 2523 (historical, from the m2c draft with 4-arg func_801CA494 calls; not reverified). My 5-arg version scores 5136 (76%): the 5th stack arg is 0xFF in every func_801CA494 call, so the draft's 4-arg calls are wrong. Remaining diff: the target keeps 0xFF in s5 and stores it at 0x10 before the first 0x78 call, and also keeps 0x40/0x20/0x13F/0xEF in s3..s0 for the two 17-arg func_801CCE7C calls (the frame saves s0..s5, 0x68 bytes). Tried: local s32 ff=0xFF for all 0xFF stack args (9091, worse, reorders everything); ff only on the first call (5136, no change). Untried: hoisting 0x40/0x20/0x13F/0xEF into locals while keeping the 0xFF literals; and the target stores the 0x64/0xFF arg pair in a different order inside each if/else.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794756190.3164532,
+  "score_before": 2523,
+  "score_after": 2523
+ },
+ {
+  "function": "func_80206BC0",
+  "text": "Not matched. Best: revision 0427a672b3eb47e48db1, score 8951 (58.1%). Source: the m2c draft with the 0xFF value held in a local `ff` (s32 ff = 0xFF at top), used for the alpha arg of every func_801CA494 call and for the rgb 0xFF branch. The 0x68 frame needs s0..s5 saved; `ff` is what makes gcc keep s5. Tried and worse: swapping the ternary to `if (D == i) ff else 0x64` (10211). Remaining diff: target evaluates `addiu $v0,$zero,0xff` before the branch and stores it to 0x10($sp) in both arms, then uses it as the alpha. Target ordering: `move $s4,$a0` right after the first jal func_801CA140, with s-register saves ordered ra,s5,s4,s3,s2,s1,s0. Next: keep the original `D != i ? 0x64 : ff` orientation (the 0427 version) and try writing the alpha as a separate local (`s32 alpha = 0xFF`) that is set before each branch, and arg0 as a local `s32 base = arg0` to force the s4 copy. Compile-check the func_801CCE7C 17-argument calls, which match the target's 13 stack slots.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794759038.315846,
+  "score_before": 2523,
+  "score_after": 2523
  }
 ]
