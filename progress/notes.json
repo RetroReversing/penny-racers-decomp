@@ -4368,14 +4368,6 @@
   "score_after": 32102
  },
  {
-  "function": "func_80212360",
-  "text": "Deep permuter: score 1913 \u2192 1643; 2 improvements; 41 candidates tested; 5 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935787",
-  "created_at": 1794356182.861131,
-  "score_before": 1913,
-  "score_after": 1643
- },
- {
   "function": "func_800276E0",
   "text": "Deep permuter: score 5030 \u2192 5030; 0 improvements; 108 candidates tested; 0 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934761",
@@ -7262,14 +7254,6 @@
   "created_at": 1794708948.695282,
   "score_before": 2700,
   "score_after": 1936
- },
- {
-  "function": "func_80212360",
-  "text": "Near match: 1913 (77.2%) with the draft in the claim, 84 target insns. Remaining diffs: (1) the frame: target is addiu sp,-0x50 with sw ra,0x48(sp) emitted FIRST, before any global address load; mine saves ra after the address setup, so the sw ra is in the wrong slot position (stack-layout diff x8). Suggests the function has a local whose address is taken or a second call that forces the early ra save. (2) Argument setup for func_800294A0: target computes v0=&D_419270 first, a2=&D_412160, then move a0,a2 and a1=&D_8030BD90, and a2 = v0 - a2 (subu a2,v0,a2); mine loads a0=&D_412160 first. Changing the size expression to a local (s32 size = &D_419270 - src) and using a local src pointer did not change the score (identical instructions). (3) The func_80214204 call guard: target uses bnez/bne chains with the 0x10 test before the 2/6/0x18 tests (bne a0,v0 / bne v1,v0 with a0=1 in the delay). Untried: moving the D_8021B677 store and the D_8021E160 branch order, and an explicit local for D_8021AFDC read once (target loads it once into v0/a0 for all three tests). Note the saved best 590 (historical) is better than this 1913 current draft; compare against get_candidate(base=\"saved_best\").",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794708964.03806,
-  "score_before": 590,
-  "score_after": 590
  },
  {
   "function": "func_80214860",
@@ -11280,14 +11264,6 @@
   "score_after": 1455
  },
  {
-  "function": "func_80212360",
-  "text": "Not matched; releasing early. Saved best (590) is the straightforward source: func_800294A0(&D_412160, &D_8030BD90, &D_419270 - &D_412160); func_80143DCC(); D_8021B677=0; flag/branch block on D_8021AFDC (2/6/0x18 -> func_80214204); D_8021E160 = (D_8021AFDC==0x10); func_80203DF8(1,6,0,0); func_800DE41C(...); func_802153C4(0x40,0xBF000000,0x3F000000,0x96,0x62,0xE2); D_8021B084=0. Current recheck is 1913 (77%). Remaining diff is in the first 10 instructions: target stores $ra at 0x48($sp) first, loads &D_419270 into $v0 before &D_412160 into $a2, does move $a0,$a2 before the subtraction, then loads &D_8030BD90 into $a1. Candidate evaluates D_412160 into $a0 first and stores $ra later. Tried: precomputed s32 length local (no change). Not tried: the target's second sw $ra (suggests a separate save path, possibly a different frame shape), and whether the call's argument order can be forced by an intermediate pointer variable. Would need a different evaluation-order approach, so moving on.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794723949.56295,
-  "score_before": 590,
-  "score_after": 590
- },
- {
   "function": "func_80219CF0",
   "text": "Not matched. Saved best 1770 (76.9%, different source); my clean rewrite scores 1796 (same 76.9%). The logic is confirmed: p = D_8011F2F0 + (u16)arg0*100 (mul by 100 via sll/addu chain); switch on u16 at p+0x3E: case 0 sets D_8021E19E=0, the u16 state to 1, returns; case 1 increments the u8 flag at D_8021E19E, returns if flag<6, else temp=D_8021CA3C[func_801FA30C(p)&1] and the 18-arg func_800DE41C call, then flag=0. Remaining diffs: (a) the target reloads the flag with lbu after the sb (the store-then-reload), ours keeps the value and emits andi; (b) the prologue saves ($ra, $s0) come at the top in the target but are later in ours, because ours only needs s0 in case 1; (c) float reg choice f2 vs f0 for the temp. Attempts that did not help: `*flag += 1` vs `*flag = *flag + 1`, reordering the `>=6` test, and signedness s8 for p (not tried yet). Next try: force the flag address into s0 at function top (`flag = &D_8021E19E;` before the switch) so the s0 save is in the prologue.",
   "by": "claude-haiku-5-5-22",
@@ -14272,14 +14248,6 @@
   "score_after": 670
  },
  {
-  "function": "func_80212360",
-  "text": "Released at move-on budget. Best this session 1913 (~77%); saved best 590 is better, restore with get_candidate(base=saved_best). Overall structure (func_800294A0 call, func_80143DCC, flag stores, func_80203DF8, func_800DE41C, func_802153C4, final store) is right. Remaining diff is the ordering of the first call's arguments: target computes &D_419270 first into $v0, then &D_412160 into $a2, subtracts (subu $a2,$v0,$a2), and moves $a2 into $a0 for the first arg; the sw $ra,0x48 is emitted before the second computation. Tried: length as a local s32 (pointer diff, and (s32) casts) -> no change (1913). Untested: argument-order via temporaries for &D_8030BD90 and the D_8021AFDC load, and the 0x10/0x2/0x6/0x18 test ordering (target loads D_8021AFDC before the first call's arguments in $a0 scheduling).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794732454.110377,
-  "score_before": 590,
-  "score_after": 590
- },
- {
   "function": "func_80149FA8",
   "text": "Best under project flags: 70 (saved baseline). Best overall: score 10 (99.7%, 34/34 instructions identical, only 2 register rows) with flags -G0 -mips3 -mgp32 -mfp32 -O1 on this C:\n\n  extern u8 D_800DA26A; extern u32 D_802030CC;\n  void func_80149FA8(s32 arg0) {\n      s32 i, j; u16 *dst, *src;\n      for (i = 0; i < 0xE; i++) {\n          src = *(u16 **)((u8 *)&D_802030CC + i * 4);\n          j = 0;\n          dst = (u16 *)((u8 *)&D_800DA26A + (0x64 + arg0 * 0x178) + i * 0x12);\n          while (j < 9) { dst[j] = src[j]; j++; }\n      }\n  }\n(trial 2ed4a12e2e82b3d148f7 / e1db620e9c350a4339b8, score 70 under -O1; the same source at -O2 is 2575.)\n\nKey facts: the inner loop must be `j = 0; while (j < 9)` (a for-loop gives bnel/extra moves), the table read stays `*(u16 **)((u8 *)&D_802030CC + i * 4)` with a scalar u32 extern, and the destination keeps the i*0x12 byte term (i*9 on a u16* or a hoisted row base regresses).\nRemaining 2 register rows under -O1: target `addu $v1,$t0,$t1` + `addu $a2,$v0,$v1`, mine `addu $v0,$v0,$t1` + `addu $a2,$t0,$v0` (dst-row base and i*0x12 summed in the other order). Try swapping the operand order of the two adds, e.g. dst = (u16 *)(i * 0x12 + (arg0 * 0x178 + (u32)((u8 *)&D_800DA26A + 0x64))) combined with the while-loop form.\nAlso tried and worse: u8 *dst with *(u16*)(dst+j*2) (2575), base+offset forms (190/430/705), separate row pointer (245/270), arg0*0xBC in u16 units (280), loop_weight/for-loop variants.",
   "by": "api-route-llm-code-1",
@@ -14550,14 +14518,6 @@
   "created_at": 1794733633.838874,
   "score_before": 2461,
   "score_after": 2461
- },
- {
-  "function": "func_80212360",
-  "text": "Saved best 590 (historical, not reverified) is better than the current draft (1913, 77.2%, revision 0a280e33d6c921883eae). Draft: func_800294A0(&D_412160, &D_8030BD90, &D_419270 - &D_412160) then func_80143DCC, D_8021B677=0, the D_8021AFDC==2/6/0x18 block calling func_80214204, D_8021E160 = (D_8021AFDC==0x10), func_80203DF8(1,6,0,0), func_800DE41C(...), func_802153C4(0x40,0xBF000000,0x3F000000,0x96,0x62,0xE2), D_8021B084=0. Diffs: the target renders D_412160 and D_419270 as 0x00412160/0x00419270 (ROM-style addresses, lui %hi of the low value), and it computes the size difference into v0/a2 before the move a0,a2 for the first argument, while mine loads &D_412160 into a0 first. Moving the size into a local (tried) made no change. Also the target puts sw $ra at 0x48 and does the D_8021AFDC loads in a different order. Next step: check whether the saved 590 source used the extern as s32/absolute value; compare that before retrying.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794733642.040529,
-  "score_before": 590,
-  "score_after": 590
  },
  {
   "function": "func_801FA4B0",
@@ -21832,14 +21792,6 @@
   "score_after": 4400
  },
  {
-  "function": "func_80212360",
-  "text": "Not matched; best 1913 (77%, revision ba48fcf3f5d423ca3489; the end/start temp variants 6489f0199c30fe5db4a9 and 6ea463e1187f0240d2d6 scored the same). Saved historical best 590 not reached. Why I stop: the compiler ignores the address-expression rewrites (`&D_419270 - &D_412160` in any form still loads the start pointer into $a0 first). The target has 2 extra instructions that my C does not produce: `move $a0,$a2` (start kept in $a2 and copied) and a second `sw $ra,0x48($sp)` site. Both suggest the real source has an extra value live across the first call or an extra call path; that is the next thing to find (check the second ra save with get_assembly focus=mismatch, and whether D_8021B677 and D_8021AFDC are read before the first call). Frame 0x50 and ra at 0x48 are already right.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794754798.3081841,
-  "score_before": 590,
-  "score_after": 590
- },
- {
   "function": "func_8013E49C",
   "text": "Not attempted in depth; claimed near session end. The m2c draft is unusable as-is: it references undeclared D_8018F5C2 / D_80187BE0 / D_8018D738 (declared as u16 vs u8 arrays inconsistently) and mixes u16 field access with byte-offset macros (stride 124 per node, NEXT at +offset of D_8018D73A, PREV at D_8018D738). Structure to verify against assembly: if D_80189DC2 == 0xFFFF, a list-init path that walks NEXT to the 0xFFFF tail and counts; else append-chain loop. Start by reading get_assembly and rebuilding the field offsets, then compile.",
   "by": "claude-haiku-5-5-20",
@@ -28064,14 +28016,6 @@
   "score_after": 12297
  },
  {
-  "function": "func_80212360",
-  "text": "Stuck at 1913 (77%, historical 590 not reproducing). Tried: original candidate; local `void *base = &D_412160` (same instructions); size computed into a local `s32 size = (s8*)&D_419270 - (s8*)&D_412160` before the call (same instructions). The compiler folds all these into one stream, so the remaining diff is structural: target does `sw $ra,0x48($sp)` twice, takes `bnez $v1` at 0x68 (ours 0x64), and its `bne $a0,$v0` / `bne $v1,$v0` branches are later. Also `addiu $a0,$zero,1` appears in ours but not the target. The branch-orientation family (compile_family) has not been tried; that and a different ordering of the D_8021AFDC tests are the next step. Address-argument ordering is not the blocker.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794764045.2140632,
-  "score_before": 590,
-  "score_after": 590
- },
- {
   "function": "func_801FC9D0",
   "text": "Unmatched; releasing because no variant moves the score. Best saved 4680 came from an earlier source that I could not reproduce; the current source scores 9745 (114 vs 135 insns). Every variant tried scored 9745 with identical diff: (a) else-if form for st==0/st==1, (b) st hoisted to a local, (c) arg0 copied into p, (d) signedness on g, (e) extra unused local. The first displayed row is the arg0 copy (target delay slot `addu $t1,$a0,$zero` after `beqz st`; candidate `move $t0,$a0` at entry), so the copy and branch layout are the first thing to fix. Target facts: idx*100 is built as ((idx*2+idx)*8+idx)*4 and recomputed from arg1 in both branches; the magic divide by 7 uses multu 0x24924925; the display-list body (9 two-word commands through the pointer in t1) matches the arithmetic in the candidate. Untried: -O1 via try_compiler, and writing the st==0 store to reuse the same address as the load. Next step: try_compiler on gcc-kmc -O1 for this function before another source-level pass.",
   "by": "claude-haiku-5-5-21",
@@ -29630,14 +29574,6 @@
   "created_at": 1794766410.815665,
   "score_before": 880,
   "score_after": 880
- },
- {
-  "function": "func_80212360",
-  "text": "Not matched. Saved best 590 (same source as the 1913 candidate; recompiles to 1913, 77.2%). Target frame 0x50, ra saved at 0x48. Target loads &D_419270 into v0 first, then a2=&D_412160, a0=a2 (move), a1=&D_8030BD90, a2=v0-a2: the size arg is computed before the first call argument, and the copies of the call arguments are through a2->a0. My version loads a0=&D_412160 first. Using a local `size` (tried, still 1913) does not change the order. Next: try the call as func_800294A0(&D_412160, ...) with the size expression evaluated via an explicit temp of the pointer difference inside a separate scope, or reorder via a dummy first use of &D_419270. Also the target's second sw $ra (after the first call) suggests a second frame save/restore around func_80203DF8 or func_800DE41C; check the tail with last_diff.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794766417.8753111,
-  "score_before": 590,
-  "score_after": 590
  },
  {
   "function": "func_80219CF0",
@@ -36132,5 +36068,103 @@
   "created_at": 1795714648.864497,
   "score_before": 235,
   "score_after": 235
+ },
+ {
+  "function": "func_80212360",
+  "text": "Deep permuter: score 1913 \u2192 1643; 2 improvements; 41 candidates tested; 5 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935787",
+  "created_at": 1794356182.861131,
+  "score_before": 1913,
+  "score_after": 1643
+ },
+ {
+  "function": "func_80212360",
+  "text": "Near match: 1913 (77.2%) with the draft in the claim, 84 target insns. Remaining diffs: (1) the frame: target is addiu sp,-0x50 with sw ra,0x48(sp) emitted FIRST, before any global address load; mine saves ra after the address setup, so the sw ra is in the wrong slot position (stack-layout diff x8). Suggests the function has a local whose address is taken or a second call that forces the early ra save. (2) Argument setup for func_800294A0: target computes v0=&D_419270 first, a2=&D_412160, then move a0,a2 and a1=&D_8030BD90, and a2 = v0 - a2 (subu a2,v0,a2); mine loads a0=&D_412160 first. Changing the size expression to a local (s32 size = &D_419270 - src) and using a local src pointer did not change the score (identical instructions). (3) The func_80214204 call guard: target uses bnez/bne chains with the 0x10 test before the 2/6/0x18 tests (bne a0,v0 / bne v1,v0 with a0=1 in the delay). Untried: moving the D_8021B677 store and the D_8021E160 branch order, and an explicit local for D_8021AFDC read once (target loads it once into v0/a0 for all three tests). Note the saved best 590 (historical) is better than this 1913 current draft; compare against get_candidate(base=\"saved_best\").",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794708964.03806,
+  "score_before": 590,
+  "score_after": 590
+ },
+ {
+  "function": "func_80212360",
+  "text": "Not matched; releasing early. Saved best (590) is the straightforward source: func_800294A0(&D_412160, &D_8030BD90, &D_419270 - &D_412160); func_80143DCC(); D_8021B677=0; flag/branch block on D_8021AFDC (2/6/0x18 -> func_80214204); D_8021E160 = (D_8021AFDC==0x10); func_80203DF8(1,6,0,0); func_800DE41C(...); func_802153C4(0x40,0xBF000000,0x3F000000,0x96,0x62,0xE2); D_8021B084=0. Current recheck is 1913 (77%). Remaining diff is in the first 10 instructions: target stores $ra at 0x48($sp) first, loads &D_419270 into $v0 before &D_412160 into $a2, does move $a0,$a2 before the subtraction, then loads &D_8030BD90 into $a1. Candidate evaluates D_412160 into $a0 first and stores $ra later. Tried: precomputed s32 length local (no change). Not tried: the target's second sw $ra (suggests a separate save path, possibly a different frame shape), and whether the call's argument order can be forced by an intermediate pointer variable. Would need a different evaluation-order approach, so moving on.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794723949.56295,
+  "score_before": 590,
+  "score_after": 590
+ },
+ {
+  "function": "func_80212360",
+  "text": "Released at move-on budget. Best this session 1913 (~77%); saved best 590 is better, restore with get_candidate(base=saved_best). Overall structure (func_800294A0 call, func_80143DCC, flag stores, func_80203DF8, func_800DE41C, func_802153C4, final store) is right. Remaining diff is the ordering of the first call's arguments: target computes &D_419270 first into $v0, then &D_412160 into $a2, subtracts (subu $a2,$v0,$a2), and moves $a2 into $a0 for the first arg; the sw $ra,0x48 is emitted before the second computation. Tried: length as a local s32 (pointer diff, and (s32) casts) -> no change (1913). Untested: argument-order via temporaries for &D_8030BD90 and the D_8021AFDC load, and the 0x10/0x2/0x6/0x18 test ordering (target loads D_8021AFDC before the first call's arguments in $a0 scheduling).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794732454.110377,
+  "score_before": 590,
+  "score_after": 590
+ },
+ {
+  "function": "func_80212360",
+  "text": "Saved best 590 (historical, not reverified) is better than the current draft (1913, 77.2%, revision 0a280e33d6c921883eae). Draft: func_800294A0(&D_412160, &D_8030BD90, &D_419270 - &D_412160) then func_80143DCC, D_8021B677=0, the D_8021AFDC==2/6/0x18 block calling func_80214204, D_8021E160 = (D_8021AFDC==0x10), func_80203DF8(1,6,0,0), func_800DE41C(...), func_802153C4(0x40,0xBF000000,0x3F000000,0x96,0x62,0xE2), D_8021B084=0. Diffs: the target renders D_412160 and D_419270 as 0x00412160/0x00419270 (ROM-style addresses, lui %hi of the low value), and it computes the size difference into v0/a2 before the move a0,a2 for the first argument, while mine loads &D_412160 into a0 first. Moving the size into a local (tried) made no change. Also the target puts sw $ra at 0x48 and does the D_8021AFDC loads in a different order. Next step: check whether the saved 590 source used the extern as s32/absolute value; compare that before retrying.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794733642.040529,
+  "score_before": 590,
+  "score_after": 590
+ },
+ {
+  "function": "func_80212360",
+  "text": "Not matched; best 1913 (77%, revision ba48fcf3f5d423ca3489; the end/start temp variants 6489f0199c30fe5db4a9 and 6ea463e1187f0240d2d6 scored the same). Saved historical best 590 not reached. Why I stop: the compiler ignores the address-expression rewrites (`&D_419270 - &D_412160` in any form still loads the start pointer into $a0 first). The target has 2 extra instructions that my C does not produce: `move $a0,$a2` (start kept in $a2 and copied) and a second `sw $ra,0x48($sp)` site. Both suggest the real source has an extra value live across the first call or an extra call path; that is the next thing to find (check the second ra save with get_assembly focus=mismatch, and whether D_8021B677 and D_8021AFDC are read before the first call). Frame 0x50 and ra at 0x48 are already right.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794754798.3081841,
+  "score_before": 590,
+  "score_after": 590
+ },
+ {
+  "function": "func_80212360",
+  "text": "Stuck at 1913 (77%, historical 590 not reproducing). Tried: original candidate; local `void *base = &D_412160` (same instructions); size computed into a local `s32 size = (s8*)&D_419270 - (s8*)&D_412160` before the call (same instructions). The compiler folds all these into one stream, so the remaining diff is structural: target does `sw $ra,0x48($sp)` twice, takes `bnez $v1` at 0x68 (ours 0x64), and its `bne $a0,$v0` / `bne $v1,$v0` branches are later. Also `addiu $a0,$zero,1` appears in ours but not the target. The branch-orientation family (compile_family) has not been tried; that and a different ordering of the D_8021AFDC tests are the next step. Address-argument ordering is not the blocker.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794764045.2140632,
+  "score_before": 590,
+  "score_after": 590
+ },
+ {
+  "function": "func_80212360",
+  "text": "Not matched. Saved best 590 (same source as the 1913 candidate; recompiles to 1913, 77.2%). Target frame 0x50, ra saved at 0x48. Target loads &D_419270 into v0 first, then a2=&D_412160, a0=a2 (move), a1=&D_8030BD90, a2=v0-a2: the size arg is computed before the first call argument, and the copies of the call arguments are through a2->a0. My version loads a0=&D_412160 first. Using a local `size` (tried, still 1913) does not change the order. Next: try the call as func_800294A0(&D_412160, ...) with the size expression evaluated via an explicit temp of the pointer difference inside a separate scope, or reorder via a dummy first use of &D_419270. Also the target's second sw $ra (after the first call) suggests a second frame save/restore around func_80203DF8 or func_800DE41C; check the tail with last_diff.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794766417.8753111,
+  "score_before": 590,
+  "score_after": 590
+ },
+ {
+  "function": "func_80212360",
+  "text": "Init routine like func_80214A50: func_800294A0 over the D_412160..D_419270 span, func_80143DCC, two flag stores, a conditional func_80214204 (a0 in 2, 6, 0x18), func_80203DF8(1,6,0,0,0), func_800DE41C with 14 stack words (0x42 ... func_80212500, func_802134EC), func_802153C4(0x40,-0.5f,0.5f,0x96,0x62,0xE2). Fresh C scores 2128; saved best 1393 not beaten. The stack-word stores and the call-argument scheduling differ, as in func_80214A50. Moving on.",
+  "by": "manual-2b1373017f1c4849",
+  "created_at": 1795708853.07829,
+  "score_before": 2128,
+  "score_after": 2128,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:d7ec5fc62335eee310dcd057a85f108a7e178bf9527f8c711fee0a38382a0e54"
+ },
+ {
+  "function": "func_80212360",
+  "text": "haiku-pr29: not matched; best 2128 (saved 1393, 7 attempts). Decoded: func_800294A0(&D_412160, &D_8030BD90, &D_419270 - &D_412160); func_80143DCC(); D_8021B677 = 0; if (D_8021AFDC is 2, 6 or 0x18) { D_8021E15F = 0; func_80214204(); } D_8021E160 = (D_8021AFDC == 0x10); func_80203DF8(1, 6, 0, 0, 0); func_800DE41C(0,0,3,0,0x42,0,0,func_80212500,func_802134EC, 0 x9); func_802153C4(0x40, 0xBF000000, 0x3F000000, 0x96, 0x62, 0xE2) (float constants as bits in integer registers); D_8021B084 = 0. Remaining rows: the target computes the end address (&D_419270) before the start and moves the start from $a2 to $a0; the start pointer lui order and the sw $ra placement did not follow with address locals or array externs.",
+  "by": "manual-f6353e03c8044c64",
+  "created_at": 1795715695.1981702,
+  "score_before": 1353,
+  "score_after": 1353
+ },
+ {
+  "function": "func_80212360",
+  "text": "[Released without compiling it once; notes not checked by a compile.] best 2128 vs saved 1393; see note",
+  "by": "manual-f6353e03c8044c64",
+  "created_at": 1795715700.561051,
+  "score_before": 1353,
+  "score_after": 1353
+ },
+ {
+  "function": "func_80212360",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 955 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (10 of its 12 nearest matched neighbours were built with it), the saved C scores 1393 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721101.325195,
+  "score_before": 1393,
+  "score_after": 955,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:d7ec5fc62335eee310dcd057a85f108a7e178bf9527f8c711fee0a38382a0e54"
  }
 ]
