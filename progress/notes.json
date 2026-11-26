@@ -7480,14 +7480,6 @@
   "score_after": 8516
  },
  {
-  "function": "func_80127870",
-  "text": "Not matched. Best saved is 3405 (saved_best, m2c draft). Best of my tries: 5095 (current revision a0dd8df87911d8ded699), which loads ta=a[i], tb=b[i], tc=c[i] into locals per component. Macro versions were 6770/6805, worse.\nVerified structure per component i (a=arg0, b=arg1, c=arg2, mn=arg3 $a3, mx=arg4 at 0x10($sp)):\n  if (a<b) { if (c<a) {mn=c; mx=b;} else {mn=a; mx=(b<c)?c:b;} }\n  else     { if (c<b) {mn=c; mx=a;} else {mn=b; mx=(a<c)?c:a;} }\nOffsets 0/4/8, unrolled x3, no loop.\nRemaining mismatch: target shares tail blocks: after the `mn` store on the c<a / c<b paths it jumps to a common `mx` store (`j .L80127930`-style), and uses `bc1tl` with the store in the delay slot. My C compiles each path separately, so the instruction count is off (110 vs 144). The draft's goto labels (block_12, block_25, block_38) are the right shape; restore them and fix the operand loads ($fv0 from b first, c last).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794710733.932101,
-  "score_before": 3405,
-  "score_after": 3405
- },
- {
   "function": "func_80134688",
   "text": "Not matched. Best this session 6990 (51.4%), revision 708c86b33d4f6580d166. Semantics are right per asm: D_80189C96 = func_800DE41C(0,0,3,0, 0x80,0xFF,0, &D_801CE928, &D_801CEC2C, then 9 zero stack slots) (18 args total, 14 stack slots 0x10..0x44); then ENT(idx)=&D_801D59B2 where ENT(i)=*(u8**)(D_8011F350 + i*100) with idx reloaded from D_80189C96 at each store (target reloads the whole index chain each time); D_801D59B2=0; ENT.s16[2]=0x46, s16[4]=0, u8[6..8]=0xFF, u8[9]=0xC8, s16[0xA]=0x6E, s16[0xC]= (s16 D_800DB1B8+0x2108 == 1 ? 0xDB : 0x75), s16[0xE]=0x64, s16[0x10]=5. Remaining diff: frame. Target frame is 0x50 (ra at 0x48, outgoing args 0x10..0x44), mine is 0x58, so my build reserves 8 extra bytes; check the 18-arg prototype and whether the callee takes a0..a3 as in the target (target sets a0=a1=a3=0, a2=3). Also the target stores the slot values in a different order (0x10=0x80 first, then 0x14=0xFF, 0x18..0x44 zeros). Next: try the 18-arg prototype with u16 return, and an explicit `s32` cast on the two pointer args.",
   "by": "claude-haiku-5-5-20",
@@ -11230,14 +11222,6 @@
   "created_at": 1794726770.079596,
   "score_before": 4905,
   "score_after": 4905
- },
- {
-  "function": "func_80127870",
-  "text": "Not matched. Target is 144 insns (3 unrolled blocks at offsets 0/4/8, each ~48 insns, arg4 on stack loaded to $v0). Control flow semantics are verified correct for the median/min-max logic: block = if (A<B){ if(C<A){lo=C;hi=B;} else {lo=A; hi = (B<C)?C:B;} } else { if(C<B){lo=C;hi=A;} else {lo=B; hi=(A<C)?C:A;} }. Remaining gap is codegen: target uses bc1f with nop delay slots (6 per function) where my versions use bc1fl (4); target loads B ($a1) before A ($a0) in the first compare and keeps lw $v0,0x10($sp) at function entry, while mine sinks it into a delay slot. Tried: candidate in the claim (6770), local-repair variant 2 (6045, best of the batch: flips to A>=C test), macro-array version with f32* params (6770, 119 insns vs 144), and b[i]>a[i] load-order variant (7125, worse). Source-level reordering of comparisons did not fix the instruction count gap of ~25; the extra instructions likely come from a different expression shape (perhaps separate per-block temporaries or a non-macro form). Next: try expression forms that produce the bc1f+nop layout (non-bc1fl), i.e. then-blocks that are two statements, and check search_flags for -O1 scheduling.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794726781.289372,
-  "score_before": 3365,
-  "score_after": 3365
  },
  {
   "function": "func_80133F54",
@@ -17600,14 +17584,6 @@
   "score_after": 3581
  },
  {
-  "function": "func_80127870",
-  "text": "576-byte, 144-instruction min/max-of-3-components over f32 arrays (args a0..a3 pointers + 5th pointer at 0x10(sp)). Three identical 48-instruction blocks, one per component; each block is: if (a<b) { if (c<a) {mn=c; mx=b;} else {mn=a; if (b<c) mx=c; else mx=b;} } else { if (c<b) {mn=c; mx=a;} else {mn=b; if (a<c) mx=c; else mx=a;} }.\n\nConfirmed by reading the whole target. Tried this session: (1) ternary for the inner max -> 8460 (gcc cross-jumped, 109 insns, target 144); (2) explicit if/else stores with f32* params -> 6770 (119 insns). Inherited saved_best (m2c void*+char* casts with the same structure) is 3365 and remains the best.\n\nKey remaining lead, not yet tested: the target reloads b[k] with a fresh lwc1 after each store to mn (e.g. swc1 $f0,($a3) then lwc1 $f0,($a1)), which means the original source dereferenced the pointers directly (no cached locals) and gcc could not keep b live across the mn store because mn may alias b. My f32*-parameter macro version did not emit those reloads, so the reload/CSE behaviour is the discriminating factor. Also the target loads b before a at block start (lwc1 $f0,($a1) then lwc1 $f2,($a0)) and hoists lw $v0,0x10($sp) to instruction 0, while my version loaded a first and hoisted the stack arg later \u2014 a scheduling/operand-order difference that follows from the source form.\n\nSuggested next step: keep the exact if/else structure but write every read as a direct array dereference through void*/char* casts (saved_best style) rather than f32* indexing, and try the first comparison written as b[k] > a[k] to get the b-then-a load order.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794749934.172184,
-  "score_before": 3365,
-  "score_after": 3365
- },
- {
   "function": "func_80211094",
   "text": "Not matched. Best cleaned rewrite scored 25005 (7%, 225 vs 269 insns); candidate revision 8fc9f56b89a90868c407. Mismatches: (1) target prologue saves ra, s1, s0 with arg0 kept in s1 before the call func_8014A870(0x14, 3, D_8021E15F); my version schedules these differently. (2) Case-32 loop address chain: D_8021F270 + D_8021E15F*0xE0 + i*0x10 + j*2 and D_8021F048 + D_8021E15F*0xE + i are computed in a different order in the target. (3) The D_8021E231/D_80187BF0 store in the flag tail needs the index chain D_8021E231[D_8021E15F*0x110 + EEC0[0]]*0x12 + EEC2*2 matched exactly. Next: restart from the m2c draft structure, match the prologue and the func_8014A870 call first, then block_9, then case 32.",
   "by": "claude-haiku-5-5-22",
@@ -19944,14 +19920,6 @@
   "score_after": 60
  },
  {
-  "function": "func_80127870",
-  "text": "Not matched. Why release now: the first two compiles were 12205 (loop) and 13935 (3-block macro), both far from the 144-insn target, and the difference is instruction ordering and register choice in an unrolled block, which the next compile can't fix by one edit. Keep the median-of-three logic in the notes above. Next agent: first confirm the stack-argument layout (arg4 at 0x10($sp) loaded first), then write one block for offset 0 only and compare the first 48 instructions before replicating the other two components.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794754678.889318,
-  "score_before": 3365,
-  "score_after": 3365
- },
- {
   "function": "func_80206770",
   "text": "Not matched; saved best 420 is from an earlier source, my best rewrite scores 1258 (73.7%, 48 insns target). Straight-line code: call func_800294A0(&D_3EA210, &D_8030BD90, &D_3EACF0 - &D_3EA210), func_80143DCC(), func_80203D58(), func_80203DF8(1,6,0,0,0), then func_800DE41C(0,0,3,0, 0x40,0,0, func_80206848, func_80206BC0, 0 x9). Frame 0x50 with sw ra at 0x48. Remaining diff: the target does sw ra right after addiu sp, before the lui/addiu address setup; mine places sw ra after the first four lui/addiu. The first-call register order (v0=end, a2=start, a0=a2 move) is also off. Untried: writing the first call with the start pointer in $a0 by an explicit move, or moving the sw ra into the first statement via a local whose address is taken.",
   "by": "claude-haiku-5-5-21",
@@ -21912,14 +21880,6 @@
   "score_after": 740
  },
  {
-  "function": "func_80127870",
-  "text": "Best 3425 (76.2%, revision 43cf646f93f0; saved historical best 3365 from a different source, not recovered). branch_orientation family tried (4 variants, all worse: 4015 to 8390), so flipping individual conditions is not the fix. The draft's top level is probably wrong: per axis (offsets 0,4,8) it is a min/mid/max of arg0/arg1/arg2 writing arg3 and arg4, with a goto (block_12/block_25/block_38) that GCC does not reproduce. Next: rewrite each axis as a clean three-way select with the same stores, and derive the arg3/arg4 meaning (min vs max) from get_assembly store targets before touching branch shape.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794758283.235616,
-  "score_before": 3365,
-  "score_after": 3365
- },
- {
   "function": "func_801669D0",
   "text": "Best so far 9216 (63.4%), same as saved. Target: 0x80 frame, saves s0-s5, sdc1 $f20/$f22 at 0x70/0x78; arg0 stays in s4 with no copy. Mine: 0x90 frame, arg0 copied to s5/s6, extra s6/s7/fp, so reg pressure is the main gap. Facts worked out: loop stride s3*0x8F0 on D_8022A772 (u16 key), D_8022ACD0 (u16 flags, &0x68 skip, |=8 on hit), D_8022AED0 (f32 += 30000.0f); D_8011F3xx f32 arrays indexed by key*0x64; D_8018D6C4 entries are 0x7C stride, stores arg0 (first call) and s0+&D_8022A770 (loop); 0x55E s16 decrement if >0; the 8013E818 zero-arg call uses sw $zero (integer), while 0x10=200.0f, 0x14=D_8011F320[key*0x64] in the loop-success call. First 800DE41C call has stack 0x20 and then 0 for all slots (integer). Control: 8013E364 result; if &0xFFFF==0xFFFF return; a1=800DE41C; if (u16)(a1+2)<2 call func_8013E49C(s2,a1) and return (shared header declares it with one arg, so call through a cast pointer). Next: try a version where arg0 is kept in one stable local and the loop index is a plain s32 without the s0 temp; check -O1 (search_flags) since the register/stack layout looks scheduling-heavy; the 0x80 frame with fs0/fs1 spill suggests the two float constants 200.0f/30000.0f are held live across the calls.",
   "by": "claude-haiku-5-5-20",
@@ -22742,14 +22702,6 @@
   "created_at": 1794759243.7385411,
   "score_before": 2005,
   "score_after": 2005
- },
- {
-  "function": "func_80127870",
-  "text": "Vec3 component-wise min/mid over arg0,arg1,arg2 into arg3 (min) and arg4 (mid), 3 components at offsets 0,4,8. Best score 3365 (saved, different source). My clean rewrite (ef46317bf345cd6f8ee1, score 7190, 105 insns vs 144) has the right per-component comparison tree, but the target re-loads arg1/arg0 fresh each comparison (lwc1 $f0,($a1) x10, lwc1 4($a1) x10, lwc1 8($a1) x10) and uses branch-likely bc1tl/bc1fl x3 each, which my version lacks. Also arg4 is the fifth argument at 0x10($sp) (lw $v0,0x10($sp) first). Next step: make the loads volatile-free but per-use (e.g. read *(f32*)(arg1+off) inline in each compare rather than into locals), and check whether the bc1*l forms come from `if (x) {...}` with no else. Stopped after 3 non-improving attempts.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794759261.791297,
-  "score_before": 3365,
-  "score_after": 3365
  },
  {
   "function": "func_80214B8C",
@@ -27534,14 +27486,6 @@
   "created_at": 1794767886.078723,
   "score_before": 2534,
   "score_after": 2534
- },
- {
-  "function": "func_80127870",
-  "text": "Function is a per-component min/max of three f32 vectors: a=arg0, b=arg1, c=arg2, lo=arg3, hi=arg4 (5th arg, read from 0x10(sp)); three components at offsets 0,4,8. Per component: if a<b { if c<a {lo=c; hi=b} else {lo=a; hi = (b<c)?c:b} } else { if c<b {lo=c; hi=a} else {lo=b; hi=(a<c)?c:a} }. The clean if/else version (revision da4265533b06b65406c1) scores 6770 (52.9%): target is 144 insns vs mine 119, with branch-likely stores (bc1fl/bc1tl with the store in the delay slot), and the target loads and stores the components in a different order. The inherited saved_best (3365) draft is a different, messier version with goto and undefined temp_fv1_7; it does not compile as-is. Next: try the ternary/temp form that keeps hi computed via a float temp, and examine last_diff to confirm the store order.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794767886.132705,
-  "score_before": 3365,
-  "score_after": 3365
  },
  {
   "function": "func_8012913C",
@@ -39095,5 +39039,69 @@
   "created_at": 1795716838.9030771,
   "score_before": 595,
   "score_after": 595
+ },
+ {
+  "function": "func_80127870",
+  "text": "Not matched. Best saved is 3405 (saved_best, m2c draft). Best of my tries: 5095 (current revision a0dd8df87911d8ded699), which loads ta=a[i], tb=b[i], tc=c[i] into locals per component. Macro versions were 6770/6805, worse.\nVerified structure per component i (a=arg0, b=arg1, c=arg2, mn=arg3 $a3, mx=arg4 at 0x10($sp)):\n  if (a<b) { if (c<a) {mn=c; mx=b;} else {mn=a; mx=(b<c)?c:b;} }\n  else     { if (c<b) {mn=c; mx=a;} else {mn=b; mx=(a<c)?c:a;} }\nOffsets 0/4/8, unrolled x3, no loop.\nRemaining mismatch: target shares tail blocks: after the `mn` store on the c<a / c<b paths it jumps to a common `mx` store (`j .L80127930`-style), and uses `bc1tl` with the store in the delay slot. My C compiles each path separately, so the instruction count is off (110 vs 144). The draft's goto labels (block_12, block_25, block_38) are the right shape; restore them and fix the operand loads ($fv0 from b first, c last).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794710733.932101,
+  "score_before": 3405,
+  "score_after": 3405
+ },
+ {
+  "function": "func_80127870",
+  "text": "Not matched. Target is 144 insns (3 unrolled blocks at offsets 0/4/8, each ~48 insns, arg4 on stack loaded to $v0). Control flow semantics are verified correct for the median/min-max logic: block = if (A<B){ if(C<A){lo=C;hi=B;} else {lo=A; hi = (B<C)?C:B;} } else { if(C<B){lo=C;hi=A;} else {lo=B; hi=(A<C)?C:A;} }. Remaining gap is codegen: target uses bc1f with nop delay slots (6 per function) where my versions use bc1fl (4); target loads B ($a1) before A ($a0) in the first compare and keeps lw $v0,0x10($sp) at function entry, while mine sinks it into a delay slot. Tried: candidate in the claim (6770), local-repair variant 2 (6045, best of the batch: flips to A>=C test), macro-array version with f32* params (6770, 119 insns vs 144), and b[i]>a[i] load-order variant (7125, worse). Source-level reordering of comparisons did not fix the instruction count gap of ~25; the extra instructions likely come from a different expression shape (perhaps separate per-block temporaries or a non-macro form). Next: try expression forms that produce the bc1f+nop layout (non-bc1fl), i.e. then-blocks that are two statements, and check search_flags for -O1 scheduling.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794726781.289372,
+  "score_before": 3365,
+  "score_after": 3365
+ },
+ {
+  "function": "func_80127870",
+  "text": "576-byte, 144-instruction min/max-of-3-components over f32 arrays (args a0..a3 pointers + 5th pointer at 0x10(sp)). Three identical 48-instruction blocks, one per component; each block is: if (a<b) { if (c<a) {mn=c; mx=b;} else {mn=a; if (b<c) mx=c; else mx=b;} } else { if (c<b) {mn=c; mx=a;} else {mn=b; if (a<c) mx=c; else mx=a;} }.\n\nConfirmed by reading the whole target. Tried this session: (1) ternary for the inner max -> 8460 (gcc cross-jumped, 109 insns, target 144); (2) explicit if/else stores with f32* params -> 6770 (119 insns). Inherited saved_best (m2c void*+char* casts with the same structure) is 3365 and remains the best.\n\nKey remaining lead, not yet tested: the target reloads b[k] with a fresh lwc1 after each store to mn (e.g. swc1 $f0,($a3) then lwc1 $f0,($a1)), which means the original source dereferenced the pointers directly (no cached locals) and gcc could not keep b live across the mn store because mn may alias b. My f32*-parameter macro version did not emit those reloads, so the reload/CSE behaviour is the discriminating factor. Also the target loads b before a at block start (lwc1 $f0,($a1) then lwc1 $f2,($a0)) and hoists lw $v0,0x10($sp) to instruction 0, while my version loaded a first and hoisted the stack arg later \u2014 a scheduling/operand-order difference that follows from the source form.\n\nSuggested next step: keep the exact if/else structure but write every read as a direct array dereference through void*/char* casts (saved_best style) rather than f32* indexing, and try the first comparison written as b[k] > a[k] to get the b-then-a load order.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794749934.172184,
+  "score_before": 3365,
+  "score_after": 3365
+ },
+ {
+  "function": "func_80127870",
+  "text": "Not matched. Why release now: the first two compiles were 12205 (loop) and 13935 (3-block macro), both far from the 144-insn target, and the difference is instruction ordering and register choice in an unrolled block, which the next compile can't fix by one edit. Keep the median-of-three logic in the notes above. Next agent: first confirm the stack-argument layout (arg4 at 0x10($sp) loaded first), then write one block for offset 0 only and compare the first 48 instructions before replicating the other two components.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794754678.889318,
+  "score_before": 3365,
+  "score_after": 3365
+ },
+ {
+  "function": "func_80127870",
+  "text": "Best 3425 (76.2%, revision 43cf646f93f0; saved historical best 3365 from a different source, not recovered). branch_orientation family tried (4 variants, all worse: 4015 to 8390), so flipping individual conditions is not the fix. The draft's top level is probably wrong: per axis (offsets 0,4,8) it is a min/mid/max of arg0/arg1/arg2 writing arg3 and arg4, with a goto (block_12/block_25/block_38) that GCC does not reproduce. Next: rewrite each axis as a clean three-way select with the same stores, and derive the arg3/arg4 meaning (min vs max) from get_assembly store targets before touching branch shape.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794758283.235616,
+  "score_before": 3365,
+  "score_after": 3365
+ },
+ {
+  "function": "func_80127870",
+  "text": "Vec3 component-wise min/mid over arg0,arg1,arg2 into arg3 (min) and arg4 (mid), 3 components at offsets 0,4,8. Best score 3365 (saved, different source). My clean rewrite (ef46317bf345cd6f8ee1, score 7190, 105 insns vs 144) has the right per-component comparison tree, but the target re-loads arg1/arg0 fresh each comparison (lwc1 $f0,($a1) x10, lwc1 4($a1) x10, lwc1 8($a1) x10) and uses branch-likely bc1tl/bc1fl x3 each, which my version lacks. Also arg4 is the fifth argument at 0x10($sp) (lw $v0,0x10($sp) first). Next step: make the loads volatile-free but per-use (e.g. read *(f32*)(arg1+off) inline in each compare rather than into locals), and check whether the bc1*l forms come from `if (x) {...}` with no else. Stopped after 3 non-improving attempts.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794759261.791297,
+  "score_before": 3365,
+  "score_after": 3365
+ },
+ {
+  "function": "func_80127870",
+  "text": "Function is a per-component min/max of three f32 vectors: a=arg0, b=arg1, c=arg2, lo=arg3, hi=arg4 (5th arg, read from 0x10(sp)); three components at offsets 0,4,8. Per component: if a<b { if c<a {lo=c; hi=b} else {lo=a; hi = (b<c)?c:b} } else { if c<b {lo=c; hi=a} else {lo=b; hi=(a<c)?c:a} }. The clean if/else version (revision da4265533b06b65406c1) scores 6770 (52.9%): target is 144 insns vs mine 119, with branch-likely stores (bc1fl/bc1tl with the store in the delay slot), and the target loads and stores the components in a different order. The inherited saved_best (3365) draft is a different, messier version with goto and undefined temp_fv1_7; it does not compile as-is. Next: try the ternary/temp form that keeps hi computed via a float temp, and examine last_diff to confirm the store order.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794767886.132705,
+  "score_before": 3365,
+  "score_after": 3365
+ },
+ {
+  "function": "func_80127870",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr10 (Haiku 5.5): saved best 500 (O2; O1 1485). The diff is one missing block: the target loads the third component's pointer (lwc1 from arg1 + 8 and the + 0 and + 4 reloads) where the best branches on arg4 (if (arg4) ... else ...: identical arms that the compiler keeps as a branch). The identical-arm branches are the scaffolding that holds the 500; removing them: 660 to 1165 (O2), 1475 to 1765 (O1). A readable rewrite (not finished, 12290) was not pursued. Judged about 9 attempts; not a match. Open: the target's branch shape for the three-component min/max with a tie-break is a permuter gap (the arms of an if on a pointer). Note: a pointer-null test on arg4 is the one the best keeps as an identical arm.",
+  "by": "manual-497803c65e684d1b",
+  "created_at": 1795711369.969146,
+  "score_before": 500,
+  "score_after": 500
  }
 ]
