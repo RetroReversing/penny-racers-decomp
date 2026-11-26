@@ -36413,5 +36413,71 @@
   "created_at": 1795726351.854701,
   "score_before": 1050,
   "score_after": 1050
+ },
+ {
+  "function": "func_80222988",
+  "text": "haiku-pr4 (Haiku): best 625 (90.0%), submitted via setup.try, kept as the recorded best. Source: c/p1.c. Found: (1) the loop table stride is 2288 bytes = a1*0x478 in s16 units, not a1*0x23c (1144 bytes); (2) hoisting the 0xFFFF compare into a local set before the if (var_k) gives $a3 for the constant, and moving var_a1=0 / var_k inside the if-block orders move/ori like the target (685 -> 625). Still differing: the tail. Target reads lbu 0x5F2 once into $a1 for the true arm and re-reads it in the else arm; ours folds the else read into the first one and adds an andi from the (u8) union cast; the lw 0x59C is scheduled before the table load. Tried, worse or equal: for-loop form (4505, strength-reduces a1*8 to a step of 8), do-while form (4320), union member u8 (1510), tail via a u8 local (830, 1020), dropping the (u8) cast in the index only (720), (char) cast removal on the else read alone (985), swapped comparison (625, same), var_k as u16 (625, same). Released after about 25 judged attempts with progress, not matched.",
+  "by": "manual-54a1fc31d75d4d19",
+  "created_at": 1795707335.21876,
+  "score_before": 1875,
+  "score_after": 625,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:ee18446b22836bd85f985c6173f21c41a3117e3dda47fad7c1041cf3a3d5acab"
+ },
+ {
+  "function": "func_80222988",
+  "text": "Tried the loop stride, constant hoist, statement order and tail cast variants (best 625 recorded, see the note). The tail re-read in the else arm is what remains; each tail rewrite scored worse, so moving on after about 25 judged attempts.",
+  "by": "manual-54a1fc31d75d4d19",
+  "created_at": 1795707342.49781,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:ee18446b22836bd85f985c6173f21c41a3117e3dda47fad7c1041cf3a3d5acab"
+ },
+ {
+  "function": "func_80222988",
+  "text": "Haiku clean rewrite (session haiku-pr17), 8 judged candidates. Per-arm update routine: u8 flag at +0x778 returns early; loop i < 7 over a 2288-byte u16 table at D_8022A772 (skip 0xFFFF and the entry equal to the u16 at +2), multiply the f32 at +0x5B4 + 8i by +0x5A4; then k = u8 at +0x5F2, and an s32 comparison from D_8022AD0C + 2288k against +0x59C picks a 0.5 factor for the f32 at +0x5B8 + 8k. Best clean: /tmp/dd-haiku-pr17/work/g2/e3.c scores 2415 at the app profile; saved best 625. The offset as off = i << 3 with the table index ((off + i) * 16 - i) * 16 matched the target's sll/addu/subu/sll shape (5260 -> 2415). Remaining: the target re-builds the table address each iteration (lui/addu/lhu %lo) where ours keeps a hoisted pointer, and the loop bottom in the target is a bnel with the sll in its delay slot. Repair idea: a loop-offset family that keeps the table address unhoisted.",
+  "by": "manual-3be4557e41ac4704",
+  "created_at": 1795713123.56781,
+  "score_before": 625,
+  "score_after": 625
+ },
+ {
+  "function": "func_80222988",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Clean update best 2415 (saved 625). Released after 8 judged candidates.",
+  "by": "manual-3be4557e41ac4704",
+  "created_at": 1795713123.896658,
+  "score_before": 625,
+  "score_after": 625
+ },
+ {
+  "function": "func_80222988",
+  "text": "Small-model attempt at func_80222988: 12 tries.\n  best 575 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 600 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1870 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 3925 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 4425 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 575 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 1376c04bf63574ae380e (not applied).\n12 tries, no match. Best 575 under -O1 (profile 1), 625 saved own. Clean rewrite with table offsets held in a local (temp_off = a1*0x8F0) cut the score most (1095->790). Left: loop back-edge is bnez not bnel, lw 0x59c hoisted before lbu (target loads it later), register allocation of a1/a2 swapped, and the 0x3f80 constant load order after the tail.",
+  "by": "manual-491a18b87946461b",
+  "created_at": 1795725269.657242,
+  "score_before": 625,
+  "score_after": 625
+ },
+ {
+  "function": "func_80222988",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80222988: 12 tries.\n  best 575 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 600 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1870 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 3925 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 4425 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 575 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 1376c04bf63574ae380e (not applied).\n12 tries, no match. Best 575 under -O1 (profile 1), 625 saved own. Clean rewrite with table offsets held in a local (temp_off = a1*0x8F0) cut the score most (1095->790). Left: loop back-edge is bnez not bnel, lw 0x59c hoisted before lbu (target loads it later), register allocation of a1/a2 swapped, and the 0x3f80 constant load order after the tail.",
+  "by": "manual-491a18b87946461b",
+  "created_at": 1795725270.0615559,
+  "score_before": 625,
+  "score_after": 625
+ },
+ {
+  "function": "func_80222988",
+  "text": "Small-model attempt at func_80222988: 14 tries.\n  best 25 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 845 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1340 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 2685 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3925 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 25 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 2c429c1e25f615704d91 (not applied).\nBest 25 under gcc-2.7.2-kmc -O1 (own 625 unchanged). Gains: compare as limit > table; load ft0 after the (1-x) product in both branches; 0.5 scale on the if branch; remaining diff is 2 float regalloc (mul result in f0 vs f2) in the else and 0.5 paths. Tried: limit loaded before index (610-1025), 0.5 outermost or pre-scaled a (worse), swapping else multiply order (55).",
+  "by": "manual-0f9c444efaae4342",
+  "created_at": 1795726605.197737,
+  "score_before": 625,
+  "score_after": 625
+ },
+ {
+  "function": "func_80222988",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80222988: 14 tries.\n  best 25 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 845 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1340 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 2685 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3925 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 25 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 2c429c1e25f615704d91 (not applied).\nBest 25 under gcc-2.7.2-kmc -O1 (own 625 unchanged). Gains: compare as limit > table; load ft0 after the (1-x) product in both branches; 0.5 scale on the if branch; remaining diff is 2 float regalloc (mul result in f0 vs f2) in the else and 0.5 paths. Tried: limit loaded before index (610-1025), 0.5 outermost or pre-scaled a (worse), swapping else multiply order (55).",
+  "by": "manual-0f9c444efaae4342",
+  "created_at": 1795726606.678248,
+  "score_before": 625,
+  "score_after": 625
  }
 ]
