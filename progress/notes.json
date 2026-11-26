@@ -7352,14 +7352,6 @@
   "score_after": 450
  },
  {
-  "function": "func_8013E818",
-  "text": "Best 2300 (71.2%), revision e3bad4fd651cd79498e9. Changes that helped: arg6 is u16 (lhu $t1,0x32($sp)); keep (arg & 0xFFFF) masks on arg0/arg1; the loop stores `*(s8*)(s0+0x67)=0` (no index) and `*(s8*)(s0+0x60)=i` / `*(s8*)(s0+0x60+i)=-1`. Worse: u16 arg0/arg1 (2920), i-indexed loop stores (2920). Remaining diffs: target computes t0 = D_8011F2F0 + (a1*100) early (addu t0,v1,t0 after the shift sequence), so the stores use t0 at 0x8..0x2; ours recomputes the base as a separate lui/addiu/addu and stores via v1; the target's prologue saves ra/s0 before the lwc1 of the stack args; move $v1,$zero (loop index) placed after the stores in ours but before in target. Next: express the loop index as a separate s32 and compute t0 with the shift-add chain (a1*2+a1)*8+a1)*4 to match the mul-by-100 sequence.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794709211.2888021,
-  "score_before": 2495,
-  "score_after": 2300
- },
- {
   "function": "func_8013B704",
   "text": "func_8013B704 (400 B), no C written yet. Structure read from asm: (Gfx-like **dl in a0 saved to a3, idx = (u16)a1). Stride 100 table D_8011F2F0 (u8); if byte == D_80126FF6 then a0 = D_8018A264[idx] (u8), and if a0 == 1 emit 4 display-list words via *dl (E7000000/0, B6000000/a0, B900031D/00504340). Then a switch on u16 D_8011F32E[idx*100] - 0xB, range 0..0x22, via jump table at D_80183198 (the decompile failed: 'Unable to determine jump table'). Each case sets (a0,a2,v1) as constants (0xFF/0xFF/0, 0xFF/0xFF/0xFF, 0/0xFF/0x96, 0xC8/0xC8/0xFF..., default 0x64/0x64/0x64); then emits FA000000 with a0<<24|a2<<16|v1<<8, and ORs in the byte D_8011F2FC[idx*100] into word 1. Next step: read_data at D_80183198 to recover the case mapping, then write a switch. Not attempted further this session.",
   "by": "claude-haiku-5-5-23",
@@ -11408,14 +11400,6 @@
   "score_after": 4111
  },
  {
-  "function": "func_8013E818",
-  "text": "Best 3450 (56.8%), no match after 4 compiles this claim; no improvement from local rewrites. Structure correct: off=(arg1&0xFFFF)*100 -> t0=&D_8011F2F0+off, D_8011F350+off stores s0=&D_8018D6C0+(arg0&0xFFFF)*0x7C; field stores; func_8012913C(D_80233EC0, t0[0x18], t0[0x1C], t0[0x20]); 7-iteration loop, i*0x8F0 into D_8022A772 (u16 != 0xFFFF) and D_8022AD5C (f32 > 0.0). Remaining diffs are not C-level changes so far: (1) prologue order \u2014 target saves $ra then $s0 (sw $ra at 0x14, sw $s0 at 0x10) before the arg loads, mine saves s0 only; (2) target loop keeps a1 = s0+i as a loop-carried pointer (addu in bnez delay slot) and uses it for the 0x67 and true-branch stores, while the else store uses s0+i computed in the beq delay slot; my variants (a1 local, v0 local, s0+i everywhere) all compile to the same code; (3) target recomputes lui/addiu for D_8022A772 and D_8022AD5C separately per use, mine shares a0; (4) arg6 (lhu from 0x32(sp)) goes to t1 in target, t0 in mine. Untried: compile_family signedness and the arg6 type (u16 vs s32) for the regalloc; the prologue ordering may need a different arg declaration order. Restart from revision e639e8d43123360c2089 or a4d62e8e68f9f7e112b5 (same score).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794724260.956404,
-  "score_before": 1795,
-  "score_after": 1795
- },
- {
   "function": "func_8013F050",
   "text": "No match. Best rechecked 3485 (64.0%) with the m2c-style source (x,y,z loaded from D_8011F308 + (arg0&0xFFFF)*100 with +4/+8; loop i<7 over arg1+i [0x60] != -1; j = u16 D_8022A772[i*0x8F0]*100; dx/dy/dz; dist = sqrtf(...); if dist < arg1 f32 +0x70 and arg1[i+0x67]==0 then set 1 and return 1). Saved best 848 does not reproduce from this same source. Target facts: frame 0x40, saves ra,s0-s3 and fs0-fs2 (x,y,z kept in three f regs across sqrtf); loop at bottom with slti; sqrt.s with c.eq.s NaN check then jal sqrtf. Ours: frame 0x58, extra saves and different register use. A compact rewrite of the distance expression (3rd attempt) scored 5909, worse. Next step: keep x,y,z as f32 locals (they must be live across the sqrt call), drop dx/dy/dz temporaries, and reduce the locals so the frame drops to 0x40; then work on the loop shape (test at bottom).",
   "by": "claude-haiku-5-5-21",
@@ -15112,14 +15096,6 @@
   "score_after": 1315
  },
  {
-  "function": "func_8013E818",
-  "text": "Not matched. Best 3590 (55%), revision 6546ff6590094fcef3cd. Target: t0=&D_8011F2F0+arg1*100; s0=&D_8018D6C0+arg0*124; D_8011F350[arg1*100]=s0; t0 halfwords +8,+6,+4,+2 = arg2; s0+8=arg3, +0xC/+0x10 = arg4/arg5 floats (stack args 0x28/0x2C), +0x14 = arg6 (u16 at 0x32(sp)), +0x16=0; s0+0x20=(s16)func_8012913C(D_80233EC0, t0+0x18, t0+0x1C, t0+0x20); +0x22=0, +0x1D=0, +0x1E=0, +0x70=0; loop j<7: s0[0x67+j]=0; if (u16 D_8022A772+j*2288 != 0xFFFF && 0.0f < f32 D_8022AD5C+j*2288) s0[0x60+j]=j else -1. Remaining diff: target saves ra and s0 (frame 0x18) because the struct base stays live across the call; ours has no frame. Next: keep the base in a local live across func_8012913C and compute t0 after the store.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794735739.571091,
-  "score_before": 1795,
-  "score_after": 1795
- },
- {
   "function": "func_80231130",
   "text": "Best 2225 (80.4%), revision f92bd100205ac2713560 (same as 67c1979074feee5f4c0d). Key wins: (1) inner loop j=0..6 uses `idx = off + j*8;` then stores at (u8*)&D_800DA260 + idx + 0x28 / + 0x2C (2863 -> 2410); (2) `u8 *base = (u8*)&D_800DA260;` used only for func_80025DBC(base + off) (2410 -> 2225). Remaining: target saves ra first (sw ra,0x1c) then s2,s1,s0 and computes off = (u16)s1*376 as andi/sll/addu/sll4/subu/sll3; mine saves s2 before ra and computes base lui/addiu inside loop. Moving `s1 = 0` after base init made it worse (2415).\n\nBest 2225 (80.4%), revision 67c1979074feee5f4c0d. Wins: inner loop uses idx = off + j*8 and stores at (u8*)&D_800DA260 + idx + 0x28/+0x2C (2863 -> 2410); base = (u8*)&D_800DA260 used only for func_80025DBC(base + off) (2410 -> 2225). Remaining diffs: target saves ra first (sw ra,0x1c), then s2,s1,s0 (frame 0x20); mine saves s2 before ra. Target computes off as andi/sll/addu/sll4/subu/sll3 from s1 with s2 hoisted once before the loop; mine recomputes the base in the loop. Tried: s1=0 after base init (2415, worse); off=(u16)s1*0x178 (no change). Next: try making the base available only after the first loop (or two bases), to change the save order and hoisting.",
   "by": "claude-haiku-5-5-24",
@@ -15158,14 +15134,6 @@
   "created_at": 1794735802.7847419,
   "score_before": 3947,
   "score_after": 3947
- },
- {
-  "function": "func_8013E818",
-  "text": "Best still 3590 (55.1%). Tried: local `off = arg1*100` shared between t0 and the D_8011F350 store (no change); `j*2288` in the loop written as `> 0.0f` (no change). Prologue is right: args a0/a1 andi'd, *100 and *124 via shift/add, floats and arg6 come from stack 0x28/0x2C/0x32. Remaining diff: target keeps the loop index as shifts of j each iteration (sll 3/addu/sll 4/subu/sll 4 + lui/addu for D_8022A772), and the candidate strength-reduces to pointer-add `addiu $a1,$a1,0x8f0`. Next idea: make the loop read the two tables via explicit per-iteration base pointers computed from j, or try compile_family(signedness). Frame: target saves $ra and $s0 at 0x14/0x10 of an 0x18 frame; candidate does not.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794735881.4721432,
-  "score_before": 1795,
-  "score_after": 1795
  },
  {
   "function": "func_8014A79C",
@@ -15520,14 +15488,6 @@
   "score_after": 848
  },
  {
-  "function": "func_8013E818",
-  "text": "Best score 3280 (59%); two variants this session did not change it. Tried: a u32 `off = (u16)arg1*100` shared by the D_8011F2F0 and D_8011F350 accesses, and (u16) casts on arg0. Neither moved the score.\n\nTarget facts (verified this session):\n- Frame 0x18, saves ra and s0. arg0 and arg1 are andi'd to 16 bits. arg1*100 is sll1/addu/sll3/addu/sll2. arg0*124 is sll5/subu/sll2. The D_8011F350 store is lui %hi + addu $at + sw %lo, sharing the offset with t0.\n- Loop over j (0..6): j*2288 is built as sll3, addu, sll4, subu, sll4 (143*16*j). Mine instead strength-reduces to addiu 0x8f0 pointer steps. Keep the j index and avoid pointer-increment forms; the loop body needs `s0[j+0x67]=0` (sb at 0x67(a1), a1=s0+j), the f0 test on D_8022A772 (lhu %lo), and the float test `0.0f < *(f32*)(D_8022AD5C + j*2288)` (lwc1 with lui %hi at $at).\n- Branch shape: beq on f0 == 0xFFFF to a shared store of -1; otherwise a bc1fl that skips the store of j, with the store of -1 in the delay slot.\n- The epilogue restores ra and s0 and returns with addiu sp in the jr delay slot.\n\nNext step: compile the loop alone (index j in a separate helper, or the j*2288 written as a single pointer offset) and check whether the stride chain and the strength reduction are the difference. Registers are last.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794736975.449093,
-  "score_before": 1795,
-  "score_after": 1795
- },
- {
   "function": "func_8019A31C",
   "text": "func_8019A31C: 119-insn target; the machine draft (saved best 1530, revision 429a50861fe0b3118f8b; the fresh compile of the same source gave 4760) is a nested if on D_801C7068 (0/0x17, 1, 0x16, else) and D_801C6BB9 (0/0x17, 1, 0x16, else) returning 0..15, else func_8019A4F8(). Target reloads D_801C7AB0 and D_801C7068/D_801C6BB9 once per case (about 9 lui/lb pairs for each global), so the compiler does not CSE the globals across branches; the target also tests the D_801C7AB0[1]==5 check first with the call in the else. Failed: flattened per-case re-reads with call first (9305), so the call must stay in the else. Next idea: keep the 16-case nesting but write each sub-case's read of D_801C7068 directly in its own condition (one read per case), and check the else-call placement and the r&0xFF return order.",
   "by": "claude-haiku-5-5-22",
@@ -15846,14 +15806,6 @@
   "created_at": 1794738732.264008,
   "score_before": 30,
   "score_after": 30
- },
- {
-  "function": "func_8013E818",
-  "text": "Best 3280 (59%) from the first candidate (revision d98e3218c24196351d20). Tried typed Ent100/Ent124 struct pointers for t0/s0: 3470, worse. Control flow of the loop and both bc1fl / sb -1 paths already match. Remaining diffs: target masks arg0/arg1 with andi 0xFFFF and computes arg1*100 as ((a*2+a)<<3 + a)<<2, arg0*124 as ((a<<5)-a)<<2; the loop stride j*2288 is computed as ((j*8+j)*16-j)*16 and the compiler emits addiu $a1,0x8f0 instead. Next: express the loop stride as byte offsets from D_8022A772 and D_8022AD5C, and rewrite the first half with the same shift sequence.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794738742.063524,
-  "score_before": 1795,
-  "score_after": 1795
  },
  {
   "function": "func_80135C64",
@@ -28808,14 +28760,6 @@
   "score_after": 7356
  },
  {
-  "function": "func_8013E818",
-  "text": "Best candidate: revision d98e3218c24196351d20, score 3280 (source as submitted). Target: frame 0x18, saves ra at 0x14 and s0 at 0x10 before any work; args arg4/arg5 are f32 read from 0x28/0x2C(sp) and arg6 from 0x32(sp) (lhu $t1). t0 = D_8011F2F0 + 100*(arg1&0xFFFF) via ((v*2+v)*8+v)*4; s0 = D_8018D6C0 + 124*(arg0&0xFFFF) via (v*32 - v)*4. The loop over j: sb 0 at 0x67+j, then D_8022A772 stride 2288 (143*j*16), compare f0 with 0xFFFF (beq to else), then compare D_8022AD5C+2288*j float with 0.0 (bc1fl). Candidate differs first in the prologue: it does not place sw ra/s0 at the top, and the saved-register order differs. Tried: (arg1&0xFFFF)*100 and (arg0&0xFFFF)*124 masks in the address math: no change (3280). Untried: restructure the prologue by reading f32 stack args into locals first; try the j loop as a do-while with the else store hoisted.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794764979.360938,
-  "score_before": 1795,
-  "score_after": 1795
- },
- {
   "function": "func_8013B704",
   "text": "Not matched. Saved best 1720 is still the best; this session's best was 3910 (revision 31c25f6db0458af261e4), which is worse. Fixes: the switch needs a jump table for the case values 0..3 (the 4..0x22 range is the default), and the saved best and m2c draft are the right starting points. Remaining mismatches are register choice and branch shape: target does `move $t0,$a1` first, `andi $v0,$t0,0xffff`, then `move $a3,$a0` to hold pkt, and loads D_8018A264 through $a0 with addu of $v1 (the c==1 check branches via `bne $a0,$v0`). The unconditional 0xFA packet store uses `lw $v1,($a3)`. Untried: take the arg1 copy as a separate u16 local so gcc keeps it in $t0, and write the c==1 block as a compare against the loaded byte instead of a stored variable.",
   "by": "claude-haiku-5-5-23",
@@ -30022,14 +29966,6 @@
   "created_at": 1794766982.23204,
   "score_before": 2017,
   "score_after": 2017
- },
- {
-  "function": "func_8013E818",
-  "text": "Release: no closer structure found this session. Best rev d98e3218c24196351d20 (3280, 59%). Tried: loading arg4/arg5/arg6 into locals first (rev 51fa2035260e0642f441, 3590, worse) and using a raw D_8022A772 byte base with j*2288 (same). The loop structure and the prologue are right; what remains is register allocation for the j loop (target: s0 = out struct, a1 = s0+j, $v1 = j, mtc1 zero into $f2 before the loop, ori a3 0xFFFF and addiu a2 -1 hoisted before the loop) and the branch form (beq/bc1fl with sb in the delay slot). Next: hoist the -1 and 0xFFFF constants to locals declared before the loop, and compare against a u16 local copy of the table element.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794767005.477638,
-  "score_before": 1795,
-  "score_after": 1795
  },
  {
   "function": "func_8013F050",
@@ -36056,5 +35992,85 @@
   "created_at": 1795713061.330949,
   "score_before": 610,
   "score_after": 610
+ },
+ {
+  "function": "func_8013E818",
+  "text": "Best 2300 (71.2%), revision e3bad4fd651cd79498e9. Changes that helped: arg6 is u16 (lhu $t1,0x32($sp)); keep (arg & 0xFFFF) masks on arg0/arg1; the loop stores `*(s8*)(s0+0x67)=0` (no index) and `*(s8*)(s0+0x60)=i` / `*(s8*)(s0+0x60+i)=-1`. Worse: u16 arg0/arg1 (2920), i-indexed loop stores (2920). Remaining diffs: target computes t0 = D_8011F2F0 + (a1*100) early (addu t0,v1,t0 after the shift sequence), so the stores use t0 at 0x8..0x2; ours recomputes the base as a separate lui/addiu/addu and stores via v1; the target's prologue saves ra/s0 before the lwc1 of the stack args; move $v1,$zero (loop index) placed after the stores in ours but before in target. Next: express the loop index as a separate s32 and compute t0 with the shift-add chain (a1*2+a1)*8+a1)*4 to match the mul-by-100 sequence.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794709211.2888021,
+  "score_before": 2495,
+  "score_after": 2300
+ },
+ {
+  "function": "func_8013E818",
+  "text": "Best 3450 (56.8%), no match after 4 compiles this claim; no improvement from local rewrites. Structure correct: off=(arg1&0xFFFF)*100 -> t0=&D_8011F2F0+off, D_8011F350+off stores s0=&D_8018D6C0+(arg0&0xFFFF)*0x7C; field stores; func_8012913C(D_80233EC0, t0[0x18], t0[0x1C], t0[0x20]); 7-iteration loop, i*0x8F0 into D_8022A772 (u16 != 0xFFFF) and D_8022AD5C (f32 > 0.0). Remaining diffs are not C-level changes so far: (1) prologue order \u2014 target saves $ra then $s0 (sw $ra at 0x14, sw $s0 at 0x10) before the arg loads, mine saves s0 only; (2) target loop keeps a1 = s0+i as a loop-carried pointer (addu in bnez delay slot) and uses it for the 0x67 and true-branch stores, while the else store uses s0+i computed in the beq delay slot; my variants (a1 local, v0 local, s0+i everywhere) all compile to the same code; (3) target recomputes lui/addiu for D_8022A772 and D_8022AD5C separately per use, mine shares a0; (4) arg6 (lhu from 0x32(sp)) goes to t1 in target, t0 in mine. Untried: compile_family signedness and the arg6 type (u16 vs s32) for the regalloc; the prologue ordering may need a different arg declaration order. Restart from revision e639e8d43123360c2089 or a4d62e8e68f9f7e112b5 (same score).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794724260.956404,
+  "score_before": 1795,
+  "score_after": 1795
+ },
+ {
+  "function": "func_8013E818",
+  "text": "Not matched. Best 3590 (55%), revision 6546ff6590094fcef3cd. Target: t0=&D_8011F2F0+arg1*100; s0=&D_8018D6C0+arg0*124; D_8011F350[arg1*100]=s0; t0 halfwords +8,+6,+4,+2 = arg2; s0+8=arg3, +0xC/+0x10 = arg4/arg5 floats (stack args 0x28/0x2C), +0x14 = arg6 (u16 at 0x32(sp)), +0x16=0; s0+0x20=(s16)func_8012913C(D_80233EC0, t0+0x18, t0+0x1C, t0+0x20); +0x22=0, +0x1D=0, +0x1E=0, +0x70=0; loop j<7: s0[0x67+j]=0; if (u16 D_8022A772+j*2288 != 0xFFFF && 0.0f < f32 D_8022AD5C+j*2288) s0[0x60+j]=j else -1. Remaining diff: target saves ra and s0 (frame 0x18) because the struct base stays live across the call; ours has no frame. Next: keep the base in a local live across func_8012913C and compute t0 after the store.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794735739.571091,
+  "score_before": 1795,
+  "score_after": 1795
+ },
+ {
+  "function": "func_8013E818",
+  "text": "Best still 3590 (55.1%). Tried: local `off = arg1*100` shared between t0 and the D_8011F350 store (no change); `j*2288` in the loop written as `> 0.0f` (no change). Prologue is right: args a0/a1 andi'd, *100 and *124 via shift/add, floats and arg6 come from stack 0x28/0x2C/0x32. Remaining diff: target keeps the loop index as shifts of j each iteration (sll 3/addu/sll 4/subu/sll 4 + lui/addu for D_8022A772), and the candidate strength-reduces to pointer-add `addiu $a1,$a1,0x8f0`. Next idea: make the loop read the two tables via explicit per-iteration base pointers computed from j, or try compile_family(signedness). Frame: target saves $ra and $s0 at 0x14/0x10 of an 0x18 frame; candidate does not.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794735881.4721432,
+  "score_before": 1795,
+  "score_after": 1795
+ },
+ {
+  "function": "func_8013E818",
+  "text": "Best score 3280 (59%); two variants this session did not change it. Tried: a u32 `off = (u16)arg1*100` shared by the D_8011F2F0 and D_8011F350 accesses, and (u16) casts on arg0. Neither moved the score.\n\nTarget facts (verified this session):\n- Frame 0x18, saves ra and s0. arg0 and arg1 are andi'd to 16 bits. arg1*100 is sll1/addu/sll3/addu/sll2. arg0*124 is sll5/subu/sll2. The D_8011F350 store is lui %hi + addu $at + sw %lo, sharing the offset with t0.\n- Loop over j (0..6): j*2288 is built as sll3, addu, sll4, subu, sll4 (143*16*j). Mine instead strength-reduces to addiu 0x8f0 pointer steps. Keep the j index and avoid pointer-increment forms; the loop body needs `s0[j+0x67]=0` (sb at 0x67(a1), a1=s0+j), the f0 test on D_8022A772 (lhu %lo), and the float test `0.0f < *(f32*)(D_8022AD5C + j*2288)` (lwc1 with lui %hi at $at).\n- Branch shape: beq on f0 == 0xFFFF to a shared store of -1; otherwise a bc1fl that skips the store of j, with the store of -1 in the delay slot.\n- The epilogue restores ra and s0 and returns with addiu sp in the jr delay slot.\n\nNext step: compile the loop alone (index j in a separate helper, or the j*2288 written as a single pointer offset) and check whether the stride chain and the strength reduction are the difference. Registers are last.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794736975.449093,
+  "score_before": 1795,
+  "score_after": 1795
+ },
+ {
+  "function": "func_8013E818",
+  "text": "Best 3280 (59%) from the first candidate (revision d98e3218c24196351d20). Tried typed Ent100/Ent124 struct pointers for t0/s0: 3470, worse. Control flow of the loop and both bc1fl / sb -1 paths already match. Remaining diffs: target masks arg0/arg1 with andi 0xFFFF and computes arg1*100 as ((a*2+a)<<3 + a)<<2, arg0*124 as ((a<<5)-a)<<2; the loop stride j*2288 is computed as ((j*8+j)*16-j)*16 and the compiler emits addiu $a1,0x8f0 instead. Next: express the loop stride as byte offsets from D_8022A772 and D_8022AD5C, and rewrite the first half with the same shift sequence.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794738742.063524,
+  "score_before": 1795,
+  "score_after": 1795
+ },
+ {
+  "function": "func_8013E818",
+  "text": "Best candidate: revision d98e3218c24196351d20, score 3280 (source as submitted). Target: frame 0x18, saves ra at 0x14 and s0 at 0x10 before any work; args arg4/arg5 are f32 read from 0x28/0x2C(sp) and arg6 from 0x32(sp) (lhu $t1). t0 = D_8011F2F0 + 100*(arg1&0xFFFF) via ((v*2+v)*8+v)*4; s0 = D_8018D6C0 + 124*(arg0&0xFFFF) via (v*32 - v)*4. The loop over j: sb 0 at 0x67+j, then D_8022A772 stride 2288 (143*j*16), compare f0 with 0xFFFF (beq to else), then compare D_8022AD5C+2288*j float with 0.0 (bc1fl). Candidate differs first in the prologue: it does not place sw ra/s0 at the top, and the saved-register order differs. Tried: (arg1&0xFFFF)*100 and (arg0&0xFFFF)*124 masks in the address math: no change (3280). Untried: restructure the prologue by reading f32 stack args into locals first; try the j loop as a do-while with the else store hoisted.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794764979.360938,
+  "score_before": 1795,
+  "score_after": 1795
+ },
+ {
+  "function": "func_8013E818",
+  "text": "Release: no closer structure found this session. Best rev d98e3218c24196351d20 (3280, 59%). Tried: loading arg4/arg5/arg6 into locals first (rev 51fa2035260e0642f441, 3590, worse) and using a raw D_8022A772 byte base with j*2288 (same). The loop structure and the prologue are right; what remains is register allocation for the j loop (target: s0 = out struct, a1 = s0+j, $v1 = j, mtc1 zero into $f2 before the loop, ori a3 0xFFFF and addiu a2 -1 hoisted before the loop) and the branch form (beq/bc1fl with sb in the delay slot). Next: hoist the -1 and 0xFFFF constants to locals declared before the loop, and compare against a u16 local copy of the table element.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794767005.477638,
+  "score_before": 1795,
+  "score_after": 1795
+ },
+ {
+  "function": "func_8013E818",
+  "text": "haiku-pr24 (Haiku): saved best f0b6446b scores 1855 at the project profile (-O2, trial 90e8d125) and 3455 at -G0 -mips3 -mgp32 -mfp32 -O1 (trial 09b55665). A clean rewrite (record stores through t0 with the sh/sw/swc1 order of the target, sb 0 at +0x67 then the per-slot test: 0xFFFF slot value -1, else 0.0 < float at D_8022AD5C + 2288*v gives v, else -1; loop v 0..6) scores 3590 at -O2 and 1110 at -O1 (d3). Under -O1 the remaining rows are regalloc plus the target hoisting -1 into a2 and computing the float address with lui/addu into at; a hoisted -1 variable scored 1401. The -O1 profile may be the true one for this function: check it with the app rather than assuming.",
+  "by": "manual-c5ecf391d81f42b7",
+  "created_at": 1795714271.250585,
+  "score_before": 1855,
+  "score_after": 1855
+ },
+ {
+  "function": "func_8013E818",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Clean rewrite reaches 1110 at -O1, see the note; not exact.",
+  "by": "manual-c5ecf391d81f42b7",
+  "created_at": 1795714274.32851,
+  "score_before": 1855,
+  "score_after": 1855
  }
 ]
