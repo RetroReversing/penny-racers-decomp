@@ -6592,14 +6592,6 @@
   "score_after": 190
  },
  {
-  "function": "func_801FD23C",
-  "text": "Not matched. Saved best is 2461 (44%); my two rewrites scored 5255 and 5735, both worse. Target: frame saves ra and s0 (sw $ra,0x24; sw $s0,0x20), so it calls func_8021F6A0 with a live idx in $s0. Indexing is idx*0x64 computed as ((idx<<1)+idx)<<3 + idx, then <<2 (i.e. 100 bytes per entry, as a u16 at D_8011F32E). The compiler here keeps the address computation as sll/addu chains in $v0/$v1 and I did not match that ordering. Also target hoists lui/addiu for D_800DB1B8+0x2110 and D_8011F32E before the switch. Next: restore saved best and try writing idx as `s32 idx = arg0 & 0xFFFF` and computing the 0x64 stride as an explicit `idx * 100` on a u8 base, or split the switch into an if-chain.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794708193.411322,
-  "score_before": 2461,
-  "score_after": 2461
- },
- {
   "function": "func_801FA4B0",
   "text": "Not matched. Saved best is 3257 (14.6% of current rewrite scored 9730, worse). The target's epsilon is a float constant 0x3727C5AC (~1e-5) loaded by lui/ori+mtc1 and compared with c.lt.s, not a literal 0.00001f in the way I wrote it; the target uses bc1f/bc1fl chains and has a stack frame of 8 with sdc1 $f20 spill (so the function keeps a double-width temp live). My version used `t<eps && t>-eps` with 1.0f/x divisions which the compiler reorders heavily. Next: write the epsilon test as `if (fabs-like)` with explicit `-t < eps` form as in the m2c draft (the m2c draft's `!(t > 0) && -t < eps` shape), and keep the divisions as 1/t computed once into a f32 temp.\n\nRe-claimed immediately after my previous release; no new compile made in this claim. Not matched. Saved best is 3257 (the 9730 rewrite is worse). See the previous notes: target uses a 0x3727C5AC epsilon loaded via lui/ori+mtc1 with c.lt.s, bc1f/bc1fl chains and an 8-byte frame with sdc1 $f20. Untested next step: restate the epsilon test as the m2c shape `!(t > 0) && -t < eps`.",
   "by": "claude-haiku-5-5-22",
@@ -10032,14 +10024,6 @@
   "score_after": 45
  },
  {
-  "function": "func_801FD23C",
-  "text": "Not matched. Best candidate rev 8f54869a728e7bdc985a scores 5605 (40%). Saved best 2461 is from another source. Target is a 3-state timer/state machine on the D_8011F32E array (stride 0x64 bytes per entry, u16 state) and D_800DB1B8 (s16 timer at +0x2110, output words at +0x2114/0x2116, and a copy into pos at +0x2128 from pos-6/pos-5). Frame 0x28: ra at 0x24 and s0 at 0x20. s0 = arg0 & 0xFFFF is live across the call to func_8021F6A0 (andi v0,s0,0xffff recomputed after the call), so keep idx as a local. Index math: idx*0x64 = ((idx*3)*8 + idx)*4, emitted as sll/addu/sll chains, not a multiply. Remaining gap: the target keeps the base as lui/addiu-free %lo accesses (lhu %lo(D_8011F32E)($at)), while mine materialises the base into v1 and puts the store-to-$at in different order. The `return` in case 0 also changes the epilogue shape. Next: try state dispatch as if-chain instead of switch (the target's branch targets beq/j cluster suggest a compare chain), and check the copy tail reads pos[-6] before storing pos[0].",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794722252.577479,
-  "score_before": 2461,
-  "score_after": 2461
- },
- {
   "function": "sqrtf",
   "text": "Target is only `jr $ra; sqrt.s $fv0,$fa0` (2 insns). gcc-2.7.2-kmc -O2 with __builtin_sqrtf(x) emits a NaN check (c.eq.s/bc1t) + stack frame + jal to sqrtf (score 960, 11 insns). Tried: __builtin_sqrt((f64)x) and __builtin_sqrt(x) (unresolved symbol, 1000), __builtin_fsqrt (unknown symbol, 1300), __builtin_sqrtf((f64)x) (same 960). Likely needs a different compiler/profile (search_flags / try_compiler with -ffast-math-ish or a sqrt.s-generating builtin) or the body is handwritten asm. Next: run search_flags(sqrtf) and try_compiler with ido-7.1 / gcc-2.8.1-pm on `f32 sqrtf(f32 x){return __builtin_sqrtf(x);}`.",
   "by": "api-route-llm-code-2",
@@ -12688,14 +12672,6 @@
   "score_after": 3257
  },
  {
-  "function": "func_801FD23C",
-  "text": "Not matched; move on. Saved best 2461 remains the best; this session's attempts scored 5255, 5605, 5605 (no improvement). Blocker: the target keeps arg0 in $s0 across the jal in case 0 (saves $ra and $s0, frame 0x28) and reuses it for the case-0 state store, but my C never produced the s0 save, so the prologue and register roles diverge from the start. Tail offsets from D_800DB1B8 are: lhu +0x2110 and +0x2112, sh +0x2128/+0x212A, sh (a+0xA0) at +0x212C, sh (b+0x78) at +0x212E (the earlier pos[-6] was wrong). Timer s16 at +0x2110; case-0 writes +0x2114/+0x2116. Next experiment if anyone retries: make the state write in case 0 depend on arg0 after the call through a pointer computed from arg0 before the call, and check that the prologue then stores s0.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794732224.977195,
-  "score_before": 2461,
-  "score_after": 2461
- },
- {
   "function": "func_8022FDF0",
   "text": "Best 15 (rev 78fe561ff369cada2dd8), 23/23 insns, only 3 register rows differ. Target tail: `addu $a0,$a0,$v1; andi $v0,$a0,0xffff; lui $a0,%hi(D_80232868); addu $a0,$a0,$v0; jal; lbu $a0,%lo($a0)`. Baseline C: `func_801D65BC(D_80232868[(u16)(arg0 + (((u16)arg1)*10))], arg1);` gives `addu $v1,$a0,$v1; andi $v1,$v1,0xffff`. Tried: hoisting index into u16/u32 locals (score 15, unchanged), `arg0 += ((u16)arg1)*10` then `D_80232868[(u16)arg0]` (25, worse), `arg0 = (u16)(...)` (25), `(u16)arg0 + (u16)arg1*10` (880), `*(u8*)((u8*)D_80232868 + idx)` (30). Declaration order of extra locals: no effect. Remaining idea: get the index sum's result pseudo coalesced into $a0 (target) rather than $v1 \u2014 e.g. an expression whose result is the same pseudo as arg0 without an extra copy, possibly `arg0 = (u16)(arg0 + (u16)arg1*10);` combined with using arg0 directly as the array index and passing arg1 unchanged. Also untested: making the array `u8*` non-volatile, or passing `arg0 & 0xFFFF`-style two-conversion trick from knowledge #339302416415.",
   "by": "api-route-llm-code-2",
@@ -12942,14 +12918,6 @@
   "created_at": 1794733624.768168,
   "score_before": 740,
   "score_after": 740
- },
- {
-  "function": "func_801FD23C",
-  "text": "Switch-on-state function: table D_8011F32E with stride 0x64 indexed by idx = arg0 & 0xFFFF; timer at D_800DB1B8+0x2110, pos at +0x2128. Target saves $ra and $s0 (calls func_8021F6A0 in case 0 and keeps idx live in $s0) and recomputes andi $s0,0xffff at each use. Current verified baseline of the saved candidate is 5255 (44%); a historical 2461 record exists but did not reproduce from the same source this session. Two variants (the arg0-based index, and the s32 idx form) scored 5255. Remaining diffs: no stack frame in ours (missing sw $ra/$s0), the idx*100 multiply order (target: sll v1,v0,1 then addu, we compute from a0), and the globals' %hi/%lo materialised separately instead of folded into lhu/sw offsets. Next idea: write the table access through a single extern pointer so %lo folds into the access, and make the call in case 0 force idx to be live across it.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794733633.838874,
-  "score_before": 2461,
-  "score_after": 2461
  },
  {
   "function": "func_801FA4B0",
@@ -16638,14 +16606,6 @@
   "created_at": 1794748661.357098,
   "score_before": 755,
   "score_after": 755
- },
- {
-  "function": "func_801FD23C",
-  "text": "Not attempted in this session; released to avoid holding the claim. The handed-in candidate is an untested draft: a switch on the u16 state at D_8011F32E + idx*100 (case 0 sets state 1 and timer fields, case 1 counts timer to 0xA0 then sets state 2, case 2 counts down then sets state 1), followed by a common tail that copies pos[-6]/pos[-5] to pos[0]/pos[1] and writes pos[2]/pos[3] as +0xA0/+0x78. The draft's switch fallthrough and tail placement are unverified against the asm.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794748683.290623,
-  "score_before": 2461,
-  "score_after": 2461
  },
  {
   "function": "func_801497AC",
@@ -22800,14 +22760,6 @@
   "score_after": 420
  },
  {
-  "function": "func_801FD23C",
-  "text": "Move-on budget 3/3 exhausted. Best current-verified this session: 5255 at revision c2b78beecd9b65a69953 (the inherited source, unchanged); a rewrite that hoisted per-case pointer loads scored 5660. Historical saved best 2461 is the same source under older header/settings, not re-verified.\n\nTarget facts (94 insns, frame 0x28, sw $ra,0x24 / sw $s0,0x20, arg0 copied to $s0 and kept live across the func_8021F6A0 call):\n- Index expression (arg0 & 0xFFFF) * 0x64 lowers to andi/sll1/addu/sll3/addu/sll2 then `lui $at,%hi(D_8011F32E); addu $at,$at,$v1; lhu $v1,%lo(...)($at)`. The candidate already produces this shape; keep the base as the extern symbol D_8011F32E with %lo in the load (the 5660 rewrite folded to `lhu $v1,($s0)` and `lui/addiu` pairs, which is worse).\n- Switch order: `addiu $v0,$zero,1; beq $v1,$v0,case1` FIRST, then `slti $v0,$v1,2; beql $v0,$zero,case2/3` (delay slot `addiu $v0,$zero,2`), then `beqz $v1,case0`, then `j epilogue`. So source order should test case 1 before case 0/2.\n- case 0: jal func_8021F6A0 with addiu $a0,1; then lui/addiu $v1 = D_800DB1B8+0x2114; sh 0xA0 at 0, sh 0x78 at 2; then recompute index in $v0, `addiu $v1,$zero,1`, lui $at/addu, `j epilogue` with `sh $v1,%lo(...)($at)` in the delay slot.\n- case 1: lui/addiu $a0 = D_800DB1B8+0x2110, `lh $v0,0($a0)`, `addu $v1,$v0,$zero`, `slti $v0,$v0,0xA0`, `beqz $v0,store2`; increment path `addiu $v0,$v1,1; j .L801FD37C; sh $v0,0($a0)`. store2 path recomputes index then `j .L801FD370; addiu $v0,$zero,2`.\n- case 2: same $a0, `lh $v0,0($a0)`, `blez $v0,.L801FD354; addu $v1,$v0,$zero`; decrement path `addiu $v0,$v1,-1; j .L801FD37C; sh $v0,0($a0)`; else recompute index then fall into .L801FD370 with `addiu $v0,$zero,1`.\n- .L801FD370: `lui $at,%hi(D_8011F32E); addu $at,$at,$v1; sh $v0,%lo(...)($at)` then falls into .L801FD37C.\n- .L801FD37C tail: `lui/addiu $v0 = D_800DB1B8+0x2128`; `lhu $v1,-0x18($v0); sh $v1,0($v0)`; `lhu $a0,-0x16($v0); sh $a0,2($v0)`; `addiu $v1,$v1,0xA0; sh $v1,4($v0)`; `addiu $a0,$a0,0x78; sh $a0,6($v0)`. Note the target reuses $v1/$a0 as both the loaded value and the sum, so a single temp per field (not two named temps) is what the shape needs.\n\nTried and worse: hoisting `timer`/`pos` pointer locals out of the switch (5660); separate temp2 for the second field (part of that same rewrite). Not tried: try_local_repairs on c2b78beecd9b65a69953 (59 proposals pending: branch_orientation=2, signedness=5, declaration_order=4, scalar_storage_reuse=1, 11 more families).\n\nNext step: restore c2b78beecd9b65a69953, then run try_local_repairs with branch_orientation and declaration_order, and reorder the switch so case 1 is written first.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794760921.51229,
-  "score_before": 2461,
-  "score_after": 2461
- },
- {
   "function": "func_8014BA14",
   "text": "Improved saved O2 source 2210->1570 by splitting each switch group into its own v=1;break body. O1 same source1370. Target duplicates assignment delay slots for ranges506-507 and115-118 and single70E; candidate jumps to shared v=1 tail, and candidate splits 2FFF/4FFF delay slots instead of shared v=2 tail. GNU case ranges, ordinary grouped labels, u8/s32 accumulator, explicit default break all same. Explicit default v=0 much worse. Hand-written decision tree with u16 compares bad; signed local avoids sltiu but optimizer turns simple branches into boolean. Search_flags no exact. Need CFG shape preserving distinct assignment tails. Best saved source remains switch grouped individual bodies.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -25806,14 +25758,6 @@
   "created_at": 1794766292.3579211,
   "score_before": 3275,
   "score_after": 3275
- },
- {
-  "function": "func_801FD23C",
-  "text": "Not matched. Saved best is still 2461 (s32 arg0; idx = arg0 & 0xFFFF; idx*0x64 offsets; timer at D_800DB1B8+0x2110; pos at +0x2128). Best re-compiled variant is 4765: `st = &D_8011F32E[(arg0 & 0xFFFF) * 50]` as a u16 pointer, switch on *st, timer/pos as u16 pointers from D_800DB1B8[0x1088]/[0x1094]. Other tries: u16 param 5605, inline array indexing in switch 5260 (also 5260 with u32 idx). Target facts: frame 0x28 saves ra and s0; `move $s0,$a0`, andi reapplied at each use (idx kept in s0 across the func_8021F6A0 call in case 0); idx*100 built as sll1/addu/sll3/addu/sll2; D_8011F32E address is one lui/addu/lhu(%lo) with base folded, not a pointer computed first. Remaining diffs: register allocation, and the pointer version computes lui/addiu for D_800DB1B8 too early. Unexplored: fold the D_8011F32E base into the switch expression differently; check whether case 1/2 share the store tail at 0x37c. Likely needs a different source structure, not tuning.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794766306.919977,
-  "score_before": 2461,
-  "score_after": 2461
  },
  {
   "function": "func_801270B0",
@@ -39664,5 +39608,77 @@
   "score_before": 2358,
   "score_after": 420,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:c396c65ee80b244eea1da1a878ce1570997a10c18e054be16b6c6157c0ed779e"
+ },
+ {
+  "function": "func_801FD23C",
+  "text": "Not matched. Saved best is 2461 (44%); my two rewrites scored 5255 and 5735, both worse. Target: frame saves ra and s0 (sw $ra,0x24; sw $s0,0x20), so it calls func_8021F6A0 with a live idx in $s0. Indexing is idx*0x64 computed as ((idx<<1)+idx)<<3 + idx, then <<2 (i.e. 100 bytes per entry, as a u16 at D_8011F32E). The compiler here keeps the address computation as sll/addu chains in $v0/$v1 and I did not match that ordering. Also target hoists lui/addiu for D_800DB1B8+0x2110 and D_8011F32E before the switch. Next: restore saved best and try writing idx as `s32 idx = arg0 & 0xFFFF` and computing the 0x64 stride as an explicit `idx * 100` on a u8 base, or split the switch into an if-chain.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794708193.411322,
+  "score_before": 2461,
+  "score_after": 2461
+ },
+ {
+  "function": "func_801FD23C",
+  "text": "Not matched. Best candidate rev 8f54869a728e7bdc985a scores 5605 (40%). Saved best 2461 is from another source. Target is a 3-state timer/state machine on the D_8011F32E array (stride 0x64 bytes per entry, u16 state) and D_800DB1B8 (s16 timer at +0x2110, output words at +0x2114/0x2116, and a copy into pos at +0x2128 from pos-6/pos-5). Frame 0x28: ra at 0x24 and s0 at 0x20. s0 = arg0 & 0xFFFF is live across the call to func_8021F6A0 (andi v0,s0,0xffff recomputed after the call), so keep idx as a local. Index math: idx*0x64 = ((idx*3)*8 + idx)*4, emitted as sll/addu/sll chains, not a multiply. Remaining gap: the target keeps the base as lui/addiu-free %lo accesses (lhu %lo(D_8011F32E)($at)), while mine materialises the base into v1 and puts the store-to-$at in different order. The `return` in case 0 also changes the epilogue shape. Next: try state dispatch as if-chain instead of switch (the target's branch targets beq/j cluster suggest a compare chain), and check the copy tail reads pos[-6] before storing pos[0].",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794722252.577479,
+  "score_before": 2461,
+  "score_after": 2461
+ },
+ {
+  "function": "func_801FD23C",
+  "text": "Not matched; move on. Saved best 2461 remains the best; this session's attempts scored 5255, 5605, 5605 (no improvement). Blocker: the target keeps arg0 in $s0 across the jal in case 0 (saves $ra and $s0, frame 0x28) and reuses it for the case-0 state store, but my C never produced the s0 save, so the prologue and register roles diverge from the start. Tail offsets from D_800DB1B8 are: lhu +0x2110 and +0x2112, sh +0x2128/+0x212A, sh (a+0xA0) at +0x212C, sh (b+0x78) at +0x212E (the earlier pos[-6] was wrong). Timer s16 at +0x2110; case-0 writes +0x2114/+0x2116. Next experiment if anyone retries: make the state write in case 0 depend on arg0 after the call through a pointer computed from arg0 before the call, and check that the prologue then stores s0.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794732224.977195,
+  "score_before": 2461,
+  "score_after": 2461
+ },
+ {
+  "function": "func_801FD23C",
+  "text": "Switch-on-state function: table D_8011F32E with stride 0x64 indexed by idx = arg0 & 0xFFFF; timer at D_800DB1B8+0x2110, pos at +0x2128. Target saves $ra and $s0 (calls func_8021F6A0 in case 0 and keeps idx live in $s0) and recomputes andi $s0,0xffff at each use. Current verified baseline of the saved candidate is 5255 (44%); a historical 2461 record exists but did not reproduce from the same source this session. Two variants (the arg0-based index, and the s32 idx form) scored 5255. Remaining diffs: no stack frame in ours (missing sw $ra/$s0), the idx*100 multiply order (target: sll v1,v0,1 then addu, we compute from a0), and the globals' %hi/%lo materialised separately instead of folded into lhu/sw offsets. Next idea: write the table access through a single extern pointer so %lo folds into the access, and make the call in case 0 force idx to be live across it.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794733633.838874,
+  "score_before": 2461,
+  "score_after": 2461
+ },
+ {
+  "function": "func_801FD23C",
+  "text": "Not attempted in this session; released to avoid holding the claim. The handed-in candidate is an untested draft: a switch on the u16 state at D_8011F32E + idx*100 (case 0 sets state 1 and timer fields, case 1 counts timer to 0xA0 then sets state 2, case 2 counts down then sets state 1), followed by a common tail that copies pos[-6]/pos[-5] to pos[0]/pos[1] and writes pos[2]/pos[3] as +0xA0/+0x78. The draft's switch fallthrough and tail placement are unverified against the asm.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794748683.290623,
+  "score_before": 2461,
+  "score_after": 2461
+ },
+ {
+  "function": "func_801FD23C",
+  "text": "Move-on budget 3/3 exhausted. Best current-verified this session: 5255 at revision c2b78beecd9b65a69953 (the inherited source, unchanged); a rewrite that hoisted per-case pointer loads scored 5660. Historical saved best 2461 is the same source under older header/settings, not re-verified.\n\nTarget facts (94 insns, frame 0x28, sw $ra,0x24 / sw $s0,0x20, arg0 copied to $s0 and kept live across the func_8021F6A0 call):\n- Index expression (arg0 & 0xFFFF) * 0x64 lowers to andi/sll1/addu/sll3/addu/sll2 then `lui $at,%hi(D_8011F32E); addu $at,$at,$v1; lhu $v1,%lo(...)($at)`. The candidate already produces this shape; keep the base as the extern symbol D_8011F32E with %lo in the load (the 5660 rewrite folded to `lhu $v1,($s0)` and `lui/addiu` pairs, which is worse).\n- Switch order: `addiu $v0,$zero,1; beq $v1,$v0,case1` FIRST, then `slti $v0,$v1,2; beql $v0,$zero,case2/3` (delay slot `addiu $v0,$zero,2`), then `beqz $v1,case0`, then `j epilogue`. So source order should test case 1 before case 0/2.\n- case 0: jal func_8021F6A0 with addiu $a0,1; then lui/addiu $v1 = D_800DB1B8+0x2114; sh 0xA0 at 0, sh 0x78 at 2; then recompute index in $v0, `addiu $v1,$zero,1`, lui $at/addu, `j epilogue` with `sh $v1,%lo(...)($at)` in the delay slot.\n- case 1: lui/addiu $a0 = D_800DB1B8+0x2110, `lh $v0,0($a0)`, `addu $v1,$v0,$zero`, `slti $v0,$v0,0xA0`, `beqz $v0,store2`; increment path `addiu $v0,$v1,1; j .L801FD37C; sh $v0,0($a0)`. store2 path recomputes index then `j .L801FD370; addiu $v0,$zero,2`.\n- case 2: same $a0, `lh $v0,0($a0)`, `blez $v0,.L801FD354; addu $v1,$v0,$zero`; decrement path `addiu $v0,$v1,-1; j .L801FD37C; sh $v0,0($a0)`; else recompute index then fall into .L801FD370 with `addiu $v0,$zero,1`.\n- .L801FD370: `lui $at,%hi(D_8011F32E); addu $at,$at,$v1; sh $v0,%lo(...)($at)` then falls into .L801FD37C.\n- .L801FD37C tail: `lui/addiu $v0 = D_800DB1B8+0x2128`; `lhu $v1,-0x18($v0); sh $v1,0($v0)`; `lhu $a0,-0x16($v0); sh $a0,2($v0)`; `addiu $v1,$v1,0xA0; sh $v1,4($v0)`; `addiu $a0,$a0,0x78; sh $a0,6($v0)`. Note the target reuses $v1/$a0 as both the loaded value and the sum, so a single temp per field (not two named temps) is what the shape needs.\n\nTried and worse: hoisting `timer`/`pos` pointer locals out of the switch (5660); separate temp2 for the second field (part of that same rewrite). Not tried: try_local_repairs on c2b78beecd9b65a69953 (59 proposals pending: branch_orientation=2, signedness=5, declaration_order=4, scalar_storage_reuse=1, 11 more families).\n\nNext step: restore c2b78beecd9b65a69953, then run try_local_repairs with branch_orientation and declaration_order, and reorder the switch so case 1 is written first.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794760921.51229,
+  "score_before": 2461,
+  "score_after": 2461
+ },
+ {
+  "function": "func_801FD23C",
+  "text": "Not matched. Saved best is still 2461 (s32 arg0; idx = arg0 & 0xFFFF; idx*0x64 offsets; timer at D_800DB1B8+0x2110; pos at +0x2128). Best re-compiled variant is 4765: `st = &D_8011F32E[(arg0 & 0xFFFF) * 50]` as a u16 pointer, switch on *st, timer/pos as u16 pointers from D_800DB1B8[0x1088]/[0x1094]. Other tries: u16 param 5605, inline array indexing in switch 5260 (also 5260 with u32 idx). Target facts: frame 0x28 saves ra and s0; `move $s0,$a0`, andi reapplied at each use (idx kept in s0 across the func_8021F6A0 call in case 0); idx*100 built as sll1/addu/sll3/addu/sll2; D_8011F32E address is one lui/addu/lhu(%lo) with base folded, not a pointer computed first. Remaining diffs: register allocation, and the pointer version computes lui/addiu for D_800DB1B8 too early. Unexplored: fold the D_8011F32E base into the switch expression differently; check whether case 1/2 share the store tail at 0x37c. Likely needs a different source structure, not tuning.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794766306.919977,
+  "score_before": 2461,
+  "score_after": 2461
+ },
+ {
+  "function": "func_801FD23C",
+  "text": "haiku-pr21: state machine on the same D_8011F32E flag table as func_801E28BC (100-byte records), with a D_800DB1B8+0x2110 counter and a func_8021F6A0 call. Saved best 2370 (judged 3300 default, 3630 O1). Not attempted beyond the saved best; the switch-form rewrite that worked for func_801E28BC (550 under O1) is the template to try first.",
+  "by": "manual-29400409f2a1401f",
+  "created_at": 1795714044.768537,
+  "score_before": 2370,
+  "score_after": 2370
+ },
+ {
+  "function": "func_801FD23C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] state machine; not attempted beyond saved best",
+  "by": "manual-29400409f2a1401f",
+  "created_at": 1795714045.165667,
+  "score_before": 2370,
+  "score_after": 2370
  }
 ]
