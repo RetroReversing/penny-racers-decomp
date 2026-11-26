@@ -7208,14 +7208,6 @@
   "score_after": 220
  },
  {
-  "function": "func_8015601C",
-  "text": "Display-list writer: each entry is two words written through *arg0 (dl = *arg0; *arg0 = dl + 2). Words: B6000000/2000, FA000000 then D_8011F2FC[temp] | 0x5CC7BF00 (byte load), FD88001F/&D_802E6320, F5880800/07018050, E6000000/0, F4000000/0707C0FC, E7000000/0, F5880800/00018050, F2000000/0007C0FC, last (*(u16*)(D_8011F32E+temp) & 0xFFF) | F2000000 with 0x7C0FC. temp = ((i*3)*8+i)*4 with i = arg1&0xFFFF (the target's andi/sll/addu/sll). Best reproducible here: 4585 (revision 17db980c3a4cf9179f96 or b5e83ec5f63dbefeca03). The historical 265 does not reproduce from the same source. Remaining diff: the target loads dl into $v1 first (lw $v1,($a0)), and the constant 0x5CC7BF00 is OR'd after the byte load. Tried: u16 arg1 cast with multiply (4585/4785), shift-based temp (4585, no change). Next: force dl into a register before computing temp (declare dl before the first store and read *arg0 once), then test the byte load order.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794708460.1484768,
-  "score_before": 265,
-  "score_after": 265
- },
- {
   "function": "func_80153D40",
   "text": "Not matched. Best is 3778 (58.0%), rev d16d2b83d490113ff6b8 (idx local, compiler-chosen). Same score in rev 57d240957f78e195bf76 (no idx local, arg0&0xFFFF everywhere). Remaining diff: target frame is 0x20 and saves ra, s1 and s0; s1 holds the full arg0 across the jal func_8013AE60 and s0 holds the masked index, and the masked value is rebuilt with andi from s1 in the flag-clear path and at the join. My C only keeps one register, giving frame 0x18 and no s1. Next try: keep the full arg0 live into the post-call code in a separate variable (for example s32 raw = arg0; use raw & 0xFFFF after the call only), so gcc has to hold both values. Rest of body is right: flag at D_8011F32E is u16 (lhu/sh), the copy is f32 D_8011F30C to D_8011F338 with flag set to 1, the +2.0f (lui 0x40000000) and 360.0f wrap are float compares (c.lt.s), and the tail is __sinf(((f64)v*D_80183810)/D_80183818) cvt.s.d, *8.0f (0x41000000), + D_8011F338 element, stored to D_8011F30C. Element stride 100 (0x64) per index.",
   "by": "claude-haiku-5-5-23",
@@ -11376,14 +11368,6 @@
   "score_after": 10
  },
  {
-  "function": "func_8015601C",
-  "text": "Not matched (best 4585 current; saved 265 from earlier source). Target is a display-list emitter, 89 insns, Gfx = 8-byte {w0,w1} written through **arg0 with `dl=*arg0; *arg0=dl+8` before each pair. Target order: lw v1,0(a0) (first word load), then w0/w1 stores; the index temp (arg1&0xFFFF)*100 is computed with shifts AFTER the second pair's w0 store, lbu D_8011F2FC[idx] then `| 0x5CC7BF00` (lui/ori then or). Idx reused in the final D_8011F32E halfword read (lhu, andi 0xFFF, or with the 0xF2000000 kept in a1). Also 0xF5880800 and 0xF2000000 are CSE'd into a1 and reused. Problem with our C: gcc hoists the 0x5CC7BF00 lui/ori and the first dl load into a3 ahead of the stores, so every row after the first is reordered. Tried: pointer-typed version with s32*, Gfx struct version, index computed inline vs top-of-function: all 4585 with same diff. Next idea: find a way to keep the constant OR after the first pair (e.g. store w1 via a temporary of the lbu result then OR into the field), or compile_variants on the ordering of the first two blocks; search_flags not yet tried.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794722596.0070999,
-  "score_before": 265,
-  "score_after": 265
- },
- {
   "function": "func_801578EC",
   "text": "Not matched. Best recorded candidate: revision d2cff0c10038913cb0d1, score 3930 (56%), 90 insns both sides. RDP display-list builder: each 8-byte command is written through *arg0 (pointer advanced by 8). Confirmed type fixes: D_8011F2FC is unsigned bytes (lbu); D_8011F32E is u16 (lhu) as *(u16*)(D_8011F32E + idx), with idx = (arg1 & 0xFFFF) * 0x64. Remaining diff is register and emit order of the words, not the data: the target builds the 0x1414FF00 word and the 0x7C07C word with fewer temporaries and reuses a2/a3. Swapping the last two stores made it worse (4215). Stopping here because the last four compiles were all register/order permutations with no gain; the next agent should read get_assembly(focus=mismatch) to get the exact emit order of the first two commands before editing. Current working revision is the worse e272da936d5e0fb471d7; start from d2cff0c10038913cb0d1.",
   "by": "claude-haiku-5-5-23",
@@ -14912,14 +14896,6 @@
   "score_after": 220
  },
  {
-  "function": "func_8015601C",
-  "text": "Display-list builder: 89 insns in both, all words match in content, so the diff is register allocation and ordering. Current score 4585 (48.4%) for the straight stores with the index inline (revision 74646b458e8eccbde387) and with a dl-index temp (revision 93362ae81fbbced17b68). The saved_best (recorded as 265, same source per get_candidate) is historical and was not reverified. Target keeps dl in $v1 for the first store (`lw $v1,($a0)`), and computes the (arg1&0xFFFF)*0x64 index after the first two dl stores, while my draft loads dl into $a3 and hoists the lui/ori of 0x5CC7BF00 ahead of the index math. Untried: write the first two commands with a single `dl` pointer local declared as u32 *, or compute the 0x5CC7BF00 OR into the table load last so the lui/ori land after the index math.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794732656.832447,
-  "score_before": 265,
-  "score_after": 265
- },
- {
   "function": "func_8014A080",
   "text": "Best this session 1960 (revision aee819bfa465560ecbac); inherited best 1895. Target 45 insns, mine 42.\n\nTarget decoded (verified from assembly): rotate-left-by-n / rotate-right-by-n of arg0 within a field mask.\n  n = arg1 & 0x1F; t2 = 1 << n; t0 = (-2) << n; t1 = arg0 & t0;\n  if ((arg3 & 0xFF) == 1) { if ((arg2&0xFF) > 0) { lim=arg2&0xFF; mask=~t0; i=0; bit=v&t2;\n      do { v = (((v<<1)|(bit!=0)) & mask) | t1; i++; bit = v & t2; } while (i < lim); } return v; }\n  else { same with v = ((((u32)(v&mask))>>1) | ((-bit)&t2)) | t1; bit = v & 1; }\nBoth loops end with `j end; addu $v0,$a0,$zero` (return copy in the delay slot) and the epilogue is `jr $ra; addiu $sp,$sp,0x10`.\n\nMissing in all my attempts: the target's `addiu $sp,$sp,-0x10` prologue / `addiu $sp,$sp,0x10` epilogue with nothing stored in the frame \u2014 the original evidently had a frame (a stack local or an inlined call) that gcc still allocated. Reproducing that frame is the first thing to solve; everything else (sllv t2/t0, and t1, blez/move a3, sltu, negu, srl, or, slt/bnez, jr) then follows.\nAlso still differing: target `sltu $v1,$zero,$v0` (unsigned compare of bit) vs my `ori $v0,$v0,1` when using `bit != 0` on a signed int, and target keeps t2/t0/t1 in $t2/$t0/$t1 while mine shuffles them.\nTried and worse/equal: do/while with mask/~t0 hoisted (1960), lim=cnt copy (2415), u32 bit (2415, no change), (u16)arg2 bound + declaration reorder (2815), for-loops, inline_fn helper, goto-based loop, -O1 profile (2545).",
   "by": "api-route-llm-code-1",
@@ -15630,14 +15606,6 @@
   "created_at": 1794735333.254048,
   "score_before": 220,
   "score_after": 220
- },
- {
-  "function": "func_8015601C",
-  "text": "Rechecked 4585 (48.4%) at revision 93362ae81fbbced17b68 (saved best 265 does not reproduce here, same family as func_80154128 / func_80153F74). Diff: target loads the DL pointer into $v1 and does the first stores with $v1 directly; ours computes the `(arg1&0xFFFF)*0x64` offset and the 0x5CC7BF00 constant up front (lui/ori a2), and the third/fourth words are placed before the pointer update. Target has no extra `addu` for the index until after `addiu v0,v1,8`. Suggest the next agent first move the `temp_a3` offset computation to just before the D_8011F2FC read (as in the target's order) and keep the DL word stores in the order given by the target's sw sequence.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794735368.473002,
-  "score_before": 265,
-  "score_after": 265
  },
  {
   "function": "func_8014981C",
@@ -23104,14 +23072,6 @@
   "score_after": 1999
  },
  {
-  "function": "func_8015601C",
-  "text": "Not matched. Best 4585 (48.4%). Structure matches the display-list shape (lw ptr from *arg0, +8, store back per command), but the target schedules the index chain (andi $a1 0xFFFF; sll/addu/sll by 100) and the 0x5CC7BF00 OR constant between the first two commands, and the start/end register choices differ. Moving the index to the top gave no change, and the signedness family (u32 temp) is untried. Cannot get closer with the current shape: needs a different statement grouping for the first two commands. Next: test the index chain placed after the B6000000 command, plus compile_variants.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794755454.016458,
-  "score_before": 265,
-  "score_after": 265
- },
- {
   "function": "func_801984DC",
   "text": "Best rechecked 2450 (70.8%): the goto-based draft with D_801C6BB9 / D_801C7068 read inline at each use (saved best). Target order: first test D_801C6BB9 < 0x17 (lb, slti, beqz to END); then the u16 lookup at D_801C6C10 + ((B9*0x18 + D7068)*2) compared to 0xFFFF; D_801C7068 is loaded at the lookup, not before the first test. Tried hoisting both loads into locals n/b: worse (3185), because it moves D_801C7068 and D_801C6BB9 loads before the first test. Remaining: target reuses one load of D_801C7068 across the branches (lui a2 / lb a2 once), and the branch targets differ (beqz 0x148 etc.). Untried: keep only D_801C6BB9 hoisted (after the < 0x17 check) and keep D_801C7068 inline; and write D_801C7062 reads as one base pointer.",
   "by": "claude-haiku-5-5-20",
@@ -30152,14 +30112,6 @@
   "score_after": 65
  },
  {
-  "function": "func_8015601C",
-  "text": "Move-on budget exhausted (3/3 without improvement on the project -O2 profile). Best structural result: score 190 with -O1 (97.9%), 89/89 instructions, only 38 register differences left; the project's -O2 profile gives 4555 for the same source. Saved best 265 also used -O1.\n\nKEY: this function is KMC -O1 code. search_flags on the inherited source: -O1 = 265, -O2 = 4585, -O2 -fno-schedule-insns = 2695. Do not tune against -O2.\n\nWhat is verified under -O1 (gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1):\n- Inherited source (one `dl` local reused for every packet) scores 265; the whole residual is that the first packet's base lands in $a3 instead of $v1 and the second in $a3 instead of $a2.\n- Splitting the first two packets into their own pointer locals (`q` for B6000000/2000, `p` for FA000000 + the colour word) gives 210.\n- Giving the first, second and all remaining packets three distinct locals (`q`, `p`, `e`) gives 190 \u2014 best known. Target then keeps $v1 for packet 1, $a2 for packet 2, and $v1 for the rest; our build still puts packet 1 in $a3/$a2 and the $5CC7BF00 constant in $a3 instead of $v1.\n- `(arg1 & 0xFFFF) * 0x64` as a single `temp_a3` local is correct; splitting it into a mask local plus an index local, or masking arg1 in place, changes nothing (still 210).\n\nRemaining gap: after the second packet the target's $a2 dies and $v1 is reused for packets 3..10; ours keeps $a2 alive for the whole function because `p` is used for the colour store after the index computation. Untried: (a) end `p`'s lifetime before the index computation by storing the colour word through `*arg0`-relative addressing; (b) declare `p` inside a block scope so its live range ends at the colour store, letting $a2 be reused by the later packets; (c) hoist the `temp_a3` computation above the second packet's `p[0] = 0xFA000000` so the index chain occupies $a1/$a3 before $a2 is taken.\n\nAlso tried and rejected: -O1 with -fschedule-insns (5225), -fschedule-insns2 (3200), both (5770), -fno-delayed-branch / -fno-expensive-optimizations / -fomit-frame-pointer (all 1365), -O2 with -fno-schedule-insns2 (4385) or -fno-strength-reduce (5770). Local repair families declaration_order, signedness, address_temporary, constant_local, split_scalar_lifetime, pointer_cast_inline all scored 4555 (no change) on the -O2 baseline.\n\nUse try_compiler with -O1 to evaluate any continuation; compile_and_diff alone will judge against -O2 and look far worse than it is.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794765488.2399318,
-  "score_before": 265,
-  "score_after": 265
- },
- {
   "function": "func_8013EA18",
   "text": "Current source a4e7325dd86848f8945d exact -O1 verified and submitted function-only profile bundle. O2 255 is only first redundant copy/shift/scheduling gap. Await bundle application; automatic compiler changes disabled.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -31078,14 +31030,6 @@
   "created_at": 1794766752.4748979,
   "score_before": 3700,
   "score_after": 3700
- },
- {
-  "function": "func_8015601C",
-  "text": "Not matched. Current best with the project flags (-O2) is 4585. Under -O1 the same C scores 265 (97.0%, try_compiler with gcc-2.7.2-kmc and -G0 -mips3 -mgp32 -mfp32 -O1). So this function is probably -O1, like func_80025C50 in the previous session. Not yet matched.\n\nRemaining -O1 diff: 53 register-allocation rows only. Target keeps the first dl in v1 and the second dl in a2; the temp index (arg1&0xFFFF)*100 lives in a3 (computed as sll 1/addu/sll 3/addu/sll 2 from a1). Ours puts dl in a3 and the index chain in a2. Store/constant order already matches.\n\nTried without change under -O1: temp as s32 with temp_a3 name, index inlined, dl as u32*, u16 idx. Next: the register choice needs a different dl staging (e.g. read *arg0 into a named local per command group, or move the lui/ori constant per command). Also possible: the `(s32)D_802E6320` cast. The suggest tool refused the flag change until the C matches under -O1, so do not set it yet.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794766752.672205,
-  "score_before": 265,
-  "score_after": 265
  },
  {
   "function": "func_8014D458",
@@ -35473,5 +35417,70 @@
   "score_before": null,
   "score_after": null,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:27a9da636e87cee6fa27e79b86105c0f97ab42b58cec1362471f81367895cd23"
+ },
+ {
+  "function": "func_8015601C",
+  "text": "Display-list writer: each entry is two words written through *arg0 (dl = *arg0; *arg0 = dl + 2). Words: B6000000/2000, FA000000 then D_8011F2FC[temp] | 0x5CC7BF00 (byte load), FD88001F/&D_802E6320, F5880800/07018050, E6000000/0, F4000000/0707C0FC, E7000000/0, F5880800/00018050, F2000000/0007C0FC, last (*(u16*)(D_8011F32E+temp) & 0xFFF) | F2000000 with 0x7C0FC. temp = ((i*3)*8+i)*4 with i = arg1&0xFFFF (the target's andi/sll/addu/sll). Best reproducible here: 4585 (revision 17db980c3a4cf9179f96 or b5e83ec5f63dbefeca03). The historical 265 does not reproduce from the same source. Remaining diff: the target loads dl into $v1 first (lw $v1,($a0)), and the constant 0x5CC7BF00 is OR'd after the byte load. Tried: u16 arg1 cast with multiply (4585/4785), shift-based temp (4585, no change). Next: force dl into a register before computing temp (declare dl before the first store and read *arg0 once), then test the byte load order.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794708460.1484768,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_8015601C",
+  "text": "Not matched (best 4585 current; saved 265 from earlier source). Target is a display-list emitter, 89 insns, Gfx = 8-byte {w0,w1} written through **arg0 with `dl=*arg0; *arg0=dl+8` before each pair. Target order: lw v1,0(a0) (first word load), then w0/w1 stores; the index temp (arg1&0xFFFF)*100 is computed with shifts AFTER the second pair's w0 store, lbu D_8011F2FC[idx] then `| 0x5CC7BF00` (lui/ori then or). Idx reused in the final D_8011F32E halfword read (lhu, andi 0xFFF, or with the 0xF2000000 kept in a1). Also 0xF5880800 and 0xF2000000 are CSE'd into a1 and reused. Problem with our C: gcc hoists the 0x5CC7BF00 lui/ori and the first dl load into a3 ahead of the stores, so every row after the first is reordered. Tried: pointer-typed version with s32*, Gfx struct version, index computed inline vs top-of-function: all 4585 with same diff. Next idea: find a way to keep the constant OR after the first pair (e.g. store w1 via a temporary of the lbu result then OR into the field), or compile_variants on the ordering of the first two blocks; search_flags not yet tried.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794722596.0070999,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_8015601C",
+  "text": "Display-list builder: 89 insns in both, all words match in content, so the diff is register allocation and ordering. Current score 4585 (48.4%) for the straight stores with the index inline (revision 74646b458e8eccbde387) and with a dl-index temp (revision 93362ae81fbbced17b68). The saved_best (recorded as 265, same source per get_candidate) is historical and was not reverified. Target keeps dl in $v1 for the first store (`lw $v1,($a0)`), and computes the (arg1&0xFFFF)*0x64 index after the first two dl stores, while my draft loads dl into $a3 and hoists the lui/ori of 0x5CC7BF00 ahead of the index math. Untried: write the first two commands with a single `dl` pointer local declared as u32 *, or compute the 0x5CC7BF00 OR into the table load last so the lui/ori land after the index math.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794732656.832447,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_8015601C",
+  "text": "Rechecked 4585 (48.4%) at revision 93362ae81fbbced17b68 (saved best 265 does not reproduce here, same family as func_80154128 / func_80153F74). Diff: target loads the DL pointer into $v1 and does the first stores with $v1 directly; ours computes the `(arg1&0xFFFF)*0x64` offset and the 0x5CC7BF00 constant up front (lui/ori a2), and the third/fourth words are placed before the pointer update. Target has no extra `addu` for the index until after `addiu v0,v1,8`. Suggest the next agent first move the `temp_a3` offset computation to just before the D_8011F2FC read (as in the target's order) and keep the DL word stores in the order given by the target's sw sequence.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794735368.473002,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_8015601C",
+  "text": "Not matched. Best 4585 (48.4%). Structure matches the display-list shape (lw ptr from *arg0, +8, store back per command), but the target schedules the index chain (andi $a1 0xFFFF; sll/addu/sll by 100) and the 0x5CC7BF00 OR constant between the first two commands, and the start/end register choices differ. Moving the index to the top gave no change, and the signedness family (u32 temp) is untried. Cannot get closer with the current shape: needs a different statement grouping for the first two commands. Next: test the index chain placed after the B6000000 command, plus compile_variants.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794755454.016458,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_8015601C",
+  "text": "Move-on budget exhausted (3/3 without improvement on the project -O2 profile). Best structural result: score 190 with -O1 (97.9%), 89/89 instructions, only 38 register differences left; the project's -O2 profile gives 4555 for the same source. Saved best 265 also used -O1.\n\nKEY: this function is KMC -O1 code. search_flags on the inherited source: -O1 = 265, -O2 = 4585, -O2 -fno-schedule-insns = 2695. Do not tune against -O2.\n\nWhat is verified under -O1 (gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1):\n- Inherited source (one `dl` local reused for every packet) scores 265; the whole residual is that the first packet's base lands in $a3 instead of $v1 and the second in $a3 instead of $a2.\n- Splitting the first two packets into their own pointer locals (`q` for B6000000/2000, `p` for FA000000 + the colour word) gives 210.\n- Giving the first, second and all remaining packets three distinct locals (`q`, `p`, `e`) gives 190 \u2014 best known. Target then keeps $v1 for packet 1, $a2 for packet 2, and $v1 for the rest; our build still puts packet 1 in $a3/$a2 and the $5CC7BF00 constant in $a3 instead of $v1.\n- `(arg1 & 0xFFFF) * 0x64` as a single `temp_a3` local is correct; splitting it into a mask local plus an index local, or masking arg1 in place, changes nothing (still 210).\n\nRemaining gap: after the second packet the target's $a2 dies and $v1 is reused for packets 3..10; ours keeps $a2 alive for the whole function because `p` is used for the colour store after the index computation. Untried: (a) end `p`'s lifetime before the index computation by storing the colour word through `*arg0`-relative addressing; (b) declare `p` inside a block scope so its live range ends at the colour store, letting $a2 be reused by the later packets; (c) hoist the `temp_a3` computation above the second packet's `p[0] = 0xFA000000` so the index chain occupies $a1/$a3 before $a2 is taken.\n\nAlso tried and rejected: -O1 with -fschedule-insns (5225), -fschedule-insns2 (3200), both (5770), -fno-delayed-branch / -fno-expensive-optimizations / -fomit-frame-pointer (all 1365), -O2 with -fno-schedule-insns2 (4385) or -fno-strength-reduce (5770). Local repair families declaration_order, signedness, address_temporary, constant_local, split_scalar_lifetime, pointer_cast_inline all scored 4555 (no change) on the -O2 baseline.\n\nUse try_compiler with -O1 to evaluate any continuation; compile_and_diff alone will judge against -O2 and look far worse than it is.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794765488.2399318,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_8015601C",
+  "text": "Not matched. Current best with the project flags (-O2) is 4585. Under -O1 the same C scores 265 (97.0%, try_compiler with gcc-2.7.2-kmc and -G0 -mips3 -mgp32 -mfp32 -O1). So this function is probably -O1, like func_80025C50 in the previous session. Not yet matched.\n\nRemaining -O1 diff: 53 register-allocation rows only. Target keeps the first dl in v1 and the second dl in a2; the temp index (arg1&0xFFFF)*100 lives in a3 (computed as sll 1/addu/sll 3/addu/sll 2 from a1). Ours puts dl in a3 and the index chain in a2. Store/constant order already matches.\n\nTried without change under -O1: temp as s32 with temp_a3 name, index inlined, dl as u32*, u16 idx. Next: the register choice needs a different dl staging (e.g. read *arg0 into a named local per command group, or move the lui/ori constant per command). Also possible: the `(s32)D_802E6320` cast. The suggest tool refused the flag change until the C matches under -O1, so do not set it yet.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794766752.672205,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_8015601C",
+  "text": "haiku-pr30: display-list writer of the same family as func_80154128 (nine 8-byte commands; the last takes a u16 field & 0xFFF). Word-by-word rewrite (f11_c1) scores 4585 vs saved 510. Same blocker: the compiler hoists per-command constants and reorders the cursor update. Released.",
+  "by": "manual-a3f89156f3b6431f",
+  "created_at": 1795716455.445827,
+  "score_before": 510,
+  "score_after": 510,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:4754ec62ce2b53130ae32cc8ec2e063670a60e4253500b8fef83a7a93eebd277"
  }
 ]
