@@ -6872,14 +6872,6 @@
   "score_after": 6255
  },
  {
-  "function": "func_801FC9D0",
-  "text": "One compile of the m2c-style draft: 9745 (27.8%), saved best 4680 is better, so restore saved_best before the next attempt. Diffs: the target computes idx*0x64 as ((x*2+x)*8+x)*4 with the index in $v1 (andi $v1,$a1,0xffff), loads the u16 flag at D_8011F330+off first, and branches on beqz. My draft used the wrong register order and a bnez. The display-list writes (0xFD4800EF etc.) use ~10 stores; the target's word order and the `lui 0x2492` (0x24924925, divide-by-7 magic) suggest q=(v/7) is computed via multiply, not a div call. Next step: restore saved_best, fix the flag-test order and branch sense, then check the divide-by-7 sequence.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794709792.634582,
-  "score_before": 4680,
-  "score_after": 4680
- },
- {
   "function": "nuScCreateScheduler",
   "text": "Score 10 (99.9%, one differing insn). Key fix: inline_fn must return void* (not s32*), so `inline_fn() - 0x5F8` is a byte offset as in the target (s32* gave -0x17E0 offsets, score 170). The only remaining diff: target `sll $a0,$a0,4` after `sll a,s1,2; addu` for the osViSetMode arg ((arg0&0xFF)*0x50); mine emits `sll $a0,$a0,6`. Try `((arg0 & 0xFF) * 5) << 4` to get the shift form. Claim lapsed before finishing; the automatic pass replaced the candidate with an m2c draft, so recover the C from the score-10 attempt rather than the draft.",
   "by": "claude-haiku-5-5-20",
@@ -10376,14 +10368,6 @@
   "score_after": 885
  },
  {
-  "function": "func_801FC9D0",
-  "text": "Not matched. This session's draft scored 9745 (27.8%), revision ce950629dd5e0c956006; saved best 4680 is from an older source and should be the starting point. The draft's control flow is wrong: the target starts with the st = lhu(D_8011F330 + idx*100) test (with idx = arg1 & 0xFFFF), then a separate branch structure, and it computes idx*100 as ((idx*2+idx)<<3 ... ) with a shared base address. The draft also has a wrong div/mod: the target divides v (from D_8011F2F0 + idx*100) by 7 using a magic multiply (lui 0x2492 / 0x24924925 pattern), so write q = v/7 and r = v%7 as plain C and let GCC emit the magic. The 0xFD4800EF / 0xF5480000 / 0xE6000000 / 0xF4000000 / 0xF2000000 display-list words are from this draft and are plausible but unverified against the target. Next: rebuild from the saved best, then fix the st branch order before touching the arithmetic.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794724845.206034,
-  "score_before": 4680,
-  "score_after": 4680
- },
- {
   "function": "func_801C1424",
   "text": "Baseline compiled at 12496 (17.2%), revision 4d5717f2a249c6dac315; far from match, not iterated. Target frame is 0x60 (ours 0x58), saves ra, s0..s6 at 0x4c..0x30, and calls func_8013AE60 and __sinf. The m2c draft's 8-word local copy from D_801C6AC8 is wrong; the target copies D_801C6AC8 to a stack array (addiu a1,sp,0x10) before the call. Next: read the first 60 instructions with get_assembly and rebuild the call/copy sequence before any loop edits; the loops use s16 stores to D_80167FB8 at (j+8)*0x10+4 and D_80167FBC at j*0x10 (check the sign of the sin-to-s16 conversion and the 3.1415927f/180 constant order).",
   "by": "claude-haiku-5-5-22",
@@ -13838,14 +13822,6 @@
   "created_at": 1794739396.216831,
   "score_before": 6255,
   "score_after": 6255
- },
- {
-  "function": "func_801FC9D0",
-  "text": "Best 11010 (18.4%) with my draft, not matched. The draft's structure is wrong: the target's first ops are andi of arg1 & 0xFFFF then (idx*0x64) address math (sll/addu chains, 3x, 0x64 = x*100), then the lhu state test at D_8011F330+off; mine does the test with a fresh lui/addiu and a different branch shape. The RDP command words (0xFD4800EF, 0xF5480000 ...) need rechecking from the asm: target has a 0x24924925 constant (division by 7 by multiply), so q = v/7 must come from a mult-by-magic sequence, not a plain divide. Start from the asm and derive the stores in order. Expect several attempts.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794739413.467744,
-  "score_before": 4680,
-  "score_after": 4680
  },
  {
   "function": "func_801C1424",
@@ -18736,14 +18712,6 @@
   "score_after": 8381
  },
  {
-  "function": "func_801FC9D0",
-  "text": "Not matched. Best saved 4680 (historical, source not kept); every current C variant scores 9745 or worse (try_local_repairs 6 variants: 9745/9810/11010). Target is a display-list builder: arg0 is Gfx** (u32 **); st=u16 at D_8011F330[idx*100]; st==0 -> store 1 and return; st!=1 -> return; st==1 builds 14 words. idx*100 is computed as ((x*2+x)*8+x)*4 and is recomputed separately in each branch in the target (lhu path, sh path, lbu path); C with one shared (arg1&0xFFFF)*100 CSEs it, which accounts for the 114-vs-135 instruction gap (21 missing addu/sll). Also the target's arg0 copy lives in $t1 (move in beqz delay slot), candidate uses $t0. v is u8 (lbu), q=v/7 unsigned magic (0x24924925), r=(v-7q)&0xFF, x0=r<<5, x1=x0+0x20. Untried: a way to stop CSE of the three idx*100 computations (e.g. per-branch distinct expressions the compiler cannot merge), or a struct-array stride-100 model with different bases. Next person: fix the recomputed idx*100 first, then branch layout, then registers.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794754124.1137779,
-  "score_before": 4680,
-  "score_after": 4680
- },
- {
   "function": "func_80214504",
   "text": "Not matched; releasing. Best saved 1723 (restore via get_candidate base=saved_best). My rewrites here scored 5303 with no improvement. Target layout: frame 0x28 saves ra, s1 (= arg0, used after calls to recompute arg0&0xFFFF for each sh store), and s0. Dispatch: st==1 checked first, st<2 -> case 0, st==2 -> case 2, st==3 -> case 3, else return. Main blocker: s0 is a flag always 0 (`addu s0,zero,zero` sits in the delay slot of the D_8021E130 != 0x10E test, then `andi v0,s0,0x10` gates the >=0x186 branch). gcc -O2 folds a plain `s0 = 0` away, so the source shape that keeps s0 live is still unknown. Next: find a non-folding form for that flag and keep arg0 in s1.",
   "by": "claude-haiku-5-5-24",
@@ -19726,14 +19694,6 @@
   "created_at": 1794756194.0384011,
   "score_before": 2599,
   "score_after": 2599
- },
- {
-  "function": "func_801FC9D0",
-  "text": "Move-on budget exhausted (3/3 without improvement). Best current rechecked score 9175 (rev 1d887cc6e7528b836bb0, if/if form). The inherited \"saved best 4680\" (rev 7a5d1ece9f6ad19c2d6d) re-scores 9745 with today's header, so historical scores here are NOT comparable; ignore the 4680 figure.\n\nTarget shape (135 insns) confirmed from assembly:\n- `u16 st = *(u16*)(D_8011F330 + (arg1 & 0xFFFF) * 0x64);` index scaled *0x64 = sll1/addu/sll3/addu/sll2; address built as `lui $v1,%hi` + `addu $v1,$v1,$v0` + `lhu %lo($v1)` \u2014 declare `extern u8 D_8011F330[]` and index the array (that part already matches).\n- Then `beqz` (st==0 first), then `beq $v1,1`, then `j` to end: source order is if (st==0){...} then if (st==1){...} \u2014 an if/if pair, NOT a switch (switch scored 9175 vs 9745 for if/if). Target keeps `addu $t1,$a0,$zero` in the beqz delay slot (copy of arg0) and recomputes `andi $v1,$a1,0xFFFF` on the st==1 path, so write `(arg1 & 0xFFFF) * 0x64` again inside the second branch instead of reusing a local idx.\n- st==0 store uses the `$at` form: `lui $at,%hi / addu $at,$at,$v1 / sh $v0,%lo($at)`. Mine collapses to `addiu/addiu/sh ($a0)`. Try declaring D_8011F330 as a scalar and storing through `(u8*)&D_8011F330 + i*0x64` (next_experiment).\n- /7: target uses `lui $a1,0x2492 / ori 0x4925 / multu / mfhi / subu / srl1 / addu / srl2` = unsigned u8 v/7; quotient `andi 0xFF` in $a1, remainder `andi 0xFF` in $a0.\n- `sll $a3,$a0,5` then `sll $a0,$a0,5` again at row 77 (r<<5 recomputed inside the w expression `x1-(x0+1)+8`, where x0+1 = (r<<5)+1 is recomputed). Target has `sra $a2,$a2,3` (arithmetic), so keep a `(s32)` cast on the `>>3` operand; my `srl` came from u32 temps.\n- Packet emission: 8 consecutive 8-byte packets, each `lw $v1,0($t1) / addiu $v0,$v1,8 / sw $v0,0($t1)` with $t1 = arg0 (no s-regs, no frame). Constant order: 0xFD4800EF + D_801FFD6C; 0xF5480000|(((..)>>3&0x1FF)<<9) + 0x07080200; 0xE6000000 + 0; 0xF4000000|((x0*4&0xFFF)<<12)|((q<<7)&0xFFF) + 0x07000000|(((x1-1)*4&0xFFF)<<12)|((q<<7|0x7C)&0xFFF); 0xE7000000 + 0; w + 0x80200; 0xF2000000|t0|t1 + t2|t3; 0xF2000000 + 0x7C07C.\n\nRemaining blockers: (a) the $at store form in st==0, (b) keeping w/t0/t1/t2/t3 live across packets in $a0/$a1/$a3/$t0 while reusing the OR'd values, (c) arithmetic-vs-logical shift.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794756205.76805,
-  "score_before": 4680,
-  "score_after": 4680
  },
  {
   "function": "func_80026D40",
@@ -24672,14 +24632,6 @@
   "score_after": 12297
  },
  {
-  "function": "func_801FC9D0",
-  "text": "Unmatched; releasing because no variant moves the score. Best saved 4680 came from an earlier source that I could not reproduce; the current source scores 9745 (114 vs 135 insns). Every variant tried scored 9745 with identical diff: (a) else-if form for st==0/st==1, (b) st hoisted to a local, (c) arg0 copied into p, (d) signedness on g, (e) extra unused local. The first displayed row is the arg0 copy (target delay slot `addu $t1,$a0,$zero` after `beqz st`; candidate `move $t0,$a0` at entry), so the copy and branch layout are the first thing to fix. Target facts: idx*100 is built as ((idx*2+idx)*8+idx)*4 and recomputed from arg1 in both branches; the magic divide by 7 uses multu 0x24924925; the display-list body (9 two-word commands through the pointer in t1) matches the arithmetic in the candidate. Untried: -O1 via try_compiler, and writing the st==0 store to reuse the same address as the load. Next step: try_compiler on gcc-kmc -O1 for this function before another source-level pass.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794764060.358935,
-  "score_before": 4680,
-  "score_after": 4680
- },
- {
   "function": "func_80199EAC",
   "text": "1136-byte function (func_80199EAC), no match yet. Best: 1550 (94.5%) with the current candidate (the draft with `extern volatile f32 D_801C6BCC`, SB/SW macros for the byte/word field reads, and the goto l28/l44 shape). Remaining diff: target branch structure (bnez 0x120 at insn 9; bc1tl .L468 x5 and j to +0x468) vs ours (bnez 0x128, bc1tl .L488 x4, extra lui/lwc1 pair at insns 34-35 that the target doesn't have, and return is `move $v0,$a1` instead of `andi $v0,$a1,0xff`). Tried: caching D_801C6BCC in a local (9575, worse, undo), (u8) return cast (still 1550, no change). Next steps: (1) keep the volatile reload but reshape the else-if chain so the float compare for 0 and 360 share one branch (the target seems to test 0.0f then 360.0f through the same delay slot); (2) try the return as `return var_a1 & 0xFF;` with the outer `s32 var_a1` replaced by `u8`, which should produce the andi; (3) the `% 15 == 1` tests may be a multiply-shift in the target, check the assembly around insns 22-24 before changing it.",
   "by": "claude-haiku-5-5-23",
@@ -25966,14 +25918,6 @@
   "created_at": 1794767335.951068,
   "score_before": 6780,
   "score_after": 6780
- },
- {
-  "function": "func_801FC9D0",
-  "text": "Not matched. Two compiles of the held candidate (revision 7a5d1ece9f6ad19c2d6d, and a u16 idx patch) scored 9745 (27.8%), against a historical saved best of 4680 that I did not reverify. Budget is 3/3 non-improving compiles, so I released it. Diff: target computes idx*0x64 with sll/addu chains (x5 addu, x3 sll 2, sll 1 and sll 3 pairs) and uses andi $v1,$a1,0xffff before the lui of D_8011F330. Our draft loads the state with lui/addiu/lhu and branches with bnez where the target uses beqz, so the if (st==0) test is probably structured differently in the original. The 0x64 stride may be a struct size better written as a typed struct array than byte-offset arithmetic. The display-list words (0xFD4800EF, 0xF5480000, 0xE6000000, 0xF4000000 etc.) look like F3D/RSP commands, a hint for field layout. Untested: a 100-byte struct array with a u16 state field, and checking whether the st==1 path is the fall-through.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794767350.2161129,
-  "score_before": 4680,
-  "score_after": 4680
  },
  {
   "function": "func_801FC4E0",
@@ -39680,5 +39624,77 @@
   "created_at": 1795714045.165667,
   "score_before": 2370,
   "score_after": 2370
+ },
+ {
+  "function": "func_801FC9D0",
+  "text": "One compile of the m2c-style draft: 9745 (27.8%), saved best 4680 is better, so restore saved_best before the next attempt. Diffs: the target computes idx*0x64 as ((x*2+x)*8+x)*4 with the index in $v1 (andi $v1,$a1,0xffff), loads the u16 flag at D_8011F330+off first, and branches on beqz. My draft used the wrong register order and a bnez. The display-list writes (0xFD4800EF etc.) use ~10 stores; the target's word order and the `lui 0x2492` (0x24924925, divide-by-7 magic) suggest q=(v/7) is computed via multiply, not a div call. Next step: restore saved_best, fix the flag-test order and branch sense, then check the divide-by-7 sequence.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794709792.634582,
+  "score_before": 4680,
+  "score_after": 4680
+ },
+ {
+  "function": "func_801FC9D0",
+  "text": "Not matched. This session's draft scored 9745 (27.8%), revision ce950629dd5e0c956006; saved best 4680 is from an older source and should be the starting point. The draft's control flow is wrong: the target starts with the st = lhu(D_8011F330 + idx*100) test (with idx = arg1 & 0xFFFF), then a separate branch structure, and it computes idx*100 as ((idx*2+idx)<<3 ... ) with a shared base address. The draft also has a wrong div/mod: the target divides v (from D_8011F2F0 + idx*100) by 7 using a magic multiply (lui 0x2492 / 0x24924925 pattern), so write q = v/7 and r = v%7 as plain C and let GCC emit the magic. The 0xFD4800EF / 0xF5480000 / 0xE6000000 / 0xF4000000 / 0xF2000000 display-list words are from this draft and are plausible but unverified against the target. Next: rebuild from the saved best, then fix the st branch order before touching the arithmetic.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794724845.206034,
+  "score_before": 4680,
+  "score_after": 4680
+ },
+ {
+  "function": "func_801FC9D0",
+  "text": "Best 11010 (18.4%) with my draft, not matched. The draft's structure is wrong: the target's first ops are andi of arg1 & 0xFFFF then (idx*0x64) address math (sll/addu chains, 3x, 0x64 = x*100), then the lhu state test at D_8011F330+off; mine does the test with a fresh lui/addiu and a different branch shape. The RDP command words (0xFD4800EF, 0xF5480000 ...) need rechecking from the asm: target has a 0x24924925 constant (division by 7 by multiply), so q = v/7 must come from a mult-by-magic sequence, not a plain divide. Start from the asm and derive the stores in order. Expect several attempts.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794739413.467744,
+  "score_before": 4680,
+  "score_after": 4680
+ },
+ {
+  "function": "func_801FC9D0",
+  "text": "Not matched. Best saved 4680 (historical, source not kept); every current C variant scores 9745 or worse (try_local_repairs 6 variants: 9745/9810/11010). Target is a display-list builder: arg0 is Gfx** (u32 **); st=u16 at D_8011F330[idx*100]; st==0 -> store 1 and return; st!=1 -> return; st==1 builds 14 words. idx*100 is computed as ((x*2+x)*8+x)*4 and is recomputed separately in each branch in the target (lhu path, sh path, lbu path); C with one shared (arg1&0xFFFF)*100 CSEs it, which accounts for the 114-vs-135 instruction gap (21 missing addu/sll). Also the target's arg0 copy lives in $t1 (move in beqz delay slot), candidate uses $t0. v is u8 (lbu), q=v/7 unsigned magic (0x24924925), r=(v-7q)&0xFF, x0=r<<5, x1=x0+0x20. Untried: a way to stop CSE of the three idx*100 computations (e.g. per-branch distinct expressions the compiler cannot merge), or a struct-array stride-100 model with different bases. Next person: fix the recomputed idx*100 first, then branch layout, then registers.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794754124.1137779,
+  "score_before": 4680,
+  "score_after": 4680
+ },
+ {
+  "function": "func_801FC9D0",
+  "text": "Move-on budget exhausted (3/3 without improvement). Best current rechecked score 9175 (rev 1d887cc6e7528b836bb0, if/if form). The inherited \"saved best 4680\" (rev 7a5d1ece9f6ad19c2d6d) re-scores 9745 with today's header, so historical scores here are NOT comparable; ignore the 4680 figure.\n\nTarget shape (135 insns) confirmed from assembly:\n- `u16 st = *(u16*)(D_8011F330 + (arg1 & 0xFFFF) * 0x64);` index scaled *0x64 = sll1/addu/sll3/addu/sll2; address built as `lui $v1,%hi` + `addu $v1,$v1,$v0` + `lhu %lo($v1)` \u2014 declare `extern u8 D_8011F330[]` and index the array (that part already matches).\n- Then `beqz` (st==0 first), then `beq $v1,1`, then `j` to end: source order is if (st==0){...} then if (st==1){...} \u2014 an if/if pair, NOT a switch (switch scored 9175 vs 9745 for if/if). Target keeps `addu $t1,$a0,$zero` in the beqz delay slot (copy of arg0) and recomputes `andi $v1,$a1,0xFFFF` on the st==1 path, so write `(arg1 & 0xFFFF) * 0x64` again inside the second branch instead of reusing a local idx.\n- st==0 store uses the `$at` form: `lui $at,%hi / addu $at,$at,$v1 / sh $v0,%lo($at)`. Mine collapses to `addiu/addiu/sh ($a0)`. Try declaring D_8011F330 as a scalar and storing through `(u8*)&D_8011F330 + i*0x64` (next_experiment).\n- /7: target uses `lui $a1,0x2492 / ori 0x4925 / multu / mfhi / subu / srl1 / addu / srl2` = unsigned u8 v/7; quotient `andi 0xFF` in $a1, remainder `andi 0xFF` in $a0.\n- `sll $a3,$a0,5` then `sll $a0,$a0,5` again at row 77 (r<<5 recomputed inside the w expression `x1-(x0+1)+8`, where x0+1 = (r<<5)+1 is recomputed). Target has `sra $a2,$a2,3` (arithmetic), so keep a `(s32)` cast on the `>>3` operand; my `srl` came from u32 temps.\n- Packet emission: 8 consecutive 8-byte packets, each `lw $v1,0($t1) / addiu $v0,$v1,8 / sw $v0,0($t1)` with $t1 = arg0 (no s-regs, no frame). Constant order: 0xFD4800EF + D_801FFD6C; 0xF5480000|(((..)>>3&0x1FF)<<9) + 0x07080200; 0xE6000000 + 0; 0xF4000000|((x0*4&0xFFF)<<12)|((q<<7)&0xFFF) + 0x07000000|(((x1-1)*4&0xFFF)<<12)|((q<<7|0x7C)&0xFFF); 0xE7000000 + 0; w + 0x80200; 0xF2000000|t0|t1 + t2|t3; 0xF2000000 + 0x7C07C.\n\nRemaining blockers: (a) the $at store form in st==0, (b) keeping w/t0/t1/t2/t3 live across packets in $a0/$a1/$a3/$t0 while reusing the OR'd values, (c) arithmetic-vs-logical shift.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794756205.76805,
+  "score_before": 4680,
+  "score_after": 4680
+ },
+ {
+  "function": "func_801FC9D0",
+  "text": "Unmatched; releasing because no variant moves the score. Best saved 4680 came from an earlier source that I could not reproduce; the current source scores 9745 (114 vs 135 insns). Every variant tried scored 9745 with identical diff: (a) else-if form for st==0/st==1, (b) st hoisted to a local, (c) arg0 copied into p, (d) signedness on g, (e) extra unused local. The first displayed row is the arg0 copy (target delay slot `addu $t1,$a0,$zero` after `beqz st`; candidate `move $t0,$a0` at entry), so the copy and branch layout are the first thing to fix. Target facts: idx*100 is built as ((idx*2+idx)*8+idx)*4 and recomputed from arg1 in both branches; the magic divide by 7 uses multu 0x24924925; the display-list body (9 two-word commands through the pointer in t1) matches the arithmetic in the candidate. Untried: -O1 via try_compiler, and writing the st==0 store to reuse the same address as the load. Next step: try_compiler on gcc-kmc -O1 for this function before another source-level pass.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794764060.358935,
+  "score_before": 4680,
+  "score_after": 4680
+ },
+ {
+  "function": "func_801FC9D0",
+  "text": "Not matched. Two compiles of the held candidate (revision 7a5d1ece9f6ad19c2d6d, and a u16 idx patch) scored 9745 (27.8%), against a historical saved best of 4680 that I did not reverify. Budget is 3/3 non-improving compiles, so I released it. Diff: target computes idx*0x64 with sll/addu chains (x5 addu, x3 sll 2, sll 1 and sll 3 pairs) and uses andi $v1,$a1,0xffff before the lui of D_8011F330. Our draft loads the state with lui/addiu/lhu and branches with bnez where the target uses beqz, so the if (st==0) test is probably structured differently in the original. The 0x64 stride may be a struct size better written as a typed struct array than byte-offset arithmetic. The display-list words (0xFD4800EF, 0xF5480000, 0xE6000000, 0xF4000000 etc.) look like F3D/RSP commands, a hint for field layout. Untested: a 100-byte struct array with a u16 state field, and checking whether the st==1 path is the fall-through.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794767350.2161129,
+  "score_before": 4680,
+  "score_after": 4680
+ },
+ {
+  "function": "func_801FC9D0",
+  "text": "haiku-pr21: display-list emitter (flag table at D_8011F330 with 100-byte records; the flag==1 arm computes c/7 and c%7 from D_8011F2F0 by a multiply-high, then writes about twelve Gfx pairs through *dl). Saved best scores 2340 default, 3535 O1; no clean rewrite yet. Start from the arm's Gfx words and the flag-0 store, not from the saved best's scaffolding.",
+  "by": "manual-29400409f2a1401f",
+  "created_at": 1795714030.88422,
+  "score_before": 2340,
+  "score_after": 2340
+ },
+ {
+  "function": "func_801FC9D0",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Gfx emitter; not attempted beyond the saved best",
+  "by": "manual-29400409f2a1401f",
+  "created_at": 1795714032.1493208,
+  "score_before": 2340,
+  "score_after": 2340
  }
 ]
