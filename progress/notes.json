@@ -4520,14 +4520,6 @@
   "score_after": 34902
  },
  {
-  "function": "func_8013B894",
-  "text": "Deep permuter: score 2675 \u2192 2675; 0 improvements; 93 candidates tested; 28 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935321",
-  "created_at": 1794356251.706078,
-  "score_before": 2675,
-  "score_after": 2675
- },
- {
   "function": "_n_saveBuffer",
   "text": "Deep permuter: score 1273 \u2192 1273; 0 improvements; 105 candidates tested; 70 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934913",
@@ -7062,14 +7054,6 @@
   "created_at": 1794709365.876663,
   "score_before": 320,
   "score_after": 320
- },
- {
-  "function": "func_8013B894",
-  "text": "Best 2725 (74.0%), revision d11e50e1aa7932a2f110. Source: u32 n=arg0; if (*(f32*)(D_8011F30C+(n&0xFFFF)*100) > *(f32*)(D_8011F338+...)) { u32 i=(n&0xFFFF)*100; F30C -= 0.6f; F334 += 0.02f; if (arg0&1) {F308 += sinf(F334); F310 += cosf(F334);} else {F308 -= cosf(F334); F310 -= sinf(F334);} } else D_8011F2FD[(n&0xFFFF)*100] = 2. Writing the compare as F30C > F338 matches the target's c.lt.s operand order; the earlier F338 < F30C form gave 2860. Still differing: the target loads F338 into f0 and F30C into f2 for the compare and reuses the F30C value for the 0.6f subtraction (CSE across the compare), while ours reloads F30C; the 0.02f update and the stores are reordered; the target recomputes the index (andi/sll/addu) per store. Next: try the compare as `F338 < F30C` with the 0.6f subtraction written as F30C = F30C - 0.6f reusing the compared load, then tune the store order.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794709409.63839,
-  "score_before": 2860,
-  "score_after": 2725
  },
  {
   "function": "func_800E08B4",
@@ -10800,14 +10784,6 @@
   "score_after": 3005
  },
  {
-  "function": "func_8013B894",
-  "text": "Best 2945 (71.9%), no match. Restart from revision bbb3840d97155b23aba2 (or 76b8b86df25446dd9904, same score, if/else form). Facts: __sinf and __cosf take ONE f32 argument (the draft's 2-arg prototype is wrong). Computing odd = arg0&1 before the first compare was the big win (3810 -> 2945). Structure: if (F338 < F30C) { F30C -= 0.6f; fa = F334+0.02f; F334 = fa; if (odd) { F308 = sin(fa)+F308; F310 = cos(F334)+F310; } else { F308 -= cos(F334); F310 -= sin(F334); } } else D_8011F2FD[off] = 2. Remaining diffs: (1) prologue: target saves $ra then $s0, then `move $a1,$a0; andi $v0,$a1,0xffff` (copy of arg0 used for the index); mine uses arg0 directly; (2) target's odd test is `andi $v0,$a0,1` then beqz v0; mine branches on a saved register; (3) target recomputes the index sll/addu chain for each use (five addu), mine shares it; (4) constant-load order around bc1f differs (0.6f lui 0x3F19 appears after the bc1f in target). Tried without effect: a1 copy of arg0 for both index computations, odd != 0 spelling, if/else vs early return. Untried: compile_family signedness; forcing the index to be recomputed per use via a macro.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794724385.568034,
-  "score_before": 2725,
-  "score_after": 2725
- },
- {
   "function": "func_8013DF90",
   "text": "Not matched. Saved best 3120 (the goto-based candidate) is still the best. Two rewrites this session scored worse: a clean do/while with an e pointer (5256), and a version addressing the separate symbols by offset (D_8022A772+off, D_8022ACD0+off, D_8022AD07+off, D_8022A776+off, D_8022A770+off) (5146). Both keep more values live, so GCC saves s5..s7 and fp and grows the frame to 0x48. The target frame is 0x38: saves ra, s0..s4, fs0, fs1 only. So the live set must stay at four values plus the loop counter, with e recomputed from the offset. Target facts: outer counter s3 compared with 7 after andi 0xFFFF; temp_s4 = D_801687EC[*(u16*)(D_8006FAF0+0x20)]; idx = lhu(D_8022A772+off); flag test lhu(D_8022ACD0+off) & 0x18; q = D_8011F2F0 + idx*100; inner p walks 16-byte records while p[4] float != 0; byte lbu(D_8022AD07+off) compared with lhu(p); distance test vs 26.0f via sqrtf; func_8015E8E4(D_8022A770+off); then lhu/ori 4/sh at D_8022A776+off. Next: restore the 3120 candidate (get_candidate base saved_best) and reduce live variables, e.g. drop the separate q and recompute q from idx inside the inner test.",
   "by": "claude-haiku-5-5-24",
@@ -14120,14 +14096,6 @@
   "score_after": 2115
  },
  {
-  "function": "func_8013B894",
-  "text": "Best saved is 890 (arg0-reuse source, revision 223eba6c8edcdf0c6944). search_flags on that source: -O2 -fno-schedule-insns scores 660 (best seen), -O1 825, project -O2 890. None matches yet. Also a 1080 variant (89.7%, revision b1223eba745da04b9a0e) that keeps a1=arg0, index recomputed as (a1&0xFFFF)*0x64 in the odd==0 path, odd tested as (a1&1) inside the if; its only remaining diffs are one missing nop after mtc1 (target loads 0.6f into f0 and does sub.s f0,f2,f0 reusing the compare's f2 load of D_8011F30C), and a branch offset 0xfc vs 0xf8 from that. Remaining: register choice for the constant (target: f0 const, f2 = F30C reused from compare, no second lwc1) and the nop. Variants that moved the odd test or used a separate index variable (2945, 3810, f63e19...) were worse. Suggest trying -fno-schedule-insns on the 1080 source, since the target's nop after mtc1 looks like a scheduling artifact.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794736359.421521,
-  "score_before": 890,
-  "score_after": 890
- },
- {
   "function": "func_80148260",
   "text": "Not matched. Best 5830 (51.0%), revision c69e83ec5b2506cf268f (`s32 func_80148260(u8 arg0, s32 arg1)`, direct `D_8018D140[(arg1&0xFF)*0x12C/2 + i]` indexing). Tried and worse: arg1 as u8 (6145); a `u16 *row` base of `D_8018D140 + (arg1&0xFF)*0x96` (6385); the same with a byte-pointer base `(u8*)D_8018D140 + (arg1&0xFF)*0x12C` (no change from 6385). Target decodes as: row offset = (x*75)<<2 bytes built from shifts (x<<2, +x, <<4, -x, <<2), so the index is a byte offset, not a u16 multiply. Target starts with `move $t1,$a0` and has no stack frame, while mine opens with `addiu $sp,-8`. Next: make arg0 and arg1 both s32 with a local `base` byte offset computed once, then check whether the 8-entry copy loops need their own counter registers. Mismatch is mostly register allocation and ordering after that.",
   "by": "claude-haiku-5-5-24",
@@ -14326,14 +14294,6 @@
   "created_at": 1794737286.66934,
   "score_before": 1435,
   "score_after": 1435
- },
- {
-  "function": "func_8013B894",
-  "text": "func_8013B894 (420 bytes, float table update with __sinf/__cosf, table stride 0x64, D_8011F30C/F334/F308/F310/F338 f32 fields, byte flag at D_8011F2FD). Saved best 890 (not reverified). Unprototyped `f32 __cosf();`/`f32 __sinf();` compiles at 2095 (80%), but the candidate shows cvt.d.s $f12 x4 that the target lacks: the target passes f32 directly, so the calls need a single-precision prototype (the `f32 __cosf(f32);` form fails with 'too few arguments', so some other declaration is needed; check other matched functions for __sinf usage first with find_similar). Also the target begins `sw $ra,0x14($sp)` then `move $a1,$a0`, while ours saves s0 first. The saved 890 source should be restored with get_candidate(base=\"saved_best\") before any new edit.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794737381.105237,
-  "score_before": 890,
-  "score_after": 890
  },
  {
   "function": "func_801FA028",
@@ -14582,14 +14542,6 @@
   "created_at": 1794738820.806473,
   "score_before": 23786,
   "score_after": 23601
- },
- {
-  "function": "func_8013B894",
-  "text": "Best 890 (91.5%) at revision 223eba6c8edcdf0c6944: arg0 reused as the index*100 (arg0 = (a1 & 0xFFFF) * 0x64), a1 = arg0 copy, odd = arg0 & 1 at top. Remaining diffs: target keeps the odd test in v0 (andi $v0,$a0,1 in bc1f delay slot) and computes the index andi into v0 before beqz; ours puts the odd test in $a1 and the index copy in $s0 (register/order only). Also target loads 0.6f into $f0 and subtracts in a different order (lwc1 $f2 for D_8011F30C, mtc1 $at,$f0). Tried: odd computed inside the if-body (1080), separate off variable with a1 index (3810, the lwc1 offset fold changed). Next: keep the 890 base and vary only where odd is computed and which variable holds the index copy.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794738839.291978,
-  "score_before": 890,
-  "score_after": 890
  },
  {
   "function": "func_800DEFF8",
@@ -26640,14 +26592,6 @@
   "score_after": 2580
  },
  {
-  "function": "func_8013B894",
-  "text": "Best candidate: revision 223eba6c8edcdf0c6944, score 890 (91.5%). Source uses F32AT(base, off) macro with off = (a1&0xFFFF)*100, `odd = arg0 & 1` saved early, and `arg0 = ...` reuse. Remaining diff is codegen order: target does the float compare (bc1f .L16c) then `andi v0,a0,1` then `beqz v0`; ours stores odd to a register first (beqz $a1) and does `andi $v0,$a0,0xffff` first. Tried: removing `odd` and using `(a1&1)` inline at the branch: 1235 (worse, bc1fl appears). Tried: `if ((a1 & 1) != 0)` with odd removed but the re-mask kept: 1080 (worse; sub.s/swc1 order and an f2/f6 swap). Untried: keep odd but declare it after the float compare, or make the second masked store use D_8011F30C with its own pointer. Also: the score-890 source still has ra saved at 0x14 after two loads of a1, so frame layout is right.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794765007.292587,
-  "score_before": 890,
-  "score_after": 890
- },
- {
   "function": "func_801BFA1C",
   "text": "Not matched. Current revision 29037d161eb23ee98005 is a placeholder that scores 0.3% (145921) only to satisfy the compile gate; the saved candidate from the claim (m2c draft, revision 4e5c9b5ed931c95a54d3) does not compile (undeclared sp48 at line 70; goto block_29/30/31/32 jump into else arms). Target is 5856 bytes (1464 insns), frame 0xa0, saves ra and s0-s6 plus fs regs. The function uses a 4-entry u16 slot array (sp48..sp4E) filled from 3 func_800DE41C calls per arm. Arms are selected by D_801C5E9D==5 and by the byte at D_801C7084+5*(arg0&0xFF) (0x00/0x2E, 0x05/0x33, 0x2A/0x58, 0x2B/0x59, 0x2C/0x5A, 0x2D/0x5B) and D_801C7469 (0..3). Each arm is the same 3-call pattern with x/y/z offsets of +/-116 and +/-196, scaled by 0.5f, and the final loop stores each slot to D_801C7470 and ORs 0x28 into D_8011F2F4 entries (stride 0x64). Next: rewrite as a helper parameterized by (sign, arm), remove the goto labels, and compile. Not matched; not closer in this session.",
   "by": "claude-haiku-5-5-21",
@@ -27566,14 +27510,6 @@
   "created_at": 1794767034.7192068,
   "score_before": 2810,
   "score_after": 2810
- },
- {
-  "function": "func_8013B894",
-  "text": "Not matched. Best 890 (91.5%) at revision 38edeb8f0a2796bbe03a: the brief C with the two-arg-free __sinf/__cosf prototypes compiles cleanly. Remaining diff: target keeps the original arg in $a0 and copies to $a1 (move $a1,$a0; andi $v0,$a1,0xffff); target stores the odd flag late (andi $v0,$a0,1 after the first bc1f) and branches on it with beqz; ours computes odd early and lands in $s0 with a stack frame of 0x18. Tried moving the odd computation into the if: 1235 (worse). Next: keep odd computed after the compare, test `if ((arg0 & 1) != 0)` with arg0 kept unmodified until the index is formed, and check the frame (ra and s0 saved at 0x14/0x10).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794767042.008179,
-  "score_before": 890,
-  "score_after": 890
  },
  {
   "function": "func_8013E49C",
@@ -38941,5 +38877,86 @@
   "score_before": null,
   "score_after": null,
   "handoff_inputs": "7d6ab19fd43b588fb9bd67b9d84d10cd2a9748f024bfaf8e453c8df33558880f:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:8a5bbd8cfc6ec93783ab49e7445747ff5ad93bee8d1ef76a37291ebbad8ab551"
+ },
+ {
+  "function": "func_8013B894",
+  "text": "Deep permuter: score 2675 \u2192 2675; 0 improvements; 93 candidates tested; 28 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935321",
+  "created_at": 1794356251.706078,
+  "score_before": 2675,
+  "score_after": 2675
+ },
+ {
+  "function": "func_8013B894",
+  "text": "Best 2725 (74.0%), revision d11e50e1aa7932a2f110. Source: u32 n=arg0; if (*(f32*)(D_8011F30C+(n&0xFFFF)*100) > *(f32*)(D_8011F338+...)) { u32 i=(n&0xFFFF)*100; F30C -= 0.6f; F334 += 0.02f; if (arg0&1) {F308 += sinf(F334); F310 += cosf(F334);} else {F308 -= cosf(F334); F310 -= sinf(F334);} } else D_8011F2FD[(n&0xFFFF)*100] = 2. Writing the compare as F30C > F338 matches the target's c.lt.s operand order; the earlier F338 < F30C form gave 2860. Still differing: the target loads F338 into f0 and F30C into f2 for the compare and reuses the F30C value for the 0.6f subtraction (CSE across the compare), while ours reloads F30C; the 0.02f update and the stores are reordered; the target recomputes the index (andi/sll/addu) per store. Next: try the compare as `F338 < F30C` with the 0.6f subtraction written as F30C = F30C - 0.6f reusing the compared load, then tune the store order.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794709409.63839,
+  "score_before": 2860,
+  "score_after": 2725
+ },
+ {
+  "function": "func_8013B894",
+  "text": "Best 2945 (71.9%), no match. Restart from revision bbb3840d97155b23aba2 (or 76b8b86df25446dd9904, same score, if/else form). Facts: __sinf and __cosf take ONE f32 argument (the draft's 2-arg prototype is wrong). Computing odd = arg0&1 before the first compare was the big win (3810 -> 2945). Structure: if (F338 < F30C) { F30C -= 0.6f; fa = F334+0.02f; F334 = fa; if (odd) { F308 = sin(fa)+F308; F310 = cos(F334)+F310; } else { F308 -= cos(F334); F310 -= sin(F334); } } else D_8011F2FD[off] = 2. Remaining diffs: (1) prologue: target saves $ra then $s0, then `move $a1,$a0; andi $v0,$a1,0xffff` (copy of arg0 used for the index); mine uses arg0 directly; (2) target's odd test is `andi $v0,$a0,1` then beqz v0; mine branches on a saved register; (3) target recomputes the index sll/addu chain for each use (five addu), mine shares it; (4) constant-load order around bc1f differs (0.6f lui 0x3F19 appears after the bc1f in target). Tried without effect: a1 copy of arg0 for both index computations, odd != 0 spelling, if/else vs early return. Untried: compile_family signedness; forcing the index to be recomputed per use via a macro.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794724385.568034,
+  "score_before": 2725,
+  "score_after": 2725
+ },
+ {
+  "function": "func_8013B894",
+  "text": "Best saved is 890 (arg0-reuse source, revision 223eba6c8edcdf0c6944). search_flags on that source: -O2 -fno-schedule-insns scores 660 (best seen), -O1 825, project -O2 890. None matches yet. Also a 1080 variant (89.7%, revision b1223eba745da04b9a0e) that keeps a1=arg0, index recomputed as (a1&0xFFFF)*0x64 in the odd==0 path, odd tested as (a1&1) inside the if; its only remaining diffs are one missing nop after mtc1 (target loads 0.6f into f0 and does sub.s f0,f2,f0 reusing the compare's f2 load of D_8011F30C), and a branch offset 0xfc vs 0xf8 from that. Remaining: register choice for the constant (target: f0 const, f2 = F30C reused from compare, no second lwc1) and the nop. Variants that moved the odd test or used a separate index variable (2945, 3810, f63e19...) were worse. Suggest trying -fno-schedule-insns on the 1080 source, since the target's nop after mtc1 looks like a scheduling artifact.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794736359.421521,
+  "score_before": 890,
+  "score_after": 890
+ },
+ {
+  "function": "func_8013B894",
+  "text": "func_8013B894 (420 bytes, float table update with __sinf/__cosf, table stride 0x64, D_8011F30C/F334/F308/F310/F338 f32 fields, byte flag at D_8011F2FD). Saved best 890 (not reverified). Unprototyped `f32 __cosf();`/`f32 __sinf();` compiles at 2095 (80%), but the candidate shows cvt.d.s $f12 x4 that the target lacks: the target passes f32 directly, so the calls need a single-precision prototype (the `f32 __cosf(f32);` form fails with 'too few arguments', so some other declaration is needed; check other matched functions for __sinf usage first with find_similar). Also the target begins `sw $ra,0x14($sp)` then `move $a1,$a0`, while ours saves s0 first. The saved 890 source should be restored with get_candidate(base=\"saved_best\") before any new edit.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794737381.105237,
+  "score_before": 890,
+  "score_after": 890
+ },
+ {
+  "function": "func_8013B894",
+  "text": "Best 890 (91.5%) at revision 223eba6c8edcdf0c6944: arg0 reused as the index*100 (arg0 = (a1 & 0xFFFF) * 0x64), a1 = arg0 copy, odd = arg0 & 1 at top. Remaining diffs: target keeps the odd test in v0 (andi $v0,$a0,1 in bc1f delay slot) and computes the index andi into v0 before beqz; ours puts the odd test in $a1 and the index copy in $s0 (register/order only). Also target loads 0.6f into $f0 and subtracts in a different order (lwc1 $f2 for D_8011F30C, mtc1 $at,$f0). Tried: odd computed inside the if-body (1080), separate off variable with a1 index (3810, the lwc1 offset fold changed). Next: keep the 890 base and vary only where odd is computed and which variable holds the index copy.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794738839.291978,
+  "score_before": 890,
+  "score_after": 890
+ },
+ {
+  "function": "func_8013B894",
+  "text": "Best candidate: revision 223eba6c8edcdf0c6944, score 890 (91.5%). Source uses F32AT(base, off) macro with off = (a1&0xFFFF)*100, `odd = arg0 & 1` saved early, and `arg0 = ...` reuse. Remaining diff is codegen order: target does the float compare (bc1f .L16c) then `andi v0,a0,1` then `beqz v0`; ours stores odd to a register first (beqz $a1) and does `andi $v0,$a0,0xffff` first. Tried: removing `odd` and using `(a1&1)` inline at the branch: 1235 (worse, bc1fl appears). Tried: `if ((a1 & 1) != 0)` with odd removed but the re-mask kept: 1080 (worse; sub.s/swc1 order and an f2/f6 swap). Untried: keep odd but declare it after the float compare, or make the second masked store use D_8011F30C with its own pointer. Also: the score-890 source still has ra saved at 0x14 after two loads of a1, so frame layout is right.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794765007.292587,
+  "score_before": 890,
+  "score_after": 890
+ },
+ {
+  "function": "func_8013B894",
+  "text": "Not matched. Best 890 (91.5%) at revision 38edeb8f0a2796bbe03a: the brief C with the two-arg-free __sinf/__cosf prototypes compiles cleanly. Remaining diff: target keeps the original arg in $a0 and copies to $a1 (move $a1,$a0; andi $v0,$a1,0xffff); target stores the odd flag late (andi $v0,$a0,1 after the first bc1f) and branches on it with beqz; ours computes odd early and lands in $s0 with a stack frame of 0x18. Tried moving the odd computation into the if: 1235 (worse). Next: keep odd computed after the compare, test `if ((arg0 & 1) != 0)` with arg0 kept unmodified until the index is formed, and check the frame (ra and s0 saved at 0x14/0x10).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794767042.008179,
+  "score_before": 890,
+  "score_after": 890
+ },
+ {
+  "function": "func_8013B894",
+  "text": "Compiler detection: func_8013B894's saved C scores 55 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 -fno-schedule-insns2, 115 under its own settings. Evidence: the judge's scores alone. Suggested on the project page for review; nothing was applied. Try its C with that compiler (try_compiler) before more source spellings.",
+  "by": "permuter-30064771151",
+  "created_at": 1795647466.0684228,
+  "score_before": 115,
+  "score_after": 55
+ },
+ {
+  "function": "func_8013B894",
+  "text": "Haiku haiku-pr7: saved best 115 (11 register rows and sw ra placement). Removing the do-while fences: 750. Not matched; the saved fence structure carries the schedule. Next step would be a clean rewrite of the two loops with the saved structure as a guide.",
+  "by": "manual-74526d26d6b14065",
+  "created_at": 1795710042.488221,
+  "score_before": 115,
+  "score_after": 115,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:febc22b1d186ee0569217eaaa58f8e6b576050145c5bf582ebb0901b4b671c90"
  }
 ]
