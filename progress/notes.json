@@ -13368,14 +13368,6 @@
   "score_after": 60
  },
  {
-  "function": "func_801525C4",
-  "text": "Not matched. Saved best is 3145 (older source; get_candidate(base=\"saved_best\") restores it). Current source scores 4220 (45.8%) in three compiles; the raw-arg local (`raw = arg0`) changed nothing, so the frame is not a liveness issue at this level. Remaining diffs: target frame 0x28 (ra@0x18, s1@0x14, s0@0x10, $f20@0x20) vs mine 0x20; target has no `bc1f` (the `if (D_801837E8 <= temp_fv1)` compare is laid out differently, possibly as a branch-around on the negated compare or with the store moved into the delay slot), and the f64 chain order (cvt.d.s, add.d, cvt.s.d) differs. Next: compile the comparison as `if (!(temp_fv1 < D_801837E8))`, and try a double local for the f32 result of the first add.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794728661.638411,
-  "score_before": 3145,
-  "score_after": 3145
- },
- {
   "function": "func_80233ED0",
   "text": "Not matched. Best: 11035 (69.7%) at revision 9d47179abefab368b33d (globals D_80237058/D_8023760E/D_80237600 used directly; the st/cur/prev pointer version scored 11179 with frame 0x48). Target frame is 0x40 (ra 0x3c, s6 0x38, s5 0x34, s4 0x30, ...); ours is 0x48. Remaining diffs are control-flow ordering, not local tweaks: the target does `move $a1,$a0` late (row 16) and recomputes `andi $v1,$a1,0xffff` per use, while ours moves it first (row 1). The target loads the three global bases into saved regs first (lui s6=D_80237058, s2=D_8023760E, s5=D_80237600, plus `addiu $s3,$zero,1`), and its loop head is `beqz $v1,0x64`, which we do not reproduce. Tried with no score change: removing the `t` local, `&` vs `&&` in the record/bound test, `(arg0 & 0xFFFF)` vs `(u16)arg0` for the record index. Untried: splitting the v==0 clear loop from the v==1 loop into separate functions' worth of code, and `i = 0; do ... while (++i < 7)` for the clear loop. Prototypes func_8003DE60 and func_80230EFC are unverified guesses; confirm from find_similar.",
   "by": "claude-haiku-5-5-21",
@@ -21280,14 +21272,6 @@
   "score_after": 124314
  },
  {
-  "function": "func_801525C4",
-  "text": "Tried 4 variants of the machine draft with f32 pointer offsets via char arrays (D_8011F320/324/334 as char[], so *(f32*)(base + t*0x64) byte offsets). Scores: 4220, 4220, 4220, 4085 (best recorded in this session: 4085 with func_8013AE60(arg0) called unmasked, then temp = arg0 & 0xFFFF). Saved best 3145 is better; start from that. Remaining diff is structural: target saves ra + s0 + s1 (frame -0x28, sdc1 f20 at 0x20) and keeps arg0 in s1 across the func_8013AE60 call. The target calls func_8013AE60 with the MASKED value (move $a0,$s0 after andi $s0,$s1,0xffff), then reuses andi $s0,$s1,0xffff later, so the masked value is recomputed rather than CSE'd. My drafts CSE the two andi's into one register, so the source likely has the masked index as a non-CSE-able expression (e.g. a separate s16/u16 local or a re-read). Also the target has an extra float path: cvt.d.s / add.d with D_801837E0 then cvt.s.d, and the second __sinf call reloads from D_8011F334 + offset. Next: try a u16 local for the masked index (temp = (u16)arg0), and compile_family(signedness) which the tool suggested.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794752852.202881,
-  "score_before": 3145,
-  "score_after": 3145
- },
- {
   "function": "func_8003F464",
   "text": "Own C (not copied): if (D_80048200 == 0) { D_80048200 = 1; osCreateMesgQueue(D_800DE2B0, D_8006E770, 1); osSendMesg(D_800DE2B0, NULL, 0); } osRecvMesg(D_800DE2B0, &sp10, 1); with s32 sp10. Score 120 (96% insns match). Only difference: target puts `sw $ra,0x18($sp)` in the bnez delay slot (order: lui, lw, addiu sp, bnez, sw ra), while ours hoists sw ra and addiu sp above the lui/lw load, so bnez encodes 0x0e instead of 0x0f. Untried: alternative control shapes (e.g. inverted test with the recv in the else path) and whether the flag load should be typed u32. Note: the candidate offered at claim time carried a V-RALLY-PAL identity note; that was not used.",
   "by": "claude-haiku-5-5-21",
@@ -21462,14 +21446,6 @@
   "created_at": 1794753059.7406669,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_801525C4",
-  "text": "Best so far 2905 (62.7%), revision 93620ec6b0dee45569e9 (same as 2905 variant). Source shape: f32 arrays D_8011F320/F324/F334 indexed by off=i*25 (word index, = i*100 bytes), k=D_801837F0 loaded into an f64 local AFTER func_8013AE60(i) call so it is a saved fs reg (sdc1 $f20 frame 0x28 target). Remaining diffs: target re-materializes lui $at,%hi(D_8011F334) per access and uses sll $v0,2 after addu, we hoist base into v1 (addiu $v1,%lo) and compute s0 from s1. Target also keeps arg0 in s1 (move $s1,$a0) and reuses andi s0,s1 for both indices; my variants (second index as arg0&0xFFFF, or i) did not change it. Tried: scalar externs with &D_+off byte pointer arithmetic (2910), i*100 byte offsets (3382/2910). Next: try making the base an explicit s32 address e.g. (f32*)(&D_8011F334) with the index in a separate local, or try the arg0 saved via a second local copy before the call.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794753068.7180932,
-  "score_before": 3145,
-  "score_after": 2905
  },
  {
   "function": "func_8003E83C",
@@ -27920,14 +27896,6 @@
   "score_after": 7356
  },
  {
-  "function": "func_801525C4",
-  "text": "Best saved: score 2905 (62.7%), revision 5bf9aae8aadb296eea33 (target 78 insns, mine 63). Source: i = arg0 & 0xFFFF; func_8013AE60(i); k = D_801837F0; off = i*25; t = D_8011F334[off] + D_801837E0 (stored back), clamped to D_801837E8 when t >= it; then D_8011F320[off] and D_8011F324[off] = __sinf(D_8011F334[off]) * k + constant.\nRemaining diffs: (1) Prologue order: target stores ra@0x18, s1@0x14, s0@0x10 and does move s1,a0 before andi s0,s1,0xffff, then move a0,s0 for the call. Mine has s0 = i with ra first. (2) Target addresses the global array as lui $at,%hi(D_8011F334) / addu $at,$at,$v0 / lwc1 %lo($at), with the index already scaled by 4. Mine loads the base into v1, adds to s0 and uses (s0), which causes the extra bc1f / addiu v1 instructions.\nRejected: func_8013AE60(arg0) directly (4360, worse). The call must take the masked value.\nUntested: declare off as u32 so the scaled index can be folded into the array access. Next: restore the 5bf9 call (func_8013AE60(i)), then try off as u32 and reading arg0 for the second mask so it stays live in s1.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794761888.503531,
-  "score_before": 2905,
-  "score_after": 2905
- },
- {
   "function": "func_80026D40",
   "text": "Not matched; best 1065 (saved draft with volatile FlagDesc *p, which ties the score). Tried since: a separate volatile q = p local for the loop (same 1065, same instructions); removing volatile (2228). Remaining diff is prologue order (target saves ra at 0x1c, s2 at 0x18, s1 at 0x14, s0 at 0x10, then moves a0->s2 and a2->s0 before any call) and the loop branch being one instruction off (beqz 0x90 target vs 0x94 ours). Next: try moving the first-arg use to after the table-pointer assignment, or a do-while over p with an explicit mask!=0 guard, to shift the loop entry by one instruction.",
   "by": "claude-haiku-5-5-24",
@@ -28614,14 +28582,6 @@
   "created_at": 1794762677.313866,
   "score_before": 22805,
   "score_after": 22805
- },
- {
-  "function": "func_801525C4",
-  "text": "Not matched. Best saved 2905 (62.7%, 63 insns vs 78). Best source: f32 globals D_8011F320/D_8011F324/D_8011F334 indexed by off=i*25 (i=arg0&0xFFFF), with f64 k in $f20. Remaining diffs: (1) target frame 0x28 saves $ra,$s1,$s0,$f20; it keeps the raw arg0 in $s1 (move $s1,$a0) and recomputes andi $s0,$s1,0xffff twice, so the masked index is re-derived from the raw parameter, not CSE'd. Mine drops the s1 save. (2) Target re-emits `lui $at,%hi(D_8011F334)` + `addu $at,$at,$v0` + `lwc1 %lo(D_8011F334)($at)` for each access (4 lui, 6 addu), but mine hoists the base into $v1 and uses ($s0) pointer loads. Writing the masked index inline in each access did not stop the base hoist. Struct-array form (typedef with f30/f34/f44 at 0x30/0x34/0x44, stride 0x100 vs 100) scored 4180, worse; the stride is 100 bytes (25 floats), so that layout is probably right but its prologue/index shape is wrong. Next: try keeping raw arg0 live across the func_8013AE60 call (so the target's s1 save appears), and compare the `addu $at` form for the second write; do not spend more on the struct layout unless the base hoist is fixed.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794762688.26021,
-  "score_before": 2905,
-  "score_after": 2905
  },
  {
   "function": "func_801337B0",
@@ -35455,5 +35415,63 @@
   "created_at": 1794766637.589492,
   "score_before": 225,
   "score_after": 225
+ },
+ {
+  "function": "func_801525C4",
+  "text": "Not matched. Saved best is 3145 (older source; get_candidate(base=\"saved_best\") restores it). Current source scores 4220 (45.8%) in three compiles; the raw-arg local (`raw = arg0`) changed nothing, so the frame is not a liveness issue at this level. Remaining diffs: target frame 0x28 (ra@0x18, s1@0x14, s0@0x10, $f20@0x20) vs mine 0x20; target has no `bc1f` (the `if (D_801837E8 <= temp_fv1)` compare is laid out differently, possibly as a branch-around on the negated compare or with the store moved into the delay slot), and the f64 chain order (cvt.d.s, add.d, cvt.s.d) differs. Next: compile the comparison as `if (!(temp_fv1 < D_801837E8))`, and try a double local for the f32 result of the first add.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794728661.638411,
+  "score_before": 3145,
+  "score_after": 3145
+ },
+ {
+  "function": "func_801525C4",
+  "text": "Tried 4 variants of the machine draft with f32 pointer offsets via char arrays (D_8011F320/324/334 as char[], so *(f32*)(base + t*0x64) byte offsets). Scores: 4220, 4220, 4220, 4085 (best recorded in this session: 4085 with func_8013AE60(arg0) called unmasked, then temp = arg0 & 0xFFFF). Saved best 3145 is better; start from that. Remaining diff is structural: target saves ra + s0 + s1 (frame -0x28, sdc1 f20 at 0x20) and keeps arg0 in s1 across the func_8013AE60 call. The target calls func_8013AE60 with the MASKED value (move $a0,$s0 after andi $s0,$s1,0xffff), then reuses andi $s0,$s1,0xffff later, so the masked value is recomputed rather than CSE'd. My drafts CSE the two andi's into one register, so the source likely has the masked index as a non-CSE-able expression (e.g. a separate s16/u16 local or a re-read). Also the target has an extra float path: cvt.d.s / add.d with D_801837E0 then cvt.s.d, and the second __sinf call reloads from D_8011F334 + offset. Next: try a u16 local for the masked index (temp = (u16)arg0), and compile_family(signedness) which the tool suggested.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794752852.202881,
+  "score_before": 3145,
+  "score_after": 3145
+ },
+ {
+  "function": "func_801525C4",
+  "text": "Best so far 2905 (62.7%), revision 93620ec6b0dee45569e9 (same as 2905 variant). Source shape: f32 arrays D_8011F320/F324/F334 indexed by off=i*25 (word index, = i*100 bytes), k=D_801837F0 loaded into an f64 local AFTER func_8013AE60(i) call so it is a saved fs reg (sdc1 $f20 frame 0x28 target). Remaining diffs: target re-materializes lui $at,%hi(D_8011F334) per access and uses sll $v0,2 after addu, we hoist base into v1 (addiu $v1,%lo) and compute s0 from s1. Target also keeps arg0 in s1 (move $s1,$a0) and reuses andi s0,s1 for both indices; my variants (second index as arg0&0xFFFF, or i) did not change it. Tried: scalar externs with &D_+off byte pointer arithmetic (2910), i*100 byte offsets (3382/2910). Next: try making the base an explicit s32 address e.g. (f32*)(&D_8011F334) with the index in a separate local, or try the arg0 saved via a second local copy before the call.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794753068.7180932,
+  "score_before": 3145,
+  "score_after": 2905
+ },
+ {
+  "function": "func_801525C4",
+  "text": "Best saved: score 2905 (62.7%), revision 5bf9aae8aadb296eea33 (target 78 insns, mine 63). Source: i = arg0 & 0xFFFF; func_8013AE60(i); k = D_801837F0; off = i*25; t = D_8011F334[off] + D_801837E0 (stored back), clamped to D_801837E8 when t >= it; then D_8011F320[off] and D_8011F324[off] = __sinf(D_8011F334[off]) * k + constant.\nRemaining diffs: (1) Prologue order: target stores ra@0x18, s1@0x14, s0@0x10 and does move s1,a0 before andi s0,s1,0xffff, then move a0,s0 for the call. Mine has s0 = i with ra first. (2) Target addresses the global array as lui $at,%hi(D_8011F334) / addu $at,$at,$v0 / lwc1 %lo($at), with the index already scaled by 4. Mine loads the base into v1, adds to s0 and uses (s0), which causes the extra bc1f / addiu v1 instructions.\nRejected: func_8013AE60(arg0) directly (4360, worse). The call must take the masked value.\nUntested: declare off as u32 so the scaled index can be folded into the array access. Next: restore the 5bf9 call (func_8013AE60(i)), then try off as u32 and reading arg0 for the second mask so it stays live in s1.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794761888.503531,
+  "score_before": 2905,
+  "score_after": 2905
+ },
+ {
+  "function": "func_801525C4",
+  "text": "Not matched. Best saved 2905 (62.7%, 63 insns vs 78). Best source: f32 globals D_8011F320/D_8011F324/D_8011F334 indexed by off=i*25 (i=arg0&0xFFFF), with f64 k in $f20. Remaining diffs: (1) target frame 0x28 saves $ra,$s1,$s0,$f20; it keeps the raw arg0 in $s1 (move $s1,$a0) and recomputes andi $s0,$s1,0xffff twice, so the masked index is re-derived from the raw parameter, not CSE'd. Mine drops the s1 save. (2) Target re-emits `lui $at,%hi(D_8011F334)` + `addu $at,$at,$v0` + `lwc1 %lo(D_8011F334)($at)` for each access (4 lui, 6 addu), but mine hoists the base into $v1 and uses ($s0) pointer loads. Writing the masked index inline in each access did not stop the base hoist. Struct-array form (typedef with f30/f34/f44 at 0x30/0x34/0x44, stride 0x100 vs 100) scored 4180, worse; the stride is 100 bytes (25 floats), so that layout is probably right but its prologue/index shape is wrong. Next: try keeping raw arg0 live across the func_8013AE60 call (so the target's s1 save appears), and compare the `addu $at` form for the second write; do not spend more on the struct layout unless the base hoist is fixed.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794762688.26021,
+  "score_before": 2905,
+  "score_after": 2905
+ },
+ {
+  "function": "func_801525C4",
+  "text": "Hand-off of func_801525C4: best 4175 (80 differing rows) in /tmp/dd-haiku-pr30/work/f3_c2.c.\n\nRemaining rows (marker | target | candidate):\n  s | addiu $sp, $sp, -0x28 | addiu $sp, $sp, -0x20\n  i | sw $ra, 0x18($sp) | sw $s0, 0x10($sp)\n  | | sw $s1, 0x14($sp) | andi $s0, $a0, 0xffff\n  i | sw $s0, 0x10($sp) | sw $ra, 0x14($sp)\n  s | sdc1 $f20, 0x20($sp) | sdc1 $f20, 0x18($sp)\n  < | move $s1, $a0 | \n  < | andi $s0, $s1, 0xffff | \n  o | cvt.d.s $f0, $f0 | \n  o | add.d $f0, $f0, $f2 | \n  o | cvt.s.d $f0, $f0 | \n  o | lui $at, %hi(D_8011F334) | \n  o | addu $at, $at, $v0 | \n  o | swc1 $f0, %lo(D_8011F334)($at) | \n  r | cvt.d.s $f2, $f0 | cvt.d.s $f0, $f0\n  < | lui $at, %hi(D_801837E8) | \n  < | ldc1 $f0, %lo(D_801837E8)($at) | \n  < | c.le.d $f0, $f2 | \n  o | nop | \n  o | nop | \n  < | bc1fl .L9c | \n  < | andi $v0, $s1, 0xffff | \n  < | sub.d $f0, $f0, $f2 | \n  o | cvt.s.d $f0, $f0 | \n  o | lui $at, %hi(D_8011F334) | \n  o | addu $at, $at, $v0 | \n  o | swc1 $f0, %lo(D_8011F334)($at) | \n  < | andi $v0, $s1, 0xffff | \n  < | sll $s0, $v0, 1 | \n  < | addu $s0, $s0, $v0 | \n  < | sll $s0, $s0, 3 | \n  < | addu $s0, $s0, $v0 | \n  < | sll $s0, $s0, 2 | \n  o | lui $at, %hi(D_8011F334) | \n  o | addu $at, $at, $s0 | \n  o | jal __sinf | \n  o | lwc1 $f12, %lo(D_8011F334)($at) | \n  o | cvt.d.s $f0, $f0 | \n  o | lui $at, %hi(D_801837F0) | \n  o | ldc1 $f20, %lo(D_801837F0)($at) | \n  o | mul.d $f0, $f0, $f20 | \n  ... 40 more (fast_judge.py --diff --rows all)\n\nRegister pairs (explain_regs.py):\n  $f0 where the target has $f2 (1 row):\n  why not $f2: block-local: local-alloc gives quantities registers in priority order and $f2 was taken or tied up in that block (also in $f2: pseudo 88 (0.33), pseudo 93 (0.60)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $f2: block-local: local-alloc gives quantities registers in priority order and $f2 was taken or tied up in that block (also in $f2: pseudo 88 (0.33), pseudo 93 (0.60)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $f2: block-local: local-alloc gives quantities registers in priority order and $f2 was taken or tied up in that block (also in $f2: pseudo 88 (0.33), pseudo 93 (0.60)). Move it: change its refs/length against those, or make it global (a use in another block).\n  $v0 where the target has $s0 (1 row):\n  why not $s0: block-local: local-alloc gives quantities registers in priority order and $s0 was taken or tied up in that block (also in $s0: pseudo 76 (1.43), pseudo 83 (0.45)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $s0: block-local: local-alloc gives quantities registers in priority order and $s0 was taken or tied up in that block (also in $s0: pseudo 76 (1.43), pseudo 83 (0.45)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $s0: block-local: local-alloc gives quantities registers in priority order and $s0 was taken or tied up in that block (also in $s0: pseudo 76 (1.43), pseudo 83 (0.45)). Move it: change its refs/length against those, or make it global (a use in another block).\n\nTried (approach: score):\n  - clean rewrite with arg kept live across the call (f3_c2): 4175 local\n  - k = D_801837F0 hoisted before the second index: 4175 (no change)\n  - saved best minus its fences/branch copies: not reached (splice did not compile; fences are not allowed in a match)\n\nFindings:\ntarget keeps arg in $s1 across __sinf and holds D_801837F0 in $f20 (sdc1 $f20 in the prologue, frame 0x28): the saved best reaches 260 only with do-while fences and a duplicated if/else, both forbidden here. The sinf calls need their own double constant saved across the calls",
+  "by": "manual-a3f89156f3b6431f",
+  "created_at": 1795715598.49824,
+  "score_before": 260,
+  "score_after": 260,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:27a9da636e87cee6fa27e79b86105c0f97ab42b58cec1362471f81367895cd23"
+ },
+ {
+  "function": "func_801525C4",
+  "text": "Stuck: the target keeps the argument in s1 across __sinf and the double constant in f20; the only near-0 source (saved, 260) needs do-while fences and a duplicated if/else, which the match rules forbid. Released after 1 compile at 4175.",
+  "by": "manual-a3f89156f3b6431f",
+  "created_at": 1795715636.588671,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:27a9da636e87cee6fa27e79b86105c0f97ab42b58cec1362471f81367895cd23"
  }
 ]
