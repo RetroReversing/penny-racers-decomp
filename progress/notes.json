@@ -7424,14 +7424,6 @@
   "score_after": 1530
  },
  {
-  "function": "func_80198968",
-  "text": "Best 4855 (switch form). Target shape (74 insns, no frame): lb D_801C7068 -> beqz to return; move a2,0; lbu D_801C7469; bnez v0 -> case0 block; then bne v1,1 / bne v1,2 / bne v1,3 chain (if/else-if chain, NOT a jump table). Each case re-materialises lui/addiu $a1,%lo(D_801C6BB0) and uses lb $v1,($a1) / lb $v0,1($a1) (base+1 for D_801C6BB1). Cases 0/2/3 share tail .L80198A80: bnel v1,v0 -> addiu a2,1. Case 1 loads v1=D_801C6BB1 then falls into .L80198A78 loading v0=D_801C6BB9. Case 3 compares (a==m-1)||(a+1==m-1) then loads v1=D_801C6BB1, v0=D_801C6BB9. Return andi v0,a2,0xFF. Tried: m2c switch draft (8475), if/else-if chain returning a2 (4855, best), u8 return + goto tail (9515), chain returning r (6040). Remaining idea: keep if/else-if chain but force a2 to be initialised before the D_801C7469 load (target has move a2,zero right after beqz) and express each case body as `if (a != m-1) r = 1; else {...}` so bnel+addiu a2,1 is emitted; the D_801C6BB0 address must be CSE'd into a1 once per case (lb $v1,($a1), lb $v0,1($a1)).",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794709677.608587,
-  "score_before": 8185,
-  "score_after": 4855
- },
- {
   "function": "func_801AEAB0",
   "text": "Best 3525 (70.8%), saved. Stopping: the remaining diff is the instruction order of the stack-argument stores around three func_800DE41C calls and the lui/addiu materialisation of D_801B7204, D_80196448, D_801D5A90 relative to the zero stores. A single C statement cannot reorder those stores without changing the argument values, and the variant I tried (separate statements per call) did not change the diff. Also the D_801C7AD0 sb and D_801C7ABD sb order differs. Next agent: compile one call at a time (comment out the other two) to find which call's arg order differs; the first call's stores look like they match except the 0x20 pointer ordering.",
   "by": "claude-haiku-5-5-24",
@@ -11344,14 +11336,6 @@
   "score_after": 1770
  },
  {
-  "function": "func_80198968",
-  "text": "Best score 5930 (19.8%), revision bc8eb16b1254458e4431: flat if/else-if chain on D_801C7469 (0..3) with `s8 *p = D_801C6BB0;`, a2 set to 1 on failure, `if (D_801C7068 != 0)` wrapper, `return a2 & 0xFF`. Still differs in structure, not just registers: target starts `lui/lb D_801C7068; beqz -> return 0` with `move $a2,$zero` before any test; mine evaluates the sel chain first and puts the zero-init in a different register. Target reloads `lui/addiu D_801C6BB0` into $a1 at each case (3 times) and uses `lb $v1,($a1)`, `lb $v0,1($a1)`; mine hoists the address into $a2. Next: try writing the three per-case bodies with direct `D_801C6BB0[0]`/`[1]` reads (no pointer), and try the cases as a switch with the D_801C7068 test placed inside each case. Released at the current best, not a finished match.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794724557.77115,
-  "score_before": 4855,
-  "score_after": 4855
- },
- {
   "function": "func_80198A90",
   "text": "Best 2565 (61.7%, revision 426deeb0df2a42675f75, the global-array version). Target is 67 insns, ours 61: target branches to 0x104 where ours go to 0xec, so the target has extra code on the failure path. Target loads D_801C6BB9 twice (lui $a0 + lb, then again for the j+1 compares), keeps the D_801C6BB0 base in $a1 via lui+addiu, and loads D_801C7469 into $v0. Tried: local pointer `s8 *b = D_801C6BB0` (worse, 5340; pointer materialised with lui/addiu into $a2 and the compare order changed). Not tried yet: writing D_801C6BB9 through a re-read inside each arm (target re-reads the byte rather than reusing a register), and the `D_801C6BB9 + 1 != b[1]-1` compound in the D==0 arm may need reversing to match the bnel/beq shape. Also check whether the function uses a u8 a2 return and whether `(a2 & 0xFF)` is the right return form.",
   "by": "claude-haiku-5-5-21",
@@ -15112,14 +15096,6 @@
   "score_after": 2075
  },
  {
-  "function": "func_80198968",
-  "text": "Third member of the func_80198A90 family. Best 5330 (27.9%) with a switch(D_801C7469) version using t = D_801C7068 - 1 as the comparand, and case 3 checking b[0]==t || b[0]+1==t. The compiler turns the switch into a compare chain (slti/beq), but the target tests `bnez m` first, then equality for 1/2/3. Target loads D_801C7068 into a0 first, then the array address in a1 inside each case. Same fix as the sibling: write the dispatch as if (m == 0) {...} else if chain and keep the array base in a1. The case bodies still need the exact branch senses checked against the target.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794736615.008678,
-  "score_before": 4855,
-  "score_after": 4855
- },
- {
   "function": "func_8019862C",
   "text": "Not attempted this session; released unstarted to stay within the session claim budget. The machine draft is an m2c guess with a table check on D_801C6BE2 (u16 at ((D_801C6BB9*0x18)+D_801C7068)*2 == 0xFFFF) and a D_801C7AB0 field at +1 != 5 test. Start from the target assembly and the same comparison pattern as func_80198A90 (the small sibling family at 0x801973D0).",
   "by": "claude-haiku-5-5-22",
@@ -15782,14 +15758,6 @@
   "created_at": 1794739115.184177,
   "score_before": 3860,
   "score_after": 3860
- },
- {
-  "function": "func_80198968",
-  "text": "Best 3080 (58%, revision a5659365a3f782410f86): if/else-if chain on u8 m=D_801C7469 under if (D_801C7068!=0), t=D_801C7068-1, a=D_801C6BB0[0], b=D_801C6BB0[1], n=D_801C6BB9. Switch form scored 5330. Local pointer p=D_801C6BB0 scored 4245 (worse): the compiler then materialises the pointer early and moves the beqz. Remaining diffs: the target tests the n==0 case with beqz on D_801C7068 first, then reads m before the access. Sibling of func_80198858 (same m dispatch shape, 2380 there). Next: reproduce the target's read order exactly with separate global reads per case, not a pointer.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794739121.603195,
-  "score_before": 4855,
-  "score_after": 3080
  },
  {
   "function": "func_80198CC4",
@@ -21792,14 +21760,6 @@
   "score_after": 6340
  },
  {
-  "function": "func_80198968",
-  "text": "No match. Best rechecked 4890 (33.9%): switch(D_801C7469) version with a2 flag (case 0: if rec[0]==n-1 {if rec[1]!=B9 && B9!=rec[1]-1 -> a2=1} else a2=1; case 1: if rec[0]==n-1 {if rec[1]!=B9 -> a2=1} else a2=1; case 2: as case 0 with rec[1]+1; case 3: if rec[0]==n-1 || rec[0]+1==n-1 {if D_801C6BB1!=B9 -> a2=1} else a2=1; n=D_801C7068, outer guard n!=0; return a2&0xFF). Target shape: compiled as if-chain, not jump table: loads D_801C7469 as u8 and tests bnez (mode!=0) early; a2 zeroed as `move a2,zero`; uses one base register for D_801C6BB0 (addiu a1/a2 lo). The if/else-if chain version scored 6685 (worse): the chain is not the right shape yet. Next: keep the switch but restructure the mode test to come first, and test whether the case order should be 1 before 0. Draft m2c gotos are a poor guide.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794755359.759,
-  "score_before": 3080,
-  "score_after": 3080
- },
- {
   "function": "func_80148260",
   "text": "Unmatched. Saved best 5830 (51%) is the first candidate (`D_8018D140[(arg1&0xFF)*0x12C/2 + i]`). Every variant since then was worse: u16 row pointer from (u8*)base + x*0x12C (6075), row = base + x*0x96 (6075), off temp with D_8018D140[off+i] (7560). Common gap: the candidates all emit a stack frame (`addiu $sp,-8`) and a count-down fill loop, while the target is a frame-less leaf that starts `move $t1,$a0; move $a2,$zero`, builds the row base with lui/addiu D_8018D140 before the x*300 offset, and fills with `sll v0,a2,1; addu v0,v0,v1; sh $a0,0(v0)`. Untried: keep arg0 in a separate local copied at entry (to get the move $t1,$a0), and avoid the second loop's per-row byte address recompute. The second half (mask bit loop with (j<<8)|k, 8-entry copy with `D_8018D26C`/`D_8018D140` tail) is structurally plausible but unverified in register order.",
   "by": "claude-haiku-5-5-21",
@@ -23038,14 +22998,6 @@
   "created_at": 1794756964.442347,
   "score_before": 255,
   "score_after": 255
- },
- {
-  "function": "func_80198968",
-  "text": "Not matched. Best 4775 (35%): `if (n==0) return 0;` up front, then `if (mode==0) {...} else if (mode==2) {...} else if (mode==3) {...} else {...}` (the mode-0 block, with BB0[1] - 1, is the one the target falls into after `bnez` on mode). Other orderings tried this session: switch draft 4890; mode!=0 nesting with mode-2 first 6295; mode 2/3/0/else chain 6035. The target dispatches on mode with `bnez v0` first, then `bne v1,2`, then `bne 3`, so the mode-0 path is the fall-through, not the first branch. Target keeps `move a2,$zero` at entry and reuses v0=1 in a delay slot, which our compiles don't reproduce. Untried: the `a2 & 0xFF` return and a flat `if(a2) ...` shape. Also the lui/lb of D_801C6BB0 is hoisted into a1 (addiu a1,a1,%lo) once and reused for [0] and [1], so a shared `s8 *bb = D_801C6BB0;` pointer may match the register use better.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794756967.789243,
-  "score_before": 3080,
-  "score_after": 3080
  },
  {
   "function": "func_8014BCD8",
@@ -29614,14 +29566,6 @@
   "created_at": 1794767130.947711,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_80198968",
-  "text": "Best: rev 1f436ae2902e6f3974bf (score 4395, 39%): the flag==3 branch is written as `else if (D_801C7469 != 3)` with the generic block first, and the p[0]==n-1 || p[0]+1==n-1 / BB1 check moved into the else (branch_orientation variant 4 from rev 85a557ebe81eecec71b9). Target dispatch: n=D_801C7068 beqz to return 0 first; then flag=D_801C7469 (lbu) tested with bnez to a separate block. Flag==0 block: p0=D_801C6BB0[0] vs n-1 (bnel \u2192 a2=1), p1=D_801C6BB0[1] vs BB9, then BB9 vs p1-1 (bnel \u2192 a2=1). Flag==2 has p1+1 in the last compare. Flag==3 path uses p0==n-1 || p0+1==n-1 and BB1. Still differing: the first block's branch layout (target uses beqz with the return in the delay-less branch, ours bnez to a separate return), and the table base register ($a1 vs $a0). Next: test the n==0 return written as an explicit `if (n != 0) {...} return 0;` form.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794767151.734976,
-  "score_before": 3080,
-  "score_after": 3080
  },
  {
   "function": "func_801FC2F8",
@@ -36552,5 +36496,129 @@
   "created_at": 1795726967.7582982,
   "score_before": 145,
   "score_after": 145
+ },
+ {
+  "function": "func_80198968",
+  "text": "Best 4855 (switch form). Target shape (74 insns, no frame): lb D_801C7068 -> beqz to return; move a2,0; lbu D_801C7469; bnez v0 -> case0 block; then bne v1,1 / bne v1,2 / bne v1,3 chain (if/else-if chain, NOT a jump table). Each case re-materialises lui/addiu $a1,%lo(D_801C6BB0) and uses lb $v1,($a1) / lb $v0,1($a1) (base+1 for D_801C6BB1). Cases 0/2/3 share tail .L80198A80: bnel v1,v0 -> addiu a2,1. Case 1 loads v1=D_801C6BB1 then falls into .L80198A78 loading v0=D_801C6BB9. Case 3 compares (a==m-1)||(a+1==m-1) then loads v1=D_801C6BB1, v0=D_801C6BB9. Return andi v0,a2,0xFF. Tried: m2c switch draft (8475), if/else-if chain returning a2 (4855, best), u8 return + goto tail (9515), chain returning r (6040). Remaining idea: keep if/else-if chain but force a2 to be initialised before the D_801C7469 load (target has move a2,zero right after beqz) and express each case body as `if (a != m-1) r = 1; else {...}` so bnel+addiu a2,1 is emitted; the D_801C6BB0 address must be CSE'd into a1 once per case (lb $v1,($a1), lb $v0,1($a1)).",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794709677.608587,
+  "score_before": 8185,
+  "score_after": 4855
+ },
+ {
+  "function": "func_80198968",
+  "text": "Best score 5930 (19.8%), revision bc8eb16b1254458e4431: flat if/else-if chain on D_801C7469 (0..3) with `s8 *p = D_801C6BB0;`, a2 set to 1 on failure, `if (D_801C7068 != 0)` wrapper, `return a2 & 0xFF`. Still differs in structure, not just registers: target starts `lui/lb D_801C7068; beqz -> return 0` with `move $a2,$zero` before any test; mine evaluates the sel chain first and puts the zero-init in a different register. Target reloads `lui/addiu D_801C6BB0` into $a1 at each case (3 times) and uses `lb $v1,($a1)`, `lb $v0,1($a1)`; mine hoists the address into $a2. Next: try writing the three per-case bodies with direct `D_801C6BB0[0]`/`[1]` reads (no pointer), and try the cases as a switch with the D_801C7068 test placed inside each case. Released at the current best, not a finished match.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794724557.77115,
+  "score_before": 4855,
+  "score_after": 4855
+ },
+ {
+  "function": "func_80198968",
+  "text": "Third member of the func_80198A90 family. Best 5330 (27.9%) with a switch(D_801C7469) version using t = D_801C7068 - 1 as the comparand, and case 3 checking b[0]==t || b[0]+1==t. The compiler turns the switch into a compare chain (slti/beq), but the target tests `bnez m` first, then equality for 1/2/3. Target loads D_801C7068 into a0 first, then the array address in a1 inside each case. Same fix as the sibling: write the dispatch as if (m == 0) {...} else if chain and keep the array base in a1. The case bodies still need the exact branch senses checked against the target.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794736615.008678,
+  "score_before": 4855,
+  "score_after": 4855
+ },
+ {
+  "function": "func_80198968",
+  "text": "Best 3080 (58%, revision a5659365a3f782410f86): if/else-if chain on u8 m=D_801C7469 under if (D_801C7068!=0), t=D_801C7068-1, a=D_801C6BB0[0], b=D_801C6BB0[1], n=D_801C6BB9. Switch form scored 5330. Local pointer p=D_801C6BB0 scored 4245 (worse): the compiler then materialises the pointer early and moves the beqz. Remaining diffs: the target tests the n==0 case with beqz on D_801C7068 first, then reads m before the access. Sibling of func_80198858 (same m dispatch shape, 2380 there). Next: reproduce the target's read order exactly with separate global reads per case, not a pointer.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794739121.603195,
+  "score_before": 4855,
+  "score_after": 3080
+ },
+ {
+  "function": "func_80198968",
+  "text": "No match. Best rechecked 4890 (33.9%): switch(D_801C7469) version with a2 flag (case 0: if rec[0]==n-1 {if rec[1]!=B9 && B9!=rec[1]-1 -> a2=1} else a2=1; case 1: if rec[0]==n-1 {if rec[1]!=B9 -> a2=1} else a2=1; case 2: as case 0 with rec[1]+1; case 3: if rec[0]==n-1 || rec[0]+1==n-1 {if D_801C6BB1!=B9 -> a2=1} else a2=1; n=D_801C7068, outer guard n!=0; return a2&0xFF). Target shape: compiled as if-chain, not jump table: loads D_801C7469 as u8 and tests bnez (mode!=0) early; a2 zeroed as `move a2,zero`; uses one base register for D_801C6BB0 (addiu a1/a2 lo). The if/else-if chain version scored 6685 (worse): the chain is not the right shape yet. Next: keep the switch but restructure the mode test to come first, and test whether the case order should be 1 before 0. Draft m2c gotos are a poor guide.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794755359.759,
+  "score_before": 3080,
+  "score_after": 3080
+ },
+ {
+  "function": "func_80198968",
+  "text": "Not matched. Best 4775 (35%): `if (n==0) return 0;` up front, then `if (mode==0) {...} else if (mode==2) {...} else if (mode==3) {...} else {...}` (the mode-0 block, with BB0[1] - 1, is the one the target falls into after `bnez` on mode). Other orderings tried this session: switch draft 4890; mode!=0 nesting with mode-2 first 6295; mode 2/3/0/else chain 6035. The target dispatches on mode with `bnez v0` first, then `bne v1,2`, then `bne 3`, so the mode-0 path is the fall-through, not the first branch. Target keeps `move a2,$zero` at entry and reuses v0=1 in a delay slot, which our compiles don't reproduce. Untried: the `a2 & 0xFF` return and a flat `if(a2) ...` shape. Also the lui/lb of D_801C6BB0 is hoisted into a1 (addiu a1,a1,%lo) once and reused for [0] and [1], so a shared `s8 *bb = D_801C6BB0;` pointer may match the register use better.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794756967.789243,
+  "score_before": 3080,
+  "score_after": 3080
+ },
+ {
+  "function": "func_80198968",
+  "text": "Best: rev 1f436ae2902e6f3974bf (score 4395, 39%): the flag==3 branch is written as `else if (D_801C7469 != 3)` with the generic block first, and the p[0]==n-1 || p[0]+1==n-1 / BB1 check moved into the else (branch_orientation variant 4 from rev 85a557ebe81eecec71b9). Target dispatch: n=D_801C7068 beqz to return 0 first; then flag=D_801C7469 (lbu) tested with bnez to a separate block. Flag==0 block: p0=D_801C6BB0[0] vs n-1 (bnel \u2192 a2=1), p1=D_801C6BB0[1] vs BB9, then BB9 vs p1-1 (bnel \u2192 a2=1). Flag==2 has p1+1 in the last compare. Flag==3 path uses p0==n-1 || p0+1==n-1 and BB1. Still differing: the first block's branch layout (target uses beqz with the return in the delay-less branch, ours bnez to a separate return), and the table base register ($a1 vs $a0). Next: test the n==0 return written as an explicit `if (n != 0) {...} return 0;` form.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794767151.734976,
+  "score_before": 3080,
+  "score_after": 3080
+ },
+ {
+  "function": "func_80198968",
+  "text": "haiku-pr24 (Haiku): saved best 1f436ae2 (the same C as the work section) measures 6070 at -G0 -mips3 -mgp32 -mfp32 -O2 (trial 4019fb90) and 4930 at -O1 (trial 6fdbd6e9). The assembly shows the type chain is 0, then 1 (the simple compare, BB0[1] vs BB9), then 2 (BB9 vs BB0[1]+1), then 3, and any other type leaves a2 at 0; the saved C treats every other type with the simple compare. Rewrite with that chain (n == 0 gives 0) scores 6640 at -O2 and 1725 at -O1; the early-return form gives 5130 at -O2 and 2660 at -O1. Not exact; the -O1 profile looks closer for this function.",
+  "by": "manual-c5ecf391d81f42b7",
+  "created_at": 1795714547.5392818,
+  "score_before": 3660,
+  "score_after": 3660
+ },
+ {
+  "function": "func_80198968",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Not exact; see the note (type chain and -O1 finding).",
+  "by": "manual-c5ecf391d81f42b7",
+  "created_at": 1795714549.6360042,
+  "score_before": 3660,
+  "score_after": 3660
+ },
+ {
+  "function": "func_80198968",
+  "text": "Hand-off of func_80198968: best 4235 (49 differing rows) in work/q1.c.\n\nRemaining rows (marker | target | candidate):\n  r | move $a2, $zero | move $a1, $zero\n  r | lui $v0, %hi(D_801C7469) | lui $v1, %hi(D_801C7469)\n  r | lbu $v0, %lo(D_801C7469)($v0) | lbu $v1, %lo(D_801C7469)($v1)\n  r | bnez $v0, 0x54 | bnez $v1, 0x54\n  r | lui $a1, %hi(D_801C6BB0) | lui $v1, %hi(D_801C6BB0)\n  < | addiu $a1, $a1, %lo(D_801C6BB0) | \n  i | lb $v1, ($a1) | lb $v1, %lo(D_801C6BB0)($v1)\n  r | addiu $a2, $zero, 1 | addiu $a1, $zero, 1\n  > |  | lui $v0, %hi(D_801C6BB1)\n  i | lb $v0, 1($a1) | lb $v0, %lo(D_801C6BB1)($v0)\n  < | lui $v1, %hi(D_801C7469) | \n  < | lbu $v1, %lo(D_801C7469)($v1) | \n  < | lui $a0, %hi(D_801C6BB0) | \n  < | addiu $a0, $a0, %lo(D_801C6BB0) | \n  < | lb $v1, ($a0) | \n  i | lui $v0, %hi(D_801C7068) | lui $v1, %hi(D_801C6BB0)\n  i | lb $v0, %lo(D_801C7068)($v0) | lb $v1, %lo(D_801C6BB0)($v1)\n  r | addiu $v0, $v0, -1 | addiu $v0, $a0, -1\n  r | addiu $a2, $zero, 1 | addiu $a1, $zero, 1\n  > |  | lui $v1, %hi(D_801C6BB1)\n  i | lb $v1, 1($a0) | lb $v1, %lo(D_801C6BB1)($v1)\n  > |  | lui $v0, %hi(D_801C6BB9)\n  i | j func_80198968+0x110 | j func_80198968+0xe8\n  | | nop | lb $v0, %lo(D_801C6BB9)($v0)\n  i | bne $v1, $v0, 0xd4 | bne $v1, $v0, 0xc0\n  < | lui $a0, %hi(D_801C6BB0) | \n  < | addiu $a0, $a0, %lo(D_801C6BB0) | \n  < | lb $v1, ($a0) | \n  i | lui $v0, %hi(D_801C7068) | lui $v1, %hi(D_801C6BB0)\n  i | lb $v0, %lo(D_801C7068)($v0) | lb $v1, %lo(D_801C6BB0)($v1)\n  r | addiu $v0, $v0, -1 | addiu $v0, $a0, -1\n  r | addiu $a2, $zero, 1 | addiu $a1, $zero, 1\n  > |  | lui $v0, %hi(D_801C6BB1)\n  i | lb $v0, 1($a0) | lb $v0, %lo(D_801C6BB1)($v0)\n  < | lui $v1, %hi(D_801C7469) | \n  < | lbu $v1, %lo(D_801C7469)($v1) | \n  | | nop | addiu $v1, $a0, -1\n  r | lui $a0, %hi(D_801C6BB0) | lui $v0, %hi(D_801C6BB0)\n  r | lb $a0, %lo(D_801C6BB0)($a0) | lb $v0, %lo(D_801C6BB0)($v0)\n  | | lui $v0, %hi(D_801C7068) | bne $v0, $v1, 0xe8\n  ... 9 more (fast_judge.py --diff --rows all)\n\nRegister pairs (explain_regs.py):\n  $a1 where the target has $a2 (5 rows):\n  why not $a2: $a2 was free in its conflicts; global.c picks the first free register of the class in allocation order: an earlier allocation (or a register nothing had used yet) decided it.\n  $v1 where the target has $v0 (4 rows):\n  why not $v0: $v0 is live across it (a fixed use: an argument, return value or call-clobbered register), so it can never get it: shorten its life or move the use of $v0.\n  why not $v0: $v0 is live across it (a fixed use: an argument, return value or call-clobbered register), so it can never get it: shorten its life or move the use of $v0.\n  why not $v0: $v0 is live across it (a fixed use: an argument, return value or call-clobbered register), so it can never get it: shorten its life or move the use of $v0.\n  $a0 where the target has $v0 (2 rows):\n  why not $v0: $v0 is live across it (a fixed use: an argument, return value or call-clobbered register), so it can never get it: shorten its life or move the use of $v0.\n  $v0 where the target has $a0 (2 rows):\n  why not $a0: block-local: local-alloc gives quantities registers in priority order and $a0 was taken or tied up in that block (also in $a0: pseudo 74 (0.63)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $a0: block-local: local-alloc gives quantities registers in priority order and $a0 was taken or tied up in that block (also in $a0: pseudo 74 (0.63)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $a0: block-local: local-alloc gives quantities registers in priority order and $a0 was taken or tied up in that block (also in $a0: pseudo 74 (0.63)). Move it: change its refs/length against those, or make it global (a use in another block).\n  $v1 where the target has $a1 (1 row):\n  why not $a1: $a1 was free in its conflicts; global.c picks the first free register of the class in allocation order: an earlier allocation (or a re",
+  "by": "manual-762503dc128b4f24",
+  "created_at": 1795714924.928694,
+  "score_before": 4235,
+  "score_after": 4235,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a4fd9be1dbe565fc42861b63518de0ed05b2615ab7ba81a9123198c40816c0d8"
+ },
+ {
+  "function": "func_80198968",
+  "text": "Recorded best 4235 (saved 4395). Stopping after the mode chain was checked branch by branch. See hand-off note.",
+  "by": "manual-762503dc128b4f24",
+  "created_at": 1795714935.14558,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a4fd9be1dbe565fc42861b63518de0ed05b2615ab7ba81a9123198c40816c0d8"
+ },
+ {
+  "function": "func_80198968",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 3400 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (12 of its 12 nearest matched neighbours were built with it), the saved C scores 4235 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721182.7585979,
+  "score_before": 4235,
+  "score_after": 3400,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a4fd9be1dbe565fc42861b63518de0ed05b2615ab7ba81a9123198c40816c0d8"
+ },
+ {
+  "function": "func_80198968",
+  "text": "Small-model attempt at func_80198968: 12 tries.\n  best 40 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 40 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 275 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2560 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3690 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 40 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial fe6c392df1164e90d4be (not applied).\n12 tries. Best 40 under gcc-2.7.2-kmc -O1 (own -O2 row 3690, submitted at try 2). Structure matches target (per-case dispatch on D_801C7469, D_801C7068 reread in cases 2/3, pointer via b=&D_801C6BB0[0]). Remaining diff is register assignment only: target has count in a0, pointer in a1, flag in a2; ours swaps a0/a1 (pointer/count). Declaration order and u8/s32 return did not change it.",
+  "by": "manual-efe88fcbc09c434e",
+  "created_at": 1795725960.858091,
+  "score_before": 4235,
+  "score_after": 3690,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a4fd9be1dbe565fc42861b63518de0ed05b2615ab7ba81a9123198c40816c0d8"
+ },
+ {
+  "function": "func_80198968",
+  "text": "Small-model attempt at func_80198968: 12 tries.\n  best 40 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 40 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 295 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2560 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3690 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nfunc_80198968 (74 insns). Kept near-miss (score 40 under -O1 profile) is the best. Tried: the kept near-miss unchanged; caching the count in a local (1120, the target re-reads the global at each use); reordering declarations; pointer initialised at declaration (1415); pointer declared inside the if (40); early return for zero (1905); swapping the operand order in the first compare (400); direct array indexing in block 0 (540); block-scoped count local (40); bare truth test (40); u8 pointer (1430); separate a2 assignment (40). Remaining diff: the target puts the count global in $a0 and the table pointer in $a1; the draft and the near-miss swap them. Next: find a declaration or statement order that makes the count load allocate first.",
+  "by": "manual-3bc7c24e648c4f0a",
+  "created_at": 1795726893.979178,
+  "score_before": 3660,
+  "score_after": 3660
+ },
+ {
+  "function": "func_80198968",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80198968: 12 tries.\n  best 40 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 40 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 295 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2560 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3690 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nfunc_80198968 (74 insns). Kept near-miss (score 40 under -O1 profile) is the best. Tried: the kept near-miss unchanged; caching the count in a local (1120, the target re-reads the global at each use); reordering declarations; pointer initialised at declaration (1415); pointer declared inside the if (40); early return for zero (1905); swapping the operand order in the first compare (400); direct array indexing in block 0 (540); block-scoped count local (40); bare truth test (40); u8 pointer (1430); separate a2 assignment (40). Remaining diff: the target puts the count global in $a0 and the table pointer in $a1; the draft and the near-miss swap them. Next: find a declaration or statement order that makes the count load allocate first.",
+  "by": "manual-3bc7c24e648c4f0a",
+  "created_at": 1795726895.2491488,
+  "score_before": 3660,
+  "score_after": 3660
  }
 ]
