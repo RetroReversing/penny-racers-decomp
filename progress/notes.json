@@ -6448,14 +6448,6 @@
   "score_after": 10
  },
  {
-  "function": "func_8015FD64",
-  "text": "Not matched. Best local 1110 (82.3%), saved best 30 is historical and not reproduced. Shape: idx = (arg1&0xFFFF)*100; if (D2FC[idx]!=0) { t1 = D2F0[idx]; if (t1 == D_80126FF6) { t0 = D_8018A264[t1]; if (t0==1) { three display-list writes: E7000000/0, B6000000/t0, B900031D/504340 } } p = *arg0; *arg0=p+2; p[0]=0xFA000000; p[1]=D2FC[idx]|0xFF000000; }. Target: arg0 is moved to $a2 in the beqz delay slot; the remaining diff is 1 instruction early (beqz at 0xf4 vs ours 0xf0) plus register choice. Type variants (u8 vs s32 t0/t1) gave identical 1110. Next: look at last_diff for rows 0-9 to find the extra instruction before the first beqz, and check whether the first load uses lbu on the index in a different order.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794706716.785262,
-  "score_before": 30,
-  "score_after": 30
- },
- {
   "function": "func_802144DC",
   "text": "Best 15 (98.5%): `u8 *p; u8 v; v = 0xFF; p = &D_8021E19E; if (*p < 0xFFU) v = *p + 5; *p = v;`. Remaining 3 diffs are register-only: target uses v1 for the pointer and v0 for the value (ours: a0 for pointer, v1 for value). Tried and worse: `s32 v` (145), `u8 *p = &D` initialised in the declaration (35), `p` assigned before `v` (35). Likely the target's value temp has a different type or is declared in a nested block; not yet tried.",
   "by": "claude-haiku-5-5-22",
@@ -10920,14 +10912,6 @@
   "score_after": 1490
  },
  {
-  "function": "func_8015FD64",
-  "text": "Not matched after 3 compiles without improvement. Best revision 42e40c10b320247253c8: 1110 (82.3%), 63 target insns vs 62 mine. Working shape: index recomputed per use as `(arg1 & 0xFFFF) * 0x64` (no shared local) for both byte-array reads and the final mask read; GFX pattern `dl = *arg0; *arg0 = dl + 2; dl[0]=..; dl[1]=..;`; mode==1 store uses the `mode` local as the second word (target keeps it in $a0). Remaining: target has one extra instruction before the far branch target (beqz 0xf4 vs mine 0xf0). A local copy `gfx = arg0` changed nothing. Not yet checked: whether the final store block differs in its lui/or ordering (target: lui $v1,0xFF000000>>16 then or) and whether `dl[1]` should be computed from a reloaded byte rather than the mask expression.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794720896.573194,
-  "score_before": 30,
-  "score_after": 30
- },
- {
   "function": "func_8020E788",
   "text": "Best 245 (saved historical 10 from a different source). Target keeps &D_8021E1BC in $v0 (addiu $v0,$v0,%lo) and loads lh -0x30($v0) and stores sw to ($v0). Tried: m2c draft (score 245, folds index into lui/%lo), local pointer `s32 *p=&D_8021E1BC; *p = D_8021B384[*(s16*)((u8*)p-0x30)]` (245, compiler folds -0x30 into %lo(D_8021E18C) and rebuilds address via lui), split into `s16 v` local (245, no change). Open: need a way to make the compiler materialize the base address with addiu from the symbol and keep it live for the store, rather than folding the -0x30 into the load's %lo. Possibly a volatile/pointer-opaque base or a struct overlay of D_8021E1BC; not yet tried.",
   "by": "claude-haiku-5-5-21",
@@ -14400,14 +14384,6 @@
   "score_after": 1040
  },
  {
-  "function": "func_8015FD64",
-  "text": "Structure: t = (arg1 & 0xFFFF) * 100 (sll/addu chain). if (D_8011F2FC[t] != 0) { v = D_8011F2F0[t] (lbu); if (v == D_80126FF6) { a = D_8018A264[v] (lbu); if (a == 1) { 3 display-list commands: 0xE7000000,0 ; 0xB6000000,a ; 0xB900031D,0x504340 } } 0xFA000000 command with word2 = D_8011F2FC[t] | 0xFF000000 } where each command = *arg0 then *arg0 += 8. Element bytes MUST be unsigned (lbu): char/s8 arrays produce lb and score 1615. Best: saved 30 (m2c draft, revision e35b6298b40aa46cb882) from a different source; my u8-array version gives 1110 with leftover diffs: target uses a2 (not a3) for arg0 copy, and the 0xB900031D/0x504340 words are built with lui/ori in the store sequence after the 0xB6 command. Next: keep arg0 in the a2 register (`move $a2,$a0` in prologue) and reorder the third command's construction.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794730226.5370188,
-  "score_before": 30,
-  "score_after": 30
- },
- {
   "function": "func_8014D740",
   "text": "Best saved 1490 (other source); current best 3705 (38%) with candidate d866205d970320c632b6. Finding: the loop indices must be offset. In the 3705 candidate (for i=3..12) the stores land at D_802DF426 / D_8016BA46, i.e. 6 bytes past the target, so the target's element 0 is at D_802DF420 and the loop starts at i=0 for those two arrays. But changing to i=0..9 made it worse (4485): the second-loop pairing then drifts. Suggested fix: index by a pointer `u16 *q = D_802DF420 - 3;` with `q[i]` for i=3..12 (and `D_8016BA40 - 3` for the source), which keeps the 3..13 loop shape while putting element 3 at the target address. First part: the (arg0&0xFFFF)*50 counter update (target: andi v1; sll/addu chain; lui/lhu/sh at D_8011F32E) and the `>= 0x15` reset and `>= 0xB` branch are in the right order; the `lui $v0,%hi(D_8011F32E)` is re-materialised per use in the target, so keep the index reads as separate expressions. Not tried: the pointer form above.",
   "by": "claude-haiku-5-5-22",
@@ -14830,14 +14806,6 @@
   "created_at": 1794731447.2601311,
   "score_before": 3430,
   "score_after": 3430
- },
- {
-  "function": "func_8015FD64",
-  "text": "Saved best 30 is the original m2c draft (char-typed tables, M2C_FIELD-style stores) and was not reproduced here: with the same draft I got 1615 under char tables and 1215 with u8 tables. Target uses lbu for D_8011F2FC, so u8 tables are right, and it reads andi $v0,$a1,0xffff directly. Remaining diff (1215): an extra `move $a3,$a1` before the andi, which the u16 parameter, u16 local and s32 forms all keep. Also the word stores (0xE7000000 / 0xB6000000 / 0xB900031D / 0xFA000000) come out in a different order than the target. Restore saved_best for the 30 result and check the header the saved run used before further tuning.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794731453.139294,
-  "score_before": 30,
-  "score_after": 30
  },
  {
   "function": "func_80211F14",
@@ -19848,14 +19816,6 @@
   "score_after": 1290
  },
  {
-  "function": "func_8015FD64",
-  "text": "Move-on budget exhausted (3/3 without improvement; best this session 1110 vs inherited 30).\n\nProgress made: 1615 (char[] tables, lb instead of lbu) -> 1215 (u8[] tables) -> 1110 (u32** arg0 with p[0]/p[1] command words instead of M2C_FIELD on void*). Current rev 850503bcc861591c3c5a is 62 insns vs target 63.\n\nTarget shape confirmed (63 insns, no frame):\n- off = (arg1 & 0xFFFF) * 0x64 via andi/sll1/addu/sll3/addu/sll2 (byte offset, base kept in v1 across both table reads).\n- if (D_8011F2FC[off] != 0) { a2 = arg0 (copy in the beqz delay slot, a2 used for all four lw/sw of the display-list pointer); id = D_8011F2F0[off]; if (id == D_80126FF6) { v = D_8018A264[id]; if (v == 1) { 3 two-word commands: E7000000/0, B6000000/v, B900031D/0x504340 } } ; 4th command FA000000 / (D_8011F2FC[(arg1&0xFFFF)*0x64] | 0xFF000000) recomputed with `andi $v1,$a1,0xffff` at the end, not reusing off. }\n- All table symbols are byte tables: u8[] gives the target's lbu (char[] gave lb).\n\nRemaining differences (all regalloc/scheduling, no structural gap):\n1) target `lui $a0,%hi(D_8018A264); addu $a0,$a0,$v1; lbu $a0,%lo(...)($a0)` (base and dest both a0, value later used as `sw $a0,4($v1)`); mine emits `lui $at / addu $at / lbu $v1,%lo($at)`. Avoid the $at form by making the loaded byte a value that stays live into the B6000000 store word.\n2) target leaves `nop` in the `bne $a0,$v0,.L8015FE14` delay slot; mine hoists `lui $a0,0xb900` there, and correspondingly hoists `lui/ori 0x504340`. Target materialises 0xB900031D and 0x504340 in $v0 only after the third `sw $v0,($a2)`.\n3) target keeps arg0 in a2, mine in a3.\n\nnext_experiment saved: make arg1 unsigned (u32) so the trailing `andi $v1,$a1,0xffff` and the arg0 copy register may fall into place.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794742879.535072,
-  "score_before": 30,
-  "score_after": 30
- },
- {
   "function": "func_80149A80",
   "text": "Best verified 395 (46 target insns / 45 ours). All structural work recovered: e = D_8011F2F0 + (arg0&0xFFFF)*0x64, idx = D_8011F2FC[temp_v0] (u8 table), then `if (*(u16*)(e+0x3E) == 0)` copies six floats from e+0x18..0x2C to D_8022108C/90/94/80/84/88 + idx*0x24 and sets e+0x3E = 1. Remaining single mismatch block is scheduling/regalloc only: target loads lbu idx first, then lhu flag into $v0, bnez $v0, then `andi $v1,$v1,0xffff` before `sll $v0,$v1,3; addu; sll 2`; ours loads lhu flag first and drops the andi. Tried: u16/s32/u32/s8/s16 idx, u16/s32 flag temp, early-return inversion, volatile flag read, (idx&0xFFFF)*0x24, idx=D_8011F2FC[temp_v0] vs *(u8*)(D_8011F2FC+temp_v0). None changed the diff. Next: find a formulation that makes gcc 2.7.2 emit andi 0xffff on the byte-loaded index at the multiply use and keeps the lbu before the lhu.",
   "by": "api-route-llm-code-1",
@@ -20446,14 +20406,6 @@
   "created_at": 1794748124.9755251,
   "score_before": 1092,
   "score_after": 1092
- },
- {
-  "function": "func_8015FD64",
-  "text": "Current clean C (rev 246057757c86c501dfb3) scores 1690: target 63 insns, ours 56. Structure is right: gated block `if (D_8011F2FC[off]) { t=D_8011F2F0[off]; if (t==D_80126FF6) { c=D_8018A264[t]; if (c==1) { three 8-byte dl writes: 0xE7000000/0, 0xB6000000/c, 0xB900031D/0x504340 } } ; 0xFA000000 write with D_8011F2FC[off]|0xFF000000 }`. The 7-instruction gap is in the constant materialisation and the index: the target builds off = ((idx*2+idx)*8+idx)*4 with a separate andi for the arg and loads D_8011F2F0 via lui at. Not verified which constants are split; check last_diff rows 20-40. The saved best 30 is from a different m2c source. Untried: write the constant words as (u32)0xB900031DU with a separate off for each gated access.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794748143.3269901,
-  "score_before": 30,
-  "score_after": 30
  },
  {
   "function": "nuScRemoveClient",
@@ -30128,14 +30080,6 @@
   "score_after": 715
  },
  {
-  "function": "func_8015FD64",
-  "text": "Exact C/profile bundle submitted via suggest: trial 237eedb9c666ef180f89, source f9f8b032fd8be21480bb, gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1. D_8011F2FC must be u8 table to reproduce final lbu. Current O2 is 1215 due to scheduling/hoisted constants; do not tune O2 blindly. Pending compiler-profile review if automatic changes disabled.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794763826.6638348,
-  "score_before": 30,
-  "score_after": 30
- },
- {
   "function": "func_8013EA18",
   "text": "Exact -O1 bundle submitted via suggest, trial 35855abbb6ce41c12ca0 source a4e7325dd86848f8945d. Explicit signed <<16 negative tests preserve target left-shift/bgez without early sra; s16 local r, s32 parameters. O2 scores 255 due eliminating duplicate first shift; -O1 exact.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -31184,14 +31128,6 @@
   "score_after": 1200
  },
  {
-  "function": "func_8015FD64",
-  "text": "Current ea76963985cd5ddf47ae source explicitly supplied to try_compiler is byte-identical under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1. suggest rechecked exact bundle; automatic compiler changes disabled, awaiting application. Omitted-source try_compiler tests historical char tables (400); always supply current source. Six local repairs under O2 no improvement (1215 retained). Apply pending function-only profile bundle rather than retuning O2.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794765303.503656,
-  "score_before": 30,
-  "score_after": 30
- },
- {
   "function": "func_800E067C",
   "text": "Cannot get closer with the budget left: best this session is 5585 (60.6%, candidate 2a1500c10f1e42d8ca90), behind the saved 4605. Structure is right (do-while over idx with a D_8011F2F1==2 branch, a three-level pointer chain for the fields 0x40/0x42/0x44/0x50/0x52/0x54, and a next=D_8011F300[idx].f0 loop condition with next!=0xFFFF && next>=D_80233EC0). Remaining diffs are hoisting: the target loads D_800E1E70 (ldc1 into $f4), 0xFFFF (a3), 2 (t0) and D_80233EC0 (a2) before the loop, and file-scope locals for them had no effect. Signedness of idx (s16) is worse at 6795. Untried: a typed struct for the 100-byte record with the pointers at 0x40/0x44 and a record pointer local, which would make the pointer chain explicit instead of offset arithmetic.",
   "by": "claude-haiku-5-5-23",
@@ -31990,14 +31926,6 @@
   "created_at": 1794766357.975998,
   "score_before": 1280,
   "score_after": 1280
- },
- {
-  "function": "func_8015FD64",
-  "text": "Rechecked known u8 D_8011F2FC repair, revision f9f8b032fd8be21480bb: score 1215 O2, 63 instructions, same scheduling/argument preservation diff. Existing exact O1 bundle trial 237eedb9c666ef180f89 already suggested by this worker; awaiting compiler-profile application. Avoid repeating O2 signedness trials; source is exact with -G0 -mips3 -mgp32 -mfp32 -O1 per previous verified trial.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794766370.075799,
-  "score_before": 30,
-  "score_after": 30
  },
  {
   "function": "func_802174DC",
@@ -34856,5 +34784,101 @@
   "created_at": 1794761955.995851,
   "score_before": 3678,
   "score_after": 3678
+ },
+ {
+  "function": "func_8015FD64",
+  "text": "Not matched. Best local 1110 (82.3%), saved best 30 is historical and not reproduced. Shape: idx = (arg1&0xFFFF)*100; if (D2FC[idx]!=0) { t1 = D2F0[idx]; if (t1 == D_80126FF6) { t0 = D_8018A264[t1]; if (t0==1) { three display-list writes: E7000000/0, B6000000/t0, B900031D/504340 } } p = *arg0; *arg0=p+2; p[0]=0xFA000000; p[1]=D2FC[idx]|0xFF000000; }. Target: arg0 is moved to $a2 in the beqz delay slot; the remaining diff is 1 instruction early (beqz at 0xf4 vs ours 0xf0) plus register choice. Type variants (u8 vs s32 t0/t1) gave identical 1110. Next: look at last_diff for rows 0-9 to find the extra instruction before the first beqz, and check whether the first load uses lbu on the index in a different order.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794706716.785262,
+  "score_before": 30,
+  "score_after": 30
+ },
+ {
+  "function": "func_8015FD64",
+  "text": "Not matched after 3 compiles without improvement. Best revision 42e40c10b320247253c8: 1110 (82.3%), 63 target insns vs 62 mine. Working shape: index recomputed per use as `(arg1 & 0xFFFF) * 0x64` (no shared local) for both byte-array reads and the final mask read; GFX pattern `dl = *arg0; *arg0 = dl + 2; dl[0]=..; dl[1]=..;`; mode==1 store uses the `mode` local as the second word (target keeps it in $a0). Remaining: target has one extra instruction before the far branch target (beqz 0xf4 vs mine 0xf0). A local copy `gfx = arg0` changed nothing. Not yet checked: whether the final store block differs in its lui/or ordering (target: lui $v1,0xFF000000>>16 then or) and whether `dl[1]` should be computed from a reloaded byte rather than the mask expression.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794720896.573194,
+  "score_before": 30,
+  "score_after": 30
+ },
+ {
+  "function": "func_8015FD64",
+  "text": "Structure: t = (arg1 & 0xFFFF) * 100 (sll/addu chain). if (D_8011F2FC[t] != 0) { v = D_8011F2F0[t] (lbu); if (v == D_80126FF6) { a = D_8018A264[v] (lbu); if (a == 1) { 3 display-list commands: 0xE7000000,0 ; 0xB6000000,a ; 0xB900031D,0x504340 } } 0xFA000000 command with word2 = D_8011F2FC[t] | 0xFF000000 } where each command = *arg0 then *arg0 += 8. Element bytes MUST be unsigned (lbu): char/s8 arrays produce lb and score 1615. Best: saved 30 (m2c draft, revision e35b6298b40aa46cb882) from a different source; my u8-array version gives 1110 with leftover diffs: target uses a2 (not a3) for arg0 copy, and the 0xB900031D/0x504340 words are built with lui/ori in the store sequence after the 0xB6 command. Next: keep arg0 in the a2 register (`move $a2,$a0` in prologue) and reorder the third command's construction.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794730226.5370188,
+  "score_before": 30,
+  "score_after": 30
+ },
+ {
+  "function": "func_8015FD64",
+  "text": "Saved best 30 is the original m2c draft (char-typed tables, M2C_FIELD-style stores) and was not reproduced here: with the same draft I got 1615 under char tables and 1215 with u8 tables. Target uses lbu for D_8011F2FC, so u8 tables are right, and it reads andi $v0,$a1,0xffff directly. Remaining diff (1215): an extra `move $a3,$a1` before the andi, which the u16 parameter, u16 local and s32 forms all keep. Also the word stores (0xE7000000 / 0xB6000000 / 0xB900031D / 0xFA000000) come out in a different order than the target. Restore saved_best for the 30 result and check the header the saved run used before further tuning.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794731453.139294,
+  "score_before": 30,
+  "score_after": 30
+ },
+ {
+  "function": "func_8015FD64",
+  "text": "Move-on budget exhausted (3/3 without improvement; best this session 1110 vs inherited 30).\n\nProgress made: 1615 (char[] tables, lb instead of lbu) -> 1215 (u8[] tables) -> 1110 (u32** arg0 with p[0]/p[1] command words instead of M2C_FIELD on void*). Current rev 850503bcc861591c3c5a is 62 insns vs target 63.\n\nTarget shape confirmed (63 insns, no frame):\n- off = (arg1 & 0xFFFF) * 0x64 via andi/sll1/addu/sll3/addu/sll2 (byte offset, base kept in v1 across both table reads).\n- if (D_8011F2FC[off] != 0) { a2 = arg0 (copy in the beqz delay slot, a2 used for all four lw/sw of the display-list pointer); id = D_8011F2F0[off]; if (id == D_80126FF6) { v = D_8018A264[id]; if (v == 1) { 3 two-word commands: E7000000/0, B6000000/v, B900031D/0x504340 } } ; 4th command FA000000 / (D_8011F2FC[(arg1&0xFFFF)*0x64] | 0xFF000000) recomputed with `andi $v1,$a1,0xffff` at the end, not reusing off. }\n- All table symbols are byte tables: u8[] gives the target's lbu (char[] gave lb).\n\nRemaining differences (all regalloc/scheduling, no structural gap):\n1) target `lui $a0,%hi(D_8018A264); addu $a0,$a0,$v1; lbu $a0,%lo(...)($a0)` (base and dest both a0, value later used as `sw $a0,4($v1)`); mine emits `lui $at / addu $at / lbu $v1,%lo($at)`. Avoid the $at form by making the loaded byte a value that stays live into the B6000000 store word.\n2) target leaves `nop` in the `bne $a0,$v0,.L8015FE14` delay slot; mine hoists `lui $a0,0xb900` there, and correspondingly hoists `lui/ori 0x504340`. Target materialises 0xB900031D and 0x504340 in $v0 only after the third `sw $v0,($a2)`.\n3) target keeps arg0 in a2, mine in a3.\n\nnext_experiment saved: make arg1 unsigned (u32) so the trailing `andi $v1,$a1,0xffff` and the arg0 copy register may fall into place.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794742879.535072,
+  "score_before": 30,
+  "score_after": 30
+ },
+ {
+  "function": "func_8015FD64",
+  "text": "Current clean C (rev 246057757c86c501dfb3) scores 1690: target 63 insns, ours 56. Structure is right: gated block `if (D_8011F2FC[off]) { t=D_8011F2F0[off]; if (t==D_80126FF6) { c=D_8018A264[t]; if (c==1) { three 8-byte dl writes: 0xE7000000/0, 0xB6000000/c, 0xB900031D/0x504340 } } ; 0xFA000000 write with D_8011F2FC[off]|0xFF000000 }`. The 7-instruction gap is in the constant materialisation and the index: the target builds off = ((idx*2+idx)*8+idx)*4 with a separate andi for the arg and loads D_8011F2F0 via lui at. Not verified which constants are split; check last_diff rows 20-40. The saved best 30 is from a different m2c source. Untried: write the constant words as (u32)0xB900031DU with a separate off for each gated access.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794748143.3269901,
+  "score_before": 30,
+  "score_after": 30
+ },
+ {
+  "function": "func_8015FD64",
+  "text": "Exact C/profile bundle submitted via suggest: trial 237eedb9c666ef180f89, source f9f8b032fd8be21480bb, gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1. D_8011F2FC must be u8 table to reproduce final lbu. Current O2 is 1215 due to scheduling/hoisted constants; do not tune O2 blindly. Pending compiler-profile review if automatic changes disabled.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794763826.6638348,
+  "score_before": 30,
+  "score_after": 30
+ },
+ {
+  "function": "func_8015FD64",
+  "text": "Current ea76963985cd5ddf47ae source explicitly supplied to try_compiler is byte-identical under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1. suggest rechecked exact bundle; automatic compiler changes disabled, awaiting application. Omitted-source try_compiler tests historical char tables (400); always supply current source. Six local repairs under O2 no improvement (1215 retained). Apply pending function-only profile bundle rather than retuning O2.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794765303.503656,
+  "score_before": 30,
+  "score_after": 30
+ },
+ {
+  "function": "func_8015FD64",
+  "text": "Rechecked known u8 D_8011F2FC repair, revision f9f8b032fd8be21480bb: score 1215 O2, 63 instructions, same scheduling/argument preservation diff. Existing exact O1 bundle trial 237eedb9c666ef180f89 already suggested by this worker; awaiting compiler-profile application. Avoid repeating O2 signedness trials; source is exact with -G0 -mips3 -mgp32 -mfp32 -O1 per previous verified trial.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794766370.075799,
+  "score_before": 30,
+  "score_after": 30
+ },
+ {
+  "function": "func_8015FD64",
+  "text": "haiku-pr4 (Haiku): the saved draft with (short) removed from the 0xB900031D store scores 405 (c2/draft.c, the cast was the addiu-r0 row). Left: the scheduler launches the single-set constant lui/ori into the free register before the addiu; the target builds it after sw v0,(a2) in v0, the addiu temp. Tried, same 405: u32 and 0xB900031DU spellings (identical RTL), a cmd_w0 local set right before the store (w1, w2). Next idea: a second set of the register the addiu temp uses, or a shared temp across the new-pointer write and the word.",
+  "by": "manual-54a1fc31d75d4d19",
+  "created_at": 1795707388.215085,
+  "score_before": 300,
+  "score_after": 300
+ },
+ {
+  "function": "func_8015FD64",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Tried constant spellings and a local for the 0xB900031D word; the scheduler still launches the constant early. Moving on after 8 judged attempts for the next function. Best recorded 405 from the draft with the cast removed.",
+  "by": "manual-54a1fc31d75d4d19",
+  "created_at": 1795707388.740758,
+  "score_before": 300,
+  "score_after": 300
+ },
+ {
+  "function": "func_8015FD64",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr10 (Haiku 5.5): saved best 300 (O2 = O1). Found: the (short) cast on the command word is wrong; 0xB900031D must be written as a full 32-bit constant (lui 0xb900 / ori 0x31d). Without the cast 405: the constant is then built before the pointer bump, the target builds it after the store of arg0's new pointer. Exact (0) only with a do-while(0) fence round the command-word store (t1: the store alone, outer fence kept), which is scaffolding, so NOT submitted. Fence-free forms: 60 to 1020. Not a permuter-clean match yet. Open: a scheduling boundary the library can express without a fence around the command store (permuter gap: scheduling_scope at a single store). About 14 judged attempts.",
+  "by": "manual-497803c65e684d1b",
+  "created_at": 1795711056.11384,
+  "score_before": 300,
+  "score_after": 300
  }
 ]
