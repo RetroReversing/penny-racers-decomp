@@ -7296,14 +7296,6 @@
   "score_after": 130
  },
  {
-  "function": "func_800E1728",
-  "text": "Saved best remains 2087 (claude-haiku-5-5-23). My best 2092 (revision 0eb367f12b7b6b14e645): the same control flow with `list = D_8011F068` and `base = D_8011F2F0` locals (the locals cut the frame to 0x30 and keep s2/s4 for the array bases); the inline `e = D_8011F2F0 + list[i]*0x64` form gave 2267. Structure matches: end=0xFFFF held in s1, flags tests at e[0xD] / e[1]==1 / (u32)e & 0x12, the function-pointer call at e+0x54 with list[i] loaded before i++, and func_800E1688 called with no argument (so keep it as void(void) at this call site, although its matched definition takes u16). Remaining diffs: the target keeps the constant 1 in s3 and loads the base D_8011F2F0 into s4 before the loop, and the first list[0] test re-materialises D_8011F068 with lui/addiu rather than reusing the list register; order of those initializations is the gap. Next: try reading D_8011F068[0] through the base pointer ordering, or hoisting `one = 1` before the loop.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794709552.520282,
-  "score_before": 2087,
-  "score_after": 2087
- },
- {
   "function": "func_80215480",
   "text": "Best 2525 (69.5%): source `s32 i = arg0 & 0xFFFF; s32 t = i * 0x64; f32 v;` with `*(f32*)(D_8011F320+t) += *(f32*)(D_8011F308+t)`, same for F324/F30C, then `v = F320[t]`, `if (DE90 <= v || v <= DE98) *(u32*)(F320 + (arg0&0xFFFF)*0x64) = 0;`, `v = F324[...]` with index ((i*2+i)*8+i)*4, DEA0/DEA8 check zeroing F324+i*0x64. f64 v adds an unwanted addiu sp,-8 frame (use f32 v). Remaining diffs: target loads F308 into $f2 and F30C into $f2 (we use $f4); target computes lui $at once for the F320 store chain; second store uses swc1 $f0 to F324. Dead `t = i * 2;` line may be unnecessary; removing it is an untested next experiment. Claim lapsed mid-session; another agent may hold it now.",
   "by": "claude-haiku-5-5-24",
@@ -11136,14 +11128,6 @@
   "score_after": 160
  },
  {
-  "function": "func_800E1728",
-  "text": "Releasing with a reason: this session is at low effort and the open issue is register allocation (target keeps five callee-saved registers, s0..s4, frame 0x30; candidate keeps four, frame 0x28). Adding one live local is the next experiment and needs a fresh design pass rather than another blind compile. Start from the saved 2087 candidate. Untried: an extra live local (second pointer or counter across the calls) to force s4; writing the first compare against D_800E1850 as a separate load. The machine draft fails on a delay-slot label, so it is not usable as-is.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794724090.339184,
-  "score_before": 2087,
-  "score_after": 2087
- },
- {
   "function": "func_800E08B4",
   "text": "Not matched. Best 5991 (27.8%) from my index-based quicksort: pivot = D_800E1EE0[idx[(lo+hi)/2]] (float table indexed by u16 idx), i/j Hoare partition with `while (tbl[idx[i]] < pivot) i++; while (pivot < tbl[idx[j]]) j--; if (i<j) swap idx[i],idx[j], i++, j--; else break;`, then recurse on (lo, i-1) if lo < i-1 and on (j+1, hi) if j+1 < hi. The logic is right per the asm, but the compiled shape is wrong: the target frame is 0x20 and saves only ra,s0,s1,s2 (it copies arg0 into t0 and keeps idx in s1), while mine uses 0x28 and an extra spill, and it strength-reduces to pointer increments (addiu \u00b12) which the target does not do. Next try: write the loops with explicit index arithmetic `idx[i]` on a s32 i (no pointer temporaries), drop the tmp local (swap through a second lhu-style expression), and keep hi in a local so the mid computation is `(lo+hi)/2` with the sra/sll sequence.",
   "by": "claude-haiku-5-5-22",
@@ -14624,14 +14608,6 @@
   "score_after": 2735
  },
  {
-  "function": "func_800E1728",
-  "text": "Not matched. Best 3047 (59%), revision 85db71a3aa2799f7c019 (the version with plain u16 s0/v, rec = D_8011F2F0 + D_8011F068[s0]*100, dispatch on rec[0xD], rec[1]==1 -> func_800E1688, (*(s32*)rec & 0x12), else call *(rec+0x54) with D_8011F068[s0] then s0++). Recovered: func_800E1850 is u16 gate (0xFFFF -> return); func_800E1510(); s0=0; func_800E15CC(); if D_8011F068[0]==0xFFFF return; do-while on D_8011F068[s0]!=0xFFFF. Remaining diff: frame. Target is 0x30 with 6 saves (ra,s4,s3,s2,s1,s0): s4 = &D_8011F2F0 base held across calls, s3 = 1, s1 = 0xFFFF held as a register. Our draft only saves 5 (0x28). Adding base/one/neg locals (3619) made it worse, so the held-value approach needs a different form: try s1 as the 0xFFFF compare via a literal in the loop, keep base as a plain global-address expression, and let the held-across-call values be 1 and base. Also target does the first gate through a separate lui/lhu of func_800E1850 before the calls, and the loop re-reads D_8011F068 through v1=&D_8011F068 pointer.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794735390.8249311,
-  "score_before": 2075,
-  "score_after": 2075
- },
- {
   "function": "func_8014B410",
   "text": "Best saved 6142 (36.0%), revision abf4291909544cc3749d (base/sp pointers, k and idx locals). Target frame 0x30 saves only ra,s0,s1,s2: i=s0, sp10 pointer=s1, base=s2 (lui/addiu hoisted once). Every variant I tried allocates an extra saved reg (frame 0x38/0x40): global-direct indexing 6372, for-loop k 6297, inline index expressions with no idx local 8222 (worst; gcc then re-computes the lui of D_8021E230 as s5). Next step if retried: keep the 6142 source, and attack the first loop body first (target: sll v0,s0,4; addu v0,v0,s0; sll v0,v0,1 then j-term), since the diffs start at the prologue and the register assignment cascades from there. Not closeable at my effort level this session.",
   "by": "claude-haiku-5-5-24",
@@ -14944,14 +14920,6 @@
   "score_after": 2586
  },
  {
-  "function": "func_800E1728",
-  "text": "Not matched. Best 3047 (58.8%), revision b0800fa2fa4e613e9c5a: `u16 s0; u16 v; u8 *rec;` loop, with the callback call `((void(*)(u16))(*(void**)(rec+0x54)))(v)`. Session variants: s0/v as s32 gave 3917; hoisting `kind = rec[1]` gave 3247. Target frame is 0x30 with six saved registers (ra, s4, s3, s2, s1, s0), mine 0x28 with five. Target loads D_800E1850 three times, loads `addiu $s3,$zero,1` (the constant 1 held in a register), and sets `lui $s2,%hi(D_8011F068)` where I have no table base register. Mismatch is mostly prologue and sentinel register allocation. Next: write the table base `D_8011F068` as a local pointer (`u16 *tab = D_8011F068;`) so it gets its own saved register, and keep s0 as u16.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794736614.9355588,
-  "score_before": 2075,
-  "score_after": 2075
- },
- {
   "function": "func_8019862C",
   "text": "Not attempted this session; released unstarted to stay within the session claim budget. The machine draft is an m2c guess with a table check on D_801C6BE2 (u16 at ((D_801C6BB9*0x18)+D_801C7068)*2 == 0xFFFF) and a D_801C7AB0 field at +1 != 5 test. Start from the target assembly and the same comparison pattern as func_80198A90 (the small sibling family at 0x801973D0).",
   "by": "claude-haiku-5-5-22",
@@ -15166,14 +15134,6 @@
   "created_at": 1794737769.758232,
   "score_before": 3081,
   "score_after": 3081
- },
- {
-  "function": "func_800E1728",
-  "text": "Best saved 3047 (revision b0800fa2fa4e613e9c5a), the control flow of the do/while over D_8011F068 is right. Remaining differences: (1) frame. Target is 0x30 with ra at 0x2c and s4..s0 at 0x28..0x18, leaving 0x00..0x17 unused by code; mine is 0x28 with s0 at 0x10. The extra 8 bytes look like a local the target keeps but never reads (a gap model like the one in share note #339302416413 may reproduce it: a local struct whose padding fills the gap). (2) Registers: target reloads D_8011F068 via lui/addiu into v0 then v1 for the loop base and computes the `D_8011F068[s0]` after the loop with lui %hi + addu at; mine keeps the pointer in v1 and loads it once. (3) s1 = 0xFFFF is set (ori) after the first lui/lhu of D_800E1850, not before. (4) The s0=0 store sits in the delay slot of jal func_800E1510 in the target. Two compile_and_diff calls this session returned \"Progress changed while this attempt compiled\" and I did not get a fresh score, so the 3047 is the last verified number. Next: try the local-struct gap model for the frame first, then the pointer-load order.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794737912.0500789,
-  "score_before": 2075,
-  "score_after": 2075
  },
  {
   "function": "func_800DF2AC",
@@ -25976,14 +25936,6 @@
   "score_after": 52142
  },
  {
-  "function": "func_800E1728",
-  "text": "Best 2908 (revision 15f89960692c351d9656, kept). Structure is confirmed correct: early-out on func_800E1850==0xFFFF, func_800E1510(), s0=0, func_800E15CC(), early-out on D_8011F068[0]==0xFFFF, then the do/while over D_8011F068 with the four-way branch (rec[0xD]!=0 / rec[1]==1 -> func_800E1688 / *(s32*)rec & 0x12 / indirect call *(void**)(rec+0x54) with a0=D_8011F068[s0]) and the tail reload of D_8011F068[s0]. Records are 100 bytes: D_8011F2F0 + id*100.\n\nWhat is left is entirely codegen shape, all in the prologue/loop-carried registers:\n1) Target loads func_800E1850 BEFORE `addiu $sp,$sp,-0x30` and saves 6 callee registers (s0-s4 plus one more, 0x30 frame); ours loads it after the frame and saves 5 (0x28 frame). Adding a dummy local `volatile u8 pad[8]` fixed the frame to 0x30 but scored 3035 (worse than 2908 because it also perturbed the loop).\n2) Target keeps the D_8011F068 base in $v1 and copies it to $s2 (`lui/addiu` pair for $s2) for the tail reload, and reloads with `lui $at,%hi; addu $at,$at,$v0; lhu %lo(...)($at)`; ours uses a plain `addu $v0,$v0,$s1; lhu ($v0)` with the base in $s1. A local `u16 *q = D_8011F068;` used for the tail reload got 2908 (best) but still gives $s1, and using q for the record index regressed to 3218.\n3) Target's `if (rec[1]==1)` arm is `jal func_800E1688; addiu $s0,$s0,1; j .L800E1810; andi $v0,$s0,0xFFFF` \u2014 i.e. the loop-continue label sits at the `andi`, whereas ours re-emits `andi` inline and branches to 0xcc. Restructuring so the third arm falls through to the `andi` (e.g. computing `v = D_8011F068[s0]` only in that path) is the remaining idea worth trying.\nTried and rejected: volatile pad[8] (3035), `u16 stop = 0xFFFF` local (3035), s32 index i with s0=i at the end (3917), q[] for the record index (3218). try_local_repairs families not yet exhausted (callee_parameter_width, signedness, declaration_order, byte_table_signedness).",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794761616.6827672,
-  "score_before": 2075,
-  "score_after": 2075
- },
- {
   "function": "func_80149FA8",
   "text": "Not retried: known to match at KMC GCC -O1 (see prior notes); unit code_8014674C still compiled at -O2. Awaiting user applying -O1 suggestion.",
   "by": "claude-opus-medium-1",
@@ -28798,14 +28750,6 @@
   "created_at": 1794766131.97238,
   "score_before": 2310,
   "score_after": 1990
- },
- {
-  "function": "func_800E1728",
-  "text": "Not matched. Best: revision a5e2fb9b46b67c34725f, score 2867 (61%): u16 *tbl = D_8011F068 local for all table reads, record base is the global D_8011F2F0 expression. Target: frame 0x30, saves ra,s0-s4; s1=0xFFFF, s3=1, s2=&D_8011F068, s4=&D_8011F2F0. Remaining diffs: register allocation (candidate puts table base in s2 and record base in s4 but s3=1 and lui/addiu order differs) and branch targets. Tried: machine draft candidate (3047; m2c fails on a delay-slot label), explicit tbl local (2867, best), extra base local for record pointer (3042, worse). Stopping because the last two variants were worse and the remaining diff is register/schedule order, which needs -O1 or a different loop shape. Next: test -O1 via try_compiler, and try moving the D[0]==0xFFFF check before func_800E15CC.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794766175.325129,
-  "score_before": 2075,
-  "score_after": 2075
  },
  {
   "function": "func_80146970",
@@ -37030,5 +36974,138 @@
   "created_at": 1795726649.529181,
   "score_before": 1070,
   "score_after": 1070
+ },
+ {
+  "function": "func_800E1728",
+  "text": "Saved best remains 2087 (claude-haiku-5-5-23). My best 2092 (revision 0eb367f12b7b6b14e645): the same control flow with `list = D_8011F068` and `base = D_8011F2F0` locals (the locals cut the frame to 0x30 and keep s2/s4 for the array bases); the inline `e = D_8011F2F0 + list[i]*0x64` form gave 2267. Structure matches: end=0xFFFF held in s1, flags tests at e[0xD] / e[1]==1 / (u32)e & 0x12, the function-pointer call at e+0x54 with list[i] loaded before i++, and func_800E1688 called with no argument (so keep it as void(void) at this call site, although its matched definition takes u16). Remaining diffs: the target keeps the constant 1 in s3 and loads the base D_8011F2F0 into s4 before the loop, and the first list[0] test re-materialises D_8011F068 with lui/addiu rather than reusing the list register; order of those initializations is the gap. Next: try reading D_8011F068[0] through the base pointer ordering, or hoisting `one = 1` before the loop.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794709552.520282,
+  "score_before": 2087,
+  "score_after": 2087
+ },
+ {
+  "function": "func_800E1728",
+  "text": "Releasing with a reason: this session is at low effort and the open issue is register allocation (target keeps five callee-saved registers, s0..s4, frame 0x30; candidate keeps four, frame 0x28). Adding one live local is the next experiment and needs a fresh design pass rather than another blind compile. Start from the saved 2087 candidate. Untried: an extra live local (second pointer or counter across the calls) to force s4; writing the first compare against D_800E1850 as a separate load. The machine draft fails on a delay-slot label, so it is not usable as-is.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794724090.339184,
+  "score_before": 2087,
+  "score_after": 2087
+ },
+ {
+  "function": "func_800E1728",
+  "text": "Not matched. Best 3047 (59%), revision 85db71a3aa2799f7c019 (the version with plain u16 s0/v, rec = D_8011F2F0 + D_8011F068[s0]*100, dispatch on rec[0xD], rec[1]==1 -> func_800E1688, (*(s32*)rec & 0x12), else call *(rec+0x54) with D_8011F068[s0] then s0++). Recovered: func_800E1850 is u16 gate (0xFFFF -> return); func_800E1510(); s0=0; func_800E15CC(); if D_8011F068[0]==0xFFFF return; do-while on D_8011F068[s0]!=0xFFFF. Remaining diff: frame. Target is 0x30 with 6 saves (ra,s4,s3,s2,s1,s0): s4 = &D_8011F2F0 base held across calls, s3 = 1, s1 = 0xFFFF held as a register. Our draft only saves 5 (0x28). Adding base/one/neg locals (3619) made it worse, so the held-value approach needs a different form: try s1 as the 0xFFFF compare via a literal in the loop, keep base as a plain global-address expression, and let the held-across-call values be 1 and base. Also target does the first gate through a separate lui/lhu of func_800E1850 before the calls, and the loop re-reads D_8011F068 through v1=&D_8011F068 pointer.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794735390.8249311,
+  "score_before": 2075,
+  "score_after": 2075
+ },
+ {
+  "function": "func_800E1728",
+  "text": "Not matched. Best 3047 (58.8%), revision b0800fa2fa4e613e9c5a: `u16 s0; u16 v; u8 *rec;` loop, with the callback call `((void(*)(u16))(*(void**)(rec+0x54)))(v)`. Session variants: s0/v as s32 gave 3917; hoisting `kind = rec[1]` gave 3247. Target frame is 0x30 with six saved registers (ra, s4, s3, s2, s1, s0), mine 0x28 with five. Target loads D_800E1850 three times, loads `addiu $s3,$zero,1` (the constant 1 held in a register), and sets `lui $s2,%hi(D_8011F068)` where I have no table base register. Mismatch is mostly prologue and sentinel register allocation. Next: write the table base `D_8011F068` as a local pointer (`u16 *tab = D_8011F068;`) so it gets its own saved register, and keep s0 as u16.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794736614.9355588,
+  "score_before": 2075,
+  "score_after": 2075
+ },
+ {
+  "function": "func_800E1728",
+  "text": "Best saved 3047 (revision b0800fa2fa4e613e9c5a), the control flow of the do/while over D_8011F068 is right. Remaining differences: (1) frame. Target is 0x30 with ra at 0x2c and s4..s0 at 0x28..0x18, leaving 0x00..0x17 unused by code; mine is 0x28 with s0 at 0x10. The extra 8 bytes look like a local the target keeps but never reads (a gap model like the one in share note #339302416413 may reproduce it: a local struct whose padding fills the gap). (2) Registers: target reloads D_8011F068 via lui/addiu into v0 then v1 for the loop base and computes the `D_8011F068[s0]` after the loop with lui %hi + addu at; mine keeps the pointer in v1 and loads it once. (3) s1 = 0xFFFF is set (ori) after the first lui/lhu of D_800E1850, not before. (4) The s0=0 store sits in the delay slot of jal func_800E1510 in the target. Two compile_and_diff calls this session returned \"Progress changed while this attempt compiled\" and I did not get a fresh score, so the 3047 is the last verified number. Next: try the local-struct gap model for the frame first, then the pointer-load order.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794737912.0500789,
+  "score_before": 2075,
+  "score_after": 2075
+ },
+ {
+  "function": "func_800E1728",
+  "text": "Best 2908 (revision 15f89960692c351d9656, kept). Structure is confirmed correct: early-out on func_800E1850==0xFFFF, func_800E1510(), s0=0, func_800E15CC(), early-out on D_8011F068[0]==0xFFFF, then the do/while over D_8011F068 with the four-way branch (rec[0xD]!=0 / rec[1]==1 -> func_800E1688 / *(s32*)rec & 0x12 / indirect call *(void**)(rec+0x54) with a0=D_8011F068[s0]) and the tail reload of D_8011F068[s0]. Records are 100 bytes: D_8011F2F0 + id*100.\n\nWhat is left is entirely codegen shape, all in the prologue/loop-carried registers:\n1) Target loads func_800E1850 BEFORE `addiu $sp,$sp,-0x30` and saves 6 callee registers (s0-s4 plus one more, 0x30 frame); ours loads it after the frame and saves 5 (0x28 frame). Adding a dummy local `volatile u8 pad[8]` fixed the frame to 0x30 but scored 3035 (worse than 2908 because it also perturbed the loop).\n2) Target keeps the D_8011F068 base in $v1 and copies it to $s2 (`lui/addiu` pair for $s2) for the tail reload, and reloads with `lui $at,%hi; addu $at,$at,$v0; lhu %lo(...)($at)`; ours uses a plain `addu $v0,$v0,$s1; lhu ($v0)` with the base in $s1. A local `u16 *q = D_8011F068;` used for the tail reload got 2908 (best) but still gives $s1, and using q for the record index regressed to 3218.\n3) Target's `if (rec[1]==1)` arm is `jal func_800E1688; addiu $s0,$s0,1; j .L800E1810; andi $v0,$s0,0xFFFF` \u2014 i.e. the loop-continue label sits at the `andi`, whereas ours re-emits `andi` inline and branches to 0xcc. Restructuring so the third arm falls through to the `andi` (e.g. computing `v = D_8011F068[s0]` only in that path) is the remaining idea worth trying.\nTried and rejected: volatile pad[8] (3035), `u16 stop = 0xFFFF` local (3035), s32 index i with s0=i at the end (3917), q[] for the record index (3218). try_local_repairs families not yet exhausted (callee_parameter_width, signedness, declaration_order, byte_table_signedness).",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794761616.6827672,
+  "score_before": 2075,
+  "score_after": 2075
+ },
+ {
+  "function": "func_800E1728",
+  "text": "Not matched. Best: revision a5e2fb9b46b67c34725f, score 2867 (61%): u16 *tbl = D_8011F068 local for all table reads, record base is the global D_8011F2F0 expression. Target: frame 0x30, saves ra,s0-s4; s1=0xFFFF, s3=1, s2=&D_8011F068, s4=&D_8011F2F0. Remaining diffs: register allocation (candidate puts table base in s2 and record base in s4 but s3=1 and lui/addiu order differs) and branch targets. Tried: machine draft candidate (3047; m2c fails on a delay-slot label), explicit tbl local (2867, best), extra base local for record pointer (3042, worse). Stopping because the last two variants were worse and the remaining diff is register/schedule order, which needs -O1 or a different loop shape. Next: test -O1 via try_compiler, and try moving the D[0]==0xFFFF check before func_800E15CC.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794766175.325129,
+  "score_before": 2075,
+  "score_after": 2075
+ },
+ {
+  "function": "func_800E1728",
+  "text": "Walks the list D_8011F068 (u16, ends at 0xFFFF) of 100-byte records at D_8011F2F0: per entry, if rec[0xD]==0, rec[1]==1 calls func_800E1688(entry), else if (word0 & 0x12)==0 calls rec->fn(entry) at +0x54. Runs func_800E1510 and func_800E15CC first, and exits if func_800E1850 is 0xFFFF. Fresh C scores 3402 (u1), 3963 with pointer locals (u2); saved best 1060 not beaten. Target keeps six saved registers (s3=1, s4 record base, s2 list base) and a 0x30 frame; the fresh C uses fewer. Moving on.",
+  "by": "manual-2b1373017f1c4849",
+  "created_at": 1795709050.920217,
+  "score_before": 3402,
+  "score_after": 3402,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:b11c961f136ca25f959bd8ae1d170f80ac2bf2ed07cc4cc562077055de43c5af"
+ },
+ {
+  "function": "func_800E1728",
+  "text": "Haiku pass (haiku-pr6): the loop over D_8011F068 records (rec = D_8011F2F0 + D_8011F068[s0]*100; rec[0xD], rec[1]==1 -> func_800E1688, flags & 0x12, a call through rec+0x54 with q[s0]). Current-judge results: saved best 1555 (-O2; the app history shows 1060 from an older judge), -O1 2368. Tried: saved-C structure rewritten from the assembly 2473 (-O2) / 1653 (-O1); pointer-local variants 3498; without the base local 2453; the saved best with D_8011F068[s0] for inline_fn2(s0) 1983 (-O2) / 1768 (-O1). Target has s0..s4 saved with the frame at 0x30 and the loop pointer s2 = &D_8011F068 set after the first sentinel check; the -O2 index masked with 0xffff, not 0xff. Next: the index mask and the s2 pointer form under -O2, then a combined step.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795709482.3008661,
+  "score_before": 3402,
+  "score_after": 2453,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:b11c961f136ca25f959bd8ae1d170f80ac2bf2ed07cc4cc562077055de43c5af"
+ },
+ {
+  "function": "func_800E1728",
+  "text": "Stalled after about 10 judged candidates; best current-judge 1555 (saved best) unchanged, see note.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795709483.2781582,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:b11c961f136ca25f959bd8ae1d170f80ac2bf2ed07cc4cc562077055de43c5af"
+ },
+ {
+  "function": "func_800E1728",
+  "text": "haiku-pr26: best under -G0 -mips3 -mgp32 -mfp32 -O1 is 315 (app trial 12dfe0f7462e622a7aa4 on revision 997f6d3cf9c8810402d0; source /tmp/dd-haiku-pr26/cand7.c is scratch and deleted at stop, so the C is in this note). Default profile (-O2) stays 2500. Shape that gets the -O1 profile to 315: sentinel local none=0xFFFF used in all compares; loop tail resets tab = D_8011F068 at the join; callee loaded as local fn pointer before the call; s32 id with a s32 prototype for func_800E1688 (u16 param added an andi); rec[0xD], rec[1]==1, flags & 0x12 arms as in the target. Left: the head pointer is v1 (target copies v0 to v1 after the check, move row), and the call arm falls to a separate j+andi instead of the join (reorder of the flag arms gave 515). Tried, no gain: -fno-strength-reduce, -fno-loop-optimize (None), pointer-copy spellings, arm-order swaps.",
+  "by": "manual-41d32257dcbd48de",
+  "created_at": 1795715123.2349079,
+  "score_before": 2453,
+  "score_after": 2453,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:b11c961f136ca25f959bd8ae1d170f80ac2bf2ed07cc4cc562077055de43c5af"
+ },
+ {
+  "function": "func_800E1728",
+  "text": "Best under -G0 -mips3 -mgp32 -mfp32 -O1 is 315 (trial 12dfe0f7462e622a7aa4). Default profile 2500. Remaining: table pointer copy (move v1,v0) and the call arm join. See the note on this function for the shape.",
+  "by": "manual-41d32257dcbd48de",
+  "created_at": 1795715127.247168,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:b11c961f136ca25f959bd8ae1d170f80ac2bf2ed07cc4cc562077055de43c5af"
+ },
+ {
+  "function": "func_800E1728",
+  "text": "Small-model attempt at func_800E1728: 12 tries.\n  best 115 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 275 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1140 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1915 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2097 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 115 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 7455761e9aadbb7d47b8 (not applied).\n12 tries, best 115 under -O1 profile (kmc O1). Shape right: 2 bodies, shared i++, tab reload at tail. Left: first check uses v0 temp moved to v1 in target (compiler coalesces); hoisted s2/s4 base register allocation differs; tried separate base pointers, record base, temp first pointer, while form: all 115-120 or worse.",
+  "by": "manual-a2978c8f60e44e69",
+  "created_at": 1795725915.065516,
+  "score_before": 1060,
+  "score_after": 1060
+ },
+ {
+  "function": "func_800E1728",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_800E1728: 12 tries.\n  best 115 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 275 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1140 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1915 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2097 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 115 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 7455761e9aadbb7d47b8 (not applied).\n12 tries, best 115 under -O1 profile (kmc O1). Shape right: 2 bodies, shared i++, tab reload at tail. Left: first check uses v0 temp moved to v1 in target (compiler coalesces); hoisted s2/s4 base register allocation differs; tried separate base pointers, record base, temp first pointer, while form: all 115-120 or worse.",
+  "by": "manual-a2978c8f60e44e69",
+  "created_at": 1795725918.402692,
+  "score_before": 1060,
+  "score_after": 1060
+ },
+ {
+  "function": "func_800E1728",
+  "text": "Small-model attempt at func_800E1728: 12 tries.\n  best 115 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 275 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1140 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1915 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3264 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries from the kept near-miss (115 under -O1). Tried: u16 id, pre-loop test on the global, &D[0] and cast for the loop base, separate pointer, inline callback argument, one pointer for the loop, while form. Remaining difference: target has an extra move $v1,$v0 after the lui/addiu of D_8011F068 at entry; no variant reproduced it.",
+  "by": "manual-02caca327d014854",
+  "created_at": 1795726895.271436,
+  "score_before": 1060,
+  "score_after": 1060
+ },
+ {
+  "function": "func_800E1728",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_800E1728: 12 tries.\n  best 115 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 275 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1140 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1915 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3264 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries from the kept near-miss (115 under -O1). Tried: u16 id, pre-loop test on the global, &D[0] and cast for the loop base, separate pointer, inline callback argument, one pointer for the loop, while form. Remaining difference: target has an extra move $v1,$v0 after the lui/addiu of D_8011F068 at entry; no variant reproduced it.",
+  "by": "manual-02caca327d014854",
+  "created_at": 1795726896.129762,
+  "score_before": 1060,
+  "score_after": 1060
  }
 ]
