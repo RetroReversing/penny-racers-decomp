@@ -4208,14 +4208,6 @@
   "score_after": 12926
  },
  {
-  "function": "func_8015E240",
-  "text": "Deep permuter: score 8010 \u2192 5565; 6 improvements; 1000 candidates tested; 629 cached skips; 0 rejected; 5977s elapsed. Variant limit reached.",
-  "by": "Wwww.permuter-8589935535",
-  "created_at": 1794355898.098289,
-  "score_before": 8010,
-  "score_after": 5565
- },
- {
   "function": "func_800268C0",
   "text": "Deep permuter: score 20614 \u2192 20614; 0 improvements; 1000 candidates tested; 0 cached skips; 0 rejected; 6993s elapsed. Variant limit reached.",
   "by": "Wwww.permuter-8589934752",
@@ -7406,14 +7398,6 @@
   "created_at": 1794708703.3965418,
   "score_before": 3253,
   "score_after": 3253
- },
- {
-  "function": "func_8015E240",
-  "text": "Current best 6260 (44.6%) with this source: externs D_8011F2FC and D_8011F350 as u8[] (byte-offset indexing, idx = (arg1&0xFFFF)*0x64 added to the bases; the u32 declarations gave a 4x index scale and were wrong). Obj pointer = *(u8**)(D_8011F350+idx); the target reads obj+4 as a pointer and then indexes it at 0x778: use (*(u8 **)(obj + 4))[0x778]. The 0xFF gate uses D_8011F2FC+idx. Remaining diffs: the order of GCMD stores. The target reloads temp = *dl (lw v1,0(a2)) before every command and keeps dl in a2; mine keeps dl in a0/t0, folds the 0x0731F19A w1 constant into v1 early and places the F5880A00 command later, so the F3/E7/F5880A00/F2 blocks are reordered (e.g., at target instruction 60-71 mine has lui 0x731 where the target has addiu v0,v1,8 / sw). Note the saved_best 695 did not reproduce on re-compile (it scored 8010 with the same text), so trust 6260 as the baseline. Untried: forcing reload of *dl per command (e.g., a helper that takes Gfx **dl and does the read/write each time, or a volatile-free second pointer), and checking whether the 0xF2000000 command's a0 hold is from a shared temporary.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794708707.098164,
-  "score_before": 695,
-  "score_after": 695
  },
  {
   "function": "func_80235074",
@@ -11646,14 +11630,6 @@
   "created_at": 1794723653.438949,
   "score_before": 4025,
   "score_after": 4025
- },
- {
-  "function": "func_8015E240",
-  "text": "Not matched. My clean rewrite scored 7590, worse than saved best 695, so build from the saved best. Structure: display-list builder, arg0 = Gfx cursor (dl), idx = (arg1&0xFFFF)*0x64; if (D_8011F2FC[idx] != 0xFF) emit 10 two-word commands (E6/E7/F3/F5/F2/FD/B6 style constants; the FA command packs obj[0x17],[0x18],[0x19] and D_8011F2FC[idx]), where obj = *(u8**)(D_8011F350 + idx). Remaining diffs: the target uses sll $t0,v0,2 for the shared idx, loads the D_8011F350 pointer (lw a3) before D_8011F2FC (lbu), and reads obj words with lw v0,4(a3); my draft recomputes the address per use. Next: load obj once into a local before the first command, read D_8011F2FC[idx] once into a local, and check where the 0x778 field read sits relative to the commands.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794723653.549081,
-  "score_before": 695,
-  "score_after": 695
  },
  {
   "function": "func_80149220",
@@ -15928,14 +15904,6 @@
   "score_after": 1315
  },
  {
-  "function": "func_8015E240",
-  "text": "My rewrite (revision c3a00ef0501ea2c7135a) scored 8010, much worse than the saved best 695, so keep the saved best. Found a mismatch in the index computation: the target scales the index with x*25 then <<2 (sll $t0,$v0,2 after the 25x chain), and loads D_8011F2FC and D_8011F350 off that same index; my version emitted sll 4 and a fresh address for each. Write the index as the 25x chain (x*2+x)<<3 + x then <<2 so GCC shares it between the flag byte and the pointer. The GCMD sequence (display-list words) matches in order; the mismatch is only the address/index arithmetic.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794735766.2441092,
-  "score_before": 695,
-  "score_after": 695
- },
- {
   "function": "func_8021A994",
   "text": "Best 160 (98.4%), the supplied draft with externs (rev b943148b...). Only diff: target loads a0=0xA0 before the first store (addiu a0,zero,0xA0 at the start of the D_800DB1B8 store block, then sh a0 for the 0x2114/0x2110/0x2128 slots), and the final sh $v1,0x1A($v0) sits in the jal func_8013ADA8 delay slot with a0 still 0xA0. Ours reloads a0 after the last sh. Tried: a u16 local k=0xA0 used for the stores and the call -> 370 (worse; the load moves after the v0 base). Next idea: keep the literal 0xA0 stores but make the call argument the same expression as the last store's constant so gcc keeps it in $a0; or write the stores in the order 0x2114,0x2110,0x2128 (all 0xA0) first, then 0x2116/0x2112/0x212A/0x212C/0x212E. The rest of the function matches.",
   "by": "claude-haiku-5-5-21",
@@ -16318,14 +16286,6 @@
   "created_at": 1794736744.935919,
   "score_before": 320,
   "score_after": 320
- },
- {
-  "function": "func_8015E240",
-  "text": "Not improved this session: the candidate I compiled (revision c3a00ef0501ea2c7135a, 8010, 29%) is far worse than the saved 695 (same source per the report, but this compile disagrees). Restore saved_best first and work from it. Facts from the target: the index is idx = (u16)arg1 * 0x64 computed as sll 2 of 25*x (sll $t0,$v0,2 after 25x), used three ways: lbu D_8011F2FC[idx] (twice, the second for the final GCMD w1 byte), lw D_8011F350[idx] for obj (lw $v0,4(...) is the obj+4 word), and obj[0x778] / obj[0x17..0x19] reads. My draft used idx = (arg1&0xFFFF)*0x64 with a char* offset and got the multiply shape wrong (sll 4 instead of 25x then <<2), so the next step is to hoist the 0x64 product once into a u32 and index both tables from it. The GCMD macro's stores run in the order w0 then w1 with the Gfx pointer bumped by one entry each time; keep that order. Not solved.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794736745.100524,
-  "score_before": 695,
-  "score_after": 695
  },
  {
   "function": "func_8014D458",
@@ -23288,14 +23248,6 @@
   "score_after": 1999
  },
  {
-  "function": "func_8015E240",
-  "text": "Not matched. Saved best 695 (old macro-based source with temp/GCMD writes; the 'temp = *dl' form). Fresh best 5770 (48.9%) at revision c4d4f1cc9d8dd74f9032: Gfx macro GCMD(w0,w1) { Gfx *g = *dl; *dl = g + 1; g->w0 = w0; g->w1 = w1; } with dl as Gfx**, idx=(arg1&0xFFFF)*100, obj=*(u8**)(D_8011F350+idx), and the 0xF2000000|(obj->ptr4[0x778]*4) term: the byte at 0x778 is read through a second pointer loaded from obj+4 (lw v0,4(a3); lbu v0,0x778(v0)). Instruction count now matches (113). Remaining diffs: gcc hoists the constants 0x0731F19A, 0xF2000000 and 0x9C09C into a0/a1 and reuses them, while the target materialises F5880A00/0x18060 etc. in v0 each time; also the target keeps dl in a2 (move a2,a0) and the idx in t0 with the lui/addu at the top, mine uses t0 for dl. Try: keep dl as a local copy 'Gfx **d = dl', drop the macro's temporary to a separate Gfx *g declared per block, and try ordering the F3/E7 pair so the constant 0x731F19A is not hoisted (e.g. write its w1 through a u32 local set after the E6 command).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794755424.0784168,
-  "score_before": 695,
-  "score_after": 695
- },
- {
   "function": "func_8015601C",
   "text": "Not matched. Best 4585 (48.4%). Structure matches the display-list shape (lw ptr from *arg0, +8, store back per command), but the target schedules the index chain (andi $a1 0xFFFF; sll/addu/sll by 100) and the 0x5CC7BF00 OR constant between the first two commands, and the start/end register choices differ. Moving the index to the top gave no change, and the signedness family (u32 temp) is untried. Cannot get closer with the current shape: needs a different statement grouping for the first two commands. Next: test the index chain placed after the B6000000 command, plus compile_variants.",
   "by": "claude-haiku-5-5-23",
@@ -30040,14 +29992,6 @@
   "score_after": 2586
  },
  {
-  "function": "func_8015E240",
-  "text": "Not matched; releasing on a plateau. Best at gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1: score 240 (97.9%), 48 register differences only (all regalloc: target keeps the Gfx write pointer in v1, candidate in a1). Tried without change: declaration order of obj/idx/temp, Gfx *temp vs u32 *w. The revision here is the project -O2 compile (6260). Key correct fix found: the second-level load (*(u8 **)(obj + 4))[0x778] * 4. Next for whoever picks this up: the regalloc of the display-list pointer is the only gap; try a `Gfx *dlp` local copied from *dl once, or a helper inline expression for the write, and check try_local_repairs for allocation-only moves.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794764918.8093991,
-  "score_before": 695,
-  "score_after": 695
- },
- {
   "function": "func_80140A38",
   "text": "Not matched. Best this session: 2524 (revision 03050712e8f884b87473), worse than saved 1207. Findings: (1) the 0x78 frame and $ra/$s1/$s0 saves at 0x70/0x6c/0x68 are reproduced by a 0x40-byte union local at $sp+0x20 (struct fields a@0x20, b@0x21, h@0x24, f@0x2C) with the call's first arg = &local.a. A 0x48 union gives 0x80 frame (wrong); a 0x40 union is right. (2) The float test in the target is `c.le.s 2^31, t` with `bc1tl` whose delay slot is the sub.s, so the taken path is t>=2^31 (sub, trunc, or 0x80000000). Writing it as `if (2^31 <= t)` gives bc1f instead; the swapped `if (t < 2^31)` gave 2714. Still open: the branch-likely shape, register choice (target uses $a0 for the trunc result, we use $v0), and a compile-time 2^31 constant load (`lui 0x4F000000` into $at then mtc1 to $f0) placed before c.le.s. Untried: write the t>=2^31 path with a separate temp so gcc schedules the sub.s into the likely delay slot, and try -O1 for the branch-likely shape. Source for the 2524 version is in the candidate revision.",
   "by": "claude-haiku-5-5-23",
@@ -31462,14 +31406,6 @@
   "created_at": 1794766928.948982,
   "score_before": 1207,
   "score_after": 1207
- },
- {
-  "function": "func_8015E240",
-  "text": "Display-list builder (11 GCMD words, guarded by D_8011F2FC[idx] != 0xFF). Saved best 695 (prior agent, GCMD macro with Gfx* temp, D_8011F2FC/D_8011F350 as u32). Current verified: the saved source scores 8010; with D_8011F2FC and D_8011F350 declared as u8 arrays (byte indexed by idx) it scores 7590 (revision e77ba158967c38c7aa2a). Target indexing: idx = (arg1&0xFFFF)*100 is computed as sll t0,v0,2 then addu with base, so the u8 arrays are right, but the register chain is still off. Remaining diff: target loads obj pointer (lw from D_8011F350+idx) before the guard branch and reads lw $v0,4($a3) (obj field) after the 0xFA-style word; mine re-derives idx each time. Untested: hoist idx and obj into locals before the if; drop the obj[0x778] word-to-byte cast in favour of a pointer read; check the 0x18060/0x14060 constant word order.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794766929.155357,
-  "score_before": 695,
-  "score_after": 695
  },
  {
   "function": "func_801AEEE8",
@@ -35321,5 +35257,87 @@
   "score_before": null,
   "score_after": null,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:f06b5e414744a2f9ac8b005ce052f860005f3183602f86d57d171a507963fdaf"
+ },
+ {
+  "function": "func_8015E240",
+  "text": "Deep permuter: score 8010 \u2192 5565; 6 improvements; 1000 candidates tested; 629 cached skips; 0 rejected; 5977s elapsed. Variant limit reached.",
+  "by": "Wwww.permuter-8589935535",
+  "created_at": 1794355898.098289,
+  "score_before": 8010,
+  "score_after": 5565
+ },
+ {
+  "function": "func_8015E240",
+  "text": "Current best 6260 (44.6%) with this source: externs D_8011F2FC and D_8011F350 as u8[] (byte-offset indexing, idx = (arg1&0xFFFF)*0x64 added to the bases; the u32 declarations gave a 4x index scale and were wrong). Obj pointer = *(u8**)(D_8011F350+idx); the target reads obj+4 as a pointer and then indexes it at 0x778: use (*(u8 **)(obj + 4))[0x778]. The 0xFF gate uses D_8011F2FC+idx. Remaining diffs: the order of GCMD stores. The target reloads temp = *dl (lw v1,0(a2)) before every command and keeps dl in a2; mine keeps dl in a0/t0, folds the 0x0731F19A w1 constant into v1 early and places the F5880A00 command later, so the F3/E7/F5880A00/F2 blocks are reordered (e.g., at target instruction 60-71 mine has lui 0x731 where the target has addiu v0,v1,8 / sw). Note the saved_best 695 did not reproduce on re-compile (it scored 8010 with the same text), so trust 6260 as the baseline. Untried: forcing reload of *dl per command (e.g., a helper that takes Gfx **dl and does the read/write each time, or a volatile-free second pointer), and checking whether the 0xF2000000 command's a0 hold is from a shared temporary.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794708707.098164,
+  "score_before": 695,
+  "score_after": 695
+ },
+ {
+  "function": "func_8015E240",
+  "text": "Not matched. My clean rewrite scored 7590, worse than saved best 695, so build from the saved best. Structure: display-list builder, arg0 = Gfx cursor (dl), idx = (arg1&0xFFFF)*0x64; if (D_8011F2FC[idx] != 0xFF) emit 10 two-word commands (E6/E7/F3/F5/F2/FD/B6 style constants; the FA command packs obj[0x17],[0x18],[0x19] and D_8011F2FC[idx]), where obj = *(u8**)(D_8011F350 + idx). Remaining diffs: the target uses sll $t0,v0,2 for the shared idx, loads the D_8011F350 pointer (lw a3) before D_8011F2FC (lbu), and reads obj words with lw v0,4(a3); my draft recomputes the address per use. Next: load obj once into a local before the first command, read D_8011F2FC[idx] once into a local, and check where the 0x778 field read sits relative to the commands.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794723653.549081,
+  "score_before": 695,
+  "score_after": 695
+ },
+ {
+  "function": "func_8015E240",
+  "text": "My rewrite (revision c3a00ef0501ea2c7135a) scored 8010, much worse than the saved best 695, so keep the saved best. Found a mismatch in the index computation: the target scales the index with x*25 then <<2 (sll $t0,$v0,2 after the 25x chain), and loads D_8011F2FC and D_8011F350 off that same index; my version emitted sll 4 and a fresh address for each. Write the index as the 25x chain (x*2+x)<<3 + x then <<2 so GCC shares it between the flag byte and the pointer. The GCMD sequence (display-list words) matches in order; the mismatch is only the address/index arithmetic.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794735766.2441092,
+  "score_before": 695,
+  "score_after": 695
+ },
+ {
+  "function": "func_8015E240",
+  "text": "Not improved this session: the candidate I compiled (revision c3a00ef0501ea2c7135a, 8010, 29%) is far worse than the saved 695 (same source per the report, but this compile disagrees). Restore saved_best first and work from it. Facts from the target: the index is idx = (u16)arg1 * 0x64 computed as sll 2 of 25*x (sll $t0,$v0,2 after 25x), used three ways: lbu D_8011F2FC[idx] (twice, the second for the final GCMD w1 byte), lw D_8011F350[idx] for obj (lw $v0,4(...) is the obj+4 word), and obj[0x778] / obj[0x17..0x19] reads. My draft used idx = (arg1&0xFFFF)*0x64 with a char* offset and got the multiply shape wrong (sll 4 instead of 25x then <<2), so the next step is to hoist the 0x64 product once into a u32 and index both tables from it. The GCMD macro's stores run in the order w0 then w1 with the Gfx pointer bumped by one entry each time; keep that order. Not solved.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794736745.100524,
+  "score_before": 695,
+  "score_after": 695
+ },
+ {
+  "function": "func_8015E240",
+  "text": "Not matched. Saved best 695 (old macro-based source with temp/GCMD writes; the 'temp = *dl' form). Fresh best 5770 (48.9%) at revision c4d4f1cc9d8dd74f9032: Gfx macro GCMD(w0,w1) { Gfx *g = *dl; *dl = g + 1; g->w0 = w0; g->w1 = w1; } with dl as Gfx**, idx=(arg1&0xFFFF)*100, obj=*(u8**)(D_8011F350+idx), and the 0xF2000000|(obj->ptr4[0x778]*4) term: the byte at 0x778 is read through a second pointer loaded from obj+4 (lw v0,4(a3); lbu v0,0x778(v0)). Instruction count now matches (113). Remaining diffs: gcc hoists the constants 0x0731F19A, 0xF2000000 and 0x9C09C into a0/a1 and reuses them, while the target materialises F5880A00/0x18060 etc. in v0 each time; also the target keeps dl in a2 (move a2,a0) and the idx in t0 with the lui/addu at the top, mine uses t0 for dl. Try: keep dl as a local copy 'Gfx **d = dl', drop the macro's temporary to a separate Gfx *g declared per block, and try ordering the F3/E7 pair so the constant 0x731F19A is not hoisted (e.g. write its w1 through a u32 local set after the E6 command).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794755424.0784168,
+  "score_before": 695,
+  "score_after": 695
+ },
+ {
+  "function": "func_8015E240",
+  "text": "Not matched; releasing on a plateau. Best at gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1: score 240 (97.9%), 48 register differences only (all regalloc: target keeps the Gfx write pointer in v1, candidate in a1). Tried without change: declaration order of obj/idx/temp, Gfx *temp vs u32 *w. The revision here is the project -O2 compile (6260). Key correct fix found: the second-level load (*(u8 **)(obj + 4))[0x778] * 4. Next for whoever picks this up: the regalloc of the display-list pointer is the only gap; try a `Gfx *dlp` local copied from *dl once, or a helper inline expression for the write, and check try_local_repairs for allocation-only moves.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794764918.8093991,
+  "score_before": 695,
+  "score_after": 695
+ },
+ {
+  "function": "func_8015E240",
+  "text": "Display-list builder (11 GCMD words, guarded by D_8011F2FC[idx] != 0xFF). Saved best 695 (prior agent, GCMD macro with Gfx* temp, D_8011F2FC/D_8011F350 as u32). Current verified: the saved source scores 8010; with D_8011F2FC and D_8011F350 declared as u8 arrays (byte indexed by idx) it scores 7590 (revision e77ba158967c38c7aa2a). Target indexing: idx = (arg1&0xFFFF)*100 is computed as sll t0,v0,2 then addu with base, so the u8 arrays are right, but the register chain is still off. Remaining diff: target loads obj pointer (lw from D_8011F350+idx) before the guard branch and reads lw $v0,4($a3) (obj field) after the 0xFA-style word; mine re-derives idx each time. Untested: hoist idx and obj into locals before the if; drop the obj[0x778] word-to-byte cast in favour of a pointer read; check the 0x18060/0x14060 constant word order.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794766929.155357,
+  "score_before": 695,
+  "score_after": 695
+ },
+ {
+  "function": "func_8015E240",
+  "text": "Display-list builder, -O1 gcc-2.7.2-kmc: clean rewrite (Gfx cursor per command, constants as literals, tile block guarded by the 0xFF byte at D_8011F2FC[off]) scores 240 at -O1; the only rows left are one register choice: the Gfx cursor is a1 in ours, v1 in the target (every command block). Tried and worse: u16->s32/u32 param, offset as a local vs inline, constants as locals (1040), p loaded after the guard (935), if-block instead of early return (240, same). Next idea: make the cursor the first use after the guard in a shape that frees v1 for it.",
+  "by": "manual-0d2866643d514aba",
+  "created_at": 1795713079.8222332,
+  "score_before": 6260,
+  "score_after": 6260,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:215ac6a0f7f02019c6c069f9d32f5dd88929c062aa4a79c31fcde02335adbf2c"
+ },
+ {
+  "function": "func_8015E240",
+  "text": "Clean -O1 rewrite at 240 (register-only: the Gfx cursor register). Eight-plus judged attempts; see the note.",
+  "by": "manual-0d2866643d514aba",
+  "created_at": 1795713088.745298,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:215ac6a0f7f02019c6c069f9d32f5dd88929c062aa4a79c31fcde02335adbf2c"
  }
 ]
