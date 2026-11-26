@@ -9040,14 +9040,6 @@
   "score_after": 19039
  },
  {
-  "function": "func_80205198",
-  "text": "Released at the move-on budget. Best is rev 35027366a41d1bf5c13a (5297, 74%): a local `s8 *p = D_8021E15F;` for the D_8021E15F[0]/[1] tests, and D_8021E162 declared as a plain s8 with `*((s8*)&D_8021E162 - 6)` for the D_8021E162[-6] test. Structure of the 13 calls is right: first a 4-way AND test choosing a=b=c=(0xFF-D_8021E19E)&0xFFFF else 0x64, then func_801CA494(arg0,a,b,c,0), then 5 func_8014A4C8 calls, then conditional func_801CA494(...,0xFF) twice and a 0x64 variant, with func_8014A4C8 sequences in between. Remaining mismatch: the target frame is 0x20 with only ra and s0 saved, while my pointer variant saves s1 (frame 0x28), and the target reloads the address with lui/addiu before each lb. Tried: the pointer as a local (5297 best), direct D_8021E15F[] (5355), and direct &D_8021E15F + 0/+1 casts (5355). Next: remove the p local but keep arg0 in s0 by testing the ordering of the first if (target does 'move $s0,$a0' after the lui/lb), and try `var_a2 = var_a1` assignments in the else branch to change the constant materialisation (target uses addiu a1 0x64, then a2/a3 materialise separately).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794712158.916289,
-  "score_before": 5355,
-  "score_after": 5297
- },
- {
   "function": "func_801669D0",
   "text": "Not matched. Best this claim: 17812 (29.3%), 198 vs 252 target insns. Saved best is 11483 (different source); restore it with get_candidate(base=\"saved_best\") before continuing. Why I stopped: the frame and loop shape are wrong, not just registers. Target frame is 0x80 with s0-s5 and ra saved, plus sdc1 f20/f22 at 0x70/0x78. My drafts give 0x88 with extra fp/s6/s7 saves, which means the target has fewer live values across the calls than my nested loop assumes. The loop body is also far from the target: target shows `sll $v0,$s3,3` / `addu $v0,$v0,$s3` / `sll $v0,$v0,4` index chains (about 23 addu and 10 lui of D_8022ACD0) at each access, and mine folds them away. Facts that look solid: arg0->0x898==1 and !(arg0->0x560 & 0x4F) guard; first func_8013E364() result masked to u16, skipped on 0xFFFF; func_800DE41C takes 18 args (0x20/s0 at 0x10/0x14, func_80166DC0 at 0x1C, zeros after); failure path (a1+2 &0xFFFF < 2) calls func_8013E49C; loop stride 0x8F0 on D_8022A772 / D_8022ACD0 / D_8022AED0, exits at s3>=7. Unknown: whether the loop index is a pointer walk (target has no sll of s3 in the inner loop as a multiply) or the float constants (200.0f, 30000.0f, 1.0f) are the same callee args. Next step: read the target instruction-by-instruction (get_assembly paging from offset 52) and rebuild the frame and loop from that, not from the draft. Sibling of func_80166DC0 / func_8016018C in the same unit; check their prototypes first.",
   "by": "claude-haiku-5-5-23",
@@ -13366,14 +13358,6 @@
   "created_at": 1794727512.204417,
   "score_before": 1642,
   "score_after": 1642
- },
- {
-  "function": "func_80205198",
-  "text": "Stalled at 74%. Saved best 5297 (revision af3b32670049f7b518b2) uses a local `s8 *p = D_8021E15F;` for the two p[0]==4 / p[1]==0 tests. Global-direct version scores 5355 (worse). Target frame is 0x20 with only ra and s0 saved (arg0 in s0, no s1); the target reloads D_8021E15F's address each time (lui $a0 / addiu $a0 / lb), which the local-pointer version turns into a kept s1 register. Unexplored: write the first condition as separate nested ifs, or compute the address via `(s8*)&D_8021E15F` per use. Context of the two D_8021E162 checks (`[0]!=0 || [-6]!=1`) is still unverified against the target ordering.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794727521.178258,
-  "score_before": 4982,
-  "score_after": 4982
  },
  {
   "function": "func_80204760",
@@ -18622,14 +18606,6 @@
   "created_at": 1794740521.627452,
   "score_before": 1453,
   "score_after": 1453
- },
- {
-  "function": "func_80205198",
-  "text": "Best 11327 (45%, 205 vs 206 insns), revision bf421489319031c45eda. Facts: func_801CA494 and func_8014A4C8 each take 5 args (a0..a3, 5th at 0x10($sp)). In the first call the target stores constant 0xFF in the stack slot in every branch, which the C already does. Remaining differences: (1) frame: target addiu -0x20, ra at 0x1c, s0 at 0x18; mine -0x28 with ra at 0x20. Not fixed by a (u16) cast on var_a3 (no effect). Unknown cause; try an extra block-local or a single pointer local for &D_8021E15F. (2) Target loads D_8021E15F once into $a0 (lui/addiu) and reads [0],[1] through $a0 with lb; mine reloads each time via lui/lb %lo. Try a local `s8 *p = D_8021E15F;` for the conditions. The call sequence and constants match the target.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794740524.541554,
-  "score_before": 4982,
-  "score_after": 4982
  },
  {
   "function": "func_80217F44",
@@ -26088,14 +26064,6 @@
   "score_after": 900
  },
  {
-  "function": "func_80205198",
-  "text": "Best saved score 7295 (64.5%, 203 insns vs target 206), from the direct-global version: D_8021E15F/D_8021E162 accessed as `*(&D_8021E15F + 1)` and `*(&D_8021E162 - 6)`, func_801CA494 called with 5 args (trailing 0 unused). A `u8 *p = &D_8021E15F` pointer version scored worse (10942): it keeps a saved s1 and a 0x28 frame, while the target uses a 0x20 frame with only ra and s0 saved and reloads D_8021E15F via `lui $a0,%hi` + `addiu $a0,%lo` + `lb` per test. search_flags shows -O1 scores 4065, closer than the project's -O2 at 7295, but still no match. Next: compile the direct-global version under -O1 and read last_diff for the first structural difference; if the -O1 form matches the early blocks, the function may be -O1 like the 0x800DE2E0 region. Released now on a reasoned ask: the remaining gap is structural (frame and load ordering), and this session is at low effort.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794758139.950306,
-  "score_before": 4982,
-  "score_after": 4982
- },
- {
   "function": "func_80148754",
   "text": "The machine draft is not usable as given (it contains repair artifacts such as __repair_phase_s3 and __repair_rows, and func_80149778 is called with the wrong arity). A cleaned rewrite compiles and scores 19786 (21%), worse than the saved 18946. Target is 252 instructions with a 0x48 frame: ra 0x44, fp 0x40, s7 0x3c, s6 0x38, s5 0x34, s4 0x30. Mine uses different saves and does not keep the `D_800DA260 + idx*0x178` bases in registers (target `addu v0,v0,s5` x20 suggests the offset (idx*0x178) is computed with a shift/add chain and reused). Next step: write the body from the target assembly rather than the draft; the two sections (arg0 loop and arg1 loop) use a 0x6E field offset and 18-byte stride records. Untested: a single `u8 *rec = D_800DA260 + idx*0x178` per loop instead of recomputing per access.",
   "by": "claude-haiku-5-5-20",
@@ -27118,14 +27086,6 @@
   "created_at": 1794759102.251144,
   "score_before": 485,
   "score_after": 485
- },
- {
-  "function": "func_80205198",
-  "text": "Best 6115 (70.3%), revision 63f289c3e93a2edd4998: using #define E15F (*(s8*)&D_8021E15F) and E160 = (*(s8*)((u8*)&D_8021E15F+1)) fixed the lbu->lb signedness and dropped the score from 7295. Still differing: target recomputes the address per use (lui+addiu $a0 then lb 0($a0)/lb 1($a0)); a local s8* pointer (p=&D_8021E15F; p[0], p[1]) and direct *(s8*)&D_8021E15F both gave no change. Target branch layout: the if-chain uses bnez/bne with first-sign-extended compare, and the 0xFF-D_8021E19E branch computes via lbu D_8021E19E into $a3 with subu from $v0=0xFF. Remaining: register allocation (target uses $a3 for E19E temp, we use $v1), prologue order (target saves $ra at 0x1c then $s0 at 0x18, and the if-else ordering of stores). Untried: compile_family signedness; reordering the first if-else into an explicit if/else with a3 temp.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794759104.927922,
-  "score_before": 4982,
-  "score_after": 4982
  },
  {
   "function": "func_80215DE0",
@@ -34847,5 +34807,45 @@
   "score_before": null,
   "score_after": null,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:42c97a042343efe114007b4603430c8f8fc6fadb7d6e57daaef2da66ce89cbea"
+ },
+ {
+  "function": "func_80205198",
+  "text": "Released at the move-on budget. Best is rev 35027366a41d1bf5c13a (5297, 74%): a local `s8 *p = D_8021E15F;` for the D_8021E15F[0]/[1] tests, and D_8021E162 declared as a plain s8 with `*((s8*)&D_8021E162 - 6)` for the D_8021E162[-6] test. Structure of the 13 calls is right: first a 4-way AND test choosing a=b=c=(0xFF-D_8021E19E)&0xFFFF else 0x64, then func_801CA494(arg0,a,b,c,0), then 5 func_8014A4C8 calls, then conditional func_801CA494(...,0xFF) twice and a 0x64 variant, with func_8014A4C8 sequences in between. Remaining mismatch: the target frame is 0x20 with only ra and s0 saved, while my pointer variant saves s1 (frame 0x28), and the target reloads the address with lui/addiu before each lb. Tried: the pointer as a local (5297 best), direct D_8021E15F[] (5355), and direct &D_8021E15F + 0/+1 casts (5355). Next: remove the p local but keep arg0 in s0 by testing the ordering of the first if (target does 'move $s0,$a0' after the lui/lb), and try `var_a2 = var_a1` assignments in the else branch to change the constant materialisation (target uses addiu a1 0x64, then a2/a3 materialise separately).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794712158.916289,
+  "score_before": 5355,
+  "score_after": 5297
+ },
+ {
+  "function": "func_80205198",
+  "text": "Stalled at 74%. Saved best 5297 (revision af3b32670049f7b518b2) uses a local `s8 *p = D_8021E15F;` for the two p[0]==4 / p[1]==0 tests. Global-direct version scores 5355 (worse). Target frame is 0x20 with only ra and s0 saved (arg0 in s0, no s1); the target reloads D_8021E15F's address each time (lui $a0 / addiu $a0 / lb), which the local-pointer version turns into a kept s1 register. Unexplored: write the first condition as separate nested ifs, or compute the address via `(s8*)&D_8021E15F` per use. Context of the two D_8021E162 checks (`[0]!=0 || [-6]!=1`) is still unverified against the target ordering.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794727521.178258,
+  "score_before": 4982,
+  "score_after": 4982
+ },
+ {
+  "function": "func_80205198",
+  "text": "Best 11327 (45%, 205 vs 206 insns), revision bf421489319031c45eda. Facts: func_801CA494 and func_8014A4C8 each take 5 args (a0..a3, 5th at 0x10($sp)). In the first call the target stores constant 0xFF in the stack slot in every branch, which the C already does. Remaining differences: (1) frame: target addiu -0x20, ra at 0x1c, s0 at 0x18; mine -0x28 with ra at 0x20. Not fixed by a (u16) cast on var_a3 (no effect). Unknown cause; try an extra block-local or a single pointer local for &D_8021E15F. (2) Target loads D_8021E15F once into $a0 (lui/addiu) and reads [0],[1] through $a0 with lb; mine reloads each time via lui/lb %lo. Try a local `s8 *p = D_8021E15F;` for the conditions. The call sequence and constants match the target.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794740524.541554,
+  "score_before": 4982,
+  "score_after": 4982
+ },
+ {
+  "function": "func_80205198",
+  "text": "Best saved score 7295 (64.5%, 203 insns vs target 206), from the direct-global version: D_8021E15F/D_8021E162 accessed as `*(&D_8021E15F + 1)` and `*(&D_8021E162 - 6)`, func_801CA494 called with 5 args (trailing 0 unused). A `u8 *p = &D_8021E15F` pointer version scored worse (10942): it keeps a saved s1 and a 0x28 frame, while the target uses a 0x20 frame with only ra and s0 saved and reloads D_8021E15F via `lui $a0,%hi` + `addiu $a0,%lo` + `lb` per test. search_flags shows -O1 scores 4065, closer than the project's -O2 at 7295, but still no match. Next: compile the direct-global version under -O1 and read last_diff for the first structural difference; if the -O1 form matches the early blocks, the function may be -O1 like the 0x800DE2E0 region. Released now on a reasoned ask: the remaining gap is structural (frame and load ordering), and this session is at low effort.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794758139.950306,
+  "score_before": 4982,
+  "score_after": 4982
+ },
+ {
+  "function": "func_80205198",
+  "text": "Best 6115 (70.3%), revision 63f289c3e93a2edd4998: using #define E15F (*(s8*)&D_8021E15F) and E160 = (*(s8*)((u8*)&D_8021E15F+1)) fixed the lbu->lb signedness and dropped the score from 7295. Still differing: target recomputes the address per use (lui+addiu $a0 then lb 0($a0)/lb 1($a0)); a local s8* pointer (p=&D_8021E15F; p[0], p[1]) and direct *(s8*)&D_8021E15F both gave no change. Target branch layout: the if-chain uses bnez/bne with first-sign-extended compare, and the 0xFF-D_8021E19E branch computes via lbu D_8021E19E into $a3 with subu from $v0=0xFF. Remaining: register allocation (target uses $a3 for E19E temp, we use $v1), prologue order (target saves $ra at 0x1c then $s0 at 0x18, and the if-else ordering of stores). Untried: compile_family signedness; reordering the first if-else into an explicit if/else with a3 temp.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794759104.927922,
+  "score_before": 4982,
+  "score_after": 4982
  }
 ]
