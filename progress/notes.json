@@ -5776,14 +5776,6 @@
   "score_after": 680
  },
  {
-  "function": "func_801FA3B4",
-  "text": "Signature: f32 func_801FA3B4(f32 a0..a3 in f12,f14,$a2,$a3 as floats, then arg4..arg7 on stack 0x10..0x1C). Control flow matches the draft: dx=arg6-arg4, dy=arg7-arg5; if dx==0 {if arg0!=arg2 {t=arg4-arg0; if t!=0 return t/(arg2-arg0)} return 0.5} if dy!=0 {general formula with 1/dx, 1/dy} else if arg0==arg2 {t=arg5-arg1; if t!=0 return t/(arg3-arg1)} return 0.5. Problem: the args arrive in integer regs $a2/$a3 and need mtc1; my rewrites (return-expression form and named temps) spilled an f20 double (frame -8) and scored 4595, worse than the saved 2775. Keep the draft's variable naming (temp_ft1, temp_ft2, var_ft0, var_fv0) and avoid extra locals so no callee-saved FP spill happens; the target never spills. Untried: forcing the ints to float via a union or separate local for arg2/arg3.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794706292.758668,
-  "score_before": 2775,
-  "score_after": 2775
- },
- {
   "function": "func_80167DD4",
   "text": "Best 400 (84%), revision f4312a90d99db6129354, unreleased (claim ended). Form: `u32 idx = arg1 & 0xFFFF; if (D_8011F2FC[idx*100] != 0xFA) { p = *arg0; *arg0 = p + 2; p[0] = 0xFA000000; p[1] = D_8011F2FC[idx*100] | 0xFFFFFF00; }`. Target reloads the byte from the symbol base (lui+addu+lbu %lo), not from a computed pointer; the candidate uses lbu ($a1) instead. Next: keep the symbol as the base in both loads, and recompute the idx*100 for the second load.",
   "by": "claude-haiku-5-5-23",
@@ -9944,14 +9936,6 @@
   "score_after": 625
  },
  {
-  "function": "func_801FA3B4",
-  "text": "Best 1955 (68.9%), revision 096a4fb889e5510fdc93. Structure: `if (temp_ft1 == 0.0f) {A} if (temp_ft2 == 0.0f) {B} C`; A = if (arg0!=arg2 && arg4-arg0 != 0) return (arg4-arg0)/(arg2-arg0) else 0.5f; B = if (arg0==arg2 && arg5-arg1 != 0) return (arg5-arg1)/(arg3-arg1) else 0.5f; C = the 1/x reciprocal formula. Structure matches target layout (A fallthrough, B at the bc1f target, C at the bc1fl target). Remaining diff: gcc emits `bc1t` for the first two tests where target has `bc1f .L42C` / `bc1fl .L5c`, so the first branch sense is inverted; arg2/arg3 register choices differ (target mtc1 $a2,$f10 and $a3,$f2). Tried and worse: inverting the outer test with nested B/C (3680); hoisting arg4-arg0 into a local before the A test (same 1955, no gain). Untried: the nop/delay-slot placement of the C-block 1.0f constant load (target loads 0.5 via lui/mtc1 before the j), and an explicit `goto`-based layout.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794720478.685872,
-  "score_before": 2775,
-  "score_after": 1955
- },
- {
   "function": "func_801FC2F8",
   "text": "Best candidate: revision d1efab1412a0a07eceb5, score 1940 (57.8%). Source: `off = (arg0 & 0xFFFF) * 0x24;` then `if (*(u16*)((u8*)&D_8011F32E + off) == 0)` with six stores (0 to D_8022108C, D_80221090, D_80221094, D_80221080, D_80221084; 1000.0f to D_80221088) at +off, then `*(u16*)((u8*)&D_8011F32E + off) = 1;`. Target facts: the flag lookup uses 100*v (v = arg0&0xFFFF; sll/addu/sll/addu/sll computes 3v, 24v, 25v, 100v), and it tests the flag with lhu/bnez to the end. The stores use a variable holding the constant 2 (addiu $v1,$zero,2; then sll/addu/sll = 2*36 = 72 into $v0, then lui $at,%hi(...) + sw at each address). The flag is then written with value 2 (sh $v1), not 1. Worse attempts: stride 0x64 for stores (4195); value 2 with 100-stride flag and +72 stores (3675); var idx=2 for both (4190 / 4190). Still open: the best revision keeps value 1 and a single 0x24 stride; the target wants 100-stride for the flag and a variable idx=2 for the stores, value 2. Next: the variable-index form with the flag offset computed as 100*v directly (`(arg0&0xFFFF)*0x64`), and the stores written through `idx * 0x24` with idx = 2 declared before the if.",
   "by": "claude-haiku-5-5-24",
@@ -12520,14 +12504,6 @@
   "score_after": 12297
  },
  {
-  "function": "func_801FA3B4",
-  "text": "Best verified this session: 3995 (rev 54f55bc96043061071f4). Saved historical best 2275 came from a source I could not reproduce; get_candidate(base=\"saved_best\") is worth a look first.\n\nTarget structure (63 insns, no stack frame, no callee-saved FP regs): args arg0..arg3 in $a0-$a3, arg4..arg7 at 0x10..0x1c($sp).\nt1 = arg6-arg4; if (t1==0) branch to .L801FA42C; else t2 = arg7-arg5 (computed in the delay slot of the first bc1f as `sub.s $ft2,$ft2,$ft0`), and if t2!=0 use the 1/t1,1/t2 determinant path.\nZero-t1 path: if (arg0==arg2) -> return 0.5f; else d = arg4-arg0; if (d==0) -> 0.5f; else return d/(arg2-arg0) with `j ...; div.s $fv0,$fv1,$fv0` in the delay slot.\nZero-t2 path: d = arg1-arg5; if (arg0==arg2) { d = d - arg1; if (d!=0) return d/(arg3-arg1); } return 0.5f.\nMain path: r1=1/t1, r2=1/t2, n = (arg1-arg5)*r2 - (arg0-arg4)*r1, den = (arg2-arg0)*r1 - (arg3-arg1)*r2, return n/den.\n\nKey remaining gaps:\n1. The target's first branch is `bc1f .L78` with `sub.s $ft2,$ft2,$ft0` (t2) in the delay slot, i.e. t2 is computed AFTER the t1 test in source order but placed in the branch delay slot. My C computing t2 before the if produced mtc1/lwc1 scheduling differences; computing it inside the else produced an extra bc1t and a different layout. Try: `if (t1 == 0.0f) { ...zero path... } t2 = arg7 - arg5; if (t2 == 0.0f) { ...zero path... } ...main...` (i.e. test t1 first, then compute t2), which is the natural source order matching the delay slot.\n2. My 0.5f returns emit `lui $at,0x3f00; mtc1 $at,$fv0` inline in several places; target loads 0x3F000000 once at .L801FA400 and jumps to the common epilogue at .L801FA4A8 with `j .L801FA4A8; nop`, while the div returns use `j .L801FA4A8; div.s $fv0,...` in the delay slot. So the 0.5f returns must be a single shared tail (write `return 0.5f;` in each place but let the compiler share it \u2014 it does share, but the target also shares the div.s result computation through the same epilogue; consider a single `f32 ret;` variable assigned then one `return ret;`).\n3. Also 0x3F800000 (1.0f) is loaded once at .L801FA46C and used for both reciprocals; make sure both `1.0f /` use the same literal.\n\nTried and worse: computing t2 up front (4010/3995), inverting the t1 test to `if (t1 != 0.0f) {...}` (4970), hoisting `d = arg1-arg5` (4865, spills $f20 and adds a stack frame), reordering the t2-zero path before the main path (3995), compiler probes not yet run for this function \u2014 search_flags(function) is untried and may be the fastest next step since the diff is pure scheduling/ordering.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794728420.847188,
-  "score_before": 1380,
-  "score_after": 1380
- },
- {
   "function": "func_8002AF40",
   "text": "Not attempted to a score. Revision 065fae93845927c2ef30 is a raw m2c draft (1300 bytes, n_csplayer.c-style sequencer message dispatcher): a switch on the message type at offset 0x38 with about 20 cases, several calls into n_alSyn* / __vsVol / alEvtqPostEvent, and a do/while that re-dispatches while func_8002D0CC returns 0. The draft does not compile as written: it uses M2C_FIELD on arbitrary types, has a `default:` label inside an else block, and mixes M2C_UNK pointer types with arithmetic on arg0 (arg0 + 0x48 should be a byte offset cast, not pointer arithmetic on void*). Suggested start: rewrite as a `u8 *base = arg0;` with explicit field accessors per offset (0x1C, 0x28, 0x2C, 0x38, 0x3C, 0x40, 0x44, 0x5C, 0x60, 0x64, 0x74), then fill the case bodies. The string literals \"n_csplayer.c\" lines 0x111/0x11B/0x128 are assert-style calls (func_800346B0) and should be kept in place. Not yet compiled.",
   "by": "claude-haiku-5-5-22",
@@ -12854,14 +12830,6 @@
   "created_at": 1794729289.8653178,
   "score_before": 30,
   "score_after": 30
- },
- {
-  "function": "func_801FA3B4",
-  "text": "Claimed at the end of the session's claim allowance; no compile yet. Draft is the m2c float version (a 0.5f fallback and goto-block_4/block_14 structure, 8 f32 args). Start from the target assembly, not the draft.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794729425.013674,
-  "score_before": 1380,
-  "score_after": 1380
  },
  {
   "function": "func_802153C4",
@@ -13304,14 +13272,6 @@
   "score_after": 3430
  },
  {
-  "function": "func_801FA3B4",
-  "text": "Machine draft compiled as-is: 4585 (27%). Remaining diffs: target uses bc1fl (branch-likely) at two early tests where the draft emits bc1t; target loads stack args 0x10..0x1C into f16/f4/f6/f8 before the mtc1 of a2/a3, and the draft orders them differently. Not pursued further in this session.\n\nMachine draft (as given, with the goto block labels) scores 4585 (27%). Target is a float routine: stack args 0x10..0x1C loaded into f16/f4/f6/f8 before the mtc1 of a2/a3 into f10/f2; early tests use bc1fl (branch-likely) where the draft emits bc1t, so the first `temp_ft1 == 0` test is written as the inverse with the else in the delay path. Not reproduced yet. Next: rewrite the first two tests with the inverted condition (`if (temp_ft1 != 0.0f)` as the main path) and check whether the 0.5f return is a shared exit (target jumps to .L801FA400 for 0.5f). Do not repeat the draft as-is.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794730482.5983832,
-  "score_before": 1380,
-  "score_after": 1380
- },
- {
   "function": "func_801270B0",
   "text": "Best score 880 (76.8%), claim lapsed before release. Source: extern f32 func_80127000(void*,void*); s8 func_801270B0(volatile long long arg0, s32 arg1, s32 arg2) { f32 r; s8 s; r = func_80127000(&arg0, &arg2); if (0.0f < r) s=1; if (r == 0.0f) s=-1; if (r < 0.0f) s=-1; return s; }. The call's second pointer is &a3 (sp+0x24), so it is arg2; arg0 is the 8-byte a0:a1 at sp+0x18. Target keeps sw $ra at 0x14 and sw $s0 at 0x10 and reloads mtc1 $zero,$f0 twice; mine CSEs the zero and has no sw $ra. Reordering the comparisons did not change the score. Next: try a 4-arg signature with the spill order, or compile_family(family=\"signedness\").",
   "by": "claude-haiku-5-5-24",
@@ -13742,14 +13702,6 @@
   "created_at": 1794731930.560371,
   "score_before": 565,
   "score_after": 330
- },
- {
-  "function": "func_801FA3B4",
-  "text": "Draft scores 4585 (27.2%), revision 340e4e7c88958db46e1d. Main mismatch is the argument ABI: the target moves args from integer regs with `mtc1 $a2,$f10` and `mtc1 $a3,$f2` at entry, then loads the rest from stack 0x10..0x1c; the draft loads arg0 from stack 0x10 and does not use mtc1 on the a-registers. Control flow differs too: target uses `bc1fl .L5c` x2 where the draft has `bc1t .Le0` x2. Next step: test whether the four f32 params should be declared as u32 (int-register passing) or whether the draft's argument order is wrong, then redo the branch shape. Not tried yet.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794731945.6722372,
-  "score_before": 1380,
-  "score_after": 1380
  },
  {
   "function": "nuScWaitTaskReady",
@@ -15990,14 +15942,6 @@
   "created_at": 1794739926.1611688,
   "score_before": 2901,
   "score_after": 2901
- },
- {
-  "function": "func_801FA3B4",
-  "text": "Segment-intersection style float routine (8 f32 args). Move-on budget exhausted (3/3 without improvement).\n\nTarget structure decoded exactly (71 insns, .L801FA42C / .L801FA46C / .L801FA400 / .L801FA4A4):\n  ft1 = arg6-arg4 (dy1); ft2 = arg7-arg5 (dy2) computed in the delay slot of bc1f on dy1==0\n  if (dy1==0): if (arg0!=arg2) { fv1 = arg4-arg0; if (fv1!=0) return fv1/(arg2-arg0); } return 0.5f  (0.5 via lui 0x3F000000)\n  if (dy2==0): if (arg0!=arg2) { ft0 = arg5-arg1; if (ft0!=0) return (arg2-arg0? no) -> sub.s fv0,fv1,fa1 ; return (arg3-arg1)/... ; } return 0.5f\n    NOTE: at .L801FA42C the target does c.eq.s ft2,fv0; bc1fl .L801FA46C with delay slot sub.s ft0,fa1,ft0 (i.e. t = arg1-arg5 computed BEFORE the branch, in the delay slot). Inside the branch it then does sub.s ft0,ft0,fa1 (t -= arg1) and compares to 0, then j .L801FA4A4 with div.s fv0, fv1, fa1 (fv1=arg3, fa1=arg1) => return (arg3-arg1)/t. So the dy2==0 path is: t = arg1-arg5; if (arg0!=arg2) { t = t - arg1; if (t != 0) return (arg3-arg1)/t; } return 0.5f. Both branches of the 0.5 return go through .L801FA400 (j .L801FA4A8).\n  else: inv1 = 1/dy1, inv2 = 1/dy2, numerator ft0 = (arg1-arg5)*inv2 - (arg0-arg4)*inv1, denominator fv0 = (arg2-arg0)*inv1 - (arg3-arg1)*inv2, div.s fv0,ft0,fv0 at .L801FA4A4.\n\nKey blockers observed: (a) the target evaluates the two \"0.5f\" returns as a single shared block reached by branch (bc1t/bc1f to .L801FA400) - my if/return versions emitted bc1t to separate lui/mtc1 blocks; (b) target emits bc1fl (branch-likely) forms with the sub.s in the delay slot, mine emitted bc1f/bc1t; (c) arg register mapping: target mtc1 $a2,$f10 / $a3,$f18 and loads 0x10,0x14,0x18,0x1C into $f4,$f16,$f6,$f8 - i.e. arg4=0x10, arg5=0x14, arg6=0x18, arg7=0x1C, and the first computed value is ft1(0x18)-ft4(0x10).\n\nBest historical 2630 (saved_best base). Next idea: single `result` local assigned 0.5f in one place with gotos, and compute t = arg1-arg5 unconditionally before the dy2 test so the compiler sinks it into the bc1fl delay slot; try try_local_repairs(array_index_width/inline_scalar_shape) on the saved_best base rather than from scratch.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794739941.752206,
-  "score_before": 1380,
-  "score_after": 1380
  },
  {
   "function": "func_8015FEC0",
@@ -22824,14 +22768,6 @@
   "score_after": 7649
  },
  {
-  "function": "func_801FA3B4",
-  "text": "Extensive bounded diagnostics exhausted structural hypotheses (over 40 O1 compiler trials plus 18 O2 compiles); retaining best verified O2 score1236 revision7727b422e0e80fef50bd. Corrected second degenerate condition: proceed with ratio only if arg0==arg2. Shared half label inside first equality branch plus common denominator/divide tail fixes target control flow. Best O1 diagnostic e20cc9424d39cd239cc6 score90: exact operations/order/branches, only18 register mismatches. Source available in that trial; dy1/2 locals, arg3 first numerator, arg5 second numerator, denominator local. Target wants arg3 in f2, arg5 f4, arg6/dy1 f6, arg7/dy2 f8. Trial puts arg3 f8,arg6 f0,arg7/dy2 f2. Reusing dy args, separate reciprocal locals, numerator locals, shared-result epilogue, register qualifiers, integer argument reuse for denominator, reordered explicit scalar staging, and -g did not solve. Further local families unavailable. Need allocation/pseudo lifetime insight at O1 rather than more O2 permutations; effective O2 likely wrong as with nearby exact normalize_angle_degrees and func_801E2D18.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794757126.8232121,
-  "score_before": 1380,
-  "score_after": 1236
- },
- {
   "function": "func_801496B0",
   "text": "Saved best 1365 (same source as the claim candidate). My rewrites under gcc-2.7.2-kmc -O2 scored 2470-2580: the first fill loop comes out as a reverse (bgez) loop with `lui a3,%hi(D_8018A2C6)` / address offset errors, and the target has an 8-byte frame (addiu sp,-8) with no call, which none of my variants produced. Target: fill loop i=0..31 with `sll v0,a3,1; addu v0,v0,t0; sh v1,0(v0); addiu a3,a3,1; slti v0,a3,0x20; bnez` (base t0 = D_8018A288), then mask=(a1<<8)&0x700 (andi 0xffff), n=a2&0xff, blez n, row = D_8018D140 + (a0&0xff)*150 via sll/subu/sll (x*150 = ((x*4+x)*16-x)*4), inner loop with lhu, andi 0x700 == mask and not 0x1000, store with count index, return count-1. Next step: find why the target keeps the 8-byte frame (maybe a volatile or unused spill) and which form of the fill loop yields the forward-counting sll/addu pattern.",
   "by": "claude-haiku-5-5-21",
@@ -23222,14 +23158,6 @@
   "created_at": 1794758145.312385,
   "score_before": 18946,
   "score_after": 18946
- },
- {
-  "function": "func_801FA3B4",
-  "text": "Rechecked inherited best 1236; tested reusing arg3 for first degenerate numerator under effective O2: score1245, 61 vs63 instructions. Does not fix allocation or missing scheduling nops. Previous extensive O1 evidence remains most useful: score90 with exact operations/control flow but 18 FP register differences (trial e20cc9424d39cd239cc6). Retain saved best; no new structural insight warrants repeating exhausted families. Next work should target O1 allocation/pseudo lifetimes, not repeat first->arg3 substitution under O2.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794758151.081683,
-  "score_before": 1236,
-  "score_after": 1236
  },
  {
   "function": "func_80214B8C",
@@ -24248,14 +24176,6 @@
   "score_after": 645
  },
  {
-  "function": "func_801FA3B4",
-  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 0; 46 differing rows (20 register, 9 branch target, 2 operand, 3 reordered, 5 inserted, 7 deleted; advisory).\nTarget: mtc1 $a2, $f10\nCandidate: \nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n< T: mtc1 $a2, $f10 | C: \n< T: mtc1 $a3, $f2 | C: \n< T: lwc1 $f16, 0x10($sp) | C: \nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nCAUTION saved941 source inserted arg3-=arg1 at entry without removing later subtractions: semantic probe only, not correct C. Correct inherited1236 source in history revision7727b422e0e80fef50bd. O1 original110 register-only; replacing first temporary with arg3 gives90 O1,1245 O2 (revisionf17611226b1dee3b08be). Full overwrite arg6/arg7+arg3 first temp gives130 O1. Profile likely O1: all 63 instructions/branches align. Low-progress automatic handoff ended claim after arithmetic staging trials. Best next experiment under O1: preserve arg6 delta in its incoming register while arg3 first-path temp and arg7 retain separate lifetime; target f2=arg3,f6=arg6,f8=arg7.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794759339.804078,
-  "score_before": 1236,
-  "score_after": 941
- },
- {
   "function": "func_801FE364",
   "text": "Session 3 (a1): best candidate still 19476 (46%), rev 69326eb0a9a19cbf5100. try_local_repairs ran 6 variants (slot-table typedef for D_801D7DF4, temp reuse, goto loop, declaration order): none improved; one worse (19831). Mismatch is structural: target prologue is addiu $sp,-0x40 while candidate starts with lui for D_80202628; the 'do-while' body and the 4-iteration loop are likely right but the call sequence/order differs widely (343 rows, 129 reordered, 85 deleted). Untried: check get_assembly(focus=mismatch) for the real call order and whether the 0x80 test and first call are in the target at all; consider -O1 via try_compiler; the func_801CBF48 sixth arg may be pointer not int. Move on.",
   "by": "claude-haiku-5-5-22",
@@ -24374,14 +24294,6 @@
   "created_at": 1794759506.04827,
   "score_before": 60,
   "score_after": 60
- },
- {
-  "function": "func_801FA3B4",
-  "text": "Unit code_801F9990 looks like -O1. Using try_compiler at KMC -O1, the best was 95 (registers only), with this structure: dx=x3-x2; dy=y3-y2; if(dx==0){ if(x0==x1){half: return .5f;} t=x2-x0; if(t==0) goto half; return t/(x1-x0);} if(dy==0){ if(x0!=x1) goto half; y2-=y0; if(y2==0) goto half; y1-=y0; goto divide;} dx=1/dx; dy=1/dy; y2=(y0-y2)*dy-(x0-x2)*dx; y1=(x1-x0)*dx-(y1-y0)*dy; divide: return y2/y1;. The target has x3/y3 loaded directly into f6/f8 (an in-place sub), y1 in f2, x1 in f10, x2 in f16, and the den result in f0. Tried and worse: in-place x3-=x2 (130-150), a shared t for num/den (140), and assigning y1 in the first branch (135). Left to try: declaration order and types. A function-only -O1 suggestion is needed in any case.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794759506.158644,
-  "score_before": 1236,
-  "score_after": 1236
  },
  {
   "function": "func_8020EE18",
@@ -25128,14 +25040,6 @@
   "score_after": 660
  },
  {
-  "function": "func_801FA3B4",
-  "text": "Restored semantically correct candidate7727b422e0e80fef50bd by removing erroneous entry arg3-=arg1 (currentO2 1236). Saved941 remains WRONG: it double-subtracts arg1 later. No local families remain, earlier 40+ O1 trials exhausted same rewrites. Important tool detail: try_compiler without explicit source used saved941, not current corrected candidate (observed extra arg3-=arg1 in diff), so always pass explicit source for future O1 experiments. Target arithmetic/control flow confirmed from full assembly; need O1 allocation insight, prior correct-source best90/95 register-only.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794760300.454487,
-  "score_before": 941,
-  "score_after": 941
- },
- {
   "function": "f64ToFixed60",
   "text": "func_80042690 = float64 -> 64-bit fixed conversion (frexp-style mantissa shift). Inherited best 6820 (a94c43272ad8b998d517); my two rewrites scored 7340 (3a3104ad7d28d89ad5e0) and 7065 (fd3650b46cd91777c720). Budget 3/3 exhausted.\n\nFULL TARGET STRUCTURE (71 insns, 8-byte frame, no saved regs, no calls):\n- prologue: addiu sp,-8; sdc1 fa0,0(sp); lw a0,0(sp); lw a1,4(sp); addiu sp,8  => arg0 is an f64 passed in fa0 and immediately spilled/reloaded as two u32 (a0=hi, a1=lo). So the C must take `f64 arg0` and read the bits through a union/pointer, exactly as the saved-best does.\n- addu v1,a0,zero (v1=hi); srl a0,a0,20; andi a0,a0,0x7FF; sltiu t9,a0,0x3FF; bnez t9,.L800427A0; addiu a0,a0,-0x3FF (delay slot). .L800427A0: xor v0,v0,v0; jr ra; xor v1,v1,v1  => `if (e < 0x3FF) return 0;`.\n- sltiu t9,a0,0x40; beqz t9,.L80042794; nop  => `if (e >= 0x40) return 0x80000000;` and .L80042794 is `addiu v1,zero,0; jr ra; lui v0,0x8000` \u2014 i.e. v0=0x80000000, v1=0. THE SAVED BEST RETURNS 0x8000000000000000ULL HERE, which is wrong; use `return 0x80000000;` (next_experiment above). The `nop` in that delay slot is real (branch not filled) \u2014 a sign the source has a plain `return` with a constant that gcc materialises after the branch.\n- addu a2,v1,zero (a2=hi, kept for the sign test); addu a3,a1,zero (a3=lo); addu v0,v1,zero; and v0,v0,0xFFFFF; or v0,v0,0x100000  => mh = (hi & 0xFFFFF) | 0x100000 in v0, lo in a3.\n- sltiu t9,a0,0x34; bnez t9,.L80042724; addiu a0,a0,-0x34 (delay slot, a0 = e-0x34 = -r). So the `e < 0x34` test comes first and the r=0x34-e form is produced by negating e-0x34 inside the branch target \u2014 write `r = 0x34 - e;` and let gcc fold it, or `if (0x34 - e >= 0x20)`.\n- .L80042724 (r path): negu a0,a0 (r); addu v1,a0,zero; sltiu t9,a0,0x20; bnez t9,.L80042748; addiu a0,a0,-0x20. Fall-through (r>=0x20): addu a3,v0,zero (lo=mh); xor v0,v0,v0 (mh=0); j .L80042764; srlv a3,a3,a0 (lo = mh_old >> (r-0x20)).\n- .L80042748 (r<0x20): negu a0,a0 (0x20-r); addu a1,v0,zero; sllv a1,a1,a0 (mh<<(0x20-r)); addu a0,v1,zero (r); srlv a3,a3,a0 (lo>>r); or a3,a3,a1; srlv v0,v0,a0 (mh>>r).\n- e>=0x34 path: beqz a0,.L80042764 (a0==0, i.e. e==0x34, skips); nop; addu v1,a0,zero (s); addiu a0,a0,-0x20; negu a0,a0 (0x20-s); addu a1,a3,zero (lo); srlv a1,a1,a0 (lo>>(0x20-s)); addu a0,v1,zero (s); sllv v0,v0,a0 (mh<<s); or v0,v0,a1; j .L80042764; sllv a3,a3,a0 (lo<<s).\n- .L80042764 sign fix: lui t9,0x8000; and t9,t9,a2; beqz t9,.L8004278C; nop; addiu v1,zero,-1; xor a3,a3,v1; xor v0,v0,v1; addiu a3,a3,1; sltiu t9,a3,1; addu v0,v0,t9  => mh = ~mh + (lo==0) AFTER lo = ~lo + 1 (note the `addiu v1,zero,-1` / xor-with-minus-1 shape, not `nor`: writing `~x` as `x ^ -1` via a local `s32 minus1 = -1;` or just `~lo` should be checked; gcc produced `nor` in my attempts, so try `lo = ~lo + 1; mh = ~mh + (lo == 0);` with the ~ on lo first).\n- .L8004278C: jr ra; addu v1,a3,zero  => 64-bit return in v0=lo, v1=mh, i.e. `return ((u64)mh << 32) | lo;`.\n\nRemaining blockers (from last_diff): my builds use `subu a0,v0,a0` where target has `negu a0,a0` + `addu v1,a0,zero` (target negates the already-subtracted e-0x34 rather than computing 0x34-e), use `or a2,v0,v1` instead of the two-step `addu a2,v1,zero`/`addu a3,a1,zero` copies, and use `nor v0,zero,a2` instead of `addiu v1,zero,-1; xor`. Also the target's early-return constant path emits the nop delay slot. Try declaring the locals in the order hi, lo, mh, e, r, s and keep `hi` in a separate u32 that is read twice (target keeps hi in both v1 and a2). try_local_repairs families declaration_order/signedness/cfg_integer_lifetimes on fd3650b46cd91777c720 may close the rest.",
   "by": "api-route-llm-code-1",
@@ -25254,14 +25158,6 @@
   "created_at": 1794760695.908205,
   "score_before": 740,
   "score_after": 740
- },
- {
-  "function": "func_801FA3B4",
-  "text": "Needs -O1 (search_flags: same C gives 95 at O1, 1236 at O2). Target regs: x1=f10, y1=f2, x2=f16, y2=f4, dx=f6 (x3's reg), dy=f8 (y3's reg), den ends up in f0, t (branch-1 num) in f2. O1 trials: (a) dx/dy locals + y2-=y0 + y1-=y0/goto divide + return y2/y1 = 95 (best; x1 f16, y1 f10, x2 f18 wrong). (b) Same but separate `return y2/(y1-y0)` and `return y2/(...)` = x1,x2,dx,dy,y2 all CORRECT, only y1 wrong (f18), but gcc moves the dy==0 block to the end (1405); nested-if variant gives the same. (c) den local / reuse dy or t as den: 110-140. (d) x3-=x2; y3-=y2 param reuse: 150. Must compute dy before `if (dx==0)` (otherwise bc1fl instead of bc1f). Next idea: keep (b)'s allocation but get the dy==0 block laid out first, e.g. different goto/label structure; or try making y1 higher priority.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794760764.4414022,
-  "score_before": 941,
-  "score_after": 941
  },
  {
   "function": "func_80206770",
@@ -25566,14 +25462,6 @@
   "created_at": 1794761300.8296142,
   "score_before": 18295,
   "score_after": 18295
- },
- {
-  "function": "func_801FA3B4",
-  "text": "Restored correct source7727b422e0e80fef50bd, O2 1236. Saved941 is semantically WRONG: entry arg3-=arg1 double subtracts later; don't promote it. Tried 5 explicit source variants: declarations/reusing incoming arg6/arg7/in-place branch denominator all identical1236; dead arg3 first numerator1245. Explicit correct O1 probe still90 (18 FP register differences, correct instructions/control flow). No new allocation insight after prior extensive O1 families. Continue from correct source and avoid repeating exhausted allocation shapes.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794761300.875231,
-  "score_before": 941,
-  "score_after": 941
  },
  {
   "function": "func_800268C0",
@@ -25998,14 +25886,6 @@
   "created_at": 1794761680.213117,
   "score_before": 89053,
   "score_after": 89053
- },
- {
-  "function": "func_801FA3B4",
-  "text": "Not retried: unit code_801F9990 needs -O1 (prior: O1 95 regs-only vs O2 1236), and O1 allocation families already exhausted by several agents. Wait for user's flag change before more work.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794761683.160873,
-  "score_before": 941,
-  "score_after": 941
  },
  {
   "function": "func_801AFB94",
@@ -27328,14 +27208,6 @@
   "score_after": 1035
  },
  {
-  "function": "func_801FA3B4",
-  "text": "Removed semantically wrong entry arg3-=arg1 from saved941 (double subtraction). Correct source1236 O2; first-path arg3 reuse/register qualifier1245 O2. Explicit O1 register-qualified source fresh90, all63 operations/order/control flow align,18 FP allocation mismatches. Target arg3=f2,arg6=f6,arg7=f8 versus trial f8,f0,f2; dy1=f6 already right. Previous extensive O1 allocation families exhausted; effective O2 produces missing target scheduling nops and shifted branches. Further default O2 tuning not justified. Current b77486d7bd444af6cb26 is semantically correct; do NOT restore941. Next investigate allocator scheduling/profile, not arithmetic.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794763602.027272,
-  "score_before": 941,
-  "score_after": 941
- },
- {
   "function": "func_80219CF0",
   "text": "Move-on budget exhausted (3/3 without improvement). Rechecked baseline 1596 (same as historical best); target 78 insns, ours 76.\n\nWhat already matches exactly: the index computation `andi/sll/addu/sll 3/addu/sll 2` for (arg0&0xFFFF)*100, the `lui/addiu/addu` base add, `lhu $v1,0x3e($a0)`, the switch dispatch (beqz / addiu $v0,1 / beq / nop / j / nop), the case-0 body, the `lui $s0,%hi(D_8021E19E)` + lbu/addiu/sb/lbu/sltiu/bnez sequence, the jal, `andi $v0,$v0,1` + `sll 2` + lui/addu/lwc1, all the sw $zero 0x24..0x38 stack argument stores, the jal func_800DE41C with `addu $a3,$zero,$zero` in the delay slot, and the trailing `sb $zero,($s0)`.\n\nRemaining gaps, in priority order:\n1. Prologue placement. Target saves `sw $ra,0x4c` / `sw $s0,0x48` immediately after `addiu $sp,$sp,-0x50`, before `andi $a0,$a0,0xffff`. Ours emits the same two stores after the `addu $a0,$v0,$v1` that forms p. Frame size (0x50) and the saved slots already agree, so this is purely where KMC 2.7.2 inserts the register saves. Nothing tried so far moves them: the switch form and the if/if form both keep them late.\n2. Float-constant materialisation order. Target stores 7.0f and 2.0f at their argument positions in call order: `lui $at,0x40e0 / mtc1 $at,$fv0 / nop / swc1 $fv0,0x28($sp)` then the same with 0x4000 into 0x2c. Ours hoists both constants before the argument stores into $f2/$f4 (`mtc1` with no `nop`) and stores them later. Target also keeps the array element in $f2 and stores it three times at 0x3c/0x40/0x44; ours spreads it over $f0/$f2/$f4.\n3. Call-argument register setup order. Target sets `addu $a0,$zero,$zero` / `addu $a1,$zero,$zero` / `addiu $a2,$zero,1` after all the stack stores and immediately before the jal, with `addu $a3,$zero,$zero` in the delay slot. Ours emits `move $a0`/`move $a1`/`addiu $a2`/`move $a3` early (as `move`, not `addu`), because 0,0,1,0 are literal constants in the call.\n\nTried and failed (all diagnostics): volatile u8* flag (1796), `(*flag)++` (1696), non-volatile flag pointer (1796), `*flag = *flag + 1` (1596, no change), moving `D_8021E19E = 0` before the call (2041), a `s32 k` temporary for the masked array index (1596, no change), rewriting the switch as two `if`s with a `u16 *st` local (parse error from the declaration placement; retry with the declaration at the top of the function).\n\nNext ideas not yet tried: retry the if/if form with `u16 *st` declared with the other locals at the top (that is the most likely way to move the saves, since it changes the entry basic block); declare the four leading call arguments as s32 locals initialised to 0/0/1/0 so GCC emits `addu $aN,$zero,$zero` instead of `move`; split the float literals into named `f32` locals declared just before the call so they materialise at their argument positions.",
   "by": "api-route-llm-code-2",
@@ -27950,14 +27822,6 @@
   "created_at": 1794764890.411049,
   "score_before": 169542,
   "score_after": 169542
- },
- {
-  "function": "func_801FA3B4",
-  "text": "Target has NO entry arg3-=arg1; inherited best941 includes spurious subtraction. Correcting to proper arithmetic scores1236 under O2. register keyword unchanged; overwrite arg6/arg7 worsens O2. IMPORTANT diagnostic O1 gives110 for proper baseline,90 when first degenerate arm overwrites arg3 (trial90dcf0fedac29615a7a8), only register differences. Proposed profile via suggest with exact source. Replacing dy1/dy2 entirely with arg6/arg7 gives130 O1. Need O1 allocation tune: target arg3=f2,arg6=f6,arg7=f8, trial90 arg3=f8,arg6=f0,arg7=f2; target denominator in f0 vs f12. All instruction/control flow identical O1. Current normal candidate60f60079805009302a77 correct arithmetic1236; historical best941 retained but not semantically faithful.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794764890.583304,
-  "score_before": 941,
-  "score_after": 941
  },
  {
   "function": "func_8014D2B4",
@@ -28664,14 +28528,6 @@
   "score_after": 185
  },
  {
-  "function": "func_801FA3B4",
-  "text": "Restored semantically correct source7727b422e0e80fef50bd score1236 by removing erroneous entry arg3-=arg1 from saved941. Explicit O1 new denominator reuse arg6 gives315 (register+schedule); first/den shared140 (28 reg differences); narrow scope attempted fails C89 declaration placement. Prior O1 correct arithmetic best90 still strongest. Needs O1 profile then allocation focus; don't promote saved941 double-subtract source. No new exact match.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794766026.885118,
-  "score_before": 941,
-  "score_after": 941
- },
- {
   "function": "func_8002D520",
   "text": "Best 2465 (84.1%), not matched; best revision 06b1809d2f6e54ba2e43. Progress: m2c draft (3840) \u2192 if/else chain for 0x51/0x2F/0x2E/0x2D instead of switch (2675) \u2192 temp_v0_2 as third arg to the 0x51 reads at +0xC and +0xD (2665) \u2192 func_8002DAE0 stored as s32 at +0xC (2465). Target layout: arg0=s0, arg1=s2, arg2=s1 (saved), first byte s3, s4=s3&0xFF. Tried and worse (2475): rewriting the 0x2D case with explicit u8 pointers (a2 = table[arg1*4+0x18], a2+1 walked forward, reads at p+2..p+5, result (p+6)-(sum)); the semantics match the draft (check on byte at p+1, zero case stores a0 to p+1 and returns p+6) but the codegen differs: the target's walk uses addiu a2 chains and reads a0 from [p] first, while the pointer version reorders the xor/beqz/sw tail of the 0x80 branch. Remaining rows: register allocation (a2 vs a3 vs a1 for the table pointer), the 0x51 case's extra 'addiu a2,zero,0x51' rows, and the branch targets in the tail. Next: keep the draft's 0x2D case, try the 0x2D case with the table pointer in a3 (temp_a3 = arg0+arg1*4 as void *) to match the 'addu a3,v0,s0' order, then register allocation.",
   "by": "claude-haiku-5-5-24",
@@ -29200,14 +29056,6 @@
   "score_after": 1530
  },
  {
-  "function": "func_801FA3B4",
-  "text": "Restored correct arithmetic7727b422e0e80fef50bd (1236 defaultO2); reported invalid inherited941 revision6af7914cab018437a8b3 which double-subtracts arg1. Current local repairs exhausted. O1 diagnostics fresh register denominator110, dead first-arm arg3 reuse90 trial4c754b3caa177d0b5eff; -fno-schedule-insns2 gives110. Target requires O1-like hazards/control flow; no evidence-backed current-profile repairs remain after historical99 attempts, do not retain erroneous941 just for lower score. Remaining O1 FP allocation mismatch still unresolved.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794767260.926354,
-  "score_before": 941,
-  "score_after": 941
- },
- {
   "function": "func_80028C68",
   "text": "Release at 92.1%: best rev 0809838c1f85f1e5e006 (score 1150). Stopping because the remaining differences are structural in the switch: the target's frame is 0x30 with sw ra at 0x2c and s3 unused, and its dispatch is `sltiu v0,v1,8; beqz v0 \u2192 default; sll v0,v1,2; lui at,%hi(jtbl_8004A228); addu; lw; jr` (a plain jump table with the range check first). Ours compiles to a frame of 0x38, with an extra slti/beq chain (ours emits a 5-way compare tree before the table), so the switch itself is not being lowered as one jump table. Tried: inline &D_800DE058 in the osMotorInit call (a broken variant, rev f056fbe7e43b72d534a1, 5317, discard); signedness u32 unk4 (no change). Next experiment: remove the case 0 nested else-if so the switch has only 8 flat cases, and keep the default as return 0 at the end of the switch; the frame size should drop to 0x30 once s3 is no longer live across calls.",
   "by": "claude-haiku-5-5-23",
@@ -29518,14 +29366,6 @@
   "created_at": 1794767782.7691882,
   "score_before": 625,
   "score_after": 625
- },
- {
-  "function": "func_801FA3B4",
-  "text": "Already investigated earlier same session. Reported incorrect saved941, corrected1236; O1 trial90 remains unresolved. No source/build input change after queue restart; skip duplicate claim.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794767788.3459451,
-  "score_before": 941,
-  "score_after": 941
  },
  {
   "function": "func_8014A080",
@@ -37295,5 +37135,213 @@
   "created_at": 1795726501.480948,
   "score_before": 360,
   "score_after": 360
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Signature: f32 func_801FA3B4(f32 a0..a3 in f12,f14,$a2,$a3 as floats, then arg4..arg7 on stack 0x10..0x1C). Control flow matches the draft: dx=arg6-arg4, dy=arg7-arg5; if dx==0 {if arg0!=arg2 {t=arg4-arg0; if t!=0 return t/(arg2-arg0)} return 0.5} if dy!=0 {general formula with 1/dx, 1/dy} else if arg0==arg2 {t=arg5-arg1; if t!=0 return t/(arg3-arg1)} return 0.5. Problem: the args arrive in integer regs $a2/$a3 and need mtc1; my rewrites (return-expression form and named temps) spilled an f20 double (frame -8) and scored 4595, worse than the saved 2775. Keep the draft's variable naming (temp_ft1, temp_ft2, var_ft0, var_fv0) and avoid extra locals so no callee-saved FP spill happens; the target never spills. Untried: forcing the ints to float via a union or separate local for arg2/arg3.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794706292.758668,
+  "score_before": 2775,
+  "score_after": 2775
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Best 1955 (68.9%), revision 096a4fb889e5510fdc93. Structure: `if (temp_ft1 == 0.0f) {A} if (temp_ft2 == 0.0f) {B} C`; A = if (arg0!=arg2 && arg4-arg0 != 0) return (arg4-arg0)/(arg2-arg0) else 0.5f; B = if (arg0==arg2 && arg5-arg1 != 0) return (arg5-arg1)/(arg3-arg1) else 0.5f; C = the 1/x reciprocal formula. Structure matches target layout (A fallthrough, B at the bc1f target, C at the bc1fl target). Remaining diff: gcc emits `bc1t` for the first two tests where target has `bc1f .L42C` / `bc1fl .L5c`, so the first branch sense is inverted; arg2/arg3 register choices differ (target mtc1 $a2,$f10 and $a3,$f2). Tried and worse: inverting the outer test with nested B/C (3680); hoisting arg4-arg0 into a local before the A test (same 1955, no gain). Untried: the nop/delay-slot placement of the C-block 1.0f constant load (target loads 0.5 via lui/mtc1 before the j), and an explicit `goto`-based layout.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794720478.685872,
+  "score_before": 2775,
+  "score_after": 1955
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Best verified this session: 3995 (rev 54f55bc96043061071f4). Saved historical best 2275 came from a source I could not reproduce; get_candidate(base=\"saved_best\") is worth a look first.\n\nTarget structure (63 insns, no stack frame, no callee-saved FP regs): args arg0..arg3 in $a0-$a3, arg4..arg7 at 0x10..0x1c($sp).\nt1 = arg6-arg4; if (t1==0) branch to .L801FA42C; else t2 = arg7-arg5 (computed in the delay slot of the first bc1f as `sub.s $ft2,$ft2,$ft0`), and if t2!=0 use the 1/t1,1/t2 determinant path.\nZero-t1 path: if (arg0==arg2) -> return 0.5f; else d = arg4-arg0; if (d==0) -> 0.5f; else return d/(arg2-arg0) with `j ...; div.s $fv0,$fv1,$fv0` in the delay slot.\nZero-t2 path: d = arg1-arg5; if (arg0==arg2) { d = d - arg1; if (d!=0) return d/(arg3-arg1); } return 0.5f.\nMain path: r1=1/t1, r2=1/t2, n = (arg1-arg5)*r2 - (arg0-arg4)*r1, den = (arg2-arg0)*r1 - (arg3-arg1)*r2, return n/den.\n\nKey remaining gaps:\n1. The target's first branch is `bc1f .L78` with `sub.s $ft2,$ft2,$ft0` (t2) in the delay slot, i.e. t2 is computed AFTER the t1 test in source order but placed in the branch delay slot. My C computing t2 before the if produced mtc1/lwc1 scheduling differences; computing it inside the else produced an extra bc1t and a different layout. Try: `if (t1 == 0.0f) { ...zero path... } t2 = arg7 - arg5; if (t2 == 0.0f) { ...zero path... } ...main...` (i.e. test t1 first, then compute t2), which is the natural source order matching the delay slot.\n2. My 0.5f returns emit `lui $at,0x3f00; mtc1 $at,$fv0` inline in several places; target loads 0x3F000000 once at .L801FA400 and jumps to the common epilogue at .L801FA4A8 with `j .L801FA4A8; nop`, while the div returns use `j .L801FA4A8; div.s $fv0,...` in the delay slot. So the 0.5f returns must be a single shared tail (write `return 0.5f;` in each place but let the compiler share it \u2014 it does share, but the target also shares the div.s result computation through the same epilogue; consider a single `f32 ret;` variable assigned then one `return ret;`).\n3. Also 0x3F800000 (1.0f) is loaded once at .L801FA46C and used for both reciprocals; make sure both `1.0f /` use the same literal.\n\nTried and worse: computing t2 up front (4010/3995), inverting the t1 test to `if (t1 != 0.0f) {...}` (4970), hoisting `d = arg1-arg5` (4865, spills $f20 and adds a stack frame), reordering the t2-zero path before the main path (3995), compiler probes not yet run for this function \u2014 search_flags(function) is untried and may be the fastest next step since the diff is pure scheduling/ordering.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794728420.847188,
+  "score_before": 1380,
+  "score_after": 1380
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Claimed at the end of the session's claim allowance; no compile yet. Draft is the m2c float version (a 0.5f fallback and goto-block_4/block_14 structure, 8 f32 args). Start from the target assembly, not the draft.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794729425.013674,
+  "score_before": 1380,
+  "score_after": 1380
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Machine draft compiled as-is: 4585 (27%). Remaining diffs: target uses bc1fl (branch-likely) at two early tests where the draft emits bc1t; target loads stack args 0x10..0x1C into f16/f4/f6/f8 before the mtc1 of a2/a3, and the draft orders them differently. Not pursued further in this session.\n\nMachine draft (as given, with the goto block labels) scores 4585 (27%). Target is a float routine: stack args 0x10..0x1C loaded into f16/f4/f6/f8 before the mtc1 of a2/a3 into f10/f2; early tests use bc1fl (branch-likely) where the draft emits bc1t, so the first `temp_ft1 == 0` test is written as the inverse with the else in the delay path. Not reproduced yet. Next: rewrite the first two tests with the inverted condition (`if (temp_ft1 != 0.0f)` as the main path) and check whether the 0.5f return is a shared exit (target jumps to .L801FA400 for 0.5f). Do not repeat the draft as-is.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794730482.5983832,
+  "score_before": 1380,
+  "score_after": 1380
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Draft scores 4585 (27.2%), revision 340e4e7c88958db46e1d. Main mismatch is the argument ABI: the target moves args from integer regs with `mtc1 $a2,$f10` and `mtc1 $a3,$f2` at entry, then loads the rest from stack 0x10..0x1c; the draft loads arg0 from stack 0x10 and does not use mtc1 on the a-registers. Control flow differs too: target uses `bc1fl .L5c` x2 where the draft has `bc1t .Le0` x2. Next step: test whether the four f32 params should be declared as u32 (int-register passing) or whether the draft's argument order is wrong, then redo the branch shape. Not tried yet.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794731945.6722372,
+  "score_before": 1380,
+  "score_after": 1380
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Segment-intersection style float routine (8 f32 args). Move-on budget exhausted (3/3 without improvement).\n\nTarget structure decoded exactly (71 insns, .L801FA42C / .L801FA46C / .L801FA400 / .L801FA4A4):\n  ft1 = arg6-arg4 (dy1); ft2 = arg7-arg5 (dy2) computed in the delay slot of bc1f on dy1==0\n  if (dy1==0): if (arg0!=arg2) { fv1 = arg4-arg0; if (fv1!=0) return fv1/(arg2-arg0); } return 0.5f  (0.5 via lui 0x3F000000)\n  if (dy2==0): if (arg0!=arg2) { ft0 = arg5-arg1; if (ft0!=0) return (arg2-arg0? no) -> sub.s fv0,fv1,fa1 ; return (arg3-arg1)/... ; } return 0.5f\n    NOTE: at .L801FA42C the target does c.eq.s ft2,fv0; bc1fl .L801FA46C with delay slot sub.s ft0,fa1,ft0 (i.e. t = arg1-arg5 computed BEFORE the branch, in the delay slot). Inside the branch it then does sub.s ft0,ft0,fa1 (t -= arg1) and compares to 0, then j .L801FA4A4 with div.s fv0, fv1, fa1 (fv1=arg3, fa1=arg1) => return (arg3-arg1)/t. So the dy2==0 path is: t = arg1-arg5; if (arg0!=arg2) { t = t - arg1; if (t != 0) return (arg3-arg1)/t; } return 0.5f. Both branches of the 0.5 return go through .L801FA400 (j .L801FA4A8).\n  else: inv1 = 1/dy1, inv2 = 1/dy2, numerator ft0 = (arg1-arg5)*inv2 - (arg0-arg4)*inv1, denominator fv0 = (arg2-arg0)*inv1 - (arg3-arg1)*inv2, div.s fv0,ft0,fv0 at .L801FA4A4.\n\nKey blockers observed: (a) the target evaluates the two \"0.5f\" returns as a single shared block reached by branch (bc1t/bc1f to .L801FA400) - my if/return versions emitted bc1t to separate lui/mtc1 blocks; (b) target emits bc1fl (branch-likely) forms with the sub.s in the delay slot, mine emitted bc1f/bc1t; (c) arg register mapping: target mtc1 $a2,$f10 / $a3,$f18 and loads 0x10,0x14,0x18,0x1C into $f4,$f16,$f6,$f8 - i.e. arg4=0x10, arg5=0x14, arg6=0x18, arg7=0x1C, and the first computed value is ft1(0x18)-ft4(0x10).\n\nBest historical 2630 (saved_best base). Next idea: single `result` local assigned 0.5f in one place with gotos, and compute t = arg1-arg5 unconditionally before the dy2 test so the compiler sinks it into the bc1fl delay slot; try try_local_repairs(array_index_width/inline_scalar_shape) on the saved_best base rather than from scratch.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794739941.752206,
+  "score_before": 1380,
+  "score_after": 1380
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Extensive bounded diagnostics exhausted structural hypotheses (over 40 O1 compiler trials plus 18 O2 compiles); retaining best verified O2 score1236 revision7727b422e0e80fef50bd. Corrected second degenerate condition: proceed with ratio only if arg0==arg2. Shared half label inside first equality branch plus common denominator/divide tail fixes target control flow. Best O1 diagnostic e20cc9424d39cd239cc6 score90: exact operations/order/branches, only18 register mismatches. Source available in that trial; dy1/2 locals, arg3 first numerator, arg5 second numerator, denominator local. Target wants arg3 in f2, arg5 f4, arg6/dy1 f6, arg7/dy2 f8. Trial puts arg3 f8,arg6 f0,arg7/dy2 f2. Reusing dy args, separate reciprocal locals, numerator locals, shared-result epilogue, register qualifiers, integer argument reuse for denominator, reordered explicit scalar staging, and -g did not solve. Further local families unavailable. Need allocation/pseudo lifetime insight at O1 rather than more O2 permutations; effective O2 likely wrong as with nearby exact normalize_angle_degrees and func_801E2D18.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794757126.8232121,
+  "score_before": 1380,
+  "score_after": 1236
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Rechecked inherited best 1236; tested reusing arg3 for first degenerate numerator under effective O2: score1245, 61 vs63 instructions. Does not fix allocation or missing scheduling nops. Previous extensive O1 evidence remains most useful: score90 with exact operations/control flow but 18 FP register differences (trial e20cc9424d39cd239cc6). Retain saved best; no new structural insight warrants repeating exhausted families. Next work should target O1 allocation/pseudo lifetimes, not repeat first->arg3 substitution under O2.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794758151.081683,
+  "score_before": 1236,
+  "score_after": 1236
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 0; 46 differing rows (20 register, 9 branch target, 2 operand, 3 reordered, 5 inserted, 7 deleted; advisory).\nTarget: mtc1 $a2, $f10\nCandidate: \nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n< T: mtc1 $a2, $f10 | C: \n< T: mtc1 $a3, $f2 | C: \n< T: lwc1 $f16, 0x10($sp) | C: \nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nCAUTION saved941 source inserted arg3-=arg1 at entry without removing later subtractions: semantic probe only, not correct C. Correct inherited1236 source in history revision7727b422e0e80fef50bd. O1 original110 register-only; replacing first temporary with arg3 gives90 O1,1245 O2 (revisionf17611226b1dee3b08be). Full overwrite arg6/arg7+arg3 first temp gives130 O1. Profile likely O1: all 63 instructions/branches align. Low-progress automatic handoff ended claim after arithmetic staging trials. Best next experiment under O1: preserve arg6 delta in its incoming register while arg3 first-path temp and arg7 retain separate lifetime; target f2=arg3,f6=arg6,f8=arg7.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794759339.804078,
+  "score_before": 1236,
+  "score_after": 941
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Unit code_801F9990 looks like -O1. Using try_compiler at KMC -O1, the best was 95 (registers only), with this structure: dx=x3-x2; dy=y3-y2; if(dx==0){ if(x0==x1){half: return .5f;} t=x2-x0; if(t==0) goto half; return t/(x1-x0);} if(dy==0){ if(x0!=x1) goto half; y2-=y0; if(y2==0) goto half; y1-=y0; goto divide;} dx=1/dx; dy=1/dy; y2=(y0-y2)*dy-(x0-x2)*dx; y1=(x1-x0)*dx-(y1-y0)*dy; divide: return y2/y1;. The target has x3/y3 loaded directly into f6/f8 (an in-place sub), y1 in f2, x1 in f10, x2 in f16, and the den result in f0. Tried and worse: in-place x3-=x2 (130-150), a shared t for num/den (140), and assigning y1 in the first branch (135). Left to try: declaration order and types. A function-only -O1 suggestion is needed in any case.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794759506.158644,
+  "score_before": 1236,
+  "score_after": 1236
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Restored semantically correct candidate7727b422e0e80fef50bd by removing erroneous entry arg3-=arg1 (currentO2 1236). Saved941 remains WRONG: it double-subtracts arg1 later. No local families remain, earlier 40+ O1 trials exhausted same rewrites. Important tool detail: try_compiler without explicit source used saved941, not current corrected candidate (observed extra arg3-=arg1 in diff), so always pass explicit source for future O1 experiments. Target arithmetic/control flow confirmed from full assembly; need O1 allocation insight, prior correct-source best90/95 register-only.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794760300.454487,
+  "score_before": 941,
+  "score_after": 941
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Needs -O1 (search_flags: same C gives 95 at O1, 1236 at O2). Target regs: x1=f10, y1=f2, x2=f16, y2=f4, dx=f6 (x3's reg), dy=f8 (y3's reg), den ends up in f0, t (branch-1 num) in f2. O1 trials: (a) dx/dy locals + y2-=y0 + y1-=y0/goto divide + return y2/y1 = 95 (best; x1 f16, y1 f10, x2 f18 wrong). (b) Same but separate `return y2/(y1-y0)` and `return y2/(...)` = x1,x2,dx,dy,y2 all CORRECT, only y1 wrong (f18), but gcc moves the dy==0 block to the end (1405); nested-if variant gives the same. (c) den local / reuse dy or t as den: 110-140. (d) x3-=x2; y3-=y2 param reuse: 150. Must compute dy before `if (dx==0)` (otherwise bc1fl instead of bc1f). Next idea: keep (b)'s allocation but get the dy==0 block laid out first, e.g. different goto/label structure; or try making y1 higher priority.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794760764.4414022,
+  "score_before": 941,
+  "score_after": 941
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Restored correct source7727b422e0e80fef50bd, O2 1236. Saved941 is semantically WRONG: entry arg3-=arg1 double subtracts later; don't promote it. Tried 5 explicit source variants: declarations/reusing incoming arg6/arg7/in-place branch denominator all identical1236; dead arg3 first numerator1245. Explicit correct O1 probe still90 (18 FP register differences, correct instructions/control flow). No new allocation insight after prior extensive O1 families. Continue from correct source and avoid repeating exhausted allocation shapes.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794761300.875231,
+  "score_before": 941,
+  "score_after": 941
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Not retried: unit code_801F9990 needs -O1 (prior: O1 95 regs-only vs O2 1236), and O1 allocation families already exhausted by several agents. Wait for user's flag change before more work.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794761683.160873,
+  "score_before": 941,
+  "score_after": 941
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Removed semantically wrong entry arg3-=arg1 from saved941 (double subtraction). Correct source1236 O2; first-path arg3 reuse/register qualifier1245 O2. Explicit O1 register-qualified source fresh90, all63 operations/order/control flow align,18 FP allocation mismatches. Target arg3=f2,arg6=f6,arg7=f8 versus trial f8,f0,f2; dy1=f6 already right. Previous extensive O1 allocation families exhausted; effective O2 produces missing target scheduling nops and shifted branches. Further default O2 tuning not justified. Current b77486d7bd444af6cb26 is semantically correct; do NOT restore941. Next investigate allocator scheduling/profile, not arithmetic.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794763602.027272,
+  "score_before": 941,
+  "score_after": 941
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Target has NO entry arg3-=arg1; inherited best941 includes spurious subtraction. Correcting to proper arithmetic scores1236 under O2. register keyword unchanged; overwrite arg6/arg7 worsens O2. IMPORTANT diagnostic O1 gives110 for proper baseline,90 when first degenerate arm overwrites arg3 (trial90dcf0fedac29615a7a8), only register differences. Proposed profile via suggest with exact source. Replacing dy1/dy2 entirely with arg6/arg7 gives130 O1. Need O1 allocation tune: target arg3=f2,arg6=f6,arg7=f8, trial90 arg3=f8,arg6=f0,arg7=f2; target denominator in f0 vs f12. All instruction/control flow identical O1. Current normal candidate60f60079805009302a77 correct arithmetic1236; historical best941 retained but not semantically faithful.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794764890.583304,
+  "score_before": 941,
+  "score_after": 941
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Restored semantically correct source7727b422e0e80fef50bd score1236 by removing erroneous entry arg3-=arg1 from saved941. Explicit O1 new denominator reuse arg6 gives315 (register+schedule); first/den shared140 (28 reg differences); narrow scope attempted fails C89 declaration placement. Prior O1 correct arithmetic best90 still strongest. Needs O1 profile then allocation focus; don't promote saved941 double-subtract source. No new exact match.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794766026.885118,
+  "score_before": 941,
+  "score_after": 941
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Restored correct arithmetic7727b422e0e80fef50bd (1236 defaultO2); reported invalid inherited941 revision6af7914cab018437a8b3 which double-subtracts arg1. Current local repairs exhausted. O1 diagnostics fresh register denominator110, dead first-arm arg3 reuse90 trial4c754b3caa177d0b5eff; -fno-schedule-insns2 gives110. Target requires O1-like hazards/control flow; no evidence-backed current-profile repairs remain after historical99 attempts, do not retain erroneous941 just for lower score. Remaining O1 FP allocation mismatch still unresolved.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794767260.926354,
+  "score_before": 941,
+  "score_after": 941
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Already investigated earlier same session. Reported incorrect saved941, corrected1236; O1 trial90 remains unresolved. No source/build input change after queue restart; skip duplicate claim.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794767788.3459451,
+  "score_before": 941,
+  "score_after": 941
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Haiku pass (haiku-pr6): a float interpolation with eight float arguments (a0, a1 in f12/f14, a2/a3 in integer registers, a4..a7 from the stack at 0x10..0x1C). Branch structure read from the assembly: t1 = a6 - a4; if t1 == 0 return 0.5 or (a4 - a0)/(a2 - a0); t2 = a7 - a5; if t2 == 0 return 0.5 or (a5 - a1)/(a3 - a1); else (a1 - a5)*(1/t2) - (a0 - a4)*(1/t1) over (a2 - a0)/t1 - (a3 - a1)/t2. Judge: 1865 at -O1 (2190 at -O2). Remaining rows: a spilled double (sdc1 f20) appears in our frame; the target has none. Next: keep the reciprocals in the same registers as the target (the sub.s operand order).",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795711074.5149271,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Interpolation; 1865 at -O1 (not exact). See note.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795711077.031014,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Small-model attempt at func_801FA3B4: 13 tries.\n  best 880 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1860 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 1860 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1910 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 3281 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n13 tries, no match. Best: -O1 score 880 (try 9, the own profile -O2 stayed at 1860-2040, saved 265 uses a do/while fence not allowed). Not matched: remaining diffs are register allocation of the reciprocal/numerator temporaries and branch layout around the dy2==0 path.",
+  "by": "manual-0f5f09c514994b7e",
+  "created_at": 1795717801.706622,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_801FA3B4: 13 tries.\n  best 880 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1860 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 1860 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1910 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 3281 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n13 tries, no match. Best: -O1 score 880 (try 9, the own profile -O2 stayed at 1860-2040, saved 265 uses a do/while fence not allowed). Not matched: remaining diffs are register allocation of the reciprocal/numerator temporaries and branch layout around the dy2==0 path.",
+  "by": "manual-0f5f09c514994b7e",
+  "created_at": 1795717803.473419,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "Small-model attempt at func_801FA3B4: 12 tries.\n  best 80 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1235 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 1235 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1280 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 3441 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 80 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 50fe3068b6d97e2a6675 (not applied).\n12 tries, no match. Best: -O1 score 80 (try 7), a plain rewrite with goto half/divide labels and no do-while fences. Remaining: 16 register rows (dy1/dy2 loads land in temps, the arg3/arg2 mtc1 order at entry). Fences gave the 265 own-profile near-miss but are banned; tried: explicit numerator/denominator order (110), split load-subtract (310), dy2 moved (305), arg0!=arg2 layout (880).",
+  "by": "manual-53e95a227c1a4d5e",
+  "created_at": 1795726301.197016,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_801FA3B4",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_801FA3B4: 12 tries.\n  best 80 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1235 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 1235 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1280 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 3441 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 80 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 50fe3068b6d97e2a6675 (not applied).\n12 tries, no match. Best: -O1 score 80 (try 7), a plain rewrite with goto half/divide labels and no do-while fences. Remaining: 16 register rows (dy1/dy2 loads land in temps, the arg3/arg2 mtc1 order at entry). Fences gave the 265 own-profile near-miss but are banned; tried: explicit numerator/denominator order (110), split load-subtract (310), dy2 moved (305), arg0!=arg2 layout (880).",
+  "by": "manual-53e95a227c1a4d5e",
+  "created_at": 1795726301.33659,
+  "score_before": 265,
+  "score_after": 265
  }
 ]
