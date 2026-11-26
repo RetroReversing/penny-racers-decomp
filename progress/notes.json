@@ -7232,14 +7232,6 @@
   "score_after": 190
  },
  {
-  "function": "func_801F9AC0",
-  "text": "Float function, 74 insns. The saved-best m2c draft (revision 2ed4c9bce8bbc870f96a, historical 980) recompiled to 4170 for me, so its score is not reproducible from this session. Target structure: x>1 test is written as c.lt.s with 1.0 on the left (lui 0x3f80 / mtc1 / c.lt.s $f0,$f12), then x<-1 as c.lt.s $f12,$f0 against lui 0xBF80, with the constants reloaded per branch. The loop is a 24-step double accumulation: mult v1*v1, cvt.s.w, two mul.s by x, cvt.d.s, then (2n+1) as double plus sum, div.d. Final branches: sign>0 uses D_801FB2C8 - x/(sum+D_801FB2C0), sign<0 uses D_801FB2E0 - x/(sum+D_801FB2D8), zero uses x/(sum+D_801FB2D0). Next: write the two comparisons in the 1.0f < x form and fix the constant pool addresses (C0/C8 vs D0/D8/E0 order differs in my build), then retry the loop from there.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794708142.138627,
-  "score_before": 980,
-  "score_after": 980
- },
- {
   "function": "func_801F97E0",
   "text": "Structure from target asm: list[4] (s32, at sp+0x18) filled with i where halfword at D_800DB1B8+0x2108+i*0x28 != 0; then loop over j<n writing display-list words at D_800DE080+0x64 (pointer advanced in three steps: 0xBC000002,0x80000040 / 0x03860010,&D_801F9958 / 0x03880010,&func_801F9950), then func_800E1098(D_800DE080+0x64, D_80046837, arg0, (u8)list[j], j&0xFF). Straightforward C scored 7010 (21%). The target hoists the four constants and the two addresses into $fp,$s7,$s6,$s5,$s4 before the loop, and the frame is 0x58 with ra,fp,s7..s0 saved; my version does not hoist them. Next try: declare the constants as locals before the loop so they are live across the call.",
   "by": "claude-haiku-5-5-22",
@@ -11558,14 +11550,6 @@
   "created_at": 1794722033.368032,
   "score_before": 153,
   "score_after": 60
- },
- {
-  "function": "func_801F9AC0",
-  "text": "Not matched. Best current candidate is revision 28b13982324910d4fcee, score 2675 (from the branch_orientation batch, variant 2): the final if/else chain is rewritten as `if (var_a0 >= 0) { var_fv0 = (f64)var_fa0 / (var_ft0 + D_801FB2D0); } else { var_fv0 = D_801FB2E0 - ... }`. The historical 980 for the earlier source does not reproduce under the current baseline (4170), so use 2675 as the start. Structure is still right: reciprocal scaling, 24-term loop (mult v*v, cvt.s.w, two mul.s by fa0, cvt.d.s, cvt.d.w(2v+1), add.d, div.d), final sign formula. Remaining diff: the first compare in the target is `1.0 < x` with bc1f falling through into the a0=1 path; ours still emits bc1t plus an extra mtc1/nop. Also the constant load order differs (rows 72/76/88). Untried: a nested-else rewrite of the x<-1 test (variant 1 of the same batch, score 3720, was not combined with variant 2). Move on if the next two compiles don't improve.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794722091.1786041,
-  "score_before": 980,
-  "score_after": 980
  },
  {
   "function": "func_801E1EEC",
@@ -20840,14 +20824,6 @@
   "score_after": 2461
  },
  {
-  "function": "func_801F9AC0",
-  "text": "Releasing: the tail-order and branch-sense changes tried at the project flags (-O2) all scored worse (2425 best, 3030 for sign<0-first). The only close match is -O1 (score 980, try_compiler), and the remaining -O1 diff is branch sense (bgezl vs bltzl on $a0 at the tail), tail block order, and $f0/$f2 pair choice. Next agent: at -O1 try swapping the tail if-chain to `if (sign <= 0) { if (sign < 0) E0 block; else D0 block } else C8 block` and the sign<0 ordering, then check f64 pair choice. Best revision f4ca74d770643b166317 (2425 at -O2).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794748732.664557,
-  "score_before": 980,
-  "score_after": 980
- },
- {
   "function": "func_801497AC",
   "text": "Best 215 (92.3%, revision ac7338e79bc4083a2bb8, 28 insns each). Source: s32 arg0; `s8 var_a1; var_a1 = 0xFF; if ((arg0&0xFF)!=0xFF) { arg0 = arg0 & 7; if (D_80189B34==2) { if (D_8021E1A2==1) var_a1=D_80168D28[arg0&0xFF]; else var_a1=D_80168D20[arg0&0xFF]; } else var_a1=D_80168D30[arg0&0xFF]; } return var_a1 & 0xFF;`. Remaining: mode-check branch is `bnel` in mine vs plain `bne` (target delay slot andi $v0,$a0,0xff); initializer prints -1 under s8. Tried and worse: u8 var (405), swapped D_8021E1A2 arms (445), testing D_80189B34 first with else-if chain (1010), u8 return (405). Structural variants around the mode test don't close the gap; the next agent should work on the branch-likely shape of the outer `!=` (e.g. a flag set before the if) rather than repeating these.",
   "by": "claude-haiku-5-5-20",
@@ -23024,14 +23000,6 @@
   "score_after": 1125
  },
  {
-  "function": "func_801F9AC0",
-  "text": "Not matched. Saved best 980 does not reproduce; the same source scores 4170 now. The m2c draft's head is wrong. Target entry (verified from assembly): if (1.0f < x) {sgn=1; x=1.0f/x; jump to loop} else if (x < -1.0f) {sgn=-1; x=1.0f/x} else sgn=0; then the do-while loop with v1 from 0x18 down (num = (f32)(v1*v1)*x*x as f64; den = (2*v1+1) + sum; sum = num/den). Best reproduced so far is 1195 (83.8%), revision a206f9da445b014db9c3: the head as above, with sgn/x/sum/num/den/v1 declared in that order. Remaining diffs: the target keeps sgn in $a0 and loads 1.0f separately in each branch (lui $at,0x3f80 / mtc1 into $f0); mine keeps sgn in $a1 and shares the constant. Final sign dispatch: target tests blez a0 first and then uses constants D_801FB2C0 and D_801FB2C8 in the sgn>0 branch; mine uses D_801FB2D8 and D_801FB2E0 (wrong pairing) in the sgn<0 branch. Tried: declaration reorder (no effect); sgn<=0 nested dispatch (1900, worse). Next: fix the constant pairing per branch first, then the sgn register, then the branch layout.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794753964.1726348,
-  "score_before": 980,
-  "score_after": 980
- },
- {
   "function": "func_801FC768",
   "text": "Not matched; draft at revision a61bc5688408736bf7e8 scores 3725 (71.7%). Function is a 5-case state machine (sltiu 5, jump table at D_80203540 indexed by state*4, jr). Records are 100 bytes at D_8011F32E + idx*100; state is u16 at +0. Shared globals: D_80203AC8 (u16 flag), D_802038C8 (u16 counter; compared with 0x12D in case 1 and 0xB on another path), D_8018BC3C (u16 index into D_8011F350 record pointers; a u8 flag is written through it). The draft is missing most case bodies, and the switch shape doesn't yet reproduce the jump table. Next: write each case body from get_assembly lines 12-137 and keep idx u16.",
   "by": "claude-haiku-5-5-20",
@@ -23942,14 +23910,6 @@
   "created_at": 1794755199.3051069,
   "score_before": 985,
   "score_after": 985
- },
- {
-  "function": "func_801F9AC0",
-  "text": "No match. Best rechecked score in this session 2940 (60.2%); saved best 980 uses the m2c draft text (rechecked: 4170). Verified from target asm: the sign classification is `if (1.0f < x) {a=1; x=1/x} else if (x < -1.0f) {a=-1; x=1/x} else a=0` (the > 1 test comes first). Result branch constants are correct: a>0: D801FB2C8 - x/(sum+D801FB2C0); a<0: D801FB2E0 - x/(sum+D801FB2D8); a==0: x/(sum+D801FB2D0). Loop: ft0=0, v=0x18 down to 1, temp=(f64)((f32)(v*v)*x*x), denom=(f64)(2v+1)+sum. Still differing: branch layout (target jumps +0x60, we jump +0x54), sign register (target a0, we use a1), and loop codegen (we emit extra addiu/bgtz forms with a 0x31 constant). Untried: write the loop with explicit f32 temporaries, and swap if/else-if into nested form for the sign.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794755209.515081,
-  "score_before": 980,
-  "score_after": 980
  },
  {
   "function": "func_801542F8",
@@ -28128,14 +28088,6 @@
   "score_after": 915
  },
  {
-  "function": "func_801F9AC0",
-  "text": "Move-on budget 3/3 exhausted. Current-verified best this session: 2940 (revision ea469c0630096283046c). Historical saved best 980 comes from a different source/header and was not reverified.\n\nThe 2940 source shape (reproduce it): locals f32 sq; f64 sum; f64 res; s32 sign; s32 i; with\n  if (x > 1.0f) { sign = 1; x = 1.0f / x; } else if (x < -1.0f) { sign = -1; x = 1.0f / x; } else { sign = 0; }\n  sum = 0.0; i = 0x18;\n  do { sq = (f32)(i * i) * x * x; sum = (f64)sq / ((f64)(i * 2 + 1) + sum); i -= 1; } while (i > 0);\n  then the three-way tail res = D_801FB2C8 - (f64)x/(sum + D_801FB2C0) / D_801FB2E0 - ... / (f64)x/(sum + D_801FB2D0);\n  return (f32)res;\n\nConfirmed target structure (83 asm lines, 74 insns):\n- One c.lt.s with 1.0f first: `c.lt.s $f0,$f12` ($f0=1.0f, $f12=arg), bc1f skips to the -1.0f test, taken path does `div.s $f12,$f0,$f12`. So the first test is `1.0f < x` in operand order and must be the FIRST emitted compare (single compare, not two).\n- Loop body order: mult/mflo/mtc1/cvt.s.w -> mul.s x2 with $f12 -> cvt.d.s -> `sll $v0,$v1,1; addiu $v0,$v0,1; mtc1; cvt.d.w; add.d $f0,$f0,$f4` -> `addiu $v1,$v1,-1` -> bgtz -> div.d in the delay slot. So (2i+1) must use sll+addiu (mult only for i*i) and the counter decrement is emitted before div.d.\n- Tail: sign>0 -> ldc1 D_801FB2C0, add.d, div.d, ldc1 D_801FB2C8, sub.d in the j delay slot. sign<0 uses bltzl $a0 with cvt.d.s $fv1 in the delay slot, then the D_801FB2D0 branch, then D_801FB2D8/D_801FB2E0. Keep the if/else-if/else chain; rewriting it as nested if/else scored 4170 with no change.\n\nTried, all identical instruction diff (no effect): `1.0f < x` vs `x > 1.0f`; `(i<<1)+1`; `(i+i+1)`; nested if/else tail; m2c's f64 temp_fv0/temp_fv1 form; renamed locals. Compiler trials: same source at -O1 = 4190, -O2 = 5220, so the profile is not the issue. try_local_repairs on 2ed4c9bce8bbc870f96a left 18 proposals (split_scalar_lifetime=2, explicit_loop_backedge=1, branch_orientation=3, signedness=2, 5 more families); branch_orientation is the most promising given the bc1t/bc1f inversion.\n\nNext step: start from the 2940 source and run try_local_repairs with families branch_orientation, split_scalar_lifetime, explicit_loop_backedge.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794760614.940323,
-  "score_before": 980,
-  "score_after": 980
- },
- {
   "function": "func_80209AEC",
   "text": "Exact -O1 bundle29ac440cfd4afc9aa035 submitted via suggest; auto changes off. Place i=0 BEFORE f_hi=50 and f_one=1, then for(;i<12;i++). Saved struct and stores otherwise unchanged. O1 old score60 was only initialization instruction order.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -32080,14 +32032,6 @@
   "score_after": 1990
  },
  {
-  "function": "func_801F9AC0",
-  "text": "Not matched. Saved best 980 (historical). My rewrite scored 4170 (43.6%). The branch shape is wrong: the target loads 1.0f with lui $at,0x3f80 and tests |x|>1 first, with the constant -1.0 (0xbf80) built in a different order, and it branches to the 1/x path with bc1f. My C uses f64 temporaries where the target keeps some values as f32 (the div.s in the target is single precision). Next: test -O1 (the machine draft was produced with -O1) via try_compiler before reshaping the C. Also check the D_801FB2C0/C8/D0/D8/E0 order against the target's relocations: the target loads D_801FB2C0 first, then D_801FB2C8. The loop (do-while over 0x18 down to 1) matches the draft shape.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794766166.593407,
-  "score_before": 980,
-  "score_after": 980
- },
- {
   "function": "func_800E1728",
   "text": "Not matched. Best: revision a5e2fb9b46b67c34725f, score 2867 (61%): u16 *tbl = D_8011F068 local for all table reads, record base is the global D_8011F2F0 expression. Target: frame 0x30, saves ra,s0-s4; s1=0xFFFF, s3=1, s2=&D_8011F068, s4=&D_8011F2F0. Remaining diffs: register allocation (candidate puts table base in s2 and record base in s4 but s3=1 and lui/addiu order differs) and branch targets. Tried: machine draft candidate (3047; m2c fails on a delay-slot label), explicit tbl local (2867, best), extra base local for record pointer (3042, worse). Stopping because the last two variants were worse and the remaining diff is register/schedule order, which needs -O1 or a different loop shape. Next: test -O1 via try_compiler, and try moving the D[0]==0xFFFF check before func_800E15CC.",
   "by": "claude-haiku-5-5-20",
@@ -34847,5 +34791,70 @@
   "created_at": 1794765607.672727,
   "score_before": 3030,
   "score_after": 3030
+ },
+ {
+  "function": "func_801F9AC0",
+  "text": "Float function, 74 insns. The saved-best m2c draft (revision 2ed4c9bce8bbc870f96a, historical 980) recompiled to 4170 for me, so its score is not reproducible from this session. Target structure: x>1 test is written as c.lt.s with 1.0 on the left (lui 0x3f80 / mtc1 / c.lt.s $f0,$f12), then x<-1 as c.lt.s $f12,$f0 against lui 0xBF80, with the constants reloaded per branch. The loop is a 24-step double accumulation: mult v1*v1, cvt.s.w, two mul.s by x, cvt.d.s, then (2n+1) as double plus sum, div.d. Final branches: sign>0 uses D_801FB2C8 - x/(sum+D_801FB2C0), sign<0 uses D_801FB2E0 - x/(sum+D_801FB2D8), zero uses x/(sum+D_801FB2D0). Next: write the two comparisons in the 1.0f < x form and fix the constant pool addresses (C0/C8 vs D0/D8/E0 order differs in my build), then retry the loop from there.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794708142.138627,
+  "score_before": 980,
+  "score_after": 980
+ },
+ {
+  "function": "func_801F9AC0",
+  "text": "Not matched. Best current candidate is revision 28b13982324910d4fcee, score 2675 (from the branch_orientation batch, variant 2): the final if/else chain is rewritten as `if (var_a0 >= 0) { var_fv0 = (f64)var_fa0 / (var_ft0 + D_801FB2D0); } else { var_fv0 = D_801FB2E0 - ... }`. The historical 980 for the earlier source does not reproduce under the current baseline (4170), so use 2675 as the start. Structure is still right: reciprocal scaling, 24-term loop (mult v*v, cvt.s.w, two mul.s by fa0, cvt.d.s, cvt.d.w(2v+1), add.d, div.d), final sign formula. Remaining diff: the first compare in the target is `1.0 < x` with bc1f falling through into the a0=1 path; ours still emits bc1t plus an extra mtc1/nop. Also the constant load order differs (rows 72/76/88). Untried: a nested-else rewrite of the x<-1 test (variant 1 of the same batch, score 3720, was not combined with variant 2). Move on if the next two compiles don't improve.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794722091.1786041,
+  "score_before": 980,
+  "score_after": 980
+ },
+ {
+  "function": "func_801F9AC0",
+  "text": "Releasing: the tail-order and branch-sense changes tried at the project flags (-O2) all scored worse (2425 best, 3030 for sign<0-first). The only close match is -O1 (score 980, try_compiler), and the remaining -O1 diff is branch sense (bgezl vs bltzl on $a0 at the tail), tail block order, and $f0/$f2 pair choice. Next agent: at -O1 try swapping the tail if-chain to `if (sign <= 0) { if (sign < 0) E0 block; else D0 block } else C8 block` and the sign<0 ordering, then check f64 pair choice. Best revision f4ca74d770643b166317 (2425 at -O2).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794748732.664557,
+  "score_before": 980,
+  "score_after": 980
+ },
+ {
+  "function": "func_801F9AC0",
+  "text": "Not matched. Saved best 980 does not reproduce; the same source scores 4170 now. The m2c draft's head is wrong. Target entry (verified from assembly): if (1.0f < x) {sgn=1; x=1.0f/x; jump to loop} else if (x < -1.0f) {sgn=-1; x=1.0f/x} else sgn=0; then the do-while loop with v1 from 0x18 down (num = (f32)(v1*v1)*x*x as f64; den = (2*v1+1) + sum; sum = num/den). Best reproduced so far is 1195 (83.8%), revision a206f9da445b014db9c3: the head as above, with sgn/x/sum/num/den/v1 declared in that order. Remaining diffs: the target keeps sgn in $a0 and loads 1.0f separately in each branch (lui $at,0x3f80 / mtc1 into $f0); mine keeps sgn in $a1 and shares the constant. Final sign dispatch: target tests blez a0 first and then uses constants D_801FB2C0 and D_801FB2C8 in the sgn>0 branch; mine uses D_801FB2D8 and D_801FB2E0 (wrong pairing) in the sgn<0 branch. Tried: declaration reorder (no effect); sgn<=0 nested dispatch (1900, worse). Next: fix the constant pairing per branch first, then the sgn register, then the branch layout.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794753964.1726348,
+  "score_before": 980,
+  "score_after": 980
+ },
+ {
+  "function": "func_801F9AC0",
+  "text": "No match. Best rechecked score in this session 2940 (60.2%); saved best 980 uses the m2c draft text (rechecked: 4170). Verified from target asm: the sign classification is `if (1.0f < x) {a=1; x=1/x} else if (x < -1.0f) {a=-1; x=1/x} else a=0` (the > 1 test comes first). Result branch constants are correct: a>0: D801FB2C8 - x/(sum+D801FB2C0); a<0: D801FB2E0 - x/(sum+D801FB2D8); a==0: x/(sum+D801FB2D0). Loop: ft0=0, v=0x18 down to 1, temp=(f64)((f32)(v*v)*x*x), denom=(f64)(2v+1)+sum. Still differing: branch layout (target jumps +0x60, we jump +0x54), sign register (target a0, we use a1), and loop codegen (we emit extra addiu/bgtz forms with a 0x31 constant). Untried: write the loop with explicit f32 temporaries, and swap if/else-if into nested form for the sign.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794755209.515081,
+  "score_before": 980,
+  "score_after": 980
+ },
+ {
+  "function": "func_801F9AC0",
+  "text": "Move-on budget 3/3 exhausted. Current-verified best this session: 2940 (revision ea469c0630096283046c). Historical saved best 980 comes from a different source/header and was not reverified.\n\nThe 2940 source shape (reproduce it): locals f32 sq; f64 sum; f64 res; s32 sign; s32 i; with\n  if (x > 1.0f) { sign = 1; x = 1.0f / x; } else if (x < -1.0f) { sign = -1; x = 1.0f / x; } else { sign = 0; }\n  sum = 0.0; i = 0x18;\n  do { sq = (f32)(i * i) * x * x; sum = (f64)sq / ((f64)(i * 2 + 1) + sum); i -= 1; } while (i > 0);\n  then the three-way tail res = D_801FB2C8 - (f64)x/(sum + D_801FB2C0) / D_801FB2E0 - ... / (f64)x/(sum + D_801FB2D0);\n  return (f32)res;\n\nConfirmed target structure (83 asm lines, 74 insns):\n- One c.lt.s with 1.0f first: `c.lt.s $f0,$f12` ($f0=1.0f, $f12=arg), bc1f skips to the -1.0f test, taken path does `div.s $f12,$f0,$f12`. So the first test is `1.0f < x` in operand order and must be the FIRST emitted compare (single compare, not two).\n- Loop body order: mult/mflo/mtc1/cvt.s.w -> mul.s x2 with $f12 -> cvt.d.s -> `sll $v0,$v1,1; addiu $v0,$v0,1; mtc1; cvt.d.w; add.d $f0,$f0,$f4` -> `addiu $v1,$v1,-1` -> bgtz -> div.d in the delay slot. So (2i+1) must use sll+addiu (mult only for i*i) and the counter decrement is emitted before div.d.\n- Tail: sign>0 -> ldc1 D_801FB2C0, add.d, div.d, ldc1 D_801FB2C8, sub.d in the j delay slot. sign<0 uses bltzl $a0 with cvt.d.s $fv1 in the delay slot, then the D_801FB2D0 branch, then D_801FB2D8/D_801FB2E0. Keep the if/else-if/else chain; rewriting it as nested if/else scored 4170 with no change.\n\nTried, all identical instruction diff (no effect): `1.0f < x` vs `x > 1.0f`; `(i<<1)+1`; `(i+i+1)`; nested if/else tail; m2c's f64 temp_fv0/temp_fv1 form; renamed locals. Compiler trials: same source at -O1 = 4190, -O2 = 5220, so the profile is not the issue. try_local_repairs on 2ed4c9bce8bbc870f96a left 18 proposals (split_scalar_lifetime=2, explicit_loop_backedge=1, branch_orientation=3, signedness=2, 5 more families); branch_orientation is the most promising given the bc1t/bc1f inversion.\n\nNext step: start from the 2940 source and run try_local_repairs with families branch_orientation, split_scalar_lifetime, explicit_loop_backedge.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794760614.940323,
+  "score_before": 980,
+  "score_after": 980
+ },
+ {
+  "function": "func_801F9AC0",
+  "text": "Not matched. Saved best 980 (historical). My rewrite scored 4170 (43.6%). The branch shape is wrong: the target loads 1.0f with lui $at,0x3f80 and tests |x|>1 first, with the constant -1.0 (0xbf80) built in a different order, and it branches to the 1/x path with bc1f. My C uses f64 temporaries where the target keeps some values as f32 (the div.s in the target is single precision). Next: test -O1 (the machine draft was produced with -O1) via try_compiler before reshaping the C. Also check the D_801FB2C0/C8/D0/D8/E0 order against the target's relocations: the target loads D_801FB2C0 first, then D_801FB2C8. The loop (do-while over 0x18 down to 1) matches the draft shape.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794766166.593407,
+  "score_before": 980,
+  "score_after": 980
+ },
+ {
+  "function": "func_801F9AC0",
+  "text": "Continued-fraction series (24 terms, float p = i*i*x*x, double sum) with the three return arms by a0 in {1,0,-1}: 3400 best over six variants (the loop shape, cast placement and operand order all 3400 or worse). The saved best (710) is better. Not matched; the constants D_801FB2C0..E0 were taken as doubles from the ROM symbols.",
+  "by": "manual-68913573ef2f4091",
+  "created_at": 1795711110.794265,
+  "score_before": 3400,
+  "score_after": 3400,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:48408ea278d5177a0dc513c9420fb2845b4f274759acf03befc7f1466a5ca5e9"
  }
 ]
