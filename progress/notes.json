@@ -3472,14 +3472,6 @@
   "score_after": 8928
  },
  {
-  "function": "func_8013DD2C",
-  "text": "Deep permuter: score 4400 \u2192 4400; 0 improvements; 25 candidates tested; 78 cached skips; 0 rejected; 7214s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935331",
-  "created_at": 1794357199.563369,
-  "score_before": 4400,
-  "score_after": 4400
- },
- {
   "function": "__osRepairPackId",
   "text": "Deep permuter: score 7080 \u2192 7080; 0 improvements; 51 candidates tested; 38 cached skips; 0 rejected; 7212s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935196",
@@ -7054,14 +7046,6 @@
   "created_at": 1794709127.103286,
   "score_before": 4750,
   "score_after": 1580
- },
- {
-  "function": "func_8013DD2C",
-  "text": "func_8013DD2C (272 B). Attempted a hoisted version (t0/t4/t1/t5 read once before the loops, dst pointer computed up front, store at dst + ((i<<5)+0x1F-j)*2, source *(u16*)(D_800DB1B0 + (j*t5+t4)*0x280 + (i*t1+t0)*2) with `extern u8 *D_800DB1B0`): 6445, worse than the saved 4400. Target shows the four table fields are re-addressed per field from `off` (lui/addu/lhu each time), and the multiply `j*t5` is done in the outer loop with `mult $a2,$t5`, while the inner `i*t1` uses `mult $a1,$t1`. The register and address order differ from the hoisted form: the target computes off via (idx<<2 + idx)<<3 = idx*40 first. Untried: keep the per-field re-reads inside the loop body instead of hoisting, and write the store address as the sum t2+t3 (D_80168166<<11 plus D_80126FF6<<12 base) before the loop.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794709132.872009,
-  "score_before": 4400,
-  "score_after": 4400
  },
  {
   "function": "func_8022976C",
@@ -10848,14 +10832,6 @@
   "score_after": 3947
  },
  {
-  "function": "func_8013DD2C",
-  "text": "Not matched. Best revision 0ffd59b88bc3ed196181 scores 4400 (35%). Instruction count matches (68 vs 68), so the remaining diffs are order and register choice only.\n\nTarget structure (72 insns, leaf, no frame):\n- off = D_80126FF6 * 40: lbu, sll 2, addu, sll 3 into $v1, held for all four table loads.\n- t1 (lhu D_800DB1B8+0x2114+off, sll 16, sra 21), t5 (lhu +0x2116, same), t0 (lh +0x2110), t4 (lh +0x2112). Load order in the target: t5 first (0x2116), then t0, then t4, then t1 later.\n- Destination base a3 = (D_80168166<<11) + (&D_80183BE0 + (D_80126FF6<<12)) held in $t3/$t2 across the loop.\n- Outer loop j in $a2 (starts with `addu $a2,$zero,$zero`), inner i in $a1. The source index per store: ((i<<5) + 0x1F - j) * 2 computed as addiu 0x1F, subu j, sll 1, addu a3.\n- Source word: *(u16*)(D_800DB1B0 + (j*t5 + t4)*0x280 + (i*t1 + t0)*2). D_800DB1B0 is a pointer-valued s32 (lw before use). The final D_80168166 ^= 1 is a lbu/xori/sb.\n\nRemaining diffs: prologue ordering of the four table loads, and the destination index: the target computes (i<<5) before the j term (sll v1,a1,5; addiu 0x1F; subu) while mine folds -j into a separate `addiu $t4,$t3,-0x1f`. A split local for k (revision a05aae836bd7704a6198) made it worse (4470).\n\nLeft to try: write the inner loop with i as the outer dimension of the destination index, or give the t-values as u16 locals loaded in target order (t5 first). Do not spend more compiles on the k local.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794724197.9390001,
-  "score_before": 4400,
-  "score_after": 4400
- },
- {
   "function": "func_800422C4",
   "text": "Leaf math helper, 13 insns, no calls. Target: multu a1,a2 -> mflo t0; multu a0,a3 -> mflo v1; addu t0,t0,v1; multu a0,a2 -> mflo v1, mfhi v0; addu v0,v0,t0. So it is (a1*a2 + a0*a3) + hi32(a0*a2), all three multiplies UNSIGNED 32x32 with no 64-bit widen.\nBest so far 1160 (empty-ish m2c draft). My candidates all score 1480: GCC emits `mult` (signed) for the two low products plus an extra `srl`/`move` pair, i.e. it keeps a 64-bit product, instead of the target's plain 32-bit multu/mflo. Tried: u32 and s32 params, u32/s32 return, (u32)/(u64) casts on each factor, lo/hi locals in several orders, single-expression return, 64-bit lo accumulator (worse, 1770). No variant changed the emitted instruction set.\nNext idea (untested, needs a fresh claim): force 32-bit unsigned products by using unsigned short-free explicit u32 temporaries and taking the high half through a union or a separate u32 variable assigned from `(u32)(((u64)a0 * a2) >> 32)` while the two low products stay pure u32 arithmetic in distinct statements; the goal is to stop GCC widening a1*a2 and a0*a3 into 64-bit mults. Note the target's argument order: a1*a2 first, then a0*a3, then a0*a2 last, and a0/a1 are reused as operands (no moves), so the parameter names/order matter for register allocation.",
   "by": "api-route-llm-code-1",
@@ -14104,14 +14080,6 @@
   "score_after": 6340
  },
  {
-  "function": "func_8013DD2C",
-  "text": "Not matched. Two drafts tried: the machine-style one (not compiled to a better score than saved 4400) and a hoisted version (6050, revision 36e1f59b9bc6d89d4e78) that hoists the four table reads and the dst/src bases out of the loops. Target facts: off = D_80126FF6*40; t1/t5 = (s16 of u16 at +0x2114/+0x2116) >> 5 (sll16/sra21); t0/t4 = lh at +0x2110/+0x2112; the outer loop is j (a2) with mult a2,t5 and +t4 recomputed per j, and dst = D_80183BE0 + (D_80126FF6<<12) + (D_80168166<<11) with the store index ((i<<5)+31-j)*2; src = *(D_800DB1B0) pointer + (j*t5+t4)*640 + (i*t1+t0)*2 (u16 load). Remaining diffs are in the register layout: target keeps the per-row src base in $a0 and the dst in $a3, and loads the D_80126FF6 byte inside the outer loop (lui/lbu again). Next: write the per-j row pointer as a local recomputed inside the j loop, not hoisted. Ends with D_80168166 ^= 1 (xori/sb).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794735651.591636,
-  "score_before": 4400,
-  "score_after": 4400
- },
- {
   "function": "func_80231130",
   "text": "Best 2225 (80.4%), revision f92bd100205ac2713560 (same as 67c1979074feee5f4c0d). Key wins: (1) inner loop j=0..6 uses `idx = off + j*8;` then stores at (u8*)&D_800DA260 + idx + 0x28 / + 0x2C (2863 -> 2410); (2) `u8 *base = (u8*)&D_800DA260;` used only for func_80025DBC(base + off) (2410 -> 2225). Remaining: target saves ra first (sw ra,0x1c) then s2,s1,s0 and computes off = (u16)s1*376 as andi/sll/addu/sll4/subu/sll3; mine saves s2 before ra and computes base lui/addiu inside loop. Moving `s1 = 0` after base init made it worse (2415).",
   "by": "claude-haiku-5-5-24",
@@ -14326,14 +14294,6 @@
   "created_at": 1794736597.061104,
   "score_before": 2586,
   "score_after": 2586
- },
- {
-  "function": "func_8013DD2C",
-  "text": "Best saved is 4400 (earlier draft); my rewrite scored 6385 (revision 84ccc7af96779ef35566). Structure per asm: off=D_80126FF6*40; t1=((u16 @2114+off)<<16)>>21, t5=((u16 @2116+off)<<16)>>21, t0=s16 @2110+off, t4=s16 @2112+off; dst=D_80183BE0+(D_80126FF6<<12)+(D_80168166<<11); outer j<32: src=D_800DB1B0(ptr)+(j*t5+t4)*0x280; inner i<32: dst16[((i<<5)+0x1F-j)*2] = src16[(i*t1+t0)*2]; then D_80168166 ^= 1. Target's t-loads are interleaved with the off computation (sll/addu/sll chain, lui/addu/lhu per field) and it uses mult/mflo rather than shifts for j*t5 and i*t1; my draft orders the loads differently (lui $a1 for D_80126FF6 first). Next: move the D_80126FF6 lbu into the same expression as the off chain, and keep dst pointer computed after the t-loads.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794736632.567241,
-  "score_before": 4400,
-  "score_after": 4400
  },
  {
   "function": "func_800DF2AC",
@@ -20510,14 +20470,6 @@
   "created_at": 1794754768.4100008,
   "score_before": 2075,
   "score_after": 2075
- },
- {
-  "function": "func_8013DD2C",
-  "text": "272 B, 68 insns. Saved best 4400 (same instruction count, 68 vs 68). Target: j outer (a2, mult a2,t5), i inner (a1, mult a1,t1); dst = D_80183BE0 + (D_80126FF6<<12) + (D_80168166<<11) + ((i<<5)+0x1F-j)*2 with the index computed as sll 5 / addiu 0x1f / subu j; src = D_800DB1B0 + (j*t5+t4)*0x280 + (i*t1+t0)*2. Per-cell fields are read via off = D_80126FF6*0x28 (sll2/addu/sll3) at D_800DB1B8 + 0x2110..0x2116 (s16 t0, s16 t4, u16>>5 t1/t5). Diff left: register order (target puts D_80126FF6 load in v0 and uses t1/t5 with sra 21), and target has bnel branch-likely loop bottoms (0xac, 0x80) where mine uses bnez. Next: try the destination pointer as one computed base (D_80183BE0 + off-part) and the 0x1f-j term folded before the sll 1 so the subu/addu order matches. Not matched; released at move-on budget.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794754793.546887,
-  "score_before": 4400,
-  "score_after": 4400
  },
  {
   "function": "func_8013E49C",
@@ -26880,14 +26832,6 @@
   "score_after": 3253
  },
  {
-  "function": "func_8013DD2C",
-  "text": "Not matched. Best remains the saved 4400 (score 35.2%). Fixes: the machine draft fails to compile because D_800DB1B0 is an s32 value used as a pointer; cast it with ((u8 *)D_800DB1B0). The target loads the four table entries (2110, 2112, 2114, 2116 with off = D_80126FF6*0x28) once before the loops. The outer loop variable is j in a2, and the inner loop variable is i in a1; the expression j*t5+t4 is computed per j, times 0x280. Hoisting the four loads and a precomputed dst pointer (with dst = base + (D_80126FF6<<12) + (D_80168166<<11)) scored 6585 and was worse. Untried: keep the original 4400 nesting but precompute only the per-j row base (j*t5+t4)*0x280 in the outer loop, and check whether the target uses the D_80126FF6 reload (lbu from the same address) for the dst base rather than off.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794764968.586612,
-  "score_before": 4400,
-  "score_after": 4400
- },
- {
   "function": "func_801C19A8",
   "text": "Not matched; best 7356 (51.2%, revision 5f785465997c25d334ee). Target is 151 insns, frame 0x60, saves ra, s0-s6 and fs0/fs1. Ours has frame 0x58 and saves only s1-s4 + ra, so the callee-saved set is the main gap: target keeps idx in s0 across the calls (re-masks with andi $v1,$s0,0xffff each use), s5=&D_801C6B88, s6=&D_80167FB8 and s4=sp+0x10 live across __sinf, and i*16 in s2. Tried without success: pointer locals for the sin loop (no change), idx as s32 (7601, worse), (u16)arg0 at each use (7501). Next: find a formulation where s0/s5/s6 are live across the __sinf call (e.g. keep both table pointers and the index as locals used after the call), and check the sdc1/fs0-fs1 constant setup (0x40490FDB, 0x43340000 loaded once before the loop). Start from saved_best.",
   "by": "claude-haiku-5-5-21",
@@ -27854,14 +27798,6 @@
   "created_at": 1794767005.657365,
   "score_before": 848,
   "score_after": 848
- },
- {
-  "function": "func_8013DD2C",
-  "text": "Best 4400 (35%) at revision 2393a8601b2a6ba22956 (draft with D_800DB1B0 declared as `extern u8 *D_800DB1B0;` to fix the compile error; the machine draft's `s32` declaration fails). Remaining diff: loop shape. Target keeps i in a1, j in a2, computes (i<<5) in the loop-back delay slot (`sll $v1,$a1,5`) then `addiu 0x1f; subu j; sll 1; addu base`. Candidate folds 0x1f into base (`addiu $t4,$t3,-0x1f`) and hoists `D_80126FF6<<12` etc. Tried dst pointer + dst[(i<<5)+0x1F-j]: worse (5100). Untried: write the index as separate s32 k = (i<<5)+0x1F; then k-=j; dst-relative or u16 index; and computing the two byte-pair loads t4/t0 before t5/t1 order. Budget used (3 without improvement).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794767005.8218381,
-  "score_before": 4400,
-  "score_after": 4400
  },
  {
   "function": "func_80214504",
@@ -38728,5 +38664,117 @@
   "created_at": 1795726671.5184882,
   "score_before": 1510,
   "score_after": 1510
+ },
+ {
+  "function": "func_8013DD2C",
+  "text": "Deep permuter: score 4400 \u2192 4400; 0 improvements; 25 candidates tested; 78 cached skips; 0 rejected; 7214s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935331",
+  "created_at": 1794357199.563369,
+  "score_before": 4400,
+  "score_after": 4400
+ },
+ {
+  "function": "func_8013DD2C",
+  "text": "func_8013DD2C (272 B). Attempted a hoisted version (t0/t4/t1/t5 read once before the loops, dst pointer computed up front, store at dst + ((i<<5)+0x1F-j)*2, source *(u16*)(D_800DB1B0 + (j*t5+t4)*0x280 + (i*t1+t0)*2) with `extern u8 *D_800DB1B0`): 6445, worse than the saved 4400. Target shows the four table fields are re-addressed per field from `off` (lui/addu/lhu each time), and the multiply `j*t5` is done in the outer loop with `mult $a2,$t5`, while the inner `i*t1` uses `mult $a1,$t1`. The register and address order differ from the hoisted form: the target computes off via (idx<<2 + idx)<<3 = idx*40 first. Untried: keep the per-field re-reads inside the loop body instead of hoisting, and write the store address as the sum t2+t3 (D_80168166<<11 plus D_80126FF6<<12 base) before the loop.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794709132.872009,
+  "score_before": 4400,
+  "score_after": 4400
+ },
+ {
+  "function": "func_8013DD2C",
+  "text": "Not matched. Best revision 0ffd59b88bc3ed196181 scores 4400 (35%). Instruction count matches (68 vs 68), so the remaining diffs are order and register choice only.\n\nTarget structure (72 insns, leaf, no frame):\n- off = D_80126FF6 * 40: lbu, sll 2, addu, sll 3 into $v1, held for all four table loads.\n- t1 (lhu D_800DB1B8+0x2114+off, sll 16, sra 21), t5 (lhu +0x2116, same), t0 (lh +0x2110), t4 (lh +0x2112). Load order in the target: t5 first (0x2116), then t0, then t4, then t1 later.\n- Destination base a3 = (D_80168166<<11) + (&D_80183BE0 + (D_80126FF6<<12)) held in $t3/$t2 across the loop.\n- Outer loop j in $a2 (starts with `addu $a2,$zero,$zero`), inner i in $a1. The source index per store: ((i<<5) + 0x1F - j) * 2 computed as addiu 0x1F, subu j, sll 1, addu a3.\n- Source word: *(u16*)(D_800DB1B0 + (j*t5 + t4)*0x280 + (i*t1 + t0)*2). D_800DB1B0 is a pointer-valued s32 (lw before use). The final D_80168166 ^= 1 is a lbu/xori/sb.\n\nRemaining diffs: prologue ordering of the four table loads, and the destination index: the target computes (i<<5) before the j term (sll v1,a1,5; addiu 0x1F; subu) while mine folds -j into a separate `addiu $t4,$t3,-0x1f`. A split local for k (revision a05aae836bd7704a6198) made it worse (4470).\n\nLeft to try: write the inner loop with i as the outer dimension of the destination index, or give the t-values as u16 locals loaded in target order (t5 first). Do not spend more compiles on the k local.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794724197.9390001,
+  "score_before": 4400,
+  "score_after": 4400
+ },
+ {
+  "function": "func_8013DD2C",
+  "text": "Not matched. Two drafts tried: the machine-style one (not compiled to a better score than saved 4400) and a hoisted version (6050, revision 36e1f59b9bc6d89d4e78) that hoists the four table reads and the dst/src bases out of the loops. Target facts: off = D_80126FF6*40; t1/t5 = (s16 of u16 at +0x2114/+0x2116) >> 5 (sll16/sra21); t0/t4 = lh at +0x2110/+0x2112; the outer loop is j (a2) with mult a2,t5 and +t4 recomputed per j, and dst = D_80183BE0 + (D_80126FF6<<12) + (D_80168166<<11) with the store index ((i<<5)+31-j)*2; src = *(D_800DB1B0) pointer + (j*t5+t4)*640 + (i*t1+t0)*2 (u16 load). Remaining diffs are in the register layout: target keeps the per-row src base in $a0 and the dst in $a3, and loads the D_80126FF6 byte inside the outer loop (lui/lbu again). Next: write the per-j row pointer as a local recomputed inside the j loop, not hoisted. Ends with D_80168166 ^= 1 (xori/sb).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794735651.591636,
+  "score_before": 4400,
+  "score_after": 4400
+ },
+ {
+  "function": "func_8013DD2C",
+  "text": "Best saved is 4400 (earlier draft); my rewrite scored 6385 (revision 84ccc7af96779ef35566). Structure per asm: off=D_80126FF6*40; t1=((u16 @2114+off)<<16)>>21, t5=((u16 @2116+off)<<16)>>21, t0=s16 @2110+off, t4=s16 @2112+off; dst=D_80183BE0+(D_80126FF6<<12)+(D_80168166<<11); outer j<32: src=D_800DB1B0(ptr)+(j*t5+t4)*0x280; inner i<32: dst16[((i<<5)+0x1F-j)*2] = src16[(i*t1+t0)*2]; then D_80168166 ^= 1. Target's t-loads are interleaved with the off computation (sll/addu/sll chain, lui/addu/lhu per field) and it uses mult/mflo rather than shifts for j*t5 and i*t1; my draft orders the loads differently (lui $a1 for D_80126FF6 first). Next: move the D_80126FF6 lbu into the same expression as the off chain, and keep dst pointer computed after the t-loads.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794736632.567241,
+  "score_before": 4400,
+  "score_after": 4400
+ },
+ {
+  "function": "func_8013DD2C",
+  "text": "272 B, 68 insns. Saved best 4400 (same instruction count, 68 vs 68). Target: j outer (a2, mult a2,t5), i inner (a1, mult a1,t1); dst = D_80183BE0 + (D_80126FF6<<12) + (D_80168166<<11) + ((i<<5)+0x1F-j)*2 with the index computed as sll 5 / addiu 0x1f / subu j; src = D_800DB1B0 + (j*t5+t4)*0x280 + (i*t1+t0)*2. Per-cell fields are read via off = D_80126FF6*0x28 (sll2/addu/sll3) at D_800DB1B8 + 0x2110..0x2116 (s16 t0, s16 t4, u16>>5 t1/t5). Diff left: register order (target puts D_80126FF6 load in v0 and uses t1/t5 with sra 21), and target has bnel branch-likely loop bottoms (0xac, 0x80) where mine uses bnez. Next: try the destination pointer as one computed base (D_80183BE0 + off-part) and the 0x1f-j term folded before the sll 1 so the subu/addu order matches. Not matched; released at move-on budget.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794754793.546887,
+  "score_before": 4400,
+  "score_after": 4400
+ },
+ {
+  "function": "func_8013DD2C",
+  "text": "Not matched. Best remains the saved 4400 (score 35.2%). Fixes: the machine draft fails to compile because D_800DB1B0 is an s32 value used as a pointer; cast it with ((u8 *)D_800DB1B0). The target loads the four table entries (2110, 2112, 2114, 2116 with off = D_80126FF6*0x28) once before the loops. The outer loop variable is j in a2, and the inner loop variable is i in a1; the expression j*t5+t4 is computed per j, times 0x280. Hoisting the four loads and a precomputed dst pointer (with dst = base + (D_80126FF6<<12) + (D_80168166<<11)) scored 6585 and was worse. Untried: keep the original 4400 nesting but precompute only the per-j row base (j*t5+t4)*0x280 in the outer loop, and check whether the target uses the D_80126FF6 reload (lbu from the same address) for the dst base rather than off.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794764968.586612,
+  "score_before": 4400,
+  "score_after": 4400
+ },
+ {
+  "function": "func_8013DD2C",
+  "text": "Best 4400 (35%) at revision 2393a8601b2a6ba22956 (draft with D_800DB1B0 declared as `extern u8 *D_800DB1B0;` to fix the compile error; the machine draft's `s32` declaration fails). Remaining diff: loop shape. Target keeps i in a1, j in a2, computes (i<<5) in the loop-back delay slot (`sll $v1,$a1,5`) then `addiu 0x1f; subu j; sll 1; addu base`. Candidate folds 0x1f into base (`addiu $t4,$t3,-0x1f`) and hoists `D_80126FF6<<12` etc. Tried dst pointer + dst[(i<<5)+0x1F-j]: worse (5100). Untried: write the index as separate s32 k = (i<<5)+0x1F; then k-=j; dst-relative or u16 index; and computing the two byte-pair loads t4/t0 before t5/t1 order. Budget used (3 without improvement).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794767005.8218381,
+  "score_before": 4400,
+  "score_after": 4400
+ },
+ {
+  "function": "func_8013DD2C",
+  "text": "haiku-pr24 (Haiku): saved best e06eb08a measures 3745 at -G0 -mips3 -mgp32 -mfp32 -O2 (trial 40dc5802) and 4690 at -O1 (trial 7afcd69b). Clean rewrite (off = 40*D_80126FF6, two 16-bit table reads with the (s16)>>5 form, a 32x32 loop with j outer and dst index 32*i+31-j, and the D_80168166 toggle) scores 7005 at -O2 and 2270 at -O1 (the -O1 score beats the saved -O1 score). Remaining rows: the target folds off into the table addresses with a sll/addu pair and computes the multiplies with mult/mflo; the compiler does not keep the four loads in the same register order.",
+  "by": "manual-c5ecf391d81f42b7",
+  "created_at": 1795714384.031699,
+  "score_before": 3305,
+  "score_after": 3305
+ },
+ {
+  "function": "func_8013DD2C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Clean rewrite not exact; see the note.",
+  "by": "manual-c5ecf391d81f42b7",
+  "created_at": 1795714393.166338,
+  "score_before": 3305,
+  "score_after": 3305
+ },
+ {
+  "function": "func_8013DD2C",
+  "text": "Small-model attempt at func_8013DD2C: 12 tries.\n  best 1720 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1780 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 4180 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 4970 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 5395 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 1720 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 348bbb03dd93902b7040 (not applied).\n12 tries, no match. Best 1720 under -O1 (profile 1) with clean rewrite: loads in target order, index (i<<5)+0x1F-j, dst base hoisted, src per outer row. Left: register allocation (target outer counter in a2, lbu/lui of D_80126FF6 reloaded, bnel loop shape). Tried do/while, while, long j, reordered declarations and index arithmetic; none beat 1720.",
+  "by": "manual-1235eb3b62454180",
+  "created_at": 1795725753.555518,
+  "score_before": 3305,
+  "score_after": 3305
+ },
+ {
+  "function": "func_8013DD2C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_8013DD2C: 12 tries.\n  best 1720 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1780 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 4180 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 4970 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 5395 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 1720 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 348bbb03dd93902b7040 (not applied).\n12 tries, no match. Best 1720 under -O1 (profile 1) with clean rewrite: loads in target order, index (i<<5)+0x1F-j, dst base hoisted, src per outer row. Left: register allocation (target outer counter in a2, lbu/lui of D_80126FF6 reloaded, bnel loop shape). Tried do/while, while, long j, reordered declarations and index arithmetic; none beat 1720.",
+  "by": "manual-1235eb3b62454180",
+  "created_at": 1795725757.438747,
+  "score_before": 3305,
+  "score_after": 3305
+ },
+ {
+  "function": "func_8013DD2C",
+  "text": "Small-model attempt at func_8013DD2C: 12 tries.\n  best 1720 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1780 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 4265 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 4800 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 5565 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries, no match. Best 1720 under gcc-2.7.2-kmc -O1 (near-miss shape kept: outer j with src stride 0x280, inner i with store at dst+((i<<5)+0x1F-j)*2). Tried: clean rewrite (2560), read-then-store order (3800), dst computed in outer loop (2050), shift-spelled offset (1910), single base pointer, stride as *5<<7, decl order, long j: all flat or worse. Left: prologue register allocation (target keeps off in v1, loads t1 via v0, and reloads D_80126FF6 for the base); the compiler folds the ordering changes, so the remaining gap is regalloc.",
+  "by": "manual-bf43b91aa498476c",
+  "created_at": 1795726749.758921,
+  "score_before": 3305,
+  "score_after": 3305
+ },
+ {
+  "function": "func_8013DD2C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_8013DD2C: 12 tries.\n  best 1720 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1780 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 4265 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 4800 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 5565 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries, no match. Best 1720 under gcc-2.7.2-kmc -O1 (near-miss shape kept: outer j with src stride 0x280, inner i with store at dst+((i<<5)+0x1F-j)*2). Tried: clean rewrite (2560), read-then-store order (3800), dst computed in outer loop (2050), shift-spelled offset (1910), single base pointer, stride as *5<<7, decl order, long j: all flat or worse. Left: prologue register allocation (target keeps off in v1, loads t1 via v0, and reloads D_80126FF6 for the base); the compiler folds the ordering changes, so the remaining gap is regalloc.",
+  "by": "manual-bf43b91aa498476c",
+  "created_at": 1795726749.89071,
+  "score_before": 3305,
+  "score_after": 3305
  }
 ]
