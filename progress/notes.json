@@ -6912,14 +6912,6 @@
   "score_after": 330
  },
  {
-  "function": "func_8014081C",
-  "text": "func_8014081C (code_8013CBBC, 124 insns): trig/accum-adjacent helper. Best source is the m2c-style draft (extern u8 D_8011F2F0/2FD/340/350; u16 idx; u8*s1; u8*s0; f32 f; s32 t; if (**(u8**)(D_8011F340+idx*100)==0){...}). Score 2017. Frame mismatch blocks first read: target addiu $sp,-0x38 (saves ra@0x30,s3@0x2C,s2@0x28,s1@0x24,s0@0x20); candidate -0x40. 56 diff rows remain, mismatch focus stack layout then instruction order/control flow. Local repairs (8 families incl. call_forwarded_arguments, branch_orientation, signedness, declaration_order, address_temporary) run: no improvement; best retained = 2017 baseline. Structure recovered: flag ptr array D_8011F340[idx*100] -> flag byte; s1 = *(u32**)(D_8011F350+idx*100) record; s0 = D_8011F2F0+idx*100 record; f32 RMW at s1+0xC etc; call func_80129918(s1+0x1C, s0+0x18, s0+0x1C, s0+0x20, 0, s1+0xC, 0); store s1+0x28 -> s0+0x1C; optional func_801D7028(idx,0x19) + f*= -0.7; if (s0+0x1C < -200) { func_8013E49C(s1+0x76); D_8011F2FD[idx*100]=2; f=*(s0+0x44); int t = (f>=2^31)? (s32)(f-2^31) : (s32)f; D_8011F2FD[t*100]=2; } func_8013F44C(idx, s1). Next: fix 8B frame deficit then chase remaining reorder/branch diffs.",
-  "by": "opencode-flint-40b-free-1",
-  "created_at": 1794709092.89439,
-  "score_before": 2017,
-  "score_after": 2017
- },
- {
   "function": "func_80203DF8",
   "text": "func_80203DF8 (352 B). Best 180 (97.9%): all instructions match; only the first two target instructions differ in order (target: `move $t1,$a0` then `lbu $t0,0x13($sp)`; ours does lbu first, move later). The key was the struct form: `typedef struct { u8 *p; u8 pad[96]; } Ent; extern Ent D_8011F350[];` with `#define ENT_PTR (D_8011F350[D_8018BC3C].p)`; stores like `ENT_PTR[0]=0`, `*(s16*)(ENT_PTR+2)=arg1`, `*(s16*)(ENT_PTR+4)=0`, `if ((u8)arg0==2){ *(s8*)(ENT_PTR+6)=arg2; *(s8*)(ENT_PTR+7)=arg3; *(u8*)(ENT_PTR+8)=arg4; }`, then +0xA,+0xC =0, +0xE=0x140, +0x10=0xF0, `ENT_PTR[0]=arg0`. Signature: (s8 arg0, s16 arg1, s8 arg2, s8 arg3, u8 arg4). Tried: u8 arg0, a local copy of arg0/arg4 (all still 180). Untried: a compile_family with address_temporary, or a different order for the first two statements (e.g. read arg0 into a local before the first store and keep arg4 read in the if). The claim lapsed once mid-session, so the 180 version is the saved best.",
   "by": "claude-haiku-5-5-23",
@@ -10536,14 +10528,6 @@
   "score_after": 5830
  },
  {
-  "function": "func_8014081C",
-  "text": "Best score 2017 (83.7%, 121 vs 124 insns) at revision 25b6df8740ea70c50b1b (the saved draft with the duplicate func_8013E49C prototype removed, since context.h already declares it as s32). Remaining differences: (1) frame is 0x40 in ours vs 0x38 in target; saves are ra@0x30,s3@0x2c,s2@0x28,s1@0x24,s0@0x20 in target. Removing the f32 local and inlining the float-to-unsigned conversion had no effect on the frame, so the extra 8 bytes come from something else (possibly the 0x14/0x18 outgoing-arg slots or a temp). (2) Target computes 0.2f via lui/ori/mtc1 BEFORE loading 0xC(s1); ours loads 0xC first. (3) Target loads 0x8(s1) after the 0x18 add; ours hoists it. (4) Final unsigned-float branch uses bc1tl and lui 0x8000 / or, ours uses bc1f. Untried: writing the first update as s1->f += -0.2 (gcc may pick the other load order), and a local for s1 0x18 sum. Notes only; no claim left.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794723751.3295932,
-  "score_before": 2017,
-  "score_after": 2017
- },
- {
   "function": "func_80026D40",
   "text": "Best 2033/45 insns (rev e3fd88251e4866321b97, unchanged by ~25 variants). Structure is right (two leading func_8003DE60 calls, 12-byte entry loop with mask/val/id, first-flag separator). Remaining: candidate frame 0x28 with 4 saved regs (s0,s1,s2,s3) vs target 0x20 with 3 (s0=p, s1=first, s2=arg0); target loads p[1] into $v1 before the bnel delay slot (`lw $v1,4($s0)` then `bnel $v0,$v1`), candidate loads it in the branch delay slot as `lw $v1,-4($s0)` after pre-biasing the pointer by +8. Tried and rejected: reordering p/first init before the calls (2228), struct Ent with ->mask/->val/->id (equal 2033 or worse), naming the pointer as the parameter (2228), *p instead of p[0], for-loop form, goto join, if(!first) form, s32/u32 arg0, s8* arg1, (m = p[0]) != 0 temp. Next idea: make the loop condition read the mask into a named temp that is live across the compare (so gcc materialises it in $v0 before the branch) while keeping the pointer un-biased, and get the 3-register allocation by having arg0 be a plain parameter used only in the compare (no copy to a local).",
   "by": "api-route-llm-code-2",
@@ -13704,14 +13688,6 @@
   "score_after": 1845
  },
  {
-  "function": "func_8014081C",
-  "text": "Not matched, closest yet: 2017 (83.7%), revision 9added16691307df6b4a (the version with `u16 idx` + `(idx & 0xFFFF)` and a local `f32 f`; a later variant without the local f (revision 3d3d5d1fd3c32e880adf) scores the same). Semantics recovered: off=(arg0&0xFFFF)*100; if (**(u8**)(D_8011F340+off)==0) { s1=*(u8**)(D_8011F350+off); s0=D_8011F2F0+off; s1[0xC]-=0.2f; s0[0x18]+=s1[0x8]; s0[0x20]+=s1[0x10]; func_80129918(s1+0x1C, s0[0x18], s0[0x1C], s0[0x20], 0, s1[0xC], 0); s0[0x1C]=s1[0x28]; if (s1[0x1E]) { func_801D7028(idx,0x19); s1[0xC]*=-0.7f; } if (s0[0x1C] < -200f) { func_8013E49C(u16 s1[0x76]); D_8011F2FD[(arg0&0xFFFF)*100]=2; t = (f>=2^31) ? ((s32)(f-2^31)|0x80000000)&0xFFFF : (s32)f&0xFFFF with f=s0[0x44]; D_8011F2FD[t*100]=2; } func_8013F44C(arg0&0xFFFF, s1); }. Remaining diffs: (1) frame: target is 0x38 (ra 0x30, s3 0x2c, s2 0x28, s1 0x24, s0 0x20) with arg0 kept in $s3 and s2=arg0&0xFFFF; ours is 0x40 with the saves shifted up. (2) The f>=2^31 test: target emits c.le.s with bc1tl and the sub.s in the delay slot, and the trunc in the else; ours emits bc1f with the subtract as a separate block. Try writing the >= as a '!(f < 2^31)' form so the branch sense flips. (3) Constant 0x8000 OR is done with lui $v0,0x8000 then or $a0,$a0,$v0.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794735333.19739,
-  "score_before": 2017,
-  "score_after": 2017
- },
- {
   "function": "func_8014981C",
   "text": "Best 2735 (70.2%), rev b41435ec... (the candidate as supplied, with a1 as the first zeroing loop variable). Structure matches (92 insns each). Remaining diffs are register allocation and branch order: target uses $t0 for the outer loop counter in the first zeroing loop and $a1/$a0 for the bit-count loops; ours uses $a1 for both. Tried: first zeroing loop using k (u8) instead of a1 -> 2850 (worse). Next ideas: swap the roles of a1 and k in the bit-count loops (inner 8-word loop as k, outer row loop as a1), or make the popcount loop variable u32 so it stays in a different register. The bnel/bnez order near the end (target `bnel $v0,$zero` after the cnt==1 test) suggests the `a3 != 0` check is written as a separate if before the decrement.",
   "by": "claude-haiku-5-5-21",
@@ -13950,14 +13926,6 @@
   "created_at": 1794736494.857465,
   "score_before": 2735,
   "score_after": 2735
- },
- {
-  "function": "func_8014081C",
-  "text": "Best 2017 (83.7%, revision 25b6df8740ea70c50b1b): u16 idx = arg0; s1 = *(u8**)(D_8011F350 + idx*100); s0 = D_8011F2F0 + idx*100; field updates at s1+0xC, s0+0x18/0x20/0x1C; func_80129918 call with 7 args; s1+0x1E flag calls func_801D7028(idx,0x19) and scales s1+0xC by -0.7; if s0+0x1C < -200 calls func_8013E49C and writes D_8011F2FD[..*100]=2 with a u32 conversion of s0+0x44 (f >= 2^31 branch). Target frame is 0x38 with ra,s3,s2,s1,s0 saved; mine is 0x40 with s4 spilled. Tried: dropping idx and using (arg0&0xFFFF) inline (3023, worse). Note func_8013E49C must NOT be redeclared locally (conflicts with context.h). Next: shrink to the target's 0x38 frame (remove the f/t locals or keep arg0 in s3 via move before the andi).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794736537.1302102,
-  "score_before": 2017,
-  "score_after": 2017
  },
  {
   "function": "func_8014843C",
@@ -20272,14 +20240,6 @@
   "score_after": 1125
  },
  {
-  "function": "func_8014081C",
-  "text": "Best 2017 (83.7%) at revision 25b6df8740ea70c50b1b (verified compiling; 121 vs 124 insns). Source: u16 idx=arg0; s1=*(u8**)(D_8011F350+idx*100); s0=D_8011F2F0+idx*100; float fields at 0xC/0x8/0x10/0x18/0x20/0x1C/0x28/0x44; func_80129918(s1+0x1C, s32 0x18, 0x1C, 0x20, 0, f32 0xC, 0); the D_8011F2FD[idx*100]=2 stores; func_8013F44C(arg0&0xFFFF, s1). Remaining diffs: (1) frame: target is addiu sp,-0x38 saving ra@0x30, s3@0x2C, s2@0x28, s1@0x24, s0@0x20; ours is -0x40 with ra@0x38 \u2014 8 extra bytes of frame, probably one extra stack local (try removing the s32 t local or the u16 idx and use arg0&0xFFFF directly). (2) float-compare branch: target uses c.le.s(2^31,f)+bc1tl with the sub.s in the delay slot and trunc in the fall-through; ours emits c.lt + bc1f. Writing the compare as 2147483648.0f <= x or the f local did not change instructions. (3) the negative-branch (f < -200) block order differs. Edits that did not change code: f local vs inline, compare orientation.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794755639.155296,
-  "score_before": 2017,
-  "score_after": 2017
- },
- {
   "function": "func_80197F78",
   "text": "Not matched, releasing as a sibling of func_80197CA0 whose notes apply. Best this session: 8350 (54%), revision faf572d0385616cc637d. Tried: slot = arg0 & 0xFFFF shared variable (revision 68f7230cf052dcc94d27): worse at 9085, because gcc then spills the frame after the loads. Target always emits frame (addiu sp; sw ra; sw s0; move s0,a0) first, then andi/sll chain for idx, then lb D_801C7068; mine schedules the lb and float constants before the frame. This prologue ordering is the open blocker shared with 80197CA0, not a callee or constant error. Next person: solve the prologue placement on 80197CA0 first, then copy the working shape here.",
   "by": "claude-haiku-5-5-22",
@@ -21646,14 +21606,6 @@
   "created_at": 1794758052.0824,
   "score_before": 10836,
   "score_after": 10836
- },
- {
-  "function": "func_8014081C",
-  "text": "Best 2017 (83.7%) at revision 25b6df8740ea70c50b1b, the saved best. Do not start from later revisions: d4f83bae478667a08d76 (dropping local f) scored 2017 with no change; 4d3748d06ac15ad71cc9 (inlining the float->u32 conversion into each branch, dropping t) regressed to 2562. Control flow, float math and the calls match in order. The remaining diff is the stack frame: target frame is 0x38 with saves ra@0x30, s3@0x2c, s2@0x28, s1@0x24, s0@0x20; ours is 0x40 (or 0x48 after the regressed edit). Ours also uses bc1f where the target has bc1tl for the -200.0f compare, and the target's idx*100 multiply is sll/addu/sll with s3 in v0 while ours puts it in v1. Next: try the compare as `-200.0f > x` to get bc1tl, and find which local adds the extra 8 bytes of frame before touching registers.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794758065.526089,
-  "score_before": 2017,
-  "score_after": 2017
  },
  {
   "function": "func_801C1424",
@@ -27078,14 +27030,6 @@
   "created_at": 1794766973.135489,
   "score_before": 5830,
   "score_after": 5830
- },
- {
-  "function": "func_8014081C",
-  "text": "Best 2017 (83.7%), revision 21fe8a808f6b89a8f2bd (also dfa69d888ba72994193b same score, no f local). Structure is nearly right: the if on **(u8**)(D_8011F340+idx*100) guard, then the s1/s0 float updates, func_80129918 call, the -200.0f test, and the 2^31 unsigned-float conversion with the D_8011F2FD[...*100] stores. Remaining: target frame is 0x38 with ra saved at 0x30 and no s3 save (mine 0x40, saves s3 at 0x34 and moves a0 to s3). The target keeps arg0 in a0 without a copy; try removing the idx u16 local and using (arg0 & 0xFFFF) directly everywhere so no callee-saved register holds arg0. Float conversion: target uses bc1tl (branch-likely) for the 2^31 compare. Untested.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794766982.23204,
-  "score_before": 2017,
-  "score_after": 2017
  },
  {
   "function": "func_8013F050",
@@ -39103,5 +39047,94 @@
   "created_at": 1795711369.969146,
   "score_before": 500,
   "score_after": 500
+ },
+ {
+  "function": "func_8014081C",
+  "text": "func_8014081C (code_8013CBBC, 124 insns): trig/accum-adjacent helper. Best source is the m2c-style draft (extern u8 D_8011F2F0/2FD/340/350; u16 idx; u8*s1; u8*s0; f32 f; s32 t; if (**(u8**)(D_8011F340+idx*100)==0){...}). Score 2017. Frame mismatch blocks first read: target addiu $sp,-0x38 (saves ra@0x30,s3@0x2C,s2@0x28,s1@0x24,s0@0x20); candidate -0x40. 56 diff rows remain, mismatch focus stack layout then instruction order/control flow. Local repairs (8 families incl. call_forwarded_arguments, branch_orientation, signedness, declaration_order, address_temporary) run: no improvement; best retained = 2017 baseline. Structure recovered: flag ptr array D_8011F340[idx*100] -> flag byte; s1 = *(u32**)(D_8011F350+idx*100) record; s0 = D_8011F2F0+idx*100 record; f32 RMW at s1+0xC etc; call func_80129918(s1+0x1C, s0+0x18, s0+0x1C, s0+0x20, 0, s1+0xC, 0); store s1+0x28 -> s0+0x1C; optional func_801D7028(idx,0x19) + f*= -0.7; if (s0+0x1C < -200) { func_8013E49C(s1+0x76); D_8011F2FD[idx*100]=2; f=*(s0+0x44); int t = (f>=2^31)? (s32)(f-2^31) : (s32)f; D_8011F2FD[t*100]=2; } func_8013F44C(idx, s1). Next: fix 8B frame deficit then chase remaining reorder/branch diffs.",
+  "by": "opencode-flint-40b-free-1",
+  "created_at": 1794709092.89439,
+  "score_before": 2017,
+  "score_after": 2017
+ },
+ {
+  "function": "func_8014081C",
+  "text": "Best score 2017 (83.7%, 121 vs 124 insns) at revision 25b6df8740ea70c50b1b (the saved draft with the duplicate func_8013E49C prototype removed, since context.h already declares it as s32). Remaining differences: (1) frame is 0x40 in ours vs 0x38 in target; saves are ra@0x30,s3@0x2c,s2@0x28,s1@0x24,s0@0x20 in target. Removing the f32 local and inlining the float-to-unsigned conversion had no effect on the frame, so the extra 8 bytes come from something else (possibly the 0x14/0x18 outgoing-arg slots or a temp). (2) Target computes 0.2f via lui/ori/mtc1 BEFORE loading 0xC(s1); ours loads 0xC first. (3) Target loads 0x8(s1) after the 0x18 add; ours hoists it. (4) Final unsigned-float branch uses bc1tl and lui 0x8000 / or, ours uses bc1f. Untried: writing the first update as s1->f += -0.2 (gcc may pick the other load order), and a local for s1 0x18 sum. Notes only; no claim left.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794723751.3295932,
+  "score_before": 2017,
+  "score_after": 2017
+ },
+ {
+  "function": "func_8014081C",
+  "text": "Not matched, closest yet: 2017 (83.7%), revision 9added16691307df6b4a (the version with `u16 idx` + `(idx & 0xFFFF)` and a local `f32 f`; a later variant without the local f (revision 3d3d5d1fd3c32e880adf) scores the same). Semantics recovered: off=(arg0&0xFFFF)*100; if (**(u8**)(D_8011F340+off)==0) { s1=*(u8**)(D_8011F350+off); s0=D_8011F2F0+off; s1[0xC]-=0.2f; s0[0x18]+=s1[0x8]; s0[0x20]+=s1[0x10]; func_80129918(s1+0x1C, s0[0x18], s0[0x1C], s0[0x20], 0, s1[0xC], 0); s0[0x1C]=s1[0x28]; if (s1[0x1E]) { func_801D7028(idx,0x19); s1[0xC]*=-0.7f; } if (s0[0x1C] < -200f) { func_8013E49C(u16 s1[0x76]); D_8011F2FD[(arg0&0xFFFF)*100]=2; t = (f>=2^31) ? ((s32)(f-2^31)|0x80000000)&0xFFFF : (s32)f&0xFFFF with f=s0[0x44]; D_8011F2FD[t*100]=2; } func_8013F44C(arg0&0xFFFF, s1); }. Remaining diffs: (1) frame: target is 0x38 (ra 0x30, s3 0x2c, s2 0x28, s1 0x24, s0 0x20) with arg0 kept in $s3 and s2=arg0&0xFFFF; ours is 0x40 with the saves shifted up. (2) The f>=2^31 test: target emits c.le.s with bc1tl and the sub.s in the delay slot, and the trunc in the else; ours emits bc1f with the subtract as a separate block. Try writing the >= as a '!(f < 2^31)' form so the branch sense flips. (3) Constant 0x8000 OR is done with lui $v0,0x8000 then or $a0,$a0,$v0.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794735333.19739,
+  "score_before": 2017,
+  "score_after": 2017
+ },
+ {
+  "function": "func_8014081C",
+  "text": "Best 2017 (83.7%, revision 25b6df8740ea70c50b1b): u16 idx = arg0; s1 = *(u8**)(D_8011F350 + idx*100); s0 = D_8011F2F0 + idx*100; field updates at s1+0xC, s0+0x18/0x20/0x1C; func_80129918 call with 7 args; s1+0x1E flag calls func_801D7028(idx,0x19) and scales s1+0xC by -0.7; if s0+0x1C < -200 calls func_8013E49C and writes D_8011F2FD[..*100]=2 with a u32 conversion of s0+0x44 (f >= 2^31 branch). Target frame is 0x38 with ra,s3,s2,s1,s0 saved; mine is 0x40 with s4 spilled. Tried: dropping idx and using (arg0&0xFFFF) inline (3023, worse). Note func_8013E49C must NOT be redeclared locally (conflicts with context.h). Next: shrink to the target's 0x38 frame (remove the f/t locals or keep arg0 in s3 via move before the andi).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794736537.1302102,
+  "score_before": 2017,
+  "score_after": 2017
+ },
+ {
+  "function": "func_8014081C",
+  "text": "Best 2017 (83.7%) at revision 25b6df8740ea70c50b1b (verified compiling; 121 vs 124 insns). Source: u16 idx=arg0; s1=*(u8**)(D_8011F350+idx*100); s0=D_8011F2F0+idx*100; float fields at 0xC/0x8/0x10/0x18/0x20/0x1C/0x28/0x44; func_80129918(s1+0x1C, s32 0x18, 0x1C, 0x20, 0, f32 0xC, 0); the D_8011F2FD[idx*100]=2 stores; func_8013F44C(arg0&0xFFFF, s1). Remaining diffs: (1) frame: target is addiu sp,-0x38 saving ra@0x30, s3@0x2C, s2@0x28, s1@0x24, s0@0x20; ours is -0x40 with ra@0x38 \u2014 8 extra bytes of frame, probably one extra stack local (try removing the s32 t local or the u16 idx and use arg0&0xFFFF directly). (2) float-compare branch: target uses c.le.s(2^31,f)+bc1tl with the sub.s in the delay slot and trunc in the fall-through; ours emits c.lt + bc1f. Writing the compare as 2147483648.0f <= x or the f local did not change instructions. (3) the negative-branch (f < -200) block order differs. Edits that did not change code: f local vs inline, compare orientation.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794755639.155296,
+  "score_before": 2017,
+  "score_after": 2017
+ },
+ {
+  "function": "func_8014081C",
+  "text": "Best 2017 (83.7%) at revision 25b6df8740ea70c50b1b, the saved best. Do not start from later revisions: d4f83bae478667a08d76 (dropping local f) scored 2017 with no change; 4d3748d06ac15ad71cc9 (inlining the float->u32 conversion into each branch, dropping t) regressed to 2562. Control flow, float math and the calls match in order. The remaining diff is the stack frame: target frame is 0x38 with saves ra@0x30, s3@0x2c, s2@0x28, s1@0x24, s0@0x20; ours is 0x40 (or 0x48 after the regressed edit). Ours also uses bc1f where the target has bc1tl for the -200.0f compare, and the target's idx*100 multiply is sll/addu/sll with s3 in v0 while ours puts it in v1. Next: try the compare as `-200.0f > x` to get bc1tl, and find which local adds the extra 8 bytes of frame before touching registers.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794758065.526089,
+  "score_before": 2017,
+  "score_after": 2017
+ },
+ {
+  "function": "func_8014081C",
+  "text": "Best 2017 (83.7%), revision 21fe8a808f6b89a8f2bd (also dfa69d888ba72994193b same score, no f local). Structure is nearly right: the if on **(u8**)(D_8011F340+idx*100) guard, then the s1/s0 float updates, func_80129918 call, the -200.0f test, and the 2^31 unsigned-float conversion with the D_8011F2FD[...*100] stores. Remaining: target frame is 0x38 with ra saved at 0x30 and no s3 save (mine 0x40, saves s3 at 0x34 and moves a0 to s3). The target keeps arg0 in a0 without a copy; try removing the idx u16 local and using (arg0 & 0xFFFF) directly everywhere so no callee-saved register holds arg0. Float conversion: target uses bc1tl (branch-likely) for the 2^31 compare. Untested.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794766982.23204,
+  "score_before": 2017,
+  "score_after": 2017
+ },
+ {
+  "function": "func_8014081C",
+  "text": "Hand-off of func_8014081C: best 1415 (35 differing rows) in /tmp/dd-haiku-pr11/work/c6.c.\n\nRemaining rows (marker | target | candidate):\n  i | sw $ra, 0x30($sp) | sw $s3, 0x2c($sp)\n  o |  | move $s3, $a0\n  i | sw $s3, 0x2c($sp) | sw $s2, 0x28($sp)\n  < | sw $s2, 0x28($sp) | \n  o | sw $s1, 0x24($sp) | \n  o | sw $s0, 0x20($sp) | \n  o | move $s3, $a0 | \n  > |  | sw $ra, 0x30($sp)\n  o |  | sw $s1, 0x24($sp)\n  o |  | sw $s0, 0x20($sp)\n  i | lui $v0, %hi(D_8011F2F0) | lui $at, 0x3e4c\n  o |  | ori $at, $at, 0xcccd\n  o |  | mtc1 $at, $f2\n  o |  | lwc1 $f0, 0xc($s1)\n  o |  | sub.s $f0, $f0, $f2\n  > |  | lwc1 $f2, 8($s1)\n  > |  | lui $v0, %hi(D_8011F2F0)\n  o | lwc1 $f0, 0xc($s1) | \n  < | lui $at, 0x3e4c | \n  o | ori $at, $at, 0xcccd | \n  o | mtc1 $at, $f2 | \n  < | nop | \n  o | sub.s $f0, $f0, $f2 | \n  < | lwc1 $f0, 0x18($s0) | \n  i | lwc1 $f2, 8($s1) | lwc1 $f0, 0x18($s0)\n  o |  | sw $zero, 0x18($sp)\n  o | sw $zero, 0x18($sp) | \n  i | bc1tl .L18c | bc1tl .L188\n  r | mfc1 $a0, $f0 | mfc1 $v1, $f0\n  r | andi $v0, $a0, 0xffff | andi $v0, $v1, 0xffff\n  o | lui $v0, 0x8000 | \n  r | mfc1 $a0, $f2 | mfc1 $v1, $f2\n  o | nop | lui $v0, 0x8000\n  r | or $a0, $a0, $v0 | or $v1, $v1, $v0\n  r | andi $v0, $a0, 0xffff | andi $v0, $v1, 0xffff\n\nRegister pairs (explain_regs.py):\n  $v1 where the target has $a0 (5 rows):\n  why not $a0: $a0 was free in its conflicts; global.c picks the first free register of the class in allocation order: an earlier allocation (or a register nothing had used yet) decided it.\n  why not $a0: block-local: local-alloc gives quantities registers in priority order and $a0 was taken or tied up in that block. Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $a0: block-local: local-alloc gives quantities registers in priority order and $a0 was taken or tied up in that block. Move it: change its refs/length against those, or make it global (a use in another block).\n\nTried (approach: score):\n  - records (Obj/Rec/Slot typedefs, D_8011F2F0 stride 100, param direct, index recomputed late as (u16) arg0 * 100): 1415\n  - same with both loads of arg0 & 0xFFFF inline instead of a local i: 1415\n  - late store index via i*100 or inline_fn(...): 2431 (CSE keeps the 100*i in a saved register: one extra frame slot)\n  - param copied to s32 arg0 local (move to s4): 2431 (extra saved register)\n  - o->f0C = o->f0C - 0.2f, store-index casts, locals idx/t, o/r order swap, unsigned param, o->f1E truthiness: all 1415 (same code)\n  - moving the -200 block's call before the store: 2715\n\nFindings:\nRemaining rows: target saves ra first (0x30), keeps the float-to-int temp in a0 (ours v1), and loads o->f0C before building 0.2f. The saved best (615, m2c shape with inline_fn and byte-offset casts) is still better than these record forms.",
+  "by": "manual-68913573ef2f4091",
+  "created_at": 1795710493.497525,
+  "score_before": 615,
+  "score_after": 615
+ },
+ {
+  "function": "func_8014081C",
+  "text": "Record-typed rewrite (Obj/Rec/slot typedefs, stride-100 tables, param direct, late index as (u16) arg0 * 100) reaches 1415 at best; saved best 615 (m2c shape with inline_fn and byte-offset casts) is still better. Remaining rows: prologue saves ra first, float-to-int temp kept in a0 not v1, o->f0C loaded before the 0.2f constant. Not matched; released after 30+ judged variants.",
+  "by": "manual-68913573ef2f4091",
+  "created_at": 1795710517.6533608,
+  "score_before": 615,
+  "score_after": 615,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:177dcdc99b658dea7a2e7e1b25be8418b20cddfac912baf247c6a8015490f51d"
+ },
+ {
+  "function": "func_8014081C",
+  "text": "Small-model attempt at func_8014081C: 13 tries.\n  best 717 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 2167 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2212 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3306 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 4152 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n13 tries, no match. Best under -O1 was 717 (try 9: idx local, s0/s1 pointers, arg0 raw for the store index). Remaining diffs: the high-bit branch (target c.le.s + bc1tl, ours c.lt.s + bc1fl) and an 8-byte larger frame (0x40 vs 0x38). Own -O2 score stayed above saved 615.",
+  "by": "manual-2b491a7f83544ee9",
+  "created_at": 1795718010.516767,
+  "score_before": 615,
+  "score_after": 615
+ },
+ {
+  "function": "func_8014081C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_8014081C: 13 tries.\n  best 717 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 2167 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2212 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3306 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 4152 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n13 tries, no match. Best under -O1 was 717 (try 9: idx local, s0/s1 pointers, arg0 raw for the store index). Remaining diffs: the high-bit branch (target c.le.s + bc1tl, ours c.lt.s + bc1fl) and an 8-byte larger frame (0x40 vs 0x38). Own -O2 score stayed above saved 615.",
+  "by": "manual-2b491a7f83544ee9",
+  "created_at": 1795718012.3779771,
+  "score_before": 615,
+  "score_after": 615
  }
 ]
