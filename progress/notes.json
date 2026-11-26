@@ -3448,14 +3448,6 @@
   "score_after": 7080
  },
  {
-  "function": "func_8021078C",
-  "text": "Deep permuter: score 2423 \u2192 2363; 1 improvements; 63 candidates tested; 74 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935771",
-  "created_at": 1794357079.523704,
-  "score_before": 2423,
-  "score_after": 2363
- },
- {
   "function": "n_alSynAddPlayer",
   "text": "Deep permuter: score 285 \u2192 285; 0 improvements; 45 candidates tested; 31 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934916",
@@ -7168,14 +7160,6 @@
   "score_after": 1295
  },
  {
-  "function": "func_8021078C",
-  "text": "Not matched. Best revision 22af8d616eda8cf98db4 scores 3233 (78.1%). Dropping the s32 *f local and using D_8021EFA0 directly, plus q = &D_8021EEC2 declared at the top, brought it from 3949 to 3233. Remaining differences that block closer scores: (1) the switch jump table: target loads its table at %lo(D_8021DD28) and ours shows ?local, with the linker note 'your code refers to .rodata+0x0 where the ROM's code has no address', so the jump table is not emitted at the target symbol; this needs a check on the switch form or a table-symbol declaration, not register tuning. (2) target materialises s2 = &D_80190CB6 before the func_80211C7C(0x14) call; ours places it after. Tried: the address_temporary family (6 variants that route p+0x3E through a temp), all 3233 with no change. Next step: find a switch form that emits a jump table referenced as D_8021DD28 (check get_assembly for the table's entry count, 0x22 cases with contiguous values 0..0x21 except gaps), then re-check the s2 placement.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794710580.711673,
-  "score_before": 3949,
-  "score_after": 3233
- },
- {
   "function": "func_802306F0",
   "text": "Not matched. Best this session 7856 (49.6%), revision c222892d94315d07d44f: correct control flow per asm, but register/stack layout differs (mine saves s0-s4 with frame 0x38; target saves ra,s3,s2,s1,s0 at 0x30..0x20 and keeps only s0-s3). Facts from asm: entry stride is 0x178 (i*47*8), u16 id at +0, flag u8 at +0x25; used[14] at sp+0x10 zeroed with a forward loop from 0; D_8021E1A6 switch (0..3) picks D_80232D04/D10/1C/28 before the clear loop; the wrap is n = (n<13)?n:0 applied at the top of each loop iteration in case 1 (n = id+1 first), and in case 2/3 the while-used loop does n++ then wrap. Loop 2 (i=2,3) flags 0, loop 3 (i=4,5) flags 1. Remaining work: reduce live values (the target keeps only i and n live across calls, so avoid separate index vars), and check whether func_8003DE60 takes a second argument in the first call only (a1 = arg0&0xFFFF there, not in the others). Candidate draft currently 0x20-slot saves, so try a single loop index with n as the only other live variable. Saved best 2907 is from another source and not reverified.",
   "by": "claude-haiku-5-5-20",
@@ -10462,14 +10446,6 @@
   "created_at": 1794725029.082626,
   "score_before": 1215,
   "score_after": 1215
- },
- {
-  "function": "func_8021078C",
-  "text": "Best current 3573 (75.8%) at revision cbd369c3b54edd26b833 (saved best 3148 from another source). The function is a 0x22-case jump-table switch on *(u16*)(p+0x3E) with p = D_8011F2F0 + idx*100 and states 0x00, 0x10, 0x11, 0x20, 0x21 handled; the m2c draft could not recover the table (jr $v0 at 0x802109..). Shape of the C is plausible; remaining diffs: target frame is 0x58 with ra,s0,s1,s2 saved in the prologue and s1 holding p across the call to func_80211C7C(0x14); ours does not save s regs in the same order, and places the 0x14 call first with a separate andi. Also a rodata reference (jump table) is unresolved in the candidate, so the switch needs the case values to be emitted as a table. Next: make p and arg0 live across the call (store p in a local used after func_80211C7C), and try the 0x0 / 0x10 / 0x11 cases as an explicit if-chain only if the table is not recovered.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794725048.7687218,
-  "score_before": 3148,
-  "score_after": 3148
  },
  {
   "function": "func_80214504",
@@ -13878,14 +13854,6 @@
   "created_at": 1794739355.414117,
   "score_before": 3210,
   "score_after": 3210
- },
- {
-  "function": "func_8021078C",
-  "text": "Not matched. Restore point saved_best (historical 2963, the machine-style source with `if (q||p)` arms). Do not use revisions 03c75860..., 27425efd..., b37aeac3... as bases: all scored worse (3238, 3148, 3233).\n\nFurther attempts this session confirm the blockers below and none closed:\n- Swapping the declaration order of `q` and `p` did not change which register holds which pointer (target: p in $s1, q in $s0; ours still reverses them).\n- `do { func_80211C7C(0x14); } while (0)` helped slightly (3233 -> 3148) but the best remains saved_best.\n\nAsm facts: 34-entry state machine on `*(u16*)(p+0x3E)` with jump table D_8021DD28. Known states: 0, 0x10 (falls to 0x11), 0x11 (-> 0x20), 0x20 (-> falls to 0x21), 0x21 (-> 0x10). Single path in 0x20.\n\nRemaining blockers, in order: (1) the jump table reference is `%lo(?local)` in our build but `D_8021DD28` in the ROM, so the table is emitted to .rodata; check table placement first, since every switch-based function in this unit would hit the same wall. (2) Register roles: target $s1=p, $s0=q, $s2=&D_80190CB6. (3) Prologue: target has sw ra at 0x54 then s2 at 0x50 then s1 at 0x4C then s0 at 0x48, which we do not reproduce.\n\nNext step: settle (1) with search_flags or try_compiler for this unit before tuning registers; if the table cannot match, report the function as blocked by the table placement, not by the C.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794739358.609879,
-  "score_before": 2963,
-  "score_after": 2963
  },
  {
   "function": "func_80027D00",
@@ -18856,14 +18824,6 @@
   "score_after": 65
  },
  {
-  "function": "func_8021078C",
-  "text": "Not matched. Best current: 3233 (revision 123e8e8a29e5a0841b3a, or 08834ad0329fbe53469a with extra case labels, same score). Structure is right: switch on the u16 state at p+0x3E, cases 0, 0x10, 0x11, 0x20, 0x21, with 0x10 falling into 0x11 and 0x20 into 0x21; the jump table is 34 entries (sltiu 0x22); func_800DE41C takes 18 args (0,0,3,0,0x4F,0,0,fn,then zeros). Remaining diffs: (1) the target keeps sp=&D_80190CB6 in s2 as a live pointer (lui+addiu at the top, sw ra/s2/s1/s0 order). My version folds it to absolute %lo addressing, so the source probably does not use a plain global pointer. (2) Hoisting q=&D_8021EEC2 to the top gives s0 an early lui and worsens the score to 4354; keep q local to case 0x20 only, but then p moves to s0 (4354); a scoped version was not tried further. (3) The jump table relocation refers to .rodata+0 instead of D_8021DD28; cases 1-0xF,0x12-0x1F added as no-op labels did not change the score. Next: find a source form where sp stays a pointer in a callee-saved register, and check the case 0x20 q block, which is only needed in that case.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794754192.960122,
-  "score_before": 2963,
-  "score_after": 2963
- },
- {
   "function": "func_80230960",
   "text": "Not matched. Best saved 1185 (historical, same-ish source; current rechecked 2175). Structure is right: three identical blocks (a = table[u16 at arg0+0x53A/0x538/0x534]; p = base + u16(arg0+2)*100; if a: write ptr at *(p+0x50)+4 = D_80237740 + a*12, t = D_802387D8[a*16 + u16(arg0+0x230)]*16, four f32 copies from D_80237FC8/CC/D0/D4 + t into p+0x18..0x24; else write 0). Remaining diff (first row 2): target copies arg0 to $a3 first and issues the three lhu before any compare; candidate reorders the lhu/lui. Persistent mismatch: target materialises D_802387D8 as a register base (lui+addiu %lo into $v1, then addu with index, then lbu 0($v0)); candidate folds it into lbu %lo($at). Tried: direct D[expr], pointer-temp tb=D_802387D8, D+(expr) form; all still fold. Local repairs 6 variants: 5580/2775/2175/2370 (no gain). Untried: a different declaration of D_802387D8 (e.g. as a function-local pointer loaded from a struct field, or an extern with a different element type/size) to stop %lo folding; try declaring the three f32 tables as one struct base. Next: fix D_802387D8 base materialisation first, then the leading arg0 copy / lhu order.",
   "by": "claude-haiku-5-5-23",
@@ -19670,14 +19630,6 @@
   "created_at": 1794755944.453181,
   "score_before": 8675,
   "score_after": 8675
- },
- {
-  "function": "func_8021078C",
-  "text": "Best remains the inherited permuter attempt, 2963 (not rechecked here). My clean rewrite without the do{func_80211C7C(0x14);}while(0) scaffold and with explicit break statements scored 3573 (75.8%), worse. Target facts: prologue saves ra,s2,s1,s0 (frame 0x58) and loads s2=&D_80190CB6 before the first call; func_80211C7C(0x14) is called via jal before the switch, so the do-while scaffold (which keeps the call's delay-slot ordering) is needed. The switch is a jump table at D_8021DD28 on (p+0x3E) with 0x22 entries, and the 0x10 case calls func_800DE41C with 18 args (4F in stack slot 0x10). The inherited version lacks break statements: the fall-through from 0x10 into 0x11 and from 0x20 into 0x21 is what the target has. Next experiments: keep the fall-through structure, try s2 = &D_80190CB6 as a pointer local rather than u16*, and check the 0x20 if (q || p) branch as two separate calls.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794755944.537795,
-  "score_before": 2963,
-  "score_after": 2963
  },
  {
   "function": "func_80216128",
@@ -25368,14 +25320,6 @@
   "score_after": 4605
  },
  {
-  "function": "func_8021078C",
-  "text": "Best saved remains 2963 (claimed candidate, rev 94fb409422622afcd0ea). Frame 0x58 saves ra,s0,s1,s2 only; s2=&D_80190CB6 via lui/addiu; s1=p. Case 0 block; case 0x10 falls through into the 0x11 check; case 0x20 falls through into the 0x21 check. The if(q||p) in the saved candidate's case 0x20 is folded by the compiler (both arms identical), so write it straight-line. Tried: (a) straight-line case 0x20 with the rest of the saved candidate -> 3233; (b) local s32 *flag=&D_8021EFA0 for the 0x10 flag update -> 3600 (allocates s3, frame 0x60). Do not use a flag pointer. Remaining diff is the 0x10 flag update (target: lui/addiu into a0, lw/sw through a0, then reload D_8021EFA0 via lui/lw) and the s2 addiu form. Next: reproduce the flag update through a0 without a named pointer, keeping frame 0x58.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794765362.69166,
-  "score_before": 2963,
-  "score_after": 2963
- },
- {
   "function": "func_802306F0",
   "text": "Not matched. Best saved score 9041 (42%), revision 7379013f306427cf63e9 (case-by-case switch with local pointer `a`). Blocker: the frame needs 4 saved regs (s0-s3) plus ra at 0x30, frame 0x38; my candidates keep a 5th (s4) and the prologue order differs. Dropping `a` (revision 94e8676918a146433da3) changed the switch lowering (extra beq/nop shapes) and scored 9181; u32 i (signedness family) scored 9761. Target facts: arg0 stays in s0 across the first call; the second call sets only a0 (a1 is stale, so declare it unprototyped); D_800DA260+0x178 == D_800DA26A+0x16E; byte field at D_800DA26A + i*0x178 + 0x1B. Untested next steps: try -O1 for this switch; or restructure the sp10 clear so the loop index starts at 0 in each switch arm delay slot.",
   "by": "claude-haiku-5-5-24",
@@ -26118,14 +26062,6 @@
   "created_at": 1794767425.915659,
   "score_before": 4100,
   "score_after": 4100
- },
- {
-  "function": "func_8021078C",
-  "text": "Not matched. Saved best is 2963 from an earlier attempt. My rewrite (switch with explicit breaks, revision 4d19fcd8189c631291c8) scored 3573, worse, so not kept. The target is 148 insns with a jump table on the state u16 at p+0x3E. Target frame is 0x58 with ra, s2, s1, s0 saved. Target loads D_80190CB6 into $s2 right after the saves, and the case 0x20 block is laid out so the table jump follows the case 0x20 body. My version emits the 0x14 argument load before the andi, and has a 'j' to a shared tail twice. Also the compile reports .rodata+0 unresolved (the jump table), so the switch needs its table in the expected section. Next: keep the switch exactly as the target order (case 0x11 falls through to 0x20 only on the no-branch path), and check the 0x21 and 0x10 fallthrough edges against get_assembly before changing the arithmetic.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794767444.287192,
-  "score_before": 2963,
-  "score_after": 2963
  },
  {
   "function": "func_802306F0",
@@ -39639,5 +39575,94 @@
   "score_before": 3050,
   "score_after": 3050,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:94220e452bbc8fa7a31eae22f9300d7fbfb48c33d7e85ef745359ed5d1e774a1"
+ },
+ {
+  "function": "func_8021078C",
+  "text": "Deep permuter: score 2423 \u2192 2363; 1 improvements; 63 candidates tested; 74 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935771",
+  "created_at": 1794357079.523704,
+  "score_before": 2423,
+  "score_after": 2363
+ },
+ {
+  "function": "func_8021078C",
+  "text": "Not matched. Best revision 22af8d616eda8cf98db4 scores 3233 (78.1%). Dropping the s32 *f local and using D_8021EFA0 directly, plus q = &D_8021EEC2 declared at the top, brought it from 3949 to 3233. Remaining differences that block closer scores: (1) the switch jump table: target loads its table at %lo(D_8021DD28) and ours shows ?local, with the linker note 'your code refers to .rodata+0x0 where the ROM's code has no address', so the jump table is not emitted at the target symbol; this needs a check on the switch form or a table-symbol declaration, not register tuning. (2) target materialises s2 = &D_80190CB6 before the func_80211C7C(0x14) call; ours places it after. Tried: the address_temporary family (6 variants that route p+0x3E through a temp), all 3233 with no change. Next step: find a switch form that emits a jump table referenced as D_8021DD28 (check get_assembly for the table's entry count, 0x22 cases with contiguous values 0..0x21 except gaps), then re-check the s2 placement.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794710580.711673,
+  "score_before": 3949,
+  "score_after": 3233
+ },
+ {
+  "function": "func_8021078C",
+  "text": "Best current 3573 (75.8%) at revision cbd369c3b54edd26b833 (saved best 3148 from another source). The function is a 0x22-case jump-table switch on *(u16*)(p+0x3E) with p = D_8011F2F0 + idx*100 and states 0x00, 0x10, 0x11, 0x20, 0x21 handled; the m2c draft could not recover the table (jr $v0 at 0x802109..). Shape of the C is plausible; remaining diffs: target frame is 0x58 with ra,s0,s1,s2 saved in the prologue and s1 holding p across the call to func_80211C7C(0x14); ours does not save s regs in the same order, and places the 0x14 call first with a separate andi. Also a rodata reference (jump table) is unresolved in the candidate, so the switch needs the case values to be emitted as a table. Next: make p and arg0 live across the call (store p in a local used after func_80211C7C), and try the 0x0 / 0x10 / 0x11 cases as an explicit if-chain only if the table is not recovered.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794725048.7687218,
+  "score_before": 3148,
+  "score_after": 3148
+ },
+ {
+  "function": "func_8021078C",
+  "text": "Not matched. Restore point saved_best (historical 2963, the machine-style source with `if (q||p)` arms). Do not use revisions 03c75860..., 27425efd..., b37aeac3... as bases: all scored worse (3238, 3148, 3233).\n\nFurther attempts this session confirm the blockers below and none closed:\n- Swapping the declaration order of `q` and `p` did not change which register holds which pointer (target: p in $s1, q in $s0; ours still reverses them).\n- `do { func_80211C7C(0x14); } while (0)` helped slightly (3233 -> 3148) but the best remains saved_best.\n\nAsm facts: 34-entry state machine on `*(u16*)(p+0x3E)` with jump table D_8021DD28. Known states: 0, 0x10 (falls to 0x11), 0x11 (-> 0x20), 0x20 (-> falls to 0x21), 0x21 (-> 0x10). Single path in 0x20.\n\nRemaining blockers, in order: (1) the jump table reference is `%lo(?local)` in our build but `D_8021DD28` in the ROM, so the table is emitted to .rodata; check table placement first, since every switch-based function in this unit would hit the same wall. (2) Register roles: target $s1=p, $s0=q, $s2=&D_80190CB6. (3) Prologue: target has sw ra at 0x54 then s2 at 0x50 then s1 at 0x4C then s0 at 0x48, which we do not reproduce.\n\nNext step: settle (1) with search_flags or try_compiler for this unit before tuning registers; if the table cannot match, report the function as blocked by the table placement, not by the C.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794739358.609879,
+  "score_before": 2963,
+  "score_after": 2963
+ },
+ {
+  "function": "func_8021078C",
+  "text": "Not matched. Best current: 3233 (revision 123e8e8a29e5a0841b3a, or 08834ad0329fbe53469a with extra case labels, same score). Structure is right: switch on the u16 state at p+0x3E, cases 0, 0x10, 0x11, 0x20, 0x21, with 0x10 falling into 0x11 and 0x20 into 0x21; the jump table is 34 entries (sltiu 0x22); func_800DE41C takes 18 args (0,0,3,0,0x4F,0,0,fn,then zeros). Remaining diffs: (1) the target keeps sp=&D_80190CB6 in s2 as a live pointer (lui+addiu at the top, sw ra/s2/s1/s0 order). My version folds it to absolute %lo addressing, so the source probably does not use a plain global pointer. (2) Hoisting q=&D_8021EEC2 to the top gives s0 an early lui and worsens the score to 4354; keep q local to case 0x20 only, but then p moves to s0 (4354); a scoped version was not tried further. (3) The jump table relocation refers to .rodata+0 instead of D_8021DD28; cases 1-0xF,0x12-0x1F added as no-op labels did not change the score. Next: find a source form where sp stays a pointer in a callee-saved register, and check the case 0x20 q block, which is only needed in that case.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794754192.960122,
+  "score_before": 2963,
+  "score_after": 2963
+ },
+ {
+  "function": "func_8021078C",
+  "text": "Best remains the inherited permuter attempt, 2963 (not rechecked here). My clean rewrite without the do{func_80211C7C(0x14);}while(0) scaffold and with explicit break statements scored 3573 (75.8%), worse. Target facts: prologue saves ra,s2,s1,s0 (frame 0x58) and loads s2=&D_80190CB6 before the first call; func_80211C7C(0x14) is called via jal before the switch, so the do-while scaffold (which keeps the call's delay-slot ordering) is needed. The switch is a jump table at D_8021DD28 on (p+0x3E) with 0x22 entries, and the 0x10 case calls func_800DE41C with 18 args (4F in stack slot 0x10). The inherited version lacks break statements: the fall-through from 0x10 into 0x11 and from 0x20 into 0x21 is what the target has. Next experiments: keep the fall-through structure, try s2 = &D_80190CB6 as a pointer local rather than u16*, and check the 0x20 if (q || p) branch as two separate calls.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794755944.537795,
+  "score_before": 2963,
+  "score_after": 2963
+ },
+ {
+  "function": "func_8021078C",
+  "text": "Best saved remains 2963 (claimed candidate, rev 94fb409422622afcd0ea). Frame 0x58 saves ra,s0,s1,s2 only; s2=&D_80190CB6 via lui/addiu; s1=p. Case 0 block; case 0x10 falls through into the 0x11 check; case 0x20 falls through into the 0x21 check. The if(q||p) in the saved candidate's case 0x20 is folded by the compiler (both arms identical), so write it straight-line. Tried: (a) straight-line case 0x20 with the rest of the saved candidate -> 3233; (b) local s32 *flag=&D_8021EFA0 for the 0x10 flag update -> 3600 (allocates s3, frame 0x60). Do not use a flag pointer. Remaining diff is the 0x10 flag update (target: lui/addiu into a0, lw/sw through a0, then reload D_8021EFA0 via lui/lw) and the s2 addiu form. Next: reproduce the flag update through a0 without a named pointer, keeping frame 0x58.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794765362.69166,
+  "score_before": 2963,
+  "score_after": 2963
+ },
+ {
+  "function": "func_8021078C",
+  "text": "Not matched. Saved best is 2963 from an earlier attempt. My rewrite (switch with explicit breaks, revision 4d19fcd8189c631291c8) scored 3573, worse, so not kept. The target is 148 insns with a jump table on the state u16 at p+0x3E. Target frame is 0x58 with ra, s2, s1, s0 saved. Target loads D_80190CB6 into $s2 right after the saves, and the case 0x20 block is laid out so the table jump follows the case 0x20 body. My version emits the 0x14 argument load before the andi, and has a 'j' to a shared tail twice. Also the compile reports .rodata+0 unresolved (the jump table), so the switch needs its table in the expected section. Next: keep the switch exactly as the target order (case 0x11 falls through to 0x20 only on the no-branch path), and check the 0x21 and 0x10 fallthrough edges against get_assembly before changing the arithmetic.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794767444.287192,
+  "score_before": 2963,
+  "score_after": 2963
+ },
+ {
+  "function": "func_8021078C",
+  "text": "Not matched (about 11 judged). Under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 the saved best scores 420 and a plain rewrite (fences, casts and register declarations removed; work/f3_p1 equivalent) also scores 420; the first differing row is the switch jump table: target %hi(D_8021DD28), ours a different table address, so the judge's linked table placement, not the cases, decides it. Case-arm variants (break vs fallthrough, if (p) only, no leading call) scored 620-4435. Open: the table's placement in .rodata.",
+  "by": "manual-13d7053acf374055",
+  "created_at": 1795712390.90199,
+  "score_before": 2358,
+  "score_after": 2358
+ },
+ {
+  "function": "func_8021078C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] About 11 judged attempts under -O1; the open blocker is the jump-table placement.",
+  "by": "manual-13d7053acf374055",
+  "created_at": 1795712397.2870011,
+  "score_before": 2358,
+  "score_after": 2358
+ },
+ {
+  "function": "func_8021078C",
+  "text": "Profile probe: this saved C scores 420 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (10 of its 12 nearest matched neighbours were built with it), 2358 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721212.53466,
+  "score_before": 2358,
+  "score_after": 420,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:c396c65ee80b244eea1da1a878ce1570997a10c18e054be16b6c6157c0ed779e"
  }
 ]
