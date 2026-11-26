@@ -6632,14 +6632,6 @@
   "score_after": 6395
  },
  {
-  "function": "func_80148260",
-  "text": "Best 6270 (47.3%), from the m2c-style rewrite with array indexing: `D_8018D140[(arg1&0xFF)*0x12C/2 + i]` loops, mask loop over D_8018D3A0[(arg0&0xFF)<<5 + j*4], inner k<0x20 bit loop, tail branch on (arg1&0xFF)==1 copying 8 entries. Target facts: no stack frame at all (candidates always add `addiu $sp,-8`, so the function needs fewer live locals or no spilled temps); arg0 is kept in $t1 across the first loop; x*0x12C is computed as ((x<<2)+x)<<4 - ... <<2 (i.e. 75x*4), with the base `D_8018D140 + 300*x` in a0. Tried a pointer `dst = D_8018D140 + (arg1&0xFF)*0x96` version: 6505 (worse, wrong scaling is a suspect, it should be a byte offset of 0x12C not 0x96 shorts). Next: keep the 6270 source, reduce live variables (drop `cnt` and `n`, reuse one counter), and check the j/k inner loop order so the tail's `arg1&0xFF` is recomputed rather than kept live.\n\nBest 6145 (48.3%, revision da3017c2d6101f022e77): array-indexed loops, n reused for the tail (no separate cnt). Target has no stack frame; candidates always add `addiu $sp,-8` and keep a0/t0 live, so reducing live locals is the lever. Target computes the row offset 0x12C*x as 75*4*x. Pointer `dst = D_8018D140 + x*0x96` scored worse (6505). Next: a single unreassigned u16 row-base local, with the tail store through it.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794708688.5463622,
-  "score_before": 6615,
-  "score_after": 6145
- },
- {
   "function": "func_80149220",
   "text": "Released: two rewrites (6122, 6197) are both well below the inherited saved best 3253, and tweaking local count did not close the gap. Why it can't get closer yet: the target frame is 0x40 with s0..s7 and fp saved (sw s7 at 0x34, s6 at 0x30), so it needs ~7 live locals across the loop and the func_801496B0 call, which my variable list does not reproduce; the m2c draft's structure is roughly right but the register allocation and the 0x2FFF/0x4FFF selection order differ. Next agent: first fix the set of live values (arg2 & 0xFF kept in s5/s6, arg3 kept in s3, arg1 in fp, s4 result, s7 likely the loop index or the (arg3*150) base), then the D_8018A288 indexing at the end, and only then tune the frame size. Notes only; no verified match.",
   "by": "claude-haiku-5-5-20",
@@ -6654,14 +6646,6 @@
   "created_at": 1794708774.301018,
   "score_before": 1960,
   "score_after": 1930
- },
- {
-  "function": "func_80148260",
-  "text": "Released: the three rewrites I tried all score below the saved best 6145 (48%): the plain indexed version (6145, saved best), a pointer-base version (6385), and a hoisted-base-local version (7505). So local base-hoisting variants make it worse; the saved best is the one to start from. Why it can't get closer by local edits: the target's first loop has lui/addiu of D_8018D140 hoisted before the loop and the base (arg1&0xFF)*300 as sll/addu/sll/subu/sll, and a2/a3/t0/t1/t3 are fixed by the loop shape; the remaining mismatch is register allocation and the tail (target lines 70-130: the 0x2FFF/0x3FFF/0x4FFF stores and the 8-entry copy loops) which I did not verify. Next agent: read the tail with get_assembly(start=70) before editing, and try the saved best with only the tail rewritten.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794708795.9877372,
-  "score_before": 6145,
-  "score_after": 6145
  },
  {
   "function": "func_8003E884",
@@ -10080,14 +10064,6 @@
   "score_after": 3253
  },
  {
-  "function": "func_80148260",
-  "text": "Not matched. Best: revision c69e83ec5b2506cf268f (score 5830, 51% match; target 119 insns, mine 114). Facts: target is a leaf with no stack frame; move $t1,$a0 saves arg0; the base address for D_8018D140 is hoisted with lui/addiu; byte offset (arg1&0xFF)*300 is built as ((v<<2)+v)<<4 minus 5v, then <<2. First fill loop stores 0xFFFF via a register-held constant; mask bit loop reads D_8018D3A0 + ((arg0&0xFF)<<5) + 4*j; inner k<0x20 loop with andi/beqz and sh of (j<<8)|k. Tried without gain: local pointer dst = D_8018D140 + (arg1&0xFF)*150 (6385, worse); mask declared inside j loop (still 5830, same addiu sp,-8 frame, and the ordering of the second loop's base). Open problem: our frame (addiu sp,-8) and the spill that causes it; the compiler does not hoist the base address the way the target does. Next: find which local is spilled (try n as the only long-lived variable, or fold arg1&0xFF into a single s32 local) and align the first loop's address CSE with the target's lui/addiu placement before the store loop.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794723741.929991,
-  "score_before": 5830,
-  "score_after": 5830
- },
- {
   "function": "func_80026D40",
   "text": "Best 2033/45 insns (rev e3fd88251e4866321b97, unchanged by ~25 variants). Structure is right (two leading func_8003DE60 calls, 12-byte entry loop with mask/val/id, first-flag separator). Remaining: candidate frame 0x28 with 4 saved regs (s0,s1,s2,s3) vs target 0x20 with 3 (s0=p, s1=first, s2=arg0); target loads p[1] into $v1 before the bnel delay slot (`lw $v1,4($s0)` then `bnel $v0,$v1`), candidate loads it in the branch delay slot as `lw $v1,-4($s0)` after pre-biasing the pointer by +8. Tried and rejected: reordering p/first init before the calls (2228), struct Ent with ->mask/->val/->id (equal 2033 or worse), naming the pointer as the parameter (2228), *p instead of p[0], for-loop form, goto join, if(!first) form, s32/u32 arg0, s8* arg1, (m = p[0]) != 0 temp. Next idea: make the loop condition read the mask into a named temp that is live across the compare (so gcc materialises it in $v0 before the branch) while keeping the pointer un-biased, and get the 3-register allocation by having arg0 be a plain parameter used only in the compare (no copy to a local).",
   "by": "api-route-llm-code-2",
@@ -12920,14 +12896,6 @@
   "score_after": 875
  },
  {
-  "function": "func_80148260",
-  "text": "Not matched. Best this session 6435 (46%), revision b8d3f2d7a8bb326823dc (saved best 5830 is older and better). Target logic is clear: b = (u16*)D_8018D140 + (arg1&0xFF)*150; b[0..149]=0xFFFF; n=0; for j<8: m=*(u32*)(D_8018D3A0+((arg0&0xFF)<<5)+4j); for k<32: if (m&1) {b[n++]=(j<<8)|k;} m>>=1 (logical shift); b[n++]=0x3FFF; if ((arg1&0xFF)==1) { if (D_80189B36&0x20) b[n++]=0x4FFF; copy 8 halfwords D_8018D26C[i] -> D_8018D140[n+i] } else { D_8018D140[n++]=0x2FFF; copy D_8018D140[i] -> D_8018D140[n+i] }; return n. Remaining diff: target has NO stack frame and keeps arg0 in $t1 with arg1 reloaded through andi each time; we emit addiu sp,-8 (a spilled temp) and the copy-loop base pointers are hoisted differently. Pointer-based copy src variant made it worse (6820). Next: remove the local u32 m temp (use the shift on the lw value directly), and write the copy loops with the same base pointer the target uses (a0 = D_8018D26C, reused for both branches).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794735264.7553222,
-  "score_before": 5830,
-  "score_after": 5830
- },
- {
   "function": "func_80215480",
   "text": "Best still 3705 (55.3%) at revision 917f71ec60d6fe0838db. Control flow is right: the first if is an || with a bc1t to a shared tail that recomputes t=idx*100 via the sll/addu chain; the fallthrough re-andi's arg0 into idx. Main diff: target keeps idx in $v1 separate from arg0 in $a0 (andi $v1,$a0 at entry, and again in the if-body), while my version puts idx in $a0 because arg0 is dead after the first andi. Writing the if-body store as ((arg0&0xFFFF)*0x64) changed nothing (revision cd69fe0acefbe8660d25). Next idea: make idx a distinct variable that is live-in to the chain (e.g. u16-typed local, or use arg0 directly in the first store) so GCC allocates $v1 rather than reusing $a0; also the F324 second check should reuse the t chain from the join (.L80215558) rather than a fresh andi.",
   "by": "claude-haiku-5-5-23",
@@ -13086,14 +13054,6 @@
   "created_at": 1794736357.199463,
   "score_before": 2115,
   "score_after": 2115
- },
- {
-  "function": "func_80148260",
-  "text": "Not matched. Best 5830 (51.0%), revision c69e83ec5b2506cf268f (`s32 func_80148260(u8 arg0, s32 arg1)`, direct `D_8018D140[(arg1&0xFF)*0x12C/2 + i]` indexing). Tried and worse: arg1 as u8 (6145); a `u16 *row` base of `D_8018D140 + (arg1&0xFF)*0x96` (6385); the same with a byte-pointer base `(u8*)D_8018D140 + (arg1&0xFF)*0x12C` (no change from 6385). Target decodes as: row offset = (x*75)<<2 bytes built from shifts (x<<2, +x, <<4, -x, <<2), so the index is a byte offset, not a u16 multiply. Target starts with `move $t1,$a0` and has no stack frame, while mine opens with `addiu $sp,-8`. Next: make arg0 and arg1 both s32 with a local `base` byte offset computed once, then check whether the 8-entry copy loops need their own counter registers. Mismatch is mostly register allocation and ordering after that.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794736425.077417,
-  "score_before": 5830,
-  "score_after": 5830
  },
  {
   "function": "func_8014B410",
@@ -18976,14 +18936,6 @@
   "score_after": 6340
  },
  {
-  "function": "func_80148260",
-  "text": "Unmatched. Saved best 5830 (51%) is the first candidate (`D_8018D140[(arg1&0xFF)*0x12C/2 + i]`). Every variant since then was worse: u16 row pointer from (u8*)base + x*0x12C (6075), row = base + x*0x96 (6075), off temp with D_8018D140[off+i] (7560). Common gap: the candidates all emit a stack frame (`addiu $sp,-8`) and a count-down fill loop, while the target is a frame-less leaf that starts `move $t1,$a0; move $a2,$zero`, builds the row base with lui/addiu D_8018D140 before the x*300 offset, and fills with `sll v0,a2,1; addu v0,v0,v1; sh $a0,0(v0)`. Untried: keep arg0 in a separate local copied at entry (to get the move $t1,$a0), and avoid the second loop's per-row byte address recompute. The second half (mask bit loop with (j<<8)|k, 8-entry copy with `D_8018D26C`/`D_8018D140` tail) is structurally plausible but unverified in register order.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794755372.072381,
-  "score_before": 5830,
-  "score_after": 5830
- },
- {
   "function": "func_80194E60",
   "text": "Not matched. Saved best 3035 (historical) stands; my goto rewrite (revision a311c0e8df3933371973) scores 8745 (50.5%), 129 insns vs 177. Sibling of func_801948E0 (same display-list/state logic). Asm facts: b9 = lb D_801C6BB9, branch 'slti b9,0x17; beqz' to the else (store D_801C7AB8 to *arg0). In the AB0[1]==5 path: cond A1 b0==T68 && b1==b9+1 && D7469!=2 -> store 4; cond A2 b0==T68 && b1==b9-1 && D7469!=1 && D7469!=3 -> store 4; cond B (b0==T68+1 || b0==T68-1) && D7063==b9 && D7469!=0 && D7469!=2 -> store 4. Then x = lhu(D6C10 + ((b9*24+T68)*2)) != 0xFFFF -> store 4; D6B25==0 -> store 4; v = (D6B25==*arg0)?5 : (D6B25==1)?0xD : (D6B25==3)?0xA : none. D6B20=v; D6B22=0; D6B23=1; D6B21=5; if (AB0[0]==4){D6B20+=0x2E; D6B21=0x33;} D6B24=1; if (D6B26!=2){func_8014B854(0x3B, arg0, b9); D6B26=2;}. Remaining diffs: the target reloads b9 with its own lui/lb at each use (not one local) and keeps arg0 in $a1 via a move after the first test; the 'slti/beqz' block order differs. Next: reuse the 801948E0 structure and spell D_801C6BB9 at each use.",
   "by": "claude-haiku-5-5-22",
@@ -24728,14 +24680,6 @@
   "score_after": 169542
  },
  {
-  "function": "func_80148260",
-  "text": "Best saved candidate: revision c69e83ec5b2506cf268f, score 5830 (the source as submitted, keeps `(arg1 & 0xFF) * 0x12C / 2 + index` addressing). Target facts: row base is D_8018D140 + 300*(arg1&0xFF) bytes, computed as (v*5)*15*4; mask table D_8018D3A0 + ((arg0&0xFF)<<5); the first loop is a bottom-tested pointer-increment loop with the (i*2) offset in the delay slot; the mask inner loop carries j<<8 in t1 and k in a2. Tried: a local `u16 *out = (u16*)((u8*)D_8018D140 + (arg1&0xFF)*300)` with out[i] indexing scored 6385 (worse, register/order changed everywhere). Open: the target reloads the base via lui/addiu inside the second loop at the fallthrough point, and the tail branch (arg1==1 path) differs in order. Untried: an explicit bottom-tested do-while for the first loop, and splitting the arg1==1 tail into its own static helper form.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794764939.454908,
-  "score_before": 5830,
-  "score_after": 5830
- },
- {
   "function": "func_80149220",
   "text": "Not matched. Best of mine: 5582 (51.8%, revision 455836e43b6fb9d3341d); saved historical best 3253 is better. Adding an s7 (0xFFFF) local made it 6332, so the 455836 version is the base. Why I'm stopping here: the target keeps arg1 in fp and arg2 in s6 across the calls, saves 10 registers in a 0x40 frame, and the draft's save set (no s7, no fp) is wrong at the root. Fixing that means choosing a variable set that the compiler allocates to these exact registers, which the two variants did not do. Full control-flow decode is in the notes of the previous release (structure is: s4 default 0x2FFF/0x4FFF; the arg0==8 block with a do-while over D_8018D140 + 0x12C*arg3; the `!(s1&0xFF)` s2=7 rule; the `v<8` loop calling func_801496B0(arg3&0xFF, s2&0xFF, arg2&0xFF) with s2=(s2+1)&7; then ((u16*)&D_8018A288)[v1] or D_8018A288 when arg1&0xFF==0). Next agent: start from 455836 and try declaring arg1/arg2 as u8 locals (fp, s6) so the saves follow the target.",
   "by": "claude-haiku-5-5-20",
@@ -25430,14 +25374,6 @@
   "created_at": 1794766920.774524,
   "score_before": 3253,
   "score_after": 3253
- },
- {
-  "function": "func_80148260",
-  "text": "Not matched. Best 5830 (51.0%), revision c69e83ec5b2506cf268f (restore with get_candidate(base=\"saved_best\")). Structure: clear 0x96 u16 entries at row base, bitmask scan of D_8018D3A0 + ((arg0&0xFF)<<5) + j*4 writing (j<<8)|k, 0x3FFF terminator, then either 0x4FFF (if D_80189B36 & 0x20) plus copy of D_8018D26C, or 0x2FFF plus copy from D_8018D140. Target starts with move $t1,$a0 and move $a2,$zero (n kept in a2) and computes row base as (x*0x12C) via shifts (andi, sll 2, addu, sll 4, subu, sll 2) then addu with a0. Tried: row pointer local u16 *row = D_8018D140 + (arg1&0xFF)*0x96 (6385, worse). Open: get the row-base multiply shape and keep n in a2 across the loops.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794766973.135489,
-  "score_before": 5830,
-  "score_after": 5830
  },
  {
   "function": "func_80214504",
@@ -39953,5 +39889,77 @@
   "score_before": 3160,
   "score_after": 1280,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:cc7dd14f989f00a2c2e402de71102e3d0ab9693019f3404f62a95bd8cecbed8e"
+ },
+ {
+  "function": "func_80148260",
+  "text": "Best 6270 (47.3%), from the m2c-style rewrite with array indexing: `D_8018D140[(arg1&0xFF)*0x12C/2 + i]` loops, mask loop over D_8018D3A0[(arg0&0xFF)<<5 + j*4], inner k<0x20 bit loop, tail branch on (arg1&0xFF)==1 copying 8 entries. Target facts: no stack frame at all (candidates always add `addiu $sp,-8`, so the function needs fewer live locals or no spilled temps); arg0 is kept in $t1 across the first loop; x*0x12C is computed as ((x<<2)+x)<<4 - ... <<2 (i.e. 75x*4), with the base `D_8018D140 + 300*x` in a0. Tried a pointer `dst = D_8018D140 + (arg1&0xFF)*0x96` version: 6505 (worse, wrong scaling is a suspect, it should be a byte offset of 0x12C not 0x96 shorts). Next: keep the 6270 source, reduce live variables (drop `cnt` and `n`, reuse one counter), and check the j/k inner loop order so the tail's `arg1&0xFF` is recomputed rather than kept live.\n\nBest 6145 (48.3%, revision da3017c2d6101f022e77): array-indexed loops, n reused for the tail (no separate cnt). Target has no stack frame; candidates always add `addiu $sp,-8` and keep a0/t0 live, so reducing live locals is the lever. Target computes the row offset 0x12C*x as 75*4*x. Pointer `dst = D_8018D140 + x*0x96` scored worse (6505). Next: a single unreassigned u16 row-base local, with the tail store through it.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794708688.5463622,
+  "score_before": 6615,
+  "score_after": 6145
+ },
+ {
+  "function": "func_80148260",
+  "text": "Released: the three rewrites I tried all score below the saved best 6145 (48%): the plain indexed version (6145, saved best), a pointer-base version (6385), and a hoisted-base-local version (7505). So local base-hoisting variants make it worse; the saved best is the one to start from. Why it can't get closer by local edits: the target's first loop has lui/addiu of D_8018D140 hoisted before the loop and the base (arg1&0xFF)*300 as sll/addu/sll/subu/sll, and a2/a3/t0/t1/t3 are fixed by the loop shape; the remaining mismatch is register allocation and the tail (target lines 70-130: the 0x2FFF/0x3FFF/0x4FFF stores and the 8-entry copy loops) which I did not verify. Next agent: read the tail with get_assembly(start=70) before editing, and try the saved best with only the tail rewritten.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794708795.9877372,
+  "score_before": 6145,
+  "score_after": 6145
+ },
+ {
+  "function": "func_80148260",
+  "text": "Not matched. Best: revision c69e83ec5b2506cf268f (score 5830, 51% match; target 119 insns, mine 114). Facts: target is a leaf with no stack frame; move $t1,$a0 saves arg0; the base address for D_8018D140 is hoisted with lui/addiu; byte offset (arg1&0xFF)*300 is built as ((v<<2)+v)<<4 minus 5v, then <<2. First fill loop stores 0xFFFF via a register-held constant; mask bit loop reads D_8018D3A0 + ((arg0&0xFF)<<5) + 4*j; inner k<0x20 loop with andi/beqz and sh of (j<<8)|k. Tried without gain: local pointer dst = D_8018D140 + (arg1&0xFF)*150 (6385, worse); mask declared inside j loop (still 5830, same addiu sp,-8 frame, and the ordering of the second loop's base). Open problem: our frame (addiu sp,-8) and the spill that causes it; the compiler does not hoist the base address the way the target does. Next: find which local is spilled (try n as the only long-lived variable, or fold arg1&0xFF into a single s32 local) and align the first loop's address CSE with the target's lui/addiu placement before the store loop.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794723741.929991,
+  "score_before": 5830,
+  "score_after": 5830
+ },
+ {
+  "function": "func_80148260",
+  "text": "Not matched. Best this session 6435 (46%), revision b8d3f2d7a8bb326823dc (saved best 5830 is older and better). Target logic is clear: b = (u16*)D_8018D140 + (arg1&0xFF)*150; b[0..149]=0xFFFF; n=0; for j<8: m=*(u32*)(D_8018D3A0+((arg0&0xFF)<<5)+4j); for k<32: if (m&1) {b[n++]=(j<<8)|k;} m>>=1 (logical shift); b[n++]=0x3FFF; if ((arg1&0xFF)==1) { if (D_80189B36&0x20) b[n++]=0x4FFF; copy 8 halfwords D_8018D26C[i] -> D_8018D140[n+i] } else { D_8018D140[n++]=0x2FFF; copy D_8018D140[i] -> D_8018D140[n+i] }; return n. Remaining diff: target has NO stack frame and keeps arg0 in $t1 with arg1 reloaded through andi each time; we emit addiu sp,-8 (a spilled temp) and the copy-loop base pointers are hoisted differently. Pointer-based copy src variant made it worse (6820). Next: remove the local u32 m temp (use the shift on the lw value directly), and write the copy loops with the same base pointer the target uses (a0 = D_8018D26C, reused for both branches).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794735264.7553222,
+  "score_before": 5830,
+  "score_after": 5830
+ },
+ {
+  "function": "func_80148260",
+  "text": "Not matched. Best 5830 (51.0%), revision c69e83ec5b2506cf268f (`s32 func_80148260(u8 arg0, s32 arg1)`, direct `D_8018D140[(arg1&0xFF)*0x12C/2 + i]` indexing). Tried and worse: arg1 as u8 (6145); a `u16 *row` base of `D_8018D140 + (arg1&0xFF)*0x96` (6385); the same with a byte-pointer base `(u8*)D_8018D140 + (arg1&0xFF)*0x12C` (no change from 6385). Target decodes as: row offset = (x*75)<<2 bytes built from shifts (x<<2, +x, <<4, -x, <<2), so the index is a byte offset, not a u16 multiply. Target starts with `move $t1,$a0` and has no stack frame, while mine opens with `addiu $sp,-8`. Next: make arg0 and arg1 both s32 with a local `base` byte offset computed once, then check whether the 8-entry copy loops need their own counter registers. Mismatch is mostly register allocation and ordering after that.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794736425.077417,
+  "score_before": 5830,
+  "score_after": 5830
+ },
+ {
+  "function": "func_80148260",
+  "text": "Unmatched. Saved best 5830 (51%) is the first candidate (`D_8018D140[(arg1&0xFF)*0x12C/2 + i]`). Every variant since then was worse: u16 row pointer from (u8*)base + x*0x12C (6075), row = base + x*0x96 (6075), off temp with D_8018D140[off+i] (7560). Common gap: the candidates all emit a stack frame (`addiu $sp,-8`) and a count-down fill loop, while the target is a frame-less leaf that starts `move $t1,$a0; move $a2,$zero`, builds the row base with lui/addiu D_8018D140 before the x*300 offset, and fills with `sll v0,a2,1; addu v0,v0,v1; sh $a0,0(v0)`. Untried: keep arg0 in a separate local copied at entry (to get the move $t1,$a0), and avoid the second loop's per-row byte address recompute. The second half (mask bit loop with (j<<8)|k, 8-entry copy with `D_8018D26C`/`D_8018D140` tail) is structurally plausible but unverified in register order.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794755372.072381,
+  "score_before": 5830,
+  "score_after": 5830
+ },
+ {
+  "function": "func_80148260",
+  "text": "Best saved candidate: revision c69e83ec5b2506cf268f, score 5830 (the source as submitted, keeps `(arg1 & 0xFF) * 0x12C / 2 + index` addressing). Target facts: row base is D_8018D140 + 300*(arg1&0xFF) bytes, computed as (v*5)*15*4; mask table D_8018D3A0 + ((arg0&0xFF)<<5); the first loop is a bottom-tested pointer-increment loop with the (i*2) offset in the delay slot; the mask inner loop carries j<<8 in t1 and k in a2. Tried: a local `u16 *out = (u16*)((u8*)D_8018D140 + (arg1&0xFF)*300)` with out[i] indexing scored 6385 (worse, register/order changed everywhere). Open: the target reloads the base via lui/addiu inside the second loop at the fallthrough point, and the tail branch (arg1==1 path) differs in order. Untried: an explicit bottom-tested do-while for the first loop, and splitting the arg1==1 tail into its own static helper form.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794764939.454908,
+  "score_before": 5830,
+  "score_after": 5830
+ },
+ {
+  "function": "func_80148260",
+  "text": "Not matched. Best 5830 (51.0%), revision c69e83ec5b2506cf268f (restore with get_candidate(base=\"saved_best\")). Structure: clear 0x96 u16 entries at row base, bitmask scan of D_8018D3A0 + ((arg0&0xFF)<<5) + j*4 writing (j<<8)|k, 0x3FFF terminator, then either 0x4FFF (if D_80189B36 & 0x20) plus copy of D_8018D26C, or 0x2FFF plus copy from D_8018D140. Target starts with move $t1,$a0 and move $a2,$zero (n kept in a2) and computes row base as (x*0x12C) via shifts (andi, sll 2, addu, sll 4, subu, sll 2) then addu with a0. Tried: row pointer local u16 *row = D_8018D140 + (arg1&0xFF)*0x96 (6385, worse). Open: get the row-base multiply shape and keep n in a2 across the loops.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794766973.135489,
+  "score_before": 5830,
+  "score_after": 5830
+ },
+ {
+  "function": "func_80148260",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr22: clean C (fill loop, bit scan into a u16 list, two copy loops): -O1 3495 vs saved 3400; not within reach in 2 tries. The target hoists the table bases (D_8018D140 + 300*a1) before the fill loop, and the copies re-read D_8018D26C / D_8018D140 by index.",
+  "by": "manual-4ca4d81790724b45",
+  "created_at": 1795714425.340524,
+  "score_before": 3400,
+  "score_after": 3400
  }
 ]
