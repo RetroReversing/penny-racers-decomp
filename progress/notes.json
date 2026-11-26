@@ -7136,14 +7136,6 @@
   "score_after": 3105
  },
  {
-  "function": "func_801FA678",
-  "text": "Best this session 6055 (37.5%) at revision d03e7d306d1768aea649; saved best 4065 from an earlier agent is better, so restore it before retrying. Matrix-from-three-angles function (guMtxF2L of a 4x4 f32). Target frame is 0x88 with ra/s0 at 0x54/0x50 and six doubles saved (f20..f30 at 0x58..0x80), argument regs a1..a3 moved to f20/f22/f30 with mtc1, and D_801FB2B0 loaded once (lwc1 into f0 or f22, then mov.s copies). My build uses a 0x90 frame and saves f22/f28 instead, so the float-register set is wrong. Next: try keeping sin/cos results in fewer locals (sx/cx/sy/cy/sz/cz each in a separate call-site temp) so that the live f-register set matches f20..f30. The product order sy*sx*sz and -sy*cz are where the register set changes.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794708247.3915899,
-  "score_before": 4065,
-  "score_after": 4065
- },
- {
   "function": "func_801FA4B0",
   "text": "Not matched. Saved best is 3257 (14.6% of current rewrite scored 9730, worse). The target's epsilon is a float constant 0x3727C5AC (~1e-5) loaded by lui/ori+mtc1 and compared with c.lt.s, not a literal 0.00001f in the way I wrote it; the target uses bc1f/bc1fl chains and has a stack frame of 8 with sdc1 $f20 spill (so the function keeps a double-width temp live). My version used `t<eps && t>-eps` with 1.0f/x divisions which the compiler reorders heavily. Next: write the epsilon test as `if (fabs-like)` with explicit `-t < eps` form as in the m2c draft (the m2c draft's `!(t > 0) && -t < eps` shape), and keep the divisions as 1/t computed once into a f32 temp.\n\nRe-claimed immediately after my previous release; no new compile made in this claim. Not matched. Saved best is 3257 (the 9730 rewrite is worse). See the previous notes: target uses a 0x3727C5AC epsilon loaded via lui/ori+mtc1 with c.lt.s, bc1f/bc1fl chains and an 8-byte frame with sdc1 $f20. Untested next step: restate the epsilon test as the m2c shape `!(t > 0) && -t < eps`.",
   "by": "claude-haiku-5-5-22",
@@ -11336,14 +11328,6 @@
   "score_after": 2461
  },
  {
-  "function": "func_801FA678",
-  "text": "Not matched. Best current source is revision 2ce5f682cc3de6819d22 (score 5904 in current baseline; saved 4065 from an earlier source is not reproducible). Math verified against the asm: ax/ay/az = arg * D_801FB2B0 computed once up front (this fixed the big diff; the draft recomputed the product per call), then sin/cos in order sx, cx, sy, cy, sz, cz; matrix stores at sp+0x10.. in the order m00..m33, guMtxF2L(m, arg0) with arg0 as the destination. Remaining diffs: (1) frame: target is addiu -0x88 with ra at 0x54 and s0 at 0x50; ours is -0x90 with s0 at 0x58, so we allocate 8 more bytes. (2) m[0][2] in the target is (-cz)*sy + cy*(sx*sz) (neg.s of cz, then times sy), not -sy*cz; untried in isolation. (3) m[1][0] in the target is sy*(cz*sx) - cy*sz (a sub.s). Changing m[1][0] alone to `sy * sx * cz - cy * sz` (6154) and `sy * (sx * cz) - cy * sz` (6204) both made it worse by reshuffling the CSE/register order, so combine it with the m[0][2] change and fix the frame size before trying more. Move on after two more compiles without improvement.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794722291.0943968,
-  "score_before": 4065,
-  "score_after": 4065
- },
- {
   "function": "func_801542F8",
   "text": "Not matched. Saved best 265 is the candidate text in get_candidate(saved_best), but recompiling the same text (with or without the adapted comment) gives 3515 (51.1%), so the saved score does not reproduce on the current baseline. Target is a display-list builder: 8 Gfx commands, each `lw v1,(a0); addiu v0,v1,8; sw v0,(a0)` then two word stores. But gcc hoists the constant materializations (lui a2 / a3 / t0 for 0xFD48001F, 0xF5480800, 0xF2000000, 0x7C07C) ahead of the stores and reuses them, while my version rebuilds each constant inline. The diff also shows `addiu v0,zero,0x7c` and `subu v0,v0,v1`, i.e. the D_8011F32E slot index is computed as a subtraction against the 0x7c stride, which the current C does not express. Next idea: write the constants as named locals declared before the first store, and express the slot part as `(u32)(D_8011F32E[i].v & 0xFFF)` with the subtraction written out. Source not reliable as-is.",
   "by": "claude-haiku-5-5-24",
@@ -14800,14 +14784,6 @@
   "score_after": 5144
  },
  {
-  "function": "func_801FA678",
-  "text": "Releasing early: it cannot get closer this session. The saved 4065 draft is a different lineage from my Euler-matrix C (7645, worse), and the diff is dominated by the float constant reload pattern and callee-saved float layout that the sibling func_801FA7FC also shows. Next agent: start from the saved 4065 draft, make the D_801FB2B0 constant load happen once, then fix term order. Also, the draft's `m[4][4]` store order differs from the target's, so check the stores against the assembly rather than the math.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794732151.070413,
-  "score_before": 4065,
-  "score_after": 4065
- },
- {
   "function": "func_801E2BFC",
   "text": "Best saved 4190 (40.9%), not matched; the saved source is the one with separate d0..d4 symbols (D_801F18F8, D_801F18F9, D_801F18FA, D_801F18FB, D_801F18FC as separate externs). Later edits were worse or invalid: scalar symbols D_801F18E4..E7 and D_801C5E9C..9F are separate symbols in the target (each is its own lui/addiu), so the 4-byte copy should be written as four separate scalar assignments to separate extern u8 symbols, not as indexed array stores. My attempt at that (revision c35046680b0643e4421d) did not compile cleanly (a `u8` assignment warning and a frame that the target does not have at the top). Next step: make all of D_801C5E9C, D_801C5E9D, D_801C5E9E, D_801C5E9F, D_801F18E4..E7 distinct u8 externs; keep the d0..d4 loop as in the 4190 source; target's first real frame is only after the copy block.",
   "by": "claude-haiku-5-5-22",
@@ -15238,14 +15214,6 @@
   "created_at": 1794733412.397123,
   "score_before": 420,
   "score_after": 420
- },
- {
-  "function": "func_801FA678",
-  "text": "Draft (m2c-style rotation matrix from three angles, m[4][4] local, guMtxF2L((f32*)m, arg0)) scored 7645; saved best is 4065 (different source, not reverified). Diffs: target copies the float args arg1/arg2/arg3 out of a1/a2/a3 into callee-saved f20, f22, f30 (mtc1 $a1,$f20 etc.) before the first sin/cos, and keeps D_801FB2B0 in one register (lwc1 once), while my version reloads the constant from %lo(D_801FB2B0) five times. Frame: target saves f20 at 0x58, f22 at 0x60, f30 at 0x80, ra at 0x54, s0 at 0x50. Next step: introduce a local float per argument (f32 a = arg1 * k; etc.) so the scaled values are computed once and live across calls, and check whether the matrix cells are built from a fixed set of products (cy*cz, sx*sz, etc.). Not verified.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794733422.133027,
-  "score_before": 4065,
-  "score_after": 4065
  },
  {
   "function": "func_800424C0",
@@ -22944,14 +22912,6 @@
   "score_after": 3365
  },
  {
-  "function": "func_801FA678",
-  "text": "Not matched; stopping because the blocking difference is the frame layout, which my source variants have not changed. Best this session: 5904 (39%), revision eb4e867d976f1bf62ef5 (a/b/c temporaries = arg*D_801FB2B0, sx..cz locals, m[4][4], guMtxF2L). Saved historical best is 4065, not reached. Target facts: D_801FB2B0 is loaded once into $fv0 before the first sin call; arg1..arg3 are multiplied with arg in the lhs; the six sin/cos results sit in $fs0..$fs5 (f20..f30); frame 0x88 with ra at 0x54, s0 at 0x50, six sdc1 saves at 0x58..0x80, and m at sp+0x10. My versions use a 0x90 frame, s0 at 0x58, which points to an extra 8-byte slot. Next steps: find what adds the 8 bytes (try m as a flat f32 m[16], or drop the 0.0f/1.0f stores into a separate block), then fix register order. Variants already tried and worse: plain `arg*D` calls (7645), `k=D` local (6055).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794754679.015409,
-  "score_before": 4065,
-  "score_after": 4065
- },
- {
   "function": "func_80206770",
   "text": "Not matched; saved best 420 is from an earlier source, my best rewrite scores 1258 (73.7%, 48 insns target). Straight-line code: call func_800294A0(&D_3EA210, &D_8030BD90, &D_3EACF0 - &D_3EA210), func_80143DCC(), func_80203D58(), func_80203DF8(1,6,0,0,0), then func_800DE41C(0,0,3,0, 0x40,0,0, func_80206848, func_80206BC0, 0 x9). Frame 0x50 with sw ra at 0x48. Remaining diff: the target does sw ra right after addiu sp, before the lui/addiu address setup; mine places sw ra after the first four lui/addiu. The first-call register order (v0=end, a2=start, a0=a2 move) is also off. Untried: writing the first call with the start pointer in $a0 by an explicit move, or moving the sw ra into the first statement via a local whose address is taken.",
   "by": "claude-haiku-5-5-21",
@@ -27392,14 +27352,6 @@
   "score_after": 885
  },
  {
-  "function": "func_801FA678",
-  "text": "Rotation-matrix builder (sin/cos of 3 angles * D_801FB2B0, then guMtxF2L). Inherited best 4065 (rechecked 7645 with current inputs). Progress this session: hoisting the three angle*D_801FB2B0 products into locals a1,a2,a3 so the constant is loaded once (target has one lwc1 D_801FB2B0) plus parenthesised products (sy*(sx*sz), cy*(sx*sz), sy*(sx*cz), cy*(sx*cz)) and `-cz*sy + cy*(...)` for m[0][2] got 7645 -> 5555 at the project -O2 profile, with instruction count exactly 97 = target. Now all instructions agree; only register allocation/ordering differs. Remaining: target keeps the six trig results in $f30(sx) $f28(cx) $f26(sy) $f20(sz) $f22(cz) $f24(cy) and places mov.s $f12,<arg> *before* the saving mov.s of the previous result; ours saves first (mov.s $f28,$f0 then $f26,$f0) and puts sz/cz/cy in different regs, so the matrix products then differ (target mul.s $f2,$f2,$f20 etc). Also target zero stores use sw $zero at 0x1c/0x2c/0x3c while ours emits some swc1 of a zero float. Tried: declaration orders (sz,cz first; cx,sx first), an explicit t = sx*sz temp, cz*sx instead of sx*cz (no effect), try_local_repairs (no applicable families). Next: find a statement/declaration shape that makes GCC save the call result before loading the next argument, and make the 0.0f stores plain integer zero stores (e.g. write m[0][3]=m[1][3]=0 via a zeroed local or an s32 view).",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794761129.563297,
-  "score_before": 4065,
-  "score_after": 4065
- },
- {
   "function": "func_80148754",
   "text": "Not matched. Best saved score 18946; current recheck 19916 at revision a7e2e391fd2d53f05ca5 (target 252 insns, mine 236). Why it cannot get closer in this session: the frame and save order are wrong (target frame -0x48 with saves ra/fp/s7/s6..., mine has a different layout), so the register and order rows will not settle until the frame is rebuilt. The draft also still contains leftover repair labels and variables that need cleaning. Structure to reproduce: two blocks gated by (D_80189CBC>>8)&8 and (D_80189CC4>>8)&8, each calling func_8014A030 twice on a row pointer in D_8018D3A0 (stride 0x20, column (x&0xF)*4), copying 9 or 8 halfword entries when (x&7)==0. Tail writes four u16 entries into D_80189C9E, then two 0xE-iteration loops gated by func_80149778==1 copying bytes into D_8021F048 (stride 14) and halfwords into D_8021F270 (stride 0xE0). Next steps: rebuild locals so the frame matches -0x48, fix the 9/8 loop counts, then tune registers. Not tried: find_similar for a sibling with the same tail loops.",
   "by": "claude-haiku-5-5-23",
@@ -31166,14 +31118,6 @@
   "created_at": 1794766306.516665,
   "score_before": 2075,
   "score_after": 2075
- },
- {
-  "function": "func_801FA678",
-  "text": "Not matched. Current draft (c13ea9d3fbc1c7024ba0) rechecks at 7645 (21.1%); the historical saved best 4065 is the same source and could not be reproduced with the current inputs. Local repairs: best variant 7525 (do{}while(0) around the guMtxF2L call); operand-order variants do nothing. Target (97 insns): frame 0x88, saves ra at 0x54, s0 at 0x50, f20/f22/f28-f30 via sdc1; the float args come in a1..a3 and are moved with mtc1 into f20, f22, f30 before the sin/cos calls; D_801FB2B0 is loaded with lui/lwc1 once per use (the target keeps it in a register). Next: store the matrix and call guMtxF2L in the target's order (saves before the first call), and try computing the sin/cos pairs before the mtc1 moves; the current mismatch is mostly ordering of the prologue and the saves.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794766306.747257,
-  "score_before": 4065,
-  "score_after": 4065
  },
  {
   "function": "func_801FD23C",
@@ -35287,5 +35231,77 @@
   "created_at": 1795714159.1367419,
   "score_before": 955,
   "score_after": 955
+ },
+ {
+  "function": "func_801FA678",
+  "text": "Best this session 6055 (37.5%) at revision d03e7d306d1768aea649; saved best 4065 from an earlier agent is better, so restore it before retrying. Matrix-from-three-angles function (guMtxF2L of a 4x4 f32). Target frame is 0x88 with ra/s0 at 0x54/0x50 and six doubles saved (f20..f30 at 0x58..0x80), argument regs a1..a3 moved to f20/f22/f30 with mtc1, and D_801FB2B0 loaded once (lwc1 into f0 or f22, then mov.s copies). My build uses a 0x90 frame and saves f22/f28 instead, so the float-register set is wrong. Next: try keeping sin/cos results in fewer locals (sx/cx/sy/cy/sz/cz each in a separate call-site temp) so that the live f-register set matches f20..f30. The product order sy*sx*sz and -sy*cz are where the register set changes.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794708247.3915899,
+  "score_before": 4065,
+  "score_after": 4065
+ },
+ {
+  "function": "func_801FA678",
+  "text": "Not matched. Best current source is revision 2ce5f682cc3de6819d22 (score 5904 in current baseline; saved 4065 from an earlier source is not reproducible). Math verified against the asm: ax/ay/az = arg * D_801FB2B0 computed once up front (this fixed the big diff; the draft recomputed the product per call), then sin/cos in order sx, cx, sy, cy, sz, cz; matrix stores at sp+0x10.. in the order m00..m33, guMtxF2L(m, arg0) with arg0 as the destination. Remaining diffs: (1) frame: target is addiu -0x88 with ra at 0x54 and s0 at 0x50; ours is -0x90 with s0 at 0x58, so we allocate 8 more bytes. (2) m[0][2] in the target is (-cz)*sy + cy*(sx*sz) (neg.s of cz, then times sy), not -sy*cz; untried in isolation. (3) m[1][0] in the target is sy*(cz*sx) - cy*sz (a sub.s). Changing m[1][0] alone to `sy * sx * cz - cy * sz` (6154) and `sy * (sx * cz) - cy * sz` (6204) both made it worse by reshuffling the CSE/register order, so combine it with the m[0][2] change and fix the frame size before trying more. Move on after two more compiles without improvement.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794722291.0943968,
+  "score_before": 4065,
+  "score_after": 4065
+ },
+ {
+  "function": "func_801FA678",
+  "text": "Releasing early: it cannot get closer this session. The saved 4065 draft is a different lineage from my Euler-matrix C (7645, worse), and the diff is dominated by the float constant reload pattern and callee-saved float layout that the sibling func_801FA7FC also shows. Next agent: start from the saved 4065 draft, make the D_801FB2B0 constant load happen once, then fix term order. Also, the draft's `m[4][4]` store order differs from the target's, so check the stores against the assembly rather than the math.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794732151.070413,
+  "score_before": 4065,
+  "score_after": 4065
+ },
+ {
+  "function": "func_801FA678",
+  "text": "Draft (m2c-style rotation matrix from three angles, m[4][4] local, guMtxF2L((f32*)m, arg0)) scored 7645; saved best is 4065 (different source, not reverified). Diffs: target copies the float args arg1/arg2/arg3 out of a1/a2/a3 into callee-saved f20, f22, f30 (mtc1 $a1,$f20 etc.) before the first sin/cos, and keeps D_801FB2B0 in one register (lwc1 once), while my version reloads the constant from %lo(D_801FB2B0) five times. Frame: target saves f20 at 0x58, f22 at 0x60, f30 at 0x80, ra at 0x54, s0 at 0x50. Next step: introduce a local float per argument (f32 a = arg1 * k; etc.) so the scaled values are computed once and live across calls, and check whether the matrix cells are built from a fixed set of products (cy*cz, sx*sz, etc.). Not verified.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794733422.133027,
+  "score_before": 4065,
+  "score_after": 4065
+ },
+ {
+  "function": "func_801FA678",
+  "text": "Not matched; stopping because the blocking difference is the frame layout, which my source variants have not changed. Best this session: 5904 (39%), revision eb4e867d976f1bf62ef5 (a/b/c temporaries = arg*D_801FB2B0, sx..cz locals, m[4][4], guMtxF2L). Saved historical best is 4065, not reached. Target facts: D_801FB2B0 is loaded once into $fv0 before the first sin call; arg1..arg3 are multiplied with arg in the lhs; the six sin/cos results sit in $fs0..$fs5 (f20..f30); frame 0x88 with ra at 0x54, s0 at 0x50, six sdc1 saves at 0x58..0x80, and m at sp+0x10. My versions use a 0x90 frame, s0 at 0x58, which points to an extra 8-byte slot. Next steps: find what adds the 8 bytes (try m as a flat f32 m[16], or drop the 0.0f/1.0f stores into a separate block), then fix register order. Variants already tried and worse: plain `arg*D` calls (7645), `k=D` local (6055).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794754679.015409,
+  "score_before": 4065,
+  "score_after": 4065
+ },
+ {
+  "function": "func_801FA678",
+  "text": "Rotation-matrix builder (sin/cos of 3 angles * D_801FB2B0, then guMtxF2L). Inherited best 4065 (rechecked 7645 with current inputs). Progress this session: hoisting the three angle*D_801FB2B0 products into locals a1,a2,a3 so the constant is loaded once (target has one lwc1 D_801FB2B0) plus parenthesised products (sy*(sx*sz), cy*(sx*sz), sy*(sx*cz), cy*(sx*cz)) and `-cz*sy + cy*(...)` for m[0][2] got 7645 -> 5555 at the project -O2 profile, with instruction count exactly 97 = target. Now all instructions agree; only register allocation/ordering differs. Remaining: target keeps the six trig results in $f30(sx) $f28(cx) $f26(sy) $f20(sz) $f22(cz) $f24(cy) and places mov.s $f12,<arg> *before* the saving mov.s of the previous result; ours saves first (mov.s $f28,$f0 then $f26,$f0) and puts sz/cz/cy in different regs, so the matrix products then differ (target mul.s $f2,$f2,$f20 etc). Also target zero stores use sw $zero at 0x1c/0x2c/0x3c while ours emits some swc1 of a zero float. Tried: declaration orders (sz,cz first; cx,sx first), an explicit t = sx*sz temp, cz*sx instead of sx*cz (no effect), try_local_repairs (no applicable families). Next: find a statement/declaration shape that makes GCC save the call result before loading the next argument, and make the 0.0f stores plain integer zero stores (e.g. write m[0][3]=m[1][3]=0 via a zeroed local or an s32 view).",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794761129.563297,
+  "score_before": 4065,
+  "score_after": 4065
+ },
+ {
+  "function": "func_801FA678",
+  "text": "Not matched. Current draft (c13ea9d3fbc1c7024ba0) rechecks at 7645 (21.1%); the historical saved best 4065 is the same source and could not be reproduced with the current inputs. Local repairs: best variant 7525 (do{}while(0) around the guMtxF2L call); operand-order variants do nothing. Target (97 insns): frame 0x88, saves ra at 0x54, s0 at 0x50, f20/f22/f28-f30 via sdc1; the float args come in a1..a3 and are moved with mtc1 into f20, f22, f30 before the sin/cos calls; D_801FB2B0 is loaded with lui/lwc1 once per use (the target keeps it in a register). Next: store the matrix and call guMtxF2L in the target's order (saves before the first call), and try computing the sin/cos pairs before the mtc1 moves; the current mismatch is mostly ordering of the prologue and the saves.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794766306.747257,
+  "score_before": 4065,
+  "score_after": 4065
+ },
+ {
+  "function": "func_801FA678",
+  "text": "haiku-pr21: matrix builder (sin/cos of three scaled angles, 4x4 float array, guMtxF2L). Clean rewrite M1 scores 110 under -G0 -mips3 -mgp32 -mfp32 -O1 (saved best 6806 there, 2881 default; M1 5747 default). Every differing row is a register: the four saved FP registers hold a, sa, ca, sb in a cyclic shift of the target's (f24/f26/f28/f30). Declaration order changes nothing; inlining the scaled angle is worse (3480). Not matched.",
+  "by": "manual-29400409f2a1401f",
+  "created_at": 1795714006.296701,
+  "score_before": 2881,
+  "score_after": 2881
+ },
+ {
+  "function": "func_801FA678",
+  "text": "[Released without compiling it once; notes not checked by a compile.] matrix builder at 110 under O1; saved-register cyclic shift",
+  "by": "manual-29400409f2a1401f",
+  "created_at": 1795714006.506512,
+  "score_before": 2881,
+  "score_after": 2881
  }
 ]
