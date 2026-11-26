@@ -6776,14 +6776,6 @@
   "score_after": 400
  },
  {
-  "function": "func_8014D458",
-  "text": "Best 3913 (57.9%). Source: id=arg0&0xFFFF; __sinf-free float logic on D_8011F314/F32E/F334/F338 with off=id*100 (s32), first if (u16 at F32E+off == 0) copies F314->F338 and sets F32E=1 (u16), then F334[off] += 1.0f, if (>360.0f) subtract 360.0f, then F314[off] = __sinf((f32)((f64)F334[off]*D80183770/D80183778))*20.0f - F338[off]. Remaining diff: target frame is 0x20 with ra, s1, s0 saved: arg0 raw is kept in s1 across the call and andi applied after it (addu s1,a0,zero; andi s0,s1,0xFFFF; call with s0). Every variant (u16 id, s32 id, re-deriving arg0&0xFFFF) compiles to the same 0x18 frame with s0 only, so the compiler is folding the andi before the call. Next idea: force a live raw copy across the call, e.g. use arg0 after the call (store raw to a volatile-like use), or test compile_family(family=signedness) as the judge suggests.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794708495.8813288,
-  "score_before": 5968,
-  "score_after": 3913
- },
- {
   "function": "sqrtf",
   "text": "Target is 2 insns (jr ra; sqrt.s $fv0,$fa0) \u2014 an inline single-precision sqrt with no NaN/errno path. The source is simply `f32 func_80032310(f32 arg0) { return sqrtf(arg0); }`, but with the project's flags gcc-2.7.2-kmc emits sqrt.s + c.eq.s/bc1t NaN check + jal sqrtf (score 960). Conclusively verified with try_compiler: the exact same C matches byte-for-byte (-ffast-math). search_flags tried 6 variants (none has -ffast-math); -O1 is worse. Submitted suggest() for a function-only compiler bundle gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 -ffast-math. Automatic compiler changes are off, so this cannot be saved until the user applies the suggestion. Nothing else left to try in C: no C expression makes this 2-insn form without -ffast-math.",
   "by": "opencode-deepseek-v4.1-flash-free-5",
@@ -10392,14 +10384,6 @@
   "score_after": 1875
  },
  {
-  "function": "func_8014D458",
-  "text": "Unfinished, claim lapsed. Best draft scored 3913 (57.9%) at revision c65d6f29361bf5406a5a, but that draft is missing the prologue: target is addiu -0x20 with ra at 0x18, s1 at 0x14, s0 at 0x10, and s1 = arg0 saved before the andi. Source shape that should follow: idx = arg0 & 0xFFFF; func_8013AE60(idx); off = idx*100; if (u16 D_8011F32E[off]==0) { f32 D_8011F338[off] = D_8011F314[off]; u16 D_8011F32E[off] = 1; } then with off recomputed from (arg0&0xFFFF) and s1 used for the andi: D_8011F334[off] += 1.0f; if (fv > 360.0f) D_8011F334[off] = fv-360.0f; then D_8011F314[off] = sinf((f32)((f64)D_8011F334[off]*D_80183770/D_80183778))*20.0f - D_8011F338[off]. Use f32 arrays accessed through a byte-offset macro (F32(base,off)). Keep arg0 live (s1) across the call so the andi reads s1, not a copy.\n\nBest 3913 (57.9%), claim lapsed twice. Frame is wrong: target is 0x20 with ra at 0x18, s1 at 0x14, s0 at 0x10; mine is 0x18 with only s0 and ra. Target keeps unmasked arg0 in s1 across func_8013AE60 and re-derives andi($s1,0xffff) after the call; mine CSEs to s0. No change from: a=arg0 copy, idx local pre-call, f64 ang local, dropping idx. Next: check the 8 extra frame bytes (a real f64 local or pad) and the post-call index type.\n\nBest 2750 (70.4%) at revision e75c58b27ad1565b5dc1; claim lapsed before release. Fix that helped: `u16 idx = arg0;` before the call, `off = ((u16)arg0) * 0x64;` after it, F32(base,off) byte-offset macro for all f32 access. Remaining: frame/register order (target saves ra at 0x18, s1 0x14, s0 0x10; mine saves s1 first), and the init if compiles to bnel with andi in the delay slot in target but a plain bnez in mine. Next: write the init test as if (*(u16*)(...) != 0) skip, to get the bnel form; then reorder the saved values.\n\nNot matched. Best: revision e75c58b27ad1565b5dc1, score 2750 (70.4%), 93 target insns vs 81. Fix that helped: `u16 idx = arg0;` before the call, `off = ((u16)arg0) * 0x64;` after it, F32(base,off) byte-offset macro for all f32 access. Tried after that with no change: the init if rewritten as goto-skip (revision 2f7f69bd7d2f67911b9b). Remaining: frame and register order. Target saves ra at 0x18, s1 at 0x14, s0 at 0x10, and s1 = arg0 is set before the call; mine saves s1 first and sets it later. Also the target's init branch is bnel with andi in the delay slot. Next: force s1 = arg0 saved before the call by using arg0 in the post-call index only through a u32 copy declared before idx.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794722685.302306,
-  "score_before": 3913,
-  "score_after": 2750
- },
- {
   "function": "func_8014981C",
   "text": "Best so far 2940 (not matched; claim lease ended before release). Source: u8 counters t0/a1/b/cnt, u32 bit mask `bit <<= 1` per bit (not 1<<b), D_8018D3A0 indexed as [row*8+a1] and [t2*8+a1], row=arg0 (u8). Remaining diff: target keeps t0 in $t0 (ours uses $t1), row base as (row<<5)+table via lui/addiu into $t5, and word0 count reloads from table. Outer init loop is do-while.",
   "by": "claude-haiku-5-5-21",
@@ -13512,14 +13496,6 @@
   "score_after": 8585
  },
  {
-  "function": "func_8014D458",
-  "text": "Not matched; best 2750 (70.4%) with the claimed structure: func_8013AE60(idx); off=idx*100 with a conditional init of D_8011F338[off] = D_8011F314[off] and D_8011F32E[off] (u16)=1 when it is 0; then D_8011F334[off] += 1.0f; if (fv > 360.0f) fv-=360.0f stored back; then D_8011F314[off] = sinf((f64)D_8011F334[off]*D_80183770/D_80183778)*20.0f - D_8011F338[off]. Variants tried: arg0&0xFFFF for the first call and index (same 2750); a local f64 k for D_80183770 (worse, 3405: it reloads the constant per compare). Remaining diffs: the target keeps arg0 live in $s1 across the first call (sw ra 0x18, s1 0x14, s0 0x10 frame) and reuses `andi $s0,$s1,0xffff` three times; the `if (fv > 360)` lowers to bnel in the target and bc1f in ours. Next: keep arg as s32 and compute the three indices as `(u16)arg0 * 0x64` from the saved arg, and write the >360 branch as a store of fv-360 under the same compare to get bnel.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794734550.769661,
-  "score_before": 2750,
-  "score_after": 2750
- },
- {
   "function": "func_80203DF8",
   "text": "Best 180 (97.9%) at revision 102520afc6a1697fdb4a: struct Ent {u8 *p; u8 pad[96];} with D_8011F350[idx].p, and `u8 mode = (u8)arg0;` tested as `if (mode == 2)`. Only 6 reordered rows remain: the target starts with `move $t1,$a0` (arg0 saved to $t1) and `lbu $t0,0x13($sp)` (arg4 read from the stack early), and the second stack-arg load comes before the first store. Tried and worse: moving the mode==2 block first (2230); repeated-index form without struct (3715); local repair variants (630, 1190). Next: force arg4 to be read before the stores (e.g. `u8 a4 = arg4;` at the top used in the if), or try the mode variable typed s32.",
   "by": "claude-haiku-5-5-24",
@@ -13784,14 +13760,6 @@
   "score_after": 2165
  },
  {
-  "function": "func_8014D458",
-  "text": "Best 2720 (70.7%), revision e8010a5c0fedf388a09e. Source: idx=arg0 (u16), call func_8013AE60(idx), first if-block indexes with idx*0x64 directly (not via an off local), then off=((u16)arg0)*0x64 for the +1.0f/360 wrap and the final sinf store. Remaining diffs: prologue order (target sw $ra first, raw arg in $s1, andi into $s0 kept across the jal); target loads lhu via lui/addu/lhu off $v1 ($v0 base) while candidate adds an extra lui/addiu pair; bnel with andi $v1,$s1,0xffff in its delay slot is not reproduced (candidate uses bnez). Tried and rejected: dropping idx and using arg0&0xFFFF in the call with (u16)arg0*0x64 everywhere (4078, frame 0x18). Untried: a block-local off in the first if so GCC keeps the table address in $v1.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794735796.336589,
-  "score_before": 2735,
-  "score_after": 2720
- },
- {
   "function": "func_800E08B4",
   "text": "Quicksort on u16 index array with pivot = D_800E1EE0[arr[(lo+hi)/2]]. My clean rewrite (revision e66bee9ee4fe9041b5d0, 5991) is slightly worse than the saved best 5771, so keep the saved best. Control flow matches the target: the first while is `while (D[arr[i]] < pivot) i++` with the increment in the branch-likely delay slot, the second is `while (pivot < D[arr[j]]) j--`, then `if (i < j)` swap plus i++ / j-- back to the loop top, else break; recursion on (lo, i-1) and (j+1, hi) guarded by lo < i-1 and j+1 < hi. Remaining diffs are frame and registers: target frame is 0x20 with ra/s2/s1/s0 saved, and it copies lo into $t0 and hi into $s2, arr into $s1. Mine uses an extra save and a 0x28 frame. Next: try i/j as locals whose live ranges match the target (i in $t0), and avoid the extra s0 save by reusing the pivot index register.",
   "by": "claude-haiku-5-5-23",
@@ -13950,14 +13918,6 @@
   "created_at": 1794736744.935919,
   "score_before": 320,
   "score_after": 320
- },
- {
-  "function": "func_8014D458",
-  "text": "Not matched. Best 2720 (70.7%), revision e8010a5c0fedf388a09e (shared `off = ((u16)arg0)*0x64`). Recomputing `((u16)arg0)*0x64` at every use gave 3180 (worse). The target folds each table access into one address-plus-constant form: `lui $at,%hi(D_8011F334)` then `lwc1 $f0,%lo(D_8011F334)($at)` and `swc1 ... %lo(...)($at)`, so the float arrays are addressed by global symbol with the index added into $at, not through a separate base pointer. The prologue order also differs (target saves ra at 0x18 first, then s1, then s0). Next: write the three float arrays as `extern f32 D_8011F334[]` (indexed as `D_8011F334[off/4]`) so the constant folds into %lo, and keep the shared offset from the best version.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794736754.7971041,
-  "score_before": 2720,
-  "score_after": 2720
  },
  {
   "function": "func_800E08B4",
@@ -26000,14 +25960,6 @@
   "score_after": 23460
  },
  {
-  "function": "func_8014D458",
-  "text": "Not matched. Best 2720 (70.7%, 93 target insns vs 81 ours), revision e8010a5c0fedf388a09e (the source as submitted). Remaining: (1) prologue saves order: target saves ra (0x18), s1 (0x14), s0 (0x10) with `move s1,a0` and `andi s0,s1,0xffff` after the saves, and our saves put s1 first. (2) The D_8011F32E index: target loads `lui v0,%hi(D_8011F32E)` then `lhu v0,%lo(...)(v0)` after `sll v1,v0,2`; ours builds `addiu v1,v1,%lo` first. So the first `*(u16*)(D_8011F32E + idx*0x64)` test should use the base directly, not an address temp. (3) The `D_8011F32E` lhu/bnel and bc1f branch shape differs from `if (fv > 360.0f)`: the target tests with the `c.lt`/`bc1f` in the other order. Next: use `idx = arg0 & 0xFFFF` as the masked local everywhere (target has andi s0,s1 twice), and try writing the 360.0f test as `if (!(fv <= 360.0f))`.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794764639.524868,
-  "score_before": 2720,
-  "score_after": 2720
- },
- {
   "function": "func_80158424",
   "text": "Best now 49057 (45.2%) at revision 80f3077d31a140a324ca (was 65328). Key finding: func_800DE41C's trailing 9 args (positions 9..17) are FLOATS, not ints. Declare the prototype as void func_800DE41C(int,int,int,int,int,int,void*,void*,void*, float x9) and pass float literals (e.g. 605.0f, 58.0f, 3992.0f, -15.0f, 1.0f). Target materializes each via lui $at + ori + mtc1, and 60 swc1 stores to 0x24..0x44 across 20 calls. Remaining diff: float literal values are my hand decodes and several are wrong (exact bits needed: each target constant's hi/lo bits from 'ori $at' operands, e.g. 0x456C8800=3784.5 ok, but guesses like 121.78f, 1321.1f, -2685.6f, -2083.05f, -1946.9f, 232.46f, 178.27f, -103.16f are unverified; decode their exact hex from the target ori/lui operands). Also the local declaration `void func_80157E30(void);` conflicts with context.h, so drop it. Frame/order: target saves fs0/fs1/fs2 at 0x68/0x70/0x78 and s0..s5 at 0x48..0x60; ours orders differently. Not yet tried: -O1 for this unit; float-literal reordering.",
   "by": "claude-haiku-5-5-21",
@@ -26950,14 +26902,6 @@
   "created_at": 1794766738.22766,
   "score_before": 60,
   "score_after": 60
- },
- {
-  "function": "func_8014D458",
-  "text": "Not matched. Best score 2720 (70.7%), revision e8010a5c0fedf388a09e (restore with get_candidate(base=\"saved_best\")). Target: saves ra/s1/s0 at 0x18/0x14/0x10; s1 = arg0 via move, s0 = (u16)arg0 used for func_8013AE60 call and first index; idx*100 computed as shifts ((i*2+i)*8+i)*4. Element access to D_8011F32E is lui %hi + addu + lhu %lo(sym)(reg): the candidate emits addiu/at-based forms instead, and the if-body uses andi $v1,$s1 (re-masked arg0) with bnel branch-likely. Tried: &D_xxx[off] direct form (2750), re-masking arg0 inside the if-body (3160), both worse. Open: register allocation of the index chain (target keeps v1 for the scaled index in the first block) and the branch-likely shape.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794766790.326242,
-  "score_before": 2720,
-  "score_after": 2720
  },
  {
   "function": "func_8014B410",
@@ -39136,5 +39080,88 @@
   "created_at": 1795718012.3779771,
   "score_before": 615,
   "score_after": 615
+ },
+ {
+  "function": "func_8014D458",
+  "text": "Best 3913 (57.9%). Source: id=arg0&0xFFFF; __sinf-free float logic on D_8011F314/F32E/F334/F338 with off=id*100 (s32), first if (u16 at F32E+off == 0) copies F314->F338 and sets F32E=1 (u16), then F334[off] += 1.0f, if (>360.0f) subtract 360.0f, then F314[off] = __sinf((f32)((f64)F334[off]*D80183770/D80183778))*20.0f - F338[off]. Remaining diff: target frame is 0x20 with ra, s1, s0 saved: arg0 raw is kept in s1 across the call and andi applied after it (addu s1,a0,zero; andi s0,s1,0xFFFF; call with s0). Every variant (u16 id, s32 id, re-deriving arg0&0xFFFF) compiles to the same 0x18 frame with s0 only, so the compiler is folding the andi before the call. Next idea: force a live raw copy across the call, e.g. use arg0 after the call (store raw to a volatile-like use), or test compile_family(family=signedness) as the judge suggests.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794708495.8813288,
+  "score_before": 5968,
+  "score_after": 3913
+ },
+ {
+  "function": "func_8014D458",
+  "text": "Unfinished, claim lapsed. Best draft scored 3913 (57.9%) at revision c65d6f29361bf5406a5a, but that draft is missing the prologue: target is addiu -0x20 with ra at 0x18, s1 at 0x14, s0 at 0x10, and s1 = arg0 saved before the andi. Source shape that should follow: idx = arg0 & 0xFFFF; func_8013AE60(idx); off = idx*100; if (u16 D_8011F32E[off]==0) { f32 D_8011F338[off] = D_8011F314[off]; u16 D_8011F32E[off] = 1; } then with off recomputed from (arg0&0xFFFF) and s1 used for the andi: D_8011F334[off] += 1.0f; if (fv > 360.0f) D_8011F334[off] = fv-360.0f; then D_8011F314[off] = sinf((f32)((f64)D_8011F334[off]*D_80183770/D_80183778))*20.0f - D_8011F338[off]. Use f32 arrays accessed through a byte-offset macro (F32(base,off)). Keep arg0 live (s1) across the call so the andi reads s1, not a copy.\n\nBest 3913 (57.9%), claim lapsed twice. Frame is wrong: target is 0x20 with ra at 0x18, s1 at 0x14, s0 at 0x10; mine is 0x18 with only s0 and ra. Target keeps unmasked arg0 in s1 across func_8013AE60 and re-derives andi($s1,0xffff) after the call; mine CSEs to s0. No change from: a=arg0 copy, idx local pre-call, f64 ang local, dropping idx. Next: check the 8 extra frame bytes (a real f64 local or pad) and the post-call index type.\n\nBest 2750 (70.4%) at revision e75c58b27ad1565b5dc1; claim lapsed before release. Fix that helped: `u16 idx = arg0;` before the call, `off = ((u16)arg0) * 0x64;` after it, F32(base,off) byte-offset macro for all f32 access. Remaining: frame/register order (target saves ra at 0x18, s1 0x14, s0 0x10; mine saves s1 first), and the init if compiles to bnel with andi in the delay slot in target but a plain bnez in mine. Next: write the init test as if (*(u16*)(...) != 0) skip, to get the bnel form; then reorder the saved values.\n\nNot matched. Best: revision e75c58b27ad1565b5dc1, score 2750 (70.4%), 93 target insns vs 81. Fix that helped: `u16 idx = arg0;` before the call, `off = ((u16)arg0) * 0x64;` after it, F32(base,off) byte-offset macro for all f32 access. Tried after that with no change: the init if rewritten as goto-skip (revision 2f7f69bd7d2f67911b9b). Remaining: frame and register order. Target saves ra at 0x18, s1 at 0x14, s0 at 0x10, and s1 = arg0 is set before the call; mine saves s1 first and sets it later. Also the target's init branch is bnel with andi in the delay slot. Next: force s1 = arg0 saved before the call by using arg0 in the post-call index only through a u32 copy declared before idx.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794722685.302306,
+  "score_before": 3913,
+  "score_after": 2750
+ },
+ {
+  "function": "func_8014D458",
+  "text": "Not matched; best 2750 (70.4%) with the claimed structure: func_8013AE60(idx); off=idx*100 with a conditional init of D_8011F338[off] = D_8011F314[off] and D_8011F32E[off] (u16)=1 when it is 0; then D_8011F334[off] += 1.0f; if (fv > 360.0f) fv-=360.0f stored back; then D_8011F314[off] = sinf((f64)D_8011F334[off]*D_80183770/D_80183778)*20.0f - D_8011F338[off]. Variants tried: arg0&0xFFFF for the first call and index (same 2750); a local f64 k for D_80183770 (worse, 3405: it reloads the constant per compare). Remaining diffs: the target keeps arg0 live in $s1 across the first call (sw ra 0x18, s1 0x14, s0 0x10 frame) and reuses `andi $s0,$s1,0xffff` three times; the `if (fv > 360)` lowers to bnel in the target and bc1f in ours. Next: keep arg as s32 and compute the three indices as `(u16)arg0 * 0x64` from the saved arg, and write the >360 branch as a store of fv-360 under the same compare to get bnel.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794734550.769661,
+  "score_before": 2750,
+  "score_after": 2750
+ },
+ {
+  "function": "func_8014D458",
+  "text": "Best 2720 (70.7%), revision e8010a5c0fedf388a09e. Source: idx=arg0 (u16), call func_8013AE60(idx), first if-block indexes with idx*0x64 directly (not via an off local), then off=((u16)arg0)*0x64 for the +1.0f/360 wrap and the final sinf store. Remaining diffs: prologue order (target sw $ra first, raw arg in $s1, andi into $s0 kept across the jal); target loads lhu via lui/addu/lhu off $v1 ($v0 base) while candidate adds an extra lui/addiu pair; bnel with andi $v1,$s1,0xffff in its delay slot is not reproduced (candidate uses bnez). Tried and rejected: dropping idx and using arg0&0xFFFF in the call with (u16)arg0*0x64 everywhere (4078, frame 0x18). Untried: a block-local off in the first if so GCC keeps the table address in $v1.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794735796.336589,
+  "score_before": 2735,
+  "score_after": 2720
+ },
+ {
+  "function": "func_8014D458",
+  "text": "Not matched. Best 2720 (70.7%), revision e8010a5c0fedf388a09e (shared `off = ((u16)arg0)*0x64`). Recomputing `((u16)arg0)*0x64` at every use gave 3180 (worse). The target folds each table access into one address-plus-constant form: `lui $at,%hi(D_8011F334)` then `lwc1 $f0,%lo(D_8011F334)($at)` and `swc1 ... %lo(...)($at)`, so the float arrays are addressed by global symbol with the index added into $at, not through a separate base pointer. The prologue order also differs (target saves ra at 0x18 first, then s1, then s0). Next: write the three float arrays as `extern f32 D_8011F334[]` (indexed as `D_8011F334[off/4]`) so the constant folds into %lo, and keep the shared offset from the best version.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794736754.7971041,
+  "score_before": 2720,
+  "score_after": 2720
+ },
+ {
+  "function": "func_8014D458",
+  "text": "Not matched. Best 2720 (70.7%, 93 target insns vs 81 ours), revision e8010a5c0fedf388a09e (the source as submitted). Remaining: (1) prologue saves order: target saves ra (0x18), s1 (0x14), s0 (0x10) with `move s1,a0` and `andi s0,s1,0xffff` after the saves, and our saves put s1 first. (2) The D_8011F32E index: target loads `lui v0,%hi(D_8011F32E)` then `lhu v0,%lo(...)(v0)` after `sll v1,v0,2`; ours builds `addiu v1,v1,%lo` first. So the first `*(u16*)(D_8011F32E + idx*0x64)` test should use the base directly, not an address temp. (3) The `D_8011F32E` lhu/bnel and bc1f branch shape differs from `if (fv > 360.0f)`: the target tests with the `c.lt`/`bc1f` in the other order. Next: use `idx = arg0 & 0xFFFF` as the masked local everywhere (target has andi s0,s1 twice), and try writing the 360.0f test as `if (!(fv <= 360.0f))`.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794764639.524868,
+  "score_before": 2720,
+  "score_after": 2720
+ },
+ {
+  "function": "func_8014D458",
+  "text": "Not matched. Best score 2720 (70.7%), revision e8010a5c0fedf388a09e (restore with get_candidate(base=\"saved_best\")). Target: saves ra/s1/s0 at 0x18/0x14/0x10; s1 = arg0 via move, s0 = (u16)arg0 used for func_8013AE60 call and first index; idx*100 computed as shifts ((i*2+i)*8+i)*4. Element access to D_8011F32E is lui %hi + addu + lhu %lo(sym)(reg): the candidate emits addiu/at-based forms instead, and the if-body uses andi $v1,$s1 (re-masked arg0) with bnel branch-likely. Tried: &D_xxx[off] direct form (2750), re-masking arg0 inside the if-body (3160), both worse. Open: register allocation of the index chain (target keeps v1 for the scaled index in the first block) and the branch-likely shape.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794766790.326242,
+  "score_before": 2720,
+  "score_after": 2720
+ },
+ {
+  "function": "func_8014D458",
+  "text": "Haiku pass (haiku-pr6): per-slot angle step: func_8013AE60(idx); when the state word at D_8011F32E + idx*100 is 0, copy D_8011F314 to D_8011F338 and set the state to 1; add 1.0f to the float at D_8011F334 + idx*100 and subtract 360.0f when it is above 360; D_8011F314 = 20.0f * __sinf((f32)((f64) angle * D_80183770 / D_80183778)) - D_8011F338. Judge: 2795 at -O1 (5423 at -O2). Remaining rows: the table base computed as a pointer (lui/addu) rather than the symbol-plus-offset form the target uses. Next: index each table through the symbol directly.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795711031.190169,
+  "score_before": 5423,
+  "score_after": 5423,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:d1f5c5de74c92d14f48e345313903f4e59d1ade2099e72c6328423d9aa54e0eb"
+ },
+ {
+  "function": "func_8014D458",
+  "text": "Angle step; 2795 at -O1 (not exact). See note.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795711031.997442,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:d1f5c5de74c92d14f48e345313903f4e59d1ade2099e72c6328423d9aa54e0eb"
+ },
+ {
+  "function": "func_8014D458",
+  "text": "Small-model attempt at func_8014D458: 12 tries.\n  best 690 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1745 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2430 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2575 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 5260 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nfunc_8014D458 at -O1: best 690 (tries 1-11). Clean struct-slot C matched neighbour func_80153D40 style. Still open: target reloads F334[off] after the +1.0f store before the >360 compare (bnel/andi delay-slot shape too); writing the compare through another index expression, a compound +=, a raw byte flag, or recomputing off before the flag check all scored worse (1010-4700 under own/O1). Own (O2) score worse than saved 757 so not submitted there.",
+  "by": "manual-ec407f2888f34312",
+  "created_at": 1795717594.274552,
+  "score_before": 4110,
+  "score_after": 2430,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:d1f5c5de74c92d14f48e345313903f4e59d1ade2099e72c6328423d9aa54e0eb"
  }
 ]
