@@ -7032,14 +7032,6 @@
   "score_after": 6145
  },
  {
-  "function": "func_80210F70",
-  "text": "Display-list builder (292 bytes, 73 insns). Best 3350 (saved, different source); my best this session 3555 at revision 468e138b70c986fd94ae. Structure matches: 8 u32-pair writes through *arg0 (each bumps pointer by 8), one read of D_800DE080+0x64 as the store pointer. Remaining diffs are instruction ordering and address-computation order: target loads D_80126FF6 into $a1 and computes (D_80126FF6<<12) + (D_80168166<<11 + &D_80183BE0) with the first half in $a1; mine puts it in $v0. Also the target keeps the pointer through lw/sw of D_800DE080+0x64 via $at (a direct global), while I wrote it via a cast array. Next: try writing D_800DE080 as an s32 array access and reorder the first address term; the 0x073FF100 / 0xF5101000 words appear at swapped rows, so the store order of temp_v1_3 vs temp_v1_5 may be off.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794708875.625463,
-  "score_before": 3350,
-  "score_after": 3350
- },
- {
   "function": "func_8021AB34",
   "text": "Machine-draft-based C scored 4150 (45%) at revision fcf87df34b7ee913b015, worse than the saved best 570; use get_candidate(base=\"saved_best\") as the starting point, not this draft. The target has a stack frame (addiu sp,-8) and a slot for a3 = 0 that my draft ignores: the target uses a2 for the pointer to D_800DB1B8+0x2108 and a3 for the 0-state value, with branch shape beql/beq on v1==v0 and the zero path set via move $a3,$zero. Mismatches start at the prologue and the branch shape, so the if/else chain on D_80190CAA (switch on 1,2,3) needs to be rebuilt as the target's compare order. Also the float division path (f32 /8.0f) in my draft is unverified against the target; check the target for any cvt/div instructions before keeping it.",
   "by": "claude-haiku-5-5-22",
@@ -10896,14 +10888,6 @@
   "score_after": 2033
  },
  {
-  "function": "func_80210F70",
-  "text": "Not matched. Best measured revision ec40438d2bd1587b43b0 scores 3015 (58.6%); target 73 insns, mine 73. Saved historical 2775 (different source) does not reproduce here.\n\nShape: straight-line display-list writer. Eight 8-byte GBI ops, each `p = *arg0; *arg0 = p+8; p[0]=w0; p[1]=w1` (the target reloads *arg0 for each op). Ops in order: FD100000 with w1 = (D_80126FF6<<12)+((D_80168166<<11)+&D_80183BE0); F5100000/07014050; E6000000/0; F3000000/073FF100; E7000000/0; F5101000/00014050; F2000000/0007C07C; then the last op uses p7 = *(u32**)(&D_800DE080+0x64), with *(void**)(...+0x64) = p7+2, and writes ED210040 / 0049C104.\n\nRemaining diffs:\n- Within op 1 the target loads D_80126FF6 and D_80168166 (lbu, sll 12, sll 11) BEFORE it loads &D_80183BE0 (lui/addiu), and the lw of *arg0 comes first. Mine loads D_80183BE0 first.\n- Hoisting the two byte computations into locals above the first GBI_OP (revision 5ceaec5ae97baac89b08) breaks the pointer-read-first order and scores 3900. Do not do that.\n\nLeft to try: keep the GBI_OP form but write the first op's w1 as an explicit sequence where the address term is the last add, and check whether the target's final `lw v1,%lo(D_800DE080+0x64)` should be a single load into a named local used for both the store and the 0xED21 write.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794723832.259229,
-  "score_before": 2775,
-  "score_after": 2775
- },
- {
   "function": "func_800299BC",
   "text": "Matched (score 0) with switch over 0x3FFF/0x4000/0x4001/0x4002 on a local s16 type, cases in ascending order, default: return 0; then arg0->result = r; osSendMesg(arg0->queue, 0, 1); return 1. Struct layout: s16 type; s16 pad; s32 queue; s32 len; s32 result; u8 addr; u8 pad2; u16 size. Queue global D_800DE058 (24 bytes bss). The extra case 0x3FFF is what makes GCC emit addiu 0x4000/beq/slti 0x4001/bnez first.",
   "by": "api-route-llm-code-1",
@@ -13664,14 +13648,6 @@
   "score_after": 260
  },
  {
-  "function": "func_80210F70",
-  "text": "Not matched. Best is 2745 (62.3%), revision 7948543b2f7d807ab7d1 (the current working revision 3e1b... is 2775, worse; restore from saved_best). Fixed: the pointer+int term in the first DL word needs a cast, `(void *)((D_80126FF6 << 0xC) + ((D_80168166 << 0xB) + ((s32)&D_80183BE0)))`; without it GCC scales by 4 (shifts 0xd/0xe). Remaining diffs: (1) register/order of the three address terms. Target loads D_80126FF6 into $a1 first (lui/lbu/sll 12), then D_80168166 into $v0 (lui/lbu/sll 11), then D_80183BE0 into $v1, then addu v0+v1 and a1+v0. Sum-order swap gave 2775; a different sum order did not help. (2) Tail global at +0x64: target uses lw with lui %hi base and a separate lui $at for sw; mine keeps one addiu in $a0 and uses ($a0) for both. Writing via &D_800DE080+0x64, an index form, or a char* cast did not change the output. Untried: declare D_800DE080 as an array or struct type, or write the store through a different variable. DL opcodes all match; only the operand layout and register/order are left.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794732316.0153348,
-  "score_before": 2775,
-  "score_after": 2745
- },
- {
   "function": "func_8021AB34",
   "text": "Released at move-on budget. Best this session 3730 (~51%); saved best 570 is better, use get_candidate(base=saved_best). Control flow of the switch (t==2 -> a3=0xA0; t<3 with t==1 -> a3=2; t==3 -> a3=0x50) and the update tail match in shape. Unmatched: target allocates an 8-byte frame (addiu $sp,-8 ... addiu $sp,8) with no stack use, and keeps p=&D_800DB1B8+0x2108 in $a2 computed up front; current C has no frame. Tried: (a) float temp for the divide (score 3730, no change); (b) unused s32 pad[2] local (3731, worse); (c) split a3 decl/init (compile error, mixed decl after statement). Still untested: an address-taken or non-dropped local that forces the 8-byte frame (e.g. a struct/array local that is actually read), and making p a plain u8-cast base. Signedness experiments gave no change.",
   "by": "claude-haiku-5-5-23",
@@ -13992,14 +13968,6 @@
   "score_after": 2170
  },
  {
-  "function": "func_80210F70",
-  "text": "Not matched. Best revision e4531bc4008570dbd0ac (u32-pointer form) scores 5210, same as the Gfx-struct form 110c9f696da0d6439cd5; both have 73 insns matching count. Tried and worse: hoisting the first w1 term before the load (5660). Ordering problem: the target writes the constant w0 (`lui v0,0xFD10; sw v0,0(a2)`) right after `sw v0,0(arg0)` and before computing the first w1 term, while gcc schedules the w0 constant store after the D_80126FF6/D_80168166 loads. Target register use: g in $a2, first w1 term in $a1, second in $v0/$v1; ours: g in $a3. Next: try making the w0 constant a separate store that cannot be scheduled after loads, e.g. store w0 first through a `volatile`-free local `u32 hw = 0xFD100000` assigned before the `*arg0` update; or accept the register swap as a last step.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794734006.258591,
-  "score_before": 2745,
-  "score_after": 2745
- },
- {
   "function": "func_802153C4",
   "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: stack layout; first differing row 1; 39 differing rows (1 register, 6 stack, 10 operand, 12 reordered, 6 inserted, 4 deleted; advisory).\nTarget: sw $ra, 0x54($sp)\nCandidate: sw $s1, 0x4c($sp)\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n  = addiu $sp, $sp, -0x58\ni T: sw $ra, 0x54($sp) | C: sw $s1, 0x4c($sp)\no T: sw $s2, 0x50($sp) | C: lbu $s1, 0x6b($sp)\n< T: sw $s1, 0x4c($sp) | C: \nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nStuck at score 1631 (39 mismatch rows). Struct-field store form, u8-array form, and (u8*)&D_8021F02C+2 form all tie at 1631. Remaining leads: try_local_repairs families parameter_mask/parameter_width/sum_shape/global_address_table; the call to func_800DE41C takes 18 args with arg0&0xFF as the 5th; the two function-pointer args (&func_80215480, &func_802155CC) may need explicit casts or a declared prototype to change argument setup order.",
   "by": "api-route-llm-code-1",
@@ -14222,14 +14190,6 @@
   "created_at": 1794734985.3652759,
   "score_before": 2210,
   "score_after": 2210
- },
- {
-  "function": "func_80210F70",
-  "text": "Not matched. Best revision 90df13dc762427a01e4d, score 5060 (30.6%). Display-list writer: each command is `g = *arg0; *arg0 = g + 1; g->w0 = ...; g->w1 = ...;` (8 commands, the last through D_800DE080+0x64 directly). Target order: lw ptr; addiu; store ptr; lui 0xfd10 and sw w0 happen before the D_80126FF6/D_80168166 loads; the w1 sum is ((u8)D_80126FF6<<12) + ((u8)D_80168166<<11) + &D_80183BE0, and the target adds in a different order than ours (it puts the D_80168166 shift/addu before the D_80126FF6 shift). The later commands match in content (0xF5100000/0x07014050, 0xE6000000/0, 0xF3000000/0x073FF100, 0xE7000000/0, 0xF5101000/0x00014050, 0xF2000000/0x0007C07C, 0xED210040/0x0049C104). The register/pointer choice differs (target keeps ptr in a2, ours in a3); the last command's pointer comes from a load of D_800DE080+0x64 that the target does with lw v1 and sw v0 to %lo(D_800DE080+0x64). Next: try the w1 sum written as (A + B) + C with the explicit operand order the target uses (lbu D_80126FF6 first, then D_80168166), and a local ptr variable kept across all commands.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794735031.389529,
-  "score_before": 2745,
-  "score_after": 2745
  },
  {
   "function": "func_801578EC",
@@ -26624,14 +26584,6 @@
   "score_after": 660
  },
  {
-  "function": "func_80210F70",
-  "text": "Not matched. Saved best 5015 (31.3%, 73 insns = target 73). This is a straight-line Gfx display-list writer: 8 'g = *arg0; *arg0 = g+1; g->w0/w1 = const' blocks plus one tail block on *(Gfx**)(D_800DE080+0x64). Key findings: (1) D_80183BE0 is used as an ADDRESS, not a value: its lui/addiu is `%hi/%lo(D_80183BE0)`, so write (u32)&D_80183BE0 (value-form loads of it gave a 5015 -> 5060 regression only through reordering). (2) D_80126FF6 is shifted by 12 and D_80168166 by 11, in that order of loads (target: lui a1,%hi(D_80126FF6) first, then D_80168166 with lui v1/v0). (3) The target's pointer load is `lw $a2,($a0)` and the store-back is `sw $v0,($a0)`: it keeps the pointer in $a2 and stores back through $a0, so the first block's g is in $a2, not $a3. Mine uses $a3 and the 0xFD100000 lui is emitted after the w1 loads, not before. Remaining diffs are register allocation and ordering in the first block and the tail (target loads D_800DE080+0x64 via lw %lo(D_800DE080+0x64)($v1) with the lui separate, mine via a hoisted base). Next: try declaring g as a register-friendly local per block, store the w1 value into a temp before the w0 store, and for the tail use `(Gfx **)&D_800DE080` plus offset 0x64/4 word index.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794763023.5885508,
-  "score_before": 2745,
-  "score_after": 2745
- },
- {
   "function": "func_801341C0",
   "text": "Not matched. Best saved score 7086 (m2c draft source, historical). Re-compiled the draft this claim: 15906. Variants tried, all worse or no effect: (a) D_8022AFE9/D_8011F2F0/D_8011F2FC as u8 arrays and D_8022ACD* as s8 -> 15711 (best recent); (b) D_8011F2F0 declared as a 100-byte struct array (f00, f0C, f44 fields) -> 15711, identical asm to (a). The main gap is size: target is 306 insns, mine 292, so about 14 instructions are missing, probably from the stack-spill/saved-register pattern (target spills 8 s-regs and uses lw $t0,0x4c($sp) x5). Likely cause: the 0x8F0 stride for D_8022AFE9 and D_8022ACD* indexes, and the temp_s0_2/temp_s7_2 lifetimes across the four func_801CB9EC calls. Next steps: check whether the arg/return of func_801CAF18/func_801CC150 and the 16-arg calls use the same layout; try splitting the else-branch and the final three func_801CB9EC calls into a helper-free shape with explicit temporaries; compare with get_assembly(focus=\"mismatch\") from the saved_best candidate, not from the m2c-draft-in-candidate. Note D_8011F334 is an f32 field (+0x44) of the same 100-byte array as D_8011F2F0.",
   "by": "claude-haiku-5-5-20",
@@ -28206,14 +28158,6 @@
   "created_at": 1794766355.773441,
   "score_before": 570,
   "score_after": 570
- },
- {
-  "function": "func_80210F70",
-  "text": "Not matched. Saved best 5015 (historical). My best this claim: revision d0014b4aaf8757afb355, 5065 (30.6%). Established facts: D_80183BE0 is used as an address (lui/addiu), so declare it as an array (u8 D_80183BE0[]) and add (u32)D_80183BE0; D_800DE080 is also addressed as lui/addiu+0x64, declare as u8 D_800DE080[]. The w1 shifts: D_80126FF6 << 12 and D_80168166 << 11. Target stores w0 (0xFD100000 via lui 0xfd10) right after the first *arg0 bump, before loading the two shifted bytes; my orderings still interleave the w1 loads before the w0 store, which costs the remaining ~60 points. Next: force the w0 store before the w1 expression (e.g. two statements through a local u32 w1), and check whether the 0x64 last-block pointer should be reloaded as lw from the array address.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794766381.046153,
-  "score_before": 2745,
-  "score_after": 2745
  },
  {
   "function": "func_801270B0",
@@ -38215,5 +38159,127 @@
   "created_at": 1795726829.592459,
   "score_before": 3116,
   "score_after": 3116
+ },
+ {
+  "function": "func_80210F70",
+  "text": "Display-list builder (292 bytes, 73 insns). Best 3350 (saved, different source); my best this session 3555 at revision 468e138b70c986fd94ae. Structure matches: 8 u32-pair writes through *arg0 (each bumps pointer by 8), one read of D_800DE080+0x64 as the store pointer. Remaining diffs are instruction ordering and address-computation order: target loads D_80126FF6 into $a1 and computes (D_80126FF6<<12) + (D_80168166<<11 + &D_80183BE0) with the first half in $a1; mine puts it in $v0. Also the target keeps the pointer through lw/sw of D_800DE080+0x64 via $at (a direct global), while I wrote it via a cast array. Next: try writing D_800DE080 as an s32 array access and reorder the first address term; the 0x073FF100 / 0xF5101000 words appear at swapped rows, so the store order of temp_v1_3 vs temp_v1_5 may be off.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794708875.625463,
+  "score_before": 3350,
+  "score_after": 3350
+ },
+ {
+  "function": "func_80210F70",
+  "text": "Not matched. Best measured revision ec40438d2bd1587b43b0 scores 3015 (58.6%); target 73 insns, mine 73. Saved historical 2775 (different source) does not reproduce here.\n\nShape: straight-line display-list writer. Eight 8-byte GBI ops, each `p = *arg0; *arg0 = p+8; p[0]=w0; p[1]=w1` (the target reloads *arg0 for each op). Ops in order: FD100000 with w1 = (D_80126FF6<<12)+((D_80168166<<11)+&D_80183BE0); F5100000/07014050; E6000000/0; F3000000/073FF100; E7000000/0; F5101000/00014050; F2000000/0007C07C; then the last op uses p7 = *(u32**)(&D_800DE080+0x64), with *(void**)(...+0x64) = p7+2, and writes ED210040 / 0049C104.\n\nRemaining diffs:\n- Within op 1 the target loads D_80126FF6 and D_80168166 (lbu, sll 12, sll 11) BEFORE it loads &D_80183BE0 (lui/addiu), and the lw of *arg0 comes first. Mine loads D_80183BE0 first.\n- Hoisting the two byte computations into locals above the first GBI_OP (revision 5ceaec5ae97baac89b08) breaks the pointer-read-first order and scores 3900. Do not do that.\n\nLeft to try: keep the GBI_OP form but write the first op's w1 as an explicit sequence where the address term is the last add, and check whether the target's final `lw v1,%lo(D_800DE080+0x64)` should be a single load into a named local used for both the store and the 0xED21 write.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794723832.259229,
+  "score_before": 2775,
+  "score_after": 2775
+ },
+ {
+  "function": "func_80210F70",
+  "text": "Not matched. Best is 2745 (62.3%), revision 7948543b2f7d807ab7d1 (the current working revision 3e1b... is 2775, worse; restore from saved_best). Fixed: the pointer+int term in the first DL word needs a cast, `(void *)((D_80126FF6 << 0xC) + ((D_80168166 << 0xB) + ((s32)&D_80183BE0)))`; without it GCC scales by 4 (shifts 0xd/0xe). Remaining diffs: (1) register/order of the three address terms. Target loads D_80126FF6 into $a1 first (lui/lbu/sll 12), then D_80168166 into $v0 (lui/lbu/sll 11), then D_80183BE0 into $v1, then addu v0+v1 and a1+v0. Sum-order swap gave 2775; a different sum order did not help. (2) Tail global at +0x64: target uses lw with lui %hi base and a separate lui $at for sw; mine keeps one addiu in $a0 and uses ($a0) for both. Writing via &D_800DE080+0x64, an index form, or a char* cast did not change the output. Untried: declare D_800DE080 as an array or struct type, or write the store through a different variable. DL opcodes all match; only the operand layout and register/order are left.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794732316.0153348,
+  "score_before": 2775,
+  "score_after": 2745
+ },
+ {
+  "function": "func_80210F70",
+  "text": "Not matched. Best revision e4531bc4008570dbd0ac (u32-pointer form) scores 5210, same as the Gfx-struct form 110c9f696da0d6439cd5; both have 73 insns matching count. Tried and worse: hoisting the first w1 term before the load (5660). Ordering problem: the target writes the constant w0 (`lui v0,0xFD10; sw v0,0(a2)`) right after `sw v0,0(arg0)` and before computing the first w1 term, while gcc schedules the w0 constant store after the D_80126FF6/D_80168166 loads. Target register use: g in $a2, first w1 term in $a1, second in $v0/$v1; ours: g in $a3. Next: try making the w0 constant a separate store that cannot be scheduled after loads, e.g. store w0 first through a `volatile`-free local `u32 hw = 0xFD100000` assigned before the `*arg0` update; or accept the register swap as a last step.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794734006.258591,
+  "score_before": 2745,
+  "score_after": 2745
+ },
+ {
+  "function": "func_80210F70",
+  "text": "Not matched. Best revision 90df13dc762427a01e4d, score 5060 (30.6%). Display-list writer: each command is `g = *arg0; *arg0 = g + 1; g->w0 = ...; g->w1 = ...;` (8 commands, the last through D_800DE080+0x64 directly). Target order: lw ptr; addiu; store ptr; lui 0xfd10 and sw w0 happen before the D_80126FF6/D_80168166 loads; the w1 sum is ((u8)D_80126FF6<<12) + ((u8)D_80168166<<11) + &D_80183BE0, and the target adds in a different order than ours (it puts the D_80168166 shift/addu before the D_80126FF6 shift). The later commands match in content (0xF5100000/0x07014050, 0xE6000000/0, 0xF3000000/0x073FF100, 0xE7000000/0, 0xF5101000/0x00014050, 0xF2000000/0x0007C07C, 0xED210040/0x0049C104). The register/pointer choice differs (target keeps ptr in a2, ours in a3); the last command's pointer comes from a load of D_800DE080+0x64 that the target does with lw v1 and sw v0 to %lo(D_800DE080+0x64). Next: try the w1 sum written as (A + B) + C with the explicit operand order the target uses (lbu D_80126FF6 first, then D_80168166), and a local ptr variable kept across all commands.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794735031.389529,
+  "score_before": 2745,
+  "score_after": 2745
+ },
+ {
+  "function": "func_80210F70",
+  "text": "Not matched. Saved best 5015 (31.3%, 73 insns = target 73). This is a straight-line Gfx display-list writer: 8 'g = *arg0; *arg0 = g+1; g->w0/w1 = const' blocks plus one tail block on *(Gfx**)(D_800DE080+0x64). Key findings: (1) D_80183BE0 is used as an ADDRESS, not a value: its lui/addiu is `%hi/%lo(D_80183BE0)`, so write (u32)&D_80183BE0 (value-form loads of it gave a 5015 -> 5060 regression only through reordering). (2) D_80126FF6 is shifted by 12 and D_80168166 by 11, in that order of loads (target: lui a1,%hi(D_80126FF6) first, then D_80168166 with lui v1/v0). (3) The target's pointer load is `lw $a2,($a0)` and the store-back is `sw $v0,($a0)`: it keeps the pointer in $a2 and stores back through $a0, so the first block's g is in $a2, not $a3. Mine uses $a3 and the 0xFD100000 lui is emitted after the w1 loads, not before. Remaining diffs are register allocation and ordering in the first block and the tail (target loads D_800DE080+0x64 via lw %lo(D_800DE080+0x64)($v1) with the lui separate, mine via a hoisted base). Next: try declaring g as a register-friendly local per block, store the w1 value into a temp before the w0 store, and for the tail use `(Gfx **)&D_800DE080` plus offset 0x64/4 word index.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794763023.5885508,
+  "score_before": 2745,
+  "score_after": 2745
+ },
+ {
+  "function": "func_80210F70",
+  "text": "Not matched. Saved best 5015 (historical). My best this claim: revision d0014b4aaf8757afb355, 5065 (30.6%). Established facts: D_80183BE0 is used as an address (lui/addiu), so declare it as an array (u8 D_80183BE0[]) and add (u32)D_80183BE0; D_800DE080 is also addressed as lui/addiu+0x64, declare as u8 D_800DE080[]. The w1 shifts: D_80126FF6 << 12 and D_80168166 << 11. Target stores w0 (0xFD100000 via lui 0xfd10) right after the first *arg0 bump, before loading the two shifted bytes; my orderings still interleave the w1 loads before the w0 store, which costs the remaining ~60 points. Next: force the w0 store before the w1 expression (e.g. two statements through a local u32 w1), and check whether the 0x64 last-block pointer should be reloaded as lw from the array address.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794766381.046153,
+  "score_before": 2745,
+  "score_after": 2745
+ },
+ {
+  "function": "func_80210F70",
+  "text": "haiku-pr24 (Haiku): saved best 5726b857 measures 1500 at -G0 -mips3 -mgp32 -mfp32 -O2 (trial a75b8d56) and 2305 at -O1 (trial 0f362bb9). Clean display-list rewrite (each command: p=*arg0; *arg0=p+1; w0 store, then w1; the D_800DE080+0x64 pointer advance last) scores 5770 at -O2 and 1285 at -O1. The target stores w0 before it loads D_80126FF6, but the compiler hoists the w1 pieces above the 0xFD100000 build; a local w1 did not change the score. The saved best keeps fences and a fake if (1) around the 0x7C07C word, so it is not usable as is.",
+  "by": "manual-c5ecf391d81f42b7",
+  "created_at": 1795714327.4276469,
+  "score_before": 940,
+  "score_after": 940
+ },
+ {
+  "function": "func_80210F70",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Clean rewrite not near the saved best; see the note.",
+  "by": "manual-c5ecf391d81f42b7",
+  "created_at": 1795714339.358978,
+  "score_before": 940,
+  "score_after": 940
+ },
+ {
+  "function": "func_80210F70",
+  "text": "Small-model attempt at func_80210F70: 14 tries.\n  best 755 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 755 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 4380 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 4380 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 5265 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n14 tries, not matched. Best 755 under gcc-2.7.2-kmc -O1 (own 4380; saved 940 under own, not beaten). Fixed: per-command fresh locals, the D_800DE080+0x64 pointer as (char*)&D_800DE080+0x64, sum (D126FF6<<12)+(D168166<<11)+&D183BE0. Left: register assignment (target keeps the first command pointer in $a2, sum order: target evaluates D168166 before &D183BE0), and the store to D_800DE080+0x64 is a separate lui $at in the target (ours reuses $a0).",
+  "by": "manual-79590b27d4a64e68",
+  "created_at": 1795717385.91237,
+  "score_before": 4865,
+  "score_after": 4380,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:396e735875d319163bab5211fa783ddc0e8332d57535b80d21959ec6cff03491"
+ },
+ {
+  "function": "func_80210F70",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 845 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (10 of its 12 nearest matched neighbours were built with it), the saved C scores 940 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721198.1100428,
+  "score_before": 940,
+  "score_after": 845,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:396e735875d319163bab5211fa783ddc0e8332d57535b80d21959ec6cff03491"
+ },
+ {
+  "function": "func_80210F70",
+  "text": "Small-model attempt at func_80210F70: 13 tries.\n  best 565 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 565 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 5140 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 5140 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 5790 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 565 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial fc096b8122bdfced1611 (not applied).\nStart from the matched twin func_8020FED8 (gcc-2.7.2-kmc -O1). Best 565 under the -O1 profile after 13 tries. Matched: all eight word pairs and the first word's constants; remaining diff is register choice (target loads D_80126FF6 into $a1 first, and the D_800DE080 pointer is loaded into $v1 with %lo folded into lw/sw). Tried: operand order and association in the first word (worse: 695, 755), temporary for the shifted global (830), integer-address and array forms for the pointer (845, 565), separate pointer variable (565).",
+  "by": "manual-49dcd751c8274132",
+  "created_at": 1795726219.323672,
+  "score_before": 940,
+  "score_after": 940
+ },
+ {
+  "function": "func_80210F70",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80210F70: 13 tries.\n  best 565 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 565 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 5140 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 5140 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 5790 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 565 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial fc096b8122bdfced1611 (not applied).\nStart from the matched twin func_8020FED8 (gcc-2.7.2-kmc -O1). Best 565 under the -O1 profile after 13 tries. Matched: all eight word pairs and the first word's constants; remaining diff is register choice (target loads D_80126FF6 into $a1 first, and the D_800DE080 pointer is loaded into $v1 with %lo folded into lw/sw). Tried: operand order and association in the first word (worse: 695, 755), temporary for the shifted global (830), integer-address and array forms for the pointer (845, 565), separate pointer variable (565).",
+  "by": "manual-49dcd751c8274132",
+  "created_at": 1795726221.1157582,
+  "score_before": 940,
+  "score_after": 940
+ },
+ {
+  "function": "func_80210F70",
+  "text": "Small-model attempt at func_80210F70: 12 tries.\n  best 565 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 565 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 5280 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 5280 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 5870 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries, best 565 under gcc-2.7.2-kmc -O1 (own 940 saved). Tail differs: target reloads the global D_800DE080+0x64 with its own lui per access and keeps the pointer in $v1; ours CSEs the address into $a0. Tried: struct field at 0x64, array index, ++ form, separate temp, cast spellings: all same or worse. Front half matches the near-miss.",
+  "by": "manual-bf849830b6b649c0",
+  "created_at": 1795727053.7694569,
+  "score_before": 940,
+  "score_after": 940
+ },
+ {
+  "function": "func_80210F70",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80210F70: 12 tries.\n  best 565 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 565 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 5280 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 5280 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 5870 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries, best 565 under gcc-2.7.2-kmc -O1 (own 940 saved). Tail differs: target reloads the global D_800DE080+0x64 with its own lui per access and keeps the pointer in $v1; ours CSEs the address into $a0. Tried: struct field at 0x64, array index, ++ form, separate temp, cast spellings: all same or worse. Front half matches the near-miss.",
+  "by": "manual-bf849830b6b649c0",
+  "created_at": 1795727057.0842721,
+  "score_before": 940,
+  "score_after": 940
  }
 ]
