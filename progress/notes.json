@@ -5024,14 +5024,6 @@
   "score_after": 22375
  },
  {
-  "function": "func_80198CC4",
-  "text": "Deep permuter: score 35 \u2192 35; 0 improvements; 53 candidates tested; 43 cached skips; 0 rejected; 7217s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589934715",
-  "created_at": 1794357271.743799,
-  "score_before": 35,
-  "score_after": 35
- },
- {
   "function": "__CSPPostNextSeqEvent",
   "text": "Deep permuter: score 2 \u2192 2; 0 improvements; 185 candidates tested; 128 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934851",
@@ -5232,14 +5224,6 @@
   "score_after": 7501
  },
  {
-  "function": "func_80198CC4",
-  "text": "Best reached: score 185 (97.5%), same instruction count as target; only register-allocation differences remain. Form: s32 var_v0 (table value from D_801C7084[idx*5], minus 0x2E in else branch), s32 var_v1_2 (offset = (arg0&0xFFFF)*100), s32 var_a1 (ret: 0, set to arg0&0xFFFF then 1 under D_801C6BB9), branch on *(u8*)D_801C7AB0==3, store *(f32*)(D_8011F30C+off)=(f32)var_v0*0.5f, return var_a1&0xFF. Target wants idx loaded into $v0 first (lui/lbu D_801CA130 into v0), table value in v1, then store value in v0; mine is swapped. Untested: change which temp is declared first or use a separate idx temp.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794705338.578125,
-  "score_before": 10,
-  "score_after": 10
- },
- {
   "function": "func_801C10FC",
   "text": "Straight-line display-list writer (gfx = *arg0; *arg0 = gfx+2; gfx[0]/gfx[1] pairs), 808 bytes, 202 target insns. Current C (saved best 1900 historical; rechecked 12320) differs in prologue: target saves s0/s1 (sw $s0,($sp) first, addiu sp,-8) and keeps the gfx pointer/loop index in saved regs; mine keeps arg0 in a0 and reloads. Local repair families (signedness, constant_local, parameter_width, dead_pointer_clear, loop_weight_scope) gave no improvement. Next: try holding *arg0 in a local `void **p` or a local gfx pointer that lives across the loop, and try the loop counter as s32 vs s16 to influence s0/s1 use. Loop body address/immediate expressions still unverified (diff rows 111 and 133 show raw MIPS mismatch for 0x040040FF and 0xF5480400 immediates).",
   "by": "claude-haiku-5-5-22",
@@ -5270,14 +5254,6 @@
   "created_at": 1794705431.632693,
   "score_before": 60,
   "score_after": 60
- },
- {
-  "function": "func_80198CC4",
-  "text": "Best 185 (97.5%): structure matches, only register allocation differs (target loads D_801CA130 into $v0 first, mine into $v1; D_801C7084 and $a1/$a2 choices also swapped). Tried: hoisting idx = D_801CA130*5 into a local (2025, worse, target recomputes the index per use); (u16)arg0 cast (same 185); local_repairs families (branch orientation, signedness, decl order, address temp, param width, sum shape): none better. Untried: swapping the order of the two conditions, or the two-branch arms of the first if.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794705436.646724,
-  "score_before": 10,
-  "score_after": 10
  },
  {
   "function": "func_8003E83C",
@@ -6294,14 +6270,6 @@
   "created_at": 1794706958.2254772,
   "score_before": 7376,
   "score_after": 7376
- },
- {
-  "function": "func_80198CC4",
-  "text": "Move-on budget exhausted. Best verified this session: 1255 (rev f8c0ec93c912e6ea8ede); inherited saved best 950 (m2c draft, rev a02de0563b7aebd85551) \u2014 the 950 source is a different shape and its lower score comes from fewer inserted insns, not from better structure.\n\nWhat is established (target is 75 insns, 82 in the 950 draft, 70 in the 1255 draft):\n- Globals: D_801C7AB0 is a pointer (u8 *), D_801C7084 and D_801C7081 are u8 arrays indexed by D_801CA130*5 (sll 2 / addu / lui+addu+%lo), D_801C6BB9 is s8 tested with lb/beqz, D_801CA130 is u8, D_8011F30C is a f32 table indexed by (arg0 & 0xFFFF)*100 bytes.\n- Order: read D_801C7AB0[0]==3 first (bne, with `addu $a1,$zero,$zero` in the delay slot -> return accumulator is a1 and is initialized inside the first branch's delay slot); then the D_801C7084 read with or without -0x2E; both paths jump to a common point. Then D_801C6BB9 test, then `beql $a1,$v0` on D_801CA130 == D_801C7AB0[2] with `addiu $a1,$zero,1` in the delay slot (return 1 when equal), then `(u32)((v-0x16)&0xFF) < 0x14` selects D_801C7081[idx]+0x3C vs D_801C7081[idx], then store (f32)val*0.5f, then ret=1, epilogue `jr $ra; andi $v0,$a1,0xFF`.\n- `*(f32 *)((char *)&D_8011F30C + off)` with `s32 off = (arg0 & 0xFFFF) * 100` is right (1255); writing D_8011F30C[off] as an f32 array scored 1930.\n- Register-role diffs in the second block (target lui $v0/addu $v0/lbu $v0 with index in $v1, ours the mirror) are pure allocation fallout; branch_orientation, cfg_integer_lifetimes, scalar_storage_reuse and signedness families all failed to improve (1275/1295/1255/1710/1645).\n\nLeft: get `beql` for the D_801CA130 == D_801C7AB0[2] test (see stored next_experiment: duplicate `ret = 1` in both arms so gcc emits the branch-likely with the addiu in the delay slot), and get the return accumulator into a1 (the 950 draft already uses a1; combining its `var_a1` naming with the 1255 addressing may be the shortest path).",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794706959.2905211,
-  "score_before": 10,
-  "score_after": 10
  },
  {
   "function": "func_80209AEC",
@@ -11296,14 +11264,6 @@
   "score_after": 1770
  },
  {
-  "function": "func_80198CC4",
-  "text": "Best 1555 (79.2%), revision e4e633389c1bf0e4d477 (my clean C, not the m2c draft). Facts: D_801CA130 is u8 idx, stride 5 into D_801C7084 (v1 = byte - 0x2E unless hdr byte0 == 3) and D_801C7081 (+0x3C when (u8)(v1-0x16) < 0x14); D_801C7AB0 is a pointer to a byte struct (byte0 == 3 test, byte2 compared to idx); D_801C6BB9 is s8 (lb). Offset = (u16)arg0 * 100, store f32 (byte)*0.5 at D_8011F30C+off. Tried and worse: a1=1 moved before the store (1855); if/else with a1=1 in both arms (2370, target's `move $a1,$zero` at entry is lost). Remaining diff: the target keeps a1 = 1 in a beql delay slot (taken when D_801CA130 == byte2) and reloads D_801CA130 and D_801C7084 with a different register order. Next idea: write `s32 a1 = 0` as a function-scope local used by the entry `move $a1,$zero` order, then the rest of the body as in 1555; the delay-slot shape is the main unresolved structure.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794724586.751576,
-  "score_before": 10,
-  "score_after": 10
- },
- {
   "function": "func_8019862C",
   "text": "Saved best is 2050 from an earlier attempt; my rewrite this claim scored 7085 (13.5%), so do not start from it. Verified logic from the asm (use it to write a new candidate): N=D_801C6BB9 (s8), P=D_801C7068 (s8), mode=D_801C7469 (u8), A=D_801C7062[0], B=D_801C7062[1], cell=*(u16*)(D_801C6BE2 + (N*24+P)*2), gate = (P < 0x17 signed) && cell == 0xFFFF; then if D_801C7AB0->byte1 (lbu at 1 from the pointer loaded from D_801C7AB0) != 5 -> flag 1; else: if A==P { if B==N+1 || B==N-1 -> flag = (mode==1 || mode==3) else flag 1 } else if A==P+1 { if B==N -> flag = (mode==3) else flag 1 } else if A==P-1 { if B!=N -> flag 1 else flag = (mode==0 || mode==2) } else flag 1. Return flag & 0xFF. The target loads P first (lui a1,%hi(D_801C7068)) and keeps it in a1 across the whole function; N is loaded later (a0). My rewrite got the logic right in outline but the register/branch order differs (I loaded N first into a3 and the cell index in v0), giving 93 differing rows. Next: write the gate with P loaded first and the cell address computed as (N*3*8+P)*2 with N in a0, and use the same bnel/beq shapes as the target (the target uses bnel/bne with the \"addiu a2,zero,1\" in the delay slot, so write a2=1 as the last statement of each branch). Untried: compile_family signedness.",
   "by": "claude-haiku-5-5-20",
@@ -15128,14 +15088,6 @@
   "score_after": 1530
  },
  {
-  "function": "func_80198CC4",
-  "text": "Best 1555 (79.2%), saved_best restored, not matched. Target shape: outer `if (D_801C6BB9 != 0)`; inside, `beql $a1,$v0` with `addiu $a1,$zero,1` in the delay slot (a1=1 on the equal path, and again at the end of the store body). Tried, all worse: (a) early `return 1` on equal + body + `return 1` -> 2540 (index reloaded into $a1, register order changed); (b) a local `u32 idx = D_801CA130*5` shared by both table lookups -> 3535. The target reloads D_801CA130 separately for each index (lbu, sll, addu, lbu D_801C7084), so a shared index is wrong. Untried: the signedness and branch_orientation families from try_local_repairs on saved_best.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794737119.255498,
-  "score_before": 10,
-  "score_after": 10
- },
- {
   "function": "func_801AEAB0",
   "text": "Best 3210 (73.4%), revision 321176c6e36998bba690. Three func_800DE41C calls with 18 args (stack args at 0x10..0x44 mostly zero-filled). `extern volatile u16 D_801C7074;` forces the target's sh-then-lhu reload (3525 -> 3210). Remaining: our trailing `andi $v1,$v1,0xffff` after the reload should not exist (target uses bare lhu); the D_801C7AD0 sb lands earlier in ours than in the target; the final func_800294A0 argument setup (D_1B0E50/D_1F9030/D_802D6890) is out of order. Next: remove the andi (check index type) and move `D_801C7AD0 = 0` after the 0x7F call's arg setup. Claim lapsed before release, so these notes were added directly.\n\nBest 3210 (73.4%), revision 321176c6e36998bba690 (volatile u16 D_801C7074). Tried: (s32) cast on the index (no effect; andi persists). The andi after the lhu is still unexplained: try compile_family(signedness) per the tool hint. Other diffs: stack-arg stores and the D_801C7AD0 sb placement; func_800294A0 argument setup order (D_1B0E50/D_1F9030/D_802D6890) is out of order. Reclaimed once after an earlier lapse: the m2c draft is worse (3525 and up), always start from 321176c6e36998bba690.",
   "by": "claude-haiku-5-5-22",
@@ -15640,14 +15592,6 @@
   "score_after": 9
  },
  {
-  "function": "func_80198CC4",
-  "text": "Best 520 (93%, not matched). Shape that works: off = (arg0 & 0xFFFF)*0x64 computed inside each arm, after the (u8)(v1-0x16)<0x14 test, with v0 = D_801C7081[D_801CA130*5] (+0x3C in the true arm) and the store *(f32*)(D_8011F30C+off) = (f32)v0*0.5f inside each arm. Remaining diff: the true-arm `addiu v0,v0,0x3C` is applied after the load with a j to the store; mine applies andi $v0,0xff and reorders the multiply (target uses sll/addu chains on the v0 from the load; mine uses arg0 in $a0). Try a 0xFF masked load or swap arm bodies.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794739152.164185,
-  "score_before": 10,
-  "score_after": 10
- },
- {
   "function": "func_801984DC",
   "text": "Best 2450 (70.8%): first-version source, globals read directly, goto L1/L2, result a1 & 0xFF, index ((A*0x18)+T)*2 into D_801C6C10. Tried and worse, so do not repeat: T local before bound check (3510); T local after bound check (3120); A and T locals (3080); local pointer q=D_801C7062 with 2450 otherwise (2775). Remaining diff is register and load order: target loads A into $a0 first, T into $a2 right after the bound check and keeps it there, and uses a single base for D_801C7062 in $v1. Untried: write the index as a separate expression computed once into a local after the bound check while keeping the A+1/A-1 compares on the global; or check D_801C7AB0 via a u8 * local.",
   "by": "claude-haiku-5-5-24",
@@ -15718,14 +15662,6 @@
   "created_at": 1794739308.3873322,
   "score_before": 1530,
   "score_after": 1530
- },
- {
-  "function": "func_80198CC4",
-  "text": "Best 240 (96.8%, revision 732a8cc5b8327758e520): s32 a1=0; v1/v0/off locals as in the 440 draft; `if (D_801C6BB9 != 0) {... a1 = 1;} return a1 & 0xFF;`. Remaining diff: the target has no `andi $v0,$v0,0xff` on return and loads D_801CA130 into $v0 (mine into $v1), so register assignment for the table index differs. Tried: u8 a1 (still 240), dropping the mask (auto-pass changed the source, 240 but the m2c-style form), and an early return for n==0 (1005, worse). Next: fix the register choice for D_801CA130 and the return mask.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794739320.2140312,
-  "score_before": 10,
-  "score_after": 10
  },
  {
   "function": "func_80042630",
@@ -15806,14 +15742,6 @@
   "created_at": 1794739441.4910898,
   "score_before": 1045,
   "score_after": 1045
- },
- {
-  "function": "func_80198CC4",
-  "text": "Best stays 240 (96.8%), revision 63f65f18a45316c3afa2 or 732a8cc5b8327758e520 (same score). Source: u8 a1=0; s32 v1; u8 v0; u32 off; ifs on D_801C7AB0[0]==3 and D_801C6BB9; `if (D_801CA130 != ((u8*)D_801C7AB0)[2])` plus `(u8)(v1-0x16)<0x14` branch; returns a1. Remaining diff: target loads D_801CA130 into $v0 first (lui/lbu $v0), mine into $v1, which reorders the idx*5 sll/addu and the D_801C7084 load; target has no extra andi on return in the best form. Tried this session: s32 a1 + return a1 -> 440 (diff: target has andi $v0,$a1,0xff on return, mine move); u32 idx = D_801CA130 local -> 1010 (worse, reloads D_801CA130 into a1 register). Budget 3/3 non-improving exhausted. Next ideas: try andi on return with s32 a1 via `return (u8)a1;` and vary which local holds the index (use D_801CA130 twice in expressions vs one local), keeping the 240 structure.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794739444.221729,
-  "score_before": 10,
-  "score_after": 10
  },
  {
   "function": "func_800338B0",
@@ -22776,14 +22704,6 @@
   "score_after": 2225
  },
  {
-  "function": "func_80198CC4",
-  "text": "Best score 200 (97.3%), from using (u32)(v1 - 0x16) < 0x14 instead of the (u8) cast (removed a stray andi). Remaining diffs: (1) register allocation: target loads D_801CA130 into $v0 and reuses it for the sll/addu index; mine uses $v1 first. (2) The target has `andi $v0,$v0,0xff` before the beqz at the D_801CA130 != [2] test, mine places it after; a (u8) cast on the stored v0 and on the f32 conversion both had no effect. (3) Branch offsets 0xc8 vs 0xc4 follow from the andi placement. Untested ideas: compute the index `u8 idx = D_801CA130;` once and use it everywhere (may fix the register order), or reorder the two arms so the off computation happens before the v0 load.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794756901.935507,
-  "score_before": 10,
-  "score_after": 10
- },
- {
   "function": "func_800DEFF8",
   "text": "Exact under gcc-2.7.2-kmc -O1 (try_compiler verified); suggestion submitted. Source: struct Ent (0x64) D_8011F2F0[]; for (idx = func_800E1850; idx != 0xFFFF; idx = D[idx].unk10) if (D[idx].unk0 != 0xFF) D[idx].unk2 |= 0x10; with u16 idx. No C tuning needed.",
   "by": "claude-opus-medium-1",
@@ -29366,14 +29286,6 @@
   "created_at": 1794767083.845897,
   "score_before": 3120,
   "score_after": 3120
- },
- {
-  "function": "func_80198CC4",
-  "text": "Close: best 200 (97.3%) at revision a00f43a20f7820ca2828 (the straightforward draft: if/else sets v1 from D_801C7084[D_801CA130*5] with -0x2E on the non-3 branch; then if D_801C6BB9 != 0 and D_801CA130 != ((u8*)D_801C7AB0)[2], picks v0 from D_801C7081[..] (+0x3C when (u32)(v1-0x16) < 0x14), stores (f32)v0*0.5f at D_8011F30C + (arg0&0xFFFF)*0x64; a1=1 returned). Only remaining diff: one instruction of extra work before the final beqz (target beqz at +0xc8, ours at +0xc4), plus register choices. Variant moving the off computation before the (v1-0x16) test: worse (1770). Next try: keep the off computed in each branch but reorder the D_801CA130 reload (target loads D_801CA130 into $a1 a second time in the store path, i.e. the index D_801CA130*5 is recomputed for the store branch). Budget used.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794767130.947711,
-  "score_before": 10,
-  "score_after": 10
  },
  {
   "function": "func_801FC2F8",
@@ -36885,5 +36797,182 @@
   "created_at": 1795726871.36681,
   "score_before": 1610,
   "score_after": 1610
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "Deep permuter: score 35 \u2192 35; 0 improvements; 53 candidates tested; 43 cached skips; 0 rejected; 7217s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589934715",
+  "created_at": 1794357271.743799,
+  "score_before": 35,
+  "score_after": 35
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "Best reached: score 185 (97.5%), same instruction count as target; only register-allocation differences remain. Form: s32 var_v0 (table value from D_801C7084[idx*5], minus 0x2E in else branch), s32 var_v1_2 (offset = (arg0&0xFFFF)*100), s32 var_a1 (ret: 0, set to arg0&0xFFFF then 1 under D_801C6BB9), branch on *(u8*)D_801C7AB0==3, store *(f32*)(D_8011F30C+off)=(f32)var_v0*0.5f, return var_a1&0xFF. Target wants idx loaded into $v0 first (lui/lbu D_801CA130 into v0), table value in v1, then store value in v0; mine is swapped. Untested: change which temp is declared first or use a separate idx temp.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794705338.578125,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "Best 185 (97.5%): structure matches, only register allocation differs (target loads D_801CA130 into $v0 first, mine into $v1; D_801C7084 and $a1/$a2 choices also swapped). Tried: hoisting idx = D_801CA130*5 into a local (2025, worse, target recomputes the index per use); (u16)arg0 cast (same 185); local_repairs families (branch orientation, signedness, decl order, address temp, param width, sum shape): none better. Untried: swapping the order of the two conditions, or the two-branch arms of the first if.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794705436.646724,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "Move-on budget exhausted. Best verified this session: 1255 (rev f8c0ec93c912e6ea8ede); inherited saved best 950 (m2c draft, rev a02de0563b7aebd85551) \u2014 the 950 source is a different shape and its lower score comes from fewer inserted insns, not from better structure.\n\nWhat is established (target is 75 insns, 82 in the 950 draft, 70 in the 1255 draft):\n- Globals: D_801C7AB0 is a pointer (u8 *), D_801C7084 and D_801C7081 are u8 arrays indexed by D_801CA130*5 (sll 2 / addu / lui+addu+%lo), D_801C6BB9 is s8 tested with lb/beqz, D_801CA130 is u8, D_8011F30C is a f32 table indexed by (arg0 & 0xFFFF)*100 bytes.\n- Order: read D_801C7AB0[0]==3 first (bne, with `addu $a1,$zero,$zero` in the delay slot -> return accumulator is a1 and is initialized inside the first branch's delay slot); then the D_801C7084 read with or without -0x2E; both paths jump to a common point. Then D_801C6BB9 test, then `beql $a1,$v0` on D_801CA130 == D_801C7AB0[2] with `addiu $a1,$zero,1` in the delay slot (return 1 when equal), then `(u32)((v-0x16)&0xFF) < 0x14` selects D_801C7081[idx]+0x3C vs D_801C7081[idx], then store (f32)val*0.5f, then ret=1, epilogue `jr $ra; andi $v0,$a1,0xFF`.\n- `*(f32 *)((char *)&D_8011F30C + off)` with `s32 off = (arg0 & 0xFFFF) * 100` is right (1255); writing D_8011F30C[off] as an f32 array scored 1930.\n- Register-role diffs in the second block (target lui $v0/addu $v0/lbu $v0 with index in $v1, ours the mirror) are pure allocation fallout; branch_orientation, cfg_integer_lifetimes, scalar_storage_reuse and signedness families all failed to improve (1275/1295/1255/1710/1645).\n\nLeft: get `beql` for the D_801CA130 == D_801C7AB0[2] test (see stored next_experiment: duplicate `ret = 1` in both arms so gcc emits the branch-likely with the addiu in the delay slot), and get the return accumulator into a1 (the 950 draft already uses a1; combining its `var_a1` naming with the 1255 addressing may be the shortest path).",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794706959.2905211,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "Best 1555 (79.2%), revision e4e633389c1bf0e4d477 (my clean C, not the m2c draft). Facts: D_801CA130 is u8 idx, stride 5 into D_801C7084 (v1 = byte - 0x2E unless hdr byte0 == 3) and D_801C7081 (+0x3C when (u8)(v1-0x16) < 0x14); D_801C7AB0 is a pointer to a byte struct (byte0 == 3 test, byte2 compared to idx); D_801C6BB9 is s8 (lb). Offset = (u16)arg0 * 100, store f32 (byte)*0.5 at D_8011F30C+off. Tried and worse: a1=1 moved before the store (1855); if/else with a1=1 in both arms (2370, target's `move $a1,$zero` at entry is lost). Remaining diff: the target keeps a1 = 1 in a beql delay slot (taken when D_801CA130 == byte2) and reloads D_801CA130 and D_801C7084 with a different register order. Next idea: write `s32 a1 = 0` as a function-scope local used by the entry `move $a1,$zero` order, then the rest of the body as in 1555; the delay-slot shape is the main unresolved structure.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794724586.751576,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "Best 1555 (79.2%), saved_best restored, not matched. Target shape: outer `if (D_801C6BB9 != 0)`; inside, `beql $a1,$v0` with `addiu $a1,$zero,1` in the delay slot (a1=1 on the equal path, and again at the end of the store body). Tried, all worse: (a) early `return 1` on equal + body + `return 1` -> 2540 (index reloaded into $a1, register order changed); (b) a local `u32 idx = D_801CA130*5` shared by both table lookups -> 3535. The target reloads D_801CA130 separately for each index (lbu, sll, addu, lbu D_801C7084), so a shared index is wrong. Untried: the signedness and branch_orientation families from try_local_repairs on saved_best.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794737119.255498,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "Best 520 (93%, not matched). Shape that works: off = (arg0 & 0xFFFF)*0x64 computed inside each arm, after the (u8)(v1-0x16)<0x14 test, with v0 = D_801C7081[D_801CA130*5] (+0x3C in the true arm) and the store *(f32*)(D_8011F30C+off) = (f32)v0*0.5f inside each arm. Remaining diff: the true-arm `addiu v0,v0,0x3C` is applied after the load with a j to the store; mine applies andi $v0,0xff and reorders the multiply (target uses sll/addu chains on the v0 from the load; mine uses arg0 in $a0). Try a 0xFF masked load or swap arm bodies.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794739152.164185,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "Best 240 (96.8%, revision 732a8cc5b8327758e520): s32 a1=0; v1/v0/off locals as in the 440 draft; `if (D_801C6BB9 != 0) {... a1 = 1;} return a1 & 0xFF;`. Remaining diff: the target has no `andi $v0,$v0,0xff` on return and loads D_801CA130 into $v0 (mine into $v1), so register assignment for the table index differs. Tried: u8 a1 (still 240), dropping the mask (auto-pass changed the source, 240 but the m2c-style form), and an early return for n==0 (1005, worse). Next: fix the register choice for D_801CA130 and the return mask.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794739320.2140312,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "Best stays 240 (96.8%), revision 63f65f18a45316c3afa2 or 732a8cc5b8327758e520 (same score). Source: u8 a1=0; s32 v1; u8 v0; u32 off; ifs on D_801C7AB0[0]==3 and D_801C6BB9; `if (D_801CA130 != ((u8*)D_801C7AB0)[2])` plus `(u8)(v1-0x16)<0x14` branch; returns a1. Remaining diff: target loads D_801CA130 into $v0 first (lui/lbu $v0), mine into $v1, which reorders the idx*5 sll/addu and the D_801C7084 load; target has no extra andi on return in the best form. Tried this session: s32 a1 + return a1 -> 440 (diff: target has andi $v0,$a1,0xff on return, mine move); u32 idx = D_801CA130 local -> 1010 (worse, reloads D_801CA130 into a1 register). Budget 3/3 non-improving exhausted. Next ideas: try andi on return with s32 a1 via `return (u8)a1;` and vary which local holds the index (use D_801CA130 twice in expressions vs one local), keeping the 240 structure.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794739444.221729,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "Best score 200 (97.3%), from using (u32)(v1 - 0x16) < 0x14 instead of the (u8) cast (removed a stray andi). Remaining diffs: (1) register allocation: target loads D_801CA130 into $v0 and reuses it for the sll/addu index; mine uses $v1 first. (2) The target has `andi $v0,$v0,0xff` before the beqz at the D_801CA130 != [2] test, mine places it after; a (u8) cast on the stored v0 and on the f32 conversion both had no effect. (3) Branch offsets 0xc8 vs 0xc4 follow from the andi placement. Untested ideas: compute the index `u8 idx = D_801CA130;` once and use it everywhere (may fix the register order), or reorder the two arms so the off computation happens before the v0 load.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794756901.935507,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "Close: best 200 (97.3%) at revision a00f43a20f7820ca2828 (the straightforward draft: if/else sets v1 from D_801C7084[D_801CA130*5] with -0x2E on the non-3 branch; then if D_801C6BB9 != 0 and D_801CA130 != ((u8*)D_801C7AB0)[2], picks v0 from D_801C7081[..] (+0x3C when (u32)(v1-0x16) < 0x14), stores (f32)v0*0.5f at D_8011F30C + (arg0&0xFFFF)*0x64; a1=1 returned). Only remaining diff: one instruction of extra work before the final beqz (target beqz at +0xc8, ours at +0xc4), plus register choices. Variant moving the off computation before the (v1-0x16) test: worse (1770). Next try: keep the off computed in each branch but reorder the D_801CA130 reload (target loads D_801CA130 into $a1 a second time in the store path, i.e. the index D_801CA130*5 is recomputed for the store branch). Budget used.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794767130.947711,
+  "score_before": 10,
+  "score_after": 10
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "Haiku haiku-pr7: saved best 105, 21 register rows: the arg0 mask and the product chain (x*5*...) land in $v0/$v1 where the target has $a0/$v1, and the D_801CA130 load is in $a0 in the target. Removing the identity inline and the do-while fence: 145 / 160 (the scaffolding carries weight). Not matched; a clean rewrite is the next step.",
+  "by": "manual-74526d26d6b14065",
+  "created_at": 1795709977.179938,
+  "score_before": 105,
+  "score_after": 105,
+  "handoff_inputs": "7d6ab19fd43b588fb9bd67b9d84d10cd2a9748f024bfaf8e453c8df33558880f:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:2d1f720ab72f17950db780abad4ee65393857a491b262923fac26181e8af2cf2"
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "Haiku clean rewrite (session haiku-pr17), 30 judged candidates. Clean C in /tmp/dd-haiku-pr17/work/f4/c2.c scores 185 at -G0 -mips3 -mgp32 -mfp32 -O1 (the app's current profile here), every instruction and branch matching; only register rows remain (37 regalloc). Shape: ret var a1 (0 then 1), v = D_801C7084[D_801CA130*5] (-0x2E in the bne arm), beql on D_801CA130 == D_801C7AB0[2], the float store to D_8011F30C + (arg0 & 0xFFFF)*100 with (f32) t * 0.5f, and (u32)((v-0x16)&0xFF) < 0x14 (unsigned: sltiu) choosing the +0x3C arm. explain_regs: the target keeps v (pseudo 74, 5 refs / 14 live, prio 0.71) in $v1 and the return var (pseudo 73, 4 refs / 27 live, prio 0.30) in $a1; ours gives $a1 to v and $a2 to the return var. All 24 declaration orders compile identically. Repair idea: raise the return variable's priority (more refs or a shorter life) so it outranks the value, or stage v's live range.",
+  "by": "manual-3be4557e41ac4704",
+  "created_at": 1795712505.876668,
+  "score_before": 105,
+  "score_after": 105
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Clean rewrite at /tmp/dd-haiku-pr17/work/f4/c2.c scores 185: only register rows left (return var vs value). Released after 30 judged candidates.",
+  "by": "manual-3be4557e41ac4704",
+  "created_at": 1795712509.63801,
+  "score_before": 105,
+  "score_after": 105
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "haiku-pr24 (Haiku): this function runs at -O1 (its default profile; the saved best 5636f125 measures 105 there and 2885 at -G0 -mips3 -mgp32 -mfp32 -O2, trial cb6d492f). The saved best is register-only (21 regalloc rows) but keeps a do-while fence and __repair_inline, which cannot be in a match. Clean rewrites: an if-chain with an early return scores 1010; the fence-free form of the saved logic (idx = (arg0 & 0xFFFF) * 100, a1 = 1 when the byte flag is set) scores 1535. The register difference is the index chain (andi a0 then sll/addu ladder) and the cur*5 reuse, so the fence is what keeps the registers.",
+  "by": "manual-c5ecf391d81f42b7",
+  "created_at": 1795714808.090975,
+  "score_before": 105,
+  "score_after": 105
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Only the fenced saved form is near; see the note.",
+  "by": "manual-c5ecf391d81f42b7",
+  "created_at": 1795714809.09094,
+  "score_before": 105,
+  "score_after": 105
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "Small-model attempt at func_80198CC4: 10 tries.\n  best 120 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 840 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1475 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2570 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2900 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nDonor func_80198DF0 shape copied in plain C (no do/while fences, no __repair names). Best 120 under own profile (saved 105 kept). Plateau: 24 register rows. The target keeps arg0&0xFFFF in $v0 and the x*100 in $v1; plain C puts the masked value in $a0. Tried: u16/s32 temp, hoisting the mask, identity helper, staged loads (150-185, worse). Donor's 105 relied on do/while scaffolding that try refuses.",
+  "by": "manual-e50bb55cb4a74a76",
+  "created_at": 1795717301.6922119,
+  "score_before": 105,
+  "score_after": 105
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80198CC4: 10 tries.\n  best 120 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 840 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1475 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2570 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2900 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nDonor func_80198DF0 shape copied in plain C (no do/while fences, no __repair names). Best 120 under own profile (saved 105 kept). Plateau: 24 register rows. The target keeps arg0&0xFFFF in $v0 and the x*100 in $v1; plain C puts the masked value in $a0. Tried: u16/s32 temp, hoisting the mask, identity helper, staged loads (150-185, worse). Donor's 105 relied on do/while scaffolding that try refuses.",
+  "by": "manual-e50bb55cb4a74a76",
+  "created_at": 1795717304.6670022,
+  "score_before": 105,
+  "score_after": 105
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "Small-model attempt at func_80198CC4: 12 tries.\n  best 120 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 840 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1510 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2570 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2920 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nTwin func_80198DF0 (matched) used as the shape. Best own-profile score 120 (try 8: separate value var, u16/s32 temp in an if-scoped block). Remaining diffs: regalloc of arg0&0xFFFF (target uses v0, ours a0), first-branch index load in v0 vs v1, and a1/a2 flag reg when the value var is live in the else branch. Plain C without the __repair_inline identity helper scores worse than the saved 105.",
+  "by": "manual-e4793b0a9f334158",
+  "created_at": 1795726141.359935,
+  "score_before": 105,
+  "score_after": 105
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80198CC4: 12 tries.\n  best 120 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 840 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1510 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 2570 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2920 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nTwin func_80198DF0 (matched) used as the shape. Best own-profile score 120 (try 8: separate value var, u16/s32 temp in an if-scoped block). Remaining diffs: regalloc of arg0&0xFFFF (target uses v0, ours a0), first-branch index load in v0 vs v1, and a1/a2 flag reg when the value var is live in the else branch. Plain C without the __repair_inline identity helper scores worse than the saved 105.",
+  "by": "manual-e4793b0a9f334158",
+  "created_at": 1795726141.881984,
+  "score_before": 105,
+  "score_after": 105
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "Small-model attempt at func_80198CC4: 12 tries.\n  best 105 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 825 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1450 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1825 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3000 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries, best 105 under the own profile (same as the saved near-miss). Clean rewrite with a store in each branch, offset (arg0 & 0xFFFF) * 100, index idx = D_801CA130 * 5 in the else branch: scores went 120 to 105. Left: register choice; target keeps arg0 in a0 and the offset in v1 with the index in v0 (regalloc only, 21 rows). Tried and worse: staging the else value in a temp (170), shift-and-add index (310), hoisting the offset above the branch (1220), u16 temp (no change).",
+  "by": "manual-dae187194a9b4d49",
+  "created_at": 1795727013.740768,
+  "score_before": 105,
+  "score_after": 105
+ },
+ {
+  "function": "func_80198CC4",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80198CC4: 12 tries.\n  best 105 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 825 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1450 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1825 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3000 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries, best 105 under the own profile (same as the saved near-miss). Clean rewrite with a store in each branch, offset (arg0 & 0xFFFF) * 100, index idx = D_801CA130 * 5 in the else branch: scores went 120 to 105. Left: register choice; target keeps arg0 in a0 and the offset in v1 with the index in v0 (regalloc only, 21 rows). Tried and worse: staging the else value in a temp (170), shift-and-add index (310), hoisting the offset above the branch (1220), u16 temp (no change).",
+  "by": "manual-dae187194a9b4d49",
+  "created_at": 1795727013.966196,
+  "score_before": 105,
+  "score_after": 105
  }
 ]
