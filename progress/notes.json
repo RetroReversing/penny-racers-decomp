@@ -5016,14 +5016,6 @@
   "score_after": 562
  },
  {
-  "function": "func_8013F638",
-  "text": "Released without a compile: the claim tool reported this hold but get_claims lists no live claims; no C was written in this session. Handing off unclaimed.",
-  "by": "Wwww.claude-haiku-18",
-  "created_at": 1794362302.1429691,
-  "score_before": null,
-  "score_after": null
- },
- {
   "function": "func_801441E0",
   "text": "Best revision 55d435c8d3d040f236b2, score 27843 (28.9%), 387 insns vs target 392. Gain from 27908 came from label+goto for the D_8018A3B8 copy loop and the D_8018F5D0 14x8x13 copy loop. Dead ends: do/while copy (28408); goto version of the 6-iteration zeroing loop (27988). Remaining diff: frame 0x68 vs target 0x58 (ra at 0x60 vs 0x50), so about 16 bytes of extra spilled locals (i/j/k/idx); func_800DE41C argument-setup order; float stores 30.0f/50.0f at 0x34/0x38; D_80189CB7 zeroing block (target: lhu D_8018A43A, then four sb to CB7/CBF offsets before the C9E/CAA loop; mine interleaves). Untried: idx as a register-only temporary, moving the CB7 block ahead of the D_8018A44A call, try_local_repairs (40 proposals left). Release failed twice with \"you don't hold a claim\" though get_claims lists the claim live with token 644ea20a437ba90f544e149b.",
   "by": "Wwww.claude-haiku-17",
@@ -7446,14 +7438,6 @@
   "created_at": 1794710912.505049,
   "score_before": 6160,
   "score_after": 6160
- },
- {
-  "function": "func_8013F638",
-  "text": "Cannot get closer in this session: best 6935 (52.8%), the same as the saved best, and the remaining diffs are structural. The target uses a jump table (`sltiu $v0,$v1,0xf` range check, then `D_80183428` indexed with `sll 2`, `lui at`, `addu`, `jr`), but the candidate's switch lowers to a branch chain (156 insns vs 147). The machine draft also failed to find the jump table (\"Unable to determine jump table ... jtbl\"), so the switch's case values and arm order are unknown. Next agent: recover the switch on the 0..14 value (probably (u16)(s0+0x53A) or a separate field, not the *(u16*)(s1+0x3E) switch) and write all its arms so gcc emits the same table, then fix the prologue register order (target saves ra at 0x24, s2 at 0x20, s1 at 0x1c, s0 at 0x18). Stopped after 1 compile.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794710919.280757,
-  "score_before": 6935,
-  "score_after": 6935
  },
  {
   "function": "func_801948E0",
@@ -10918,14 +10902,6 @@
   "created_at": 1794726298.38831,
   "score_before": 2534,
   "score_after": 2534
- },
- {
-  "function": "func_8013F638",
-  "text": "Best 2930 (80%), revision 42723a57af413224d37f. Cannot get closer without the jump tables: the inner switch on (0x53A-1) uses the table at D_80183428 and the second switch uses D_80183468 (15 entries each). The ROM does not contain them in a loaded part (read_data: not loaded), so the compile emits `lui ?local` where the target has `%hi(D_80183428)`, and that operand cannot match from our own .rodata. The first-switch structure (nested if on state != 1, then != 0) is the best control-flow form found; remaining diff is the lhu reload and a0/a1 zero register. Next agent: first check whether the jump-table symbol can be declared as a data array so the lui relocates to the real address; if not, this needs the table data before it can match.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794726652.472998,
-  "score_before": 6910,
-  "score_after": 2930
  },
  {
   "function": "func_8013CF4C",
@@ -14486,14 +14462,6 @@
   "created_at": 1794740156.098699,
   "score_before": 4403,
   "score_after": 4403
- },
- {
-  "function": "func_8013F638",
-  "text": "Not matched. Best kept: revision 42723a57af413224d37f (score 2930, 80.0%): the explicit `case 4..14: break;` lists in both switches on `*(u16*)(s0+0x53A)-1` are required (with `default:` the jump table disappears and the score is 6730). Remaining diffs: (1) the target's first `if` re-reads `lhu 0x3E(s1)` into v1 for the `bnez` (row 37 `bnez $v1,0x234`) while mine keeps it in a0 (`bnez $a0,0x220`); the second switch needs the `slti v1,2` range test before the jump table. (2) Frame and register order: the target saves ra@0x24, s2@0x20, s1@0x1c, s0@0x18 in a 0x28 frame and runs `move $s2,$a0` first; mine puts `move $s2,$a0` after the first lhu. (3) Signedness family variant (s8 *s1) gave no change. Next experiments: make `arg0` into s2 at entry (`u8 *s2 = arg0`) and index s1/s0 from it, then check whether the 0x3E read is re-issued after the first if. Stopping for this session: remaining work is control-flow and register-order, not missing operations.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794740158.761782,
-  "score_before": 2930,
-  "score_after": 2930
  },
  {
   "function": "func_8020FFD0",
@@ -20080,14 +20048,6 @@
   "score_after": 2870
  },
  {
-  "function": "func_8013F638",
-  "text": "Not matched. Best 2930 (80.0%, revision 42723a57af413224d37f): the switch-style draft with two switch statements. Compiles, but reports link-side warnings: 'your code refers to .rodata+0x0 and .rodata+0x40 where the ROM's code has no address' \u2014 the jump tables in target (second switch: sltiu $v0,$v1,0xf; sll 2; lui D_80183428) need a real table, so the switch form is right for the second block; the first switch (cases 0..3 with default-empty 4..14) compiles to beq/slti compare tree, not a table. Tried replacing both switches with if-chains: much worse (6420), discard. Target differences: the 'lhu $v1,0x3e(s1)' then beq/slti compare chain at the start, sw $ra/$s2/$s1/$s0 prologue at 0x24..0x18 (candidate has them after the early return path), and the target's 'move $s2,$a0' precedes andi. Next: keep the switch for the second block only; put the first check on a separate lhu of 0x3e to get the compare-tree shape; check whether the first switch should be a plain if-chain on a u16 temp rather than int.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794756226.121749,
-  "score_before": 2930,
-  "score_after": 2930
- },
- {
   "function": "func_8013EDFC",
   "text": "Not matched; no compiling candidate yet. Machine draft is garbled: it reads temp_fs5 before assignment and has a do{}while(0) plus goto loop (__repair_rows). Target is 596 bytes, loops 7 entries from D_8011F2F0 (entry at arg0*0x64 with float fields +0x18,+0x1C,+0x20), uses D_8011F308/30C/310 (float arrays indexed by table D_8022A772[i].f0*0x64), sqrtf of squared distance, and writes into per-slot struct at D_8022A770 + idx*0x8F0 (fields 0x560,0x8A1,0x8C8,0x8C9,0x8CC,0x7B4,0x7BC,0x7C0,0x7C8,0x5B4,0x5A0). Warning: a candidate-local prototype for func_8013EDFC conflicts with context.h (line 26); use the context prototype and do not redeclare it. Next: read get_assembly from the top, write the loop structure from the asm (the 7-iteration count and whether the loop index is s32 or u8), and only then fit the float expressions.",
   "by": "claude-haiku-5-5-20",
@@ -21646,14 +21606,6 @@
   "created_at": 1794758625.574796,
   "score_before": 2520,
   "score_after": 2520
- },
- {
-  "function": "func_8013F638",
-  "text": "Best saved 2930 (80.0%) at revision 42723a57af413224d37f. Tried: default-only switch arms (6730, worse); local u16 st read once (2930, no change); signedness family on s1 as s8* (2930, no change). Remaining diff is structural in the prologue/first block: target saves $ra,$s2,$s1,$s0 and holds the s1 index in $s2 across the first state check, and reads s1+0x3E once (beq st,1 / slti st,2 / beqz / bnez st). Mine reloads and branches differently. Second switch in target is a rodata jump table (lui %hi(D_80183428)); mine references .rodata+0x0/+0x40 instead, so the table/switch shape is wrong. Next step: rewrite the second switch as explicit ifs on ty to force the table and check whether target's jump-table index is (ty-1) with cases 0..3 only.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794758626.883756,
-  "score_before": 2930,
-  "score_after": 2930
  },
  {
   "function": "func_80208374",
@@ -26742,14 +26694,6 @@
   "created_at": 1794767924.006641,
   "score_before": 1990,
   "score_after": 1990
- },
- {
-  "function": "func_8013F638",
-  "text": "Best 2930 (80.0%) at revision 42723a57af413224d37f: the switch version with the `*(u16*)(s1+0x3E)` state check and the two switches on (*(u16*)(s0+0x53A)-1). Not matched. Blocker: the target's first switch (15 cases, sltiu 0xF, jr through the ROM's table at D_80183428 via lui/lw %lo) uses a global ROM jump table; our switch emits a local table, so the diff shows `?local` for the table address and reports our code refers to .rodata+0x0 and +0x40 where the ROM has no address. Converting to if-chains loses the table (6630). Writing the table as an extern array does not compile to the same jr sequence in this compiler. Target's first state check also compiles as `beq v1,1; slti v1,2; bnez` (a 0/1/>=2 test) while ours is `!=1` then `!=0`; reordering those tests and removing the jump-table-local mismatch would be the next experiment. Unresolved: the jump-table reference is the likely limit.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794767938.1996758,
-  "score_before": 2930,
-  "score_after": 2930
  },
  {
   "function": "func_80129918",
@@ -39446,5 +39390,79 @@
   "created_at": 1795715833.049299,
   "score_before": 1520,
   "score_after": 1520
+ },
+ {
+  "function": "func_8013F638",
+  "text": "Released without a compile: the claim tool reported this hold but get_claims lists no live claims; no C was written in this session. Handing off unclaimed.",
+  "by": "Wwww.claude-haiku-18",
+  "created_at": 1794362302.1429691,
+  "score_before": null,
+  "score_after": null
+ },
+ {
+  "function": "func_8013F638",
+  "text": "Cannot get closer in this session: best 6935 (52.8%), the same as the saved best, and the remaining diffs are structural. The target uses a jump table (`sltiu $v0,$v1,0xf` range check, then `D_80183428` indexed with `sll 2`, `lui at`, `addu`, `jr`), but the candidate's switch lowers to a branch chain (156 insns vs 147). The machine draft also failed to find the jump table (\"Unable to determine jump table ... jtbl\"), so the switch's case values and arm order are unknown. Next agent: recover the switch on the 0..14 value (probably (u16)(s0+0x53A) or a separate field, not the *(u16*)(s1+0x3E) switch) and write all its arms so gcc emits the same table, then fix the prologue register order (target saves ra at 0x24, s2 at 0x20, s1 at 0x1c, s0 at 0x18). Stopped after 1 compile.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794710919.280757,
+  "score_before": 6935,
+  "score_after": 6935
+ },
+ {
+  "function": "func_8013F638",
+  "text": "Best 2930 (80%), revision 42723a57af413224d37f. Cannot get closer without the jump tables: the inner switch on (0x53A-1) uses the table at D_80183428 and the second switch uses D_80183468 (15 entries each). The ROM does not contain them in a loaded part (read_data: not loaded), so the compile emits `lui ?local` where the target has `%hi(D_80183428)`, and that operand cannot match from our own .rodata. The first-switch structure (nested if on state != 1, then != 0) is the best control-flow form found; remaining diff is the lhu reload and a0/a1 zero register. Next agent: first check whether the jump-table symbol can be declared as a data array so the lui relocates to the real address; if not, this needs the table data before it can match.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794726652.472998,
+  "score_before": 6910,
+  "score_after": 2930
+ },
+ {
+  "function": "func_8013F638",
+  "text": "Not matched. Best kept: revision 42723a57af413224d37f (score 2930, 80.0%): the explicit `case 4..14: break;` lists in both switches on `*(u16*)(s0+0x53A)-1` are required (with `default:` the jump table disappears and the score is 6730). Remaining diffs: (1) the target's first `if` re-reads `lhu 0x3E(s1)` into v1 for the `bnez` (row 37 `bnez $v1,0x234`) while mine keeps it in a0 (`bnez $a0,0x220`); the second switch needs the `slti v1,2` range test before the jump table. (2) Frame and register order: the target saves ra@0x24, s2@0x20, s1@0x1c, s0@0x18 in a 0x28 frame and runs `move $s2,$a0` first; mine puts `move $s2,$a0` after the first lhu. (3) Signedness family variant (s8 *s1) gave no change. Next experiments: make `arg0` into s2 at entry (`u8 *s2 = arg0`) and index s1/s0 from it, then check whether the 0x3E read is re-issued after the first if. Stopping for this session: remaining work is control-flow and register-order, not missing operations.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794740158.761782,
+  "score_before": 2930,
+  "score_after": 2930
+ },
+ {
+  "function": "func_8013F638",
+  "text": "Not matched. Best 2930 (80.0%, revision 42723a57af413224d37f): the switch-style draft with two switch statements. Compiles, but reports link-side warnings: 'your code refers to .rodata+0x0 and .rodata+0x40 where the ROM's code has no address' \u2014 the jump tables in target (second switch: sltiu $v0,$v1,0xf; sll 2; lui D_80183428) need a real table, so the switch form is right for the second block; the first switch (cases 0..3 with default-empty 4..14) compiles to beq/slti compare tree, not a table. Tried replacing both switches with if-chains: much worse (6420), discard. Target differences: the 'lhu $v1,0x3e(s1)' then beq/slti compare chain at the start, sw $ra/$s2/$s1/$s0 prologue at 0x24..0x18 (candidate has them after the early return path), and the target's 'move $s2,$a0' precedes andi. Next: keep the switch for the second block only; put the first check on a separate lhu of 0x3e to get the compare-tree shape; check whether the first switch should be a plain if-chain on a u16 temp rather than int.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794756226.121749,
+  "score_before": 2930,
+  "score_after": 2930
+ },
+ {
+  "function": "func_8013F638",
+  "text": "Best saved 2930 (80.0%) at revision 42723a57af413224d37f. Tried: default-only switch arms (6730, worse); local u16 st read once (2930, no change); signedness family on s1 as s8* (2930, no change). Remaining diff is structural in the prologue/first block: target saves $ra,$s2,$s1,$s0 and holds the s1 index in $s2 across the first state check, and reads s1+0x3E once (beq st,1 / slti st,2 / beqz / bnez st). Mine reloads and branches differently. Second switch in target is a rodata jump table (lui %hi(D_80183428)); mine references .rodata+0x0/+0x40 instead, so the table/switch shape is wrong. Next step: rewrite the second switch as explicit ifs on ty to force the table and check whether target's jump-table index is (ty-1) with cases 0..3 only.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794758626.883756,
+  "score_before": 2930,
+  "score_after": 2930
+ },
+ {
+  "function": "func_8013F638",
+  "text": "Best 2930 (80.0%) at revision 42723a57af413224d37f: the switch version with the `*(u16*)(s1+0x3E)` state check and the two switches on (*(u16*)(s0+0x53A)-1). Not matched. Blocker: the target's first switch (15 cases, sltiu 0xF, jr through the ROM's table at D_80183428 via lui/lw %lo) uses a global ROM jump table; our switch emits a local table, so the diff shows `?local` for the table address and reports our code refers to .rodata+0x0 and +0x40 where the ROM has no address. Converting to if-chains loses the table (6630). Writing the table as an extern array does not compile to the same jr sequence in this compiler. Target's first state check also compiles as `beq v1,1; slti v1,2; bnez` (a 0/1/>=2 test) while ours is `!=1` then `!=0`; reordering those tests and removing the jump-table-local mismatch would be the next experiment. Unresolved: the jump-table reference is the likely limit.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794767938.1996758,
+  "score_before": 2930,
+  "score_after": 2930
+ },
+ {
+  "function": "func_8013F638",
+  "text": "Small-model attempt at func_8013F638: 12 tries.\n  best 1205 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1925 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1975 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 1975 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3361 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries, best profile -O1 at 1205 (not matched). Matched: jump tables with all 15 cases, first-switch cases return on masked bits, u16 reads. Left: compiler reuses the 0x53A load (target reloads), and the 6-minus-a0 compare is laid out as bnel where the target uses beqz; a1 variable and the pointer/ordering variants were worse.",
+  "by": "manual-83854f89dcf14229",
+  "created_at": 1795718955.090965,
+  "score_before": 2110,
+  "score_after": 2110,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:0e5511d112044dc7523df998cbec1e1b20b74f476172c166f27e88e41e43324e"
+ },
+ {
+  "function": "func_8013F638",
+  "text": "Small-model attempt at func_8013F638: 12 tries.\n  best 1205 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1925 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1975 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 1975 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3361 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries, best profile -O1 at 1205 (not matched). Left: compiler reuses the 0x53A load (target reloads), and the 6-minus-a0 compare is laid out as bnel where the target uses beqz; a1 variable and the pointer/ordering variants were worse.",
+  "by": "manual-83854f89dcf14229",
+  "created_at": 1795718978.6866271,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:0e5511d112044dc7523df998cbec1e1b20b74f476172c166f27e88e41e43324e"
  }
 ]
