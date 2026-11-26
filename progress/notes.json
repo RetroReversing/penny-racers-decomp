@@ -5056,14 +5056,6 @@
   "score_after": 18305
  },
  {
-  "function": "func_8013B704",
-  "text": "Not matched. Blocked on the switch jump table at D_80183198 (35 entries, index c-0xB over 0..0x22, default path sets 0x64). read_data by address and by name both fail: not in a loaded ROM part, so the case-to-body mapping is unknown. Shape is fully known from get_assembly: u16 idx=a1&0xFFFF, stride-100 records; D_8011F2F0[idx] (u8) == D_80126FF6 and D_8018A264[that]==1 emits E7000000/0, B6000000|a0, B900031D/00504340; then switch on D_8011F32E[idx] (u16) emitting FA000000 colour word from (a0,a2,v1) plus D_8011F2FC[idx] in low byte. Do not redo the blocker analysis; need the .rodata segment containing 0x80183198 loaded before any further attempt.",
-  "by": "Wwww.claude-haiku-22",
-  "created_at": 1794362265.8714628,
-  "score_before": null,
-  "score_after": null
- },
- {
   "function": "func_80143F68",
   "text": "Not attempted in C yet. Structure: a state machine on D_80168BB0 (u32 state) with a 0x34-entry jump table at D_80183560 (sltiu 0x34, sll 2, lw via lui/%lo, jr). Each case calls one helper then stores a new state (0x1,0x3,0x13,0x15,0xB,0x1D,0x23,0x27,0x29,0x2B,0x2F,0x31,0x33) into D_80168BB0 or jumps to shared store at .L801441CC; one case stores a halfword to D_8006F9E8 (sh). Blocker: read_data cannot see D_80183560 (not in loaded ROM), so the case-to-target mapping and jump table contents are unknown; the jr table cannot be reproduced from the asm alone. Also the claim tool reported that a stale claim existed for this function, and claim_function(function=...) for func_80027BF0 was blocked by it until released. Next step: get the jump table from a split data region, then write the switch.",
   "by": "Wwww.claude-haiku-23",
@@ -5076,14 +5068,6 @@
   "text": "Blocked: jump table D_80183560 not in loaded ROM (read_data says not in a loaded part), so the switch case mapping can't be derived. Not attempted in C.",
   "by": "Wwww.claude-haiku-23",
   "created_at": 1794362281.717354,
-  "score_before": null,
-  "score_after": null
- },
- {
-  "function": "func_8013B704",
-  "text": "Not matched. Blocked on the switch jump table at D_80183198 (not in a loaded ROM part); case-to-body mapping unknown. See earlier notes on this function.",
-  "by": "Wwww.claude-haiku-22",
-  "created_at": 1794362293.26723,
   "score_before": null,
   "score_after": null
  },
@@ -6974,14 +6958,6 @@
   "created_at": 1794709148.493576,
   "score_before": 4256,
   "score_after": 4256
- },
- {
-  "function": "func_8013B704",
-  "text": "func_8013B704 (400 B), no C written yet. Structure read from asm: (Gfx-like **dl in a0 saved to a3, idx = (u16)a1). Stride 100 table D_8011F2F0 (u8); if byte == D_80126FF6 then a0 = D_8018A264[idx] (u8), and if a0 == 1 emit 4 display-list words via *dl (E7000000/0, B6000000/a0, B900031D/00504340). Then a switch on u16 D_8011F32E[idx*100] - 0xB, range 0..0x22, via jump table at D_80183198 (the decompile failed: 'Unable to determine jump table'). Each case sets (a0,a2,v1) as constants (0xFF/0xFF/0, 0xFF/0xFF/0xFF, 0/0xFF/0x96, 0xC8/0xC8/0xFF..., default 0x64/0x64/0x64); then emits FA000000 with a0<<24|a2<<16|v1<<8, and ORs in the byte D_8011F2FC[idx*100] into word 1. Next step: read_data at D_80183198 to recover the case mapping, then write a switch. Not attempted further this session.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794709221.0749052,
-  "score_before": null,
-  "score_after": null
  },
  {
   "function": "func_80138B1C",
@@ -10744,14 +10720,6 @@
   "score_after": 75
  },
  {
-  "function": "func_8013B704",
-  "text": "Best 1720 (82.8%), revision 86cc765fc87c819328ed. Facts: index is (u16)arg1 * 0x64 (stride 100). Switch on *(u16*)(D_8011F32E + idx*100) - 0xB needs the 35-entry jump table: list 0x4..0x22 explicitly alongside default (only 0..3 + default gives a compare chain, 3910). Cases: 0->(FF,FF,0), 1->(FF,FF,FF), 2->(0,96,32), 3->(C8,C8,FF), default (64,64,64). Final w1 = (r<<24)|(gr<<16)|(b<<8)|D_8011F2FC[idx*100]. Block 1: if D_8011F2F0[idx*100]==D_80126FF6 { c=D_8018A264[that]; if c==1 emit 3 DL commands }. Remaining diff, why it stalls: target copies arg1 into $t0 at entry and reuses the masked index from $t0 at all three uses; u16 idx, u32 idx = arg1&0xFFFF (2295), s32 arg1, u8 c and signedness family on w0 all leave the 1720 instruction stream unchanged or worse. Still differing: branch shape at the c==1 test (target bne/bne, mine bnel) and the register choice for r/gr/b (target a0/a2/v1 order). Untried: a separate local `u16 k = arg1;` before the first `if` and writing the `c==1` block as a nested if on `c` loaded through `u8` index temp.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794724406.863432,
-  "score_before": 2605,
-  "score_after": 1720
- },
- {
   "function": "func_800423F4",
   "text": "udivdi3-style u64/u32 division. Best remains score 1770 at revision 32c7c5b579a1f8cc3c96 (separate hi/qlo accumulators, product union, goto loop). This session: 3 whole rewrites (u64-arg prototype, explicit q<<32, and 4-arg with u64 q and w/dv locals) scored 3500/3500/3285 \u2014 all worse, budget 4/4 exhausted. Restore base=\"saved_best\" before continuing.\n\nTarget shape (50 insns, gcc-2.8.1-pm-sn-as per function brief, but compiler map says gcc-2.7.2-kmc; try_compiler to kmc was not run this session):\n- prologue: divu $zero,$a0,$a3 / bnez $a3 / nop / break 7 / mflo $t2 (hi=q>>32 accumulator) / mfhi $a0 (rem) / xor $t0,$t0,$t0 (qlo zeroed with xor idiom, not move).\n- loop head .L80042410: beqz $a0 (rem) -> tail; body copies a1->v1, rem->v0, a3->t1 then normalizing do-while; t1++ ; divu v1/t1 ; mflo $v1 ; xor $v0,$v0,$v0 (a *separate* zero register) ; addu $t0,$t0,$v1 ; sltu $t9,$t0,$v1 ; addu $t2,$t2,$v0 ; addu $t2,$t2,$t9 \u2014 i.e. the carry is added through a zeroed $v0 then $t9, two addu steps, so hi += qlo<v1 must be written as two separate adds (one of a zero-valued variable).\n- multu $v1,$a3 / mflo $v1 / mfhi $v0 ; sltu $t9,$a1,$v1 ; subu $a1,$a1,$v1 ; j loop ; subu $a0,$a0,$t9 (borrow subtracted in the delay slot, so rem = (rem - prodhi) - borrow with borrow in the delay slot).\n- tail: divu $zero,$a1,$a3 / bnez / nop / break 7 / mflo $v1 / mfhi $t1 ; xor $v0,$v0,$v0 ; addu $v1,$v1,$t0 ; sltu $t9,$v1,$t0 ; addu $v0,$v0,$t2 ; jr $ra ; addu $v0,$v0,$t9 \u2014 again two addu through a zeroed $v0, return hi in $v0 (u64 return in v0/v1).\nKey unresolved: getting gcc to emit the xor-zero idiom and the two-step carry adds (needs an explicit zero-valued local added to hi in both places, and qlo/hi as separate u32 rather than a u64 accumulator), plus keeping hi in $t2 across the loop.",
   "by": "api-route-llm-code-1",
@@ -14128,14 +14096,6 @@
   "score_after": 1585
  },
  {
-  "function": "func_8013B704",
-  "text": "Best this session: revision f8152f9a5920fb55a774, score 3350 (66.5%). Saved best 1720 is historical and not restored. Still differs in two ways. (1) The target copies the raw u16 arg into $t0 (`move $t0,$a1`) and re-derives `andi $v1,$t0,0xffff` at entry and after the first if-block; every variant tried (u16 arg1, s32 arg1 with (u16) casts, local idx) emits `andi` from $a1 and never the move. (2) The switch is now an if/else chain on v = lhu(D_8011F32E + idx*0x64) - 0xB, which fixed control flow, but the target's index math is ordered differently (idx*0x64 computed into $v1 then $at-based lui/addu for D_8011F32E), so registers and order remain. Untried: forcing idx to live in a separate local that is read after the if-block; hoisting the D_8018A264 base into a pointer local. Budget at 3/6 without improvement for the next variant.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794736906.089577,
-  "score_before": 1720,
-  "score_after": 1720
- },
- {
   "function": "func_8013F050",
   "text": "Saved best 848 (historical, not reverified); best rechecked current is 3485 (revision 08bfee89effe0245bf15, u16 arg0 variant). Pointer-walk variant (p = arg1; p[0x60]/p[0x67]; p++) scored 3775, worse. Target frame is 0x40 with ra at 0x20 and s3 at 0x1c; every candidate builds a 0x58 frame with s2-s5 saved, so the structure of the loop (where the 7-entry scan and the D_8022A772 stride 0x8F0 indexing live) is the blocker. The `lb 0x60($v0)` target indexes via sll/addu chain of arg1+i rather than a pointer, so a plain index form may be closer. Not reachable with the current C after 3 compiles; move on unless someone has a different loop shape.",
   "by": "claude-haiku-5-5-20",
@@ -14414,14 +14374,6 @@
   "created_at": 1794738744.7354739,
   "score_before": 885,
   "score_after": 885
- },
- {
-  "function": "func_8013B704",
-  "text": "No match. Saved best 1720 (not re-verified here); my rewrite 31c25f6db0458af261e4 scored 3910. Facts: the target keeps arg1 raw in $t0 (`move $t0,$a1`) and masks it with andi 0xffff for the table index and the 0x64 stride; the m2c jump-table decode fails (no jtbl symbol), so the 4-way switch on (u16)(*(u16*)(D_8011F32E + idx*0x64) - 0xB) has to be written with the default case and the r/gr/b values matched by hand. Next: start from the saved 1720 source (get_candidate base=saved_best) and fix only the arg1 handling and the Gfx pointer store order (target loads pkt into $a3 first).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794738747.410499,
-  "score_before": 1720,
-  "score_after": 1720
  },
  {
   "function": "func_800DEFF8",
@@ -20504,14 +20456,6 @@
   "score_after": 5810
  },
  {
-  "function": "func_8013B704",
-  "text": "Best 1720 (82.8%) at revision 86cc765fc87c819328ed. The switch on (*(u16*)(D_8011F32E+idx*0x64) - 0xB) with cases 0..0x22 (0..3 explicit, 4..0x22 and default -> r=gr=b=0x64) is a jump table in the ROM at D_80183198 (target: lui at,%hi(D_80183198); lw v0,%lo(...)(at); jr). Our compile emits its own .rodata table, so the link reports 'your code refers to .rodata+0x0 where the ROM's code has no address' and the table load shows as ?local vs D_80183198. That is a data/symbol issue, not C shape: the table at D_80183198 must be declared as a data symbol (e.g. a rodata table unit) for the switch to link to it; suggest checking whether the project has a rodata symbol for D_80183198. Remaining instruction differences are register choice and branch layout around the 0x0-0x3 cases (target: move t0,a1 / move a3,a0 at entry; ours keeps arg1 and pkt in a1/a0 and uses at for the address). Tried: arg1 as s32 (no change).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794755731.417137,
-  "score_before": 1720,
-  "score_after": 1720
- },
- {
   "function": "func_801AEAB0",
   "text": "Best 3210 (73.4%), revision 24a4f7bf09c76bb83536; 121 insns both sides, so the gap is ordering and register choice, not missing code. Confirmed: the 18-arg func_800DE41C prototype (u16 return) places the args right: a0..a3 = 0,0,3,0; stack 0x10=0x40, 0x14=0xFF, 0x18/0x1C=0, 0x20=&D_801B7204, 0x24..0x44 zero. Target order: sh $zero to D_8006FAF0+0x20 first, then stack args, then register args. Tail: target computes D_1F9030 - D_1B0E50 first, then loads D_1B0E50 and D_802D6890 for func_800294A0; mine loads a0/a1 before the size. Tried a separate s32 size local before the call (revision 5cc316da1cd51aa2213d): no effect on the score, so the tail order is not governed by statement order. Untried: check whether the frame (ra saved at 0x48, the stack arg block) comes from a different argument-type shape, e.g. void* vs u8* for the D_801B7204 and D_80196448 args. Stopping at 2 no-improvement compiles after the size-local attempt; the 3210 is the saved best.",
   "by": "claude-haiku-5-5-21",
@@ -26424,14 +26368,6 @@
   "score_after": 7356
  },
  {
-  "function": "func_8013B704",
-  "text": "Not matched. Saved best 1720 is still the best; this session's best was 3910 (revision 31c25f6db0458af261e4), which is worse. Fixes: the switch needs a jump table for the case values 0..3 (the 4..0x22 range is the default), and the saved best and m2c draft are the right starting points. Remaining mismatches are register choice and branch shape: target does `move $t0,$a1` first, `andi $v0,$t0,0xffff`, then `move $a3,$a0` to hold pkt, and loads D_8018A264 through $a0 with addu of $v1 (the c==1 check branches via `bne $a0,$v0`). The unconditional 0xFA packet store uses `lw $v1,($a3)`. Untried: take the arg1 copy as a separate u16 local so gcc keeps it in $t0, and write the c==1 block as a compare against the loaded byte instead of a stored variable.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794764986.917268,
-  "score_before": 1720,
-  "score_after": 1720
- },
- {
   "function": "func_801C1680",
   "text": "Releasing now, not matched. Best from my probe is 35.3% (13052, revision 22ae7b30fa0bd1c358b7); saved_best 2580 is from an earlier source. Target is a display-list emitter, 202 insns, frame 8 with only s0 saved. Ours uses frame 0x10 and s1/s2, so too many temporaries stay live. Structure: arg0 is a Gfx cursor, *arg0 advances 8 bytes per command, first 9 fixed commands (0x06000000, 0xB6000000, 0xFD100000, 0xE8000000, 0xF5000100, 0xE6000000, 0xF0000000, 0xE7000000, 0x040040FF), then a 7-iteration loop (i<7) of packed texture/vertex words. Next: rewrite the loop with one s0 index and recompute packed terms per use instead of temporaries. Compare with last_diff. Cannot get closer in this session at low effort.",
   "by": "claude-haiku-5-5-21",
@@ -27350,14 +27286,6 @@
   "created_at": 1794767065.60012,
   "score_before": 320,
   "score_after": 320
- },
- {
-  "function": "func_8013B704",
-  "text": "Best: rev db035d1c43c870ef8d32 (score 1720, 82.8%): full switch on (*(u16*)(D_8011F32E+idx*100) - 0xB) with cases 0..3 and default folded from 0x4..0x22, plus the D_8011F2F0/D_80126FF6 test and three gfx packets. Remaining: (1) the switch jump table: target does beqz after the range check and loads its table with lui $at,%hi(D_80183198)/lw $v0,%lo(D_80183198)($at); ours uses an unnamed .rodata local and reports 'your code refers to .rodata+0x0 where the ROM's code has no address'. This is likely a table placement issue, not C: rename or declare D_80183198 as the table symbol and retry. (2) the if (c==1) block and the r/gr/b arms differ in register choice (target $a2 vs ours $v1/$a3). signedness family on w0 (s32) gives the same 1720. Next step: test the table symbol, then registers.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794767074.540354,
-  "score_before": 1720,
-  "score_after": 1720
  },
  {
   "function": "func_8013DF90",
@@ -39046,5 +38974,93 @@
   "score_before": 346,
   "score_after": 346,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:b91446d59f173a3b271bbd3569656ad57a2597f7f0ca0ec55e494661291a73d4"
+ },
+ {
+  "function": "func_8013B704",
+  "text": "Not matched. Blocked on the switch jump table at D_80183198 (35 entries, index c-0xB over 0..0x22, default path sets 0x64). read_data by address and by name both fail: not in a loaded ROM part, so the case-to-body mapping is unknown. Shape is fully known from get_assembly: u16 idx=a1&0xFFFF, stride-100 records; D_8011F2F0[idx] (u8) == D_80126FF6 and D_8018A264[that]==1 emits E7000000/0, B6000000|a0, B900031D/00504340; then switch on D_8011F32E[idx] (u16) emitting FA000000 colour word from (a0,a2,v1) plus D_8011F2FC[idx] in low byte. Do not redo the blocker analysis; need the .rodata segment containing 0x80183198 loaded before any further attempt.",
+  "by": "Wwww.claude-haiku-22",
+  "created_at": 1794362265.8714628,
+  "score_before": null,
+  "score_after": null
+ },
+ {
+  "function": "func_8013B704",
+  "text": "Not matched. Blocked on the switch jump table at D_80183198 (not in a loaded ROM part); case-to-body mapping unknown. See earlier notes on this function.",
+  "by": "Wwww.claude-haiku-22",
+  "created_at": 1794362293.26723,
+  "score_before": null,
+  "score_after": null
+ },
+ {
+  "function": "func_8013B704",
+  "text": "func_8013B704 (400 B), no C written yet. Structure read from asm: (Gfx-like **dl in a0 saved to a3, idx = (u16)a1). Stride 100 table D_8011F2F0 (u8); if byte == D_80126FF6 then a0 = D_8018A264[idx] (u8), and if a0 == 1 emit 4 display-list words via *dl (E7000000/0, B6000000/a0, B900031D/00504340). Then a switch on u16 D_8011F32E[idx*100] - 0xB, range 0..0x22, via jump table at D_80183198 (the decompile failed: 'Unable to determine jump table'). Each case sets (a0,a2,v1) as constants (0xFF/0xFF/0, 0xFF/0xFF/0xFF, 0/0xFF/0x96, 0xC8/0xC8/0xFF..., default 0x64/0x64/0x64); then emits FA000000 with a0<<24|a2<<16|v1<<8, and ORs in the byte D_8011F2FC[idx*100] into word 1. Next step: read_data at D_80183198 to recover the case mapping, then write a switch. Not attempted further this session.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794709221.0749052,
+  "score_before": null,
+  "score_after": null
+ },
+ {
+  "function": "func_8013B704",
+  "text": "Best 1720 (82.8%), revision 86cc765fc87c819328ed. Facts: index is (u16)arg1 * 0x64 (stride 100). Switch on *(u16*)(D_8011F32E + idx*100) - 0xB needs the 35-entry jump table: list 0x4..0x22 explicitly alongside default (only 0..3 + default gives a compare chain, 3910). Cases: 0->(FF,FF,0), 1->(FF,FF,FF), 2->(0,96,32), 3->(C8,C8,FF), default (64,64,64). Final w1 = (r<<24)|(gr<<16)|(b<<8)|D_8011F2FC[idx*100]. Block 1: if D_8011F2F0[idx*100]==D_80126FF6 { c=D_8018A264[that]; if c==1 emit 3 DL commands }. Remaining diff, why it stalls: target copies arg1 into $t0 at entry and reuses the masked index from $t0 at all three uses; u16 idx, u32 idx = arg1&0xFFFF (2295), s32 arg1, u8 c and signedness family on w0 all leave the 1720 instruction stream unchanged or worse. Still differing: branch shape at the c==1 test (target bne/bne, mine bnel) and the register choice for r/gr/b (target a0/a2/v1 order). Untried: a separate local `u16 k = arg1;` before the first `if` and writing the `c==1` block as a nested if on `c` loaded through `u8` index temp.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794724406.863432,
+  "score_before": 2605,
+  "score_after": 1720
+ },
+ {
+  "function": "func_8013B704",
+  "text": "Best this session: revision f8152f9a5920fb55a774, score 3350 (66.5%). Saved best 1720 is historical and not restored. Still differs in two ways. (1) The target copies the raw u16 arg into $t0 (`move $t0,$a1`) and re-derives `andi $v1,$t0,0xffff` at entry and after the first if-block; every variant tried (u16 arg1, s32 arg1 with (u16) casts, local idx) emits `andi` from $a1 and never the move. (2) The switch is now an if/else chain on v = lhu(D_8011F32E + idx*0x64) - 0xB, which fixed control flow, but the target's index math is ordered differently (idx*0x64 computed into $v1 then $at-based lui/addu for D_8011F32E), so registers and order remain. Untried: forcing idx to live in a separate local that is read after the if-block; hoisting the D_8018A264 base into a pointer local. Budget at 3/6 without improvement for the next variant.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794736906.089577,
+  "score_before": 1720,
+  "score_after": 1720
+ },
+ {
+  "function": "func_8013B704",
+  "text": "No match. Saved best 1720 (not re-verified here); my rewrite 31c25f6db0458af261e4 scored 3910. Facts: the target keeps arg1 raw in $t0 (`move $t0,$a1`) and masks it with andi 0xffff for the table index and the 0x64 stride; the m2c jump-table decode fails (no jtbl symbol), so the 4-way switch on (u16)(*(u16*)(D_8011F32E + idx*0x64) - 0xB) has to be written with the default case and the r/gr/b values matched by hand. Next: start from the saved 1720 source (get_candidate base=saved_best) and fix only the arg1 handling and the Gfx pointer store order (target loads pkt into $a3 first).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794738747.410499,
+  "score_before": 1720,
+  "score_after": 1720
+ },
+ {
+  "function": "func_8013B704",
+  "text": "Best 1720 (82.8%) at revision 86cc765fc87c819328ed. The switch on (*(u16*)(D_8011F32E+idx*0x64) - 0xB) with cases 0..0x22 (0..3 explicit, 4..0x22 and default -> r=gr=b=0x64) is a jump table in the ROM at D_80183198 (target: lui at,%hi(D_80183198); lw v0,%lo(...)(at); jr). Our compile emits its own .rodata table, so the link reports 'your code refers to .rodata+0x0 where the ROM's code has no address' and the table load shows as ?local vs D_80183198. That is a data/symbol issue, not C shape: the table at D_80183198 must be declared as a data symbol (e.g. a rodata table unit) for the switch to link to it; suggest checking whether the project has a rodata symbol for D_80183198. Remaining instruction differences are register choice and branch layout around the 0x0-0x3 cases (target: move t0,a1 / move a3,a0 at entry; ours keeps arg1 and pkt in a1/a0 and uses at for the address). Tried: arg1 as s32 (no change).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794755731.417137,
+  "score_before": 1720,
+  "score_after": 1720
+ },
+ {
+  "function": "func_8013B704",
+  "text": "Not matched. Saved best 1720 is still the best; this session's best was 3910 (revision 31c25f6db0458af261e4), which is worse. Fixes: the switch needs a jump table for the case values 0..3 (the 4..0x22 range is the default), and the saved best and m2c draft are the right starting points. Remaining mismatches are register choice and branch shape: target does `move $t0,$a1` first, `andi $v0,$t0,0xffff`, then `move $a3,$a0` to hold pkt, and loads D_8018A264 through $a0 with addu of $v1 (the c==1 check branches via `bne $a0,$v0`). The unconditional 0xFA packet store uses `lw $v1,($a3)`. Untried: take the arg1 copy as a separate u16 local so gcc keeps it in $t0, and write the c==1 block as a compare against the loaded byte instead of a stored variable.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794764986.917268,
+  "score_before": 1720,
+  "score_after": 1720
+ },
+ {
+  "function": "func_8013B704",
+  "text": "Best: rev db035d1c43c870ef8d32 (score 1720, 82.8%): full switch on (*(u16*)(D_8011F32E+idx*100) - 0xB) with cases 0..3 and default folded from 0x4..0x22, plus the D_8011F2F0/D_80126FF6 test and three gfx packets. Remaining: (1) the switch jump table: target does beqz after the range check and loads its table with lui $at,%hi(D_80183198)/lw $v0,%lo(D_80183198)($at); ours uses an unnamed .rodata local and reports 'your code refers to .rodata+0x0 where the ROM's code has no address'. This is likely a table placement issue, not C: rename or declare D_80183198 as the table symbol and retry. (2) the if (c==1) block and the r/gr/b arms differ in register choice (target $a2 vs ours $v1/$a3). signedness family on w0 (s32) gives the same 1720. Next step: test the table symbol, then registers.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794767074.540354,
+  "score_before": 1720,
+  "score_after": 1720
+ },
+ {
+  "function": "func_8013B704",
+  "text": "Small-model attempt at func_8013B704: 16 tries.\n  best 645 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 655 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 2610 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2640 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 4045 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nBest clean rewrite work3.c: full case list 0x4..0x22 + default -> 0x64 (matches jump table), temp for D_8018A264 byte, idx u16. O1 655, sn 645, own O2 2610. Remaining diff is register allocation: target copies arg1 to $t0 and pkt to $a3, branch on the first byte loaded into $v1. Tried: pkt/arg local copies, u8 first byte, u32/s32 idx, inline masks: no change or worse.",
+  "by": "manual-4bf1be2c963e406b",
+  "created_at": 1795717768.89837,
+  "score_before": 485,
+  "score_after": 485
+ },
+ {
+  "function": "func_8013B704",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_8013B704: 16 tries.\n  best 645 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 655 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 2610 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2640 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 4045 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nBest clean rewrite work3.c: full case list 0x4..0x22 + default -> 0x64 (matches jump table), temp for D_8018A264 byte, idx u16. O1 655, sn 645, own O2 2610. Remaining diff is register allocation: target copies arg1 to $t0 and pkt to $a3, branch on the first byte loaded into $v1. Tried: pkt/arg local copies, u8 first byte, u32/s32 idx, inline masks: no change or worse.",
+  "by": "manual-4bf1be2c963e406b",
+  "created_at": 1795717771.918869,
+  "score_before": 485,
+  "score_after": 485
  }
 ]
