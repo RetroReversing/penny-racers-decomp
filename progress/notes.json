@@ -35421,5 +35421,39 @@
   "created_at": 1795714353.5311239,
   "score_before": 1045,
   "score_after": 1045
+ },
+ {
+  "function": "func_801CE7D0",
+  "text": "haiku-pr24 (Haiku): saved best 6e1b94d6 measures 8430 at -G0 -mips3 -mgp32 -mfp32 -O2 (trial 2f9c1d19) and 5610 at -O1 (trial ff51aa74). A clean display-list rewrite (one Gfx pointer g, each command: p = g; g = g + 1; p->w0 = ...; p->w1 = ...; and *arg0 = g at the end; 13 commands) scores 8915 at -O2 but 205 at -O1, and the -O1 diff is register-only: the target keeps the previous pointer in $a1 and the compiler puts it in $a2 (tried declaration order, p = g++, a u32 pointer and a void pointer: all 205). So the function is probably built at -O1, and the match needs only the register choice for the temporary pointer. Not yet an exact trial, so no suggest was made.",
+  "by": "manual-c5ecf391d81f42b7",
+  "created_at": 1795714481.203861,
+  "score_before": 4705,
+  "score_after": 4705
+ },
+ {
+  "function": "func_801CE7D0",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Near-match at -O1 (register-only diff, 205); see the note.",
+  "by": "manual-c5ecf391d81f42b7",
+  "created_at": 1795714487.778181,
+  "score_before": 4705,
+  "score_after": 4705
+ },
+ {
+  "function": "func_801CE7D0",
+  "text": "Hand-off of func_801CE7D0: best 8915 (121 differing rows) in work/g2.c.\n\nRemaining rows (marker | target | candidate):\n  > |  | addiu $sp, $sp, -8\n  > |  | sw $s0, ($sp)\n  > |  | lui $a1, 0xba00\n  > |  | ori $a1, $a1, 0x1402\n  > |  | lui $a2, 0xf\n  > |  | ori $a2, $a2, 0x3205\n  > |  | lui $t1, 0xfc11\n  > |  | ori $t1, $t1, 0x9623\n  > |  | lui $a3, 0xff2f\n  > |  | ori $a3, $a3, 0xffff\n  > |  | lui $t2, 0xba00\n  > |  | ori $t2, $t2, 0x1301\n  > |  | lui $t3, 0xba00\n  > |  | ori $t3, $t3, 0x1001\n  > |  | lui $t4, 0xba00\n  > |  | ori $t4, $t4, 0xc02\n  > |  | lui $t5, 0xba00\n  > |  | ori $t5, $t5, 0x903\n  > |  | lui $t6, 0xba00\n  > |  | ori $t6, $t6, 0xe02\n  > |  | lui $t0, 0xba00\n  > |  | ori $t0, $t0, 0x602\n  > |  | lui $t7, 0xb900\n  > |  | ori $t7, $t7, 2\n  > |  | lui $s0, 0xba00\n  > |  | ori $s0, $s0, 0x402\n  > |  | lui $v1, 0xe700\n  > |  | move $t8, $v0\n  o |  | addiu $v0, $v0, 8\n  > |  | sw $v1, ($t8)\n  > |  | sw $zero, 4($t8)\n  > |  | move $t8, $v0\n  o |  | addiu $v0, $v0, 8\n  > |  | sw $a1, ($t8)\n  > |  | sw $zero, 4($t8)\n  r | move $a1, $v0 | move $t8, $v0\n  i | lui $v1, 0xe700 | lui $v1, 0xb600\n  r | sw $v1, ($a1) | sw $v1, ($t8)\n  r | sw $zero, 4($a1) | sw $a2, 4($t8)\n  r | move $a1, $v0 | move $t8, $v0\n  ... 81 more (fast_judge.py --diff --rows all)\n\nRegister pairs (explain_regs.py):\n  $t8 where the target has $a1 (25 rows):\n  why not $a1: $a1 is live across it (a fixed use: an argument, return value or call-clobbered register), so it can never get it: shorten its life or move the use of $a1.\n  $v1 where the target has $zero (2 rows):\n  why not $zero: block-local: local-alloc gives quantities registers in priority order and $zero was taken or tied up in that block. Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $zero: block-local: local-alloc gives quantities registers in priority order and $zero was taken or tied up in that block. Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $zero: block-local: local-alloc gives quantities registers in priority order and $zero was taken or tied up in that block. Move it: change its refs/length against those, or make it global (a use in another block).\n  $a2 where the target has $zero (1 row):\n  why not $zero: block-local: local-alloc gives quantities registers in priority order and $zero was taken or tied up in that block. Move it: change its refs/length against those, or make it global (a use in another block).\n  $t1 where the target has $v1 (1 row):\n  why not $v1: block-local: local-alloc gives quantities registers in priority order and $v1 was taken or tied up in that block (also in $v1: pseudo 75 (0.50), pseudo 77 (0.50)). Move it: change its refs/length against those, or make it global (a use in another block).\n  $a3 where the target has $zero (1 row):\n  why not $zero: block-local: local-alloc gives quantities registers in priority order and $zero was taken or tied up in that block. Move it: change its refs/length against those, or make it global (a use in another block).\n  $t2 where the target has $v1 (1 row):\n  why not $v1: block-local: local-alloc gives quantities registers in priority order and $v1 was taken or tied up in that block (also in $v1: pseudo 75 (0.50), pseudo 77 (0.50)). Move it: change its refs/length against those, or make it global (a use in another block).\n\nTried (approach: score):\n  - display list written as 13 commands through one walking pointer (d = p; p = d + 1; d->w0/w1): -O1 205, default 8915 (saved 5490)\n  - same with the pointer declared first / p += 1 / extra local: -O1 205 each\n\nFindings:\nunder -O1 only register differences remain: the target keeps each command's pointer in $a1 (move $a1,$v0), ours in $a2 (41 rows). The sum of constants and order already match. Lead: the -O1 profile; find what makes local-alloc give $a1 (a use of $a1 earlier, or the pointer as the first local)",
+  "by": "manual-762503dc128b4f24",
+  "created_at": 1795715002.770049,
+  "score_before": 11585,
+  "score_after": 8915,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:3226715cf08a2a217f10444f2736982074e0850af348d2c2802db641b5323e91"
+ },
+ {
+  "function": "func_801CE7D0",
+  "text": "Display list: -O1 205 (register-only rows), default 8915. See hand-off note.",
+  "by": "manual-762503dc128b4f24",
+  "created_at": 1795715005.455271,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:3226715cf08a2a217f10444f2736982074e0850af348d2c2802db641b5323e91"
  }
 ]
