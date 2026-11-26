@@ -7512,14 +7512,6 @@
   "score_after": 596
  },
  {
-  "function": "func_80205C00",
-  "text": "Not matched (best saved 1665; my re-compile of the draft text gives 8075). Target: all accesses to D_8021AFFC go through one pointer register: lui v1,%hi(D_8021AFFC); addiu v1,v1,%lo(D_8021AFFC); lw/sw (v1), with the other globals D_8021B06A/D_8021B019/D_8021B07E reached by separate lui/%lo loads. The first switch-like test on D_8021B019 is a bnel (branch-likely) with the delay-slot nop, not a beq. The C form that fits should use a single pointer p = &D_8021AFFC for reads and writes, and the clamp `if (D_8021B06A < *p) *p = 0; else if (*p < 0) *p = D_8021B06A` written so that gcc emits bnel. The float table stores are 15 swc1 into D_8021B024/B038/B04C with stride 4 (index 0..4) using constant pairs; the target constant-loads each float via lui+mtc1 before the store. Untried: pointer-based variant and reordering the table writes to match the constant-load order.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794708921.766489,
-  "score_before": 1665,
-  "score_after": 1665
- },
- {
   "function": "func_8014A2D0",
   "text": "func_8014A2D0 (504 B). Best 5997 (52%), no match. Flow: buf=*arg0 kept at sp+0x30 and written back at end; s1=func_8014A79C(arg3&0xFFFF); 7-step nibble scan ORing 0xF into zero nibbles from the top (mask>>=4); n=(u8)arg4; if n>0 do { s1=func_8014A080(s1,(u8)(4n-1),4,1); if (s1&0xF)<10 { if (u8)arg5==0 -> func_801CABF4(&buf,base+13*s0,ydim,15,&D_802D92A0,D_80203080[nib],0,&D_802D6898,14,16,0xE0,0x60) else func_801CABF4(&buf,base+10*s0,ydim,10,&D_801D4390,D_80203080[nib],0,&D_801CF4C8,10,14,0xA0,0xFC) } s0++ } while s0<n. Remaining diff: target keeps arg0/arg1/arg2 in fp/s3/s2 and loads arg4/arg5 via lbu from the caller slots before the first call; target frame is 0x68, ours 0x70 with int params. Declaring u8 locals before the call made it worse (6556). Untried: read arg4/arg5 into locals first in the exact order the target uses (s4 then s7), and drop the separate loop counter i to get the 0x68 frame. Best source is the int-param version with (u8)arg4/(u8)arg5 casts inline (5997).",
   "by": "claude-haiku-5-5-23",
@@ -11768,14 +11760,6 @@
   "score_after": 1455
  },
  {
-  "function": "func_80205C00",
-  "text": "Not matched. Best measured revision 4b47963915dc0083e4f8 scores 6150 (25%). Target 82 insns, mine 59 in that form. The saved 1665 is from another source and does not reproduce.\n\nFacts from the target:\n- The counter D_8021AFFC is accessed through a base register: `addiu $v1,$v1,%lo(D_8021AFFC)` (7 uses) then lw/sw at offset 0. Other reads use their own symbol: `lui $v1,%hi(D_8021B019); lbu` for the switch selector, and `lbu D_8021B06A` for the clamp bound.\n- The switch on D_8021B019 compiles to a chain: `addiu $v0,$zero,1; bnel $v1,$v0,...` then `addiu $v0,$zero,2` with `bne` (not a jump table). So use if/else-if on the value, not switch.\n- Tail writes go through `$a0` with constant offsets (`swc1 $f0,4($a0)`, `8($a0)`, `0xC($a0)`), so the float arrays seem to be fields of one block addressed from a single base, not separate globals.\n- Separate-globals form (7615) and the single-base form (6150) both miss. The truth is probably: counter via a `s32 *cnt = &D_8021AFFC` pointer, selector and clamp as separate symbols, and the array writes off `a0`.\n\nLeft to try: pointer `s32 *cnt = &D_8021AFFC;` for all counter ops; keep D_8021B019 / D_8021B06A as separate u8 symbols; check the array symbols by comparing the target's `addiu $a0,$a0,%lo(...)` (instruction [19]) to see which symbol the tail block starts at.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794723949.500319,
-  "score_before": 1665,
-  "score_after": 1665
- },
- {
   "function": "func_80212360",
   "text": "Not matched; releasing early. Saved best (590) is the straightforward source: func_800294A0(&D_412160, &D_8030BD90, &D_419270 - &D_412160); func_80143DCC(); D_8021B677=0; flag/branch block on D_8021AFDC (2/6/0x18 -> func_80214204); D_8021E160 = (D_8021AFDC==0x10); func_80203DF8(1,6,0,0); func_800DE41C(...); func_802153C4(0x40,0xBF000000,0x3F000000,0x96,0x62,0xE2); D_8021B084=0. Current recheck is 1913 (77%). Remaining diff is in the first 10 instructions: target stores $ra at 0x48($sp) first, loads &D_419270 into $v0 before &D_412160 into $a2, does move $a0,$a2 before the subtraction, then loads &D_8030BD90 into $a1. Candidate evaluates D_412160 into $a0 first and stores $ra later. Tried: precomputed s32 length local (no change). Not tried: the target's second sw $ra (suggests a separate save path, possibly a different frame shape), and whether the call's argument order can be forced by an intermediate pointer variable. Would need a different evaluation-order approach, so moving on.",
   "by": "claude-haiku-5-5-20",
@@ -14848,14 +14832,6 @@
   "score_after": 2745
  },
  {
-  "function": "func_80205C00",
-  "text": "Releasing: it cannot get closer with the tools here. Best reproducible 7180 (12.4%); the float block folds every constant offset into a symbol %lo (13 lui $at), and making base pointers per array does not stop GCC from folding the offsets back, while the target keeps three base registers. Structure is known (see previous notes): switch on u8 D_8021B019, clamp on D_8021AFFC vs u8 D_8021B06A, float table init, then two byte resets. Next agent should try a non-foldable base (e.g. pointer taken from a function-scope variable) for the float table.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794732344.721791,
-  "score_before": 1665,
-  "score_after": 1665
- },
- {
   "function": "func_802155CC",
   "text": "Calls func_801CA140(), then func_801CA494(arg0, D_8021F032[0..2], 0xFF), then a 7x6 double loop calling func_8014A4C8(arg0, x, y, 0xB, 0) with x = D_8011F320[idx] + (i<<6) - 0x40, y = D_8011F324[idx] + (j<<6) - 0x40, idx = (arg1&0xFFFF)*25. Saved best 778 is the C in the saved revision 550638a0; it rechecks to 5240 in the current harness, so the saved score may be stale. Target frame is 0x38 with saves s0..s5 (no s6), arg1 idx lives in $s0 computed as sll1/addu/sll3/addu (x*25). Our draft needs one extra saved reg (s6) and a 0x40 frame. Tried: idx before/after calls (5240, 5970), u8 pointer for D_8021F032 (5240), local_repairs variants (best 4924, not kept). Next step: find a loop shape that uses one fewer callee-saved reg (e.g. loop counters as u8 or a single counter), and check whether target's i/j are kept in s1/s2 with the 7/6 bounds. Move-on budget exhausted.",
   "by": "claude-haiku-5-5-20",
@@ -15406,14 +15382,6 @@
   "created_at": 1794734106.053694,
   "score_before": 2170,
   "score_after": 2170
- },
- {
-  "function": "func_80205C00",
-  "text": "Not matched. Saved best 1665 (restore via get_candidate base=saved_best). Latest rechecked variants: 7750 (53cf8787542d57fade08 pointer form; f8e4ea06f8d24b5e68eb single-base `f32 *t` table writes, same score, no effect). Structure recovered: `if (B019==1) AFFC+=1; else if (B019==2) AFFC-=1;`, clamp `if ((s32)B06A < AFFC) AFFC=0; else if (AFFC<0) AFFC=(s32)B06A;`, float table writes B024/B038/B04C for i=0..4 (values per entry: B024={0,-60,60,-158,158}, B038={-10,15,15,15,15}, B04C={0,-70,-70,-70,-70}), then B019=0, B07E=0. Diff: target keeps the float constants in $f0 and writes swc1 $f0 at offsets 4/8/0xC from a single base register, with v1 reused as &AFFC; ours reloads lui/addiu per access and uses $f4 constants via lui $at. The table writes must be expressed with the constants held in one local f32 per value, written in target order, to get $f0 reuse. Next: try `f32 c = -70.0f;` style locals, one per distinct constant, assigned to all three tables.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794734109.805408,
-  "score_before": 1665,
-  "score_after": 1665
  },
  {
   "function": "func_801E28BC",
@@ -22920,14 +22888,6 @@
   "score_after": 420
  },
  {
-  "function": "func_80205C00",
-  "text": "Not matched. Best C 7615 (7% match); saved best 1665 is from an earlier source and does not reproduce here. Stopping early because repeated edits give identical instruction diffs: an unused base pointer and separate-global variants both score 7615. Target facts: D_8021AFFC (s32 counter, +0x0), D_8021B019 (u8 mode, +0x1D), D_8021B024[5], D_8021B038[5], D_8021B04C[5] (f32, contiguous: 0x28, 0x3C, 0x50), D_8021B06A (u8 max, +0x6E), D_8021B07E (s8). Target keeps a base pointer in $a0 (addiu $a0,$a0,%lo(D_8021AFFC)) and writes floats with swc1 offsets 4($a0)/8($a0); the mode switch uses bnel. Next: write the table block as one struct (or base pointer with real offsets, used for every access, not just declared) and rebuild the switch as the bnel form; then clamp to [0, D_8021B06A] and write the fixed tables.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794754685.1881568,
-  "score_before": 1665,
-  "score_after": 1665
- },
- {
   "function": "func_80042250",
   "text": "Boundary report reaffirmed end42290: first64bytes signed entry complete return at42288/8c; unsigned entry42290 has shared backward return tails but unreachable from first entry. Full112bytes impossible single C control flow. Improved2975->2690 with goto-shared-return signed chain correct semantics. Target t9 compares and xor-zero suggest explicit runtime asm. Await extent split before allocation tuning.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -29672,14 +29632,6 @@
   "score_after": 48077
  },
  {
-  "function": "func_80205C00",
-  "text": "Move-on budget exhausted (3/3 compiles without improvement).\n\nTarget shape (82 insns): switch on byte D_8021B019 compiled to `lbu; addiu $v0,1; bnel ...; addiu $v0,2; bne ...; nop` (case1 body inline, case2 body inline, no jump table, no default jump). Then the clamp: `lui/addiu $a0,%lo(D_8021AFFC); lbu D_8021B06A; lw $v1,($a0); slt; beqz; j .L8C; sw $zero,($a0)` then `lui/addiu $v1,%lo(D_8021AFFC); lw; bgez; lbu D_8021B06A; sw $v0,($v1)`. Then 15 float stores through three base registers $a0/$v1/$v0 (D_8021B024/D_8021B038/D_8021B04C) with only four distinct constants materialised (0xC1200000, 0x41700000, 0xC28C0000, 0x42700000, 0xC31E0000, 0x431E0000) and reused across rows; then two `sb $zero, %lo(...)($at)` byte clears.\n\nKey finding: every D_8021AFFC access in the target uses an explicit `lui+addiu` into a GPR (never `%lo(G)($at)`), and the three float arrays are held in registers, so the source must use pointer locals; direct global array/pointer-index stores make KMC -O2 fold to `%lo(G)($at)` and lose ~6000 points. Best score this session: 3665 with if/else-if (not switch) on D_8021B019 plus pointer locals for all four globals under KMC 2.7.2 -O1 (compiler_map confirms 0x80203B04-0x80212000 is an -O1 range, 7 confirmations).\n\nUntried next steps: (a) keep the -O1 profile and make the clamp read via a pointer local while writing via a second pointer local so $a0 and $v1 differ, as the target shows two separate lui/addiu pairs; (b) get the float block to emit one mtc1 per constant by assigning a shared f32 local per constant (e.g. `c = -70.0f;` then `p2[1]=c; p2[2]=c; ...`) instead of repeating literals; (c) the saved historical best 1665 came from a different header/compiler scope \u2014 re-check with get_candidate(base=\"saved_best\") before assuming it is reachable.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794764341.71532,
-  "score_before": 1665,
-  "score_after": 1665
- },
- {
   "function": "func_8014C7A0",
   "text": "Best saved 39763 (1.2%-ish area; latest rebuild 48602, rev 5b085b50ad5f7d9c947d is worse; restore with get_candidate(base=\"saved_best\")). Target 492 insns. Key finding: the candidate passes the bit-pattern constants (0xC4BB8000, 0x42976B85, 0x44B54000 ...) as integers, but the target loads them with `mtc1 $at,$f20` and stores them with `swc1 $f20,0x3c($sp)`, so those call arguments are float values, not s32. Positions 9-11 and 13 in func_800DE41C calls are floats (e.g. -1500.0f, 60.0f-style constants); the prototype must type them as f32 and the literals must be float values equal to the bit patterns. Also the target keeps 6+ callee-saved regs (ra at 0x6c, fp, s7..s2) with frame 0x70+, vs candidate frame 0x64. Next step: rewrite the prototype of func_800DE41C with f32 at argument slots 9-11 and 13, recompute float literals from the hex patterns, then compare. Also check whether the &func_8013AE60 / &func_8014C080 operands are correct function addresses (they are extern s32 here; target row 469 shows 0x8013AE60 / 0x8014C264 mismatch). Not matched.",
   "by": "claude-haiku-5-5-23",
@@ -31174,14 +31126,6 @@
   "created_at": 1794766410.815665,
   "score_before": 880,
   "score_after": 880
- },
- {
-  "function": "func_80205C00",
-  "text": "Not matched. Saved best 1665 (historical). My best this claim: revision 15928682fc9d9e6c6b65, 8080 (1.4%). Facts from the target: D_8021AFFC is reached through a base pointer (lui/addiu to a register, then lw/sw 0($reg)), so declare it as an array (s32 D_8021AFFC[]) and use [0]; this removes the repeated lui for it but did not fix the score. Float table stores use $f0 = 0.0f as the zero for stores at 4/8/0xc/0x10 offsets (table layout 5 entries, three stored per row), so the zeros are a shared zero register, not repeated constants. The switch on D_8021B019 has cases 1 and 2 with a bnel-based branch shape and then a clamp on D_8021B06A; my switch lowering does not match that branch shape. Next: write the three float rows as one zero-stored pass and the case 1/2 bodies as if/else, then compare the branch shape before tuning the float stores.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794766417.7867641,
-  "score_before": 1665,
-  "score_after": 1665
  },
  {
   "function": "func_80212360",
@@ -35303,5 +35247,79 @@
   "created_at": 1795714006.506512,
   "score_before": 2881,
   "score_after": 2881
+ },
+ {
+  "function": "func_80205C00",
+  "text": "Not matched (best saved 1665; my re-compile of the draft text gives 8075). Target: all accesses to D_8021AFFC go through one pointer register: lui v1,%hi(D_8021AFFC); addiu v1,v1,%lo(D_8021AFFC); lw/sw (v1), with the other globals D_8021B06A/D_8021B019/D_8021B07E reached by separate lui/%lo loads. The first switch-like test on D_8021B019 is a bnel (branch-likely) with the delay-slot nop, not a beq. The C form that fits should use a single pointer p = &D_8021AFFC for reads and writes, and the clamp `if (D_8021B06A < *p) *p = 0; else if (*p < 0) *p = D_8021B06A` written so that gcc emits bnel. The float table stores are 15 swc1 into D_8021B024/B038/B04C with stride 4 (index 0..4) using constant pairs; the target constant-loads each float via lui+mtc1 before the store. Untried: pointer-based variant and reordering the table writes to match the constant-load order.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794708921.766489,
+  "score_before": 1665,
+  "score_after": 1665
+ },
+ {
+  "function": "func_80205C00",
+  "text": "Not matched. Best measured revision 4b47963915dc0083e4f8 scores 6150 (25%). Target 82 insns, mine 59 in that form. The saved 1665 is from another source and does not reproduce.\n\nFacts from the target:\n- The counter D_8021AFFC is accessed through a base register: `addiu $v1,$v1,%lo(D_8021AFFC)` (7 uses) then lw/sw at offset 0. Other reads use their own symbol: `lui $v1,%hi(D_8021B019); lbu` for the switch selector, and `lbu D_8021B06A` for the clamp bound.\n- The switch on D_8021B019 compiles to a chain: `addiu $v0,$zero,1; bnel $v1,$v0,...` then `addiu $v0,$zero,2` with `bne` (not a jump table). So use if/else-if on the value, not switch.\n- Tail writes go through `$a0` with constant offsets (`swc1 $f0,4($a0)`, `8($a0)`, `0xC($a0)`), so the float arrays seem to be fields of one block addressed from a single base, not separate globals.\n- Separate-globals form (7615) and the single-base form (6150) both miss. The truth is probably: counter via a `s32 *cnt = &D_8021AFFC` pointer, selector and clamp as separate symbols, and the array writes off `a0`.\n\nLeft to try: pointer `s32 *cnt = &D_8021AFFC;` for all counter ops; keep D_8021B019 / D_8021B06A as separate u8 symbols; check the array symbols by comparing the target's `addiu $a0,$a0,%lo(...)` (instruction [19]) to see which symbol the tail block starts at.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794723949.500319,
+  "score_before": 1665,
+  "score_after": 1665
+ },
+ {
+  "function": "func_80205C00",
+  "text": "Releasing: it cannot get closer with the tools here. Best reproducible 7180 (12.4%); the float block folds every constant offset into a symbol %lo (13 lui $at), and making base pointers per array does not stop GCC from folding the offsets back, while the target keeps three base registers. Structure is known (see previous notes): switch on u8 D_8021B019, clamp on D_8021AFFC vs u8 D_8021B06A, float table init, then two byte resets. Next agent should try a non-foldable base (e.g. pointer taken from a function-scope variable) for the float table.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794732344.721791,
+  "score_before": 1665,
+  "score_after": 1665
+ },
+ {
+  "function": "func_80205C00",
+  "text": "Not matched. Saved best 1665 (restore via get_candidate base=saved_best). Latest rechecked variants: 7750 (53cf8787542d57fade08 pointer form; f8e4ea06f8d24b5e68eb single-base `f32 *t` table writes, same score, no effect). Structure recovered: `if (B019==1) AFFC+=1; else if (B019==2) AFFC-=1;`, clamp `if ((s32)B06A < AFFC) AFFC=0; else if (AFFC<0) AFFC=(s32)B06A;`, float table writes B024/B038/B04C for i=0..4 (values per entry: B024={0,-60,60,-158,158}, B038={-10,15,15,15,15}, B04C={0,-70,-70,-70,-70}), then B019=0, B07E=0. Diff: target keeps the float constants in $f0 and writes swc1 $f0 at offsets 4/8/0xC from a single base register, with v1 reused as &AFFC; ours reloads lui/addiu per access and uses $f4 constants via lui $at. The table writes must be expressed with the constants held in one local f32 per value, written in target order, to get $f0 reuse. Next: try `f32 c = -70.0f;` style locals, one per distinct constant, assigned to all three tables.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794734109.805408,
+  "score_before": 1665,
+  "score_after": 1665
+ },
+ {
+  "function": "func_80205C00",
+  "text": "Not matched. Best C 7615 (7% match); saved best 1665 is from an earlier source and does not reproduce here. Stopping early because repeated edits give identical instruction diffs: an unused base pointer and separate-global variants both score 7615. Target facts: D_8021AFFC (s32 counter, +0x0), D_8021B019 (u8 mode, +0x1D), D_8021B024[5], D_8021B038[5], D_8021B04C[5] (f32, contiguous: 0x28, 0x3C, 0x50), D_8021B06A (u8 max, +0x6E), D_8021B07E (s8). Target keeps a base pointer in $a0 (addiu $a0,$a0,%lo(D_8021AFFC)) and writes floats with swc1 offsets 4($a0)/8($a0); the mode switch uses bnel. Next: write the table block as one struct (or base pointer with real offsets, used for every access, not just declared) and rebuild the switch as the bnel form; then clamp to [0, D_8021B06A] and write the fixed tables.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794754685.1881568,
+  "score_before": 1665,
+  "score_after": 1665
+ },
+ {
+  "function": "func_80205C00",
+  "text": "Move-on budget exhausted (3/3 compiles without improvement).\n\nTarget shape (82 insns): switch on byte D_8021B019 compiled to `lbu; addiu $v0,1; bnel ...; addiu $v0,2; bne ...; nop` (case1 body inline, case2 body inline, no jump table, no default jump). Then the clamp: `lui/addiu $a0,%lo(D_8021AFFC); lbu D_8021B06A; lw $v1,($a0); slt; beqz; j .L8C; sw $zero,($a0)` then `lui/addiu $v1,%lo(D_8021AFFC); lw; bgez; lbu D_8021B06A; sw $v0,($v1)`. Then 15 float stores through three base registers $a0/$v1/$v0 (D_8021B024/D_8021B038/D_8021B04C) with only four distinct constants materialised (0xC1200000, 0x41700000, 0xC28C0000, 0x42700000, 0xC31E0000, 0x431E0000) and reused across rows; then two `sb $zero, %lo(...)($at)` byte clears.\n\nKey finding: every D_8021AFFC access in the target uses an explicit `lui+addiu` into a GPR (never `%lo(G)($at)`), and the three float arrays are held in registers, so the source must use pointer locals; direct global array/pointer-index stores make KMC -O2 fold to `%lo(G)($at)` and lose ~6000 points. Best score this session: 3665 with if/else-if (not switch) on D_8021B019 plus pointer locals for all four globals under KMC 2.7.2 -O1 (compiler_map confirms 0x80203B04-0x80212000 is an -O1 range, 7 confirmations).\n\nUntried next steps: (a) keep the -O1 profile and make the clamp read via a pointer local while writing via a second pointer local so $a0 and $v1 differ, as the target shows two separate lui/addiu pairs; (b) get the float block to emit one mtc1 per constant by assigning a shared f32 local per constant (e.g. `c = -70.0f;` then `p2[1]=c; p2[2]=c; ...`) instead of repeating literals; (c) the saved historical best 1665 came from a different header/compiler scope \u2014 re-check with get_candidate(base=\"saved_best\") before assuming it is reachable.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794764341.71532,
+  "score_before": 1665,
+  "score_after": 1665
+ },
+ {
+  "function": "func_80205C00",
+  "text": "Not matched. Saved best 1665 (historical). My best this claim: revision 15928682fc9d9e6c6b65, 8080 (1.4%). Facts from the target: D_8021AFFC is reached through a base pointer (lui/addiu to a register, then lw/sw 0($reg)), so declare it as an array (s32 D_8021AFFC[]) and use [0]; this removes the repeated lui for it but did not fix the score. Float table stores use $f0 = 0.0f as the zero for stores at 4/8/0xc/0x10 offsets (table layout 5 entries, three stored per row), so the zeros are a shared zero register, not repeated constants. The switch on D_8021B019 has cases 1 and 2 with a bnel-based branch shape and then a clamp on D_8021B06A; my switch lowering does not match that branch shape. Next: write the three float rows as one zero-stored pass and the case 1/2 bodies as if/else, then compare the branch shape before tuning the float stores.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794766417.7867641,
+  "score_before": 1665,
+  "score_after": 1665
+ },
+ {
+  "function": "func_80205C00",
+  "text": "Hand-off of func_80205C00: best 7340 (87 differing rows) in c/f2.c.\n\nRemaining rows (marker | target | candidate):\n  r | lui $a0, %hi(D_8021AFFC) | lui $v1, %hi(D_8021AFFC)\n  r | addiu $a0, $a0, %lo(D_8021AFFC) | addiu $v1, $v1, %lo(D_8021AFFC)\n  r | lui $v0, %hi(D_8021B06A) | lui $a1, %hi(D_8021B06A)\n  r | lbu $v0, %lo(D_8021B06A)($v0) | lbu $a1, %lo(D_8021B06A)($a1)\n  r | lw $v1, ($a0) | lw $a0, ($v1)\n  r | slt $v0, $v0, $v1 | slt $v0, $a1, $a0\n  i | j func_80205C00+0x8c | j func_80205C00+0x74\n  r | sw $zero, ($a0) | sw $zero, ($v1)\n  | | lui $v1, %hi(D_8021AFFC) | bltzl $a0, 0x74\n  < | addiu $v1, $v1, %lo(D_8021AFFC) | \n  < | lw $v0, ($v1) | \n  < | bgez $v0, 0x8c | \n  < | nop | \n  < | lui $v0, %hi(D_8021B06A) | \n  < | lbu $v0, %lo(D_8021B06A)($v0) | \n  < | sw $v0, ($v1) | \n  < | lui $a0, %hi(D_8021B024) | \n  < | addiu $a0, $a0, %lo(D_8021B024) | \n  < | sw $zero, ($a0) | \n  < | lui $v1, %hi(D_8021B038) | \n  < | addiu $v1, $v1, %lo(D_8021B038) | \n  < | lui $at, 0xc120 | \n  < | mtc1 $at, $f0 | \n  < | nop | \n  < | swc1 $f0, ($v1) | \n  < | lui $v0, %hi(D_8021B04C) | \n  < | addiu $v0, $v0, %lo(D_8021B04C) | \n  r | sw $zero, ($v0) | sw $a1, ($v1)\n  i | lui $at, 0xc270 | lui $at, 0xc120\n  r | mtc1 $at, $f0 | mtc1 $at, $f4\n  < | nop | \n  < | swc1 $f0, 4($a0) | \n  i | lui $at, 0x4170 | lui $at, 0xc270\n  r | mtc1 $at, $f4 | mtc1 $at, $f6\n  < | nop | \n  < | swc1 $f4, 4($v1) | \n  i | lui $at, 0xc28c | lui $at, 0x4170\n  r | mtc1 $at, $f2 | mtc1 $at, $f0\n  < | nop | \n  < | swc1 $f2, 4($v0) | \n  ... 47 more (fast_judge.py --diff --rows all)\n\nRegister pairs (explain_regs.py):\n  $v1 where the target has $a0 (4 rows):\n  why not $a0: $a0 was free in its conflicts; global.c picks the first free register of the class in allocation order: an earlier allocation (or a register nothing had used yet) decided it.\n  why not $a0: $a0 was free in its conflicts; global.c picks the first free register of the class in allocation order: an earlier allocation (or a register nothing had used yet) decided it.\n  $a1 where the target has $v0 (3 rows):\n  why not $v0: $v0 is live across it (a fixed use: an argument, return value or call-clobbered register), so it can never get it: shorten its life or move the use of $v0.\n  $a0 where the target has $v1 (2 rows):\n  why not $v1: pseudo 72 conflicts with it and was allocated first (priority 1.88 > 0.75) into $v1: raise this one's priority (more refs, shorter life) or lower that one's, or end the overlap.\n  $a1 where the target has $zero (1 row):\n  why not $zero: $zero was free in its conflicts; global.c picks the first free register of the class in allocation order: an earlier allocation (or a register nothing had used yet) decided it.\n  $v1 where the target has $v0 (1 row):\n  why not $v0: $v0 is live across it (a fixed use: an argument, return value or call-clobbered register), so it can never get it: shorten its life or move the use of $v0.\n  why not $v0: $v0 is live across it (a fixed use: an argument, return value or call-clobbered register), so it can never get it: shorten its life or move the use of $v0.\n  $f4 where the target has $f0 (1 row):\n  why not $f0: block-local: local-alloc gives quantities registers in priority order and $f0 was taken or tied up in that block (also in $f0: pseudo 97 (0.24)). Move it: change its refs/length against those, or make it global (a use in another block).\n\nTried (approach: score):\n  - saved best (switch, var_v0 read first, fences): 3425 default profile\n  - clean rewrite with a pointer to the counter and per-array float stores: 7340 default, 245 under -G0 -mips3 -O1 -mgp32 -mfp32 (the sibling profile)\n  - fresh-global case branches, volatile counter, mixed pointer/global clamp: 245 to 1130 under -O1; the one open difference is the target re-materialising &D_8021AFFC (lui/addiu) in the else-if clamp arm\n\nFindings:\n82 insns. Under -O1 the rewrite is 245: register choice (target keeps the counter address in v1 in the case arms, ours a0) and two missing address rebuilds. Try a shape",
+  "by": "manual-7399cac01e854d91",
+  "created_at": 1795713722.216002,
+  "score_before": 7340,
+  "score_after": 7340,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:f06b5e414744a2f9ac8b005ce052f860005f3183602f86d57d171a507963fdaf"
+ },
+ {
+  "function": "func_80205C00",
+  "text": "Haiku pr20: best 245 under -G0 -mips3 -O1 -mgp32 -mfp32 with pointer counter; open diff is the re-materialised counter address in the clamp arm (target lui/addiu), register choice in case arms.",
+  "by": "manual-7399cac01e854d91",
+  "created_at": 1795713785.507018,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:f06b5e414744a2f9ac8b005ce052f860005f3183602f86d57d171a507963fdaf"
  }
 ]
