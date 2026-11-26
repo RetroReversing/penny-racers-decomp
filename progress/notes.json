@@ -7152,14 +7152,6 @@
   "score_after": 898
  },
  {
-  "function": "func_80153F74",
-  "text": "Not matched. Best saved source scores 265 (restore via get_candidate saved_best). Target: seven display-list blocks, each `lw $v1,(a0); addiu $v0,$v1,8; sw $v0,(a0)` then two word stores through $v1 (constants via lui/ori into $v0). Final block: `((0x7C - *(u16*)(D_8011F32E + (arg1&0xFFFF)*100)) & 0xFFF) | 0xF2000000` (0xF2000000 hoisted into $a3, pointer in $a2), then 0x7C07C stored via $t0. Tried: inline_fn helper (3850); extra 0xF2000000/0x7C07C block (3910, wrong, only 7 blocks); final block with 0x7C - value (3615); u32 types (3615, same); cmd precomputed before final block (3670). Every variant fails on register choice: the compiler puts the pointer in $t0/$a3 instead of $v1 and constants in $v1 instead of $v0. Next try: force the pointer into $v1 (e.g. a single pointer variable reused, or a per-block cast), keep the 0x7C - u16 expression.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794708398.656715,
-  "score_before": 265,
-  "score_after": 265
- },
- {
   "function": "func_80157BBC",
   "text": "Best saved score 2945 (62.2%), from source using u8* base externs for D_8016D8C0/C4/C8, first loop as do-while with p=(u16*)(D_8016D8C0+i*2) and q-offset read from D_8016D8C8+i*2; second loop reads D_80183840/48 into locals a,b and stores s16 to D_802B2784+(i+2)*16 with (s16)(s32)(__sinf((f32)x)*(f32)D8C4[i]). Tried and worse: u16 array externs (4359); shared byte-offset variable off for both bases (3161); cached q/r base pointers in second loop (3055). Remaining diff: target keeps f20/f22 (fs0/fs1) and s3/s4 live across the __sinf call, giving a 0x38 frame with sw of s4, sdc1 f20/f22 at 0x28/0x30; my frames are 0x28-0x30 and s4 is not saved. Also target computes &D8C0 and &D8C8 with lui/addiu in a2/a1 and indexes via v0=i*2 then addu into a0 and v0 (two separate addu per base) before the first loop's lhu; my code CSEs the base into a0 with an extra addiu per iteration. Next idea: write the second loop with base pointers that stay live across the call (s4=&D8C0, s3=&D8C4), and check the first loop's index as one shared byte offset feeding two addu.",
   "by": "claude-haiku-5-5-21",
@@ -11248,14 +11240,6 @@
   "score_after": 898
  },
  {
-  "function": "func_80153F74",
-  "text": "Not matched. The adapted source of matched neighbour func_8014F43C (same C; data symbol D_802DF378 instead of D_802EE190) scores 3850 under the project's -O2, but search_flags gives 265 with -G0 -mips3 -mgp32 -mfp32 -O1. The neighbour's brief says it was matched at -O1, so this range likely uses -O1. No suggest() was accepted because nothing matched at -O1. Next: confirm the true address of the pointer stored at word [1] of the first block (D_802DF378 is a guess; use read_data/resolve_addresses), then compile at -O1 and check the lui/ori pairs for 0xFD48000F, 0x07014050, 0x0703E07C and 0x14050/0x7C07C. Do not change the data symbol until its address is confirmed.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794722337.494234,
-  "score_before": 265,
-  "score_after": 265
- },
- {
   "function": "sqrtf",
   "text": "Target is only `jr $ra; sqrt.s $fv0,$fa0` (2 insns). gcc-2.7.2-kmc -O2 with __builtin_sqrtf(x) emits a NaN check (c.eq.s/bc1t) + stack frame + jal to sqrtf (score 960, 11 insns). Tried: __builtin_sqrt((f64)x) and __builtin_sqrt(x) (unresolved symbol, 1000), __builtin_fsqrt (unknown symbol, 1300), __builtin_sqrtf((f64)x) (same 960). Likely needs a different compiler/profile (search_flags / try_compiler with -ffast-math-ish or a sqrt.s-generating builtin) or the body is handwritten asm. Next: run search_flags(sqrtf) and try_compiler with ido-7.1 / gcc-2.8.1-pm on `f32 sqrtf(f32 x){return __builtin_sqrtf(x);}`.",
   "by": "api-route-llm-code-2",
@@ -14832,14 +14816,6 @@
   "score_after": 1040
  },
  {
-  "function": "func_80153F74",
-  "text": "Best 3915 (47.0%), revision deff792fd1d62c2580f5 (void **arg0 draft with the final word written as ((0x7C - *(u16*)(D_8011F32E + (arg1&0xFFFF)*0x64)) & 0xFFF) | 0xF2000000). Instruction count now equals the target (74 = 74), so the remaining diff is register/order only: the target keeps the display pointer in $v1 and stores the words via (v1) with the second store as `sw $v0,4($v1)`; mine uses $t1 and re-stores via (t1). Also the constant 0x7C07C is in $t0 in the target, and `lui $a3,7` appears in mine. The saved best 265 has the same source as the old draft and does not reproduce now (stale). Untested: order the word writes as temp[1] first in each block, or write the pointer bump through a `s32 *cur` local rather than temp_v1.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794732587.2182631,
-  "score_before": 265,
-  "score_after": 265
- },
- {
   "function": "func_8015248C",
   "text": "Best saved 3783 (51.5%) at revision 5bb1c3be (global double constants inline). Tried double constants as locals c0/c1 loaded before the call (4634, worse: gcc saves f20/f22 but the frame is 0x28 and the arg0 index is recomputed; the target uses frame 0x30 with ra at 0x18, s0 at 0x10, s1 at 0x14, and the double saves at 0x20/0x28). Target keeps s1 = arg0 live across func_8013AE60 and recomputes s0 = (s1 & 0xFFFF) + v0 twice, which our draft does not do. Next: keep arg0 in a live callee-saved local (not the masked s) so both offsets come from one saved value. Move-on budget exhausted.",
   "by": "claude-haiku-5-5-20",
@@ -15510,14 +15486,6 @@
   "created_at": 1794735236.6676512,
   "score_before": 875,
   "score_after": 875
- },
- {
-  "function": "func_80153F74",
-  "text": "Could not reproduce the saved 265 here. The donor source (func_8014F43C / func_80151FFC, matched, same text) compiled as func_80153F74 scores 3850 (47.9%) in the current rechecked baseline, with the same instruction diff every time: target loads the display-list pointer into $v1 and computes `addiu v0,v1,8` before the stores, our build uses $t0 and also materialises the 0xF5480400/0xF2000000 constants early (`lui a2,0xf548` etc.). The diff also reports an address mismatch in the 0x7C07C word (`addiu v0,$zero,0x7c; subu v0,v0,v1` in target). Local repairs (parameter_width, signedness, byte_table_signedness, dead_pointer_clear, constant_index_temporary, arithmetic_operand_order) all retained 3850. Next: check whether the saved 265 used a different header/compiler (search_flags), or check whether D_802DF378 vs donor's D_802E0A70 changes the relocation; if the donor cannot reproduce 265 in the current environment, the donor's `matched` status should be verified.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794735236.876849,
-  "score_before": 265,
-  "score_after": 265
  },
  {
   "function": "func_80148260",
@@ -22928,14 +22896,6 @@
   "score_after": 6160
  },
  {
-  "function": "func_80153F74",
-  "text": "Not matched; best current 3850 with the claimed source (saved_best 265 is not reproduced by its text). Target is a display-list writer: each command reloads *arg0 (lw ptr; addiu +8; sw back), then stores words through the pointer kept in $v1. The first command uses 0xFD48000F/D_802DF378, the F2000000 constant is kept in $a3 across the function, and the last command is ((0x7C - u16 at D_8011F32E + (arg1&0xFFFF)*100) & 0xFFF) | 0xF2000000 with word1 0x7C07C. Variants: last command as (0x7C - v) gave 3910 (worse); u32 temp_v1 gave 3910 (no change). Blocker: my compiles CSE the *arg0 reloads, while the target reloads per command, so the load/store shape must change, not the constants. Next: try writing each command as its own `Gfx`-style store sequence with the pointer advance placed differently, or search for the sibling in func_8014F43C's family.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794755302.540916,
-  "score_before": 265,
-  "score_after": 265
- },
- {
   "function": "func_8013F44C",
   "text": "No match. Best rechecked 2295 (variant with `t = *(s8 *)((arg1 + 0x60) + (i))`, revision 6d38becc67da3c9079c9). Historical saved 30 has the same text as the draft but rechecks at 2305, so treat 30 as stale. Target register roles from asm: s4 = p (arg0 record, base D_8011F2F0 + (arg0&0xFFFF)*0x64), s2 = arg1 (copy kept across the loop), s3 = loop index i, s0 = D_8022A770 + t*0x8F0 record, s1 = D_8011F2F0 + s0->u16@+2 * 0x64 record. fs0/fs1/fs2 = a/b/c (p+0x20, +0x1C, +0x18), saved with sdc1. Frame 0x40: ra, s4..s0 saved, plus fp sdc1 of fs0..fs2. Ours saves fewer integer regs, so the variable that holds arg1 across the loop must be separate from the loop index. Untried: a local `u8 *base = arg1;` used for the loop loads, and writing the if-else arms for the +/- updates in the order seen in asm (the first update arm is entered on a >= compare).",
   "by": "claude-haiku-5-5-20",
@@ -29408,14 +29368,6 @@
   "score_after": 2115
  },
  {
-  "function": "func_80153F74",
-  "text": "No match. Saved best 265 (the claim's source with inline_fn, revision fd929c70a6db5647bc22) could not be reproduced: the same text now scores 3850 (revision add5a0ebc5861c728d0b). The header/compiler inputs differ from the recorded run, so re-check the saved best against current inputs before reusing it. Structure is a display-list emitter (Gfx-style 8-byte writes through *arg0, the constants 0xFD48000F, 0xF5480400, 0x07014050, 0xE6000000, 0xF4000000, 0x0703E07C, 0xE7000000, 0xF5400400, 0x14050, 0xF2000000, 0x7C07C). Diff points: the target computes one constant at runtime (`addiu $v0,$zero,0x7c; subu $v0,$v0,$v1`, around the 0x0007C07C word), which the literal form does not produce; the final word uses ((u16)table[arg1*0x64] & 0xFFF) | 0xF2000000. Also the target keeps the pointer in $v1 across the stores (lw v1,(a0); addiu v0,v1,8; sw v0,(a0)) while ours loads into $t0/$a3. try_local_repairs gave no change (3850). Next: find the source expression for the 0x7C07C word (likely a shift/subtract of two constants) and check whether D_802DF378 is a char array or a pointer.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794764485.118884,
-  "score_before": 265,
-  "score_after": 265
- },
- {
   "function": "func_801542F8",
   "text": "Not matched. Best verified 2960 at revision 3eb063828c1e740e21f0 (variant 5 of try_local_repairs: `p->w1 = 0x07014050; p->w0 = 0xF5480800;` store order). Saved_best 265 did not reproduce: the same source rechecks at 3515. Target shape (72 insns): each store is `lw v1,(a0); addiu v0,v1,8; sw v0,(a0)` then the word stores to 0(v1)/4(v1), so the per-store (*g)++ form is correct; a pointer-batch rewrite (p=*g; p[k]; *g=p+8) scored 6635 and is wrong. The remaining diff is register allocation of the 32-bit constants: target builds 0xFD48001F/0xF5480800/0x07014050 with lui/ori into v0 and reuses it, ours keeps them in a2/a3/t0 etc. Also the target's `(D_8011F32E[i].v & 0xFFF)` index is built with `addiu v0,$zero,0x7c` and `subu v0,v0,v1` (the 0x7c stride) which our code lacks: the SlotE stride is 100 bytes (0x64), and the target computes i*0x64 as an index with a subtract; check the element size of D_8011F32E against the target before the next pass.",
   "by": "claude-haiku-5-5-20",
@@ -30868,14 +30820,6 @@
   "text": "Not matched. Best 2960 (rechecked 3515 before), revision 3eb063828c1e740e21f0: the second display-list write stores w1 before w0 (p->w1 = 0x07014050; p->w0 = 0xF5480800;). Target (72 insns): lw v1,(a0); addiu v0,v1,8; sw v0,(a0) reads the list pointer first, then the 0xFD48001F word is built with lui v0,0xfd48 / ori v0,v0,0x1f and the address is an addiu from the same register (lui/addiu reused for w1), and 0xF548 / 0x701 / 0x4050 share high halves across writes; ours builds each constant separately. The target also has addiu v0,zero,0x7c and subu v0,v0,v1 that ours lacks, probably from the last write's (i & 0xFFF) expression. Other local repairs (u8/s8 array type, i as s32, (unsigned short) index) were equal or worse. Next: compute the list pointer read (Gfx *p = *g; *g = p + 1) explicitly before the first write, to match the lw/addiu/sw order at the top, and then the high-half sharing.",
   "by": "claude-haiku-5-5-24",
   "created_at": 1794766558.528026,
-  "score_before": 265,
-  "score_after": 265
- },
- {
-  "function": "func_80153F74",
-  "text": "Not matched. Saved best 265 (historical; the same text recompiles to 3850 now). Target is a display-list emitter: each command takes `lw $v1,(a0)` / `addiu v0,v1,8` / `sw v0,(a0)` then writes two words through v1, so the list pointer is an integer (u32) that is advanced by 8 bytes, not a Gfx pointer. A u32-pointer rewrite (t = (s32*)*arg0; *arg0 = (u32)t + 8) scored 4130, worse. Remaining target specifics: the last command builds the word as `addiu $v0,$zero,0x7c; subu $v0,$v0,$v1`, which the current C does not express; the 0x7C07C and 0x14050 second words are constants the target materializes differently. Try: final word = (0x7c - (something)) form; keep the pointer as u32 only for the last block. Also, the 3850-vs-265 gap means the saved text is not reproducible; compare with func_8014F43C (the matched identical function) with last_diff first.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794766573.301167,
   "score_before": 265,
   "score_after": 265
  },
@@ -35516,5 +35460,104 @@
   "score_before": 3880,
   "score_after": 3880,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a95fd58a72b74e69e6ac6969960330531fb4edcdb23995320e232c7510f901d6"
+ },
+ {
+  "function": "func_80153F74",
+  "text": "Not matched. Best saved source scores 265 (restore via get_candidate saved_best). Target: seven display-list blocks, each `lw $v1,(a0); addiu $v0,$v1,8; sw $v0,(a0)` then two word stores through $v1 (constants via lui/ori into $v0). Final block: `((0x7C - *(u16*)(D_8011F32E + (arg1&0xFFFF)*100)) & 0xFFF) | 0xF2000000` (0xF2000000 hoisted into $a3, pointer in $a2), then 0x7C07C stored via $t0. Tried: inline_fn helper (3850); extra 0xF2000000/0x7C07C block (3910, wrong, only 7 blocks); final block with 0x7C - value (3615); u32 types (3615, same); cmd precomputed before final block (3670). Every variant fails on register choice: the compiler puts the pointer in $t0/$a3 instead of $v1 and constants in $v1 instead of $v0. Next try: force the pointer into $v1 (e.g. a single pointer variable reused, or a per-block cast), keep the 0x7C - u16 expression.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794708398.656715,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_80153F74",
+  "text": "Not matched. The adapted source of matched neighbour func_8014F43C (same C; data symbol D_802DF378 instead of D_802EE190) scores 3850 under the project's -O2, but search_flags gives 265 with -G0 -mips3 -mgp32 -mfp32 -O1. The neighbour's brief says it was matched at -O1, so this range likely uses -O1. No suggest() was accepted because nothing matched at -O1. Next: confirm the true address of the pointer stored at word [1] of the first block (D_802DF378 is a guess; use read_data/resolve_addresses), then compile at -O1 and check the lui/ori pairs for 0xFD48000F, 0x07014050, 0x0703E07C and 0x14050/0x7C07C. Do not change the data symbol until its address is confirmed.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794722337.494234,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_80153F74",
+  "text": "Best 3915 (47.0%), revision deff792fd1d62c2580f5 (void **arg0 draft with the final word written as ((0x7C - *(u16*)(D_8011F32E + (arg1&0xFFFF)*0x64)) & 0xFFF) | 0xF2000000). Instruction count now equals the target (74 = 74), so the remaining diff is register/order only: the target keeps the display pointer in $v1 and stores the words via (v1) with the second store as `sw $v0,4($v1)`; mine uses $t1 and re-stores via (t1). Also the constant 0x7C07C is in $t0 in the target, and `lui $a3,7` appears in mine. The saved best 265 has the same source as the old draft and does not reproduce now (stale). Untested: order the word writes as temp[1] first in each block, or write the pointer bump through a `s32 *cur` local rather than temp_v1.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794732587.2182631,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_80153F74",
+  "text": "Could not reproduce the saved 265 here. The donor source (func_8014F43C / func_80151FFC, matched, same text) compiled as func_80153F74 scores 3850 (47.9%) in the current rechecked baseline, with the same instruction diff every time: target loads the display-list pointer into $v1 and computes `addiu v0,v1,8` before the stores, our build uses $t0 and also materialises the 0xF5480400/0xF2000000 constants early (`lui a2,0xf548` etc.). The diff also reports an address mismatch in the 0x7C07C word (`addiu v0,$zero,0x7c; subu v0,v0,v1` in target). Local repairs (parameter_width, signedness, byte_table_signedness, dead_pointer_clear, constant_index_temporary, arithmetic_operand_order) all retained 3850. Next: check whether the saved 265 used a different header/compiler (search_flags), or check whether D_802DF378 vs donor's D_802E0A70 changes the relocation; if the donor cannot reproduce 265 in the current environment, the donor's `matched` status should be verified.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794735236.876849,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_80153F74",
+  "text": "Not matched; best current 3850 with the claimed source (saved_best 265 is not reproduced by its text). Target is a display-list writer: each command reloads *arg0 (lw ptr; addiu +8; sw back), then stores words through the pointer kept in $v1. The first command uses 0xFD48000F/D_802DF378, the F2000000 constant is kept in $a3 across the function, and the last command is ((0x7C - u16 at D_8011F32E + (arg1&0xFFFF)*100) & 0xFFF) | 0xF2000000 with word1 0x7C07C. Variants: last command as (0x7C - v) gave 3910 (worse); u32 temp_v1 gave 3910 (no change). Blocker: my compiles CSE the *arg0 reloads, while the target reloads per command, so the load/store shape must change, not the constants. Next: try writing each command as its own `Gfx`-style store sequence with the pointer advance placed differently, or search for the sibling in func_8014F43C's family.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794755302.540916,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_80153F74",
+  "text": "No match. Saved best 265 (the claim's source with inline_fn, revision fd929c70a6db5647bc22) could not be reproduced: the same text now scores 3850 (revision add5a0ebc5861c728d0b). The header/compiler inputs differ from the recorded run, so re-check the saved best against current inputs before reusing it. Structure is a display-list emitter (Gfx-style 8-byte writes through *arg0, the constants 0xFD48000F, 0xF5480400, 0x07014050, 0xE6000000, 0xF4000000, 0x0703E07C, 0xE7000000, 0xF5400400, 0x14050, 0xF2000000, 0x7C07C). Diff points: the target computes one constant at runtime (`addiu $v0,$zero,0x7c; subu $v0,$v0,$v1`, around the 0x0007C07C word), which the literal form does not produce; the final word uses ((u16)table[arg1*0x64] & 0xFFF) | 0xF2000000. Also the target keeps the pointer in $v1 across the stores (lw v1,(a0); addiu v0,v1,8; sw v0,(a0)) while ours loads into $t0/$a3. try_local_repairs gave no change (3850). Next: find the source expression for the 0x7C07C word (likely a shift/subtract of two constants) and check whether D_802DF378 is a char array or a pointer.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794764485.118884,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_80153F74",
+  "text": "Not matched. Saved best 265 (historical; the same text recompiles to 3850 now). Target is a display-list emitter: each command takes `lw $v1,(a0)` / `addiu v0,v1,8` / `sw v0,(a0)` then writes two words through v1, so the list pointer is an integer (u32) that is advanced by 8 bytes, not a Gfx pointer. A u32-pointer rewrite (t = (s32*)*arg0; *arg0 = (u32)t + 8) scored 4130, worse. Remaining target specifics: the last command builds the word as `addiu $v0,$zero,0x7c; subu $v0,$v0,$v1`, which the current C does not express; the 0x7C07C and 0x14050 second words are constants the target materializes differently. Try: final word = (0x7c - (something)) form; keep the pointer as u32 only for the last block. Also, the 3850-vs-265 gap means the saved text is not reproducible; compare with func_8014F43C (the matched identical function) with last_diff first.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794766573.301167,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_80153F74",
+  "text": "Display list as Gfx records (gfx_next, literal words, idx from arg1 with stride 100): 3355-8315 over eight variants. Same family as func_8014C0FC and func_80154128: record forms here lose the constant order and the pointer register; the saved best (635) wins. Not matched.",
+  "by": "manual-68913573ef2f4091",
+  "created_at": 1795711031.1063411,
+  "score_before": 3355,
+  "score_after": 3355,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:28ec43cc6a321b67b83e38e69019694683f28a4fa3be7ad11467296a8d254f9b"
+ },
+ {
+  "function": "func_80153F74",
+  "text": "Haiku clean rewrite (session haiku-pr17), 8 judged candidates. Display-list builder, the sibling of func_80154128 without the FA word: commands FD48000F (&D_802DF378), F5480400, E6, F4, E7, F5400400, F2000000 with 0x0007C07C, and a last word ((0x7C - (u16) D_8011F32E[(arg1 & 0xFFFF) * 100]) & 0xFFF) | 0xF2000000. Best clean: /tmp/dd-haiku-pr17/work/k1/b1.c scores 3355 at the app profile (block-scoped pointers); saved best 635. Shared-constant locals keep the same constant-hoisting gap as func_80154128 (3910 with a function-level pointer).",
+  "by": "manual-3be4557e41ac4704",
+  "created_at": 1795713221.4269109,
+  "score_before": 635,
+  "score_after": 635
+ },
+ {
+  "function": "func_80153F74",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Clean display-list best 3355 (saved 635). Released after 8 judged candidates.",
+  "by": "manual-3be4557e41ac4704",
+  "created_at": 1795713222.0105941,
+  "score_before": 635,
+  "score_after": 635
+ },
+ {
+  "function": "func_80153F74",
+  "text": "haiku-pr30: display-list writer, 8 commands like func_80154128 (sibling). Word-by-word rewrite (f8_c1) scores 3910 vs saved 635. The compiler hoists the per-command constant loads and the cursor update differently: the target advances *dl before the first word store and reloads the cursor per command. Needs the gfx++ macro spelling from the sibling or a scheduling fence (not allowed in a match). Released.",
+  "by": "manual-a3f89156f3b6431f",
+  "created_at": 1795715999.10554,
+  "score_before": 3355,
+  "score_after": 3355,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:28ec43cc6a321b67b83e38e69019694683f28a4fa3be7ad11467296a8d254f9b"
+ },
+ {
+  "function": "func_80153F74",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Released: a word-by-word display-list rewrite (3910) did not beat the saved 635; see the sibling func_80154128 for the Gfx macro form.",
+  "by": "manual-a3f89156f3b6431f",
+  "created_at": 1795716104.2553291,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:28ec43cc6a321b67b83e38e69019694683f28a4fa3be7ad11467296a8d254f9b"
  }
 ]
