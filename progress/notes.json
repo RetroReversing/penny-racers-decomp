@@ -4528,14 +4528,6 @@
   "score_after": 6905
  },
  {
-  "function": "func_8013EDFC",
-  "text": "Deep permuter: score 5940 \u2192 5070; 2 improvements; 123 candidates tested; 19 cached skips; 0 rejected; 7203s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935348",
-  "created_at": 1794356291.2185311,
-  "score_before": 5940,
-  "score_after": 5070
- },
- {
   "function": "n_alCSPNew",
   "text": "Deep permuter: score 1600 \u2192 1390; 2 improvements; 100 candidates tested; 32 cached skips; 0 rejected; 7203s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934844",
@@ -7206,14 +7198,6 @@
   "created_at": 1794710749.7560709,
   "score_before": 4140,
   "score_after": 4140
- },
- {
-  "function": "func_8013EDFC",
-  "text": "Not matched. Current source (revision 2262da5bcb40dc562415) scores 8324 (44.1%); the saved best 4905 is historical from a different source. Structure: p = D_8011F2F0 + (arg0&0xFFFF)*100; s4/fs5/fs4 = p+0x18/0x1C/0x20 (s4 is loaded with lw and moved with mtc1, so it is an integer-carried float); loop over 7 rows with row[0x60] (s8) != -1 selecting s0 = D_8022A770 + idx*0x8F0; j = D_8022A772[s1].f0 (u16, stride 0x8F0) indexes D_8011F308/30C/310 at j*100; dist = sqrt(dx*dx+dy*dy+dz*dz) compared with arg1+0x70; row[0x67] guard. Remaining diffs: the target frame is 0x58 with ra, s0..s4 and six doubles fs0..fs5 saved; ours is 0x60 with an extra loop counter. The target loads the 360.0f and 0.025f constants through $at into $f26. Why not closer now: the register pressure (six callee-saved float pairs) depends on how the integer s4 float is carried, and that needs a few structural experiments (float local vs bit-carried int) that I did not reach in this session. Next: try s4 as an f32 local held across the loop, hoist the 0.025f constant to a local, and drop the extra s5 counter.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794710768.166829,
-  "score_before": 4905,
-  "score_after": 4905
  },
  {
   "function": "func_80129918",
@@ -10704,14 +10688,6 @@
   "score_after": 4140
  },
  {
-  "function": "func_8013EDFC",
-  "text": "Not matched. Best this session 6614 (rev e582c56de2b789029de2); saved best remains 4905 (older draft, messy repair artifacts). Verified facts from the asm: constant is 0.025f (0x3CCCCCCD), not 0.1f; 1.0f is kept in fs2 and 0.025f in fs3; struct stride 0x8F0 (2288) for D_8022A770 slots (s0 = D_8022A770 + v*0x8F0, v = arg1[s1+0x60] signed byte, skip -1); D_8022A772[s1] is a stride-0x8F0 array whose u16 at +0 indexes the three 100-byte-stride float tables D_8011F308/30C/310 (off = u16*100); the real u16 used by func_801D7028 is at s0+2 (so D_8022A772 = D_8022A770+2). Initial base = D_8011F2F0 + (arg0&0xFFFF)*100, loading floats at +0x18/+0x1C/+0x20 (s4 is kept as an integer-register float, which my f32 locals did not reproduce). sqrt uses inline sqrt.s with NaN check calling sqrtf again. Tail: p2 = s0 + (*(u16*)(*(char**)(arg1+4)+4))*8; p2[0x5B4] = (1-ft0)*s0[0x5A0] + ft0. Function returns s32 = arg1 + s1 (final loop index). Remaining diff: frame is 0x58 in target vs 0x60 in mine (one extra saved register, s5, from my extra locals ptr/p2/off); register allocation and order differ. Try removing the ptr/p2 locals, reusing one loop-local pointer, and compare frame size first. sqrtf prototype as f32 sqrtf(f32) made it worse (7179), so keep f32 sqrtf().",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794726770.079596,
-  "score_before": 4905,
-  "score_after": 4905
- },
- {
   "function": "func_80133F54",
   "text": "Best 6160 (60.2%), revision 82665ee38a297a143eca. Releasing now because the three conversion rewrites tried in this session all went worse (13595, 13730) and the remaining gap is the index/mask CSE pattern, which is not something I can close in the remaining attempts here. Restore saved best with get_candidate(base=\"saved_best\"). Do not use the m2c draft (M2C macros, wrong float constants). Next step: write idx*100 as ((u16)arg0)*100 at the top only and keep `arg0 & 0xFFFF` at the stores, per the gcc-2.7.2 mask-CSE note; keep the plain (u32)float conversion written once per branch.",
   "by": "claude-haiku-5-5-23",
@@ -14150,14 +14126,6 @@
   "created_at": 1794740206.7919118,
   "score_before": 4140,
   "score_after": 4140
- },
- {
-  "function": "func_8013EDFC",
-  "text": "Not matched. Clean rewrite from asm (the saved 4905 attempt is repair-mangled C with undeclared/uninitialised locals; do not reuse it). Best this session 6653 (55%, 146 vs 149 insns) with `s32 func_8013EDFC(s32 arg0, void *arg1)` (return value is `arg1 + s1` after the loop, matches the context.h signature). Model: loop s1=0..6 over byte array arg1[0x60+s1] (skip -1); s0 = D_8022A770 + idx*0x8F0; per-slot u16 at D_8022A772 + s1*0x8F0, scaled *100 indexes D_8011F308/30C/310 (f32 deltas from entry(arg0&0xFFFF)*100 at +0x18/+0x1C/+0x20); d2 = fs1^2+fv1^2+fs0^2 with inline sqrt.s and a sqrtf call only on NaN; the flag at arg1[s1+0x67] gates the body; 360.0f at 0x8CC; (-fs)*0.025f stored at 0x7B4/0x7BC/0x7C0/0x7C8; then arg1->+4 gives a u16 at +4 used as index *8 into s0 for the f32 at 0x5B4 update (1.0f - v)*0x5A0 + v. Pitfalls seen: (1) holding 0.025f and 1.0f in locals adds two extra saved FP regs and drops the match to 7485; the target loads them at the top with lui/mtc1 directly. (2) The first entry float (+0x18) is bit-copied through an integer register (lw $s4 then mtc1), not lwc1; a plain f32 load gives lwc1, so a union or s32 copy is needed to match that. (3) Target frame is 0x58 with saves s0-s4 and fs0-fs5; my versions reach 0x70 with extra s5/s6. Next: keep constants as literals, and use an s32 bit-copy for the +0x18 value.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794740206.8682659,
-  "score_before": 4905,
-  "score_after": 4905
  },
  {
   "function": "func_80129918",
@@ -18984,14 +18952,6 @@
   "score_after": 7040
  },
  {
-  "function": "func_8013EDFC",
-  "text": "Not matched (best saved 4905, permuter). Tried a clean rewrite with a for-loop over i in 0..6, row=arg1+i, slot=D_8022A770+row[0x60]*0x8F0, idx from D_8022A772 stride 0x8F0, and the 0x5B4 update with k from *(arg1+4)->u16 at +4. Compiles, scored 8868 (40%): frame is 0x70 vs target 0x58, extra saved regs s5/s6 and extra spills of s4 from the position loads. Target keeps only s0-s4 plus fs2-fs5 and loads the three position floats from D_8011F2F0+idx*100 (+0x18/0x1C/0x20) once before the loop. Target has the loop as a do/while with goto-style exit (var_s1<7). The candidate's duplicated if(temp_fs5) branches in the repair artifact are not in the real code. Next step: keep the saved best 4905 and reduce live locals (drop the dist/px temporaries, keep dx/dz/dy as direct expressions) to shrink the frame to 0x58.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794754768.2446332,
-  "score_before": 4905,
-  "score_after": 4905
- },
- {
   "function": "func_800E15CC",
   "text": "Best 660 (85.9%) is the saved s32-cur version (get_candidate saved_best). Target: cur index = (u16)cur*100 computed as ((c*2+c)*8+c)*4 (andi 0xffff before the shifts); loop-back test reads lhu 0x10 then andi 0xffff, bne against a2=0xFFFF in a register. Tried: u16 cur (695, index math changed to sll $v0,$a1,1 and bne a1,a2); separate u16 nx load then cur=nx while(nx!=0xFFFF) (no effect). Still open: the target does the and-0xffff on the loaded next index before the loop test and before the index shift, and stores D_8011F068[n] via a sh to lo(D_8011F068)(at) with at=hi-address+n*2 (the constant store of 0xFFFF after the loop). Next experiment: keep s32 cur, but write the loop test as ((u16)cur != 0xFFFF) and let the index be (u16)cur * 100; compare the mismatch rows at the loop back-edge first.",
   "by": "claude-haiku-5-5-23",
@@ -19574,14 +19534,6 @@
   "created_at": 1794756224.98107,
   "score_before": 2870,
   "score_after": 2870
- },
- {
-  "function": "func_8013EDFC",
-  "text": "Not matched; no compiling candidate yet. Machine draft is garbled: it reads temp_fs5 before assignment and has a do{}while(0) plus goto loop (__repair_rows). Target is 596 bytes, loops 7 entries from D_8011F2F0 (entry at arg0*0x64 with float fields +0x18,+0x1C,+0x20), uses D_8011F308/30C/310 (float arrays indexed by table D_8022A772[i].f0*0x64), sqrtf of squared distance, and writes into per-slot struct at D_8022A770 + idx*0x8F0 (fields 0x560,0x8A1,0x8C8,0x8C9,0x8CC,0x7B4,0x7BC,0x7C0,0x7C8,0x5B4,0x5A0). Warning: a candidate-local prototype for func_8013EDFC conflicts with context.h (line 26); use the context prototype and do not redeclare it. Next: read get_assembly from the top, write the loop structure from the asm (the 7-iteration count and whether the loop index is s32 or u8), and only then fit the float expressions.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794756246.589473,
-  "score_before": 4905,
-  "score_after": 4905
  },
  {
   "function": "func_80146EC4",
@@ -26022,14 +25974,6 @@
   "created_at": 1794767913.467851,
   "score_before": 4403,
   "score_after": 4403
- },
- {
-  "function": "func_8013EDFC",
-  "text": "No match. Last compile 7981 (46.4%) is worse than my earlier 7485; the saved best 4905 is historical. The machine draft had repair junk (__repair_phase_storage, goto loops), and I rewrote it as a do/while over 7 slots. Blocking issues are structural, not register tuning: (1) context.h v239 declares func_8013EDFC as s32 (s32, void*), so the definition keeps s32 with a return; I used return 0, which may not match the original. (2) Frame: target is 0x58 with ra at 0x24 and s4 at 0x20; mine is 0x70, so the loop locals need fewer values live across the func_801D7028 call. (3) sqrtf is implicit (warning); the original probably declares f32 sqrtf(f32) or inlines sqrt.s. Asking to move on: fixing these needs a clean re-derivation of the loop and the return type, not repeated compiles.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794767913.671411,
-  "score_before": 4905,
-  "score_after": 4905
  },
  {
   "function": "func_8013F1D4",
@@ -39757,5 +39701,70 @@
   "score_before": 2575,
   "score_after": 2295,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:2c307ad09826125e024d6d147bc0edcdbad0274a0e889fb15dbcb1acb038b918"
+ },
+ {
+  "function": "func_8013EDFC",
+  "text": "Deep permuter: score 5940 \u2192 5070; 2 improvements; 123 candidates tested; 19 cached skips; 0 rejected; 7203s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935348",
+  "created_at": 1794356291.2185311,
+  "score_before": 5940,
+  "score_after": 5070
+ },
+ {
+  "function": "func_8013EDFC",
+  "text": "Not matched. Current source (revision 2262da5bcb40dc562415) scores 8324 (44.1%); the saved best 4905 is historical from a different source. Structure: p = D_8011F2F0 + (arg0&0xFFFF)*100; s4/fs5/fs4 = p+0x18/0x1C/0x20 (s4 is loaded with lw and moved with mtc1, so it is an integer-carried float); loop over 7 rows with row[0x60] (s8) != -1 selecting s0 = D_8022A770 + idx*0x8F0; j = D_8022A772[s1].f0 (u16, stride 0x8F0) indexes D_8011F308/30C/310 at j*100; dist = sqrt(dx*dx+dy*dy+dz*dz) compared with arg1+0x70; row[0x67] guard. Remaining diffs: the target frame is 0x58 with ra, s0..s4 and six doubles fs0..fs5 saved; ours is 0x60 with an extra loop counter. The target loads the 360.0f and 0.025f constants through $at into $f26. Why not closer now: the register pressure (six callee-saved float pairs) depends on how the integer s4 float is carried, and that needs a few structural experiments (float local vs bit-carried int) that I did not reach in this session. Next: try s4 as an f32 local held across the loop, hoist the 0.025f constant to a local, and drop the extra s5 counter.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794710768.166829,
+  "score_before": 4905,
+  "score_after": 4905
+ },
+ {
+  "function": "func_8013EDFC",
+  "text": "Not matched. Best this session 6614 (rev e582c56de2b789029de2); saved best remains 4905 (older draft, messy repair artifacts). Verified facts from the asm: constant is 0.025f (0x3CCCCCCD), not 0.1f; 1.0f is kept in fs2 and 0.025f in fs3; struct stride 0x8F0 (2288) for D_8022A770 slots (s0 = D_8022A770 + v*0x8F0, v = arg1[s1+0x60] signed byte, skip -1); D_8022A772[s1] is a stride-0x8F0 array whose u16 at +0 indexes the three 100-byte-stride float tables D_8011F308/30C/310 (off = u16*100); the real u16 used by func_801D7028 is at s0+2 (so D_8022A772 = D_8022A770+2). Initial base = D_8011F2F0 + (arg0&0xFFFF)*100, loading floats at +0x18/+0x1C/+0x20 (s4 is kept as an integer-register float, which my f32 locals did not reproduce). sqrt uses inline sqrt.s with NaN check calling sqrtf again. Tail: p2 = s0 + (*(u16*)(*(char**)(arg1+4)+4))*8; p2[0x5B4] = (1-ft0)*s0[0x5A0] + ft0. Function returns s32 = arg1 + s1 (final loop index). Remaining diff: frame is 0x58 in target vs 0x60 in mine (one extra saved register, s5, from my extra locals ptr/p2/off); register allocation and order differ. Try removing the ptr/p2 locals, reusing one loop-local pointer, and compare frame size first. sqrtf prototype as f32 sqrtf(f32) made it worse (7179), so keep f32 sqrtf().",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794726770.079596,
+  "score_before": 4905,
+  "score_after": 4905
+ },
+ {
+  "function": "func_8013EDFC",
+  "text": "Not matched. Clean rewrite from asm (the saved 4905 attempt is repair-mangled C with undeclared/uninitialised locals; do not reuse it). Best this session 6653 (55%, 146 vs 149 insns) with `s32 func_8013EDFC(s32 arg0, void *arg1)` (return value is `arg1 + s1` after the loop, matches the context.h signature). Model: loop s1=0..6 over byte array arg1[0x60+s1] (skip -1); s0 = D_8022A770 + idx*0x8F0; per-slot u16 at D_8022A772 + s1*0x8F0, scaled *100 indexes D_8011F308/30C/310 (f32 deltas from entry(arg0&0xFFFF)*100 at +0x18/+0x1C/+0x20); d2 = fs1^2+fv1^2+fs0^2 with inline sqrt.s and a sqrtf call only on NaN; the flag at arg1[s1+0x67] gates the body; 360.0f at 0x8CC; (-fs)*0.025f stored at 0x7B4/0x7BC/0x7C0/0x7C8; then arg1->+4 gives a u16 at +4 used as index *8 into s0 for the f32 at 0x5B4 update (1.0f - v)*0x5A0 + v. Pitfalls seen: (1) holding 0.025f and 1.0f in locals adds two extra saved FP regs and drops the match to 7485; the target loads them at the top with lui/mtc1 directly. (2) The first entry float (+0x18) is bit-copied through an integer register (lw $s4 then mtc1), not lwc1; a plain f32 load gives lwc1, so a union or s32 copy is needed to match that. (3) Target frame is 0x58 with saves s0-s4 and fs0-fs5; my versions reach 0x70 with extra s5/s6. Next: keep constants as literals, and use an s32 bit-copy for the +0x18 value.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794740206.8682659,
+  "score_before": 4905,
+  "score_after": 4905
+ },
+ {
+  "function": "func_8013EDFC",
+  "text": "Not matched (best saved 4905, permuter). Tried a clean rewrite with a for-loop over i in 0..6, row=arg1+i, slot=D_8022A770+row[0x60]*0x8F0, idx from D_8022A772 stride 0x8F0, and the 0x5B4 update with k from *(arg1+4)->u16 at +4. Compiles, scored 8868 (40%): frame is 0x70 vs target 0x58, extra saved regs s5/s6 and extra spills of s4 from the position loads. Target keeps only s0-s4 plus fs2-fs5 and loads the three position floats from D_8011F2F0+idx*100 (+0x18/0x1C/0x20) once before the loop. Target has the loop as a do/while with goto-style exit (var_s1<7). The candidate's duplicated if(temp_fs5) branches in the repair artifact are not in the real code. Next step: keep the saved best 4905 and reduce live locals (drop the dist/px temporaries, keep dx/dz/dy as direct expressions) to shrink the frame to 0x58.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794754768.2446332,
+  "score_before": 4905,
+  "score_after": 4905
+ },
+ {
+  "function": "func_8013EDFC",
+  "text": "Not matched; no compiling candidate yet. Machine draft is garbled: it reads temp_fs5 before assignment and has a do{}while(0) plus goto loop (__repair_rows). Target is 596 bytes, loops 7 entries from D_8011F2F0 (entry at arg0*0x64 with float fields +0x18,+0x1C,+0x20), uses D_8011F308/30C/310 (float arrays indexed by table D_8022A772[i].f0*0x64), sqrtf of squared distance, and writes into per-slot struct at D_8022A770 + idx*0x8F0 (fields 0x560,0x8A1,0x8C8,0x8C9,0x8CC,0x7B4,0x7BC,0x7C0,0x7C8,0x5B4,0x5A0). Warning: a candidate-local prototype for func_8013EDFC conflicts with context.h (line 26); use the context prototype and do not redeclare it. Next: read get_assembly from the top, write the loop structure from the asm (the 7-iteration count and whether the loop index is s32 or u8), and only then fit the float expressions.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794756246.589473,
+  "score_before": 4905,
+  "score_after": 4905
+ },
+ {
+  "function": "func_8013EDFC",
+  "text": "No match. Last compile 7981 (46.4%) is worse than my earlier 7485; the saved best 4905 is historical. The machine draft had repair junk (__repair_phase_storage, goto loops), and I rewrote it as a do/while over 7 slots. Blocking issues are structural, not register tuning: (1) context.h v239 declares func_8013EDFC as s32 (s32, void*), so the definition keeps s32 with a return; I used return 0, which may not match the original. (2) Frame: target is 0x58 with ra at 0x24 and s4 at 0x20; mine is 0x70, so the loop locals need fewer values live across the func_801D7028 call. (3) sqrtf is implicit (warning); the original probably declares f32 sqrtf(f32) or inlines sqrt.s. Asking to move on: fixing these needs a clean re-derivation of the loop and the return type, not repeated compiles.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794767913.671411,
+  "score_before": 4905,
+  "score_after": 4905
+ },
+ {
+  "function": "func_8013EDFC",
+  "text": "Small-model attempt at func_8013EDFC: 12 tries.\n  best 305 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 3900 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 5161 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 6039 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 10556 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nBest 305 at -O1 (try 9, 11): typed Slot_8022A772 array for the u16 lookup, separate D_8022A772 symbol, do-while loop, store 7B4 before computing 7BC, constants hoisted. Left: FP register permutation (fs5/fs4 land f28/f26 instead of f30/f28; 0.025 and 1.0 swapped between f24/f26 and f30); the frame is 0x50 not 0x58 and s3 is set after the constants. Swapping FP loads or inline 1.0f made it worse.",
+  "by": "manual-7118fc405f634556",
+  "created_at": 1795719233.364316,
+  "score_before": 7140,
+  "score_after": 6039,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:31a60656dd6592f3dd5b03c1e09dcfb1e6242ff97346cfd21c29f68d2c5a697a"
  }
 ]
