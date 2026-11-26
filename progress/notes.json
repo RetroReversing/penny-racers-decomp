@@ -3800,14 +3800,6 @@
   "score_after": 205
  },
  {
-  "function": "func_80138B1C",
-  "text": "Deep permuter: score 4305 \u2192 3810; 3 improvements; 79 candidates tested; 0 cached skips; 0 rejected; 7235s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935313",
-  "created_at": 1794359529.0657752,
-  "score_before": 4305,
-  "score_after": 3810
- },
- {
   "function": "__voiceNeedsNoteKill",
   "text": "Deep permuter: score 756 \u2192 536; 1 improvements; 115 candidates tested; 3 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934937",
@@ -6902,14 +6894,6 @@
   "created_at": 1794709148.493576,
   "score_before": 4256,
   "score_after": 4256
- },
- {
-  "function": "func_80138B1C",
-  "text": "Display-list colour setup. Target uses a jump table (sltiu v,0xa; sll 2; lui at %hi(D_80183080)) for the switch on u16 at D_8006FAF0+0x20, so the switch has about 10 dispatch cases, not the three in the saved candidate; the table at D_80183080 is outside the loaded ROM, so case targets are unknown. Case bodies seen in the asm: values 10/10/50 (0xA,0xA,0x32), 150 (0x96), 170 (0xAA), 140 (0x8C), 190 (0xBE) for the r/g/b/fr/fg/fb groups. Clean 3-case version scored 4970 (saved best 3885). Needs the table contents (split/report_data_region) before the case mapping can be fixed.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794709237.1942139,
-  "score_before": 3885,
-  "score_after": 3885
  },
  {
   "function": "func_8013536C",
@@ -10560,14 +10544,6 @@
   "score_after": 320
  },
  {
-  "function": "func_80138B1C",
-  "text": "Not matched (best 3005, 71%). Blocker: the switch dispatch. Target does `lhu v,D_8006FAF0+0x20; sltiu v,0xA; beqz -> default; sll 2; lui at,%hi(D_80183080); lw; jr`, a 10-entry table at D_80183080 that read_data reports as outside the loaded ROM. Without the table contents I can't map cases 0..9 to the value blocks (A: 0xA,0xA,0x32 + FF; B: 0x96 x3 + 0x8C; C: 0xAA x3 + 0xBE; default: 0,0,0xFA + FF). A compiler-generated table won't reproduce the fixed %lo(D_80183080) reference either. Outside the dispatch the code is understood: it writes RDP words to the display list at *arg0 (E7000000/0, BA001402/00300000, F7000000 + packed colour written as ((c|1)<<16)|1|c, F64FC3BC/0; then if v==2||v==7: F8000000 + (t3<<24|t2<<16|t1<<8|0xFF), BC000008/0500FC00). Packed colour c = ((t0<<8)&0xF800)|((a3<<3)&0x7C0)|((a2>>2)&0x3E). Next: split the .rodata table at D_80183080, then fix the case mapping. Candidate revision 305cebc312f31f76e60a holds the structure.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794724325.35309,
-  "score_before": 3810,
-  "score_after": 3005
- },
- {
   "function": "func_8013DF90",
   "text": "Not matched. Saved best 3120 (the goto-based candidate) is still the best. Two rewrites this session scored worse: a clean do/while with an e pointer (5256), and a version addressing the separate symbols by offset (D_8022A772+off, D_8022ACD0+off, D_8022AD07+off, D_8022A776+off, D_8022A770+off) (5146). Both keep more values live, so GCC saves s5..s7 and fp and grows the frame to 0x48. The target frame is 0x38: saves ra, s0..s4, fs0, fs1 only. So the live set must stay at four values plus the loop counter, with e recomputed from the offset. Target facts: outer counter s3 compared with 7 after andi 0xFFFF; temp_s4 = D_801687EC[*(u16*)(D_8006FAF0+0x20)]; idx = lhu(D_8022A772+off); flag test lhu(D_8022ACD0+off) & 0x18; q = D_8011F2F0 + idx*100; inner p walks 16-byte records while p[4] float != 0; byte lbu(D_8022AD07+off) compared with lhu(p); distance test vs 26.0f via sqrtf; func_8015E8E4(D_8022A770+off); then lhu/ori 4/sh at D_8022A776+off. Next: restore the 3120 candidate (get_candidate base saved_best) and reduce live variables, e.g. drop the separate q and recompute q from idx inside the inner test.",
   "by": "claude-haiku-5-5-24",
@@ -13744,14 +13720,6 @@
   "score_after": 605
  },
  {
-  "function": "func_80138B1C",
-  "text": "Best 3195 (69.5%, 102 vs 105 insns). The function is an N64 display-list builder: Gfx pointer is *arg0 (arg0 is u32**), emits 0xE7000000, 0xBA001402/0x300000, 0xF7000000 with packed RGB5551-style word w = ((r<<8)&0xF800)|((g<<3)&0x7C0)|((b>>2)&0x3E) and w1 = ((w|1)<<16)|1|w, 0xF64FC3BC, then if (v==2||v==7) emits 0xF8000000 (t3<<24|t2<<16|t1<<8|0xFF) and 0xBC000008/0x0500FC00. The switch on u16 D_8006FAF0+0x20 (0..9) uses a jump table at D_80183080 that is not in the loaded ROM, so the case grouping is a GUESS (0,1 -> A; 2-4 -> B; 5-9 -> C; default -> zero/0xFA). Target has three case bodies only; the grouping must be checked against the table. Remaining diffs: register choice (target keeps v in v1 and copies arg to a1 before the switch; ours uses t4 and a2) and one missing `ori v0,v1,1` in the w1 word. Tried: u16 vs u32 for v (u32 gave 3195, u16 gave 3435), local dl copy (no change).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794736252.024462,
-  "score_before": 3005,
-  "score_after": 3005
- },
- {
   "function": "func_801578EC",
   "text": "Display-list builder: 9 RDP-style 8-byte writes through *arg0 (lw ptr, addiu +8, sw back, then sw words). Best current 4130 (revision 7b02339760ca64aa0950: u16 cast on D_8011F2FC and D_8011F32E loads, m2c temp_v1 layout). Recheck of saved draft gives 4330, historical 400 is not reproduced. Target loads the D_8011F2FC byte before the 0x1414FF00 lui/ori and keeps arg0 pointer in a2 for the second block; the remaining diff is register choice and the lui/ori placement of the constant. Not tried: writing the 0x1414FF00 OR as a separate statement before the store block, and a u16 arg1 parameter (variant 5 stopped on a file sync).",
   "by": "claude-haiku-5-5-21",
@@ -13894,14 +13862,6 @@
   "created_at": 1794737451.82272,
   "score_before": 885,
   "score_after": 885
- },
- {
-  "function": "func_80138B1C",
-  "text": "Best 3195 (69.5%), saved at revision 5c73423ebe2c22bcfbd9. Control flow matches: 10-entry jump table on v via D_80183080, four packet writes, and the v==2||v==7 tail. The remaining diff is register allocation only: the target loads v into $v1, copies arg0 into $a1 (`move $a1,$a0`), and uses t0=r, a3=gr, a2=b, and t1/t2/t3 for the tail constants. Mine loads v into $t4 and assigns r/gr/b/t-values to other registers. Tried without effect: reordering the local declarations, a `u32 **p = arg0` alias, and an `s32 *g` type change (that variant was stopped when progress changed during the compile). Next: compile_family(signedness) on the `g` declaration again, then compile_variants on the declaration order of r/gr/b.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794737544.696735,
-  "score_before": 3005,
-  "score_after": 3005
  },
  {
   "function": "func_801E3640",
@@ -25976,14 +25936,6 @@
   "score_after": 125388
  },
  {
-  "function": "func_80138B1C",
-  "text": "Best: revision ca9a4ed1f43f9bb3711f, score 2810 (73.2%), down from 3195. Key fix: the switch and the later `v == 2 || v == 7` test each re-read *(u16 *)(D_8006FAF0 + 0x20) (the target re-loads it with lui/lhu); a single cached local v is wrong. Switch is on the u16 read directly; 10-entry jump table, sltiu 0xa guard, default case in a0 path. Remaining diffs are almost all register allocation: target keeps arg0 in a1 (move $a1,$a0), b in a2, t1/t3 swapped in the default path, and the w-store sequence loads *arg0 into v1 instead of a1. Also the target has `ori $v0,$v1,1` before the `sll 16` for ((w|1)<<16)|1|w, which our build does not produce. Tried with no gain: reordering the r/gr/b/t1/t2/t3 declarations; duplicating the g[1] store line (revision 7a530ae9, harmless but messy). Not tried: forcing w|1 through a separate local in a block (the attempt errored on duplicate anchor, so unverified); a local copy of arg0 to get a1; compile_family(signedness) which the tool suggested. Whoever continues should start from ca9a4ed1 and not from the 7a53/6808 revisions.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794765044.213815,
-  "score_before": 3005,
-  "score_after": 2810
- },
- {
   "function": "func_8013E49C",
   "text": "Saved best 4165 (60.3%) stands; no compile beat it. Tried: (1) saved-best structure (a0 u16, a1 s32), 4165; (2) arg0 used directly with u16 a1, 6395; (3) u16 array indexing NEXT(i)=D_8018D73A[i*62], 7700; (4) a0 as s32 with a0&0xFFFF masks, 4190; (5) sentinel held in a u16 local, 4165 tie. Forms (2) and (3) add a spurious addiu $sp,-0x10 frame and an addiu on the table base; the target has no frame and folds %lo into lhu (lui+addu+lhu). The u8 pointer-cast NEXT/PREV form keeps the fold closest. Target structure: when D_80189DC2==0xFFFF, walk the list from arg0 and store D_80189DC2 (return v0); otherwise a do-while links each node into the tail and returns D_80187BE0 += a2. Remaining diffs are register allocation (target keeps D_80189DC2 in a3 and 0xFFFF in v0) and the order of the lui/sh stores around D_8018F5C2. Next idea not tried: change the do-while loop to a for loop, or split the first branch into a helper, to shift the register assignment.",
   "by": "claude-haiku-5-5-23",
@@ -26806,14 +26758,6 @@
   "created_at": 1794767020.748249,
   "score_before": 6365,
   "score_after": 6365
- },
- {
-  "function": "func_80138B1C",
-  "text": "Best 2810 (73.2%) at revision 1b42449a83cc4bb49086: switch on *(u16*)(D_8006FAF0+0x20) compiles as an if-chain here (no jump table), fine with the draft. Remaining diff is almost all register allocation: target keeps arg0 in a1 (mine a2), and the colour constants are loaded into a2/a0 in a different order (target a2 for 0x32/0x96/0xaa/0xfa, t3/t1 for 0xff swapped). Also one missing ori $v0,$v1,1 (the w|1 term) which a w1 temp did not recover (revision a420b02c1e111fd61267 same score). Untested: put the switch values into separate u32 locals in the order t3,t2,t1 first, or move the g pointer load before the switch.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794767034.7192068,
-  "score_before": 2810,
-  "score_after": 2810
  },
  {
   "function": "func_8013E49C",
@@ -39256,5 +39200,85 @@
   "created_at": 1795715579.7676318,
   "score_before": 1010,
   "score_after": 1010
+ },
+ {
+  "function": "func_80138B1C",
+  "text": "Deep permuter: score 4305 \u2192 3810; 3 improvements; 79 candidates tested; 0 cached skips; 0 rejected; 7235s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935313",
+  "created_at": 1794359529.0657752,
+  "score_before": 4305,
+  "score_after": 3810
+ },
+ {
+  "function": "func_80138B1C",
+  "text": "Display-list colour setup. Target uses a jump table (sltiu v,0xa; sll 2; lui at %hi(D_80183080)) for the switch on u16 at D_8006FAF0+0x20, so the switch has about 10 dispatch cases, not the three in the saved candidate; the table at D_80183080 is outside the loaded ROM, so case targets are unknown. Case bodies seen in the asm: values 10/10/50 (0xA,0xA,0x32), 150 (0x96), 170 (0xAA), 140 (0x8C), 190 (0xBE) for the r/g/b/fr/fg/fb groups. Clean 3-case version scored 4970 (saved best 3885). Needs the table contents (split/report_data_region) before the case mapping can be fixed.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794709237.1942139,
+  "score_before": 3885,
+  "score_after": 3885
+ },
+ {
+  "function": "func_80138B1C",
+  "text": "Not matched (best 3005, 71%). Blocker: the switch dispatch. Target does `lhu v,D_8006FAF0+0x20; sltiu v,0xA; beqz -> default; sll 2; lui at,%hi(D_80183080); lw; jr`, a 10-entry table at D_80183080 that read_data reports as outside the loaded ROM. Without the table contents I can't map cases 0..9 to the value blocks (A: 0xA,0xA,0x32 + FF; B: 0x96 x3 + 0x8C; C: 0xAA x3 + 0xBE; default: 0,0,0xFA + FF). A compiler-generated table won't reproduce the fixed %lo(D_80183080) reference either. Outside the dispatch the code is understood: it writes RDP words to the display list at *arg0 (E7000000/0, BA001402/00300000, F7000000 + packed colour written as ((c|1)<<16)|1|c, F64FC3BC/0; then if v==2||v==7: F8000000 + (t3<<24|t2<<16|t1<<8|0xFF), BC000008/0500FC00). Packed colour c = ((t0<<8)&0xF800)|((a3<<3)&0x7C0)|((a2>>2)&0x3E). Next: split the .rodata table at D_80183080, then fix the case mapping. Candidate revision 305cebc312f31f76e60a holds the structure.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794724325.35309,
+  "score_before": 3810,
+  "score_after": 3005
+ },
+ {
+  "function": "func_80138B1C",
+  "text": "Best 3195 (69.5%, 102 vs 105 insns). The function is an N64 display-list builder: Gfx pointer is *arg0 (arg0 is u32**), emits 0xE7000000, 0xBA001402/0x300000, 0xF7000000 with packed RGB5551-style word w = ((r<<8)&0xF800)|((g<<3)&0x7C0)|((b>>2)&0x3E) and w1 = ((w|1)<<16)|1|w, 0xF64FC3BC, then if (v==2||v==7) emits 0xF8000000 (t3<<24|t2<<16|t1<<8|0xFF) and 0xBC000008/0x0500FC00. The switch on u16 D_8006FAF0+0x20 (0..9) uses a jump table at D_80183080 that is not in the loaded ROM, so the case grouping is a GUESS (0,1 -> A; 2-4 -> B; 5-9 -> C; default -> zero/0xFA). Target has three case bodies only; the grouping must be checked against the table. Remaining diffs: register choice (target keeps v in v1 and copies arg to a1 before the switch; ours uses t4 and a2) and one missing `ori v0,v1,1` in the w1 word. Tried: u16 vs u32 for v (u32 gave 3195, u16 gave 3435), local dl copy (no change).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794736252.024462,
+  "score_before": 3005,
+  "score_after": 3005
+ },
+ {
+  "function": "func_80138B1C",
+  "text": "Best 3195 (69.5%), saved at revision 5c73423ebe2c22bcfbd9. Control flow matches: 10-entry jump table on v via D_80183080, four packet writes, and the v==2||v==7 tail. The remaining diff is register allocation only: the target loads v into $v1, copies arg0 into $a1 (`move $a1,$a0`), and uses t0=r, a3=gr, a2=b, and t1/t2/t3 for the tail constants. Mine loads v into $t4 and assigns r/gr/b/t-values to other registers. Tried without effect: reordering the local declarations, a `u32 **p = arg0` alias, and an `s32 *g` type change (that variant was stopped when progress changed during the compile). Next: compile_family(signedness) on the `g` declaration again, then compile_variants on the declaration order of r/gr/b.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794737544.696735,
+  "score_before": 3005,
+  "score_after": 3005
+ },
+ {
+  "function": "func_80138B1C",
+  "text": "Best: revision ca9a4ed1f43f9bb3711f, score 2810 (73.2%), down from 3195. Key fix: the switch and the later `v == 2 || v == 7` test each re-read *(u16 *)(D_8006FAF0 + 0x20) (the target re-loads it with lui/lhu); a single cached local v is wrong. Switch is on the u16 read directly; 10-entry jump table, sltiu 0xa guard, default case in a0 path. Remaining diffs are almost all register allocation: target keeps arg0 in a1 (move $a1,$a0), b in a2, t1/t3 swapped in the default path, and the w-store sequence loads *arg0 into v1 instead of a1. Also the target has `ori $v0,$v1,1` before the `sll 16` for ((w|1)<<16)|1|w, which our build does not produce. Tried with no gain: reordering the r/gr/b/t1/t2/t3 declarations; duplicating the g[1] store line (revision 7a530ae9, harmless but messy). Not tried: forcing w|1 through a separate local in a block (the attempt errored on duplicate anchor, so unverified); a local copy of arg0 to get a1; compile_family(signedness) which the tool suggested. Whoever continues should start from ca9a4ed1 and not from the 7a53/6808 revisions.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794765044.213815,
+  "score_before": 3005,
+  "score_after": 2810
+ },
+ {
+  "function": "func_80138B1C",
+  "text": "Best 2810 (73.2%) at revision 1b42449a83cc4bb49086: switch on *(u16*)(D_8006FAF0+0x20) compiles as an if-chain here (no jump table), fine with the draft. Remaining diff is almost all register allocation: target keeps arg0 in a1 (mine a2), and the colour constants are loaded into a2/a0 in a different order (target a2 for 0x32/0x96/0xaa/0xfa, t3/t1 for 0xff swapped). Also one missing ori $v0,$v1,1 (the w|1 term) which a w1 temp did not recover (revision a420b02c1e111fd61267 same score). Untested: put the switch values into separate u32 locals in the order t3,t2,t1 first, or move the g pointer load before the switch.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794767034.7192068,
+  "score_before": 2810,
+  "score_after": 2810
+ },
+ {
+  "function": "func_80138B1C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Blocked: the switch's jump table at D_80183080 is not in a loaded part of the ROM (read_data cannot read it), so the case-by-case values (three distinct blocks: 0xA/0xA/0x32, 0x96 set with 0x8C, 0xAA set with 0xBE, default 0/0/0xFA, then 0xFF) cannot be checked against the table. A guessed switch with a Gfx record tail judged 8510. Next: read the table's entries from the ROM split (or the table's label words) before trying a switch. Not matched.",
+  "by": "manual-68913573ef2f4091",
+  "created_at": 1795711074.399213,
+  "score_before": 1000,
+  "score_after": 1000
+ },
+ {
+  "function": "func_80138B1C",
+  "text": "haiku-pr26: best 1035 under -G0 -mips3 -mgp32 -mfp32 -O1 (prove_chain from a switch draft). The switch needs all ten case values present for the jump table (three arms and a default, mapping 0,1,2 then default for the rest; the linked table rows agree in order). Remaining rows: the colour locals get temporaries in another order than the target (t0 right, then a2/a0 for g and b, t3/t2/t1 for the three end values), and the pointer argument copy to $a1. Tried: u32 colour locals (1060), a gp copy of arg0 (1060). Final source (scratch deleted at stop):\nextern u8 D_8006FAF0[];\n\nvoid func_80138B1C(void **arg0)\n{\n    u32 r;\n    u32 g;\n    u32 b;\n    s32 ea;\n    s32 eb;\n    s32 ec;\n    u32 w1;\n    u16 mode;\n\n    mode = *(u16 *) (D_8006FAF0 + 0x20);\n    switch (mode) {\n    case 0:\n        r = 0xA; g = 0xA; b = 0x32; ea = 0xFF; do { eb = 0xFF; ec = 0xFF; } while (0);\n        break;\n    case 1:\n        r = 0x96; g = 0x96; b = 0x96; ea = 0x8C; eb = 0x8C; ec = 0x8C;\n        break;\n    case 2:\n        r = 0xAA; g = 0xAA; b = 0xAA; ea = 0xBE; eb = 0xBE; ec = 0xBE;\n        break;\n    case 3:\n        r = 0; g = 0; b = 0xFA; ea = 0xFF; eb = 0xFF; ec = 0xFF;\n        break;\n    case 4:\n        r = 0; g = 0; b = 0xFA; ea = 0xFF; eb = 0xFF; ec = 0xFF;\n        break;\n    case 5:\n        r = 0; g = 0; b = 0xFA; ea = 0xFF; eb = 0xFF; ec = 0xFF;\n        break;\n    case 6:\n        r = 0; g = 0; b = 0xFA; ea = 0xFF; eb = 0xFF; ec = 0xFF;\n        break;\n    case 7:\n        r = 0; g = 0; b = 0xFA; ea = 0xFF; eb = 0xFF; ec = 0xFF;\n        break;\n    case 8:\n        r = 0; g = 0; b = 0xFA; ea = 0xFF; eb = 0xFF; ec = 0xFF;\n        break;\n    case 9:\n        r = 0; g = 0; b = 0xFA; ea = 0xFF; eb = 0xFF; ec = 0xFF;\n        break;\n    default:\n        r = 0; g = 0; b = 0xFA; ea = 0xFF; eb = 0xFF; ec = 0xFF;\n        break;\n    }\n    {\n        u32 *p = (u32 *) *arg0;\n        *arg0 = (void *) (p + 2);\n        p[0] = 0xE7000000;\n        p[1] = 0;\n    }\n    {\n        u32 *p = (u32 *) *arg0;\n        *arg0 = (void *) (p + 2);\n        p[0] = 0xBA001402;\n        p[1] = 0x300000;\n    }\n    w1 = ((r << 8) & 0xF800) | ((g << 3) & 0x7C0) | ((b >> 2) & 0x3E);\n    {\n        u32 *p = (u32 *) *arg0;\n        *arg0 = (void *) (p + 2);\n        p[0] = 0xF7000000;\n        p[1] = (((w1 | 1) << 16) | (w1 | 1));\n    }\n    {\n        u32 *p = (u32 *) *arg0;\n        *arg0 = (void *) (p + 2);\n        p[0] = 0xF64FC3BC;\n        p[1] = 0;\n    }\n    mode = *(u16 *) (D_8006FAF0 + 0x20);\n    if (mode == 2 || mode == 7) {\n        u32 *p = (u32 *) *arg0;\n        *arg0 = (void *) (p + 2);\n        p[0] = 0xF8000000;\n        p[1] = (ea << 24) | (eb << 16) | (ec << 8) | 0xFF;\n        p = (u32 *) *arg0;\n        *arg0 = (void *) (p + 2);\n        p[0] = 0xBC000008;\n        p[1] = 0x0500FC00;\n    }\n}",
+  "by": "manual-41d32257dcbd48de",
+  "created_at": 1795716022.587063,
+  "score_before": 1000,
+  "score_after": 1000
+ },
+ {
+  "function": "func_80138B1C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr26: stalled at 1035 under -O1; see note.",
+  "by": "manual-41d32257dcbd48de",
+  "created_at": 1795716025.651777,
+  "score_before": 1000,
+  "score_after": 1000
  }
 ]
