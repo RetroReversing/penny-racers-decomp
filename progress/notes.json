@@ -6536,14 +6536,6 @@
   "score_after": 940
  },
  {
-  "function": "auDmaCallBack",
-  "text": "Not attempted in this session; released unworked. The machine draft needs the globals declared (D_8005D7A4, D_80046C30, D_8005D7A8, D_8005DCB0, D_8005D1A0, D_8005D088 \u2014 the draft's undeclared-symbol errors). Draft's shape: walks a linked list at D_8005D7A4 (node: next@0, prev@4?, base@8, ...), unlinks a node from D_8005D7A8 via alUnlink/alLink, and calls osEPiStartDma with a 0x18-byte record at D_8005D1A0 + D_8005DCB0*0x18. Verify the field offsets against the assembly before writing C.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794707974.5622709,
-  "score_before": 3400,
-  "score_after": 3400
- },
- {
   "function": "func_800319F4",
   "text": "Best: revision 2a3fe01ef35d48bf72e5, score 160 (97.8%). Structure is right: do-while binary search over a 1-based table at entry->tbl (+0xC + 4*mid; record pointer at +4; record bytes [0]=k2 lo, [1]=k2 hi, [2]=k1 lo, [3]=k1 hi, unsigned). Entry = *(arg0+0x60) + (u8)arg3*16; hi = s16 at tbl+0xE; the func_800346B0 call happens when tbl==NULL before the hi>0 test; k1/k2 masked with &0xFF after the hi>0 check. The remaining ~8 differing instructions are in the miss-path compare chain: target does k1<rec[2], then rec[3]<k1 (shared lo=mid+1 tail), then k2<rec[0], then rec[1]<k2, and shares tail blocks. Tried, no better: nested if/else-if chain with the match test replaced (1895 and 2470), while-form loop with extra hi>0 test (830, 610), match-first && chain with swapped order (no effect), extern/record signedness (no effect). Untried: a goto-based layout reproducing the shared lo=mid+1 block, and compile_family(signedness) as suggested by the tool.",
   "by": "claude-haiku-5-5-21",
@@ -9960,14 +9952,6 @@
   "score_after": 770
  },
  {
-  "function": "auDmaCallBack",
-  "text": "Not matched. Best saved is 3400 (other source); my draft scores 3585 (66.1%). The draft's logic matches the asm structurally (free-list search over D_8005D7A4 linked list, osVirtualToPhysical returns, alUnlink/alLink, then osCartRomInit + osEPiStartDma with a 0x18-byte entry at D_8005D1A0 + index*0x18 and D_8005DCB0 counter). Remaining diffs are frame/prologue: target saves $s1 first (sw $s1,0x14), then $s3, $s2, $s0, $ra last, and $s3 = arg0 is copied before the list walk; my version saves $ra first and reorders. Also the target loads D_8005D7A8 via lui/addiu into $v1 then lw $s1,0($v1) (the address is kept in a register). Next step: restructure the early part so arg0 lives in $s3 and the saves follow the target order; keep the late tail (rom offset & 1 -> s0, osEPiStartDma). Not tested beyond this one compile.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794721924.4574962,
-  "score_before": 3400,
-  "score_after": 3400
- },
- {
   "function": "f64ToFixed60",
   "text": "Not matched; releasing early. Best revision f6252a62af9dc669b966 scores 7615 (0% match); saved best 6820 is from a different source. Target is a double-to-s64 conversion. Its prologue is addiu sp,-8; sdc1 $f12,(sp); lw a0,(sp); lw a1,4(sp); addiu sp,8. My C instead uses mfc1 from $f12, so the f64 must be spilled through memory (union u32 w[2] copy did not force sdc1). Also the early exit is sltiu $t9,$a0,0x3ff; bnez to a return-0 block, and that shape needs e as u32; changing e to u32 made it worse (7745). The rest of the target is the 0x34/0x20 shift ladder, with xor v0 zeroing and negu for sign. Next: get gcc to spill the double with sdc1 (try a volatile or address-taken f64 that is copied only via a u32 pointer read), then restructure the early-return and tail to match. Low expected yield in this session.",
   "by": "claude-haiku-5-5-20",
@@ -12544,14 +12528,6 @@
   "score_after": 880
  },
  {
-  "function": "auDmaCallBack",
-  "text": "Not matched; moving on. Best saved 3400 (earlier draft with fixed types). My rewrite (revision 98db3f41d669e89fb299) scores 4070; using `end = arg0+arg1` in the search compare (revision f5d7666d6c4cc62db5da) scored 4265, worse. Structure is right per get_assembly (node next/prev/start/tag/addr; search loop with prev marking; free-list pop at D_8005D7A8; alLink to prev or push to head; a1 = D_8005D1A0 + DCB0*24 with byte at +2 zeroed; osEPiStartDma(osCartRomInit(), a1, 0); return osVirtualToPhysical(s2)+(arg0&1)). The gap is register allocation and prologue save order: target saves s1 first, keeps s3 = arg0 across the loop, and reloads D_8005D7A4 into s1 (candidate uses v1). Next attempt should start from the 3400 draft and keep the search loop cursor in s1 by using the loop variable declared before prev.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794731909.220562,
-  "score_before": 3400,
-  "score_after": 3400
- },
- {
   "function": "nuScRemoveClient",
   "text": "Best 290 (92.3%), revision 68028feb6188e04067ca (source = m2c shape with pp/var_s0/var_s1/temp_a0). Only remaining diff is register allocation: target holds arg0 in $s2 (saved at 0x18) and &D_800DDE88 in $s3 (saved at 0x1c, lui/addiu at entry); ours is reversed (arg0 in $s3). Target is 38 insns, ours 37 (the extra one is the move/addiu for the base). Tried this session, none better: swapping compare to arg0 == var_s0 (290, tie); storing via D_800DDE88 directly instead of *pp (1234); loading var_s0 from D_800DDE88 directly (950); reordering declarations and moving var_s1 = 0 after the call (variant 4 stopped by a progress change, not scored). Untested: keep pp but declare arg0 use earlier, or split pp into a separate pointer assigned from &D before the loop.",
   "by": "claude-haiku-5-5-24",
@@ -12814,14 +12790,6 @@
   "created_at": 1794733193.751914,
   "score_before": 260,
   "score_after": 260
- },
- {
-  "function": "auDmaCallBack",
-  "text": "Not matched. Best 3400 (67.9%, 107 vs 106 insns). Revision ec94d837ca94d420fcf9 is the draft with the missing externs added (D_80046C30, D_8005D088, D_8005D1A0, D_8005D7A4, D_8005D7A8, D_8005DCB0, plus prototypes for osVirtualToPhysical, osCartRomInit, osEPiStartDma, alUnlink, alLink). Control flow matches the target at a high level. Remaining diffs: the target keeps a1 unmasked and does 'move $s3,$a0' before the stores; the saves are ordered s1 (0x14) then s3/s2/s0 with $ra at 0x20; our draft saves ra first and has one extra sw $s1. The D_8005D7A8 free-list access in the target is 'addiu $v1,$v1,%lo(D_8005D7A8)' then 'lw' twice (one symbol base reused), which the draft writes as separate globals. Next: write the free-list read as one base pointer, and recheck the 'if (var_s0 != NULL)' branch order against the target's bnez/beqz layout.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794733271.09652,
-  "score_before": 3400,
-  "score_after": 3400
  },
  {
   "function": "func_8021AF20",
@@ -16624,14 +16592,6 @@
   "score_after": 30
  },
  {
-  "function": "auDmaCallBack",
-  "text": "Best 3400 (67.9%, revision a8d683eafeef4f910335). Rough draft using plain s32 globals D_8005D7A4/D_8005D7A8/D_8005DCB0/D_8005D1A0/D_8005D088/D_80046C30. Diff: prologue save order (target s1 first at 0x14), and the D_80046C30 vs D_8005D1A0 operand looks mis-typed (raw-address check). Signedness variant (u32 var_s1) gives the same 3400. Next: re-type the list nodes as a struct (fields 0,4,8,0xC,0x10) and confirm the global at the `var_s1[3] = ...` store.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794748822.19101,
-  "score_before": 3400,
-  "score_after": 3400
- },
- {
   "function": "func_8002E9A4",
   "text": "Best 1145 (85.6%, revision bc55edbbae3179672960 with arg5 as u16*; the s16* draft scores 1205). Signature f64 arg0, f64 arg1, s32 arg4 (stack 0x10), u16* arg5 (stack 0x14). Remaining diffs: target loads arg5 into $a1 while ours uses $a2; the unsigned-store path ends with `lui $v0,0x8000; or $a0,$a0,$v0` where ours emits `ori $v0,$zero,0xffff` + addu; target return is `addiu v1,v1,-1; addu v1,v1,a0` in the branch delay slot. Structure (arg4==0 branch, scale=K/arg4 with div.d in delay slot, two (s16) truncation rounds, D450<=x branch to the 0x80000000 path) matches. Untried: register choice for the pointer, and writing the sign-bit OR as a separate u32 local.",
   "by": "claude-haiku-5-5-23",
@@ -18966,14 +18926,6 @@
   "created_at": 1794754533.164543,
   "score_before": 15,
   "score_after": 15
- },
- {
-  "function": "auDmaCallBack",
-  "text": "No match. Saved best 3400 (machine-draft-derived, in brief) is still the baseline. Declaring the externs and prototypes properly (osVirtualToPhysical, alUnlink(void*), alLink(void*, void**), osEPiStartDma, osCartRomInit; D_8005D1A0 as u8[]) gives 3585 (66%): it fixes the pointer-compare warning but the frame layout is off. Target saves s1 first (`sw $s1,0x14`), then s3/s2/s0, and keeps `ra` at 0x20 last; ours stores ra first. Target loads `D_8005D7A4` into s1 via lui+lw at the top, and `D_8005D7A8` through a separate `addiu` on the high half (not a direct global read). The saved-best structure is closest; the remaining gap is register allocation and save ordering at -O1 (the compiler note says this range is -O1, not project -O2). Untried: compile with -O1 via search_flags, then reorder the early loads.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794754557.6763651,
-  "score_before": 3400,
-  "score_after": 3400
  },
  {
   "function": "func_801429A8",
@@ -22496,14 +22448,6 @@
   "score_after": 336
  },
  {
-  "function": "auDmaCallBack",
-  "text": "auDmaCallBack (AL DMA callback). Inherited saved best 3400 (permuter source, revision fafb5cf0edf6730ef245); my two rewrites scored 4286 (19643128180c2eb03571) and 4570 (ba790f6e245256c326f1). Budget exhausted (3/3 without improvement).\n\nTarget structure, fully read (106 insns, 0x28 frame, saves s0/s1/s2/s3+ra):\n- prologue: lui/lw D_8005D7A4 into $s1 FIRST, then sw $s3, sw $s0, $s0=0, addu $a0,$s3,$a1, sw $ra, beqz $s1 -> exit. So arg0 is copied to $s3 and the *sum* arg0+arg1 is materialised in $a0 before the loop; the loop condition test uses `slt $v0,$s3,$v0` (arg0 < node[2]).\n- loop body: `lw $v0,8($s1); addiu $v1,$v0,0x400; slt $v0,$s3,$v0; bnez -> exit; slt $v0,$v1,$a0; beqz -> hit; addu $s0,$s1,zero; lw $s1,($s1); bnez $s1,loop`. Note node[2] is loaded into $v0 (caller-saved), NOT into a saved register \u2014 that is why only s0..s3 are saved. My ba790 revision reloads node[2] and gets 107 insns with 5 saves; the target needs exactly 4 saved registers, so the C must not keep any extra live value across the two calls.\n- miss path: lui+addiu D_8005D7A8 into $v1 then `lw $s1,($v1)` (address materialised in a register because it is stored to later); if NULL -> `lw $v0,D_8005D7A4; lw $v1,0x10($v0); subu $v0,$v1,0x80000000`.\n- hit path (found free node): `lw $v0,($s1); jal alUnlink; sw $v0,($v1)` \u2014 i.e. the store `D_8005D7A8 = node->next` is emitted AFTER the alUnlink call, with the loaded next value held across the call in $v0 and the &D_8005D7A8 address still live in $v1. Write it as `alUnlink(node); D_8005D7A8 = node->next;`? No \u2014 the load precedes the call, so the original is `next = node->next; alUnlink(node); D_8005D7A8 = next;` with `next` in a caller-saved register. Worth trying: `s32 *next = (s32*)node[0]; alUnlink(node); D_8005D7A8 = (s32)next;`.\n- insert branch: `beqz $s0` -> else; `move $a0,$s1; jal alLink; move $a1,$s0; j .L80027068` (the join is the tail after the insert block; the `nop` after the j is a delay slot).\n- else (no prev): `lui $a1,%hi(D_8005D7A4); lw $a1,%lo(...)($a1); beqz $a1,empty; addu $s0,$a1,zero; lui $at; sw $s1,D_8005D7A4; sw $s0,($s1); sw $zero,4($s1); j join; sw $s1,4($s0)`. Note the loaded head is copied to $s0 and the store to D_8005D7A4 uses $s1 \u2014 head goes in $a1 (caller-saved), so the C should not keep it in a saved variable across the branch.\n- early-return hit inside the loop: `lw $a0,0x10($s1); lw $v0,8($s1); lui/lw $v1,D_80046C30; addu $a0,$a0,$s3; subu $a0,$a0,$v0; jal osVirtualToPhysical; sw $v1,0xc($s1)` \u2014 the D_80046C30 value is loaded BEFORE the call and stored AFTER it (held in $v1 across the call). Write `node[3] = D_80046C30;` after the return value is computed but keep the load early: e.g. `s32 t = D_80046C30; u32 r = osVirtualToPhysical(...); node[3] = t; return r;`.\n- join: `jal osCartRomInit` comes FIRST (its result moved to $a0 after `andi $s0,$s3,1`), then DCB0 index, `lw $s2,0x10($s1)` (base) is loaded before the packet pointer math, `subu $s3,$s3,$s0` recomputes the aligned start, `move $a2,zero`, `sw $s3,8($s1)`, `addiu $v1,$v1,1` then `sw $v1,D_8005DCB0` AFTER the D_80046C30 store. Packet fields at 0x18 stride: +4 = &D_8005D088, +2 = 0 (sb), +8 = base, +0xC = start, +0x10 = 0x400, and `sw $v0,0x10($a1)` is the delay slot of `jal osEPiStartDma`. Then `jal osVirtualToPhysical` with `addu $a0,$s2,zero` and `addu $v0,$v0,$s0`.\n\nKey blocker: getting exactly 4 saved registers and the $s3/$a0 dual use of arg0/arg0+arg1. The sum must be computed once into $a0 before the loop and survive the loop; the loop comparison uses $s3. Since $a0 is caller-saved and there are no calls inside the loop this works in the original because the sum is only needed in the loop. Try writing the loop condition with an explicit `s32 sum = arg0 + arg1;` used only inside the loop body and let arg0 stay the loop variable.\n\nAlso try try_local_repairs families signedness/declaration_order on the saved-best revision fafb5cf0edf6730ef245 (66 proposals listed there).",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794760202.846814,
-  "score_before": 3400,
-  "score_after": 3400
- },
- {
   "function": "func_80163588",
   "text": "Best saved 3870 (84.0%, 239 vs 243 insns) is the `f32 f = *(f32*)(obj+0xC)` version with `for (i = 0; i != 7; i++)`. Two later compiles were worse: `i < 7` makes the compiler emit a reversed loop (addiu $v1,$zero,6 / addiu -1), and dropping the f local moves the c.eq.s/float loads into f8/f2 and changes the register set. Remaining gap is frame/register allocation: target -0x68 with sw $ra first and no sdc1 $f20, mine keeps f20 live for the 0.0f compare. Not closer in this session without a different structure for the float-compare block; the per-branch float locals (x/y/z) are the likely cause. Release for another pass, starting from the saved best.",
   "by": "claude-haiku-5-5-23",
@@ -25646,14 +25590,6 @@
   "created_at": 1794766062.412576,
   "score_before": 940,
   "score_after": 940
- },
- {
-  "function": "auDmaCallBack",
-  "text": "No match. Best score 3400 (68%), revision 4ba944e1be8fe39b151d. Why I am releasing early: the remaining diff (78 rows) is a structural rewrite, not a tweak. The target saves s1 at 0x14 first and ra at 0x20, and keeps one %lo(D_8005D7A8) base in $v1 that is reused for two loads. The candidate re-materialises the address with lui/lw each time. Row 93 shows the target loads the address of D_80046C30 where the candidate addresses D_8005D1A0, so the global types need checking first (pointer vs struct). The list helpers alUnlink/alLink need real prototypes. Next step for whoever picks it up: give the list node a struct (next, prev, ...) and declare the D_* globals with their real types, then recompare before any register work.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794766071.456747,
-  "score_before": 3400,
-  "score_after": 3400
  },
  {
   "function": "func_800424C0",
@@ -39696,5 +39632,94 @@
   "created_at": 1795714032.1493208,
   "score_before": 2340,
   "score_after": 2340
+ },
+ {
+  "function": "auDmaCallBack",
+  "text": "Not attempted in this session; released unworked. The machine draft needs the globals declared (D_8005D7A4, D_80046C30, D_8005D7A8, D_8005DCB0, D_8005D1A0, D_8005D088 \u2014 the draft's undeclared-symbol errors). Draft's shape: walks a linked list at D_8005D7A4 (node: next@0, prev@4?, base@8, ...), unlinks a node from D_8005D7A8 via alUnlink/alLink, and calls osEPiStartDma with a 0x18-byte record at D_8005D1A0 + D_8005DCB0*0x18. Verify the field offsets against the assembly before writing C.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794707974.5622709,
+  "score_before": 3400,
+  "score_after": 3400
+ },
+ {
+  "function": "auDmaCallBack",
+  "text": "Not matched. Best saved is 3400 (other source); my draft scores 3585 (66.1%). The draft's logic matches the asm structurally (free-list search over D_8005D7A4 linked list, osVirtualToPhysical returns, alUnlink/alLink, then osCartRomInit + osEPiStartDma with a 0x18-byte entry at D_8005D1A0 + index*0x18 and D_8005DCB0 counter). Remaining diffs are frame/prologue: target saves $s1 first (sw $s1,0x14), then $s3, $s2, $s0, $ra last, and $s3 = arg0 is copied before the list walk; my version saves $ra first and reorders. Also the target loads D_8005D7A8 via lui/addiu into $v1 then lw $s1,0($v1) (the address is kept in a register). Next step: restructure the early part so arg0 lives in $s3 and the saves follow the target order; keep the late tail (rom offset & 1 -> s0, osEPiStartDma). Not tested beyond this one compile.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794721924.4574962,
+  "score_before": 3400,
+  "score_after": 3400
+ },
+ {
+  "function": "auDmaCallBack",
+  "text": "Not matched; moving on. Best saved 3400 (earlier draft with fixed types). My rewrite (revision 98db3f41d669e89fb299) scores 4070; using `end = arg0+arg1` in the search compare (revision f5d7666d6c4cc62db5da) scored 4265, worse. Structure is right per get_assembly (node next/prev/start/tag/addr; search loop with prev marking; free-list pop at D_8005D7A8; alLink to prev or push to head; a1 = D_8005D1A0 + DCB0*24 with byte at +2 zeroed; osEPiStartDma(osCartRomInit(), a1, 0); return osVirtualToPhysical(s2)+(arg0&1)). The gap is register allocation and prologue save order: target saves s1 first, keeps s3 = arg0 across the loop, and reloads D_8005D7A4 into s1 (candidate uses v1). Next attempt should start from the 3400 draft and keep the search loop cursor in s1 by using the loop variable declared before prev.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794731909.220562,
+  "score_before": 3400,
+  "score_after": 3400
+ },
+ {
+  "function": "auDmaCallBack",
+  "text": "Not matched. Best 3400 (67.9%, 107 vs 106 insns). Revision ec94d837ca94d420fcf9 is the draft with the missing externs added (D_80046C30, D_8005D088, D_8005D1A0, D_8005D7A4, D_8005D7A8, D_8005DCB0, plus prototypes for osVirtualToPhysical, osCartRomInit, osEPiStartDma, alUnlink, alLink). Control flow matches the target at a high level. Remaining diffs: the target keeps a1 unmasked and does 'move $s3,$a0' before the stores; the saves are ordered s1 (0x14) then s3/s2/s0 with $ra at 0x20; our draft saves ra first and has one extra sw $s1. The D_8005D7A8 free-list access in the target is 'addiu $v1,$v1,%lo(D_8005D7A8)' then 'lw' twice (one symbol base reused), which the draft writes as separate globals. Next: write the free-list read as one base pointer, and recheck the 'if (var_s0 != NULL)' branch order against the target's bnez/beqz layout.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794733271.09652,
+  "score_before": 3400,
+  "score_after": 3400
+ },
+ {
+  "function": "auDmaCallBack",
+  "text": "Best 3400 (67.9%, revision a8d683eafeef4f910335). Rough draft using plain s32 globals D_8005D7A4/D_8005D7A8/D_8005DCB0/D_8005D1A0/D_8005D088/D_80046C30. Diff: prologue save order (target s1 first at 0x14), and the D_80046C30 vs D_8005D1A0 operand looks mis-typed (raw-address check). Signedness variant (u32 var_s1) gives the same 3400. Next: re-type the list nodes as a struct (fields 0,4,8,0xC,0x10) and confirm the global at the `var_s1[3] = ...` store.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794748822.19101,
+  "score_before": 3400,
+  "score_after": 3400
+ },
+ {
+  "function": "auDmaCallBack",
+  "text": "No match. Saved best 3400 (machine-draft-derived, in brief) is still the baseline. Declaring the externs and prototypes properly (osVirtualToPhysical, alUnlink(void*), alLink(void*, void**), osEPiStartDma, osCartRomInit; D_8005D1A0 as u8[]) gives 3585 (66%): it fixes the pointer-compare warning but the frame layout is off. Target saves s1 first (`sw $s1,0x14`), then s3/s2/s0, and keeps `ra` at 0x20 last; ours stores ra first. Target loads `D_8005D7A4` into s1 via lui+lw at the top, and `D_8005D7A8` through a separate `addiu` on the high half (not a direct global read). The saved-best structure is closest; the remaining gap is register allocation and save ordering at -O1 (the compiler note says this range is -O1, not project -O2). Untried: compile with -O1 via search_flags, then reorder the early loads.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794754557.6763651,
+  "score_before": 3400,
+  "score_after": 3400
+ },
+ {
+  "function": "auDmaCallBack",
+  "text": "auDmaCallBack (AL DMA callback). Inherited saved best 3400 (permuter source, revision fafb5cf0edf6730ef245); my two rewrites scored 4286 (19643128180c2eb03571) and 4570 (ba790f6e245256c326f1). Budget exhausted (3/3 without improvement).\n\nTarget structure, fully read (106 insns, 0x28 frame, saves s0/s1/s2/s3+ra):\n- prologue: lui/lw D_8005D7A4 into $s1 FIRST, then sw $s3, sw $s0, $s0=0, addu $a0,$s3,$a1, sw $ra, beqz $s1 -> exit. So arg0 is copied to $s3 and the *sum* arg0+arg1 is materialised in $a0 before the loop; the loop condition test uses `slt $v0,$s3,$v0` (arg0 < node[2]).\n- loop body: `lw $v0,8($s1); addiu $v1,$v0,0x400; slt $v0,$s3,$v0; bnez -> exit; slt $v0,$v1,$a0; beqz -> hit; addu $s0,$s1,zero; lw $s1,($s1); bnez $s1,loop`. Note node[2] is loaded into $v0 (caller-saved), NOT into a saved register \u2014 that is why only s0..s3 are saved. My ba790 revision reloads node[2] and gets 107 insns with 5 saves; the target needs exactly 4 saved registers, so the C must not keep any extra live value across the two calls.\n- miss path: lui+addiu D_8005D7A8 into $v1 then `lw $s1,($v1)` (address materialised in a register because it is stored to later); if NULL -> `lw $v0,D_8005D7A4; lw $v1,0x10($v0); subu $v0,$v1,0x80000000`.\n- hit path (found free node): `lw $v0,($s1); jal alUnlink; sw $v0,($v1)` \u2014 i.e. the store `D_8005D7A8 = node->next` is emitted AFTER the alUnlink call, with the loaded next value held across the call in $v0 and the &D_8005D7A8 address still live in $v1. Write it as `alUnlink(node); D_8005D7A8 = node->next;`? No \u2014 the load precedes the call, so the original is `next = node->next; alUnlink(node); D_8005D7A8 = next;` with `next` in a caller-saved register. Worth trying: `s32 *next = (s32*)node[0]; alUnlink(node); D_8005D7A8 = (s32)next;`.\n- insert branch: `beqz $s0` -> else; `move $a0,$s1; jal alLink; move $a1,$s0; j .L80027068` (the join is the tail after the insert block; the `nop` after the j is a delay slot).\n- else (no prev): `lui $a1,%hi(D_8005D7A4); lw $a1,%lo(...)($a1); beqz $a1,empty; addu $s0,$a1,zero; lui $at; sw $s1,D_8005D7A4; sw $s0,($s1); sw $zero,4($s1); j join; sw $s1,4($s0)`. Note the loaded head is copied to $s0 and the store to D_8005D7A4 uses $s1 \u2014 head goes in $a1 (caller-saved), so the C should not keep it in a saved variable across the branch.\n- early-return hit inside the loop: `lw $a0,0x10($s1); lw $v0,8($s1); lui/lw $v1,D_80046C30; addu $a0,$a0,$s3; subu $a0,$a0,$v0; jal osVirtualToPhysical; sw $v1,0xc($s1)` \u2014 the D_80046C30 value is loaded BEFORE the call and stored AFTER it (held in $v1 across the call). Write `node[3] = D_80046C30;` after the return value is computed but keep the load early: e.g. `s32 t = D_80046C30; u32 r = osVirtualToPhysical(...); node[3] = t; return r;`.\n- join: `jal osCartRomInit` comes FIRST (its result moved to $a0 after `andi $s0,$s3,1`), then DCB0 index, `lw $s2,0x10($s1)` (base) is loaded before the packet pointer math, `subu $s3,$s3,$s0` recomputes the aligned start, `move $a2,zero`, `sw $s3,8($s1)`, `addiu $v1,$v1,1` then `sw $v1,D_8005DCB0` AFTER the D_80046C30 store. Packet fields at 0x18 stride: +4 = &D_8005D088, +2 = 0 (sb), +8 = base, +0xC = start, +0x10 = 0x400, and `sw $v0,0x10($a1)` is the delay slot of `jal osEPiStartDma`. Then `jal osVirtualToPhysical` with `addu $a0,$s2,zero` and `addu $v0,$v0,$s0`.\n\nKey blocker: getting exactly 4 saved registers and the $s3/$a0 dual use of arg0/arg0+arg1. The sum must be computed once into $a0 before the loop and survive the loop; the loop comparison uses $s3. Since $a0 is caller-saved and there are no calls inside the loop this works in the original because the sum is only needed in the loop. Try writing the loop condition with an explicit `s32 sum = arg0 + arg1;` used only inside the loop body and let arg0 stay the loop variable.\n\nAlso try try_local_repairs families signedness/declaration_order on the saved-best revision fafb5cf0edf6730ef245 (66 proposals listed there).",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794760202.846814,
+  "score_before": 3400,
+  "score_after": 3400
+ },
+ {
+  "function": "auDmaCallBack",
+  "text": "No match. Best score 3400 (68%), revision 4ba944e1be8fe39b151d. Why I am releasing early: the remaining diff (78 rows) is a structural rewrite, not a tweak. The target saves s1 at 0x14 first and ra at 0x20, and keeps one %lo(D_8005D7A8) base in $v1 that is reused for two loads. The candidate re-materialises the address with lui/lw each time. Row 93 shows the target loads the address of D_80046C30 where the candidate addresses D_8005D1A0, so the global types need checking first (pointer vs struct). The list helpers alUnlink/alLink need real prototypes. Next step for whoever picks it up: give the list node a struct (next, prev, ...) and declare the D_* globals with their real types, then recompare before any register work.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794766071.456747,
+  "score_before": 3400,
+  "score_after": 3400
+ },
+ {
+  "function": "auDmaCallBack",
+  "text": "Haiku pass (haiku-pr6): library audio DMA callback (alLink/alUnlink list over D_8005D7A4 / D_8005D7A8, osVirtualToPhysical, osCartRomInit, a DMA table at D_8005D1A0 indexed by D_8005DCB0). The SDK source was not recalled reliably enough to write it, and the 116-instruction body was not decoded in this pass, so no candidate was judged. Next: recall the libaudio DMA callback (the al list walk and the 0x400 block size check) and judge it against this listing.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795710812.228599,
+  "score_before": 2435,
+  "score_after": 2435
+ },
+ {
+  "function": "auDmaCallBack",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Not decoded in this pass; SDK source not recalled reliably.",
+  "by": "manual-24d5e5ca34c74e70",
+  "created_at": 1795710813.024587,
+  "score_before": 2435,
+  "score_after": 2435
+ },
+ {
+  "function": "auDmaCallBack",
+  "text": "Profile probe: this saved C scores 2020 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2 (11 functions of this project were built with it), 2435 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721185.393867,
+  "score_before": 2435,
+  "score_after": 2020,
+  "handoff_inputs": "7d6ab19fd43b588fb9bd67b9d84d10cd2a9748f024bfaf8e453c8df33558880f:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:5c2835803b8d5cc5b698e99c6dfc075ef9b3a9a5c58d879b6b5ee8a8e414e799"
  }
 ]
