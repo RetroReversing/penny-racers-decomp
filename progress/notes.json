@@ -6752,14 +6752,6 @@
   "score_after": 800
  },
  {
-  "function": "func_801B3E18",
-  "text": "Logic (verified in target): off=(arg0&0xFFFF)*100 (computed as ((i*2+i)*8+i)*4); if F2F0[off] < 0x1E then F2FC[off] -= 7; else if (u32)(F2F0[off]-0x1E) < 0x1E then F2FC[off] += 7; then F2F0[off] += 1 and if it becomes 0x3C set to 0. Saved best 2205 (m2c draft with goto block_6). Tried: clean else-if with one hoisted off (3445: target recomputes the index in each branch, not hoisted), and index recomputed per branch with (arg0&0xFFFF)*100 (2695: the target's second check reloads D_8011F2F0 with lbu after the sltiu, and the store branch order differs). Next: keep the m2c goto/block_6 shape, which shares one store for both add and subtract paths, and recompute the index inside the second check.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794707649.644504,
-  "score_before": 2205,
-  "score_after": 2205
- },
- {
   "function": "func_801270B0",
   "text": "Best is 1290 (66%): the args are address-taken so the callee sees them in the caller home area. Source: `s8 f(s32 arg0, s32 arg1, s32 arg2, s32 arg3) { f32 r; s8 s; r = func_80127000(&arg0, &arg3); if (0.0f < r) s = 1; if (r == 0.0f) s = -1; if (r < 0.0f) s = -1; return s; }`. Still missing: the target saves $ra and $s0 (frame 0x18), does `mov.s $f2,$f0` after the call, and reloads zero into $f0 before each compare, so the result is kept in a second FP register. Also missing: stores of arg1 and arg2 into 0x1c/0x20 ($a1,$a2 spilled). Tried and worse: `p = &arg0; p[1]=arg1; p[2]=arg2` (1300); `s = 0` init with `r > 0.0f` (1665, the compiler drops the s0 save). Untried: keep the sign in a variable live across the call, or make the if-chain use a different compare form.",
   "by": "claude-haiku-5-5-21",
@@ -10712,14 +10704,6 @@
   "score_after": 260
  },
  {
-  "function": "func_801B3E18",
-  "text": "Best 1990 (66.8%), revision a51afeb15f1641612ebb: off = (arg0&0xFFFF)*100 (u8 arrays D_8011F2F0 counter, D_8011F2FC at same off); if (D_8011F2F0[off] < 0x1E) D_8011F2FC[off] -= 7; else { off re-computed from arg0&0xFFFF; if ((u8)(D_8011F2F0[off]-0x1E) < 0x1E) D_8011F2FC[off] += 7; } then off re-computed; D_8011F2F0[off] += 1; if == 0x3C set 0. Semantics confirmed. Recomputing the index in every access is much worse (4385); a single index is 3445. Tried since: u32 cast in the else compare and goto-shared store tail, both still 1990. Remaining: the target's offset is computed in v1 with a sll/addu chain and the lui base goes in v0; the else compare is sltiu on the unmasked value. Untried: separate per-branch offset locals.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794721697.8886452,
-  "score_before": 1435,
-  "score_after": 1435
- },
- {
   "function": "alEvtqPostEvent",
   "text": "Semantics recovered from target (C in the 2305 attempt is right in meaning): s5=func_800339C0(1) saved first; s0=*arg0; s2=0; if s0 != NULL { alUnlink(s0); alCopy(arg1, s0+0xC, 0x10); if arg2==0x7FFFFFFF s2=-1; a1=arg0+8; loop: a2=*a1; if a2==NULL { s0->delta = s2 ? 0 : s1; alLink(s0,a1); break } if s1 < a2->delta { s0->delta = s1; a2->delta -= s1; alLink(s0,a1); break } s1 -= a2->delta; a1=a2 }; func_800339C0(s5). Tried: 2305 (if-else with `!= NULL` wrapping, best of my tries but worse than saved 2015); 3095 (moved func_800339C0 call before s0 load: wrong register allocation). Remaining diff is the branch layout around the NULL check: target has `bnez s0` to the body with `move s5,v0` in the delay slot and `j end` on the NULL path, i.e. the NULL path jumps straight to the final call. Untested: the `if (temp_s0 == NULL) {} else {...}` form from the m2c draft.",
   "by": "claude-haiku-5-5-22",
@@ -13672,14 +13656,6 @@
   "score_after": 880
  },
  {
-  "function": "func_801B3E18",
-  "text": "Best 1895 (68.4%): off=(arg0&0xFFFF)*100 for the first test (<0x1E) and the else-branch test (u8)(D-0x1E)<0x1E, then D_8011F2F0[off]++ with ==0x3C -> 0, with the index recomputed in the else branch and at the tail. Target computes x*100 as x*2+x, *8, +x, *4 (sll/addu chain), and in the else branch it loads the byte, does addiu -0x1E, then sltiu 0x1E. Mine reuses the first comparison's value and emits an extra addiu/sltiu at the else compare. Variants tried: one shared off (3445, much worse); per-use (unsigned short)off casts (1895 again, same shape). Next: force the else compare to be lbu; addiu -0x1E; sltiu 0x1E with no reuse of the first byte, and check the tail: target's last block re-derives the index (andi from $a0) rather than reusing it.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794730899.552788,
-  "score_before": 1435,
-  "score_after": 1435
- },
- {
   "function": "func_80206770",
   "text": "Not matched; move-on budget used. Shape is right: func_800294A0(&D_3EA210, &D_8030BD90, &D_3EACF0 - &D_3EA210); func_80143DCC(); func_80203D58(); func_80203DF8(1,6,0,0,0); func_800DE41C(0,0,3,0, 0x40,0,0, &func_80206848, &func_80206BC0, then 9 zero stack args). Best current C: 1258 (73.7%); the saved 420 is an m2c draft from a different source. Remaining diff is only the first block: target loads the end address first (lui v0,%hi(D_3EACF0)), then the start into $a2, then `addu $a0,$a2,$zero` copies start to a0 and `subu $a2,$v0,$a2` gives the length. Mine loads start directly into a0. Also sw $ra is scheduled first in the target. Tried without change: direct subtraction, separate end/start pointer locals, n=end-start local, (s32) casts on the subtraction. Next: force a value copy of start (e.g. start used in the subtraction, then passed) or an alias through a volatile-free temp; check the register-copy pattern.",
   "by": "claude-haiku-5-5-21",
@@ -13974,14 +13950,6 @@
   "created_at": 1794731832.1991308,
   "score_before": 1629,
   "score_after": 1629
- },
- {
-  "function": "func_801B3E18",
-  "text": "Best saved 1895 (68.4%), not matched. Key finding: the target indexes D_8011F2FC by the raw u16 x = arg0 & 0xFFFF (no *100), and D_8011F2F0 by off = x*100. Earlier candidates indexed D_8011F2FC with (u16)off, which is wrong. The corrected version scores 2015 (66.4%), still worse than the saved 1895 because the else-arm register flow and the andi placement differ. The target's first branch tests F0[off] with sltiu 0x1e; the else arm recomputes off and tests (u8)(F0[off]-0x1e) < 0x1e (addiu -0x1e, then sltiu); the F0 update is +1 then compare to 0x3C. Remaining diff is register allocation and where the andi sits. Next: restart from saved 1895 and only change the index expression to x, keeping its layout.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794731867.284437,
-  "score_before": 1435,
-  "score_after": 1435
  },
  {
   "function": "func_801270B0",
@@ -15094,14 +15062,6 @@
   "created_at": 1794736040.6983821,
   "score_before": 2210,
   "score_after": 2210
- },
- {
-  "function": "func_801B3E18",
-  "text": "Best this session 1990 (66.8%), below saved 1355 (saved source not reproduced). Structure is right: `off = arg0*100` (u16 arg0), `if (F0[off] < 0x1E) F2FC[off] -= 7; else { off = arg0*100; if ((u32)(F0[off]-0x1E) < 0x1E) F2FC[off] += 7; }`, then `off = arg0*100; F0[off]++; if (F0[off]==0x3C) F0[off]=0;`. Remaining diff: register/index shape. Target recomputes the sll/addu chain for off in each block with `andi ...,0xffff`, and uses `andi` after the first block. Ours keeps off in $a1 and emits `beqz` + `andi v0,0xff` where target uses `beql` with sltiu and no 0xff mask. Variants that failed: repeated (arg0&0xFFFF)*100 in every access (4385, worse), (u8) cast on the else compare (no change vs (u32)). Next: try writing the first block with `off` re-derived too, or try compile_variants on the else-branch shape.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794736146.916111,
-  "score_before": 1355,
-  "score_after": 1355
  },
  {
   "function": "func_80149220",
@@ -24144,14 +24104,6 @@
   "score_after": 420
  },
  {
-  "function": "func_801B3E18",
-  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 0; 42 differing rows (1 opcode, 17 register, 3 branch target, 4 operand, 3 inserted, 14 deleted; advisory).\nTarget: andi $v0, $a0, 0xffff\nCandidate: andi $v1, $a0, 0xffff\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\nr T: andi $v0, $a0, 0xffff | C: andi $v1, $a0, 0xffff\nr T: sll $v1, $v0, 1 | C: sll $v0, $v1, 1\nr T: addu $v1, $v1, $v0 | C: addu $v0, $v0, $v1\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nSession best this run: 2055 at revision 6634738f4b8a7413fb78 (source: `off` eliminated, plain `D_8011F2F0[arg0*100]` / `D_8011F2FC[arg0]` indexing, only the store LHS widened to `(u16)(arg0*100)`). Historical saved best 1355 (permuter) is not comparable.\n\nKey structural finding: the target's first block is `sltiu $v0,$v0,0x1E; beql $v0,$zero,.L2; andi $v0,$a0,0xFFFF` \u2014 i.e. the beql delay slot recomputes the masked index, so the compiler had to keep the *masked arg* as a separate value across the branch. With plain `arg0*100` indexing the compiler instead recomputes the whole multiply in block 2 (14 extra instructions) and never fills the delay slot. Widening only one store's index to `(u16)` gets partway (42 mismatch rows vs 48) but the delay-slot `andi` and the `.L2` remultiply are still missing.\n\nStill open: (1) delay slot of the first beql must contain `andi $v0,$a0,0xFFFF`; (2) block 2 must remultiply from that masked value (`sll $v1,$v0,1 ... sll $v1,$v1,2`); (3) the last block must reload `D_8011F2F0[a0]` through `lui $v1,%hi / addu $v1,$v1,$a0 / lbu $v1,%lo(...)($v1)` and compare with `bne $v1,$v0` + `nop` (not beql); (4) `sb` stores must go through `lui $at / addu $at,$at,reg / sb %lo(sym)($at)` (needs a non-$at index register, per knowledge #339302416472).\n\nTried and rejected: `off` local with `(unsigned short)off` casts (3425/3250), `(u16)(arg0*100)` on store LHS only (2055, best), `(u16)` on load too (worse), volatile loads (3525+), `s8` tables (3015), `s32 arg0` + `&0xFFFF` everywhere (2055), `7 + x` operand order (2055), `unsigned char`/`unsigned short` index casts on the +7 store (2055).",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794758460.6422348,
-  "score_before": 1355,
-  "score_after": 1355
- },
- {
   "function": "func_80205D48",
   "text": "Cannot get closer under -O2 (needs MEM operand kept in u32->f64 conversion = no -fforce-mem). MATCHES at -O1 via try_compiler; suggest() filed with source: extern u32 D_8021B098; extern f64 D_8021DBA0; u8 arg2; if(arg2==0)D=0; half=arg0/2.0f; r=-__cosf((f32)((D_8021DBA0/(f64)(arg1*30.0f))*D_8021B098))*half+half; half=r; D_8021B098++; return (s32)half;",
   "by": "claude-opus-medium-1",
@@ -29254,14 +29206,6 @@
   "created_at": 1794765889.4243991,
   "score_before": 38039,
   "score_after": 38039
- },
- {
-  "function": "func_801B3E18",
-  "text": "No match. Best score 1355 (77%), the saved candidate at revision 77d2b25bf4260c673a56, unchanged. Target computes idx = (arg0&0xFFFF)*100 as andi $v0,$a0 then sll/addu chain into $v1 (x*3, *8, +x, *4) and reuses $v0 for the table load. Candidate uses $a1 for the table address and inserts a move $a2,$v1 and a beqz instead of beql. The delay slot of the beql holds `andi $v0,$a0,0xffff`. Variants tried (none better): fresh `(arg0&0xFFFF)*100` in the first store (1880), in the second store (2975), plain `off` index in the first store (1450). Untried: a u16 local for the index, or else-if restructuring, to make the compiler keep x in $v0.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794765904.3301508,
-  "score_before": 1355,
-  "score_after": 1355
  },
  {
   "function": "func_8002FFD0",
@@ -36191,5 +36135,126 @@
   "score_before": 4919,
   "score_after": 4919,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:2e822b3dbbc0d6876d000c040e2472609d84692b70490c10fbbd4de36784127e"
+ },
+ {
+  "function": "func_801B3E18",
+  "text": "Logic (verified in target): off=(arg0&0xFFFF)*100 (computed as ((i*2+i)*8+i)*4); if F2F0[off] < 0x1E then F2FC[off] -= 7; else if (u32)(F2F0[off]-0x1E) < 0x1E then F2FC[off] += 7; then F2F0[off] += 1 and if it becomes 0x3C set to 0. Saved best 2205 (m2c draft with goto block_6). Tried: clean else-if with one hoisted off (3445: target recomputes the index in each branch, not hoisted), and index recomputed per branch with (arg0&0xFFFF)*100 (2695: the target's second check reloads D_8011F2F0 with lbu after the sltiu, and the store branch order differs). Next: keep the m2c goto/block_6 shape, which shares one store for both add and subtract paths, and recompute the index inside the second check.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794707649.644504,
+  "score_before": 2205,
+  "score_after": 2205
+ },
+ {
+  "function": "func_801B3E18",
+  "text": "Best 1990 (66.8%), revision a51afeb15f1641612ebb: off = (arg0&0xFFFF)*100 (u8 arrays D_8011F2F0 counter, D_8011F2FC at same off); if (D_8011F2F0[off] < 0x1E) D_8011F2FC[off] -= 7; else { off re-computed from arg0&0xFFFF; if ((u8)(D_8011F2F0[off]-0x1E) < 0x1E) D_8011F2FC[off] += 7; } then off re-computed; D_8011F2F0[off] += 1; if == 0x3C set 0. Semantics confirmed. Recomputing the index in every access is much worse (4385); a single index is 3445. Tried since: u32 cast in the else compare and goto-shared store tail, both still 1990. Remaining: the target's offset is computed in v1 with a sll/addu chain and the lui base goes in v0; the else compare is sltiu on the unmasked value. Untried: separate per-branch offset locals.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794721697.8886452,
+  "score_before": 1435,
+  "score_after": 1435
+ },
+ {
+  "function": "func_801B3E18",
+  "text": "Best 1895 (68.4%): off=(arg0&0xFFFF)*100 for the first test (<0x1E) and the else-branch test (u8)(D-0x1E)<0x1E, then D_8011F2F0[off]++ with ==0x3C -> 0, with the index recomputed in the else branch and at the tail. Target computes x*100 as x*2+x, *8, +x, *4 (sll/addu chain), and in the else branch it loads the byte, does addiu -0x1E, then sltiu 0x1E. Mine reuses the first comparison's value and emits an extra addiu/sltiu at the else compare. Variants tried: one shared off (3445, much worse); per-use (unsigned short)off casts (1895 again, same shape). Next: force the else compare to be lbu; addiu -0x1E; sltiu 0x1E with no reuse of the first byte, and check the tail: target's last block re-derives the index (andi from $a0) rather than reusing it.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794730899.552788,
+  "score_before": 1435,
+  "score_after": 1435
+ },
+ {
+  "function": "func_801B3E18",
+  "text": "Best saved 1895 (68.4%), not matched. Key finding: the target indexes D_8011F2FC by the raw u16 x = arg0 & 0xFFFF (no *100), and D_8011F2F0 by off = x*100. Earlier candidates indexed D_8011F2FC with (u16)off, which is wrong. The corrected version scores 2015 (66.4%), still worse than the saved 1895 because the else-arm register flow and the andi placement differ. The target's first branch tests F0[off] with sltiu 0x1e; the else arm recomputes off and tests (u8)(F0[off]-0x1e) < 0x1e (addiu -0x1e, then sltiu); the F0 update is +1 then compare to 0x3C. Remaining diff is register allocation and where the andi sits. Next: restart from saved 1895 and only change the index expression to x, keeping its layout.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794731867.284437,
+  "score_before": 1435,
+  "score_after": 1435
+ },
+ {
+  "function": "func_801B3E18",
+  "text": "Best this session 1990 (66.8%), below saved 1355 (saved source not reproduced). Structure is right: `off = arg0*100` (u16 arg0), `if (F0[off] < 0x1E) F2FC[off] -= 7; else { off = arg0*100; if ((u32)(F0[off]-0x1E) < 0x1E) F2FC[off] += 7; }`, then `off = arg0*100; F0[off]++; if (F0[off]==0x3C) F0[off]=0;`. Remaining diff: register/index shape. Target recomputes the sll/addu chain for off in each block with `andi ...,0xffff`, and uses `andi` after the first block. Ours keeps off in $a1 and emits `beqz` + `andi v0,0xff` where target uses `beql` with sltiu and no 0xff mask. Variants that failed: repeated (arg0&0xFFFF)*100 in every access (4385, worse), (u8) cast on the else compare (no change vs (u32)). Next: try writing the first block with `off` re-derived too, or try compile_variants on the else-branch shape.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794736146.916111,
+  "score_before": 1355,
+  "score_after": 1355
+ },
+ {
+  "function": "func_801B3E18",
+  "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 0; 42 differing rows (1 opcode, 17 register, 3 branch target, 4 operand, 3 inserted, 14 deleted; advisory).\nTarget: andi $v0, $a0, 0xffff\nCandidate: andi $v1, $a0, 0xffff\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\nr T: andi $v0, $a0, 0xffff | C: andi $v1, $a0, 0xffff\nr T: sll $v1, $v0, 1 | C: sll $v0, $v1, 1\nr T: addu $v1, $v1, $v0 | C: addu $v0, $v0, $v1\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nSession best this run: 2055 at revision 6634738f4b8a7413fb78 (source: `off` eliminated, plain `D_8011F2F0[arg0*100]` / `D_8011F2FC[arg0]` indexing, only the store LHS widened to `(u16)(arg0*100)`). Historical saved best 1355 (permuter) is not comparable.\n\nKey structural finding: the target's first block is `sltiu $v0,$v0,0x1E; beql $v0,$zero,.L2; andi $v0,$a0,0xFFFF` \u2014 i.e. the beql delay slot recomputes the masked index, so the compiler had to keep the *masked arg* as a separate value across the branch. With plain `arg0*100` indexing the compiler instead recomputes the whole multiply in block 2 (14 extra instructions) and never fills the delay slot. Widening only one store's index to `(u16)` gets partway (42 mismatch rows vs 48) but the delay-slot `andi` and the `.L2` remultiply are still missing.\n\nStill open: (1) delay slot of the first beql must contain `andi $v0,$a0,0xFFFF`; (2) block 2 must remultiply from that masked value (`sll $v1,$v0,1 ... sll $v1,$v1,2`); (3) the last block must reload `D_8011F2F0[a0]` through `lui $v1,%hi / addu $v1,$v1,$a0 / lbu $v1,%lo(...)($v1)` and compare with `bne $v1,$v0` + `nop` (not beql); (4) `sb` stores must go through `lui $at / addu $at,$at,reg / sb %lo(sym)($at)` (needs a non-$at index register, per knowledge #339302416472).\n\nTried and rejected: `off` local with `(unsigned short)off` casts (3425/3250), `(u16)(arg0*100)` on store LHS only (2055, best), `(u16)` on load too (worse), volatile loads (3525+), `s8` tables (3015), `s32 arg0` + `&0xFFFF` everywhere (2055), `7 + x` operand order (2055), `unsigned char`/`unsigned short` index casts on the +7 store (2055).",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794758460.6422348,
+  "score_before": 1355,
+  "score_after": 1355
+ },
+ {
+  "function": "func_801B3E18",
+  "text": "No match. Best score 1355 (77%), the saved candidate at revision 77d2b25bf4260c673a56, unchanged. Target computes idx = (arg0&0xFFFF)*100 as andi $v0,$a0 then sll/addu chain into $v1 (x*3, *8, +x, *4) and reuses $v0 for the table load. Candidate uses $a1 for the table address and inserts a move $a2,$v1 and a beqz instead of beql. The delay slot of the beql holds `andi $v0,$a0,0xffff`. Variants tried (none better): fresh `(arg0&0xFFFF)*100` in the first store (1880), in the second store (2975), plain `off` index in the first store (1450). Untried: a u16 local for the index, or else-if restructuring, to make the compiler keep x in $v0.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794765904.3301508,
+  "score_before": 1355,
+  "score_after": 1355
+ },
+ {
+  "function": "func_801B3E18",
+  "text": "haiku-pr1 (Haiku 5.5): saved best 140 (scaffolded form with __repair_phase, if (1), (0, x)). Residual: the target computes x = arg0 & 0xFFFF into $v0 first and the index x*100 in $v1 (ours puts the andi in $v1); the else arm reloads x via a beql whose delay slot is andi (the beql form only comes from the scaffold). Tried: dropping the (u8) cast on the else compare (340; slti instead of sltiu, andi moved); unsigned compare spellings (140); a shared index temp (140; 850 when the second index also uses it); clean rewrite from the assembly without scaffolding (1990, 2000, 1790, 2200: the compiler emits beqz not beql and no delay-slot andi). Open: why the beql+andi appears; likely a join copy of x in the else arm (a join_copy_arm_anchor-style family), not tried further.",
+  "by": "manual-a2e0c67556b34442",
+  "created_at": 1795707562.360194,
+  "score_before": 140,
+  "score_after": 140
+ },
+ {
+  "function": "func_801B3E18",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Stuck at 140; see note.",
+  "by": "manual-a2e0c67556b34442",
+  "created_at": 1795707563.839699,
+  "score_before": 140,
+  "score_after": 140
+ },
+ {
+  "function": "func_801B3E18",
+  "text": "haiku-pr2b: sibling of func_801B41D8 (same shape, constants 7). Saved best 140 judges 140 today; its remaining rows are register rows only (andi $v0 vs $v1 and the shifted chain). Fresh C from the sibling (u16 parameter, scaled indices, inline helpers) 625 (u16 cast in the else arm); cast grid over four sites 625 best. Scaffold-free rewrites of the saved best (one off local) 1175-3455: the scaffold carries the allocation, so keep it. Open: a register-order family for the off chain.",
+  "by": "manual-d98559fe8dd441b0",
+  "created_at": 1795708584.676399,
+  "score_before": 140,
+  "score_after": 140
+ },
+ {
+  "function": "func_801B3E18",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Released; see note.",
+  "by": "manual-d98559fe8dd441b0",
+  "created_at": 1795708586.190426,
+  "score_before": 140,
+  "score_after": 140
+ },
+ {
+  "function": "func_801B3E18",
+  "text": "haiku-pr3b: byte counter update per record (stride 100): if table < 0x1E then sub 7 from the second byte table, else if (v - 0x1E) < 0x1E add 7; then increment and wrap at 0x3C. Saved 140 (matches app) has 8 register rows; clean forms 1975 to 5365 (index recomputed per use is worse). Target keeps the index as an off = (arg & 0xFFFF) * 100 pseudo whose register is v1; not solved.",
+  "by": "manual-5113716c0f6048d5",
+  "created_at": 1795708722.610189,
+  "score_before": 140,
+  "score_after": 140
+ },
+ {
+  "function": "func_801B3E18",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Saved 140 best; clean forms worse. Register rows remain.",
+  "by": "manual-5113716c0f6048d5",
+  "created_at": 1795708726.589825,
+  "score_before": 140,
+  "score_after": 140
+ },
+ {
+  "function": "func_801B3E18",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr10 (Haiku 5.5): saved best 140 (O2) is the closest: 8 regalloc rows (index chain in v1 instead of v0, the masked arg in v1) and one extra andi 0xff from the (u8) cast on the else-arm compare. Tried clean rewrites without the inline_fn/repair scaffolding: if/else with recomputed index, goto-shared store, u16/int temp, (u32)/(u8) compare, cast spellings of the three index expressions (64 combos): 1875 to 5365; under -O1 the saved best scores 1730. The target recomputes the else-arm index from a0 and shares one sb between the two arms; CSE merges the recomputation in every clean spelling tried. Open: a spelling that keeps the else index separate without inline_fn (permuter gap: CSE of recomputed index in if/else arms).",
+  "by": "manual-497803c65e684d1b",
+  "created_at": 1795710606.535786,
+  "score_before": 140,
+  "score_after": 140
+ },
+ {
+  "function": "func_801B3E18",
+  "text": "Small-model attempt at func_801B3E18: 12 tries.\n  best 135 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 135 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 195 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1590 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 1790 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries, no match. Best: 135 under gcc-2.7.2-kmc -O1 (the own profile -O2 scores 1975; saved own 140). Structure matches (if/else with index recomputed in else, tail recomputes index). Remaining diff is register allocation: target keeps the masked arg in $v0/$v1, ours uses $a1. Tried: u32/s32 off, separate index temps, inline index expressions (worse, 2910+), separate masked temp (600), else-if merge (1005), explicit read-modify-write (no change).",
+  "by": "manual-dfdbe598238d45a7",
+  "created_at": 1795716522.040956,
+  "score_before": 140,
+  "score_after": 140,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:20ac0a337fbeea5a8e33817da612cb62f9cd92c0df5b53d4a844751b50d5bc10"
  }
 ]
