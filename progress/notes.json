@@ -5088,14 +5088,6 @@
   "score_after": 20
  },
  {
-  "function": "func_802155CC",
-  "text": "Deep permuter: score 5240 \u2192 3889; 4 improvements; 142 candidates tested; 84 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935803",
-  "created_at": 1794359527.446671,
-  "score_before": 5240,
-  "score_after": 3889
- },
- {
   "function": "func_80157860",
   "text": "Deep permuter: score 200 \u2192 200; 0 improvements; 130 candidates tested; 104 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935509",
@@ -7062,14 +7054,6 @@
   "created_at": 1794708901.808774,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_802155CC",
-  "text": "Not matched. Target facts: prologue saves ra,s5..s0; s4=arg0, s0=arg1 at entry; func_801CA140() is called first (jal in the delay-slot-free prologue); D_8021F032 bytes are read through one base (lbu 0,1,2 offsets from the same $v0) feeding func_801CA494(arg0, b0, b1, b2, 0xFF) with 0xFF as stack arg 0x10. idx = (arg1&0xFFFF)*25 kept in s5, s1 = s5<<2 (word index). Loop: outer i in s2 with (u8)i (andi 0xff), s3 = ((u8)i<<6) - 0x40 hoisted before the inner loop; inner j reuses s0 after idx is computed. The float-to-int of D_8011F320[idx] and D_8011F324[idx] is trunc.w.s, combined with s3/j-term, and passed as s16 (sll 16 after add). Best source tried: the saved 778 text (5240 on re-compile); a plain-int version with p=D_8021F032 scored 6080 (worse, lost the (u8) casts that produce andi 0xff). Next step: keep the (u8) casts on i and j, hoist s3, and keep s0 as j; the arg-setup order (s4 = arg0, s5 = idx) is the open issue.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794708911.636076,
-  "score_before": 778,
-  "score_after": 778
  },
  {
   "function": "func_80157F6C",
@@ -10936,14 +10920,6 @@
   "score_after": 0
  },
  {
-  "function": "func_802155CC",
-  "text": "Not matched. Current compile of revision 550638a018e502931fb2 scores 5240 (29%). Saved 778 for the same text does not reproduce here, so treat 778 as unverified.\n\nTarget facts (78 insns, frame 0x38, saves ra,s0-s5):\n- arg0 is kept in s4 (move s4,a0 right after the prologue). arg1 is kept in s0, then reused as the inner loop counter j.\n- idx = (arg1&0xFFFF)*25 is kept in s5; the outer loop hoists s1 = idx<<2 (byte offset for the f32 tables).\n- Outer loop i in s2: s3 = ((i&0xFF)<<6) - 0x40. Inner loop j in s0 with `(u8)j < 6` (sltiu 6).\n- The two float args are read per iteration: lwc1 D_8011F320[s1], trunc, mfc1, add s3, sll 16 (sign-extended by sra 16 at the call); same for D_8011F324 with ((j&0xFF)<<6) - 0x40.\n- Call func_8014A4C8(s4, a1, a2, 0xB, 0) with sw $zero,0x10(sp).\n- D_8021F032[0..2] are loaded (lbu) into a1..a3 for func_801CA494(s4, ..., 0xFF with the 0xFF at 0x10(sp)).\n\nCurrent mismatch: mine puts arg0 into s5 (move s5,a0) and idx into s4, so the registers are swapped from the target. Also the frame order of saves differs (the target saves s5 at 0x2C and s4 at 0x28 in that order, after ra).\n\nLeft to try: write the variable names to match the registers: make the local that holds idx be declared after arg0 is copied (`s32 base = arg0;` used for every call). Also check that the lui of D_8021F032 in the target happens after the first func_801CA140 call returns, not before.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794723866.0433128,
-  "score_before": 778,
-  "score_after": 778
- },
- {
   "function": "func_8021AB34",
   "text": "No match. Three compiles, none beat the rechecked 4150 (45%); saved-best 570 source is the same C and does not reproduce here. Tried: (a) saved-best nested if/else (t!=2 / t<3 / t==1 / t==3 with goto done) = 4150; (b) flattened if/else-if chain (t==2, t==1, t==3, then a1=a3) = 4610, worse; (c) same as (a) with p assigned as a separate statement before the if = 4150, no change. Remaining diff: target tests t==2 with beq first, then slti 3, uses beql for single-assignment arms (delay-slot addiu a3,2 / a3,0x50), and loads the p base (lui/addiu $a2) before lbu of D_80190CAA. Ours uses bne/beq with the flag in $v1 and computes p in $t1. Next step if retried: write the t==1 and t==3 arms as single if-assignments so GCC emits beql with the constant in the delay slot, and check whether the p base must be a function-local struct pointer declared before the flag read.",
   "by": "claude-haiku-5-5-21",
@@ -13710,14 +13686,6 @@
   "created_at": 1794732316.0153348,
   "score_before": 2775,
   "score_after": 2745
- },
- {
-  "function": "func_802155CC",
-  "text": "Calls func_801CA140(), then func_801CA494(arg0, D_8021F032[0..2], 0xFF), then a 7x6 double loop calling func_8014A4C8(arg0, x, y, 0xB, 0) with x = D_8011F320[idx] + (i<<6) - 0x40, y = D_8011F324[idx] + (j<<6) - 0x40, idx = (arg1&0xFFFF)*25. Saved best 778 is the C in the saved revision 550638a0; it rechecks to 5240 in the current harness, so the saved score may be stale. Target frame is 0x38 with saves s0..s5 (no s6), arg1 idx lives in $s0 computed as sll1/addu/sll3/addu (x*25). Our draft needs one extra saved reg (s6) and a 0x40 frame. Tried: idx before/after calls (5240, 5970), u8 pointer for D_8021F032 (5240), local_repairs variants (best 4924, not kept). Next step: find a loop shape that uses one fewer callee-saved reg (e.g. loop counters as u8 or a single counter), and check whether target's i/j are kept in s1/s2 with the 7/6 bounds. Move-on budget exhausted.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794732351.22261,
-  "score_before": 778,
-  "score_after": 778
  },
  {
   "function": "func_8021AB34",
@@ -18304,14 +18272,6 @@
   "score_after": 3400
  },
  {
-  "function": "func_802155CC",
-  "text": "Releasing: this cannot get closer in this session. The candidate is at 5240 (best revision ef333da17aad5feb079b), and the two follow-up rewrites were worse (6080 with pointer params). The remaining gap is the index form: the target computes the byte offset as s5<<2 and folds D_8011F320/D_8011F324 through lui/addu/lwc1 %lo, which needs a float-array index rewrite I did not reach. Recover from ef333da17aad5feb079b with the (u8) loop counters kept and the index as a byte offset. Notes as above.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794748847.3894541,
-  "score_before": 778,
-  "score_after": 778
- },
- {
   "function": "func_8002E9A4",
   "text": "Best 1145 (85.6%, revision bc55edbbae3179672960 with arg5 as u16*; the s16* draft scores 1205). Signature f64 arg0, f64 arg1, s32 arg4 (stack 0x10), u16* arg5 (stack 0x14). Remaining diffs: target loads arg5 into $a1 while ours uses $a2; the unsigned-store path ends with `lui $v0,0x8000; or $a0,$a0,$v0` where ours emits `ori $v0,$zero,0xffff` + addu; target return is `addiu v1,v1,-1; addu v1,v1,a0` in the branch delay slot. Structure (arg4==0 branch, scale=K/arg4 with div.d in delay slot, two (s16) truncation rounds, D450<=x branch to the 0x80000000 path) matches. Untried: register choice for the pointer, and writing the sign-bit OR as a separate u32 local.",
   "by": "claude-haiku-5-5-23",
@@ -20854,14 +20814,6 @@
   "created_at": 1794754621.377276,
   "score_before": 75,
   "score_after": 75
- },
- {
-  "function": "func_802155CC",
-  "text": "Not matched. Best C in this claim scores 5240 (29% match); saved best 778 is from an earlier source and does not reproduce here. Four variants (u8 loop counters, pointer-based D_8021F032, arg0 copied to a local base) all gave the same 5240 with the same instruction diff, so the compile-count budget is not the limit. Target facts: frame 0x38, saves ra and s5..s0. s4 = arg0 (kept across calls), s0 = arg1 then reused as the inner j, s5 = idx = (arg1&0xFFFF)*25, s1 = idx*4 (float byte offset into D_8011F320 / D_8011F324), s2 = outer i, s3 = (i<<6)-0x40. Calls: func_801CA140(); func_801CA494(arg0, D_8021F032[0..2], 0xFF on stack 0x10); then 7x6 loop of func_8014A4C8(arg0, s16 x, s16 y, 0xB, 0) with stack arg 0 at 0x10. Unresolved: the diff reports missing prologue rows and an arg0-to-s5 move that the target does not have; investigate the diff tool's alignment with last_diff before further C edits. Next: check whether the target's first 4 rows are a real missing instruction set or a diff artifact.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794754638.394652,
-  "score_before": 778,
-  "score_after": 778
  },
  {
   "function": "func_8014B410",
@@ -26864,14 +26816,6 @@
   "score_after": 1510
  },
  {
-  "function": "func_802155CC",
-  "text": "Move-on budget exhausted (3/3 without improvement). Current rechecked baseline 5240 with the inherited source; the historical saved best 778 is NOT reproducible on current inputs (same source rejudged = 5240), so treat 5240 as the real starting point.\n\nTarget shape (74 insns, frame 0x38, saves ra + s0-s5):\n  func_801CA140(); then func_801CA494(arg0, D_8021F032[0], [1], [2], 0xFF) with the byte table loaded as `lui $v0,%hi / addiu $v0,%lo / lbu $a1,($v0) / lbu $a2,1($v0) / lbu $a3,2($v0)` \u2014 ONE base register reused for all three loads, not three separate %hi/%lo references.\n  idx: andi $s0,$s0,0xFFFF then sll/addu/sll/addu => *25 kept in $s5, then `sll $s1,$s5,2` hoisted outside the outer loop as the byte offset. The target keeps BOTH the element index ($s5) and the byte offset ($s1) live in callee-saved registers; my C only needs one, which is why my frame is 0x30 and I save 5 regs. Reproducing $s5 as a live callee-saved value is the main structural gap.\n  Inner loop: `lui $at,%hi(D_8011F320); addu $at,$at,$s1; lwc1 $f0,%lo(D_8011F320)($at)`, twice (D_8011F320 then D_8011F324), each followed by trunc.w.s $f2,$f0 / mfc1. The -0x40 bias is folded into a precomputed `addiu $s3,$v0,-0x40` for the outer coordinate and an inline andi/sll/addiu -0x40/addu for the inner one; s16 truncation is sll 16 then sra 16.\n  Loop tails: `addiu $s0,$s0,1; andi $v0,$s0,0xFF; sltiu $v0,$v0,6; bnez $v0,.L80215648; nop`, outer with `addu $s0,$zero,$zero` in the branch delay slot.\n\nCompiler evidence (all diagnostic, none applied): KMC 2.7.2 -O2 = 5240/6600; KMC 2.7.2 -O1 = 3960..4590 but emits cfc1/ctc1 rounding-mode sequences instead of trunc.w.s, ruling -O1 out by opcode; gcc-2.8.1-pm -O1 = 778 (best) but encodes register moves as `or` (0080a02d) where the target uses `addu` (0080a021), so it is not the builder. The target is KMC GCC 2.7.2 -O2; the remaining gap is allocation/shape. Do not suggest a compiler change for this function.\n\nTried and failed: hoisting the D_8021F032 base into a local `u8 *p` (no change), dropping it (3960 at -O1), u8 loop counters, `i = 0` initializer, parenthesising `((i<<6) - 0x40)` (worse, 5425), -O1/-O2 sweeps, gcc-2.8.1-pm sweeps.\n\nNext ideas not yet tried: declare the two float arrays as one struct/2-element array so a single base register serves both loads; keep a live `f32 *` into D_8011F320 so $s5 gets a callee-saved register; use separate `s32 n = (arg1 & 0xFFFF) * 25;` and `s32 off = n * 4;` locals so both survive (queued as next_experiment).",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794763448.2900102,
-  "score_before": 778,
-  "score_after": 778
- },
- {
   "function": "func_801FC2F8",
   "text": "Improved inherited3135 to1035, current best bb3771b19409e411a730. Struct arrays remove hoisted bases, first9 target instructions exact. Best uses u16 i; for(i=2;i<3;i++). Still extra loop backedge/truncations and float constant hoist; target runtime index2*36 without loop. Tested s32/u32/u16/s16 loops, ==2, decrement, step2, do-while++i==2, do-while i++<2, conditional break, return, explicit i=0/i=3 exits. Explicit exits fold multiply; actual loops retain unwanted backedge. -funroll-loops didn't eliminate loop. Structural alternatives exhausted for this pass; no exact compiler match established. Keep saved1035; next try inline helper with O1 profile or labels causing late constant propagation.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -28310,14 +28254,6 @@
   "created_at": 1794766355.773441,
   "score_before": 570,
   "score_after": 570
- },
- {
-  "function": "func_802155CC",
-  "text": "Not matched. Best 4924 (29.1%\u2192 better): revision 49a1a217ca45b6e64928 (local repair variant 6: the idx for D_8011F320 is cast via (unsigned short)idx). Current rechecked base was 5240 (550638a018e502931fb2). The target frame is 0x38 (saves ra, s0..s4); ours is 0x40 with s6 and s5 saved, because arg0 is held in s5/s6 across the calls. The target keeps arg0 in s4 and arg1 in s0 (move s0,a1 after the sw of s0 at 0x18), so the draft needs fewer live values: try dropping the separate loop counters (use one u8 counter pair) and making arg1 an s16/u16 parameter to match the 'idx' width. Local-repair variants 2-5 (parameter types and declaration order) did nothing; variant 1 (dropping the 0xB/0 args from the callee prototype) is worse.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794766380.957951,
-  "score_before": 778,
-  "score_after": 778
  },
  {
   "function": "func_80210F70",
@@ -38078,5 +38014,94 @@
   "score_before": 1610,
   "score_after": 1295,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:8fc78f6b46156639c4a2604cf254edad7799215b2b6cf1f55b7606e1afeabf1d"
+ },
+ {
+  "function": "func_802155CC",
+  "text": "Deep permuter: score 5240 \u2192 3889; 4 improvements; 142 candidates tested; 84 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935803",
+  "created_at": 1794359527.446671,
+  "score_before": 5240,
+  "score_after": 3889
+ },
+ {
+  "function": "func_802155CC",
+  "text": "Not matched. Target facts: prologue saves ra,s5..s0; s4=arg0, s0=arg1 at entry; func_801CA140() is called first (jal in the delay-slot-free prologue); D_8021F032 bytes are read through one base (lbu 0,1,2 offsets from the same $v0) feeding func_801CA494(arg0, b0, b1, b2, 0xFF) with 0xFF as stack arg 0x10. idx = (arg1&0xFFFF)*25 kept in s5, s1 = s5<<2 (word index). Loop: outer i in s2 with (u8)i (andi 0xff), s3 = ((u8)i<<6) - 0x40 hoisted before the inner loop; inner j reuses s0 after idx is computed. The float-to-int of D_8011F320[idx] and D_8011F324[idx] is trunc.w.s, combined with s3/j-term, and passed as s16 (sll 16 after add). Best source tried: the saved 778 text (5240 on re-compile); a plain-int version with p=D_8021F032 scored 6080 (worse, lost the (u8) casts that produce andi 0xff). Next step: keep the (u8) casts on i and j, hoist s3, and keep s0 as j; the arg-setup order (s4 = arg0, s5 = idx) is the open issue.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794708911.636076,
+  "score_before": 778,
+  "score_after": 778
+ },
+ {
+  "function": "func_802155CC",
+  "text": "Not matched. Current compile of revision 550638a018e502931fb2 scores 5240 (29%). Saved 778 for the same text does not reproduce here, so treat 778 as unverified.\n\nTarget facts (78 insns, frame 0x38, saves ra,s0-s5):\n- arg0 is kept in s4 (move s4,a0 right after the prologue). arg1 is kept in s0, then reused as the inner loop counter j.\n- idx = (arg1&0xFFFF)*25 is kept in s5; the outer loop hoists s1 = idx<<2 (byte offset for the f32 tables).\n- Outer loop i in s2: s3 = ((i&0xFF)<<6) - 0x40. Inner loop j in s0 with `(u8)j < 6` (sltiu 6).\n- The two float args are read per iteration: lwc1 D_8011F320[s1], trunc, mfc1, add s3, sll 16 (sign-extended by sra 16 at the call); same for D_8011F324 with ((j&0xFF)<<6) - 0x40.\n- Call func_8014A4C8(s4, a1, a2, 0xB, 0) with sw $zero,0x10(sp).\n- D_8021F032[0..2] are loaded (lbu) into a1..a3 for func_801CA494(s4, ..., 0xFF with the 0xFF at 0x10(sp)).\n\nCurrent mismatch: mine puts arg0 into s5 (move s5,a0) and idx into s4, so the registers are swapped from the target. Also the frame order of saves differs (the target saves s5 at 0x2C and s4 at 0x28 in that order, after ra).\n\nLeft to try: write the variable names to match the registers: make the local that holds idx be declared after arg0 is copied (`s32 base = arg0;` used for every call). Also check that the lui of D_8021F032 in the target happens after the first func_801CA140 call returns, not before.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794723866.0433128,
+  "score_before": 778,
+  "score_after": 778
+ },
+ {
+  "function": "func_802155CC",
+  "text": "Calls func_801CA140(), then func_801CA494(arg0, D_8021F032[0..2], 0xFF), then a 7x6 double loop calling func_8014A4C8(arg0, x, y, 0xB, 0) with x = D_8011F320[idx] + (i<<6) - 0x40, y = D_8011F324[idx] + (j<<6) - 0x40, idx = (arg1&0xFFFF)*25. Saved best 778 is the C in the saved revision 550638a0; it rechecks to 5240 in the current harness, so the saved score may be stale. Target frame is 0x38 with saves s0..s5 (no s6), arg1 idx lives in $s0 computed as sll1/addu/sll3/addu (x*25). Our draft needs one extra saved reg (s6) and a 0x40 frame. Tried: idx before/after calls (5240, 5970), u8 pointer for D_8021F032 (5240), local_repairs variants (best 4924, not kept). Next step: find a loop shape that uses one fewer callee-saved reg (e.g. loop counters as u8 or a single counter), and check whether target's i/j are kept in s1/s2 with the 7/6 bounds. Move-on budget exhausted.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794732351.22261,
+  "score_before": 778,
+  "score_after": 778
+ },
+ {
+  "function": "func_802155CC",
+  "text": "Releasing: this cannot get closer in this session. The candidate is at 5240 (best revision ef333da17aad5feb079b), and the two follow-up rewrites were worse (6080 with pointer params). The remaining gap is the index form: the target computes the byte offset as s5<<2 and folds D_8011F320/D_8011F324 through lui/addu/lwc1 %lo, which needs a float-array index rewrite I did not reach. Recover from ef333da17aad5feb079b with the (u8) loop counters kept and the index as a byte offset. Notes as above.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794748847.3894541,
+  "score_before": 778,
+  "score_after": 778
+ },
+ {
+  "function": "func_802155CC",
+  "text": "Not matched. Best C in this claim scores 5240 (29% match); saved best 778 is from an earlier source and does not reproduce here. Four variants (u8 loop counters, pointer-based D_8021F032, arg0 copied to a local base) all gave the same 5240 with the same instruction diff, so the compile-count budget is not the limit. Target facts: frame 0x38, saves ra and s5..s0. s4 = arg0 (kept across calls), s0 = arg1 then reused as the inner j, s5 = idx = (arg1&0xFFFF)*25, s1 = idx*4 (float byte offset into D_8011F320 / D_8011F324), s2 = outer i, s3 = (i<<6)-0x40. Calls: func_801CA140(); func_801CA494(arg0, D_8021F032[0..2], 0xFF on stack 0x10); then 7x6 loop of func_8014A4C8(arg0, s16 x, s16 y, 0xB, 0) with stack arg 0 at 0x10. Unresolved: the diff reports missing prologue rows and an arg0-to-s5 move that the target does not have; investigate the diff tool's alignment with last_diff before further C edits. Next: check whether the target's first 4 rows are a real missing instruction set or a diff artifact.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794754638.394652,
+  "score_before": 778,
+  "score_after": 778
+ },
+ {
+  "function": "func_802155CC",
+  "text": "Move-on budget exhausted (3/3 without improvement). Current rechecked baseline 5240 with the inherited source; the historical saved best 778 is NOT reproducible on current inputs (same source rejudged = 5240), so treat 5240 as the real starting point.\n\nTarget shape (74 insns, frame 0x38, saves ra + s0-s5):\n  func_801CA140(); then func_801CA494(arg0, D_8021F032[0], [1], [2], 0xFF) with the byte table loaded as `lui $v0,%hi / addiu $v0,%lo / lbu $a1,($v0) / lbu $a2,1($v0) / lbu $a3,2($v0)` \u2014 ONE base register reused for all three loads, not three separate %hi/%lo references.\n  idx: andi $s0,$s0,0xFFFF then sll/addu/sll/addu => *25 kept in $s5, then `sll $s1,$s5,2` hoisted outside the outer loop as the byte offset. The target keeps BOTH the element index ($s5) and the byte offset ($s1) live in callee-saved registers; my C only needs one, which is why my frame is 0x30 and I save 5 regs. Reproducing $s5 as a live callee-saved value is the main structural gap.\n  Inner loop: `lui $at,%hi(D_8011F320); addu $at,$at,$s1; lwc1 $f0,%lo(D_8011F320)($at)`, twice (D_8011F320 then D_8011F324), each followed by trunc.w.s $f2,$f0 / mfc1. The -0x40 bias is folded into a precomputed `addiu $s3,$v0,-0x40` for the outer coordinate and an inline andi/sll/addiu -0x40/addu for the inner one; s16 truncation is sll 16 then sra 16.\n  Loop tails: `addiu $s0,$s0,1; andi $v0,$s0,0xFF; sltiu $v0,$v0,6; bnez $v0,.L80215648; nop`, outer with `addu $s0,$zero,$zero` in the branch delay slot.\n\nCompiler evidence (all diagnostic, none applied): KMC 2.7.2 -O2 = 5240/6600; KMC 2.7.2 -O1 = 3960..4590 but emits cfc1/ctc1 rounding-mode sequences instead of trunc.w.s, ruling -O1 out by opcode; gcc-2.8.1-pm -O1 = 778 (best) but encodes register moves as `or` (0080a02d) where the target uses `addu` (0080a021), so it is not the builder. The target is KMC GCC 2.7.2 -O2; the remaining gap is allocation/shape. Do not suggest a compiler change for this function.\n\nTried and failed: hoisting the D_8021F032 base into a local `u8 *p` (no change), dropping it (3960 at -O1), u8 loop counters, `i = 0` initializer, parenthesising `((i<<6) - 0x40)` (worse, 5425), -O1/-O2 sweeps, gcc-2.8.1-pm sweeps.\n\nNext ideas not yet tried: declare the two float arrays as one struct/2-element array so a single base register serves both loads; keep a live `f32 *` into D_8011F320 so $s5 gets a callee-saved register; use separate `s32 n = (arg1 & 0xFFFF) * 25;` and `s32 off = n * 4;` locals so both survive (queued as next_experiment).",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794763448.2900102,
+  "score_before": 778,
+  "score_after": 778
+ },
+ {
+  "function": "func_802155CC",
+  "text": "Not matched. Best 4924 (29.1%\u2192 better): revision 49a1a217ca45b6e64928 (local repair variant 6: the idx for D_8011F320 is cast via (unsigned short)idx). Current rechecked base was 5240 (550638a018e502931fb2). The target frame is 0x38 (saves ra, s0..s4); ours is 0x40 with s6 and s5 saved, because arg0 is held in s5/s6 across the calls. The target keeps arg0 in s4 and arg1 in s0 (move s0,a1 after the sw of s0 at 0x18), so the draft needs fewer live values: try dropping the separate loop counters (use one u8 counter pair) and making arg1 an s16/u16 parameter to match the 'idx' width. Local-repair variants 2-5 (parameter types and declaration order) did nothing; variant 1 (dropping the 0xB/0 args from the callee prototype) is worse.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794766380.957951,
+  "score_before": 778,
+  "score_after": 778
+ },
+ {
+  "function": "func_802155CC",
+  "text": "Small-model attempt at func_802155CC: 12 tries.\n  best 997 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1162 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 2204 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2848 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 4368 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries, not matched. Best 997 under gcc-2.7.2-kmc -O1 (from 1975 at try 2). Big win: byte-offset addressing *(f32 *)((u8 *)D_8011F320 + off) with off = idx*4 computed in the i loop, which stops the compiler hoisting the table address. Left: frame is 0x30 not 0x38 and s5 is not kept (idx register allocation), and the lui/addu order in the j loop.",
+  "by": "manual-ef50fccd0c0b4d66",
+  "created_at": 1795719487.825186,
+  "score_before": 4368,
+  "score_after": 4368,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:f637e7ac61dc225ff49550cd44b9deb3a884965469ea6e51676cad244d696c8f"
+ },
+ {
+  "function": "func_802155CC",
+  "text": "Small-model attempt at func_802155CC: 12 tries.\n  best 997 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1202 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 2204 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2793 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 4313 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 997 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial cad9ca03ca07bfb58e79 (not applied).\nNot matched after 12 tries. Best 997 under -O1 (gcc-2.7.2-kmc): idx*4 as a byte offset (off = (u16)arg1*25*4) into D_8011F320/D_8011F324 with rowOff per outer loop, do/while loops. Remaining diff: target keeps one more callee-saved reg (s5, frame 0x38, we use 0x30) and the j-term is added as ((j<<6)-0x40) grouping; putting that term in a temp made it worse (1137).",
+  "by": "manual-63f9ee7641d74a0a",
+  "created_at": 1795726471.094904,
+  "score_before": 3144,
+  "score_after": 3144
+ },
+ {
+  "function": "func_802155CC",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_802155CC: 12 tries.\n  best 997 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1202 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 2204 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2793 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 4313 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 997 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial cad9ca03ca07bfb58e79 (not applied).\nNot matched after 12 tries. Best 997 under -O1 (gcc-2.7.2-kmc): idx*4 as a byte offset (off = (u16)arg1*25*4) into D_8011F320/D_8011F324 with rowOff per outer loop, do/while loops. Remaining diff: target keeps one more callee-saved reg (s5, frame 0x38, we use 0x30) and the j-term is added as ((j<<6)-0x40) grouping; putting that term in a temp made it worse (1137).",
+  "by": "manual-63f9ee7641d74a0a",
+  "created_at": 1795726471.324088,
+  "score_before": 3144,
+  "score_after": 3144
  }
 ]
