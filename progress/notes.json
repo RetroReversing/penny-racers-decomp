@@ -2960,14 +2960,6 @@
   "score_after": 1880
  },
  {
-  "function": "func_80206848",
-  "text": "Deep permuter: score 6513 \u2192 6373; 3 improvements; 94 candidates tested; 0 cached skips; 0 rejected; 7209s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935735",
-  "created_at": 1794357190.6663098,
-  "score_before": 6513,
-  "score_after": 6373
- },
- {
   "function": "__setUsptFromTempo",
   "text": "Deep permuter: score 10 \u2192 10; 0 improvements; 21 candidates tested; 18 cached skips; 0 rejected; 7205s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934938",
@@ -6504,14 +6496,6 @@
   "score_after": 20252
  },
  {
-  "function": "func_80206848",
-  "text": "Released at the move-on budget. Best rebuilt source is rev 865db46d1de3a2f53426 (7048, 68%). The saved best (6373) is the earlier m2c-with-repairs draft, which has junk (__repair_constant, __repair_rows) and should not be reused as a model. Control flow, decoded from the asm: switch on D_8011F32E[arg0&0xFFFF].f0 (stride 100, u16 at +0). Case 0: if *(D_8011F350[D_8018BC3C].p)==0 set state=1. Case 1: s1=func_8014A870(0x1E,7,0); if s1&1 {func_8014B854(0x3B); B0C0--}; if s1&2 {func_8014B854(0x3B); B0C0++}; B0C0&=3; if s1&0x10 {func_8014B854(0x3D); switch B0C0: 0 -> func_80203DF8(2,6,0,0,0), AFDC=2, B060=4; 1 -> same call, AFDC=AFE0=2, B060=0x2A; 2 -> AFDC=AFE0=2, B060=0x1C; 3 -> AFDC=AFE0=2, B060=0x26; then state=3}; if s1&0x20 {func_8014B854(0x3A); func_80203DF8(2,6,0,0,0); AFDC=2; B060=0; state=3}. Case 3: if deref==0 { func_800DE38C(); func_800DE2E0(); func_80231C5C(); func_801CF468(D_8018BC3C,0,0,0); D_80168BB0=B060 }. Mismatch: target frame is 0x28 and saves only ra, s0, s1; my rebuilt source gets 0x30 with s2 and s3, so the compiler is keeping arg0 and an index in extra registers. In the target, the slot index is recomputed from s0 (andi v0,s0,0xffff; then the sll/addu chain) at every use and the case-0 store is written at the top. Next: try a single `u16 idx` local set from arg0 at the top (then compare frame size first), and check whether the case-1 0x10 block shares the set-state store with the 0x20 block (the target seems to do the sh once after the if-chain, not per case).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794712261.810365,
-  "score_before": 6373,
-  "score_after": 6373
- },
- {
   "function": "func_80204760",
   "text": "Not matched. Best measured: 5368 (75.3%) with `s8 *p = D_8021E15F;` declared once at the top and used for all p[0], p[1], p[3], p[-3] tests, with the v = (u16)(0xFF - D_8021E19E) / 0x64 branch feeding a shared func_801CA494(arg0,v,v,v,0xFF). The saved best 4450 is the earlier permuter version. Remaining diff: the target re-materialises the base each block (lui/addiu of D_8021E15F in a0, then lb 0(a0)/1(a0)/-6(a0)) and only saves s0 with a 0x20 frame, while the pointer-local version keeps p live across calls and saves s1/s2 (0x28 frame). Fix to try: keep the single pointer but make it not live across calls, or write each block's base as a fresh expression; the array-index form (D_8021E15F[k]) gives lb %lo(D_8021E15F)($v1) and scored 12718, so avoid it. Note D_8021E162[k] == D_8021E15F[k+3] in these tests, and [-6] of D_8021E162 is [-3] of the 15F base. Untested: a0 base reuse per block.",
   "by": "claude-haiku-5-5-24",
@@ -8950,22 +8934,6 @@
   "created_at": 1794727576.1164758,
   "score_before": 19847,
   "score_after": 18467
- },
- {
-  "function": "func_80206848",
-  "text": "Not attempted. The saved draft is unusable: it contains `__repair_constant`, `__repair_rows` labels, a `goto` into a do-while, and dereferences `*(*((u8**)...))` that fails to compile. Needs a clean rewrite from the target assembly. Structure to check: switch on D_8011F32E[arg0&0xFFFF].f0 (stride 100 bytes: u16 f0 then pad[98]) with cases 0, 1, 3. Case 1 calls func_8014A870(0x1E,7,0), then bit tests on its result (&1, &2, &0x10, &0x20), updates D_8021B0C0 with -=/+=/&=3, and D_8021B060 gets 0x2A/0x1C/0x26/4/0. Start with the case-0 and case-3 bodies, which are short.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794727647.845303,
-  "score_before": 6373,
-  "score_after": 6373
- },
- {
-  "function": "func_80206848",
-  "text": "State machine on D_8011F32E[idx].f0 (stride 0x64, u16 state at offset 0), 888 B. Clean rewrite (revision d947eb09f1f1ce87232b) scores 7101 (68.0%); the automated repair pass has since saved a different, broken-looking candidate at 6128 (44d713e65876c5ff49be), so start from either. Structure that matches: index computed once into a local (`idx = arg0 & 0xFFFF`), r=func_8014A870(0x1E,7,0); the three `if (r&1)/(r&2)` blocks share one `r&2` test; the r&0x10 block switches on D_8021B0C0 (0,1,2,3 each with func_80203DF8(2,6,0,0,0) then AFDC/AFE0 stores and values 4/0x2A/0x1C/0x26 into D_8021B060); r&0x20 is a shared tail. Remaining diff: target dispatches on state with `beq v,1` first, then `slti v,2` for 0 vs 2/3 (switch-like shape, with beql delay-slot stores), and keeps arg0 in $s0 (saved with `move $s0,$a0`, saves s0,s1,ra). Mine saves s2 and uses different regs for r. Try a switch(state) with case 0/1/3 instead of if-chain, and a `s32 a = arg0;` local so the compiler keeps arg0 in s0 across the calls.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794727648.000608,
-  "score_before": 6373,
-  "score_after": 6373
  },
  {
   "function": "func_80232480",
@@ -11518,14 +11486,6 @@
   "created_at": 1794740638.717163,
   "score_before": 5100,
   "score_after": 5100
- },
- {
-  "function": "func_80206848",
-  "text": "Decoded the control flow from the target. Stride for D_8011F32E entries is 100 (0x64), with a u16 state at +0. The switch is state 0 (if *(u8*)(*(u8**)(D_8011F350 + D_8018BC3C*100)) == 0, set state=1), state 1 (the main block), state 3 (finish block: four calls, then D_80168BB0 = D_8021B060), with states 2+ returning. In state 1: func_8014A870(0x1E,7,0) gives s1; bit 1 calls 0x3B and decrements D_8021B0C0, bit 2 calls 0x3B and increments, then &=3. Bit 0x10 calls 0x3D and switches on D_8021B0C0 (0/1/2/3), each case calling func_80203DF8(2,6,0,0,0) with a 0 fifth arg. Its tail writes state=3 and D_8021B060 (0x4 for case 0, else AFE0 also set). Bit 0x20 calls 0x3A and does the same func_80203DF8 path, setting D_8021B060=0. Best 6638 (merged-switch version, 187 insns against the target's 222, frame 0x30 against 0x28). Splitting into per-case blocks scored 10703 (worse). Next: the target's frame saves only ra,s0,s1 (0x28), so keep the arg in s0 and the state in s1, with no extra saved reg; repeat the (arg&0xFFFF)*100 index math inline as the target does; the target's compare chain is slti/beql, so a 4-way switch on v1 may need to be an if-chain in the order 1,2,3,0.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794740659.1434429,
-  "score_before": 6093,
-  "score_after": 6093
  },
  {
   "function": "func_80135C64",
@@ -15400,14 +15360,6 @@
   "score_after": 2870
  },
  {
-  "function": "func_80206848",
-  "text": "Not matched. Best 5826 (73.7%, 209 vs 222 insns), saved_best: a switch on D_8011F32E[(u16)arg0].f0 (stride 100) with cases 0 / 1 / 3. Table entries at D_8011F350 + idx*100 are pointers; case 0 and case 3 test **(u8**)(D_8011F350 + D_8018BC3C*100) == 0. Case 1: s1 = func_8014A870(0x1E,7,0); bit 1 calls func_8014B854(0x3B) and decrements D_8021B0C0, bit 2 calls 0x3B and increments; D_8021B0C0 &= 3; bit 0x10 calls 0x3D, then branches on D_8021B0C0 == 1/0/2/3 (each calls func_80203DF8(2,6,0,0,0) and sets AFDC/AFE0/B060 and f0=3); bit 0x20 calls 0x3A, func_80203DF8, AFDC=2, B060=0, f0=3. Diff: the target computes (u16)arg0 once into v0, keeps arg0 in s0 and s1 for the flag word; mine keeps the index in s2 and gives a 0x30 frame. An if-chain version scored 11323 (worse; do not repeat it). Untried: keep the switch, and move the 0x10 sentinel-free per-case stores into the switch arms exactly as the target orders them (A10 and E8 paths set AFE0 differently).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794756254.452586,
-  "score_before": 6093,
-  "score_after": 5826
- },
- {
   "function": "func_8015A728",
   "text": "Best saved 3275 (76.6%), revision dfece4675d4131720d0e: a `switch (D_8011F2F0[idx].state)` with case order 0,1,2 (case 0 sets D_80187CF0=0 and state=1; case 1 runs the four-flag check over D_801E99C0 then the list loop setting flags|=0x10 and state=2; case 2 uses D_801E9994, the list loop clearing flags&=0xFFEF, state=1). Record: stride 100 bytes, type u8 @0, flags u16 @2, next u16 @0x10, state u16 @0x3E (target uses lhu, so keep state u16 \u2014 s16 made it worse at 3470). Target's dispatch is a compare tree: beq st,1 -> case1; slti st,2 (SIGNED) ; beqz st -> case0; beq st,2 -> case2. Ours emits sltiu, which is the state signedness issue to chase: try a comparison that yields slti on an unsigned value (e.g. (s32)st < 2 with st declared u16 but promoted via s32). Tried and worse: if/else-if chain (5135), 1,0,2 switch order (4125), local pointer p for the D_801E99C0 base (no change, 4125). Still open: target reloads base as addiu a1 once and reuses it (lw 0x70(a1) etc.), and the 0x58/0x68 branch shapes. Target 140 insns, ours 143.",
   "by": "claude-haiku-5-5-24",
@@ -16750,14 +16702,6 @@
   "created_at": 1794759645.5675478,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_80206848",
-  "text": "Not matched. Best saved stays 5826 (73.7%). This session: (a) the saved-best source scored 5826 again. (b) Replacing the `u16 idx` local with inline `(u16)arg0` in every access scored 5826 with no change, so the extra saved reg s2 comes from the switch/return structure, not idx. Facts from the asm: the slot index is recomputed as andi $v0,$s0,0xFFFF at each use (arg0 saved in s0). Frame is 0x28 with ra@0x20, s1@0x1C, s0@0x18, and s1 holds the func_8014A870 return. D_8021B0C0 is u8 (lbu/sb). The slot stride is 100 (0x64), built as sll/addu chains. The table at D_8011F350 holds a pointer at offset 0 of each 100-byte slot, read via lw+lbu. The target's branch layout uses beql/j chains (the case-1 bit tests with delay-slot stores), which the compiler's switch shape does not reproduce. Next step: try an explicit if-chain on f0 (if f0==0 / ==1 / ==3, no switch) and check the delay-slot `sw $zero,0x10($sp)` in the v1 dispatch. Compare the case order with find_similar.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794759645.6121721,
-  "score_before": 5826,
-  "score_after": 5826
  },
  {
   "function": "func_802312F8",
@@ -41181,5 +41125,61 @@
   "score_before": 3544,
   "score_after": 1869,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:93c471fef43d7175ccd12287558b874fd6d57c7a23de3cf376da4fe0d6d43976"
+ },
+ {
+  "function": "func_80206848",
+  "text": "Deep permuter: score 6513 \u2192 6373; 3 improvements; 94 candidates tested; 0 cached skips; 0 rejected; 7209s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935735",
+  "created_at": 1794357190.6663098,
+  "score_before": 6513,
+  "score_after": 6373
+ },
+ {
+  "function": "func_80206848",
+  "text": "Released at the move-on budget. Best rebuilt source is rev 865db46d1de3a2f53426 (7048, 68%). The saved best (6373) is the earlier m2c-with-repairs draft, which has junk (__repair_constant, __repair_rows) and should not be reused as a model. Control flow, decoded from the asm: switch on D_8011F32E[arg0&0xFFFF].f0 (stride 100, u16 at +0). Case 0: if *(D_8011F350[D_8018BC3C].p)==0 set state=1. Case 1: s1=func_8014A870(0x1E,7,0); if s1&1 {func_8014B854(0x3B); B0C0--}; if s1&2 {func_8014B854(0x3B); B0C0++}; B0C0&=3; if s1&0x10 {func_8014B854(0x3D); switch B0C0: 0 -> func_80203DF8(2,6,0,0,0), AFDC=2, B060=4; 1 -> same call, AFDC=AFE0=2, B060=0x2A; 2 -> AFDC=AFE0=2, B060=0x1C; 3 -> AFDC=AFE0=2, B060=0x26; then state=3}; if s1&0x20 {func_8014B854(0x3A); func_80203DF8(2,6,0,0,0); AFDC=2; B060=0; state=3}. Case 3: if deref==0 { func_800DE38C(); func_800DE2E0(); func_80231C5C(); func_801CF468(D_8018BC3C,0,0,0); D_80168BB0=B060 }. Mismatch: target frame is 0x28 and saves only ra, s0, s1; my rebuilt source gets 0x30 with s2 and s3, so the compiler is keeping arg0 and an index in extra registers. In the target, the slot index is recomputed from s0 (andi v0,s0,0xffff; then the sll/addu chain) at every use and the case-0 store is written at the top. Next: try a single `u16 idx` local set from arg0 at the top (then compare frame size first), and check whether the case-1 0x10 block shares the set-state store with the 0x20 block (the target seems to do the sh once after the if-chain, not per case).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794712261.810365,
+  "score_before": 6373,
+  "score_after": 6373
+ },
+ {
+  "function": "func_80206848",
+  "text": "Not attempted. The saved draft is unusable: it contains `__repair_constant`, `__repair_rows` labels, a `goto` into a do-while, and dereferences `*(*((u8**)...))` that fails to compile. Needs a clean rewrite from the target assembly. Structure to check: switch on D_8011F32E[arg0&0xFFFF].f0 (stride 100 bytes: u16 f0 then pad[98]) with cases 0, 1, 3. Case 1 calls func_8014A870(0x1E,7,0), then bit tests on its result (&1, &2, &0x10, &0x20), updates D_8021B0C0 with -=/+=/&=3, and D_8021B060 gets 0x2A/0x1C/0x26/4/0. Start with the case-0 and case-3 bodies, which are short.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794727647.845303,
+  "score_before": 6373,
+  "score_after": 6373
+ },
+ {
+  "function": "func_80206848",
+  "text": "State machine on D_8011F32E[idx].f0 (stride 0x64, u16 state at offset 0), 888 B. Clean rewrite (revision d947eb09f1f1ce87232b) scores 7101 (68.0%); the automated repair pass has since saved a different, broken-looking candidate at 6128 (44d713e65876c5ff49be), so start from either. Structure that matches: index computed once into a local (`idx = arg0 & 0xFFFF`), r=func_8014A870(0x1E,7,0); the three `if (r&1)/(r&2)` blocks share one `r&2` test; the r&0x10 block switches on D_8021B0C0 (0,1,2,3 each with func_80203DF8(2,6,0,0,0) then AFDC/AFE0 stores and values 4/0x2A/0x1C/0x26 into D_8021B060); r&0x20 is a shared tail. Remaining diff: target dispatches on state with `beq v,1` first, then `slti v,2` for 0 vs 2/3 (switch-like shape, with beql delay-slot stores), and keeps arg0 in $s0 (saved with `move $s0,$a0`, saves s0,s1,ra). Mine saves s2 and uses different regs for r. Try a switch(state) with case 0/1/3 instead of if-chain, and a `s32 a = arg0;` local so the compiler keeps arg0 in s0 across the calls.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794727648.000608,
+  "score_before": 6373,
+  "score_after": 6373
+ },
+ {
+  "function": "func_80206848",
+  "text": "Decoded the control flow from the target. Stride for D_8011F32E entries is 100 (0x64), with a u16 state at +0. The switch is state 0 (if *(u8*)(*(u8**)(D_8011F350 + D_8018BC3C*100)) == 0, set state=1), state 1 (the main block), state 3 (finish block: four calls, then D_80168BB0 = D_8021B060), with states 2+ returning. In state 1: func_8014A870(0x1E,7,0) gives s1; bit 1 calls 0x3B and decrements D_8021B0C0, bit 2 calls 0x3B and increments, then &=3. Bit 0x10 calls 0x3D and switches on D_8021B0C0 (0/1/2/3), each case calling func_80203DF8(2,6,0,0,0) with a 0 fifth arg. Its tail writes state=3 and D_8021B060 (0x4 for case 0, else AFE0 also set). Bit 0x20 calls 0x3A and does the same func_80203DF8 path, setting D_8021B060=0. Best 6638 (merged-switch version, 187 insns against the target's 222, frame 0x30 against 0x28). Splitting into per-case blocks scored 10703 (worse). Next: the target's frame saves only ra,s0,s1 (0x28), so keep the arg in s0 and the state in s1, with no extra saved reg; repeat the (arg&0xFFFF)*100 index math inline as the target does; the target's compare chain is slti/beql, so a 4-way switch on v1 may need to be an if-chain in the order 1,2,3,0.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794740659.1434429,
+  "score_before": 6093,
+  "score_after": 6093
+ },
+ {
+  "function": "func_80206848",
+  "text": "Not matched. Best 5826 (73.7%, 209 vs 222 insns), saved_best: a switch on D_8011F32E[(u16)arg0].f0 (stride 100) with cases 0 / 1 / 3. Table entries at D_8011F350 + idx*100 are pointers; case 0 and case 3 test **(u8**)(D_8011F350 + D_8018BC3C*100) == 0. Case 1: s1 = func_8014A870(0x1E,7,0); bit 1 calls func_8014B854(0x3B) and decrements D_8021B0C0, bit 2 calls 0x3B and increments; D_8021B0C0 &= 3; bit 0x10 calls 0x3D, then branches on D_8021B0C0 == 1/0/2/3 (each calls func_80203DF8(2,6,0,0,0) and sets AFDC/AFE0/B060 and f0=3); bit 0x20 calls 0x3A, func_80203DF8, AFDC=2, B060=0, f0=3. Diff: the target computes (u16)arg0 once into v0, keeps arg0 in s0 and s1 for the flag word; mine keeps the index in s2 and gives a 0x30 frame. An if-chain version scored 11323 (worse; do not repeat it). Untried: keep the switch, and move the 0x10 sentinel-free per-case stores into the switch arms exactly as the target orders them (A10 and E8 paths set AFE0 differently).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794756254.452586,
+  "score_before": 6093,
+  "score_after": 5826
+ },
+ {
+  "function": "func_80206848",
+  "text": "Not matched. Best saved stays 5826 (73.7%). This session: (a) the saved-best source scored 5826 again. (b) Replacing the `u16 idx` local with inline `(u16)arg0` in every access scored 5826 with no change, so the extra saved reg s2 comes from the switch/return structure, not idx. Facts from the asm: the slot index is recomputed as andi $v0,$s0,0xFFFF at each use (arg0 saved in s0). Frame is 0x28 with ra@0x20, s1@0x1C, s0@0x18, and s1 holds the func_8014A870 return. D_8021B0C0 is u8 (lbu/sb). The slot stride is 100 (0x64), built as sll/addu chains. The table at D_8011F350 holds a pointer at offset 0 of each 100-byte slot, read via lw+lbu. The target's branch layout uses beql/j chains (the case-1 bit tests with delay-slot stores), which the compiler's switch shape does not reproduce. Next step: try an explicit if-chain on f0 (if f0==0 / ==1 / ==3, no switch) and check the delay-slot `sw $zero,0x10($sp)` in the v1 dispatch. Compare the case order with find_similar.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794759645.6121721,
+  "score_before": 5826,
+  "score_after": 5826
  }
 ]
