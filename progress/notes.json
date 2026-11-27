@@ -3224,14 +3224,6 @@
   "score_after": 18146
  },
  {
-  "function": "func_80206164",
-  "text": "Deep permuter: score 7475 \u2192 6450; 3 improvements; 115 candidates tested; 0 cached skips; 0 rejected; 7202s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935731",
-  "created_at": 1794348590.463458,
-  "score_before": 7475,
-  "score_after": 6450
- },
- {
   "function": "func_80141C28",
   "text": "Deep permuter: score 15792 \u2192 15232; 2 improvements; 92 candidates tested; 12 cached skips; 0 rejected; 7223s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935367",
@@ -6904,14 +6896,6 @@
   "score_after": 5100
  },
  {
-  "function": "func_80206164",
-  "text": "Released at the move-on budget after one rebuilt compile (rev cca5b2af30c7fe813ba8, 6910, 72%; the saved best 6450 is an older draft). Structure: switch on D_8011F32E[arg0].f0. Case 0: D_8021B0C0=0; if **(s32**)(D_8011F350 + idx*100) == 0 set state 1; D_8021F02C=0; D_8021B0B0=0; return. Case 1: if D_801E99C0==1 { if D_8021E678==2 {func_8014B854(0x3D); func_80203DF8(2,6,0,0,0); B060=2; state=2; if *(u16*)((u8*)&D_801E99C0-0x68)==0x3404 B079=1} else if D_8021E678!=2 {reset floats and E168=0x22} }; E168 advances by 0xA up to 0x22; when E168==0x22 and E678==0 call func_80205EBC(&D_8021E140,0,EEA0,EEB4,B0B0) and fix-ups with D_8021DBC0 / D_8021DBC8; D_8021F02C++ and if >=0x259 call func_80203DF8(2,0x3C,FF,FF,FF), B060=0x2C, state=2. Case 2: if deref==0 call func_800DE38C, func_800DE2E0, func_80231C5C, func_801CF468(D_8018BC3C,0,0,0), AFDC=0, D_80168BB0=B060. Mismatch: target frame is 0x28 with ra/s2/s1/s0 saved and the index recomputed from the arg; my build saves s0..s2 and takes an extra float path. The float reads (D_8021EEA0, D_8021EEB4) are ordered differently. Also D_801E99C0 is used as an int in the target (lw) and as a byte offset base; its declaration needs fixing (it conflicts with a prior declaration). Next: fix D_801E99C0's type to match the other uses, then compare the case-1 float block ordering; check the case-2 default fall-through (the target has break, not return).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794712314.702723,
-  "score_before": 6450,
-  "score_after": 6450
- },
- {
   "function": "func_80137F60",
   "text": "No match. Best saved 3782 (earlier attempt) is still the baseline; my draft scored 13323. Target is 208 insns with a 0x80-byte frame (ra, fp, s7, s6 saved), while the draft has 0x70 and misses s1 use: the function reads D_800DB1B8+0x2108 (lh) and D_80126FF6 (lbu) before the arg test, and the loop body is larger than the draft. The draft's D_8018D661/D_8018993F/D_80237630 are indexed per element and need struct/array types: the extern char arrays are wrong (target scales per element). Next: start from the saved 3782 source rather than this draft, and recover the per-iteration array indexing (x0x18 strides, *2 *0x178 for D_80237630) before tuning registers.",
   "by": "claude-haiku-5-5-22",
@@ -9726,14 +9710,6 @@
   "created_at": 1794727648.000608,
   "score_before": 6373,
   "score_after": 6373
- },
- {
-  "function": "func_80206164",
-  "text": "Compiled once: my typed version scores 7100 (71.1%), worse than the saved best 6450, so start from the saved best. The claim's candidate did not build as written (unary * on D_8011F350 and the D_801E99C0 cast); my fix is `*(s32 *)(*(u8 **)(D_8011F350 + (D_8018BC3C * 0x64)))`, which builds but is still wrong. Remaining diffs: target keeps arg0 in s1 with frame 0x24-0x28 (ra, s0, s1, s2 saved), mine keeps it in s2; the table index `D_8018BC3C * 0x64` is computed into v1 then addu into D_8011F32E's %hi in the target, not the other way round. Case order and the 0x3404 / 0x259 constants look right. Next: fix the register assignment of arg0 (s1) and the D_8011F32E index computation first, then the D_8021EEA0 float load order in case 1.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794727667.64512,
-  "score_before": 6450,
-  "score_after": 6450
  },
  {
   "function": "func_80232480",
@@ -12558,14 +12534,6 @@
   "created_at": 1794740608.883232,
   "score_before": 18147,
   "score_after": 11092
- },
- {
-  "function": "func_80206164",
-  "text": "Draft (cca5b2af30c7fe813ba8) scores 6910 (71.9%); saved best 6450 is from an earlier source. Remaining diff is in the prologue and register allocation: target saves $ra,$s2,$s1,$s0 at 0x24/0x20/0x1c/0x18 and keeps arg0 in $s1 (`move $s1,$a0`), with the table index `sll $v1,$v1,2` in $s1 as well; mine keeps arg0 in $s2 and adds a 4th save order mismatch. The switch on `D_8011F32E[arg0].f0` reads the table via `lui $at,%hi(D_8011F32E); addu $at,$at,$v1` (index*100 via arg0 * 0x64 plus the 0x64-stride D_8011F350 table). Not matched. Next: swap the roles so the index temp is the one kept live (name arg0 used after calls as the switch value), and recheck the `D_8011F350 + D_8018BC3C*0x64` double-deref in cases 0 and 2 (target re-loads D_8018BC3C each time). Calls: func_8014B854 (0x3D), func_80203DF8 (2,6,0,0,0 and 2,0x3C,FF,FF,FF) and func_80205EBC(&D_8021E140,...) take f32 args on the FPU; the float constant loads (D_8021EEA0, D_8021DBC0/C8) are out of order in mine. Compiles so far: about 3 with no improvement over the draft.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794740630.7528331,
-  "score_before": 6450,
-  "score_after": 6450
  },
  {
   "function": "func_80209D74",
@@ -17168,14 +17136,6 @@
   "score_after": 4245
  },
  {
-  "function": "func_80206164",
-  "text": "Not matched. Best saved 6450 (historical draft, different source; use get_candidate saved_best). My clean switch-style C scores 9946 (59.5%): the switch on t = D_8011F32E[arg0].f0 with cases 0/1/2 is structured as an if-chain in the target (test t==1 first, then t<2 and t==0 (beqz), else t==2 path), so the if/else-if chain I wrote is not the target's order. Frame differences: target saves ra,s2,s1,s0 (0x28 frame), mine saves fewer. Diff rows show the float block (D_8021E140/EEA0/EEB4 compare with cvt.d.s / div.d by D_8021DBC0 / c.lt.d against D_8021DBC8) and the D_8021B0B0 / D_8021E678 order differ. Next: keep arg0 in s1 (andi 0xFFFF into v0 then index), write case 1 as the target lays it out (D_801E99C0 test first, then D_8021E678 == 2 path), and make the float compare a single c.lt.d.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794756399.203905,
-  "score_before": 6450,
-  "score_after": 6450
- },
- {
   "function": "func_801632D0",
   "text": "Best compiled 5725 (67.0%) at revision f22bad0cf734dd60aaa0 (goto-based loop as the machine draft wrote it, with the func_8013E49C call and return kept; do NOT redeclare func_8013E49C, context.h already has `s32 func_8013E49C(u16)`). Restructuring the loop as do/while with break (5820) was worse. Target frame is large (0x7C+): saves ra, s6, s5, s4, s3, s2, s1, s0 \u2014 six callee-saved registers; the target keeps arg0 in s2 (move s2,a0) and loads s6 = D_8011F2F0 + rec*0x64 early. Ours keeps arg0 in s1 and uses s4/s5 in the wrong order: the loop counter s3 and s5 (andi 7) should be the high-numbered registers. Next: reproduce the 8-register save set by declaring s6 (record pointer) and s5 (state&7) as separate locals live across the calls, then fix the register assignment. The sltiu/slti pairs on v0 (state<7 and v0_2+2<2) suggest the two comparisons use signed vs unsigned types the other way round from ours.",
   "by": "claude-haiku-5-5-24",
@@ -18446,14 +18406,6 @@
   "created_at": 1794758945.2039528,
   "score_before": 2175,
   "score_after": 2175
- },
- {
-  "function": "func_80206164",
-  "text": "Not attempted beyond the draft. The machine draft in the candidate does not compile: conflicting type for D_801E99C0 (declared s32 at one place and as another type in the draft's header, func.c:15 vs :27), invalid unary * on D_8011F350 (it is a byte array, so `*(s32 **)(D_8011F350 + ...)` needs an explicit cast through u8 * and the struct stride 0x64 for D_8011F32E), and the case-1 compare chain has pointer/integer comparisons. Structure: switch on the u16 state D_8011F32E[arg0].f0 with cases 0, 1, 2. Case 0 clears D_8021B0C0/D_8021F02C/D_8021B0B0 and sets state 1 when the pointer word is 0. Case 1 is a frame counter (D_8021F02C, cap 0x259) with a float accumulator (D_8021EEA0 / D_8021E140, func_80205EBC) and sets state 2 on the timeout. Case 2 calls func_800DE38C, func_800DE2E0, func_80231C5C, func_801CF468, then D_80168BB0 = D_8021B060. Next step: fix the declarations first (one type per symbol), then match the switch jump table and the case-1 float compares (the (f64) cast forms need checking against the target).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794758945.494314,
-  "score_before": 6450,
-  "score_after": 6450
  },
  {
   "function": "func_8012745C",
@@ -40806,5 +40758,62 @@
   "score_before": 2249,
   "score_after": 1010,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:b0bea9642c26112a6091ac68d0bb3f10acab16333a2ca6a7ccfc2b2d70293c66"
+ },
+ {
+  "function": "func_80206164",
+  "text": "Deep permuter: score 7475 \u2192 6450; 3 improvements; 115 candidates tested; 0 cached skips; 0 rejected; 7202s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935731",
+  "created_at": 1794348590.463458,
+  "score_before": 7475,
+  "score_after": 6450
+ },
+ {
+  "function": "func_80206164",
+  "text": "Released at the move-on budget after one rebuilt compile (rev cca5b2af30c7fe813ba8, 6910, 72%; the saved best 6450 is an older draft). Structure: switch on D_8011F32E[arg0].f0. Case 0: D_8021B0C0=0; if **(s32**)(D_8011F350 + idx*100) == 0 set state 1; D_8021F02C=0; D_8021B0B0=0; return. Case 1: if D_801E99C0==1 { if D_8021E678==2 {func_8014B854(0x3D); func_80203DF8(2,6,0,0,0); B060=2; state=2; if *(u16*)((u8*)&D_801E99C0-0x68)==0x3404 B079=1} else if D_8021E678!=2 {reset floats and E168=0x22} }; E168 advances by 0xA up to 0x22; when E168==0x22 and E678==0 call func_80205EBC(&D_8021E140,0,EEA0,EEB4,B0B0) and fix-ups with D_8021DBC0 / D_8021DBC8; D_8021F02C++ and if >=0x259 call func_80203DF8(2,0x3C,FF,FF,FF), B060=0x2C, state=2. Case 2: if deref==0 call func_800DE38C, func_800DE2E0, func_80231C5C, func_801CF468(D_8018BC3C,0,0,0), AFDC=0, D_80168BB0=B060. Mismatch: target frame is 0x28 with ra/s2/s1/s0 saved and the index recomputed from the arg; my build saves s0..s2 and takes an extra float path. The float reads (D_8021EEA0, D_8021EEB4) are ordered differently. Also D_801E99C0 is used as an int in the target (lw) and as a byte offset base; its declaration needs fixing (it conflicts with a prior declaration). Next: fix D_801E99C0's type to match the other uses, then compare the case-1 float block ordering; check the case-2 default fall-through (the target has break, not return).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794712314.702723,
+  "score_before": 6450,
+  "score_after": 6450
+ },
+ {
+  "function": "func_80206164",
+  "text": "Compiled once: my typed version scores 7100 (71.1%), worse than the saved best 6450, so start from the saved best. The claim's candidate did not build as written (unary * on D_8011F350 and the D_801E99C0 cast); my fix is `*(s32 *)(*(u8 **)(D_8011F350 + (D_8018BC3C * 0x64)))`, which builds but is still wrong. Remaining diffs: target keeps arg0 in s1 with frame 0x24-0x28 (ra, s0, s1, s2 saved), mine keeps it in s2; the table index `D_8018BC3C * 0x64` is computed into v1 then addu into D_8011F32E's %hi in the target, not the other way round. Case order and the 0x3404 / 0x259 constants look right. Next: fix the register assignment of arg0 (s1) and the D_8011F32E index computation first, then the D_8021EEA0 float load order in case 1.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794727667.64512,
+  "score_before": 6450,
+  "score_after": 6450
+ },
+ {
+  "function": "func_80206164",
+  "text": "Draft (cca5b2af30c7fe813ba8) scores 6910 (71.9%); saved best 6450 is from an earlier source. Remaining diff is in the prologue and register allocation: target saves $ra,$s2,$s1,$s0 at 0x24/0x20/0x1c/0x18 and keeps arg0 in $s1 (`move $s1,$a0`), with the table index `sll $v1,$v1,2` in $s1 as well; mine keeps arg0 in $s2 and adds a 4th save order mismatch. The switch on `D_8011F32E[arg0].f0` reads the table via `lui $at,%hi(D_8011F32E); addu $at,$at,$v1` (index*100 via arg0 * 0x64 plus the 0x64-stride D_8011F350 table). Not matched. Next: swap the roles so the index temp is the one kept live (name arg0 used after calls as the switch value), and recheck the `D_8011F350 + D_8018BC3C*0x64` double-deref in cases 0 and 2 (target re-loads D_8018BC3C each time). Calls: func_8014B854 (0x3D), func_80203DF8 (2,6,0,0,0 and 2,0x3C,FF,FF,FF) and func_80205EBC(&D_8021E140,...) take f32 args on the FPU; the float constant loads (D_8021EEA0, D_8021DBC0/C8) are out of order in mine. Compiles so far: about 3 with no improvement over the draft.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794740630.7528331,
+  "score_before": 6450,
+  "score_after": 6450
+ },
+ {
+  "function": "func_80206164",
+  "text": "Not matched. Best saved 6450 (historical draft, different source; use get_candidate saved_best). My clean switch-style C scores 9946 (59.5%): the switch on t = D_8011F32E[arg0].f0 with cases 0/1/2 is structured as an if-chain in the target (test t==1 first, then t<2 and t==0 (beqz), else t==2 path), so the if/else-if chain I wrote is not the target's order. Frame differences: target saves ra,s2,s1,s0 (0x28 frame), mine saves fewer. Diff rows show the float block (D_8021E140/EEA0/EEB4 compare with cvt.d.s / div.d by D_8021DBC0 / c.lt.d against D_8021DBC8) and the D_8021B0B0 / D_8021E678 order differ. Next: keep arg0 in s1 (andi 0xFFFF into v0 then index), write case 1 as the target lays it out (D_801E99C0 test first, then D_8021E678 == 2 path), and make the float compare a single c.lt.d.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794756399.203905,
+  "score_before": 6450,
+  "score_after": 6450
+ },
+ {
+  "function": "func_80206164",
+  "text": "Not attempted beyond the draft. The machine draft in the candidate does not compile: conflicting type for D_801E99C0 (declared s32 at one place and as another type in the draft's header, func.c:15 vs :27), invalid unary * on D_8011F350 (it is a byte array, so `*(s32 **)(D_8011F350 + ...)` needs an explicit cast through u8 * and the struct stride 0x64 for D_8011F32E), and the case-1 compare chain has pointer/integer comparisons. Structure: switch on the u16 state D_8011F32E[arg0].f0 with cases 0, 1, 2. Case 0 clears D_8021B0C0/D_8021F02C/D_8021B0B0 and sets state 1 when the pointer word is 0. Case 1 is a frame counter (D_8021F02C, cap 0x259) with a float accumulator (D_8021EEA0 / D_8021E140, func_80205EBC) and sets state 2 on the timeout. Case 2 calls func_800DE38C, func_800DE2E0, func_80231C5C, func_801CF468, then D_80168BB0 = D_8021B060. Next step: fix the declarations first (one type per symbol), then match the switch jump table and the case-1 float compares (the (f64) cast forms need checking against the target).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794758945.494314,
+  "score_before": 6450,
+  "score_after": 6450
+ },
+ {
+  "function": "func_80206164",
+  "text": "Profile probe: this saved C scores 1710 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (10 of its 12 nearest matched neighbours were built with it), 2230 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721265.04371,
+  "score_before": 2230,
+  "score_after": 1710,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:c01410670c36aa1e8c5a48f8039ed2d478e1fb1a82735d3d9e7d6374d616b8a3"
  }
 ]
