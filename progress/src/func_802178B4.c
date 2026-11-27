@@ -7,7 +7,7 @@ extern Rec D_8011F2F0[];
 extern u16 D_8018BC3C;
 extern u16 D_8021C114;
 extern u16 D_8021C116;
-extern s32 D_801E99C0;
+extern s32 btnModePressed;
 extern u8 D_8021C110;
 extern u8 D_8021C111;
 extern u16 objListHead[];
@@ -53,13 +53,13 @@ void func_802178B4(u16 id) {
         updateColorCycle(0x14);
         break;
     case 1:
-        if (D_8021C114 >= 0x385 || D_801E99C0 == 1) {
+        if (D_8021C114 >= 0x385 || btnModePressed == 1) {
             D_8011F2F0[id].f44 = 4.0f;
             D_8011F2F0[id].f48 = 0.0f;
             D_8011F2F0[id].f4C = 4.0f;
             setScreenTransition(2, 0x3C, 0xFF, 0xFF, 0xFF);
             D_8011F2F0[id].f3E = 2;
-            if (D_801E99C0 == 1) {
+            if (btnModePressed == 1) {
                 D_8021C110 = 2;
             }
         } else {

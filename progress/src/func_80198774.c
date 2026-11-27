@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 func_8019A31C();                                /* extern */
+s32 getCursorGridCell();                                /* extern */
 extern s8 cursorY;
 
 s32 func_80198774(void) {
@@ -20,7 +20,7 @@ s32 func_80198774(void) {
 
     var_v1 = 0;
     if (cursorY != 0) {
-        var_v1 = func_8019A31C() & 1;
+        var_v1 = getCursorGridCell() & 1;
     }
     return var_v1 & 0xFF;
 }

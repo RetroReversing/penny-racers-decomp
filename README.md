@@ -6,8 +6,8 @@
 - **Compiler:** gcc-2.7.2-kmc
 <!-- decompdecomp:details:end -->
 <!-- decompdecomp:progress:start -->
-- **Progress:** 1193 matching function(s), 48 best attempt(s)
-- **Completion:** 1,193 / 1,210 functions (98.6%). 82 set aside, excluded from completion.
+- **Progress:** 1194 matching function(s), 47 best attempt(s)
+- **Completion:** 1,194 / 1,210 functions (98.7%). 82 set aside, excluded from completion.
 <!-- decompdecomp:progress:end -->
 <!-- decompdecomp:visuals:start -->
 ![Decompilation completion and function map](progress/decompdecomp-progress.svg)
@@ -21,7 +21,7 @@ A native build of the game (Windows, Linux, macOS) needs these steps. The game's
 
 | Step | Status | Detail |
 | :-- | :-- | :-- |
-| The game's code in C | ⬜ in progress | 1,193 of 1,292 functions in C |
+| The game's code in C | ⬜ in progress | 1,194 of 1,292 functions in C |
 | Compiles for a PC | ⬜ in progress | not checked yet |
 | Links for a PC | ⬜ in progress | not checked yet |
 | Assets extracted | ⬜ in progress | 24 resources mapped |

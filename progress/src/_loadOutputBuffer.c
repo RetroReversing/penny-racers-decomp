@@ -6827,7 +6827,7 @@ extern s32 	osVersion;
 extern u32	osMemSize;	 
 extern s32	osAppNMIBuffer[];
 
-extern u64	osClockRate;
+extern u64	usableRamSize;
 
 extern OSIntMask __OSGlobalIntMask;	 
 

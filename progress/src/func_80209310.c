@@ -70,7 +70,7 @@ extern u8 menuArrowAlpha;
 extern s32 D_8021B1A0;
 extern s16 D_8021E18C;
 extern s32 D_8021B12C[];
-void func_80209B90(u16);
+void setObjectPartFlags(u16);
 void gfxSetup2DState(Gfx **);
 void gfxSetPrimColor(Gfx **, s32, s32, s32, s32);
 void gfxDrawSprite(Gfx **, s32, s32, s32, s32);
@@ -82,7 +82,7 @@ void func_80209310(Gfx **gfxp, u16 id) {
     s32 yo;
     s32 ty;
 
-    func_80209B90(id);
+    setObjectPartFlags(id);
     switch (D_8011F2F0[id].state) {
     case 2:
         do { } while (0);

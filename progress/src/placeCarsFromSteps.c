@@ -14,7 +14,7 @@ extern u16 D_80233EC0;
 void func_8022FE50(s32, u8, u8, s32);
 f32 __sinf(f32);
 f32 __cosf(f32);
-s16 func_8012913C(u16, f32, f32, f32);
+s16 findPathNodeContaining(u16, f32, f32, f32);
 
 /* Walks the start-grid step list until kind 0: copies each car's spec into its slot, places
    the car on its grid position and resets its speed and velocity. Kind 2 also clears the car's
@@ -59,9 +59,9 @@ void placeCarsFromSteps(Step *step) {
         car->f7C0 = car->f790 = car->f7B4 = car->f784 = __sinf(step->angle * 3.14 / 180.0) * car->speed * -0.05;
         car->f7C4 = car->f794 = car->f7BC = car->f788 = 0.0f;
         car->f7C8 = car->f798 = car->f7BC = car->f78C = __cosf(step->angle * 3.14 / 180.0) * car->speed * -0.05;
-        car->f7D0 = func_8012913C(D_80233EC0, rec->x, rec->y, rec->z);
+        car->f7D0 = findPathNodeContaining(D_80233EC0, rec->x, rec->y, rec->z);
         car->f7D2 = 0;
-        car->f814 = func_8012913C(D_80233EC0, rec->x, rec->y, rec->z);
+        car->f814 = findPathNodeContaining(D_80233EC0, rec->x, rec->y, rec->z);
         car->f816 = 0;
         if (step->kind == 2) {
             car->f5EC = 0.0f;

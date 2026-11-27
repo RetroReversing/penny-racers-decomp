@@ -12,5 +12,8 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-unsigned int func_8003EBD0(unsigned int value) { return __builtin_mips_exchange_fcsr(value); }
+extern void *D_80046DF4;
 
+void sndSetActiveVoice(s16 arg0) {
+    M2C_FIELD(M2C_FIELD(D_80046DF4, void **, 0xC), s32 *, 0x3C) = (s32) arg0;
+}

@@ -6667,7 +6667,7 @@ extern s32 	osVersion;
 extern u32	osMemSize;	 
 extern s32	osAppNMIBuffer[];
 
-extern u64	osClockRate;
+extern u64	usableRamSize;
 
 extern OSIntMask __OSGlobalIntMask;	 
 
@@ -7427,67 +7427,41 @@ extern void		osSyncPrintf(const char *fmt, ...);
 
 
 s32 alResampleParam(void *filter, s32 paramID, void *param);
-Acmd *alResamplePull(void *filter, s16 *outp, s32 outCnt, s32 sampleOffset, Acmd *p)
+/* Pulls resampled audio for one output block: when pitch is fixed it runs the source handler directly, otherwise it advances the fractional sample delta, runs the source for the input count, then queues the resample command and the state-restore step. */ Acmd *alResamplePull(void *filter, s16 *outp, s32 outCnt, s32 sampleOffset, Acmd *p)
 {
-    ALResampler *f = (ALResampler *)filter;
-    Acmd        *ptr = p;
-    s16         inp;
+    ALResampler *resampler = (ALResampler *)filter;
+    Acmd        *cmd = p;
+    s16         inCount16;
     s32         inCount;
-    ALFilter    *source = f->filter.source;
-    s32		incr;
+    ALFilter    *source = resampler->filter.source;
+    s32         incr;
     f32         finCount;
 
-
-
-    inp = 320 ;
+    inCount16 = 320;
 
     if (!outCnt)
-        return ptr;
+        return cmd;
 
-     
-
-
-    if (f->upitch) {
-
-	ptr = (*source->handler)(source, &inp, outCnt, sampleOffset, p);
-	{	Acmd *_a = (Acmd *) ptr++ ;	_a->words.w0 = ((unsigned int) (((unsigned int)( 10  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   inp  ) & ((0x01 << (  24 )) - 1)) << (  0 ))) ;	_a->words.w1 = ((unsigned int) (((unsigned int)(   *outp  ) & ((0x01 << (  16 )) - 1)) << (  16 )))  | ((unsigned int) (((unsigned int)(   outCnt<<1  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ;	} ;
-
+    if (resampler->upitch) {
+        cmd = (*source->handler)(source, &inCount16, outCnt, sampleOffset, p);
+        {   Acmd *_a = (Acmd *) cmd++;   _a->words.w0 = ((unsigned int) (((unsigned int)( 10  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   inCount16  ) & ((0x01 << (  24 )) - 1)) << (  0 ))) ;   _a->words.w1 = ((unsigned int) (((unsigned int)(   *outp  ) & ((0x01 << (  16 )) - 1)) << (  16 )))  | ((unsigned int) (((unsigned int)(   outCnt<<1  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ;  } ;
     } else {
+        if (resampler->ratio > 1.99996) resampler->ratio = 1.99996;
 
-	 
+        resampler->ratio = (s32)(resampler->ratio * 0x8000);
+        resampler->ratio = resampler->ratio / 0x8000;
 
+        finCount = resampler->delta + (resampler->ratio * (f32) outCnt);
+        inCount = (s32) finCount;
+        resampler->delta = finCount - (f32)inCount;
 
+        cmd = (*source->handler)(source, &inCount16, inCount, sampleOffset, p);
 
-	if (f->ratio > 1.99996 ) f->ratio = 1.99996 ;
-
-	 
-
-
-	f->ratio = (s32)(f->ratio * 0x8000 );
-	f->ratio = f->ratio / 0x8000 ;
-
-	 
-
-
-	finCount = f->delta + (f->ratio * (f32) outCnt);
-	inCount = (s32) finCount;
-	f->delta = finCount - (f32)inCount;
-
-	 
-
-
-
-	ptr = (*source->handler)(source, &inp, inCount, sampleOffset, p);
-
-	 
-
-
-	incr = (s32)(f->ratio * 0x8000 );
-	{	Acmd *_a = (Acmd *) ptr++ ;	_a->words.w0 = (((unsigned int) (((unsigned int)( 8  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   0  ) & ((0x01 << (  8 )) - 1)) << (  16 )))  |	((unsigned int) (((unsigned int)(   inp  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ); _a->words.w1 = ((unsigned int) (((unsigned int)(   *outp  ) & ((0x01 << (  16 )) - 1)) << (  16 )))  | ((unsigned int) (((unsigned int)(   outCnt<<1  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ;	} ;
-	{	Acmd *_a = (Acmd *) ptr++ ;	_a->words.w0 = (((unsigned int) (((unsigned int)( 5  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   f->first  ) & ((0x01 << (  8 )) - 1)) << (  16 )))  |	((unsigned int) (((unsigned int)(   incr  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ); _a->words.w1 = (unsigned int)(  osVirtualToPhysical(f->state) );	} ;
-	f->first = 0;
+        incr = (s32)(resampler->ratio * 0x8000);
+        {   Acmd *_a = (Acmd *) cmd++;   _a->words.w0 = (((unsigned int) (((unsigned int)( 8  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   0  ) & ((0x01 << (  8 )) - 1)) << (  16 )))  |   ((unsigned int) (((unsigned int)(   inCount16  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ); _a->words.w1 = ((unsigned int) (((unsigned int)(   *outp  ) & ((0x01 << (  16 )) - 1)) << (  16 )))  | ((unsigned int) (((unsigned int)(   outCnt<<1  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ;  } ;
+        {   Acmd *_a = (Acmd *) cmd++;   _a->words.w0 = (((unsigned int) (((unsigned int)( 5  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   resampler->first  ) & ((0x01 << (  8 )) - 1)) << (  16 )))  |   ((unsigned int) (((unsigned int)(   incr  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ); _a->words.w1 = (unsigned int)(  osVirtualToPhysical(resampler->state) );  } ;
+        resampler->first = 0;
     }
 
-
-    return ptr;
+    return cmd;
 }

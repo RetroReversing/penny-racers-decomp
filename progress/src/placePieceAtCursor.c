@@ -6,7 +6,7 @@ typedef struct { u8 a; u8 b; s8 c; s8 d; s8 e; } Hist;
 typedef struct { u8 b[8]; } Eight;
 extern u8 D_8011F2FD[], D_8011F32F[];
 extern u16 hudSlotIndex, placedBlockObj;
-extern Slot D_801E9990[];
+extern Slot btnPlayPressed[];
 extern u8 blockDirection, trackStepX, trackStepY, trackPointEntryCount, D_801C7AB8;
 extern Cur blockPos;
 extern s8 cursorY, cursorX;
@@ -34,7 +34,7 @@ void func_801BFA1C(s32, s32);
     result = D_8011F32F[hudSlotIndex * 0x64];
     updateBoardCamera(playerId);
     applyTrackDirection(getPieceFacing(playerId));
-    if (D_801E9990[playerId].a == 1 && D_801E9990[playerId].b == 0) {
+    if (btnPlayPressed[playerId].a == 1 && btnPlayPressed[playerId].b == 0) {
         if (blockDirection != 4) {
             D_801C7D30[blockPos.idx].a = 0;
             D_801C7D30[blockPos.idx].b = result = 1;
@@ -84,7 +84,7 @@ void func_801BFA1C(s32, s32);
             D_801C5EA4 = 0;
             playMenuSound(0x40);
         }
-    } else if (D_801E9990[playerId].a == 0 && D_801E9990[playerId].b == 1) {
+    } else if (btnPlayPressed[playerId].a == 0 && btnPlayPressed[playerId].b == 1) {
         trackInfo[2] = 0;
         trackPointEntryCount = 0;
         trackPointTable[trackInfo[2]].a = 4;

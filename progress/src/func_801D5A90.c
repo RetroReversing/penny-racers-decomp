@@ -11,8 +11,8 @@ extern u8 D_8021F029;
 extern f64 D_801D7B10;
 void func_801D63F4(void);
 void stopStageSound(u16);
-s16 func_80027EE0(u16);
-void func_8002D030(s16);
+s16 sndStartSound(u16);
+void sndSetActiveVoice(s16);
 void func_8002CFD0(void);
 void func_8002CF70(s16);
 void func_8002CF10(f32);
@@ -33,11 +33,11 @@ s32 func_8002C690(void);
     if (C.vol == 0) { \
         C.vol2 = C.vol = T.vol; \
         v = (f32) C.vol * D_8021F029 * 0.047619f; \
-        func_8002D030(h); \
+        sndSetActiveVoice(h); \
     } else { \
         C.vol2 = C.vol; \
         v = (f32) C.vol * D_8021F029 * 0.047619f; \
-        func_8002D030(h); \
+        sndSetActiveVoice(h); \
     } \
     func_8002CF70((s16) v);
 
@@ -64,13 +64,13 @@ void func_801D5A90(u16 arg0)
             switch (C.state) {
             case 1:
                 if (C.handle == -1) {
-                    h = func_80027EE0(C.id);
+                    h = sndStartSound(C.id);
                     if (h != -1) {
                         START
                     }
                 } else {
                     if (C.prio >= T.prio) {
-                        func_8002D030(C.handle);
+                        sndSetActiveVoice(C.handle);
                         func_8002CFD0();
                         C.state = 2;
                         C.vol = 0;
@@ -81,14 +81,14 @@ void func_801D5A90(u16 arg0)
                 break;
             case 2:
                 if (C.playing == 0) {
-                    h = func_80027EE0(C.id);
+                    h = sndStartSound(C.id);
                     if (h != -1) {
                         START
                     }
                 }
                 break;
             case 3:
-                func_8002D030(C.handle);
+                sndSetActiveVoice(C.handle);
                 func_8002CFD0();
                 C.state = 4;
                 break;
@@ -109,7 +109,7 @@ void func_801D5A90(u16 arg0)
                     stopStageSound(i);
                 }
             }
-            func_8002D030(C.handle);
+            sndSetActiveVoice(C.handle);
             if ((C.playing = func_8002C690()) == 1) {
                 if (C.pitch != C.pitch2) {
                     func_8002CF10(C.pitch * D_801D7B10);

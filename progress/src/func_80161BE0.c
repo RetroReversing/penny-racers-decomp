@@ -8,8 +8,8 @@ extern Cam D_8011F2F0[];
 extern Row hitSlots[];
 extern Hit slotHitFlags[];
 extern HitF slotRadius[];
-extern f32 D_8022E620[][6];
-extern u8 D_8022A720[][6];
+extern f32 sGroupSortKeys[][6];
+extern u8 sGroupSortValues[][6];
 extern u8 sCars[];
 extern void func_80162460(void), func_80162BB0(void), stepCarPartAnim(void);
 s32 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
@@ -57,18 +57,18 @@ void func_80161BE0(u8 *car) {
                 if (t->target != -1) {
                     break;
                 }
-                    if (D_8022E620[*(u16 *) (car + 4)][i] < 2000.0f) {
-                        other = sCars + D_8022A720[*(u16 *) (car + 4)][i] * 0x8F0;
+                    if (sGroupSortKeys[*(u16 *) (car + 4)][i] < 2000.0f) {
+                        other = sCars + sGroupSortValues[*(u16 *) (car + 4)][i] * 0x8F0;
                         oc = &D_8011F2F0[*(u16 *) (other + 2)];
                         d = rec->angle - (f32) (u16) angleFromDelta((s32) (oc->z - rec->z), (s32) (oc->x - rec->x));
                         d = d > 0.0f ? d : -d;
                         if (other[0x879] == 0) {
                             if (d < 50.0f && other[0x8A1] != 4 && other[0x8D0] == 0) {
-                                t->target = D_8022A720[*(u16 *) (car + 4)][i];
+                                t->target = sGroupSortValues[*(u16 *) (car + 4)][i];
                                 i = 7;
                             }
                         } else if (d < 50.0f) {
-                            t->target = D_8022A720[*(u16 *) (car + 4)][i];
+                            t->target = sGroupSortValues[*(u16 *) (car + 4)][i];
                             i = 7;
                         }
                     }

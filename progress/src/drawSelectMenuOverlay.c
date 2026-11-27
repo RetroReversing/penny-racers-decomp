@@ -66,7 +66,7 @@ extern u32 D_8021EFA0;
 extern u8 D_802D6898[];
 extern Sel D_8021EEC0;
 extern u8 D_8021F260[];
-extern u16 *D_80203080[];
+extern u16 *sHexGlyphs[];
 extern u8 D_8021B633[][6];
 void gfxSetup2DState(Gfx **);
 void gfxDrawText(Gfx **, u16, u16, u16, u8 *, u16 *, u8, u8 *, s32, s32, s32, s32);
@@ -92,7 +92,7 @@ void gfxDrawSprite(Gfx **, s16, s16, s32, s32);
     } else {
         gfxSetPrimColor(gfxp, D_8021F260[0], D_8021F260[1], D_8021F260[2], D_8021F260[3]);
         if (D_8021EEC0.sel < 0x55) {
-            gfxDrawText(gfxp, D_8021EEC0.x + 0xB, D_8021EEC0.y + 0xA, 0xE, D_802D92A0, D_80203080[D_8021EEC0.sel + D_8021EEC0.base], 0, D_802D6898, 14, 16, 224, 96);
+            gfxDrawText(gfxp, D_8021EEC0.x + 0xB, D_8021EEC0.y + 0xA, 0xE, D_802D92A0, sHexGlyphs[D_8021EEC0.sel + D_8021EEC0.base], 0, D_802D6898, 14, 16, 224, 96);
         } else if (D_8021EEC0.sel != 0x5A) {
             gfxDrawSprite(gfxp, D_8021B633[D_8021EEC0.sel - 0x55][0] + D_8021EEC0.x, D_8021B633[D_8021EEC0.sel - 0x55][1] + D_8021EEC0.y, 9, D_8021B633[D_8021EEC0.sel - 0x55][2]);
         }

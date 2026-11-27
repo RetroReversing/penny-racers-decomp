@@ -50,7 +50,7 @@ extern u8 D_802390C8[];
 extern u8 D_80239200[];
 extern u8 sprayDef[];
 extern u8 D_802393A0[];
-extern void func_8013AF08();
+extern void stepSlotMotion();
 extern void func_8013B0D4();
 extern void updateExpandingFx();
 extern void func_8013B704();
@@ -93,7 +93,7 @@ void func_8013BB54(u16 arg0)
         case 0x2A:
         case 0x2B:
             if (car->mode != 4 && car->grip < 0.95 && car->ground && (car->wheels & 7) == 7) {
-                id = objCreate(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, func_8013AF08, func_8013B0D4,
+                id = objCreate(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, stepSlotMotion, func_8013B0D4,
                                    car->posA[0], car->posA[1], car->posA[2], 0.0f, 0.0f, 0.0f, 0.08f, 0.08f, 0.08f);
                 if (BAD(id)) {
                     break;
@@ -104,7 +104,7 @@ void func_8013BB54(u16 arg0)
                 D_8011F2F0[id].vz = car->sz;
                 D_8011F2F0[id].kind = car->type;
                 D_8011F2F0[id].parent = arg0;
-                id = objCreate(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, func_8013AF08, func_8013B0D4,
+                id = objCreate(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, stepSlotMotion, func_8013B0D4,
                                    car->posB[0], car->posB[1], car->posB[2], 0.0f, 0.0f, 0.0f, 0.08f, 0.08f, 0.08f);
                 if (BAD(id)) {
                     break;

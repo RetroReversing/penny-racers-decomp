@@ -37,8 +37,8 @@ extern s32 D_801E9768[];
 extern u8 D_801E87C0[];
 extern s32 D_801E9988;
 extern s32 D_801E998C;
-extern s32 D_801E9990;
-extern s32 D_801E9994;
+extern s32 btnPlayPressed;
+extern s32 btnStopPressed;
 extern s32 D_8021AFDC;
 extern s32 D_80168BB0;
 extern u8 D_80046832;
@@ -234,7 +234,7 @@ void func_801DF62C(volatile unsigned short id)
       D_801E9B18 = 1;
     }
     else
-      if (D_801E9990 == 1)
+      if (btnPlayPressed == 1)
     {
       if (D_801E9B18 == 1)
       {
@@ -250,7 +250,7 @@ void func_801DF62C(volatile unsigned short id)
       }
     }
     else
-      if (D_801E9994 == 1)
+      if (btnStopPressed == 1)
     {
       playStageSound(7, 0x3A);
       *D_8011F2F0[D_8018BC3C].sub = 2;

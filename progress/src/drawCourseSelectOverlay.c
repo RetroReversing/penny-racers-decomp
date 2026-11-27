@@ -64,7 +64,7 @@ extern u8 D_8021B632[][6];
 extern u8 D_8021B635[][6];
 extern u16 D_8021EEC4;
 extern u16 D_8021EED0[];
-extern u16 *D_80203080[];
+extern u16 *sHexGlyphs[];
 extern u8 D_802D92A0[];
 extern u8 D_802D6898[];
 void gfxSetup2DState(Gfx **);
@@ -111,7 +111,7 @@ void gfxDrawText(Gfx **, u16, u16, u16, u8 *, u16 *, u8, u8 *, s32, s32, s32, s3
             textCol = 0;
             for (j = 0; j < 15; j++) {
                 textCol += (j == 5) | (j == 10);
-                D_8021EED0[j + textCol] = *D_80203080[i * 15 + (D_8021EED0[-6] + j)];
+                D_8021EED0[j + textCol] = *sHexGlyphs[i * 15 + (D_8021EED0[-6] + j)];
             }
             D_8021EED0[5] = 0;
             D_8021EED0[11] = 0;

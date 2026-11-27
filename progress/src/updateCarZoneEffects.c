@@ -21,12 +21,15 @@ typedef struct {
 } Point;
 extern u16 D_8006FAF0[];
 extern Obj D_8011F2F0[];
-extern Point *D_801687EC[];
+extern Point *sZonePointTables[];
 extern Car sCars[];
 extern f32 sqrtf(f32);
 extern void addCarEffectObjects(Car *);
 
-void func_8013DF90(void)
+/* For each active car (not in state bits 0x18), finds the zone points of the current track
+   table that match the car's zone and are within 26 units of its object. Each hit adds
+   the car's effect objects and sets flag 4 on the car. */
+void updateCarZoneEffects(void)
 {
     Point *points;
     Point *p;
@@ -36,7 +39,7 @@ void func_8013DF90(void)
     f32 dz;
     u16 i;
 
-    points = D_801687EC[D_8006FAF0[0x10]];
+    points = sZonePointTables[D_8006FAF0[0x10]];
     if (points != 0) {
         for (i = 0; i < 7; i++) {
             if (sCars[i].id != 0xFFFF && !(sCars[i].state & 0x18)) {

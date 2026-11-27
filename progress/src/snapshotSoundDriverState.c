@@ -17,7 +17,7 @@ void func_8002C240(u8 *, s32, u8);
 void func_8002C370(u8 *, s32, u8);
 void alSeqpSetChlFXMix(u8 *, s32, u8);
 void func_8002C330(u8 *, s32, u8);
-void func_8002D030(s16);
+void sndSetActiveVoice(s16);
 s32 n_alSndpGetState(void);
 
 /* Snapshots the sequencer's tempo, volume and per-channel settings, then restores pending overrides and refreshes sound slot states. */ void snapshotSoundDriverState(void) {
@@ -67,7 +67,7 @@ s32 n_alSndpGetState(void);
         }
     }
     for (i = 0; i < 8; i++) {
-        func_8002D030(i);
+        sndSetActiveVoice(i);
         sndState = n_alSndpGetState();
         (&D_801D7DF0[i])->state = sndState;
         if (sndState == 0) {

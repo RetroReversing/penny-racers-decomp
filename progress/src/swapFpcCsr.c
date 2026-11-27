@@ -12,8 +12,5 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-extern void *D_80046DF4;
+unsigned int swapFpcCsr(unsigned int value) { return __builtin_mips_exchange_fcsr(value); }
 
-void func_8002D030(s16 arg0) {
-    M2C_FIELD(M2C_FIELD(D_80046DF4, void **, 0xC), s32 *, 0x3C) = (s32) arg0;
-}

@@ -57,7 +57,7 @@ typedef struct { u8 pad0[0x20]; u16 course; } Setup;
 extern SlotF racerTimers[];
 extern SlotF D_8011F33C[];
 extern SlotF D_8011F308[];
-extern SlotF sPrimColorB[];
+extern SlotF sPathOffsetZ[];
 extern Car sCars[];
 extern Setup D_8006FAF0;
 extern Gfx noticeBackgroundDl[];
@@ -96,7 +96,7 @@ void func_801CBDE8(Gfx **, u16, u16, s32, u8 *, s32, u16);
     }
     gfxSetPrimAlpha(gfxp, D_802002F0);
     for (i = 0; i < 6; i++) {
-        func_801CBDE8(gfxp, (u32)(D_8011F308[sCars[i].slot].v / 30.0f + 160.0f), (u32)(sPrimColorB[sCars[i].slot].v / 30.0f + 120.0f), 8, D_802002D0[sCars[i].kind], 1, i + 1);
+        func_801CBDE8(gfxp, (u32)(D_8011F308[sCars[i].slot].v / 30.0f + 160.0f), (u32)(sPathOffsetZ[sCars[i].slot].v / 30.0f + 120.0f), 8, D_802002D0[sCars[i].kind], 1, i + 1);
     }
     gfxSetPrimAlpha(gfxp, D_802002EC);
     drawText(gfxp, 0x18, 0x10, 8, fontPalette, D_80203558);

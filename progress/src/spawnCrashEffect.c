@@ -2,7 +2,7 @@ typedef struct { u8 pad0[4]; u8 *car; } Ctl;
 typedef struct { f32 v; u8 pad[0x60]; } SlotF;
 typedef struct { u8 pad0[4]; void *owner; u8 pad8[0xE]; u8 unk16; u8 pad17[0x65]; } Row;
 typedef struct { Ctl *v; u8 pad[0x60]; } SlotP;
-extern SlotF D_8011F308[], sPrimColorG[], sPrimColorB[];
+extern SlotF D_8011F308[], sPrimColorG[], sPathOffsetZ[];
 extern SlotP D_8011F350[];
 extern Row hitSlots[];
 extern u8 D_802390C8[];
@@ -20,7 +20,7 @@ void initHitSlot(u16, u16, s32, f32, f32, f32, s32);
     allocRet = raceAllocSlot();
     slotIdx = allocRet & 0xFFFF;
     if (slotIdx != 0xFFFF) {
-        objId = objCreate(0, 0, 3, 0, 0x20, 1, 0, func_8015CF2C, 0, D_8011F308[carIdx].v, sPrimColorG[carIdx].v, sPrimColorB[carIdx].v, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        objId = objCreate(0, 0, 3, 0, 0x20, 1, 0, func_8015CF2C, 0, D_8011F308[carIdx].v, sPrimColorG[carIdx].v, sPathOffsetZ[carIdx].v, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
         if ((u16) (objId + 2) < 2) {
         fail:
             ((void (*)(s32)) func_8013E49C)(slotIdx);
@@ -34,7 +34,7 @@ void initHitSlot(u16, u16, s32, f32, f32, f32, s32);
             if (slotIdx == 0xFFFF) {
                 break;
             }
-            objId = objCreate(0, 0, 1, 0, 0x5B, 0xC8, D_802390C8, updateCrashSparks, func_8015D368, D_8011F308[carIdx].v, sPrimColorG[carIdx].v, sPrimColorB[carIdx].v, 0.0f, 0.0f, 0.0f, 0.1f, 0.1f, 0.1f);
+            objId = objCreate(0, 0, 1, 0, 0x5B, 0xC8, D_802390C8, updateCrashSparks, func_8015D368, D_8011F308[carIdx].v, sPrimColorG[carIdx].v, sPathOffsetZ[carIdx].v, 0.0f, 0.0f, 0.0f, 0.1f, 0.1f, 0.1f);
             if ((u16) (objId + 2) < 2) {
                 goto fail;
             }

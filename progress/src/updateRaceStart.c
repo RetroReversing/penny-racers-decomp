@@ -57,7 +57,7 @@ extern u8 D_800DAB54;
 
 extern Obj D_8011F2F0[];
 extern Race *D_8018A280;
-extern s32 D_8018D674;
+extern s32 sLiftHit;
 extern Race hitSlots[];
 extern s16 carClassIndex;
 extern Car sCars[];
@@ -148,7 +148,7 @@ extern u8 D_80322A4C[];
       break;
     case 1:
       liftPushCars(D_8022DD10.obj, D_8018A280);
-      if (D_8018D674 != 0)
+      if (sLiftHit != 0)
         queueObjEvent(D_8022DD10.obj, 0x27);
       break;
     }

@@ -8,7 +8,7 @@ typedef struct { u16 v; } Id;
 extern Id D_80190C98[];
 extern u8 D_80190CB0;
 extern u8 D_8006FB38[];
-extern s32 D_801E9990;
+extern s32 btnPlayPressed;
 extern u8 D_8021B01A;
 extern s32 D_8021AFDC;
 extern s16 gameState;
@@ -43,7 +43,7 @@ void updateEndSequence(u16 id) {
         }
         break;
     case 0x10:
-        if (D_801E9990 == 1) {
+        if (btnPlayPressed == 1) {
             D_80190CA4.v++;
             if (D_80190CA4.v >= 0xB) {
                 *timer = 1;

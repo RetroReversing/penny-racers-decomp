@@ -6,12 +6,12 @@ extern u8 blockDirection;
 extern s8 trackStepX;
 extern s8 trackStepY;
 extern u8 D_801C6B25;
-s32 func_8019A31C(void);
+s32 getCursorGridCell(void);
 void playMenuSound(s32);
 
 /* Applies a track direction (0-3) when its input bit is pressed: sets the block piece and the finish-line tile, then plays a sound. */ void applyTrackDirection(u8 direction) {
     if (direction == 0) {
-        if (!(func_8019A31C() & 1)) return;
+        if (!(getCursorGridCell() & 1)) return;
         blockDirection = 0;
         if (trackInfo->unk1 == 5) {
             blockPos[2] = 5;
@@ -31,7 +31,7 @@ void playMenuSound(s32);
         (&trackStepX)[1] = -1;
         trackStepX = 0;
     }     else if (direction == 1) {
-        if (!(func_8019A31C() & 4)) return;
+        if (!(getCursorGridCell() & 4)) return;
         blockDirection = 1;
         if (trackInfo->unk1 == 5) {
             blockPos[2] = 0;
@@ -51,7 +51,7 @@ void playMenuSound(s32);
         trackStepX = -1;
         trackStepY = 0;
     }     else if (direction == 2) {
-        if (!(func_8019A31C() & 2)) return;
+        if (!(getCursorGridCell() & 2)) return;
         blockDirection = 2;
         if (trackInfo->unk1 == 5) {
             blockPos[2] = 5;
@@ -71,7 +71,7 @@ void playMenuSound(s32);
         trackStepY = 1;
         trackStepX = 0;
     }     else if (direction == 3) {
-        if (!(func_8019A31C() & 8)) return;
+        if (!(getCursorGridCell() & 8)) return;
         blockDirection = 3;
         if (trackInfo->unk1 == 5) {
             blockPos[2] = 0;

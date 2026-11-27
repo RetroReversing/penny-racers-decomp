@@ -66,7 +66,7 @@ extern u8 D_802D92A0[], D_802D6898[], D_801D4390[], D_801CF4C8[];
 extern u16 *D_80203408[];
 extern u8 D_8018BC35[];
 extern u16 D_80189C9E[][6];
-extern u16 *D_80203080[];
+extern u16 *sHexGlyphs[];
 extern Car sCarSlots[];
 extern s8 D_80189C9D[];
 extern u8 D_80168CEC[][3];
@@ -115,7 +115,7 @@ void func_801478F0(Gfx **gfxp, u16 id) {
                     if (D_80189C9E[j][D_8018BC35[i]] & 0xF00) {
                         n = func_80146E4C(D_80189C9E[j][D_8018BC35[i]]);
                         if (n == 10 || n == 10) { n = 10; }
-                        str = D_80203080[n];
+                        str = sHexGlyphs[n];
                     } else {
                         n = D_80189C9E[j][D_8018BC35[i]] & 0x1F;
                         str = sCarSlots[D_8018BC35[i]].name[n];

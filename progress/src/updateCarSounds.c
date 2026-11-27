@@ -4,7 +4,7 @@ typedef struct { u8 pad0[4]; s16 mode; u8 pad6[10]; f32 f; u8 pad14[0x18]; } Ani
 typedef struct { s16 x; u8 pad[10]; } Rec12;
 extern Car sCars[];
 extern Anim D_801D7DF0[];
-extern Rec12 D_801D75E6[];
+extern Rec12 soundDefs[];
 void playStageSound(s32, s16);
 void playStageSoundVol(s32, s16, s16);
 void stopStageSound(s32);
@@ -33,7 +33,7 @@ void stopStageSound(s32);
                         sCars[carIdx].sub[subIdx].e = e = -1;
                     } else {
                         if (D_801D7DF0[id].mode == -1 && b != -1 && c == 2) {
-                            playStageSoundVol(id, b, D_801D75E6[b].x);
+                            playStageSoundVol(id, b, soundDefs[b].x);
                             playStageSound(id, b);
                             sCars[carIdx].sub[subIdx].c = c = 0;
                         }
@@ -44,7 +44,7 @@ void stopStageSound(s32);
                             sCars[carIdx].sub[subIdx].c = 0;
                             break;
                         case 2:
-                            playStageSoundVol(id, b, D_801D75E6[b].x);
+                            playStageSoundVol(id, b, soundDefs[b].x);
                             sCars[carIdx].sub[subIdx].c = 0;
                             break;
                         }

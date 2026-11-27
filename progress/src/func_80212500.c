@@ -63,8 +63,8 @@ extern u8 D_8021F048[][14];
 extern u16 D_8021F09A;
 extern u32 D_801E9988;
 extern u32 D_801E998C;
-extern u32 D_801E9990;
-extern u32 D_801E9994;
+extern u32 btnPlayPressed;
+extern u32 btnStopPressed;
 extern u8 D_801E9798;
 extern u8 D_8021B00C[];
 extern s32 D_8021AFEC[];
@@ -298,7 +298,7 @@ void func_80212500(u16 arg0)
                     D_801E9798 = 0;
                     D_8021B678 ^= 1;
                     playMenuSound(0x3B);
-                } else if (ENTRY(D_801E9990) == 1 && D_8021B678 == 1) {
+                } else if (ENTRY(btnPlayPressed) == 1 && D_8021B678 == 1) {
                     func_800DF138(D_8021F09A);
                     playMenuSound(0x3D);
                     func_80149FA8(D_8021E15C.f3);
@@ -315,12 +315,12 @@ void func_80212500(u16 arg0)
                     for (i = 0; i < 14; i++) {
                         D_8021F048[D_8021E15C.f3][i] = 0;
                     }
-                } else if (ENTRY(D_801E9994) == 1) {
+                } else if (ENTRY(btnStopPressed) == 1) {
                     playMenuSound(0x3A);
                     D_8021B674 = 0;
                     D_8021B678 = 0;
                     func_800DF138(D_8021F09A);
-                } else if (ENTRY(D_801E9990) == 1 && D_8021B678 == 0) {
+                } else if (ENTRY(btnPlayPressed) == 1 && D_8021B678 == 0) {
                     playMenuSound(0x3D);
                     D_8021B674 = 0;
                     D_8021B678 = 0;

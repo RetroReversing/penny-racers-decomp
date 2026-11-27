@@ -17,7 +17,7 @@ extern f32 m2c_fbits;
 #endif
 
 M2C_UNK initBackgroundScene();                            /* extern */
-M2C_UNK func_801E0D38();                            /* extern */
+M2C_UNK setupSceneObjects();                            /* extern */
 M2C_UNK func_80205FB0();                            /* extern */
 M2C_UNK func_80206104();                            /* extern */
 M2C_UNK func_80206770();                            /* extern */
@@ -60,7 +60,7 @@ extern u32 D_80168BB0;
         func_802144DC();
         break;
     case 0x32:
-        func_801E0D38();
+        setupSceneObjects();
         D_80168BB0 = 0x33;
         break;
     case 0x28:

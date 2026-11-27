@@ -3,14 +3,14 @@ typedef struct { s16 f0; u8 p2[6]; s32 f8; f32 fC; s16 f10; s16 f12; u8 f14, f15
 typedef struct { u8 p0[4]; u16 f4; u16 f6; u16 f8; u8 pA[0x64 - 10]; } Obj;
 extern Obj D_8011F2F0[];
 extern Voice D_802038E8[];
-extern Slot D_801D7DF4[];
+extern Slot sndTestSlots[];
 extern s32 D_80203AA8;
 extern s8 D_80203AAD;
 extern s32 D_80203AB4;
-extern s32 D_80203AB8;
-extern s32 D_80203AC0;
+extern s32 sndTestIndex;
+extern s32 soundTestMode;
 extern s32 D_80203AC4;
-extern s8 D_80203ACA;
+extern s8 sndTestPitchPreset;
 extern s32 D_80203ACC;
 extern s32 D_802038DC[];
 extern u8 D_8006FB38[];
@@ -23,7 +23,7 @@ void func_80138B1C();
 void func_801FD9F8();
 void func_801FE908();
 void snapshotSoundDriverState();
-void func_8021FAA4();
+void appendRowBoardDisplayList();
 void func_80220A50();
 
 /* Race scene setup: resets the sound sequence, voice and slot tables, and creates the main objects for the race. */ void initRaceObjects(void) {
@@ -36,7 +36,7 @@ void func_80220A50();
     D_8011F2F0[hudObj].f4 |= 0x20;
     D_8011F2F0[hudObj].f6 |= 0x20;
     D_8011F2F0[hudObj].f8 |= 0x20;
-    objCreate(0, 0, 3, 0, 2, 0xFF, 0, 0, func_8021FAA4, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 2, 0xFF, 0, 0, appendRowBoardDisplayList, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     objCreate(0, 0, 3, 0, 4, 0xFF, 0, 0, func_80220A50, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     objCreate(0, 0, 3, 0, 0xC8, 0, 0, 0, func_801FD9F8, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     objCreate(0, 0, 3, 0, 0, 0, 0, func_801FE908, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -45,9 +45,9 @@ void func_80220A50();
     alSeqpStop(D_8006FB38);
     D_80203ACC = 0;
     D_80203AC4 = -1;
-    D_80203AB8 = 0;
-    D_80203ACA = 0;
-    D_80203AC0 = 0;
+    sndTestIndex = 0;
+    sndTestPitchPreset = 0;
+    soundTestMode = 0;
     D_80203AA8 = 0;
     D_80203AAD = 0;
     D_802038DC[0] = 0;
@@ -71,14 +71,14 @@ void func_80220A50();
         D_802038E8[index].f19 = 0;
     }
     for (index = 0; index < 8; index++) {
-        D_801D7DF4[index].f0 = -1;
-        D_801D7DF4[index].f8 = 0;
-        D_801D7DF4[index].fC = 1.0f;
-        D_801D7DF4[index].f10 = 0;
-        D_801D7DF4[index].f12 = 0x7FFF;
-        D_801D7DF4[index].f14 = 0x40;
-        D_801D7DF4[index].f22 = 0x40;
-        D_801D7DF4[index].f15 = 0;
+        sndTestSlots[index].f0 = -1;
+        sndTestSlots[index].f8 = 0;
+        sndTestSlots[index].fC = 1.0f;
+        sndTestSlots[index].f10 = 0;
+        sndTestSlots[index].f12 = 0x7FFF;
+        sndTestSlots[index].f14 = 0x40;
+        sndTestSlots[index].f22 = 0x40;
+        sndTestSlots[index].f15 = 0;
     }
     D_80203AB4 = 0;
 }

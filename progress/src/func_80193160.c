@@ -6,7 +6,7 @@ typedef struct { u8 a; u8 b; s8 c; s8 d; s8 e; } E931;
 typedef struct { u8 unk0; u8 unk1; u8 pad2[2]; u8 *unk4; u8 pad8[8]; } M931;
 typedef struct { u8 pad0[2]; u8 unk2; } H931;
 extern R931 D_8011F2F0[];
-extern Q931 D_801E9990[];
+extern Q931 btnPlayPressed[];
 extern E931 trackPointTable[];
 extern M931 D_801C7D30[];
 extern u8 D_8031445C[][8];
@@ -48,7 +48,7 @@ u8 func_80193160(u16 arg0)
   state = D_8011F2F0[hudSlotIndex].unk3F;
   updateBoardCamera(arg0);
   applyTrackDirection(getPieceFacing(arg0));
-  if (D_801E9990[arg0].unk0 == 1 && D_801E9990[arg0].unk4 == 0)
+  if (btnPlayPressed[arg0].unk0 == 1 && btnPlayPressed[arg0].unk4 == 0)
   {
     if (blockDirection != 4)
     {
@@ -108,7 +108,7 @@ u8 func_80193160(u16 arg0)
       playMenuSound(0x40);
     }
   }
-  else if (D_801E9990[arg0].unk0 == 0 && D_801E9990[arg0].unk4 == 1)
+  else if (btnPlayPressed[arg0].unk0 == 0 && btnPlayPressed[arg0].unk4 == 1)
   {
     trackInfo->unk2 = 0;
     trackPointEntryCount = 0;

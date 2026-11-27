@@ -3,8 +3,8 @@ typedef struct { u8 flag; u8 pad1[8]; u8 f9; u8 pad10[2]; u16 fC; u8 padE[0x12];
 extern Rec D_8011F2F0[];
 extern Menu sMenu;
 extern u16 D_8018BC3C;
-extern s32 D_801E9990;
-extern s32 D_801E9994;
+extern s32 btnPlayPressed;
+extern s32 btnStopPressed;
 extern s32 D_8021AFDC;
 extern s32 menuChoice;
 extern s32 D_80168BB0;
@@ -29,10 +29,10 @@ void func_801CF468(u16, s32, s32, s32);
     case 1:
         sMenu.flag = 0;
         buttons = getMenuNavMask(0x14, 7, 0);
-        if (D_801E9990 == 1) {
+        if (btnPlayPressed == 1) {
             playMenuSound(0x3D);
             sMenu.flag = 1;
-        } else if (D_801E9994 == 1) {
+        } else if (btnStopPressed == 1) {
             playMenuSound(0x3A);
             sMenu.pos[0]--;
         } else if (buttons & 8) {

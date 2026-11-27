@@ -19,7 +19,7 @@ typedef struct {
 extern Obj D_8011F308[];
 extern Slot slotObjIds[];
 
-s32 func_8013F050(u16 arg0, Zone *arg1)
+s32 ballCheckZoneHit(u16 arg0, Zone *arg1)
 {
     f32 x;
     f32 y;

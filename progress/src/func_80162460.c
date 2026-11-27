@@ -11,7 +11,7 @@ extern u16 D_8006FB10;
 extern f32 D_80168574[];
 f32 sqrtf(f32);
 void ballMoveCollide(Ball *, f32, f32, f32, f32, f32, f32);
-u8 func_8013F050(u16, void *);
+u8 ballCheckZoneHit(u16, void *);
 void spawnCameraFly(u16, f32, void *, u16);
 void queueObjEvent(u16, s16);
 u16 angleFromDelta(s32, s32);
@@ -104,7 +104,7 @@ void func_80162460(u16 arg0)
             tr->yaw[7] = angleFromDelta(fy, fz);
             tr->pitch[7] = -angleFromDelta(fy, fx);
         }
-        if (--data->timer == 0 || o->y < D_80168574[D_8006FB10] || (*(u32 *) &data->ball & 0xFFFF00) || func_8013F050(arg0, data)) {
+        if (--data->timer == 0 || o->y < D_80168574[D_8006FB10] || (*(u32 *) &data->ball & 0xFFFF00) || ballCheckZoneHit(arg0, data)) {
             spawnCameraFly(arg0, 0.4f, data->owner, data->owner->kind);
             queueObjEvent(arg0, 0x34);
             tr->active = 0;

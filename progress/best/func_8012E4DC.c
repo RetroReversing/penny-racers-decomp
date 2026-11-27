@@ -24,12 +24,12 @@ extern char D_8011F2FD[];
 extern char D_8011F304[];
 extern char D_8011F308[];
 extern char sPrimColorG[];
-extern char sPrimColorB[];
+extern char sPathOffsetZ[];
 extern char D_8011F314[];
 extern char D_8011F318[];
 extern char D_8011F31C[];
 extern char playerSlots[];
-extern char sNodeTable[];
+extern char sPathNodes[];
 extern u16 D_80167E60;
 extern u8 D_80167E61;
 extern u16 D_80167E62;
@@ -53,16 +53,16 @@ extern u16 D_80190C90;
 extern void *trackInfo;
 extern u16 D_801E975A;
 extern char D_801E9998[];
-extern char D_801E999C[];
-extern char D_801E99A0[];
-extern char D_801E99A4[];
-extern char D_801E99A8[];
-extern char D_801E99AC[];
+extern char btnCycleNextPressed[];
+extern char btnUpPressed[];
+extern char btnDownPressed[];
+extern char btnRightPressed[];
+extern char btnLeftPressed[];
 extern char D_801E99B0[];
 extern unsigned int D_801E99B4[];
 extern char D_801E99B8[];
 extern char D_801E99BC[];
-extern char D_801E99C4[];
+extern char btnCyclePrevPressed[];
 extern char D_80221080[];
 extern char D_80221084[];
 extern char D_80221088[];
@@ -287,7 +287,7 @@ void func_8012E4DC(u16 arg0)
     {
       return;
     }
-    if ((*((s32 *) (D_801E99A8 + (temp_a0_2 * 0x70)))) != 0)
+    if ((*((s32 *) (btnRightPressed + (temp_a0_2 * 0x70)))) != 0)
     {
       temp_v0 = (temp_a0_2 * 4) + D_80183B28;
       temp_fv0 = (*temp_v0) + 1.0f;
@@ -298,7 +298,7 @@ void func_8012E4DC(u16 arg0)
       }
     }
     var_a0 = inline_fn2(temp_a0);
-    if ((*((s32 *) (D_801E99AC + (var_a0 * 0x70)))) != 0)
+    if ((*((s32 *) (btnLeftPressed + (var_a0 * 0x70)))) != 0)
     {
       temp_v0_2 = (var_a0 * 4) + D_80183B28;
       temp_fv1 = (*temp_v0_2) - 1.0f;
@@ -310,9 +310,9 @@ void func_8012E4DC(u16 arg0)
       }
     }
     temp_v1_2 = var_a0 * 0x70;
-    if ((*((s32 *) (D_801E99C4 + temp_v1_2))) != 0)
+    if ((*((s32 *) (btnCyclePrevPressed + temp_v1_2))) != 0)
     {
-      if ((*((s32 *) (D_801E99A0 + temp_v1_2))) != 0)
+      if ((*((s32 *) (btnUpPressed + temp_v1_2))) != 0)
       {
         temp_v0_5 = (var_a0 * 4) + D_80183B38;
         temp_fv0_2 = (*temp_v0_5) + 1.0f;
@@ -323,7 +323,7 @@ void func_8012E4DC(u16 arg0)
         }
       }
       var_a0_2 = inline_fn2(temp_a0);
-      if ((*((s32 *) (D_801E99A4 + (var_a0_2 * 0x70)))) != 0)
+      if ((*((s32 *) (btnDownPressed + (var_a0_2 * 0x70)))) != 0)
       {
         temp_v0_6 = (var_a0_2 * 4) + D_80183B38;
         temp_fv0_3 = (*temp_v0_6) - 1.0f;
@@ -337,7 +337,7 @@ void func_8012E4DC(u16 arg0)
     else
     {
       temp_v1_3 = inline_fn2(temp_a0);
-      temp_a0_3 = *((s32 *) (D_801E99A0 + (temp_v1_3 * 0x70)));
+      temp_a0_3 = *((s32 *) (btnUpPressed + (temp_v1_3 * 0x70)));
       if (temp_a0_3 != 0)
       {
         temp_v1_4 = inline_fn23(temp_v1_3);
@@ -356,7 +356,7 @@ void func_8012E4DC(u16 arg0)
         }
       }
       temp_v1_5 = inline_fn2(temp_a0);
-      var_a0_2 = *((s32 *) (D_801E99A4 + (temp_v1_5 * 0x70)));
+      var_a0_2 = *((s32 *) (btnDownPressed + (temp_v1_5 * 0x70)));
       if (var_a0_2 != 0)
       {
         temp_v1_6 = inline_fn23(temp_v1_5);
@@ -379,7 +379,7 @@ void func_8012E4DC(u16 arg0)
     temp_v0_7 = inline_fn234(inline_fn2(temp_fp));
     temp_s7 = *(__base_D_8011F308 + temp_v0_7);
     temp_s5 = (*((f32 *) (sPrimColorG + temp_v0_7))) + (*((f32 *) (D_80183B08 + temp_s0)));
-    temp_s6 = *(s32 *)(sPrimColorB + temp_v0_7);
+    temp_s6 = *(s32 *)(sPathOffsetZ + temp_v0_7);
     D_80183AFC = (*((f32 *) (D_8011F318 + temp_v0_7))) + (*((f32 *) (D_80183B28 + temp_s0)));
     temp_s1 = temp_s0 + D_80183B18;
     {
@@ -719,7 +719,7 @@ break;
       }
     }
     temp_v1_10 = var_a0_3 * 0x70;
-    if ((*((s32 *) (D_801E99C4 + temp_v1_10))) == 0)
+    if ((*((s32 *) (btnCyclePrevPressed + temp_v1_10))) == 0)
     {
       if ((*((s32 *) (D_801E9998 + temp_v1_10))) == 1)
       {
@@ -734,16 +734,16 @@ break;
         }
         temp_a0_13 = inline_fn234(inline_fn2(temp_fp));
         __repair_web_temp_s1_3 = inline_fn2(temp_a0);
-        *((void **) (((char *) (*((s32 *) (sNodeTable + inline_fn234(*((u16 *) (D_8011F304 + temp_a0_13))))))) + 4)) = (void *) (((*(D_80183AF0 + __repair_web_temp_s1_3)) * 0xC) + D_80237D18);
+        *((void **) (((char *) (*((s32 *) (sPathNodes + inline_fn234(*((u16 *) (D_8011F304 + temp_a0_13))))))) + 4)) = (void *) (((*(D_80183AF0 + __repair_web_temp_s1_3)) * 0xC) + D_80237D18);
         func_800DF1E0(*((u16 *) (D_8011F304 + temp_a0_13)), (__repair_web_temp_s1_3 * 0x8F0) + D_8022A980);
         temp_a0_14 = inline_fn234((temp_fp & 0xFFFF) + 5);
         *(__base_D_8011F308 + temp_a0_14) = *((f32 *) (carPartFrameUvs + ((*((((*(D_80183AF4 + __repair_web_temp_s1_3)) * 0x10) + carPartFrameTable) + (*(D_80183AF0 + __repair_web_temp_s1_3)))) * 0x10)));
         *((f32 *) (sPrimColorG + temp_a0_14)) = *((f32 *) inline_fn((*(D_80183AF4 + __repair_web_temp_s1_3)) * 0x10, carPartFrameTable, D_80183AF0 + __repair_web_temp_s1_3));
-        *(f32 *)(sPrimColorB + temp_a0_14) = *((f32 *) (D_80237FD0 + ((*((((*(D_80183AF4 + __repair_web_temp_s1_3)) * 0x10) + carPartFrameTable) + (*(D_80183AF0 + __repair_web_temp_s1_3)))) * 0x10)));
+        *(f32 *)(sPathOffsetZ + temp_a0_14) = *((f32 *) (D_80237FD0 + ((*((((*(D_80183AF4 + __repair_web_temp_s1_3)) * 0x10) + carPartFrameTable) + (*(D_80183AF0 + __repair_web_temp_s1_3)))) * 0x10)));
         *((f32 *) (D_8011F314 + temp_a0_14)) = *((f32 *) (D_80237FD4 + ((*((((*(D_80183AF4 + __repair_web_temp_s1_3)) * 0x10) + carPartFrameTable) + (*(D_80183AF0 + __repair_web_temp_s1_3)))) * 0x10)));
       }
       temp_s1_3 = temp_a0 & 0xFFFF;
-      if ((*((s32 *) (D_801E999C + (temp_s1_3 * 0x70)))) == 1)
+      if ((*((s32 *) (btnCycleNextPressed + (temp_s1_3 * 0x70)))) == 1)
       {
         if (((u8) (*(D_80183AF8 + temp_s1_3))) < 9U)
         {
@@ -759,7 +759,7 @@ break;
         func_8012AD20(*((u16 *) (D_8011F304 + inline_fn234(var_v1_5))), (temp_v1_11 * 0x8F0) + D_8022A980, *(D_80183AF0 + temp_v1_11), *(D_80183AF8 + temp_v1_11));
       }
       temp_a0_16 = temp_a0;
-      if ((*((s32 *) (D_801E999C + (temp_a0_16 * 0x70)))) == 1)
+      if ((*((s32 *) (btnCycleNextPressed + (temp_a0_16 * 0x70)))) == 1)
       {
         if ((((u8) (*(D_80183AF4 + temp_a0_16))) - 1) < (0x2EU - 1))
         {
@@ -773,10 +773,10 @@ break;
         }
         temp_a1_2 = inline_fn2(temp_a0);
         ;
-        *((void **) (((char *) (*((s32 *) (sNodeTable + inline_fn234(var_v0_3 + 5))))) + 4)) = (void *) (((*(D_80183AF4 + temp_a1_2)) * 0xC) + carPartSpriteInfo);
+        *((void **) (((char *) (*((s32 *) (sPathNodes + inline_fn234(var_v0_3 + 5))))) + 4)) = (void *) (((*(D_80183AF4 + temp_a1_2)) * 0xC) + carPartSpriteInfo);
         *(__base_D_8011F308 + inline_fn234(var_v0_3 + 5)) = *((f32 *) (carPartFrameUvs + ((*((((*(D_80183AF4 + temp_a1_2)) * 0x10) + carPartFrameTable) + (*(D_80183AF0 + temp_a1_2)))) * 0x10)));
         *((f32 *) (sPrimColorG + inline_fn234(var_v0_3 + 5))) = *((f32 *) inline_fn((*(D_80183AF4 + temp_a1_2)) * 0x10, carPartFrameTable, D_80183AF0 + temp_a1_2));
-        *(f32 *)(sPrimColorB + inline_fn234(var_v0_3 + 5)) = *((f32 *) (D_80237FD0 + ((*((((*(D_80183AF4 + temp_a1_2)) * 0x10) + carPartFrameTable) + (*(D_80183AF0 + temp_a1_2)))) * 0x10)));
+        *(f32 *)(sPathOffsetZ + inline_fn234(var_v0_3 + 5)) = *((f32 *) (D_80237FD0 + ((*((((*(D_80183AF4 + temp_a1_2)) * 0x10) + carPartFrameTable) + (*(D_80183AF0 + temp_a1_2)))) * 0x10)));
         *((f32 *) (D_8011F314 + inline_fn234(var_v0_3 + 5))) = *((f32 *) (D_80237FD4 + ((*((((*(D_80183AF4 + temp_a1_2)) * 0x10) + carPartFrameTable) + (*(D_80183AF0 + temp_a1_2)))) * 0x10)));
       }
     }
@@ -790,7 +790,7 @@ break;
         *temp_v0_17 -= 1.0f;
       }
       temp_a0_12 = inline_fn2(temp_a0);
-      temp_v0_18 = *((s32 *) (D_801E999C + (temp_a0_12 * 0x70)));
+      temp_v0_18 = *((s32 *) (btnCycleNextPressed + (temp_a0_12 * 0x70)));
       if (((temp_v0_18 == 1) | (temp_v0_18 >= 0xBU)) != 0)
       {
         temp_v0_19 = (temp_a0_12 * 4) + D_80183B08;

@@ -14,10 +14,10 @@ typedef s32 M2C_UNK32;
 
 s32 func_801FDA44();
 s32 drawHighScoreScreen();
-extern s32 D_80203AC0;
+extern s32 soundTestMode;
 
 void func_801FD9F8(s32 arg0, s32 arg1) {
-    switch (D_80203AC0) {                           /* irregular */
+    switch (soundTestMode) {                           /* irregular */
     case 0:
         func_801FDA44(arg0, arg1 & 0xFFFF);
         return;

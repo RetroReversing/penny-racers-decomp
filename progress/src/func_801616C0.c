@@ -56,7 +56,7 @@ typedef struct { u8 pad0[2]; u16 obj; u16 player; u8 pad6[0x558]; s16 ammo; u16 
 typedef struct { u8 v[0x7C]; } Hit;
 typedef struct { f32 v; u8 pad[0x78]; } HitF;
 typedef struct { Car *v; u8 pad[0x78]; } HitP;
-extern SlotF D_8011F308[], sPrimColorG[], sPrimColorB[], D_8011F318[], D_8011F320[], D_8011F324[], D_8011F328[];
+extern SlotF D_8011F308[], sPrimColorG[], sPathOffsetZ[], D_8011F318[], D_8011F320[], D_8011F324[], D_8011F328[];
 extern u8 D_80239408[];
 extern Hit slotHitFlags[];
 extern HitF slotRadius[];
@@ -75,7 +75,7 @@ void func_801616C0(Car *car) {
     if (car->state == 1 && (f = car->flags, !(f & 8)) && (f & 7) < 7) {
         slot = raceAllocSlot();
         if (slot != 0xFFFF) {
-            n = objCreate(0, 0, 1, 0, 0x51, 0xFF, D_80239408, updateBallState, 0, D_8011F308[car->obj].v, sPrimColorG[car->obj].v + 15.0f, sPrimColorB[car->obj].v, 0.0f, D_8011F318[car->obj].v, 0.0f, D_8011F320[car->obj].v * 2.0f, D_8011F324[car->obj].v * 2.0f, D_8011F328[car->obj].v * 2.0f);
+            n = objCreate(0, 0, 1, 0, 0x51, 0xFF, D_80239408, updateBallState, 0, D_8011F308[car->obj].v, sPrimColorG[car->obj].v + 15.0f, sPathOffsetZ[car->obj].v, 0.0f, D_8011F318[car->obj].v, 0.0f, D_8011F320[car->obj].v * 2.0f, D_8011F324[car->obj].v * 2.0f, D_8011F328[car->obj].v * 2.0f);
             if ((u16)(n + 2) < 2) {
                 func_8013E49C(slot);
             } else {

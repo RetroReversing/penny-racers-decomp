@@ -18,7 +18,7 @@ extern Spot D_801D7D60[];
 typedef struct { u16 v; u8 pad[0x2A]; } Out;
 typedef struct { u16 v; u8 pad[10]; } In;
 extern Out D_801D7E06[];
-extern In D_801D75E6[];
+extern In soundDefs[];
 f32 sqrtf(f32);
 void playStageSound(s32, s16);
 
@@ -73,10 +73,10 @@ void func_801D69D0(u16 id) {
                     dist[0] -= 500.0f;
                     if (dist[0] < 0.0f) {
                         playStageSound((D_801D7DE0[0] & 3) + 2, best[0]);
-                        D_801D7E06[(D_801D7DE0[0] & 3) + 2].v = D_801D75E6[best[0]].v;
+                        D_801D7E06[(D_801D7DE0[0] & 3) + 2].v = soundDefs[best[0]].v;
                     } else if (dist[0] < 900.0f) {
                         playStageSound((D_801D7DE0[0] & 3) + 2, best[0]);
-                        vol = (f32) (s16) D_801D75E6[best[0]].v * (1000.0f - dist[0]) / 1000.0f;
+                        vol = (f32) (s16) soundDefs[best[0]].v * (1000.0f - dist[0]) / 1000.0f;
                         D_801D7E06[(D_801D7DE0[0] & 3) + 2].v = (s32) vol;
                     }
                     D_801D7DE0[0]++;

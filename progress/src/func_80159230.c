@@ -44,10 +44,10 @@ extern u8 D_8006FB18;
 extern s16 D_800DD2C0;
 extern u8 D_8018A148[];
 extern s8 D_80046832;
-extern Row70 D_801E99C0[];
+extern Row70 btnModePressed[];
 extern Row70 D_801E9988[];
 extern Row70 D_801E998C[];
-extern Row70 D_801E9990[];
+extern Row70 btnPlayPressed[];
 extern RowByte D_8022AFE9[];
 extern RowHalf D_8022AD04[];
 extern RowUHalf slotObjIds[];
@@ -114,7 +114,7 @@ void func_80159230(s32 arg0)
             if (D_8006FB18 == 1 && D_80189C80 == 0) {
                 D_80183BD6 = 0xFF;
                 for (i = 0; i < D_800DD2C0; i++) {
-                    if (D_801E99C0[i].v == 1 && D_8022AFE9[i].v == 0) {
+                    if (btnModePressed[i].v == 1 && D_8022AFE9[i].v == 0) {
                         D_80183BD6 = i;
                         break;
                     }
@@ -146,7 +146,7 @@ void func_80159230(s32 arg0)
         }
         break;
     case 2:
-        if (D_801E9990[D_80183BD6].v == 1) {
+        if (btnPlayPressed[D_80183BD6].v == 1) {
             playStageSound(7, 0x3D);
             switch (D_80183BD0) {
             case 1:
@@ -176,7 +176,7 @@ void func_80159230(s32 arg0)
                 STATE = 0xB;
                 break;
             }
-        } else if (D_801E99C0[D_80183BD6].v == 1) {
+        } else if (btnModePressed[D_80183BD6].v == 1) {
             OBJ[D_8018BC3C].p[0] = 3;
             D_80189DC1 = 0;
             D_8018A26C = 0;

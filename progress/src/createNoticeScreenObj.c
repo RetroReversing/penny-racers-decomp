@@ -5,35 +5,36 @@ extern u8 D_801CE928[];
 extern u8 D_801CEC2C[];
 extern u8 D_801D59A0;
 
+/* Creates the notice screen object and fills in its record: idle state, timers and a 320x240 screen rectangle. */
 void createNoticeScreenObj(void)
 {
     D_8018BC3C = objCreate(0, 0, 3, 0, 0xA0, 0xFF, 0, D_801CE928, D_801CEC2C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     {
-        s32 off = D_8018BC3C * 100;
-        u8 *p = &D_801D59A0;
-        *(u8 **)(D_8011F350 + off) = p;
-        *p = 0;
-        *(u16 *)(*(u8 **)(D_8011F350 + off) + 2) = 0x46;
-        *(u16 *)(*(u8 **)(D_8011F350 + off) + 4) = 0;
-        *(u8 *)(*(u8 **)(D_8011F350 + off) + 6) = 0xFF;
+        s32 recOff = D_8018BC3C * 100;
+        u8 *noticeState = &D_801D59A0;
+        *(u8 **)(D_8011F350 + recOff) = noticeState;
+        *noticeState = 0;
+        *(u16 *)(*(u8 **)(D_8011F350 + recOff) + 2) = 0x46;
+        *(u16 *)(*(u8 **)(D_8011F350 + recOff) + 4) = 0;
+        *(u8 *)(*(u8 **)(D_8011F350 + recOff) + 6) = 0xFF;
     }
     {
-        s32 off = D_8018BC3C * 100;
-        *(u8 *)(*(u8 **)(D_8011F350 + off) + 7) = 0xFF;
+        s32 recOff = D_8018BC3C * 100;
+        *(u8 *)(*(u8 **)(D_8011F350 + recOff) + 7) = 0xFF;
     }
     {
-        s32 off = D_8018BC3C * 100;
-        *(u8 *)(*(u8 **)(D_8011F350 + off) + 8) = 0xFF;
+        s32 recOff = D_8018BC3C * 100;
+        *(u8 *)(*(u8 **)(D_8011F350 + recOff) + 8) = 0xFF;
     }
     {
-        s32 off = D_8018BC3C * 100;
-        *(u8 *)(*(u8 **)(D_8011F350 + off) + 9) = 0xFF;
+        s32 recOff = D_8018BC3C * 100;
+        *(u8 *)(*(u8 **)(D_8011F350 + recOff) + 9) = 0xFF;
     }
     {
-        s32 off = D_8018BC3C * 100;
-        *(u16 *)(*(u8 **)(D_8011F350 + off) + 10) = 0;
-        *(u16 *)(*(u8 **)(D_8011F350 + off) + 12) = 0;
-        *(u16 *)(*(u8 **)(D_8011F350 + off) + 14) = 0x140;
-        *(u16 *)(*(u8 **)(D_8011F350 + off) + 16) = 0xF0;
+        s32 recOff = D_8018BC3C * 100;
+        *(u16 *)(*(u8 **)(D_8011F350 + recOff) + 10) = 0;
+        *(u16 *)(*(u8 **)(D_8011F350 + recOff) + 12) = 0;
+        *(u16 *)(*(u8 **)(D_8011F350 + recOff) + 14) = 0x140;
+        *(u16 *)(*(u8 **)(D_8011F350 + recOff) + 16) = 0xF0;
     }
 }

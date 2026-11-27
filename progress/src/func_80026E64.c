@@ -4,7 +4,7 @@ void osViSetSpecialFeatures(u32);
 void osCreateThread(void *, s32, void *, void *, void *, s32);
 void osStartThread(void *);
 void osSetThreadPri(void *, s32);
-extern s32 D_80000300;
+extern s32 osTvType;
 extern s32 D_8004AAB0;
 extern s32 D_8004AC60;
 extern s32 D_80071F70;
@@ -14,7 +14,7 @@ extern void bootGame(void);
 void func_80026E64(s32 arg0) {
     D_800DA1E0 = 0;
     nuPiInit();
-    if (D_80000300 == 1) {
+    if (osTvType == 1) {
         nuScCreateScheduler(2, 1);
     } else {
         nuScCreateScheduler(0x1E, 1);

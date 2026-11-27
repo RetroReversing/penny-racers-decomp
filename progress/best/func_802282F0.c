@@ -6,18 +6,18 @@ inline static u16 __repair_inline(u16 a)
 s32 queueObjEvent(u16, s32);
 f32 func_801F9BE8(f32, f32);
 s32 angleFromDelta(s32, s32);
-s32 func_8022976C(s32, s32, s32);
+s32 quickSortGroupKeys(s32, s32, s32);
 f32 sqrtf();
 extern u8 D_8011F2F0[];
-extern s32 D_8022A720;
+extern s32 sGroupSortValues;
 extern s32 D_8022A748;
 extern s32 sCars;
 extern s32 D_8022E600;
 extern s32 D_8022E618;
-extern s32 D_8022E620;
+extern s32 sGroupSortKeys;
 inline static s32 *inline_fn(s32 arg0)
 {
-  return (arg0 * 0x18) + (&D_8022E620);
+  return (arg0 * 0x18) + (&sGroupSortKeys);
 }
 
 void func_802282F0(void)
@@ -179,7 +179,7 @@ s32 __repair_phase_sp4C;
     temp_s0 = var_s7 & 0xFFFF;
     temp_v1_2 = temp_s0 * 6;
     sp3C = temp_v1_2 + (&D_8022A748);
-    sp44 = temp_v1_2 + (&D_8022A720);
+    sp44 = temp_v1_2 + (&sGroupSortValues);
     sp4C = var_a0;
     temp_s5 = inline_fn(temp_s0);
     temp_v0 = temp_s0 * 6;
@@ -219,8 +219,8 @@ s32 __repair_phase_sp4C;
     {
       temp_a0 = var_s3 & 0xFFFF;
       *((u8 *) ((temp_v0 + (&D_8022A748)) + temp_a0)) = 0;
-      *((u8 *) (((temp_a0 * 4) + (&D_8022E620)) + (temp_s0 * 0x18))) = 1e9f;
-      *((u8 *) ((temp_v0 + (&D_8022A720)) + temp_a0)) = var_s3;
+      *((u8 *) (((temp_a0 * 4) + (&sGroupSortKeys)) + (temp_s0 * 0x18))) = 1e9f;
+      *((u8 *) ((temp_v0 + (&sGroupSortValues)) + temp_a0)) = var_s3;
     }
     do
     {
@@ -773,7 +773,7 @@ s32 __repair_phase_sp4C;
   var_a0_5 = 0 & 0xFFFF;
   do
   {
-    func_8022976C(var_a0_5, 0, 5);
+    quickSortGroupKeys(var_a0_5, 0, 5);
     do
     {
       var_s7_5 += 1;

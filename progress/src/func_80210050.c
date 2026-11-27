@@ -36,11 +36,11 @@ void func_802153C4(s32, f32, s32, s32, s32, s32);
 void func_8021FCA4(void);
 void func_801D5A90(void);
 void gfxSetViewViewport(void);
-void func_8022026C(void);
+void appendCameraDisplayList(void);
 void func_80149A80(void);
 void updateCourseSelectState(void);
 void drawCourseSelectOverlay(void);
-void func_80210D88(void);
+void courseSelectItemUpdate(void);
 void func_80210F70(void);
 void drawSelectMenuOverlay(void);
 void func_8013DD2C(void);
@@ -83,7 +83,7 @@ void func_80210050(void) {
     func_8021FCA4();
     objCreate(0, 0, 3, 0, 0x42, 0xFF, 0, 0, gfxSetViewViewport, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     D_80220E40 = 10.0f;
-    objCreate(0, 0, 3, 0, 0x44, 0xFF, 0, 0, func_8022026C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x44, 0xFF, 0, 0, appendCameraDisplayList, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     objCreate(0, 0, 3, 0, 0x4A, 1, 0, func_80149A80, 0, 0, 0, 0, 0, 30.0f, 50.0f, 0, 0, 0);
     objCreate(0, 0, 3, 0, 0x4A, 0, 0, updateCourseSelectState, drawCourseSelectOverlay, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     for (j = 0; j < 14; j++) {
@@ -94,7 +94,7 @@ void func_80210050(void) {
     for (i = 0; i < D_8021EEC0.count; i++) {
         j = D_8021E231[menuInputLock.v * 0x110 + i];
 
-        D_80190C98[j].v = objCreate(0, i & 0xFF, 1, 0, 0x54, 0xFF, &D_8018F5D0[j], func_80210D88, func_80210F70, 2.5f, 3.19996309f, 0, -17.3999176f, 333.0f, 3.39999294f, 0.025f, 0.025f, 0.025f);
+        D_80190C98[j].v = objCreate(0, i & 0xFF, 1, 0, 0x54, 0xFF, &D_8018F5D0[j], courseSelectItemUpdate, func_80210F70, 2.5f, 3.19996309f, 0, -17.3999176f, 333.0f, 3.39999294f, 0.025f, 0.025f, 0.025f);
         *(Anim **) (D_8011F2F0[D_8011F2F0[D_80190C98[j].v].link].f50 + 4) = &D_80237DC0[j];
     }
     objCreate(0, 0, 3, 0, 0x59, 0, 0, 0, drawSelectMenuOverlay, 0, 0, 0, 0, 0, 0, 0, 0, 0);

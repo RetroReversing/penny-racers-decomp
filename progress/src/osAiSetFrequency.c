@@ -4002,7 +4002,7 @@ extern s32 	osVersion;
 extern u32	osMemSize;	 
 extern s32	osAppNMIBuffer[];
 
-extern u64	osClockRate;
+extern u64	usableRamSize;
 
 extern OSIntMask __OSGlobalIntMask;	 
 
@@ -5336,7 +5336,7 @@ extern int __osDpDeviceBusy(void);
 
 
  
-extern s32 D_800470B8;
+extern s32 osViClock;
 
 
 
@@ -5347,7 +5347,7 @@ s32 osAiSetFrequency(u32 frequency) {
 
 
 
-    f = D_800470B8 / (float)frequency + .5f;
+    f = osViClock / (float)frequency + .5f;
     dacRate = f;
 
     if (dacRate < 132 ) {
@@ -5365,5 +5365,5 @@ s32 osAiSetFrequency(u32 frequency) {
 
     (*(vu32*)((u32)(  (0x04500000  + 0x08)   )|0xA0000000) =(u32)(  1  )) ;
 
-    return D_800470B8 / (s32)dacRate;
+    return osViClock / (s32)dacRate;
 }

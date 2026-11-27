@@ -70,7 +70,7 @@ extern Row20 D_8021F0A0[];
 extern u8 D_8021F048[][14];
 extern Car sCars[];
 
-void func_80209B90();
+void setObjectPartFlags();
 void gfxSetup2DState(s32);
 void gfxSetPrimColor(s32, u8, u8, u8, s32);
 s32 textWidth(u16 *, s32);
@@ -100,7 +100,7 @@ void func_8020B3CC(s32 arg0, s32 arg1)
     s8 c;
     u8 temp;
 
-    do { func_80209B90(arg1 & 0xFFFF); } while (0);
+    do { setObjectPartFlags(arg1 & 0xFFFF); } while (0);
     switch (ME.f40) {
     case 0:
         ME.f40 = 1;

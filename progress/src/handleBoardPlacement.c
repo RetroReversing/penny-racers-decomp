@@ -2,7 +2,7 @@ typedef struct { u8 pad0[4]; u16 flags; u8 pad6[5]; u8 unkB; u8 padC[0xC]; f32 x
 typedef struct { s32 unk0; u8 pad[0x6C]; } Slot;
 typedef struct { u8 pad0; u8 unk1; } Hdr;
 extern Obj D_8011F2F0[];
-extern Slot D_801E9990[];
+extern Slot btnPlayPressed[];
 extern Hdr *trackInfo;
 extern s8 blockPos[];
 extern s8 cursorY;
@@ -26,7 +26,7 @@ void playMenuSound(s32);
     D_8011F2F0[boardCursorObj].x = cursorX * 400.0f * 0.5f;
     D_8011F2F0[boardCursorObj].y = 0;
     D_8011F2F0[boardCursorObj].z = cursorY * 400.0f * 0.5f;
-    if (D_801E9990[slot].unk0 == 1) {
+    if (btnPlayPressed[slot].unk0 == 1) {
         if (trackInfo->unk1 == 5) {
             if (cursorX != 0 || (cursorY != 0 && cursorY != 0x17)) {
             } else {

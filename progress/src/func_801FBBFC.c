@@ -3,7 +3,7 @@ typedef struct { u8 pad0[0xA]; u16 unkA; } NFB;
 typedef struct { NFB *p; u8 pad[0x60]; } PFB;
 typedef struct { f32 eye[3]; f32 at[3]; f32 up[3]; } CFB;
 extern RFB D_8011F2F0[];
-extern PFB sNodeTable[];
+extern PFB sPathNodes[];
 extern CFB D_80221080[];
 extern f32 D_802038A0;
 extern f32 D_802038A4;
@@ -49,7 +49,7 @@ void func_801FBBFC(u16 arg0)
       D_802038A8 = 0;
       D_802038AC = 15.0f;
       D_802038BC = D_80233EC0;
-      D_802038BE = sNodeTable[D_802038BC].p->unkA;
+      D_802038BE = sPathNodes[D_802038BC].p->unkA;
       D_802038B0 = D_8011F2F0[D_802038BE].unk44;
       D_802038B4 = D_8011F2F0[D_802038BE].unk48;
       D_802038B8 = D_8011F2F0[D_802038BE].unk4C;
@@ -69,7 +69,7 @@ void func_801FBBFC(u16 arg0)
       if (sqrtf(dx * dx + dy * dy + dz * dz) < 100.0f)
       {
         D_802038BC = D_802038BE;
-        D_802038BE = sNodeTable[D_802038BC].p->unkA;
+        D_802038BE = sPathNodes[D_802038BC].p->unkA;
         D_802038B0 = D_8011F2F0[D_802038BE].unk44;
         D_802038B4 = D_8011F2F0[D_802038BE].unk48;
         D_802038B8 = D_8011F2F0[D_802038BE].unk4C;

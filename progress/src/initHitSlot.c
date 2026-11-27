@@ -1,4 +1,4 @@
-s16 func_8012913C(u16, s32, s32, s32);
+s16 findPathNodeContaining(u16, s32, s32, s32);
 extern u8 D_8011F2F0[];
 extern u8 D_8011F350[];
 extern u8 hitSlots[];
@@ -25,7 +25,7 @@ void initHitSlot(u16 arg0, s32 arg1, s16 arg2, s32 arg3, f32 arg4, f32 arg5, u16
     *(f32 *)(s + 0x10) = arg5;
     *(u16 *)(s + 0x14) = arg6;
     *(u8 *)(s + 0x16) = 0;
-    *(s16 *)(s + 0x20) = func_8012913C(D_80233EC0, *(s32 *)(p + 0x18), *(s32 *)(p + 0x1C), *(s32 *)(p + 0x20));
+    *(s16 *)(s + 0x20) = findPathNodeContaining(D_80233EC0, *(s32 *)(p + 0x18), *(s32 *)(p + 0x1C), *(s32 *)(p + 0x20));
     *(u16 *)(s + 0x22) = 0;
     *(u8 *)(s + 0x1D) = 0;
     *(u8 *)(s + 0x1E) = 0;

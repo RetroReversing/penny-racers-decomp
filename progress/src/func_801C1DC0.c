@@ -11,8 +11,8 @@ extern Car D_8011F2F0[];
 extern Saved D_8011F32F[];
 typedef struct { u8 pad0[0x2108]; s16 a; u8 pad[0x26]; s16 b; } Mode;
 extern Mode sRowBoard;
-extern PadS D_801E9990[];
-extern PadS D_801E9994[];
+extern PadS btnPlayPressed[];
+extern PadS btnStopPressed[];
 extern Slot trackPointTable[];
 extern MenuState *trackInfo;
 extern u8 D_801C5EA0;
@@ -188,7 +188,7 @@ void func_801C1DC0(u16 arg0)
             }
             D_801CA138 = 0;
         }
-        if (D_801E9990[arg0].v == 1 && D_801E9994[arg0].v == 0) {
+        if (btnPlayPressed[arg0].v == 1 && btnStopPressed[arg0].v == 0) {
             if (D_801CA130 == trackInfo->unk2) {
                 if (trackPointEntryCount >= 0xC8) {
                     FULL();
@@ -214,7 +214,7 @@ void func_801C1DC0(u16 arg0)
                 PICK();
                 hudVisible = 1;
             }
-        } else if (D_801E9990[arg0].v == 0 && D_801E9994[arg0].v == 1) {
+        } else if (btnPlayPressed[arg0].v == 0 && btnStopPressed[arg0].v == 1) {
             if (D_801CA130 != trackInfo->unk2 && OTHERS) {
                 CLEAR_SLOT();
                 if (D_801C6BE0[D_801C7078] != 0xFFFF) {
@@ -237,13 +237,13 @@ void func_801C1DC0(u16 arg0)
         D_8011F2F0[D_801C7D24].x = 0.0f;
         D_8011F2F0[D_801C7D24].y = 0.0f;
         D_8011F2F0[D_801C7D24].z = 0.0f;
-        if (D_801E9990[arg0].v == 1 && D_801E9994[arg0].v == 0) {
+        if (btnPlayPressed[arg0].v == 1 && btnStopPressed[arg0].v == 0) {
             if (D_801CA130 == trackInfo->unk2) {
                 D_801CA138 = 1;
             }
             CLEAR_NEW();
             hudVisible = 0;
-        } else if (D_801E9990[arg0].v == 0 && D_801E9994[arg0].v == 1) {
+        } else if (btnPlayPressed[arg0].v == 0 && btnStopPressed[arg0].v == 1) {
             if (D_801CA138 != 0) {
                 if (D_801CA130 == trackInfo->unk2) {
                     if (trackInfo->unk0 == 3) {

@@ -1,6 +1,6 @@
 typedef struct { s32 unk0; s32 unk4; } R8;
 typedef struct { s16 unk0; s16 pad2; s32 pad4; R8 *unk8; s32 unkC; } V;
-extern s32 D_80000300;
+extern s32 osTvType;
 extern u8 D_80048190[];
 extern s16 D_80048192;
 extern s32 D_80048194;
@@ -23,9 +23,9 @@ void __osViInit(void) {
     D_80048192 = 1;
     D_800481C4 = 0x80000000;
     D_80048194 = 0x80000000;
-    if (D_80000300 == 0) {
+    if (osTvType == 0) {
         D_800481C8 = (V *)D_80048260;
-    } else if (D_80000300 == 2) {
+    } else if (osTvType == 2) {
         D_800481C8 = (V *)D_800482B0;
     } else {
         D_800481C8 = (V *)D_80048210;

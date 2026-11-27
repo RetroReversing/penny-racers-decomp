@@ -12,7 +12,7 @@ void func_80219C14(void);
 void func_80219CCC(void);
 void func_80219CF0(void);
 void gfxSetViewViewport(void);
-void func_8022026C(void);
+void appendCameraDisplayList(void);
 typedef struct { s32 w[13]; } E34;
 typedef struct { s16 a0; s16 a2; u16 b[4]; u8 pad[0xC]; u8 f18; } S80190C98;
 typedef struct { u16 id; u8 pad[0x62]; } O64;
@@ -24,7 +24,7 @@ extern E34 D_8018F5D0[14][8];
 extern E34 D_80238EC0[8];
 extern S80190C98 D_80190C98;
 extern O64 D_8011F304[];
-extern P64 sNodeTable[];
+extern P64 sPathNodes[];
 extern E12 D_80237DC0[];
 extern S800DA260 sCarSlots;
 extern u8 D_8021F0A0[];
@@ -51,7 +51,7 @@ void func_80218840(void) {
     func_8021FCA4();
     objCreate(0, 0, 3, 0, 114, 255, 0, 0, gfxSetViewViewport, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     D_80220E40 = 10.0f;
-    objCreate(0, 0, 3, 0, 116, 255, 0, 0, func_8022026C, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    objCreate(0, 0, 3, 0, 116, 255, 0, 0, appendCameraDisplayList, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     objCreate(0, 0, 3, 0, 122, 1, 0, func_80149A80, 0, 0.0f, 0.0f, 0.0f, 0.0f, 30.0f, 50.0f, 0.0f, 0.0f, 0.0f);
     D_80190C98.a0 = objCreate(0, 0, 1, 0x8000, 124, 155, D_80239714, func_80219A60, func_80219B58, 1.5f, -2.0f, 0.0f, -20.0f, 0.0f, 0.0f, 0.0500000007f, 0.100000001f, 0.0500000007f);
     D_80190C98.a2 = objCreate(0, 64, 1, 0x8000, 124, 155, D_80239714, func_80219A60, func_80219B58, -1.5f, -2.0f, 0.0f, -20.0f, 0.0f, 0.0f, 0.0500000007f, 0.100000001f, 0.0500000007f);
@@ -61,7 +61,7 @@ void func_80218840(void) {
         }
     }
     D_80190C98.b[0] = objCreate(0, 0, 1, 0x8000, 128, 255, D_8018F5D0, func_8021999C, func_8020FED8, 0.0f, -4.0f, -2.0f, 0.0f, 360.0f, 0.0f, 0.0700000003f, 0.0700000003f, 0.0700000003f);
-    sNodeTable[D_8011F304[D_80190C98.b[0]].id].p->f4 = &D_80237DC0[g->sel];
+    sPathNodes[D_8011F304[D_80190C98.b[0]].id].p->f4 = &D_80237DC0[g->sel];
     func_8012AD20(D_8011F304[D_80190C98.b[0]].id, D_8021F0A0, g->sel, g->f16A[g->sel]);
     q[1] = D_80190C98.b[0];
     setCarPartSprites(q);

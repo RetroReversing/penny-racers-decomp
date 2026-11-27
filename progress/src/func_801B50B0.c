@@ -4,9 +4,9 @@ typedef struct { s32 v; u8 pad[0x6C]; } PadS;
 extern Car D_8011F2F0[];
 extern PadU D_801E9988[];
 extern PadU D_801E998C[];
-extern PadS D_801E9990[];
-extern PadS D_801E9994[];
-extern PadS D_801E99C0[];
+extern PadS btnPlayPressed[];
+extern PadS btnStopPressed[];
+extern PadS btnModePressed[];
 extern u16 objListHead;
 extern u16 gameState;
 extern s32 D_80168BB0;
@@ -39,8 +39,8 @@ void func_801D65BC(s32);
     D_801C6B56 = 6; \
     D_801C6B54 = next; \
     ME.st = 6
-#define OK_PRESSED (D_801E9990[player].v == 1 && D_801E99C0[player].v == 0 && D_801E9994[player].v == 0)
-#define BACK_PRESSED (D_801E9990[player].v == 0 && (D_801E99C0[player].v == 1 || D_801E9994[player].v == 1))
+#define OK_PRESSED (btnPlayPressed[player].v == 1 && btnModePressed[player].v == 0 && btnStopPressed[player].v == 0)
+#define BACK_PRESSED (btnPlayPressed[player].v == 0 && (btnModePressed[player].v == 1 || btnStopPressed[player].v == 1))
 #define CLOSE() \
     ME.st = 0; \
     D_8011F2F0[D_8018BC3C].p[9] = 0

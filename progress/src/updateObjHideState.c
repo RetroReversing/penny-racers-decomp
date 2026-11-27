@@ -1,5 +1,5 @@
-extern u8 D_801E99C0[];
-extern u8 D_801E9994[];
+extern u8 btnModePressed[];
+extern u8 btnStopPressed[];
 extern s8 D_80187CF0;
 extern u16 objListHead;
 
@@ -28,8 +28,8 @@ extern Rec D_8011F2F0[];
     D_8011F2F0[self].state = 1;
     break;
   case 1:
-    if (*(s32 *)(D_801E99C0 + 0) == 1 || *(s32 *)(D_801E99C0 + 0x70) == 1 ||
-        *(s32 *)(D_801E99C0 + 0xE0) == 1 || *(s32 *)(D_801E99C0 + 0x150) == 1)
+    if (*(s32 *)(btnModePressed + 0) == 1 || *(s32 *)(btnModePressed + 0x70) == 1 ||
+        *(s32 *)(btnModePressed + 0xE0) == 1 || *(s32 *)(btnModePressed + 0x150) == 1)
     {
       other = objListHead;
       while (other != 0xFFFF)
@@ -44,8 +44,8 @@ extern Rec D_8011F2F0[];
     }
     break;
   case 2:
-    if (*(s32 *)(D_801E9994 + 0) == 1 || *(s32 *)(D_801E9994 + 0x70) == 1 ||
-        *(s32 *)(D_801E9994 + 0xE0) == 1 || *(s32 *)(D_801E9994 + 0x150) == 1)
+    if (*(s32 *)(btnStopPressed + 0) == 1 || *(s32 *)(btnStopPressed + 0x70) == 1 ||
+        *(s32 *)(btnStopPressed + 0xE0) == 1 || *(s32 *)(btnStopPressed + 0x150) == 1)
     {
       other = objListHead;
       while (other != 0xFFFF)

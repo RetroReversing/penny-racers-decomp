@@ -1,5 +1,5 @@
 extern u8 D_8011F2F0[];
-extern u8 sNodeTable[];
+extern u8 sPathNodes[];
 
 void func_8021999C(s32 arg0) {
     u8 *temp_a1;
@@ -11,7 +11,7 @@ void func_8021999C(s32 arg0) {
         *(u16 *)(temp_a1 + 0x3E) = 1;
         return;
     case 1:
-        if (**(u8 **)(sNodeTable + (u16)arg0 * 100) == 0) {
+        if (**(u8 **)(sPathNodes + (u16)arg0 * 100) == 0) {
             temp_fv1 = *(f32 *)(temp_a1 + 0x28) - 0.5f;
             *(f32 *)(temp_a1 + 0x28) = temp_fv1;
             if (temp_fv1 < 0.0f) {

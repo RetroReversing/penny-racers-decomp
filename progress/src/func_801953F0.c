@@ -7,7 +7,7 @@ typedef struct { u8 unk0; u8 unk1; u8 pad2[2]; u8 *unk4; u8 pad8[8]; } M931;
 typedef struct { u8 unk0; u8 unk1; u8 unk2; } H931;
 typedef struct { s8 x; s8 z; s8 w; s8 pad3; u16 sel; } S931;
 extern R931 D_8011F2F0[];
-extern Q931 D_801E9990[];
+extern Q931 btnPlayPressed[];
 extern E931 trackPointTable[];
 extern M931 D_801C7D30[];
 extern u8 D_8031445C[][8];
@@ -107,7 +107,7 @@ void func_801953F0(u16 arg0)
       trackPointTable[D_801C6B27].d = cursorY;
       trackPointTable[D_801C6B27].e = D_801C6B20;
     }
-    if (D_801E9990[arg0].unk0 == 1 && D_801E9990[arg0].unk4 == 0) {
+    if (btnPlayPressed[arg0].unk0 == 1 && btnPlayPressed[arg0].unk4 == 0) {
       D_801C7078 = ((s8) cursorX + (s8) trackStepX) + ((s8) cursorY + (s8) trackStepY) * 0x18;
       if (D_801C7078 == D_801C7066) {
         if (trackPointEntryCount + 1 > 200) {
@@ -154,7 +154,7 @@ void func_801953F0(u16 arg0)
       }
     }
   }
-  if (D_801E9990[arg0].unk4 % 20 == 1) {
+  if (btnPlayPressed[arg0].unk4 % 20 == 1) {
     if (D_801C6BE0[D_801C7078] != 0xFFFF) {
       D_8011F2F0[D_801C6BE0[D_801C7078]].unkD = 2;
       D_801C6BE0[D_801C7078] = 0xFFFF;

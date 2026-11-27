@@ -3,7 +3,7 @@ typedef struct { u16 pad0[2]; u16 unk4; u16 unk6; } A88;
 typedef struct { u16 f[50]; } F88;
 typedef struct { N88 *p; u8 pad[96]; } P88;
 extern F88 sNodeFlags[];
-extern P88 sNodeTable[];
+extern P88 sPathNodes[];
 typedef struct { u8 pad0[2]; u8 unk2; } G88;
 extern u16 D_80233EC0;
 extern G88 *trackInfo;
@@ -21,25 +21,25 @@ extern G88 *trackInfo;
     sNodeFlags[node].f[slot] |= 8;
     if (reversed == 0)
     {
-      if (sNodeTable[node].p->unkA != 0xFFFF)
+      if (sPathNodes[node].p->unkA != 0xFFFF)
       {
-        node = sNodeTable[node].p->unkA;
+        node = sPathNodes[node].p->unkA;
       }
       else
       {
-        node = sNodeTable[node].p->unkE;
+        node = sPathNodes[node].p->unkE;
         reversed = 1;
       }
     }
     else
     {
-      if (sNodeTable[node].p->unkE != 0xFFFF)
+      if (sPathNodes[node].p->unkE != 0xFFFF)
       {
-        node = sNodeTable[node].p->unkE;
+        node = sPathNodes[node].p->unkE;
       }
       else
       {
-        node = sNodeTable[node].p->unkA;
+        node = sPathNodes[node].p->unkA;
         reversed = 0;
       }
     }
@@ -58,25 +58,25 @@ extern G88 *trackInfo;
     }
     if (reversed == 0)
     {
-      if (sNodeTable[node].p->unkA != 0xFFFF)
+      if (sPathNodes[node].p->unkA != 0xFFFF)
       {
-        node = sNodeTable[node].p->unkA;
+        node = sPathNodes[node].p->unkA;
       }
       else
       {
-        node = sNodeTable[node].p->unkE;
+        node = sPathNodes[node].p->unkE;
         reversed = 1;
       }
     }
     else
     {
-      if (sNodeTable[node].p->unkE != 0xFFFF)
+      if (sPathNodes[node].p->unkE != 0xFFFF)
       {
-        node = sNodeTable[node].p->unkE;
+        node = sPathNodes[node].p->unkE;
       }
       else
       {
-        node = sNodeTable[node].p->unkA;
+        node = sPathNodes[node].p->unkA;
         reversed = 0;
       }
     }
@@ -96,25 +96,25 @@ extern G88 *trackInfo;
     }
     if (reversed == 0)
     {
-      if (sNodeTable[node].p->unk8 != 0xFFFF)
+      if (sPathNodes[node].p->unk8 != 0xFFFF)
       {
-        node = sNodeTable[node].p->unk8;
+        node = sPathNodes[node].p->unk8;
       }
       else
       {
-        node = sNodeTable[node].p->unkC;
+        node = sPathNodes[node].p->unkC;
         reversed = 1;
       }
     }
     else
     {
-      if (sNodeTable[node].p->unkC != 0xFFFF)
+      if (sPathNodes[node].p->unkC != 0xFFFF)
       {
-        node = sNodeTable[node].p->unkC;
+        node = sPathNodes[node].p->unkC;
       }
       else
       {
-        node = sNodeTable[node].p->unk8;
+        node = sPathNodes[node].p->unk8;
         reversed = 0;
       }
     }

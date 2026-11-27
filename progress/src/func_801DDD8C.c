@@ -32,9 +32,9 @@ extern u32 D_801E9980;
 extern u32 D_801E9984;
 extern u32 D_801E9988;
 extern u32 D_801E998C;
-extern u32 D_801E9990;
+extern u32 btnPlayPressed;
 typedef struct { u32 a; u8 unk4[0x28]; u32 b; } Keys;
-extern Keys D_801E9994;
+extern Keys btnStopPressed;
 extern u8 D_801E9B1C;
 extern Entry D_801E9D38;
 extern u16 D_80072BDC;
@@ -176,12 +176,12 @@ void func_801DDD8C(u16 arg0)
                 playMenuSound(0x3B);
             }
             D_801E9730 = D_801F188A + D_801E977E;
-        } else if (D_801E9990 == 1 && D_801E9B20[D_801E9730] == 1) {
+        } else if (btnPlayPressed == 1 && D_801E9B20[D_801E9730] == 1) {
             D_801E9799 = 1;
             D_801E9B1C = 0;
             D_8011F2F0[arg0].state = 0x14;
             playStageSound(7, 0x3D);
-        } else if (D_801E9994.a == 1 || D_801E9994.b == 1) {
+        } else if (btnStopPressed.a == 1 || btnStopPressed.b == 1) {
             playStageSound(7, 0x3A);
             D_8011F2F0[arg0].state = 0x384;
             *D_8011F2F0[D_8018BC3C].unk60 = 2;
@@ -216,14 +216,14 @@ void func_801DDD8C(u16 arg0)
                 D_801E9B1C = 0;
                 playStageSound(7, 0x3B);
             }
-        } else if (D_801E9990 == 1) {
+        } else if (btnPlayPressed == 1) {
             if (D_801E9B1C == 1) {
                 func_801DD938(0x10, 0x4C, 0xA, 2, 0xC8, 0xB4, 0x12, 0x18, D_801E87C0, 0x2E);
                 playStageSound(7, 0x3D);
             } else {
                 goto cancel;
             }
-        } else if (D_801E9994.a == 1) {
+        } else if (btnStopPressed.a == 1) {
         cancel:
             D_801E9799 = 0;
             D_8011F2F0[arg0].state = 2;

@@ -4,7 +4,7 @@ typedef struct { u8 pad0[0x30]; f32 unk30; f32 unk34; u8 pad38[0x18]; s32 *unk50
 extern Cam D_8011F2F0[];
 extern Obj carPartObjs[];
 extern u8 D_802390C8[];
-extern void func_8013AF08();
+extern void stepSlotMotion();
 extern void func_8015FD04();
 u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 
@@ -34,7 +34,7 @@ u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f3
         *(f32 *)(ctl->car + 0x7C8) = *(f32 *)(ctl->car + 0x7BC);
     }
     if (!(ctl->timer & 7) && ctl->car[0x8A1] < 2) {
-        o = objCreate(0, 0, 1, 0, 0x5B, 0x7F, D_802390C8, func_8013AF08, func_8015FD04,
+        o = objCreate(0, 0, 1, 0, 0x5B, 0x7F, D_802390C8, stepSlotMotion, func_8015FD04,
                           *(f32 *)(ctl->car + 0x714), *(f32 *)(ctl->car + 0x714+4), *(f32 *)(ctl->car + 0x714+8), 0, 0, 0, 0.08f, 0.08f, 0.08f);
         if (o != 0xFFFE && o != 0xFFFF) {
             D_8011F2F0[o].unk2 = D_8011F2F0[o].unk4 = D_8011F2F0[o].unk6 = D_8011F2F0[o].unk8 = 0x40;
@@ -44,7 +44,7 @@ u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f3
             D_8011F2F0[o].unk3E = ctl->car[0x7CC];
             D_8011F2F0[o].unkE = *(u16 *)(ctl->car + 2);
         }
-        o = objCreate(0, 0, 1, 0, 0x5B, 0x7F, D_802390C8, func_8013AF08, func_8015FD04,
+        o = objCreate(0, 0, 1, 0, 0x5B, 0x7F, D_802390C8, stepSlotMotion, func_8015FD04,
                           *(f32 *)(ctl->car + 0x720), *(f32 *)(ctl->car + 0x720+4), *(f32 *)(ctl->car + 0x720+8), 0, 0, 0, 0.08f, 0.08f, 0.08f);
         if (o != 0xFFFE && o != 0xFFFF) {
             D_8011F2F0[o].unk2 = D_8011F2F0[o].unk4 = D_8011F2F0[o].unk6 = D_8011F2F0[o].unk8 = 0x40;

@@ -9,14 +9,14 @@ extern Obj D_8011F2F0[];
 extern Tbl D_802CF134[];
 extern char D_8011F308[];
 extern char sPrimColorG[];
-extern char sPrimColorB[];
+extern char sPathOffsetZ[];
 extern char D_8011F31C[];
 void followTrackPath(Car *);
 void func_80222988(Car *);
 void func_80222A84(Car *);
 void func_80222368(Car *);
 void func_8022312C(Car *);
-void func_80223DB0(Car *);
+void updateTrackTarget(Car *);
 void func_80224410(Car *);
 s32 func_80223FBC(Car *);
 void func_802240B0(Car *);
@@ -60,7 +60,7 @@ void func_80221AD0(Car *car) {
     }
     func_80222368(car);
     func_8022312C(car);
-    func_80223DB0(car);
+    updateTrackTarget(car);
     func_80224410(car);
     n = func_80223FBC(car);
     if (car->x74C == 5) {
@@ -163,7 +163,7 @@ void func_80221AD0(Car *car) {
     if (car->mode == 2 || car->mode == 6 || car->mode == 7) {
         if (car->mode == 2) {
             { s32 k = o->x14; n = k << 1; n += k; n <<= 3; n += k; n <<= 2; }
-            *(f32 *) (sPrimColorB + n) = __sinf(car->x8B4 * 3.14f / 180.0f) * 40.0f;
+            *(f32 *) (sPathOffsetZ + n) = __sinf(car->x8B4 * 3.14f / 180.0f) * 40.0f;
         }
         { s32 k = o->x14; n = k << 1; n += k; n <<= 3; n += k; n <<= 2; }
         *(f32 *) (sPrimColorG + n) = 40.0f - __cosf((f32) (car->x8B4 * 3.14 / 180.0)) * 40.0f;

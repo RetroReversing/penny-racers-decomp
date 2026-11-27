@@ -13,7 +13,10 @@ extern u8 D_80220F50[];
 extern u8 D_80220F68[];
 #define PIPESYNC(p) { Cmd *_g = (Cmd *)((p)++); _g->w0 = 0xE7000000; _g->w1 = 0; }
 #define DL(p, dl) { Cmd *_g = (Cmd *)((p)++); _g->w0 = 0x06000000; _g->w1 = (u32)(dl); }
-void func_8021FAA4(Cmd **gfx)
+
+/* Appends a pipe sync and then the display list for the current row-board view. The list
+   depends on the view's mode (sRowBoard.rec[viewIndex].mode) and on the variant D_8011F2E8. */
+void appendRowBoardDisplayList(Cmd **gfx)
 {
     PIPESYNC(*gfx);
     switch (sRowBoard.rec[viewIndex].mode) {

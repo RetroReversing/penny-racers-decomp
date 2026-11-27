@@ -10,8 +10,8 @@ extern u8 D_8021E20B[][9];
 extern u8 D_8021B068;
 extern s32 D_8021B300;
 extern s32 D_8021B304;
-extern s32 D_801E9990;
-extern s32 D_801E9994;
+extern s32 btnPlayPressed;
+extern s32 btnStopPressed;
 extern u8 *D_801CA134;
 extern u8 *trackInfo;
 extern u8 D_801C5EF8[], D_801C6074[], D_801C618C[], D_801C631C[], D_801C6408[], D_801C6624[], D_801C673C[], D_801C687C[], trackPointTable[];
@@ -54,7 +54,7 @@ void func_8020CAF4(u16 id) {
         if (*D_8011F2F0[D_8018BC3C].f60 != 0) {
             keys = 0;
         }
-        if (D_801E9990 == 1 && D_8021B300 == 0) {
+        if (btnPlayPressed == 1 && D_8021B300 == 0) {
             switch (sMenu.fC) {
             case 9:
                 D_801CA134 = D_801C5EF8;
@@ -106,7 +106,7 @@ void func_8020CAF4(u16 id) {
                 D_8021B300 = 1;
                 playMenuSound(0x3B);
             }
-        } else if (D_801E9994 == 1 && D_8021B068 == 0 && D_8021B300 == 0) {
+        } else if (btnStopPressed == 1 && D_8021B068 == 0 && D_8021B300 == 0) {
             playMenuSound(0x3A);
             D_8011F2F0[id].f3E = 5;
         }
@@ -129,12 +129,12 @@ void func_8020CAF4(u16 id) {
         func_8020E788();
         break;
     case 2:
-        if (D_801E9990 == 1 && D_8021B300 == 0) {
+        if (btnPlayPressed == 1 && D_8021B300 == 0) {
             playMenuSound(0x3D);
             D_8011F2F0[id].f3E = 4;
         }
         D_8021B068 = 1;
-        if (D_801E9994 == 1 && D_8021B300 == 0) {
+        if (btnStopPressed == 1 && D_8021B300 == 0) {
             playMenuSound(0x3A);
             D_8011F2F0[id].f3E = 1;
             D_8021B068 = 0;

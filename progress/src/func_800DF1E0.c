@@ -17,14 +17,14 @@ typedef struct {
     u8 pad10[0x54];
 } Unk800DF1E0_3;
 
-extern Unk800DF1E0_3 sNodeTable[];
+extern Unk800DF1E0_3 sPathNodes[];
 
 void func_800DF1E0(u16 arg0, u16 *arg1) {
     s32 n;
     s32 i;
 
-    sNodeTable[arg0].unkC = arg1;
-    switch (sNodeTable[arg0].unk0->unk4->count) {
+    sPathNodes[arg0].unkC = arg1;
+    switch (sPathNodes[arg0].unk0->unk4->count) {
     case 0:
         n = 0;
         break;
@@ -39,6 +39,6 @@ void func_800DF1E0(u16 arg0, u16 *arg1) {
         break;
     }
     for (i = 0; i < n; i++) {
-        arg1[i] = sNodeTable[arg0].unk0->unk4->data[i];
+        arg1[i] = sPathNodes[arg0].unk0->unk4->data[i];
     }
 }

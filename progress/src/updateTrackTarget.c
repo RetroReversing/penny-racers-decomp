@@ -23,7 +23,9 @@ typedef struct {
     Row6C *unk8DC;
 } Obj;
 
-void func_80223DB0(Obj *obj) {
+/* Sets the object's distance to its track row point, then its target value: a lookup
+   interpolated by that distance, with a fixed override for track 0 on course type 6. */
+void updateTrackTarget(Obj *obj) {
     Row6C *row;
     u8 *tbl;
     f32 dx;

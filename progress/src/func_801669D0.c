@@ -2,7 +2,7 @@ typedef struct { u8 pad0[2]; u16 obj; u8 pad4; u8 b5; u8 pad6[0x558]; s16 ammo; 
 typedef struct { f32 v; u8 pad[0x60]; } SlotF;
 typedef struct { void *v; u8 pad[0x78]; } HitP;
 extern Car sCars[];
-extern SlotF D_8011F308[], sPrimColorG[], sPrimColorB[], D_8011F320[];
+extern SlotF D_8011F308[], sPrimColorG[], sPathOffsetZ[], D_8011F320[];
 extern HitP slotOwner[];
 extern u8 D_80239540[];
 void updateCarOutroAnim(void);
@@ -39,7 +39,7 @@ void func_801669D0(Car *car) {
                         return;
                     }
                     n = objCreate(0, car->b5, 1, 0, 0x51, 0xFF, D_80239540, updateHomingMissile, 0,
-                                      D_8011F308[sCars[i].obj].v, sPrimColorG[sCars[i].obj].v + 200.0f, sPrimColorB[sCars[i].obj].v,
+                                      D_8011F308[sCars[i].obj].v, sPrimColorG[sCars[i].obj].v + 200.0f, sPathOffsetZ[sCars[i].obj].v,
                                       0.0f, i * 60, 0.0f, 1.0f, 1.0f, 1.0f);
                     if ((u16)(n + 2) < 2) {
                         func_8013E49C(slot);

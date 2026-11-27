@@ -13,16 +13,16 @@ typedef s32 M2C_UNK32;
 #endif
 
 M2C_UNK func_801FE954(s32);                         /* extern */
-M2C_UNK func_801FF37C(s32);                         /* extern */
-extern s32 D_80203AC0;
+M2C_UNK updateSoundTestSfx(s32);                         /* extern */
+extern s32 soundTestMode;
 
 void func_801FE908(s32 arg0) {
-    switch (D_80203AC0) {                           /* irregular */
+    switch (soundTestMode) {                           /* irregular */
     case 0:
         func_801FE954(arg0 & 0xFFFF);
         return;
     case 1:
-        func_801FF37C(arg0 & 0xFFFF);
+        updateSoundTestSfx(arg0 & 0xFFFF);
         return;
     }
 }

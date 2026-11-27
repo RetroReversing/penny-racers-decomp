@@ -64,7 +64,7 @@ extern u8 D_801D4390[];
 extern u8 D_801CF4C8[];
 extern u8 spawnScript[];
 extern u16 *D_8021D334[];
-extern u16 *D_80203080[];
+extern u16 *sHexGlyphs[];
 extern u8 D_8021CA80[][3];
 extern u8 D_8021C994[];
 extern u16 pickLists[];
@@ -133,7 +133,7 @@ void func_8021A334(Gfx **gfxp, u16 id) {
             break;
         }
         gfxSetPrimColor(gfxp, 0, 0, 0, 0xAA);
-        gfxDrawText(gfxp, (u32)(obj->x + 2.0f), (u32)(obj->y + 2.0f), 0xA, D_801D4390, D_80203080[chr], 0, D_801CF4C8, 10, 14, 160, 252);
+        gfxDrawText(gfxp, (u32)(obj->x + 2.0f), (u32)(obj->y + 2.0f), 0xA, D_801D4390, sHexGlyphs[chr], 0, D_801CF4C8, 10, 14, 160, 252);
         if (D_8021C994[obj->kind] < 0xE0) {
             r = 0xFF;
             g = 0xFF;
@@ -145,7 +145,7 @@ void func_8021A334(Gfx **gfxp, u16 id) {
             }
         }
         gfxSetPrimColor(gfxp, r, g, b, 0xFF);
-        gfxDrawText(gfxp, (u32)obj->x, (u32)obj->y, 0xA, D_801D4390, D_80203080[chr], 0, D_801CF4C8, 10, 14, 160, 252);
+        gfxDrawText(gfxp, (u32)obj->x, (u32)obj->y, 0xA, D_801D4390, sHexGlyphs[chr], 0, D_801CF4C8, 10, 14, 160, 252);
         break;
     }
 }

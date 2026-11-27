@@ -25,7 +25,7 @@ extern u8 D_80236F58[];
 extern f32 D_80237070[];
 extern f32 D_80168574[];
 extern u16 D_80233EC0;
-s16 func_8012913C(u16, f32, f32, f32);
+s16 findPathNodeContaining(u16, f32, f32, f32);
 
 /* Steers an AI racer along the track path: when it reaches its target node it advances to the next path node, then snaps its target point and speed to it. */ void followTrackPath(Obj *obj) {
     Rec *rec = &D_8011F2F0[obj->f2];
@@ -104,9 +104,9 @@ s16 func_8012913C(u16, f32, f32, f32);
         obj->f74C = 0;
         obj->f7B4 = obj->f7B8 = obj->f7BC = 0.0f;
         obj->f7C0 = obj->f7C8 = obj->f7C4 = 0.0f;
-        obj->f7D0 = func_8012913C(D_80233EC0, rec->x, rec->y, rec->z);
+        obj->f7D0 = findPathNodeContaining(D_80233EC0, rec->x, rec->y, rec->z);
         obj->f7D2 = 0;
-        obj->f814 = func_8012913C(D_80233EC0, rec->x, rec->y, rec->z);
+        obj->f814 = findPathNodeContaining(D_80233EC0, rec->x, rec->y, rec->z);
         obj->f816 = 0;
     }
 done:

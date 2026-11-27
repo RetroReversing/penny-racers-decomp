@@ -10,7 +10,7 @@ extern Car D_8011F2F0[];
 extern u16 D_8006FAF0[];
 extern u8 func_80232820;
 extern Ready D_801E9A10;
-extern Ready D_801E99A0;
+extern Ready btnUpPressed;
 extern u8 D_800DA26A[];
 extern Pane D_8022ACAA[];
 extern u8 D_801E87E1;
@@ -60,7 +60,7 @@ void func_8022E748(void)
             flag = 1;
         }
     case 1:
-        if (D_801E99A0.unk0 && D_801E99A0.unk8 && D_801E99A0.unkC && D_801E99A0.unk1C &&
+        if (btnUpPressed.unk0 && btnUpPressed.unk8 && btnUpPressed.unkC && btnUpPressed.unk1C &&
             *(u16 *)&D_800DA26A[0x4] == 0xF) {
             flag = 1;
         }

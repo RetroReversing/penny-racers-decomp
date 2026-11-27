@@ -62,9 +62,9 @@ extern u16 D_8018BC30;
 extern u8 D_8018BC33;
 extern u16 D_80190C90;
 extern u16 D_801E975A;
-extern M2C_UNK D_801E99A0;
-extern M2C_UNK D_801E99A4;
-extern M2C_UNK D_801E99A8;
+extern M2C_UNK btnUpPressed;
+extern M2C_UNK btnDownPressed;
+extern M2C_UNK btnRightPressed;
 extern M2C_UNK D_80221080;
 extern M2C_UNK D_80221084;
 extern M2C_UNK D_80221088;
@@ -87,7 +87,7 @@ extern M2C_UNK func_80136A28;
 extern M2C_UNK playerSlots;
 extern M2C_UNK racerTimerFlags;
 extern M2C_UNK sNodeFlags;
-extern M2C_UNK sPrimColorB;
+extern M2C_UNK sPathOffsetZ;
 extern M2C_UNK sPrimColorG;
 extern M2C_UNK sRowBoard;
 extern M2C_UNK slotObjIds;
@@ -303,7 +303,7 @@ void func_8012C4F4(u16 arg0) {
         temp_v0 = sp19E * 0x64;
         var_fp = *(&D_8011F308 + temp_v0);
         var_s4 = *(&sPrimColorG + temp_v0) + *(&D_80183AE0 + (temp_a0 * 4));
-        var_s7 = *(&sPrimColorB + temp_v0);
+        var_s7 = *(&sPathOffsetZ + temp_v0);
         sp194 = *(&D_8011F318 + temp_v0);
     }
     if ((*(&D_8022AFE0 + (temp_a1 * 0x8F0)) == 1) && (*(&D_8018B520 + temp_a1) == 0)) {
@@ -592,7 +592,7 @@ block_37:
     temp_s2_2 = temp_s5 & 0xFFFF;
     if (sp1A6 != 0) {
         if (*(&D_8022AFE0 + (temp_s2_2 * 0x8F0)) == 0) {
-            if (*(&D_801E99A0 + (temp_s2_2 * 0x70)) == 1) {
+            if (*(&btnUpPressed + (temp_s2_2 * 0x70)) == 1) {
                 temp_a0_5 = temp_s2_2 * 4;
                 if ((*(&D_80189B30 + temp_s2_2) == 0) || (temp_v0_14 = *(&D_80189B30 + temp_s2_2) - 1, *(&D_80189B30 + temp_s2_2) = temp_v0_14, *(&D_8018B520 + temp_s2_2) = temp_v0_14, temp_a1_3 = temp_a0_5 + &D_80183AE0, *temp_a1_3 = *(&D_80167E80 + (*(&D_80189B30 + temp_s2_2) * 4)), temp_s0_4 = temp_a0_5 + &D_80183AB0, *temp_s0_4 = *(&D_80167E68 + (*(&D_80189B30 + temp_s2_2) * 4)), temp_s1_4 = temp_a0_5 + &D_80183AD0, *temp_s1_4 = *(&D_80167E74 + (*(&D_80189B30 + temp_s2_2) * 4)), *(&D_80183A90 + temp_a0_5) = 1.0f, *(&D_80183AA0 + temp_a0_5) = 1.0f, temp_s4 = *(&sPrimColorG + (sp19E * 0x64)) + *temp_a1_3, temp_fa0_4 = sp194 + *(&D_80183AC0 + temp_a0_5), D_80183A88 = temp_fa0_4, temp_fs5_3 = __sinf((temp_fa0_4 * 3.14f) / 180.0f, temp_a0_5, (s32) temp_a1_3) * *temp_s0_4, temp_fs0_10 = __sinf((D_80183A88 * 3.14f) / 180.0f), temp_fs5_4 = (temp_fs5_3 - (temp_fs0_10 * __sinf((*temp_s1_4 * 3.14f) / 180.0f) * *temp_s0_4)) + var_fp, temp_fs4_2 = (__sinf((*temp_s1_4 * 3.14f) / 180.0f) * *temp_s0_4) + temp_s4, temp_fs3_3 = __cosf((D_80183A88 * 3.14f) / 180.0f) * *temp_s0_4, temp_fs0_11 = __cosf((D_80183A88 * 3.14f) / 180.0f), temp_fs3_4 = (temp_fs3_3 - (temp_fs0_11 * __sinf((*temp_s1_4 * 3.14f) / 180.0f) * *temp_s0_4)) + var_s7, temp_v0_15 = (temp_s6 & 0xFFFF) * 0x24, *(&D_80221080 + temp_v0_15) = temp_fs5_4, *(&D_80221084 + temp_v0_15) = temp_fs4_2, *(&D_80221088 + temp_v0_15) = temp_fs3_4, *(&D_8022108C + temp_v0_15) = var_fp, *(&D_80221090 + temp_v0_15) = temp_s4, *(&D_80221094 + temp_v0_15) = var_s7, (*(&D_80189B30 + temp_s2_2) == 0))) {
                     temp_v1_12 = ((temp_s5 & 0xFFFF) * 2) + (((sp19E + 1) * 0x64) + &sNodeFlags);
@@ -608,7 +608,7 @@ block_37:
                 *(&playerSlots + var_v0_2) = var_v1_3;
             }
             temp_a2 = temp_s5 & 0xFFFF;
-            if (*(&D_801E99A4 + (temp_a2 * 0x70)) == 1) {
+            if (*(&btnDownPressed + (temp_a2 * 0x70)) == 1) {
                 temp_a0_6 = temp_a2 * 4;
                 if ((u8) *(&D_80189B30 + temp_a2) < 2U) {
                     temp_v0_16 = *(&D_80189B30 + temp_a2) + 1;
@@ -659,7 +659,7 @@ block_37:
         if (M2C_FIELD(&sRowBoard, s16 *, 0x2108) == 1) {
             if (D_80189CC8 != 3) {
                 var_v0_4 = temp_s5 & 0xFFFF;
-                if (*(&D_801E99A8 + ((temp_s5 & 0xFFFF) * 0x70)) == M2C_FIELD(&sRowBoard, s16 *, 0x2108)) {
+                if (*(&btnRightPressed + ((temp_s5 & 0xFFFF) * 0x70)) == M2C_FIELD(&sRowBoard, s16 *, 0x2108)) {
                     if (D_8018BC33 == 0) {
                         temp_v0_18 = D_8018BC30 * 0x64;
                         *(&sNodeFlags + temp_v0_18) = *(&sNodeFlags + temp_v0_18) | 8;

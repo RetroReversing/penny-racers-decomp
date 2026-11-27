@@ -1,8 +1,8 @@
-extern s32 D_801E99A0;
-extern s32 D_801E99A4;
-extern s32 D_801E99A8;
-extern s32 D_801E99AC;
-extern s32 D_801E99C0;
+extern s32 btnUpPressed;
+extern s32 btnDownPressed;
+extern s32 btnRightPressed;
+extern s32 btnLeftPressed;
+extern s32 btnModePressed;
 extern u16 creditsCursor;
 extern u16 gameState;
 extern u16 D_8006FB10;
@@ -15,33 +15,33 @@ void func_8022F300(void)
     u16 v;
 
     {
-        s32 *p = &D_801E99A0;
+        s32 *p = &btnUpPressed;
         if (*p == 1 && creditsCursor != 0) {
             *p = 2;
             creditsCursor -= 1;
         }
     }
     {
-        s32 *p = &D_801E99A4;
+        s32 *p = &btnDownPressed;
         if (*p == 1 && creditsCursor < 9) {
             *p = 2;
             creditsCursor += 1;
         }
     }
-    if (D_801E99AC == 1) {
+    if (btnLeftPressed == 1) {
         u16 *p = &D_8006FB10;
         if (*p >= 2) {
             *p -= 1;
         }
     }
-    if (D_801E99A8 == 1) {
+    if (btnRightPressed == 1) {
         u16 *p = &D_8006FB10;
         if (*p < 9) {
             *p += 1;
         }
     }
     {
-        s32 *p = &D_801E99C0;
+        s32 *p = &btnModePressed;
         if (*p != 0) {
             *p += 1;
             switch (creditsCursor) {

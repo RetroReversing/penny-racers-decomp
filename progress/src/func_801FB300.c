@@ -3,9 +3,9 @@ typedef struct { u8 pad0[0xA]; u16 unkA; } NFB;
 typedef struct { NFB *p; u8 pad[0x60]; } PFB;
 typedef struct { f32 eye[3]; f32 at[3]; f32 up[3]; } CFB;
 typedef struct { u8 pad0[0x10]; u32 unk10; u32 unk14; u32 unk18; u32 unk1C; u8 pad20[0x14]; u32 unk34; u8 pad38[0x38]; } IFB;
-extern IFB D_801E9990[];
+extern IFB btnPlayPressed[];
 extern RFB D_8011F2F0[];
-extern PFB sNodeTable[];
+extern PFB sPathNodes[];
 extern CFB D_80221080[];
 extern f32 D_801FFD20;
 extern f32 D_801FFD24;
@@ -49,7 +49,7 @@ void func_801FB300(u16 arg0)
   {
     case 0:
       D_8020389C = D_80233EC0;
-      D_8020389E = sNodeTable[D_8020389C].p->unkA;
+      D_8020389E = sPathNodes[D_8020389C].p->unkA;
       D_80203890 = D_8011F2F0[D_8020389E].unk44;
       D_80203894 = D_8011F2F0[D_8020389E].unk48;
       D_80203898 = D_8011F2F0[D_8020389E].unk4C;
@@ -60,7 +60,7 @@ void func_801FB300(u16 arg0)
       D_8011F2F0[arg0].timer = 1;
       break;
     case 1:
-      if (D_801E9990[0].unk18 != 0)
+      if (btnPlayPressed[0].unk18 != 0)
       {
         D_801FFD28 += 1.0f;
         if (D_801FFD28 >= 360.0f)
@@ -69,7 +69,7 @@ void func_801FB300(u16 arg0)
         }
       }
       off = i ? 0 : 0;
-      if (D_801E9990[0].unk1C != 0)
+      if (btnPlayPressed[0].unk1C != 0)
       {
         D_801FFD28 -= 1.0f;
         if (D_801FFD28 < 0.0f)
@@ -77,9 +77,9 @@ void func_801FB300(u16 arg0)
           D_801FFD28 += 360.0f;
         }
       }
-      if (*(u32 *) ((u8 *) &D_801E9990[0].unk34 + off) != 0)
+      if (*(u32 *) ((u8 *) &btnPlayPressed[0].unk34 + off) != 0)
       {
-        if (*(u32 *) ((u8 *) &D_801E9990[0].unk10 + off) != 0)
+        if (*(u32 *) ((u8 *) &btnPlayPressed[0].unk10 + off) != 0)
         {
           D_801FFD2C += 1.0f;
           if (D_801FFD2C > 85.0f)
@@ -87,7 +87,7 @@ void func_801FB300(u16 arg0)
             D_801FFD2C = 85.0f;
           }
         }
-        if (D_801E9990[0].unk14 != 0)
+        if (btnPlayPressed[0].unk14 != 0)
         {
           D_801FFD2C -= 1.0f;
           if (D_801FFD2C < 0.0f)
@@ -98,11 +98,11 @@ void func_801FB300(u16 arg0)
       }
       else
       {
-        if (D_801E9990[0].unk10 != 0)
+        if (btnPlayPressed[0].unk10 != 0)
         {
           if (D_801FFD24 > 2.0f)
           {
-            if (D_801E9990[0].unk10 > 0x14)
+            if (btnPlayPressed[0].unk10 > 0x14)
             {
               D_801FFD24 -= 4.0f;
             }
@@ -112,11 +112,11 @@ if (i != 0) { D_801FFD24 -= 1.0f; } else { D_801FFD24 -= 1.0f; }
             }
           }
         }
-        if (D_801E9990[0].unk14 != 0)
+        if (btnPlayPressed[0].unk14 != 0)
         {
           if (D_801FFD24 < 5000.0f)
           {
-            if (D_801E9990[0].unk14 > 0x14)
+            if (btnPlayPressed[0].unk14 > 0x14)
             {
               D_801FFD24 += 4.0f;
             }
@@ -136,7 +136,7 @@ if (i != 0) { D_801FFD24 -= 1.0f; } else { D_801FFD24 -= 1.0f; }
       if (sqrtf(dx * dx + dy * dy + dz * dz) < 40.0f)
       {
         D_8020389C = D_8020389E;
-        D_8020389E = sNodeTable[D_8020389C].p->unkA;
+        D_8020389E = sPathNodes[D_8020389C].p->unkA;
         D_80203890 = D_8011F2F0[D_8020389E].unk44;
         D_80203894 = D_8011F2F0[D_8020389E].unk48;
         D_80203898 = D_8011F2F0[D_8020389E].unk4C;

@@ -1,6 +1,6 @@
 extern void ballMoveCollide(void *, s32, s32, s32, f32, f32, f32);
 s32 func_8013E49C(u16);
-extern s32 func_8013F050(s32, void *);
+extern s32 ballCheckZoneHit(s32, void *);
 extern void spawnCrashEffect(s32);
 extern void queueObjEvent(s32, s32);
 extern u8 D_8006FAF0[];
@@ -54,7 +54,7 @@ extern f32 D_80168574[];
             D_8011F2FD[(recIndex & 0xFFFF) * 100] = 2;
         }
     } else {
-        if (func_8013F050(recIndex & 0xFFFF, ball) & 0xFF) {
+        if (ballCheckZoneHit(recIndex & 0xFFFF, ball) & 0xFF) {
             ctrl = *(u8 **)(ball + 4);
             ctrlWord = *(u16 *)(ctrl + 0x560);
             lowBits = ctrlWord & 7;

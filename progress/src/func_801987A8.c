@@ -1,8 +1,8 @@
-u32 func_8019A31C();
+u32 getCursorGridCell();
 extern s8 cursorX;
 inline static int inline_fn()
 {
-  return (func_8019A31C() >> 2) & 1;
+  return (getCursorGridCell() >> 2) & 1;
 }
 
 s32 func_801987A8(void)

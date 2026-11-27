@@ -61,13 +61,13 @@ typedef struct { u8 *str; u8 pad4[8]; } Str;
 extern s32 D_80202628;
 extern u8 fontPalette[];
 extern u8 D_802037AC[], D_802037C4[], D_802037D8[], D_802037EC[], D_802037FC[], D_8020380C[], D_80203820[], D_80203838[], D_8020377C[], D_80203844[], D_8020378C[], D_80203794[], D_8020384C[], D_8020379C[], D_802037A4[], D_80203854[];
-extern s16 D_80203ABA;
-extern s32 D_80203AB8;
-extern u8 D_80203ACA;
-extern u16 D_80203ABE;
+extern s16 sndTestVolume;
+extern s32 sndTestIndex;
+extern u8 sndTestPitchPreset;
+extern u16 sndTestVoice;
 extern Str D_801D75E0[];
 extern Str D_802025E8[];
-extern Rec D_801D7DF4[];
+extern Rec sndTestSlots[];
 void gfxSetup2DState(Gfx **);
 void gfxSetPrimAlpha(Gfx **, s32);
 void drawText(Gfx **, s32, u16, s32, u8 *, u8 *);
@@ -94,9 +94,9 @@ void drawHighScoreScreen(Gfx **gfxp) {
     T(0x1E, 0x46, D_8020380C);
     T(0x1E, 0x50, D_80203820);
     T(0x1E, 0x64, D_80203838);
-    drawNumber(gfxp, 0x6E, 0x64, 8, fontPalette, 2, D_80203ABA);
-    T(0x8C, 0x64, D_801D75E0[D_80203AB8].str);
-    T(0x1E, 0x6E, D_802025E8[D_80203ACA].str);
+    drawNumber(gfxp, 0x6E, 0x64, 8, fontPalette, 2, sndTestVolume);
+    T(0x8C, 0x64, D_801D75E0[sndTestIndex].str);
+    T(0x1E, 0x6E, D_802025E8[sndTestPitchPreset].str);
     T(0x28, 0x8C, D_8020377C);
     T(0x28, 0x96, D_80203844);
     T(0x28, 0xA0, D_8020378C);
@@ -105,19 +105,19 @@ void drawHighScoreScreen(Gfx **gfxp) {
     T(0x28, 0xBE, D_8020379C);
     T(0x28, 0xC8, D_802037A4);
     for (row = 0; row < 4; row++) {
-        entry = row + D_80203ABE;
+        entry = row + sndTestVoice;
         if (entry < 8) {
-            drawNumber(gfxp, (row + 2) * 48, 0x8C, 8, fontPalette, 5, row + D_80203ABE);
-            if (D_801D7DF4[entry].id == -1) {
+            drawNumber(gfxp, (row + 2) * 48, 0x8C, 8, fontPalette, 5, row + sndTestVoice);
+            if (sndTestSlots[entry].id == -1) {
                 T((u16)((row + 2) * 48), 0x96, D_80203854);
             } else {
-                T((u16)((row + 2) * 48), 0x96, D_801D75E0[D_801D7DF4[entry].name].str);
+                T((u16)((row + 2) * 48), 0x96, D_801D75E0[sndTestSlots[entry].name].str);
             }
-            drawNumber(gfxp, (row + 2) * 48, 0xA0, 8, fontPalette, 5, D_801D7DF4[entry].h);
-            drawNumber(gfxp, (row + 2) * 48, 0xAA, 8, fontPalette, 5, D_801D7DF4[entry].b);
-            drawNumber(gfxp, (row + 2) * 48, 0xB4, 8, fontPalette, 5, (s16)D_801D7DF4[entry].f);
-            drawNumber(gfxp, (row + 2) * 48, 0xBE, 8, fontPalette, 5, D_801D7DF4[entry].c);
-            drawNumber(gfxp, (row + 2) * 48, 0xC8, 8, fontPalette, 5, D_801D7DF4[entry].d);
+            drawNumber(gfxp, (row + 2) * 48, 0xA0, 8, fontPalette, 5, sndTestSlots[entry].h);
+            drawNumber(gfxp, (row + 2) * 48, 0xAA, 8, fontPalette, 5, sndTestSlots[entry].b);
+            drawNumber(gfxp, (row + 2) * 48, 0xB4, 8, fontPalette, 5, (s16)sndTestSlots[entry].f);
+            drawNumber(gfxp, (row + 2) * 48, 0xBE, 8, fontPalette, 5, sndTestSlots[entry].c);
+            drawNumber(gfxp, (row + 2) * 48, 0xC8, 8, fontPalette, 5, sndTestSlots[entry].d);
         }
     }
 }

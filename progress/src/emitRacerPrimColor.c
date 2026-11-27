@@ -1,5 +1,5 @@
 extern u8 racerTimerFlags[];
-extern u8 sNodeTable[];
+extern u8 sPathNodes[];
 extern u8 D_8011F350[];
 
 void emitRacerPrimColor(u32 **arg0, s32 arg1) {
@@ -8,7 +8,7 @@ void emitRacerPrimColor(u32 **arg0, s32 arg1) {
     u8 *src;
 
     off = (arg1 & 0xFFFF) * 100;
-    if (racerTimerFlags[off] != 0 && *(u8 *)*(void **)(sNodeTable + off) != 0) {
+    if (racerTimerFlags[off] != 0 && *(u8 *)*(void **)(sPathNodes + off) != 0) {
         src = *(u8 **)(D_8011F350 + off);
         buf = *arg0;
         *arg0 = buf + 2;

@@ -51,7 +51,7 @@ void func_8014998C();
 u16 computeUnlockFlags();
 u16 func_8014BB30(s32);
 void debugPrintf();
-void func_801D5A90(), func_80138B1C(), gfxSetViewViewport(), func_8022026C(), func_80149A80(), func_80144808(), func_80145A6C(), func_8013DD2C();
+void func_801D5A90(), func_80138B1C(), gfxSetViewViewport(), appendCameraDisplayList(), func_80149A80(), func_80144808(), func_80145A6C(), func_8013DD2C();
 
 /* Sets up the race scene: spawns the base objects, clears race state and the per-slot tables, and loads the race data. */ void initRaceScene(void)
 {
@@ -70,7 +70,7 @@ void func_801D5A90(), func_80138B1C(), gfxSetViewViewport(), func_8022026C(), fu
     func_8021FCA4();
     objCreate(0, 0, 3, 0, 0x42, 0xFF, 0, 0, gfxSetViewViewport, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     D_80220E40 = 10.0f;
-    objCreate(0, 0, 3, 0, 0x44, 0xFF, 0, 0, func_8022026C, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    objCreate(0, 0, 3, 0, 0x44, 0xFF, 0, 0, appendCameraDisplayList, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     objCreate(0, 0, 3, 0, 0x40, 1, 0, func_80149A80, 0, 0.0f, 0.0f, 0.0f, 0.0f, 30.0f, 50.0f, 0.0f, 0.0f, 0.0f);
     D_8021F260[0] = 0;
     D_8021F260[1] = 0;

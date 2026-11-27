@@ -2,8 +2,8 @@ typedef struct { u8 unk0; u8 pad1[0x18 - 1]; f32 x; f32 y; f32 z; u8 pad24[0x3E 
 typedef struct { s32 v; u8 pad4[0x2C]; s32 push; u8 pad34[0x3C]; } PadS;
 typedef struct { u8 unk0; u8 unk1; u8 unk2; u8 unk3; } MenuState;
 extern Car D_8011F2F0[];
-extern PadS D_801E9990[];
-extern PadS D_801E9994[];
+extern PadS btnPlayPressed[];
+extern PadS btnStopPressed[];
 extern MenuState *trackInfo;
 extern u16 D_8018BC3C;
 extern u8 D_801C5EA1;
@@ -86,7 +86,7 @@ void func_80196448(u16 arg0)
         D_801C5EA4++;
         if (D_801C5EA4 == 0xB4) {
             ME.st = 5; D_801C5EA4 = 0;
-        } else if (D_801E9990[player].v == 1 || D_801E9994[player].v == 1) {
+        } else if (btnPlayPressed[player].v == 1 || btnStopPressed[player].v == 1) {
                 ME.st = 5; D_801C5EA4 = 0;
         }
         }
@@ -94,7 +94,7 @@ void func_80196448(u16 arg0)
     case 5:
         
         ME.st = handleBoardPlacement(player);
-        if (D_801E9990[player].push == 1) {
+        if (btnPlayPressed[player].push == 1) {
             func_801B77F8();
             ME.unk0 = ME.st;
             ME.st = 0x14;
@@ -114,7 +114,7 @@ void func_80196448(u16 arg0)
         D_801C5EA4++;
         if (D_801C5EA4 == 0xF0) {
             if (trackInfo->unk1 == 5) { ME.st = 7; D_801C5EA4 = 0; } else { ME.st = 8; D_801C5EA4 = 0; }
-        } else if (D_801E9990[player].v == 1 || D_801E9994[player].v == 1) {
+        } else if (btnPlayPressed[player].v == 1 || btnStopPressed[player].v == 1) {
                 if (trackInfo->unk1 == 5) { ME.st = 7; D_801C5EA4 = 0; } else { ME.st = 8; D_801C5EA4 = 0; }
         }
         }
@@ -122,7 +122,7 @@ void func_80196448(u16 arg0)
     case 7:
         
         ME.st = func_80193160(player);
-        if (D_801E9990[player].push == 1) {
+        if (btnPlayPressed[player].push == 1) {
             func_801B77F8();
             ME.unk0 = ME.st;
             ME.st = 0x14;
@@ -135,7 +135,7 @@ void func_80196448(u16 arg0)
     case 8:
         
         ME.st = placePieceAtCursor(player);
-        if (D_801E9990[player].push == 1) {
+        if (btnPlayPressed[player].push == 1) {
             func_801B77F8();
             ME.unk0 = ME.st;
             ME.st = 0x14;
@@ -155,7 +155,7 @@ void func_80196448(u16 arg0)
         D_801C5EA4++;
         if (D_801C5EA4 == 0xB4) {
             ME.st = 10; D_801C5EA4 = 0;
-        } else if (D_801E9990[player].v == 1 || D_801E9994[player].v == 1) {
+        } else if (btnPlayPressed[player].v == 1 || btnStopPressed[player].v == 1) {
                 ME.st = 10; D_801C5EA4 = 0;
         }
         }
@@ -163,7 +163,7 @@ void func_80196448(u16 arg0)
     case 10:
         
         ME.st = func_80194024(player);
-        if (D_801E9990[player].push == 1) {
+        if (btnPlayPressed[player].push == 1) {
             func_801B77F8();
             ME.unk0 = ME.st;
             ME.st = 0x14;
@@ -180,7 +180,7 @@ void func_80196448(u16 arg0)
         D_801C5EA4++;
         if (D_801C5EA4 == 0xF0) {
             ME.st = 12; D_801C5EA4 = 0;
-        } else if (D_801E9990[player].v == 1 || D_801E9994[player].v == 1) {
+        } else if (btnPlayPressed[player].v == 1 || btnStopPressed[player].v == 1) {
                 ME.st = 12; D_801C5EA4 = 0;
         }
         }
@@ -188,7 +188,7 @@ void func_80196448(u16 arg0)
     case 12:
         
         func_801953F0(player);
-        if (D_801E9990[player].push == 1) {
+        if (btnPlayPressed[player].push == 1) {
             func_801B77F8();
             ME.unk0 = ME.st;
             ME.st = 0x14;
@@ -204,7 +204,7 @@ void func_80196448(u16 arg0)
         D_801C5EA4++;
         if (D_801C5EA4 == 0xB4) {
             ME.st = ME.unk0; D_801C5EA4 = 0;
-        } else if (D_801E9990[player].v == 1 || D_801E9994[player].v == 1) {
+        } else if (btnPlayPressed[player].v == 1 || btnStopPressed[player].v == 1) {
                 ME.st = ME.unk0; D_801C5EA4 = 0;
         }
         }
@@ -227,7 +227,7 @@ void func_80196448(u16 arg0)
         D_801C5EA4++;
         if (D_801C5EA4 == 0x12C) {
             ME.st = 16; D_801C5EA4 = 0;
-        } else if (D_801E9990[player].v == 1 || D_801E9994[player].v == 1) {
+        } else if (btnPlayPressed[player].v == 1 || btnStopPressed[player].v == 1) {
                 ME.st = 16; D_801C5EA4 = 0;
         }
         }
@@ -235,7 +235,7 @@ void func_80196448(u16 arg0)
     case 16:
         
         func_801C1DC0(player);
-        if (D_801C7060 == 0 && D_801E9990[player].push == 1) {
+        if (D_801C7060 == 0 && btnPlayPressed[player].push == 1) {
             func_801B77F8();
             D_801C7AB8 = 4;
             ME.unk0 = ME.st;
@@ -283,7 +283,7 @@ void func_80196448(u16 arg0)
                 ME.st = 0x10;
             }
             D_801C5EA4 = 0;
-        } else if (D_801E9990[player].v == 1 || D_801E9994[player].v == 1) {
+        } else if (btnPlayPressed[player].v == 1 || btnStopPressed[player].v == 1) {
                 if (trackInfo->unk3 == trackInfo->unk2) {
                 func_801B77F8();
                 D_801C7AB8 = 4;

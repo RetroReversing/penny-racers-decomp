@@ -3,24 +3,24 @@ typedef struct {
     u8 unk10; s32 unk14; u8 unk18; u8 unk19;
 } Rec;
 typedef struct { s32 unk0; s32 unk4; } Pair;
-extern s8 D_801E995A;
-extern s8 D_801E995B;
+extern s8 stickY;
+extern s8 stickX;
 extern s32 D_801E9988;
 extern s32 D_801E998C;
-extern s32 D_801E9990;
-extern s32 D_801E9994;
-extern s32 D_801E999C;
-extern s32 D_801E99A0;
-extern s32 D_801E99A4;
-extern s32 D_801E99A8;
-extern s32 D_801E99AC;
+extern s32 btnPlayPressed;
+extern s32 btnStopPressed;
+extern s32 btnCycleNextPressed;
+extern s32 btnUpPressed;
+extern s32 btnDownPressed;
+extern s32 btnRightPressed;
+extern s32 btnLeftPressed;
 extern s32 D_801E99B4;
-extern s32 D_801E99C0;
-extern s32 D_801E99C4;
+extern s32 btnModePressed;
+extern s32 btnCyclePrevPressed;
 extern s32 D_80203AA8;
 extern u8 D_80203AAD;
 extern s32 D_80203AB4;
-extern s32 D_80203AC0;
+extern s32 soundTestMode;
 extern s32 D_80203AC4;
 extern s32 D_80203ACC;
 extern Pair D_802038DC;
@@ -43,7 +43,7 @@ void func_80028100(s32, s32);
             REC.val = d + REC.val; \
         } \
     } \
-    if (D_801E9994 == 1) { \
+    if (btnStopPressed == 1) { \
         REC.flag = 0; \
     }
 
@@ -53,40 +53,40 @@ void func_801FE954(void)
     s8 dy;
     u16 i;
 
-    if (D_801E995B > 10) {
-        dx = (f32)(D_801E995B - 10) * 0.05;
-    } else if (D_801E995B < -10) {
-        dx = (f32)(D_801E995B + 10) * 0.05;
+    if (stickX > 10) {
+        dx = (f32)(stickX - 10) * 0.05;
+    } else if (stickX < -10) {
+        dx = (f32)(stickX + 10) * 0.05;
     } else {
         dx = 0;
     }
-    if (D_801E995A > 10) {
-        dy = (f32)(D_801E995A - 10) * 0.05;
-    } else if (D_801E995A < -10) {
-        dy = (f32)(D_801E995A + 10) * 0.05;
+    if (stickY > 10) {
+        dy = (f32)(stickY - 10) * 0.05;
+    } else if (stickY < -10) {
+        dy = (f32)(stickY + 10) * 0.05;
     } else {
         dy = 0;
     }
-    if (D_801E999C == 1) {
+    if (btnCycleNextPressed == 1) {
         D_80203AA8 ^= 1;
     }
     switch (D_80203AA8) {
     case 0:
-        if (D_801E99A0 == 1) {
+        if (btnUpPressed == 1) {
             if (D_80203ACC == 0) {
                 D_80203ACC = 0x19;
             } else {
                 D_80203ACC--;
             }
         }
-        if (D_801E99A4 == 1) {
+        if (btnDownPressed == 1) {
             if (D_80203ACC == 0x19) {
                 D_80203ACC = 0;
             } else {
                 D_80203ACC++;
             }
         }
-        if (D_801E9990 == 1) {
+        if (btnPlayPressed == 1) {
             alSeqpStop(D_8006FB38);
             func_80027C90(0, D_80203ACC);
             func_80027D00(0);
@@ -111,26 +111,26 @@ void func_801FE954(void)
                 D_802038E8[i].unk19 = 0;
             }
         }
-        if (D_801E9994 == 1) {
+        if (btnStopPressed == 1) {
             alSeqpStop(D_8006FB38);
             D_80203AC4 = -1;
         }
-        if (D_801E99C4 == 1) {
+        if (btnCyclePrevPressed == 1) {
             func_80028100(0, 0xC8);
             D_80203AC4 = -1;
         }
         break;
     case 1:
-        if (D_801E99A8 == 1) {
+        if (btnRightPressed == 1) {
             D_80203AB4++;
         }
-        if (D_801E99AC == 1 && D_80203AB4 > 0) {
+        if (btnLeftPressed == 1 && D_80203AB4 > 0) {
             D_80203AB4--;
         }
-        if (D_801E99A0 == 1 && D_80203AAD != 0) {
+        if (btnUpPressed == 1 && D_80203AAD != 0) {
             D_80203AAD--;
         }
-        if (D_801E99A4 == 1 && D_80203AAD < 4) {
+        if (btnDownPressed == 1 && D_80203AAD < 4) {
             D_80203AAD++;
         }
         if (D_801E99B4 == 1) {
@@ -159,7 +159,7 @@ void func_801FE954(void)
                     REC.unk14--;
                 }
             }
-            if (D_801E9994 == 1) {
+            if (btnStopPressed == 1) {
                 REC.unkC = 0;
             }
             break;
@@ -178,7 +178,7 @@ void func_801FE954(void)
         }
         break;
     }
-    if (D_801E99C0 == 1) {
-        D_80203AC0 = 1;
+    if (btnModePressed == 1) {
+        soundTestMode = 1;
     }
 }

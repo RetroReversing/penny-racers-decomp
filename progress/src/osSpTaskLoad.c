@@ -17,21 +17,23 @@ typedef struct RspTask {
     u32 yieldSize;
 } RspTask;
 
-extern RspTask D_8006C330;
+extern RspTask sRspTaskCopy;
 
 void func_8003DAA0(void *, void *, s32);
 u32 osVirtualToPhysical(void *);
-void func_8003EBF0(void *, s32);
+void osWritebackDCache(void *, s32);
 void func_8003F0D0(s32);
 s32 rsp_set_pc_if_halted(u32);
 s32 sp_dma_start(s32, u32, void *, u32);
 s32 func_8003F0A0(void);
 
-void osSpTaskLoad(RspTask *arg0) {
+/* Loads an RSP task: copies it to a DMA-safe buffer, converts its pointers to physical
+   addresses, handles yield-resume, then starts the boot microcode via DMA. */
+void osSpTaskLoad(RspTask *task) {
     RspTask *p;
 
-    p = &D_8006C330;
-    func_8003DAA0(arg0, p, 0x40);
+    p = &sRspTaskCopy;
+    func_8003DAA0(task, p, 0x40);
     if (p->ucode) {
         p->ucode = osVirtualToPhysical((void *)p->ucode);
     }
@@ -56,12 +58,12 @@ void osSpTaskLoad(RspTask *arg0) {
     if (p->flags & 1) {
         p->data = p->yield;
         p->dataSize = p->yieldSize;
-        arg0->flags &= ~1;
+        task->flags &= ~1;
         if (p->flags & 4) {
-            p->ucode = *(u32 *)((arg0->yield + 0xBFC) | 0xA0000000);
+            p->ucode = *(u32 *)((task->yield + 0xBFC) | 0xA0000000);
         }
     }
-    func_8003EBF0(p, 0x40);
+    osWritebackDCache(p, 0x40);
     func_8003F0D0(0x2B00);
     do {
     } while (rsp_set_pc_if_halted(0x04001000) == -1);

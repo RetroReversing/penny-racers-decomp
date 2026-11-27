@@ -8,7 +8,7 @@ typedef struct { u8 pad0; u8 unk1; } H375;
 typedef struct { u8 unk0; u8 pad[0x8EF]; } W375;
 typedef struct { u8 pad[0x2108]; s16 count; } G375;
 extern R375 D_8011F2F0[];
-extern Q375 D_801E9990[];
+extern Q375 btnPlayPressed[];
 extern G375 sRowBoard;
 extern u8 D_80189940[];
 extern u8 D_8018D662[];
@@ -87,7 +87,7 @@ void func_80135C64(u16 arg0)
     case 2:
       for (i = 0; i < sRowBoard.count; i++)
       {
-        if (D_801E9990[i].unk0 == 1 && sRowBoard.count == D_80167E64)
+        if (btnPlayPressed[i].unk0 == 1 && sRowBoard.count == D_80167E64)
         {
           if (D_80189CC8 == 2)
           {
@@ -132,7 +132,7 @@ void func_80135C64(u16 arg0)
       }
       for (i = 0; i < sRowBoard.count; i++)
       {
-        if (D_801E9990[i].unk0 == 1)
+        if (btnPlayPressed[i].unk0 == 1)
         {
           D_8011F2F0[arg0].timer = D_8011F2F0[arg0].unk44;
         }

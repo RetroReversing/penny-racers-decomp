@@ -65,7 +65,7 @@ extern struct { s8 t[8][34]; } randomSequenceTable[];
 extern u16 D_80187BF0[];
 extern u16 D_8021F270[][14][8];
 extern u8 D_8021B3E0[], D_8021B3E8[], D_8021B3F0[];
-extern u16 *D_80203080[];
+extern u16 *sHexGlyphs[];
 extern u8 D_801D4390[], D_801CF4C8[];
 extern u8 D_8021F260[];
 extern u8 D_80168C60[];
@@ -74,7 +74,7 @@ void gfxSetPrimAlpha(Gfx **, s32);
 void gfxSetPrimColor(Gfx **, s32, s32, s32, s32);
 void gfxDrawSprite(Gfx **, s32, s32, s32, s32);
 void gfxDrawText(Gfx **, s32, u16, s32, u8 *, u16 *, s32, u8 *, s32, s32, s32, s32);
-void func_8014A2D0(Gfx **, s32, s32, s32, s32, s32);
+void drawHexNumber(Gfx **, s32, s32, s32, s32, s32);
 #define D(x, y, s, id) gfxDrawSprite(gfxp, x, y, s, id)
 
 void func_8020F354(Gfx **gfxp, u16 id) {
@@ -138,7 +138,7 @@ void func_8020F354(Gfx **gfxp, u16 id) {
                 if (v != 0x5A) {
                     j = D_8021B3F0[i] + v;
                 }
-                src = D_80203080[j];
+                src = sHexGlyphs[j];
                 j = 0;
                 do {
                     D_80187BF0[j] = src[j];
@@ -180,12 +180,12 @@ void func_8020F354(Gfx **gfxp, u16 id) {
             gfxSetPrimAlpha(gfxp, 0xFF);
         }
         if (carClassIndex != 3) {
-            func_8014A2D0(gfxp, 0x56, 0x86, D_80168C60[carClassIndex], 2, 0);
+            drawHexNumber(gfxp, 0x56, 0x86, D_80168C60[carClassIndex], 2, 0);
         } else {
             D(0x5E, 0x8C, 6, 0x22);
         }
-        func_8014A2D0(gfxp, 0x5C, 0xA0, selectionMenu.digits[0], 2, 1);
-        func_8014A2D0(gfxp, 0x5C, 0xB6, selectionMenu.digits[1], 2, 1);
+        drawHexNumber(gfxp, 0x5C, 0xA0, selectionMenu.digits[0], 2, 1);
+        drawHexNumber(gfxp, 0x5C, 0xB6, selectionMenu.digits[1], 2, 1);
         break;
     }
 }

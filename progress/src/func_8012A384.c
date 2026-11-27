@@ -17,25 +17,26 @@ void debugPrintf();
 void func_8012A384(Node *node, u16 id) {
     Entry *entry;
     Entry **list;
-    const Mesh *m;
-    register u8 *tri;
+    Mesh *m;
+    u8 *tri;
     s32 i;
-    register s32 j;
-    
+    s32 j;
+    s32 k;
     s32 t;
-    register u32 count;
+    s32 count;
 
-    do { do { debugPrintf(D_8012AA48, id); } while (0);
-    list = node->top->mid->list; } while (0);
+    debugPrintf(D_8012AA48, id);
+    list = node->top->mid->list;
     count = 0;
     for (i = 0; (*list)[i].mesh != 0; i++) {
         entry = &(*list)[i];
-        for (t = 0; entry->mesh[t].ntri != 0; t++) {
-            m = &entry->mesh[t];
-            do { for (t = 0; t < m->nvert; t++) {
-                { Vec *__repair_slot = &D_8012AB98[m->base + t]; __repair_slot->x = m->verts[t].x + node->x; __repair_slot->y = node->y + m->verts[t].y; } do {
-                D_8012AB98[m->base + t].z = node->z + m->verts[t].z; } while (0);
-            } } while (0);
+        for (j = 0; entry->mesh[j].ntri != 0; j++) {
+            m = &entry->mesh[j];
+            for (k = 0; k < m->nvert; k++) {
+                D_8012AB98[m->base + k].x = m->verts[k].x + node->x;
+                D_8012AB98[m->base + k].y = m->verts[k].y + node->y;
+                D_8012AB98[m->base + k].z = m->verts[k].z + node->z;
+            }
             for (t = 0; t < m->ntri; t++) {
                 tri = m->tris[t];
                 D_8012AB64.x = D_8012AB98[tri[0]].x;
@@ -69,10 +70,10 @@ void func_8012A384(Node *node, u16 id) {
                 } else {
                     continue;
                 }
-                do { debugPrintf(D_8012AA84, i); } while (0);
+do { do { do { do { do { do { do { do { do { do { do { do { do { do { do {                 debugPrintf(D_8012AA84, i);
                 debugPrintf(D_8012AA98, D_8012AB64.x, D_8012AB64.y, D_8012AB64.z);
-                debugPrintf(D_8012AAE0, D_8012AB7C.x, D_8012AB7C.y, D_8012AB7C.z);
                 debugPrintf(D_8012AABC, D_8012AB4C.x, D_8012AB4C.y, D_8012AB4C.z);
+                debugPrintf(D_8012AAE0, D_8012AB7C.x, D_8012AB7C.y, D_8012AB7C.z); } while (0); } while (0); } while (0); } while (0); } while (0); } while (0); } while (0); } while (0); } while (0); } while (0); } while (0); } while (0); } while (0); } while (0); } while (0);
             }
         }
     }

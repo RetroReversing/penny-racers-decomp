@@ -14,29 +14,29 @@ typedef s32 M2C_UNK32;
 
 s32 queueObjEvent();
 s32 func_80221AD0();
-extern char D_801E995A[];
-extern char D_801E995B[];
-extern char D_801E9990[];
-extern char D_801E9994[];
-extern char D_801E999C[];
-extern char D_801E99C4[];
+extern char stickY[];
+extern char stickX[];
+extern char btnPlayPressed[];
+extern char btnStopPressed[];
+extern char btnCycleNextPressed[];
+extern char btnCyclePrevPressed[];
 
 void func_80226A60(s32 arg0, void *arg1) {
     s32 temp_v1;
 
-    M2C_FIELD(arg1, u8 *, 0x87B) = (u8) *(D_801E995A + (M2C_FIELD(arg1, u16 *, 4) * 0x70));
-    M2C_FIELD(arg1, u8 *, 0x87C) = (u8) *(D_801E995B + (M2C_FIELD(arg1, u16 *, 4) * 0x70));
-    if (*(s32 *)(D_801E9990 + (M2C_FIELD(arg1, u16 *, 4) * 0x70)) != 0) {
+    M2C_FIELD(arg1, u8 *, 0x87B) = (u8) *(stickY + (M2C_FIELD(arg1, u16 *, 4) * 0x70));
+    M2C_FIELD(arg1, u8 *, 0x87C) = (u8) *(stickX + (M2C_FIELD(arg1, u16 *, 4) * 0x70));
+    if (*(s32 *)(btnPlayPressed + (M2C_FIELD(arg1, u16 *, 4) * 0x70)) != 0) {
         M2C_FIELD(arg1, s32 *, 0x890) += 1;
     } else {
         M2C_FIELD(arg1, s32 *, 0x890) = 0;
     }
-    if (*(s32 *)(D_801E9994 + (M2C_FIELD(arg1, u16 *, 4) * 0x70)) != 0) {
+    if (*(s32 *)(btnStopPressed + (M2C_FIELD(arg1, u16 *, 4) * 0x70)) != 0) {
         M2C_FIELD(arg1, s32 *, 0x894) += 1;
     } else {
         M2C_FIELD(arg1, s32 *, 0x894) = 0;
     }
-    temp_v1 = *(s32 *)(D_801E999C + (M2C_FIELD(arg1, u16 *, 4) * 0x70));
+    temp_v1 = *(s32 *)(btnCycleNextPressed + (M2C_FIELD(arg1, u16 *, 4) * 0x70));
     if (temp_v1 != 0) {
         if (temp_v1 == 1) {
             queueObjEvent(arg0 & 0xFFFF, 0x37);
@@ -45,7 +45,7 @@ void func_80226A60(s32 arg0, void *arg1) {
     } else {
         M2C_FIELD(arg1, s32 *, 0x89C) = 0;
     }
-    if (*(s32 *)(D_801E99C4 + (M2C_FIELD(arg1, u16 *, 4) * 0x70)) != 0) {
+    if (*(s32 *)(btnCyclePrevPressed + (M2C_FIELD(arg1, u16 *, 4) * 0x70)) != 0) {
         M2C_FIELD(arg1, s32 *, 0x898) += 1;
     } else {
         M2C_FIELD(arg1, s32 *, 0x898) = 0;

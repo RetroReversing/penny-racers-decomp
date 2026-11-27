@@ -75,9 +75,9 @@ extern u16 func_80149B38(s32, s32, f32, f32);
 extern void func_8012AD20();
 extern s32 func_8014AAE8();
 extern s32 func_8014AB2C();
-extern s32 func_80148260();
+extern s32 buildPickList();
 extern void refreshPickFlags();
-extern u16 func_80149220();
+extern u16 choosePickListItem();
 extern s32 func_8014BAC0();
 extern s32 getMenuNavMask();
 extern void playMenuSound();
@@ -198,8 +198,8 @@ void func_80144808(u16 arg0)
         D_80189C98.pl[0].colour = func_8014AAE8(D_80189C98.pl[0].id);
         D_80189C98.pl[1].colour = func_8014AAE8(D_80189C98.pl[1].id);
         D_80189C98.flags.f.b10 = func_8014AB2C(D_80189C98.pl[0].id, D_80189C98.pl[0].colour);
-        D_80189C98.pl[0].pos = func_80148260(D_80189C98.pl[0].id, 0);
-        D_80189C98.pl[1].pos = func_80148260(D_80189C98.pl[1].id, 1);
+        D_80189C98.pl[0].pos = buildPickList(D_80189C98.pl[0].id, 0);
+        D_80189C98.pl[1].pos = buildPickList(D_80189C98.pl[1].id, 1);
         D_80189C98.pl[0].unk1 = D_80189C98.pl[0].pos - 4;
         *id1 = func_80149B38(3, D_8018A274.sCars[D_80189C98.car] & 0xF, 1.5f, 2.3f);
         D_80189C98.flags.all |= 0x4000;
@@ -213,7 +213,7 @@ void func_80144808(u16 arg0)
         fn = func_80146970;
         if (!(D_80189C98.flags.all & 0x800)) {
             fn = updateDemoInput;
-            D_80189948.unk0 = func_80149220(D_80189948.unk2[0], D_80189948.unk4[0], D_80189C98.pl[0].pos, 0);
+            D_80189948.unk0 = choosePickListItem(D_80189948.unk2[0], D_80189948.unk4[0], D_80189C98.pl[0].pos, 0);
         }
         *id3 = SPAWN0(0x4A, 0, fn, 0);
         obj->state = 0x32;
@@ -234,7 +234,7 @@ void func_80144808(u16 arg0)
             D_80189B34.flags |= 0x20;
             i = 4;
         }
-        D_80189C98.pl[1].unk1 = (D_80189C98.pl[1].pos = func_80148260(D_80189C98.pl[1].id, 1)) - i;
+        D_80189C98.pl[1].unk1 = (D_80189C98.pl[1].pos = buildPickList(D_80189C98.pl[1].id, 1)) - i;
     case 0x41:
         D_80189B34.flags |= 0x10;
         refreshPickFlags(1, D_80189C98.pl[1].colour);
@@ -244,7 +244,7 @@ void func_80144808(u16 arg0)
         fn = func_80146970;
         if (!(D_80189C98.flags.all & 0x800)) {
             fn = updateDemoInput;
-            D_80189948.unk0 = func_80149220(D_80189948.unk2[1], D_80189948.unk4[1], D_80189C98.pl[1].pos, 1);
+            D_80189948.unk0 = choosePickListItem(D_80189948.unk2[1], D_80189948.unk4[1], D_80189C98.pl[1].pos, 1);
         }
         *id3 = SPAWN0(0x4A, 0, fn, 0);
         obj->state = 0x42;

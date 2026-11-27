@@ -22,7 +22,7 @@ void gfxSetPrimAlpha(Gfx_ **, s32);
 void gfxSetPrimColor(Gfx_ **, s32, s32, s32, u8);
 void gfxDrawText(Gfx_ **, s32, u16, u16, u8 *, u16 *, u8, u8 *, s32, s32, s32, s32);
 void gfxDrawSprite(Gfx_ **, s16, s16, s32, s32);
-void func_8014A2D0(Gfx_ **, u16, u16, u8, u8, u8);
+void drawHexNumber(Gfx_ **, u16, u16, u8, u8, u8);
 u8 func_801497AC(u8);
 u8 func_8014BA14(u16);
 void func_8014A9F4(u16, s32);
@@ -135,7 +135,7 @@ void func_80145A6C(Gfx_ **gfxp, u16 id) {
                 if (D_80189CC9[i] >= 100) {
                     n = 0xF9;
                 }
-                func_8014A2D0(gfxp, n, i * 37 + 0x5D, D_80189CC9[i], 3, 0);
+                drawHexNumber(gfxp, n, i * 37 + 0x5D, D_80189CC9[i], 3, 0);
             }
         }
         gfxSetPrimAlpha(gfxp, 0xFF);

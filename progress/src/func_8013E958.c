@@ -1,4 +1,4 @@
-s16 func_8012913C(u16, s32, s32, s32);
+s16 findPathNodeContaining(u16, s32, s32, s32);
 extern u8 D_8011F2F0[];
 extern u8 D_8011F350[];
 extern s32 hitSlots;
@@ -23,7 +23,7 @@ void func_8013E958(s32 arg0, s32 arg1, s16 arg2, s32 arg3, f32 arg4, f32 arg5, u
   *(f32 *)((char *)temp_s0 + 0x10) = arg5;
   *(u16 *)((char *)temp_s0 + 0x14) = arg6;
   *(s8 *)((char *)temp_s0 + 0x16) = 0;
-  *(s16 *)((char *)temp_s0 + 0x20) = func_8012913C(D_80233EC0, *(s32 *)((char *)temp_t0 + 0x18), *(s32 *)((char *)temp_t0 + 0x1C), *(s32 *)((char *)temp_t0 + 0x20));
+  *(s16 *)((char *)temp_s0 + 0x20) = findPathNodeContaining(D_80233EC0, *(s32 *)((char *)temp_t0 + 0x18), *(s32 *)((char *)temp_t0 + 0x1C), *(s32 *)((char *)temp_t0 + 0x20));
   *(s16 *)((char *)temp_s0 + 0x22) = 0;
   *(s8 *)((char *)temp_s0 + 0x1D) = 0;
   *(s8 *)((char *)temp_s0 + 0x1E) = 0;

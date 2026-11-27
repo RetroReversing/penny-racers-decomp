@@ -3,7 +3,7 @@ typedef struct { u16 pad0[2]; u16 startNode; u16 lane; } RouteCursor;
 typedef struct { u16 slot[50]; } NodeFlags;
 typedef struct { RouteLinks *links; u8 pad[96]; } NodeEntry;
 extern NodeFlags sNodeFlags[];
-extern NodeEntry sNodeTable[];
+extern NodeEntry sPathNodes[];
 
 /* Sets bit 0x8 on every node of the loop through the cursor's start node, then clears it again
    on the next `steps` nodes along each of the two lanes. */
@@ -20,25 +20,25 @@ void updateRouteFlags(RouteCursor *cursor, u16 steps, u8 flagSlot)
     sNodeFlags[node].slot[flagSlot] |= 8;
     if (lane == 0)
     {
-      if (sNodeTable[node].links->nextA != 0xFFFF)
+      if (sPathNodes[node].links->nextA != 0xFFFF)
       {
-        node = sNodeTable[node].links->nextA;
+        node = sPathNodes[node].links->nextA;
       }
       else
       {
-        node = sNodeTable[node].links->nextB;
+        node = sPathNodes[node].links->nextB;
         lane = 1;
       }
     }
     else
     {
-      if (sNodeTable[node].links->nextB != 0xFFFF)
+      if (sPathNodes[node].links->nextB != 0xFFFF)
       {
-        node = sNodeTable[node].links->nextB;
+        node = sPathNodes[node].links->nextB;
       }
       else
       {
-        node = sNodeTable[node].links->nextA;
+        node = sPathNodes[node].links->nextA;
         lane = 0;
       }
     }
@@ -53,25 +53,25 @@ void updateRouteFlags(RouteCursor *cursor, u16 steps, u8 flagSlot)
     sNodeFlags[node].slot[flagSlot] &= 0xFFF7;
     if (lane == 0)
     {
-      if (sNodeTable[node].links->nextA != 0xFFFF)
+      if (sPathNodes[node].links->nextA != 0xFFFF)
       {
-        node = sNodeTable[node].links->nextA;
+        node = sPathNodes[node].links->nextA;
       }
       else
       {
-        node = sNodeTable[node].links->nextB;
+        node = sPathNodes[node].links->nextB;
         lane = 1;
       }
     }
     else
     {
-      if (sNodeTable[node].links->nextB != 0xFFFF)
+      if (sPathNodes[node].links->nextB != 0xFFFF)
       {
-        node = sNodeTable[node].links->nextB;
+        node = sPathNodes[node].links->nextB;
       }
       else
       {
-        node = sNodeTable[node].links->nextA;
+        node = sPathNodes[node].links->nextA;
         lane = 0;
       }
     }
@@ -87,25 +87,25 @@ void updateRouteFlags(RouteCursor *cursor, u16 steps, u8 flagSlot)
     sNodeFlags[node].slot[flagSlot] &= 0xFFF7;
     if (lane == 0)
     {
-      if (sNodeTable[node].links->nextC != 0xFFFF)
+      if (sPathNodes[node].links->nextC != 0xFFFF)
       {
-        node = sNodeTable[node].links->nextC;
+        node = sPathNodes[node].links->nextC;
       }
       else
       {
-        node = sNodeTable[node].links->nextD;
+        node = sPathNodes[node].links->nextD;
         lane = 1;
       }
     }
     else
     {
-      if (sNodeTable[node].links->nextD != 0xFFFF)
+      if (sPathNodes[node].links->nextD != 0xFFFF)
       {
-        node = sNodeTable[node].links->nextD;
+        node = sPathNodes[node].links->nextD;
       }
       else
       {
-        node = sNodeTable[node].links->nextC;
+        node = sPathNodes[node].links->nextC;
         lane = 0;
       }
     }

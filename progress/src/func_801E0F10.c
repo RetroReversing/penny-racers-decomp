@@ -26,7 +26,7 @@ extern u8 D_801E9498[];
 extern Menu D_801D59C4;
 extern void debugPrintf();
 extern void func_80232360();
-extern void func_801E28BC();
+extern void stepSlotStartSequence();
 extern void func_801E2ABC();
 extern void updatePlayerFade();
 extern void func_801CEC2C();
@@ -108,7 +108,7 @@ void func_801E0F10(u16 arg0)
                     debugPrintf(D_801E9498);
                 }
             } else {
-                SPAWN(0x9F, func_801E28BC, func_801E2ABC);
+                SPAWN(0x9F, stepSlotStartSequence, func_801E2ABC);
                 D_801E87E6 = SPAWN(0x9E, updatePlayerFade, func_801CEC2C);
                 D_8011F2F0[D_801E87E6].unk60 = (u8 *) &D_801D59C4;
                 MENU->unk0 = 0;

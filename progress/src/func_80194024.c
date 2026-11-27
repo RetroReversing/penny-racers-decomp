@@ -6,7 +6,7 @@ typedef struct { u8 a; u8 b; s8 c; s8 d; s8 e; } E931;
 typedef struct { u8 unk0; u8 unk1; u8 pad2[2]; u8 *unk4; u8 pad8[8]; } M931;
 typedef struct { u8 unk0; u8 pad1; u8 unk2; } H931;
 extern R931 D_8011F2F0[];
-extern Q931 D_801E9990[];
+extern Q931 btnPlayPressed[];
 extern E931 trackPointTable[];
 extern M931 D_801C7D30[];
 extern u8 D_8031445C[][8];
@@ -56,7 +56,7 @@ u8 func_80194024(u16 arg0)
   D_8011F2F0[boardCursorObj].unk18 = (s8) cursorX * 400.0f * 0.5f;
   D_8011F2F0[boardCursorObj].unk1C = 0;
   D_8011F2F0[boardCursorObj].unk20 = (s8) cursorY * 400.0f * 0.5f;
-  if (D_801E9990[arg0].unk0 == 1 && D_801E9990[arg0].unk4 == 0)
+  if (btnPlayPressed[arg0].unk0 == 1 && btnPlayPressed[arg0].unk4 == 0)
   {
     finishPos.x = cursorX;
     finishPos.z = cursorY;
@@ -114,7 +114,7 @@ u8 func_80194024(u16 arg0)
     D_801C5EA4 = 0;
     playMenuSound(0x40);
   }
-  else if (D_801E9990[arg0].unk0 == 0 && D_801E9990[arg0].unk4 == 1)
+  else if (btnPlayPressed[arg0].unk0 == 0 && btnPlayPressed[arg0].unk4 == 1)
   {
     D_8011F2F0[placedBlockObj].unkD = 1;
     for (i = 0; i < 4; i++)

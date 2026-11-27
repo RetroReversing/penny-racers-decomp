@@ -4,7 +4,7 @@ typedef struct { u8 *p; u8 pad[96]; } Slot_8011F350;
 extern Slot_8011F350 D_8011F350[];
 extern s32 D_80168BB0;
 extern u16 D_8018BC3C;
-extern s32 D_801E99C0;
+extern s32 btnModePressed;
 extern s32 D_8021AFDC;
 extern s32 menuChoice;
 extern s8 D_8021B079;
@@ -37,7 +37,7 @@ void createNoticeScreenObj(void);
     break;
   case 1: {
     s32 *state;
-    state = &D_801E99C0;
+    state = &btnModePressed;
     do {} while (0);
     if (*state == 1) {
       if (D_8021E678 == 2) {
@@ -48,7 +48,7 @@ void createNoticeScreenObj(void);
         if (*(u16 *) ((u8 *) state - 0x68) == 0x3404) {
           D_8021B079 = 1;
         }
-      } else if (D_801E99C0 == 1 && D_8021E678 != 2) {
+      } else if (btnModePressed == 1 && D_8021E678 != 2) {
         D_8021E678 = 1;
         D_8021EEA0 = 0.0f;
         D_8021EEB4 = 0;

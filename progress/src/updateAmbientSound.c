@@ -13,7 +13,7 @@ typedef struct { u8 pad[0x2108]; s16 mode; u8 pad210A[2]; s16 view; } Sys;
 
 extern Emitter D_8011F2F0[];
 extern Zone *D_801D7A78[];
-extern SndEntry D_801D75E6[];
+extern SndEntry soundDefs[];
 extern Listener D_80221080[];
 extern Race D_8006FAF0;
 extern Menu D_8006FB14;
@@ -82,11 +82,11 @@ void updateAmbientSound(u16 arg0)
                 best -= near->radius;
                 if (best < 0.0f) {
                     playStageSound(6, D_801D7F50);
-                    D_801D7F0E = D_801D75E6[D_801D7F50].vol;
+                    D_801D7F0E = soundDefs[D_801D7F50].vol;
                     break;
                 }
                 if (best < 900.0f) {
-                    vol = D_801D75E6[D_801D7F50].vol * (1000.0f - best) / 1000.0f;
+                    vol = soundDefs[D_801D7F50].vol * (1000.0f - best) / 1000.0f;
                     playStageSoundVol(6, D_801D7F50, vol);
                     break;
                 }
@@ -98,9 +98,9 @@ void updateAmbientSound(u16 arg0)
         } else if (D_801D7F50 != 0) {
             best -= near->radius;
             if (best < 0.0f) {
-                D_801D7F0E = D_801D75E6[D_801D7F50].vol;
+                D_801D7F0E = soundDefs[D_801D7F50].vol;
             } else if (best < 900.0f) {
-                vol = D_801D75E6[D_801D7F50].vol * (1000.0f - best) / 1000.0f;
+                vol = soundDefs[D_801D7F50].vol * (1000.0f - best) / 1000.0f;
                 D_801D7F0E = vol;
             } else {
                 D_801D7F50 = 0;

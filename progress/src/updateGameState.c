@@ -10,7 +10,7 @@ extern volatile short D_8006FE58;
 extern volatile u16 D_80072BDC;
 extern u8 D_80092C30[][0x23AC0];
 extern u8 D_801E4420;
-extern s32 D_801E99C0;
+extern s32 btnModePressed;
 extern u8 sCars[][0x8F0];
 extern u64 osGetTime(void);
 extern void func_800341C0(u64);
@@ -121,7 +121,7 @@ extern void func_800341C0(u64);
       break;
 
     case 0x18:
-      if ((D_801E99C0 != 0) && (D_801E4420 & 1))
+      if ((btnModePressed != 0) && (D_801E4420 & 1))
     {
       func_801E0B98();
       gameState = 0x19;

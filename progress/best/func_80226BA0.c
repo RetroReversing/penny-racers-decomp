@@ -25,15 +25,15 @@ f32 sqrtf(f32);                                     /* extern */
 extern u16 gameState;
 extern char D_8011F2F0[];
 extern char D_8011F308[];
-extern s32 sPrimColorB;
+extern s32 sPathOffsetZ;
 extern char D_8011F318[];
 extern char D_801FAB10[];
 extern char D_801FACA0[];
 extern f32 D_802038D4;
-extern char D_8022A720[];
+extern char sGroupSortValues[];
 extern s32 sCars;
 extern u16 slotObjIds;
-extern char D_8022E620[];
+extern char sGroupSortKeys[];
 extern s32 func_801FA980;
 
 void func_80226BA0(s32 arg0, void *arg1) {
@@ -314,7 +314,7 @@ void func_80226BA0(s32 arg0, void *arg1) {
     temp_ft3 = var_s4 - var_s2;
     temp_fs1 = temp_fv0 - var_fs5;
     temp_v0 = (arg0 & 0xFFFF) * 0x64;
-    temp_fv0_2 = func_801FA4B0(var_s2, var_fs5, var_a0, var_a1, var_s4, temp_fv0, *((s32 *)((s8 *)D_8011F308 + temp_v0)), *((s32 *)((s8 *)&sPrimColorB + temp_v0)), temp_fs1, -temp_ft3);
+    temp_fv0_2 = func_801FA4B0(var_s2, var_fs5, var_a0, var_a1, var_s4, temp_fv0, *((s32 *)((s8 *)D_8011F308 + temp_v0)), *((s32 *)((s8 *)&sPathOffsetZ + temp_v0)), temp_fs1, -temp_ft3);
     var_fv1_2 = temp_fv0_2 * 100.0f;
     var_fv0_2 = 99.0f;
     if ((var_fv1_2 > 99.0f) || (var_fv0_2 = 0.0f, (var_fv1_2 < 0.0f))) {
@@ -329,7 +329,7 @@ void func_80226BA0(s32 arg0, void *arg1) {
     temp_fs0 = (temp_fs1 * temp_fv0_2) + var_fs5;
     temp_v0_3 = (arg0 & 0xFFFF) * 0x64;
     temp_fv0_3 = *((s32 *)((s8 *)D_8011F308 + temp_v0_3));
-    temp_fv1_2 = *((s32 *)((s8 *)&sPrimColorB + temp_v0_3));
+    temp_fv1_2 = *((s32 *)((s8 *)&sPathOffsetZ + temp_v0_3));
     temp_fs1_3 = temp_fv0_3 - temp_fs1_2;
     temp_fs0_2 = temp_fv1_2 - temp_fs0;
     temp_fa0 = (temp_fs1_3 * temp_fs1_3) + (temp_fs0_2 * temp_fs0_2);
@@ -345,7 +345,7 @@ void func_80226BA0(s32 arg0, void *arg1) {
     temp_s0 = (arg0 & 0xFFFF) * 0x64;
     temp_fs5 = *((s32 *)((s8 *)D_8011F318 + temp_s0));
     temp_s2 = (f32) (angleFromDelta((s32) (temp_fs0 - temp_fv1_2), (s32) (temp_fs1_2 - temp_fv0_3)) & 0xFFFF);
-    temp_fa1 = (f32) (angleFromDelta((s32) (((f32) (s32) temp_fs3 - *((s32 *)((s8 *)&sPrimColorB + temp_s0))) - (temp_fs0_2 * var_fs2_2)), (s32) (((f32) (s32) temp_fs4 - *((s32 *)((s8 *)D_8011F308 + temp_s0))) - (temp_fs1_3 * var_fs2_2))) & 0xFFFF);
+    temp_fa1 = (f32) (angleFromDelta((s32) (((f32) (s32) temp_fs3 - *((s32 *)((s8 *)&sPathOffsetZ + temp_s0))) - (temp_fs0_2 * var_fs2_2)), (s32) (((f32) (s32) temp_fs4 - *((s32 *)((s8 *)D_8011F308 + temp_s0))) - (temp_fs1_3 * var_fs2_2))) & 0xFFFF);
     temp_a0_6 = var_s5 & 0xFFFF;
     if (((sp26 == M2C_FIELD(arg1, u16 *, 0x8E4)) | (sp26 == temp_a0_6)) != 0) {
         temp_fs0_3 = func_801F9BE8(temp_fs5, temp_s2, temp_a0_6) * 0.16f;
@@ -464,7 +464,7 @@ block_79:
             }
             temp_a0_10 = var_s0_2 & 0xFFFF;
             __index_D_8022E620 = M2C_FIELD(arg1, u16 *, 4) * 0x18;
-            __base_D_8022E620 = D_8022E620;
+            __base_D_8022E620 = sGroupSortKeys;
             if ((*(s32 *)((temp_a0_10 * 4) + (__base_D_8022E620 + __index_D_8022E620)) < (__repair_pin_1 = 200.0f)) && (temp_s5 < temp_s2_2) && (var_fv1_5 < (__repair_pin_2 = 20.0f)) && (M2C_FIELD((arg1 + (temp_a0_10 * 8)), f32 *, 0x5B4) > (__repair_pin_3 = func_801FA980)) && !(M2C_FIELD(arg1, u8 *, 0x778) & 0x1F)) {
                 queueObjEvent(arg0 & 0xFFFF, 0x37);
             }
@@ -473,7 +473,7 @@ block_79:
                 switch (temp_v0_4) {                /* switch 5 */
                 case 1:                             /* switch 5 */
                     var_a0_3 = var_s0_2 & 0xFFFF;
-                    temp_fv1_4 = *(s32 *)((var_a0_3 * 4) + ((M2C_FIELD(arg1, u16 *, 4) * 0x18) + D_8022E620));
+                    temp_fv1_4 = *(s32 *)((var_a0_3 * 4) + ((M2C_FIELD(arg1, u16 *, 4) * 0x18) + sGroupSortKeys));
                     if ((temp_fv1_4 < (__repair_pin_4 = 300.0f)) && (temp_fv1_4 > (__repair_pin_5 = 100.0f)) && (temp_s5 < temp_s2_2) && (var_fv1_5 < (__repair_pin_2 = 20.0f))) {
                         var_v0_3 = M2C_FIELD(arg1, u8 *, 0x778) & 0x3F;
 block_136:
@@ -501,7 +501,7 @@ block_183:
                     goto block_209;
                 case 2:                             /* switch 5 */
                     temp_a0_11 = var_s0_2 & 0xFFFF;
-                    if (*(s32 *)((temp_a0_11 * 4) + ((M2C_FIELD(arg1, u16 *, 4) * 0x18) + D_8022E620)) < (__repair_pin_5 = 100.0f)) {
+                    if (*(s32 *)((temp_a0_11 * 4) + ((M2C_FIELD(arg1, u16 *, 4) * 0x18) + sGroupSortKeys)) < (__repair_pin_5 = 100.0f)) {
                         var_v0_4 = temp_a0_11 * 8;
                         goto block_138;
                     }
@@ -526,8 +526,8 @@ block_183:
                 case 4:                             /* switch 5 */
                 case 5:                             /* switch 5 */
                     temp_v0_5 = M2C_FIELD(arg1, u16 *, 4);
-                    temp_a0_12 = *((u8 *)((s8 *)D_8022A720 + (temp_v0_5 * 6)));
-                    if ((temp_a0_12 == (var_s0_2 & 0xFFFF)) && (*(s32 *)((temp_a0_12 * 4) + ((temp_v0_5 * 0x18) + D_8022E620)) < 90.0f)) {
+                    temp_a0_12 = *((u8 *)((s8 *)sGroupSortValues + (temp_v0_5 * 6)));
+                    if ((temp_a0_12 == (var_s0_2 & 0xFFFF)) && (*(s32 *)((temp_a0_12 * 4) + ((temp_v0_5 * 0x18) + sGroupSortKeys)) < 90.0f)) {
                         temp_v0_6 = arg1 + (temp_a0_12 * 8);
                         if (!(M2C_FIELD(temp_v0_6, f32 *, 0x5B4) > (__repair_pin_3 = 0.5f))) {
                             var_v0_8 = arg1 + ((var_s0_2 & 0xFFFF) * 8);
@@ -549,7 +549,7 @@ block_208:
                 case 6:                             /* switch 5 */
                 case 12:                            /* switch 5 */
                     temp_a0_13 = var_s0_2 & 0xFFFF;
-                    if ((*(s32 *)((temp_a0_13 * 4) + ((M2C_FIELD(arg1, u16 *, 4) * 0x18) + D_8022E620)) < 800.0f) && (temp_s5 < temp_s2_2) && (var_fv1_5 < (__repair_pin_2 = 20.0f)) && (M2C_FIELD(arg1, u8 *, 0x778) == 0)) {
+                    if ((*(s32 *)((temp_a0_13 * 4) + ((M2C_FIELD(arg1, u16 *, 4) * 0x18) + sGroupSortKeys)) < 800.0f) && (temp_s5 < temp_s2_2) && (var_fv1_5 < (__repair_pin_2 = 20.0f)) && (M2C_FIELD(arg1, u8 *, 0x778) == 0)) {
                         temp_v0_7 = arg1 + (temp_a0_13 * 8);
                         if (!(M2C_FIELD(temp_v0_7, f32 *, 0x5B4) > (__repair_pin_6 = 0.3f))) {
                             var_v0_9 = var_s0_2 & 0xFFFF;
@@ -565,7 +565,7 @@ block_205:
                     goto block_209;
                 case 7:                             /* switch 5 */
                     var_a0_3 = var_s0_2 & 0xFFFF;
-                    temp_fv1_6 = *(s32 *)((var_a0_3 * 4) + ((M2C_FIELD(arg1, u16 *, 4) * 0x18) + D_8022E620));
+                    temp_fv1_6 = *(s32 *)((var_a0_3 * 4) + ((M2C_FIELD(arg1, u16 *, 4) * 0x18) + sGroupSortKeys));
                     if ((temp_fv1_6 < (__repair_pin_8 = 500.0f)) && (temp_fv1_6 > (__repair_pin_1 = 200.0f)) && (temp_s2_2 < temp_s5)) {
                         var_v0_3 = M2C_FIELD(arg1, u8 *, 0x778) & 0x1F;
                         goto block_136;
@@ -575,7 +575,7 @@ block_205:
                 case 9:                             /* switch 5 */
                 case 10:                            /* switch 5 */
                     var_a0_3 = var_s0_2 & 0xFFFF;
-                    temp_fv1_7 = *(s32 *)((var_a0_3 * 4) + ((M2C_FIELD(arg1, u16 *, 4) * 0x18) + D_8022E620));
+                    temp_fv1_7 = *(s32 *)((var_a0_3 * 4) + ((M2C_FIELD(arg1, u16 *, 4) * 0x18) + sGroupSortKeys));
                     if (!(temp_fv1_7 < (__repair_pin_8 = 500.0f))) {
                         var_v0_7 = arg1 + ((var_s0_2 & 0xFFFF) * 8);
                         var_condition_bit_2 = M2C_FIELD(var_v0_7, f32 *, 0x5B8) > (__repair_pin_7 = 0.6f);
@@ -599,7 +599,7 @@ block_205:
                 case 13:                            /* switch 5 */
                 case 14:                            /* switch 5 */
                     temp_a0_14 = var_s0_2 & 0xFFFF;
-                    temp_fv1_8 = *(s32 *)((temp_a0_14 * 4) + ((M2C_FIELD(arg1, u16 *, 4) * 0x18) + D_8022E620));
+                    temp_fv1_8 = *(s32 *)((temp_a0_14 * 4) + ((M2C_FIELD(arg1, u16 *, 4) * 0x18) + sGroupSortKeys));
                     if ((temp_fv1_8 < (__repair_pin_4 = 300.0f)) && (temp_fv1_8 > (__repair_pin_5 = 100.0f)) && (temp_s5 < temp_s2_2) && (var_fv1_5 < (__repair_pin_2 = 20.0f)) && !(M2C_FIELD(arg1, u8 *, 0x778) & 0x3F)) {
                         temp_v0_8 = arg1 + (temp_a0_14 * 8);
                         if (!(M2C_FIELD(temp_v0_8, f32 *, 0x5B4) > (__repair_pin_6 = 0.3f))) {
@@ -613,7 +613,7 @@ block_205:
                     goto block_209;
                 case 15:                            /* switch 5 */
                     temp_a0_15 = var_s0_2 & 0xFFFF;
-                    temp_fv1_9 = *(s32 *)((temp_a0_15 * 4) + ((M2C_FIELD(arg1, u16 *, 4) * 0x18) + D_8022E620));
+                    temp_fv1_9 = *(s32 *)((temp_a0_15 * 4) + ((M2C_FIELD(arg1, u16 *, 4) * 0x18) + sGroupSortKeys));
                     if ((temp_fv1_9 < 900.0f) && (temp_fv1_9 > (__repair_pin_1 = 200.0f)) && (temp_s5 < temp_s2_2) && (var_fv1_5 < 50.0f) && !(M2C_FIELD(arg1, u8 *, 0x778) & 0xF)) {
                         temp_v0_9 = arg1 + (temp_a0_15 * 8);
                         if (!(M2C_FIELD(temp_v0_9, f32 *, 0x5B4) > (__repair_pin_6 = 0.3f))) {

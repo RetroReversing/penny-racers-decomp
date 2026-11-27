@@ -10,7 +10,7 @@ typedef struct
   u8 pad[96];
 } Ptr100;
 extern Flags100 sNodeFlags[];
-extern Ptr100 sNodeTable[];
+extern Ptr100 sPathNodes[];
 void func_8014ABD8(s32 arg0)
 {
   u8 *p;
@@ -24,7 +24,7 @@ void func_8014ABD8(s32 arg0)
       return;
 
     case 1:
-      if ((*sNodeTable[(u16) arg0].data) == 0)
+      if ((*sPathNodes[(u16) arg0].data) == 0)
     {
  t = (*((f32 *) (p + 0x28))) - 1.0f; *((f32 *) (p + 0x28)) = t; if (t < 0.0f) { *((f32 *) (p + 0x28)) = t + 360.0f; }
     }

@@ -24,8 +24,8 @@ extern s32 carouselSelected[];
 extern u16 *D_802030CC[];
 extern u16 D_8021F270[][14][8];
 extern u8 D_80046832;
-extern s32 D_801E9990;
-extern s32 D_801E9994;
+extern s32 btnPlayPressed;
+extern s32 btnStopPressed;
 extern s32 menuChoice;
 extern s32 D_8021AFDC;
 extern s32 D_8021AFE0;
@@ -91,7 +91,7 @@ void func_80208444(u16 id) {
                 D_8021B128.choice = 1;
             }
         }
-        if (D_801E9990 == 2 && *D_8011F2F0[D_8018BC3C].f60 == 0) {
+        if (btnPlayPressed == 2 && *D_8011F2F0[D_8018BC3C].f60 == 0) {
             if (carouselCmd != 0) {
                 func_80205C00();
             }
@@ -122,7 +122,7 @@ void func_80208444(u16 id) {
                 D_8021E102 = 1;
             }
         }
-        if (D_801E9994 == 1 && *D_8011F2F0[D_8018BC3C].f60 == 0) {
+        if (btnStopPressed == 1 && *D_8011F2F0[D_8018BC3C].f60 == 0) {
             D_8021B1B5 = 1;
         }
         if (skipFirstRowFlag.v == 0) {
@@ -138,7 +138,7 @@ void func_80208444(u16 id) {
                 D_8021B1B4 = 0;
             }
             D_8021B1B4 = 1;
-        } else if (D_801E9994 == 1 && *D_8011F2F0[D_8018BC3C].f60 == 0) {
+        } else if (btnStopPressed == 1 && *D_8011F2F0[D_8018BC3C].f60 == 0) {
             playMenuSound(0x3E);
         }
         break;

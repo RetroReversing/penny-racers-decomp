@@ -5,7 +5,7 @@ extern Half D_8006FB10;
 extern Spec *D_802D6288[];
 extern Slot sCarSlots[];
 extern s16 carClassIndex;
-extern s32 D_801E99C4;
+extern s32 btnCyclePrevPressed;
 extern char D_80232D34[], D_80232D44[], D_80232D58[], D_80232D6C[], D_80232D80[], D_80232D94[], D_80232DA8[], D_80232DBC[], D_80232DD0[], D_80232DE4[], D_80232DF8[], D_80232E0C[], D_80232E20[];
 u32 func_801FA38C(s32);
 void func_80149FA8(u16);
@@ -44,7 +44,7 @@ void debugPrintf(char *, ...);
     slot->f24 = spec->f20;
     slot->f16A[entry] = func_801FA38C(0) % 10;
     func_80149FA8(id);
-    if (D_801E99C4 != 0) {
+    if (btnCyclePrevPressed != 0) {
         debugPrintf(D_80232D34, id, entry);
         debugPrintf(D_80232D44, slot->f2);
         debugPrintf(D_80232D58, slot->f4);

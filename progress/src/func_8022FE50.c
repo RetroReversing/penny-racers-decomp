@@ -94,7 +94,7 @@ extern void *D_802CBEE0[];
 typedef struct { u8 unk0[2]; s16 course; } Cup;
 extern Cup D_8021E1A4;
 extern u8 D_80232C50[];
-extern Rec D_801E9990[];
+extern Rec btnPlayPressed[];
 extern Pal D_80237D18[];
 extern u16 D_80233EC0;
 extern u8 D_80239060[];
@@ -105,7 +105,7 @@ extern void initRaceTimes();
 extern s32 func_80148230();
 extern void func_8012AD20();
 extern void setCarPartSprites();
-extern u16 func_8012913C(u16, f32, f32, f32);
+extern u16 findPathNodeContaining(u16, f32, f32, f32);
 extern void updateCarRecord();
 extern void drawCarLighting();
 extern void func_8013835C();
@@ -216,7 +216,7 @@ void func_8022FE50(u8 arg0, u8 arg1, u8 arg2, u8 arg3)
         break;
     }
     if (arg3 == 0 && arg2 < 4) {
-        if (D_801E9990[arg2].a && D_801E9990[arg2].b && D_801E9990[arg2].c && D_801E9990[arg2].d) {
+        if (btnPlayPressed[arg2].a && btnPlayPressed[arg2].b && btnPlayPressed[arg2].c && btnPlayPressed[arg2].d) {
             car->unk55E = -1;
         }
     }
@@ -259,9 +259,9 @@ void func_8022FE50(u8 arg0, u8 arg1, u8 arg2, u8 arg3)
         func_8012AD20(D_8011F2F0[car->id].child, car->unk210, (u8) info->model, info->unk16A[info->model]);
     }
     setCarPartSprites(car);
-    car->unk7D0 = func_8012913C(D_80233EC0, D_8011F2F0[car->id].x, D_8011F2F0[car->id].y, D_8011F2F0[car->id].z);
+    car->unk7D0 = findPathNodeContaining(D_80233EC0, D_8011F2F0[car->id].x, D_8011F2F0[car->id].y, D_8011F2F0[car->id].z);
     car->unk7D2 = 0;
-    car->unk814 = func_8012913C(D_80233EC0, D_8011F2F0[car->id].x, D_8011F2F0[car->id].y, D_8011F2F0[car->id].z);
+    car->unk814 = findPathNodeContaining(D_80233EC0, D_8011F2F0[car->id].x, D_8011F2F0[car->id].y, D_8011F2F0[car->id].z);
     car->unk816 = 0;
     if (ghost == 0) {
         id = objCreate(0, 0, 1, 0, 0x52, 0x9B, D_80239060, func_8013835C, func_80138304,

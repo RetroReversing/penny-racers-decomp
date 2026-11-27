@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_801AEAB0();                            /* extern */
+M2C_UNK setupHudObjects();                            /* extern */
 extern s32 D_802038D0;
 extern s32 D_802038D4;
 extern s32 D_80203AB0;
@@ -21,5 +21,5 @@ void func_801B3C74(void) {
     D_80203AB0 = 0;
     D_802038D0 = 0;
     D_802038D4 = 0;
-    func_801AEAB0();
+    setupHudObjects();
 }

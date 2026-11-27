@@ -17,10 +17,10 @@ u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f3
 u16 raceAllocSlot(void);
 void initHitSlot(u16, s32, s16, f32, f32, f32, u16);
 void ballMoveCollide(Ball *, f32, f32, f32, f32, f32, f32);
-u8 func_8013F050(u16, void *);
+u8 ballCheckZoneHit(u16, void *);
 u8 liftHitCars(u16, void *);
 void queueObjEvent(u16, s16);
-u16 func_8012913C(u16, f32, f32, f32);
+u16 findPathNodeContaining(u16, f32, f32, f32);
 void liftCopyFlags(u16);
 void func_80167510(u16 arg0)
 {
@@ -51,7 +51,7 @@ void func_80167510(u16 arg0)
     }
     case 1:
         data = o->data;
-        if (func_8013F050(arg0, data)) {
+        if (ballCheckZoneHit(arg0, data)) {
             Slot *s;
             f32 t;
 
@@ -143,7 +143,7 @@ void func_80167510(u16 arg0)
             o->x = o->f44;
             o->y = o->f48 + 150.0f;
             o->z = o->f4C;
-            data->ball.s4 = func_8012913C(D_80233EC0, o->x, o->y, o->z);
+            data->ball.s4 = findPathNodeContaining(D_80233EC0, o->x, o->y, o->z);
             data->ball.s6 = 0;
             data->ball.f1 = 0;
             data->ball.f2 = 0;
@@ -155,7 +155,7 @@ void func_80167510(u16 arg0)
             o->x = o->f44;
             o->y = o->f48;
             o->z = o->f4C;
-            data->ball.s4 = func_8012913C(D_80233EC0, o->x, o->y, o->z);
+            data->ball.s4 = findPathNodeContaining(D_80233EC0, o->x, o->y, o->z);
             data->ball.s6 = 0;
             data->ball.f1 = 0;
             data->ball.f2 = 0;

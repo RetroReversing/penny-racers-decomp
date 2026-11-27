@@ -8,12 +8,12 @@ typedef union { Gwords words; long long force; } Gfx;
 typedef struct { f32 v; u8 pad[0x60]; } ColorSlot;
 extern ColorSlot D_8011F308[];
 extern ColorSlot sPrimColorG[];
-extern ColorSlot sPrimColorB[];
+extern ColorSlot sPathOffsetZ[];
 #define EMIT(w0v, w1v) gDma((*dlp)++, w0v, w1v)
 #define PACK_RGBA5551(r, g, b, a) ((((r) << 8) & 0xf800) | (((g) << 3) & 0x7c0) | (((b) >> 2) & 0x3e) | ((a) & 0x1))
 #define PRIM_R (u32)D_8011F308[colorId].v
 #define PRIM_G (u32)sPrimColorG[colorId].v
-#define PRIM_B (u32)sPrimColorB[colorId].v
+#define PRIM_B (u32)sPathOffsetZ[colorId].v
 
 /* Emits a pipe sync, then the combine and primitive-colour commands for the colour in slot colorId. */
 void addPrimColorCmds(Gfx **dlp, u16 colorId)

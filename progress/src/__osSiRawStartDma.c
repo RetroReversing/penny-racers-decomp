@@ -15,7 +15,7 @@ extern s32 D_8004AA74;
 s32 func_800346B0(void *, void *, s32);
 s32 func_80034640(s32);
 s32 func_800338B0(s32, s32);
-s32 func_8003EBF0(s32, s32);
+s32 osWritebackDCache(s32, s32);
 
 s32 __osSiRawStartDma(s32 arg0, s32 arg1) {
     if (arg1 & 3) {
@@ -25,7 +25,7 @@ s32 __osSiRawStartDma(s32 arg0, s32 arg1) {
         return -1;
     }
     if (arg0 == 1) {
-        func_8003EBF0(arg1, 0x40);
+        osWritebackDCache(arg1, 0x40);
     }
     *(volatile s32 *)0xA4800000 = func_80034640(arg1);
     if (arg0 == 0) {

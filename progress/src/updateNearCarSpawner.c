@@ -6,7 +6,7 @@ extern Slot sCars[];
 extern Rec slotRadius[];
 extern u8 D_8023977C[];
 extern u8 D_80239950[];
-extern void func_8014081C(), func_80140A0C(), func_80140A38(), func_80138304();
+extern void updateBall(), func_80140A0C(), func_80140A38(), func_80138304();
 u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, s32, s32, s32, f32, f32, f32);
 u16 raceAllocSlot(void);
 void initHitSlot(u16, s32, s16, f32, f32, f32, u16);
@@ -49,7 +49,7 @@ f32 sqrtf(f32);
             randStep = nextRandom() & 0x7F;
             targetX = randStep * -1.433f + -965.0f;
             targetZ = randStep * 1.417f + 531.0f;
-            objIdx = objCreate(0, 0, 1, 0, 0x51, 0xC8, D_8023977C, func_8014081C, func_80140A0C, x, y, z, 0, 0, 0, 2.0f, 2.0f, 2.0f);
+            objIdx = objCreate(0, 0, 1, 0, 0x51, 0xC8, D_8023977C, updateBall, func_80140A0C, x, y, z, 0, 0, 0, 2.0f, 2.0f, 2.0f);
             if ((u16) (objIdx + 2) >= 2U) {
                 f32 speed = (nextRandom() & 0x1F) * 0.01f + 0.5f;
                 f32 height = (nextRandom() & 0xF) * 0.1f + 4.0f;
