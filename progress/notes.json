@@ -6792,14 +6792,6 @@
   "score_after": 170
  },
  {
-  "function": "func_80148DBC",
-  "text": "Released after one compile (17017, 20% match). The m2c-style draft in rev a6343c064ad702a5089c has the right loop skeleton but the wrong shape overall. The target frame is 0x30 with s0-s6 saved, while the draft uses 0x38 with s0-s7, so the target keeps fewer values live across the loops. The target starts by loading D_8021E1A2, and its loop bodies hoist the D_8018D3xx base addresses (lui/sw pairs), so the draft's per-field &D_8018D3A0 + offset expressions are not the codegen the compiler produces. Next: rewrite the bodies with one base pointer per row (s32 *row = &D_8018D3A0 + (s4 << 5) style) and compare the frame size first. The three loops are: (1) 8-iteration read of 4 packed words per row for D_8018D3A0..., (2) 6-row fixup calling func_8014A030 on D_800DA260 fields (u16 at 0, u8 at 9/0xD/0xF minus 1), (3) 8-iteration AND/OR of D_80168BC0 and D_80168C40 tables, then a final 6-row masking loop.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794711076.096661,
-  "score_before": 14378,
-  "score_after": 14378
- },
- {
   "function": "func_801580F4",
   "text": "Not matched. Best this session 15894 (22.0%), worse than saved 9387. My clean rewrite (the machine draft used undeclared symbols and does not compile as-is) lost the structure. Target is 204 insns with a 0x90 frame: saves ra, s0-s7 and doubles fs0-fs3 (sdc1 at 0x70..0x88). Facts from the target prologue: arg0 is masked to u16 and used as index*100 (sll 1; addu; sll 3; addu; sll 2 = 100x); the flag at D_8011F32E[idx*100] is set to 1 and D_8018D660 is reset to 0 on first use. D_8018D660 is a u16 counter (lhu/addiu/sh). The loop is gated by `sltiu 0xB` (counter >= 11). The loop body loads a constant 0x91A2B3C5 into s7 (a PRNG/hash constant), calls func_801FA38C(0) % 1800 with float/double conversion (ldc1 D_80183880 for the negative case), and calls func_800DE41C with 18 args (one of them 1800.0f and one 1200.0f, -260.0f). The writes go to D_8011F2F0 + idx*100 with +4/+6/+8 halfword stores of 0x40 and a byte store at +0. The loop repeats while the counter is < 2. Next step: get the full assembly (get_assembly focus=page for lines 52..212) and rebuild the fs-register state first, then the call sequence, before tuning registers. Released at move-on.",
   "by": "claude-haiku-5-5-23",
@@ -9872,14 +9864,6 @@
   "score_after": 5220
  },
  {
-  "function": "func_80148DBC",
-  "text": "Released at low effort after 2 compiles total, both score 17007 (20.1%). Target 213 insns vs candidate 196. Target has a 0x38 frame (addiu $sp,-0x38 at entry; candidate lacks it), and the target reloads D_8021E1A2 via lui/lh in a different place, so the frame/spill layout is wrong. Target shows many `lui $v0,%hi(D_8021E1A2)`, `sw $v0,%lo(D_8018D3A0)($at)` and `addu $s3,$v0,$s6` repeats, which suggests the per-channel loop is indexed by a different base than `(var_s4&0xFF)<<5`. Candidate's inner loop_8 shape and the final 6-iteration loop need checking against get_assembly. Also the held candidate's declarations of D_8018D3BC etc. were fine in my compile; the earlier 'undeclared' warnings came from the machine draft. Next step: read get_assembly(focus=\"mismatch\") and rewrite the loops from the target's actual control flow before tuning registers.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794727900.1477199,
-  "score_before": 14378,
-  "score_after": 14378
- },
- {
   "function": "func_801580F4",
   "text": "Best so far 6541 (67.9%), revision 7cd5124b0a5625257986. Keep this source: the machine draft with `u32 func_801FA38C(s32)` (target uses unsigned magic-multiply for `% 1800`, multu by 0x91A2B3C5) and D_8011F32E read as `*(u16*)((u8*)D_8011F32E + temp_v1)`. Tried pointer-local variant (temp_v0_3 = D_8011F2F0 + temp_v1_2, D_8011F2F2 separate u8 array): 6597, worse. Remaining diffs: (1) frame: mine saves $fp at 0x68 and $ra at 0x6c; target saves $ra at 0x68, s0-s7 at 0x48-0x64, fs0-fs3 at 0x70-0x88, never uses $fp, so the locals need one fewer live pointer. (2) target puts `andi $a0,$a0,0xffff` and the *100 index before the D_8011F32E load; mine branches earlier. (3) target re-materialises `addiu $s4,%lo(D_802393D4)` before each call; mine folds it. (4) the 0x3E4CCCCD constant is loaded into $fs0 once in the target and mine re-loads lui $at each block. Next step if continued: try hoisting the second-block constant load into a local, and check whether the first block's `if (temp_v0 < 0)` is a float compare on the converted value. Plateau reached at 6541 after 3 non-improving variants; no further cheap edit found.",
   "by": "claude-haiku-5-5-20",
@@ -12774,14 +12758,6 @@
   "created_at": 1794740703.244056,
   "score_before": 10369,
   "score_after": 10369
- },
- {
-  "function": "func_80148DBC",
-  "text": "Unmatched, best 17007 (20.1%). Target 213 insns, frame 0x30 saving $ra,$s6..$s0 (7 callee-saved regs); my draft uses 0x38 and saves $s7 too, so loop-state register pressure is overcounted. The target keeps D_8021E1A2 loads outside the loops and computes the stride as (idx<<5) with the table base addressed through lui/sw pairs (12 each), where my draft re-indexes via `&D_8018D3A0 + off` arithmetic in the inner loops. Machine draft's undeclared globals were fixed by declaring them extern. Next step: restructure the two loops as explicit pointer walks (s32 *row = &D_8018D3A0 + (idx<<5)/4) and drop the (s32) cast on D_8018D3B7 reads. Budget exhausted at 3/3 without improvement.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794740730.525449,
-  "score_before": 14378,
-  "score_after": 14378
  },
  {
   "function": "func_80215DE0",
@@ -18272,14 +18248,6 @@
   "score_after": 255
  },
  {
-  "function": "func_80148DBC",
-  "text": "No match. The machine draft did not compile as given (globals D_8018D3xx undeclared in the scoring copy); with the globals declared, the draft scores 17007 (20.1%). Target frame is 0x30 with ra, s6..s0 saved (draft uses 0x38 with s7 too; reduce to s0..s6). The target's first block is a loop over 8 entries (3x func_801FA30C pairs writing D_8018D3A0 + idx*4 + (s4<<5)) then four func_8014A030 calls with u16 from D_800DA260 + s4*0x178 at offsets 0/9/0xD/0xF. The second block is a nested loop over 8 entries masked by D_80168BC0/D_80168C40 with arg0&3. The final loop walks 6 entries with bit masks. Next step: rewrite as plain loops with s32 index variables matching the sll 5 / 0x178 multiply order, then fix the register allocation. Not a regalloc problem yet: the stack frame and loop structure differ.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794758324.633377,
-  "score_before": 14378,
-  "score_after": 14378
- },
- {
   "function": "func_80209AEC",
   "text": "MATCHES at KMC -O1 with a plain for loop and constant float stores (suggestion submitted). Waiting for the -O1 profile.",
   "by": "claude-opus-medium-1",
@@ -19014,14 +18982,6 @@
   "created_at": 1794759559.815713,
   "score_before": 4620,
   "score_after": 4620
- },
- {
-  "function": "func_80148DBC",
-  "text": "Best 12555 (41.0%) at revision ae9289064883f73eaa11. Shape is right: mode=1/2 from lh D_8021E1A2; if D_80189B34==2, for k in [mode,6): row=(u8*)&D_8018D3A0 + ((k&0xFF)<<5); 8-word inner loop with w = a | (b<<16); w &= ~(c | (d<<16)) using three func_801FA30C calls; then func_8014A030 on words 0,5,6,7 (tbl=D_800DA260+k*0x178, u16 at 0, u8 at 9/0xD/0xF minus 1); then per-word &= D_80168BC0[(arg0&3)*8+i] and |= D_80168C40[i]; final j<6 loop masks with scalar &D_8018D3Ax+off (word5 = (u8)lbu D_8018D3B7). Remaining diffs: target keeps the frame at 0x30 with saves ra,s6..s0 (mine 0x38 with s7/fp: the row/table base is kept in an extra register), target computes andi a0,a0,3 and lui/lh D_8021E1A2 before the saves are used, and uses s3=(k<<5)+s6 with s6=&D_8018D3A0 held across loops; loops use bne (not bnel) on D_80189B34==2. Tried and worse: s32/u32 k (16468), sh variable kept live (worse than inline arg0&3), separate-offset access in loops A/B (15869, 19454). Untried: write the outer if as an early skip (if D_80189B34 != 2 goto end) to get the bne shape; move arg0&3 to the first statement.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794759582.0606542,
-  "score_before": 14378,
-  "score_after": 12555
  },
  {
   "function": "func_8014730C",
@@ -40745,5 +40705,53 @@
   "score_before": 4235,
   "score_after": 3550,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:0164c43fa8c2448a90612f9039be05d93eb263ce029087232826fc7b30362012"
+ },
+ {
+  "function": "func_80148DBC",
+  "text": "Released after one compile (17017, 20% match). The m2c-style draft in rev a6343c064ad702a5089c has the right loop skeleton but the wrong shape overall. The target frame is 0x30 with s0-s6 saved, while the draft uses 0x38 with s0-s7, so the target keeps fewer values live across the loops. The target starts by loading D_8021E1A2, and its loop bodies hoist the D_8018D3xx base addresses (lui/sw pairs), so the draft's per-field &D_8018D3A0 + offset expressions are not the codegen the compiler produces. Next: rewrite the bodies with one base pointer per row (s32 *row = &D_8018D3A0 + (s4 << 5) style) and compare the frame size first. The three loops are: (1) 8-iteration read of 4 packed words per row for D_8018D3A0..., (2) 6-row fixup calling func_8014A030 on D_800DA260 fields (u16 at 0, u8 at 9/0xD/0xF minus 1), (3) 8-iteration AND/OR of D_80168BC0 and D_80168C40 tables, then a final 6-row masking loop.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794711076.096661,
+  "score_before": 14378,
+  "score_after": 14378
+ },
+ {
+  "function": "func_80148DBC",
+  "text": "Released at low effort after 2 compiles total, both score 17007 (20.1%). Target 213 insns vs candidate 196. Target has a 0x38 frame (addiu $sp,-0x38 at entry; candidate lacks it), and the target reloads D_8021E1A2 via lui/lh in a different place, so the frame/spill layout is wrong. Target shows many `lui $v0,%hi(D_8021E1A2)`, `sw $v0,%lo(D_8018D3A0)($at)` and `addu $s3,$v0,$s6` repeats, which suggests the per-channel loop is indexed by a different base than `(var_s4&0xFF)<<5`. Candidate's inner loop_8 shape and the final 6-iteration loop need checking against get_assembly. Also the held candidate's declarations of D_8018D3BC etc. were fine in my compile; the earlier 'undeclared' warnings came from the machine draft. Next step: read get_assembly(focus=\"mismatch\") and rewrite the loops from the target's actual control flow before tuning registers.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794727900.1477199,
+  "score_before": 14378,
+  "score_after": 14378
+ },
+ {
+  "function": "func_80148DBC",
+  "text": "Unmatched, best 17007 (20.1%). Target 213 insns, frame 0x30 saving $ra,$s6..$s0 (7 callee-saved regs); my draft uses 0x38 and saves $s7 too, so loop-state register pressure is overcounted. The target keeps D_8021E1A2 loads outside the loops and computes the stride as (idx<<5) with the table base addressed through lui/sw pairs (12 each), where my draft re-indexes via `&D_8018D3A0 + off` arithmetic in the inner loops. Machine draft's undeclared globals were fixed by declaring them extern. Next step: restructure the two loops as explicit pointer walks (s32 *row = &D_8018D3A0 + (idx<<5)/4) and drop the (s32) cast on D_8018D3B7 reads. Budget exhausted at 3/3 without improvement.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794740730.525449,
+  "score_before": 14378,
+  "score_after": 14378
+ },
+ {
+  "function": "func_80148DBC",
+  "text": "No match. The machine draft did not compile as given (globals D_8018D3xx undeclared in the scoring copy); with the globals declared, the draft scores 17007 (20.1%). Target frame is 0x30 with ra, s6..s0 saved (draft uses 0x38 with s7 too; reduce to s0..s6). The target's first block is a loop over 8 entries (3x func_801FA30C pairs writing D_8018D3A0 + idx*4 + (s4<<5)) then four func_8014A030 calls with u16 from D_800DA260 + s4*0x178 at offsets 0/9/0xD/0xF. The second block is a nested loop over 8 entries masked by D_80168BC0/D_80168C40 with arg0&3. The final loop walks 6 entries with bit masks. Next step: rewrite as plain loops with s32 index variables matching the sll 5 / 0x178 multiply order, then fix the register allocation. Not a regalloc problem yet: the stack frame and loop structure differ.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794758324.633377,
+  "score_before": 14378,
+  "score_after": 14378
+ },
+ {
+  "function": "func_80148DBC",
+  "text": "Best 12555 (41.0%) at revision ae9289064883f73eaa11. Shape is right: mode=1/2 from lh D_8021E1A2; if D_80189B34==2, for k in [mode,6): row=(u8*)&D_8018D3A0 + ((k&0xFF)<<5); 8-word inner loop with w = a | (b<<16); w &= ~(c | (d<<16)) using three func_801FA30C calls; then func_8014A030 on words 0,5,6,7 (tbl=D_800DA260+k*0x178, u16 at 0, u8 at 9/0xD/0xF minus 1); then per-word &= D_80168BC0[(arg0&3)*8+i] and |= D_80168C40[i]; final j<6 loop masks with scalar &D_8018D3Ax+off (word5 = (u8)lbu D_8018D3B7). Remaining diffs: target keeps the frame at 0x30 with saves ra,s6..s0 (mine 0x38 with s7/fp: the row/table base is kept in an extra register), target computes andi a0,a0,3 and lui/lh D_8021E1A2 before the saves are used, and uses s3=(k<<5)+s6 with s6=&D_8018D3A0 held across loops; loops use bne (not bnel) on D_80189B34==2. Tried and worse: s32/u32 k (16468), sh variable kept live (worse than inline arg0&3), separate-offset access in loops A/B (15869, 19454). Untried: write the outer if as an early skip (if D_80189B34 != 2 goto end) to get the bne shape; move arg0&3 to the first statement.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794759582.0606542,
+  "score_before": 14378,
+  "score_after": 12555
+ },
+ {
+  "function": "func_80148DBC",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Not attempted: random flag-bit generator, not a display-list builder; this session was doing builders.",
+  "by": "manual-56ba928f9d98446c",
+  "created_at": 1795744044.865393,
+  "score_before": 7660,
+  "score_after": 7660
  }
 ]
