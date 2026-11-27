@@ -8336,14 +8336,6 @@
   "score_after": 30364
  },
  {
-  "function": "func_801FDA44",
-  "text": "Best 32108 (45%) at revision b0e6f02a8af95ee4a4d6. Key finding: the static helper gw() must be a macro (GW: store two words at *arg0, advance by 8). The target inlines it (many `sw $v0,($s3)`); the helper call was the main source of the 51843 score. Still open: target 584 insns vs ours 536; frame 0x40 in target vs 0x48 in ours, with s0-s7 save order and `move $sN,$a0` placement; table-index math (`sll $v0,$v0,2`, `andi $v1,$a2,0xffff`, `lbu` from D_802038F4 table) is ordered differently; the 5-iteration loop bodies need rebuilding to match target evaluation order. Changing func_801CB74C's arg 6 to s32 gives warnings and no score change: keep the pointer version. Stopped at low effort; the next step is a restructured loop body, not register tuning.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794719619.565043,
-  "score_before": 27288,
-  "score_after": 27288
- },
- {
   "function": "func_801FE954",
   "text": "Not matched (best 59701, 8.1%). Target is 650 insns; the current C skeleton emits 135. Missing pieces: (1) a 5-case switch on D_80203AAD (lbu; sltiu 5; jump table at 0x80203870, 4-byte entries, `jr`) at ~target line 325. The machine draft fails on this jump table, so the case bodies need writing by hand; read_data(0x80203870) gives the targets. (2) Lots of extra code after the switch (reads/writes of D_801E9988, D_80203AB4, D_802038F3/F4/F8, D_801E999C, ...) that the skeleton omits. (3) Loop body: 16 iterations of per-array stores with a stride of 28 (i*28 = ((i<<3)-i)<<2). gcc emits a separate `lui $at,%hi(X)` + `addu $at,$at,$v0` + `sb/sw ...%lo(X)($at)` for each array, not a shared base. Suggest this is caused by how the arrays are declared (plain arrays with a byte index); the hoisted-base shape in my candidate does not match. Next step: write the switch with its case bodies from the asm, then compare the loop shape.",
   "by": "claude-haiku-5-5-23",
@@ -14416,14 +14408,6 @@
   "score_after": 23601
  },
  {
-  "function": "func_801FDA44",
-  "text": "Not attempted by compile: 2336 bytes, too large for this session. Draft is a display-list builder: GW(arg0, w0, w1) appends two words to a DL pointer, with a switch on D_80203AA8, a 5-iteration loop over D_802038F2..F6 flags (stride 0x1C), a func_801CA140 call, and many func_801CB74C / func_801CBF48 calls with the same D_801D4FC0 argument. The draft has repair placeholders (__repair_phase_i/s1, a2/a3 names) that should be cleaned up. Start by writing the GW macro and splitting the function into its phases (setup GW block, loop over flags, text/value calls).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794742541.471943,
-  "score_before": 27288,
-  "score_after": 27288
- },
- {
   "function": "func_80193160",
   "text": "Not compiled. The m2c draft does not compile as written: pointer arithmetic on incomplete types (D_801C7066, D_801C7AB0 as void*, D_801E9990/D_801E9994 used with *0x70, D_8011F2F4/D_8011F308 used with *0x64 and D_801C7D30 with *0x10). Next step before any scoring: declare real element types for these tables (stride 0x70 for D_801E9990/9994, 0x64 for the D_8011F2xx/F3xx record table, 0x10 for D_801C7D30, stride 5 for D_801C7080..7084, and a struct for D_801C6BB4 with fields at -4,-3,-2,0,2) so the draft compiles. Also the target frame is 0xE8 with s0-s5 and fs0/fs1 saved, so the float-heavy branch needs locals for the f32 products. Not attempted this session.",
   "by": "claude-haiku-5-5-22",
@@ -16118,14 +16102,6 @@
   "created_at": 1794752303.922248,
   "score_before": 58403,
   "score_after": 58403
- },
- {
-  "function": "func_801FDA44",
-  "text": "Compiled a cleaned m2c-style display-list draft (rev edb2cc73ce0208372784) once: score 32038 (45.1%). Saved best is 30043, so this is worse; restore the saved best with get_candidate(base=\"saved_best\") before continuing. Target 584 insns, candidate 535. Frame: target addiu -0x40 with saves ra, s6..s2; candidate -0x48 with saves ra, s7..s2 plus an extra move $s2,$a0 at entry, so the pointer arg is held in one fewer register in the target. The target builds the GW word pairs with sll $v0,$v0,2 and andi $v1,$a2,0xffff; the candidate uses a phase variable reused for both the phase math and the 0x1C table offset, which changes register use. Raw address diffs: target loads 0xF643C2FC and 0x80218021 in the opposite order from candidate, so the switch cases and GW(0xF7000000,0x80218021) ordering differ. Also calls func_801CB74C with a pointer arg where the target passes an integer (warnings on arg 6 at lines 108 and 114): the arg 6 should be &D_80202580-derived value, not a pointer, check the prototype. Next step: fix the arg-6 type to match the target (use the value loaded from D_80202580 table directly), then restore saved_best and re-check frame size before changing the GW ordering.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794752308.849039,
-  "score_before": 27288,
-  "score_after": 27288
  },
  {
   "function": "func_80207440",
@@ -20960,14 +20936,6 @@
   "score_after": 35038
  },
  {
-  "function": "func_801FDA44",
-  "text": "Stopping this claim for now. Best candidate score is 32759 (43.9%), and the saved best is 30043 (start from get_candidate base=saved_best). This is a 584-instruction display-list builder; the draft is far off in structure (prologue register allocation, the 5-iteration address math, and the loop/call ordering). Changing the arg-6 prototype (M2C_UNK * vs s32) did not change the score, and the warnings show the call sites pass both pointers (&D_80203760, &D_80203744) and integer values (*(&D_80202580 + ...)), so the prototype must be split per call site or the arg is a pointer in some calls and an integer in others. Next steps: (1) resolve the arg-6 type per call site, (2) match the prologue (target saves s0-s3 and copies arg0 into s3), (3) then tune the loop address math.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794761300.7072818,
-  "score_before": 27288,
-  "score_after": 27288
- },
- {
   "function": "func_80216D80",
   "text": "Cannot get closer with the current approach. Best 26292 (44.1%), revision 3417736eb786fa7a4c69; the signedness family on sp34 (u8*\u2192s8*) gave no change. Target 471 insns, frame 0x60, saves ra/fp/s7/s6/s5/s4-s0; candidate frame 0x58, so the set of values kept live across the func_8014A4C8 calls is wrong. Target computes row offsets from unmasked arg1 (sll $v0,$a1,1; addu $v0,$v0,$a1 = a1*3 pattern, then *0x64 via shifts). Mine uses arg0-based temps there. Next step: retype arg1 as s32 without the &0xFFFF on the offset, give each of the three flag blocks its own loop index, and keep the i*0x12 offset values in locals that stay live across calls. Helper meanings are guesses from call args (func_8014A4C8 draw-with-pos, func_801CA494 colour set, func_801CA468 mode set).",
   "by": "claude-haiku-5-5-21",
@@ -22574,14 +22542,6 @@
   "created_at": 1794763226.291581,
   "score_before": 1570,
   "score_after": 200
- },
- {
-  "function": "func_801FDA44",
-  "text": "Not compiled by me; saved best 30043 is far off. The function is an N64 display-list emitter: each GW(arg0, w0, w1) appends two words to *arg0 (s32 *gp = *arg; *arg = gp+2). Structure to keep: fixed GBI words at the top (0xE7000000,0,0xBA001402,0x300000,0xF7000000,0x210021), switch on D_80203AA8 (case 0/1 emit 0xF63FC17C/0xF643C2FC variants), then a loop over i<5 with idx=(D_80203AB6+i)&0xFFFF, idx<0x10, flags at D_802038F2..F6 + idx*0x1C (stride 0x1C), each flag emitting a pair of words with ((i*0x28+0x6F)&0x3FF)<<14 and ((i*0x28+0x58)&0x3FF)<<14 packed fields. Then a block using D_80202624*2 for the viewport-like packing (a2/a3 masks 0x1E/0x3C0), and calls func_801CA140/func_801CA468/func_801CB74C/func_801CBF48. The last loop uses stride 0x1C over D_802038E8..F1. Next: the bit-packing expressions are where the mismatch is; match the order of the | and << operations on the first GW call before touching the loops.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794763233.835377,
-  "score_before": 27288,
-  "score_after": 27288
  },
  {
   "function": "func_80026D40",
@@ -40605,5 +40565,54 @@
   "created_at": 1795715903.821729,
   "score_before": 2110,
   "score_after": 2110
+ },
+ {
+  "function": "func_801FDA44",
+  "text": "Best 32108 (45%) at revision b0e6f02a8af95ee4a4d6. Key finding: the static helper gw() must be a macro (GW: store two words at *arg0, advance by 8). The target inlines it (many `sw $v0,($s3)`); the helper call was the main source of the 51843 score. Still open: target 584 insns vs ours 536; frame 0x40 in target vs 0x48 in ours, with s0-s7 save order and `move $sN,$a0` placement; table-index math (`sll $v0,$v0,2`, `andi $v1,$a2,0xffff`, `lbu` from D_802038F4 table) is ordered differently; the 5-iteration loop bodies need rebuilding to match target evaluation order. Changing func_801CB74C's arg 6 to s32 gives warnings and no score change: keep the pointer version. Stopped at low effort; the next step is a restructured loop body, not register tuning.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794719619.565043,
+  "score_before": 27288,
+  "score_after": 27288
+ },
+ {
+  "function": "func_801FDA44",
+  "text": "Not attempted by compile: 2336 bytes, too large for this session. Draft is a display-list builder: GW(arg0, w0, w1) appends two words to a DL pointer, with a switch on D_80203AA8, a 5-iteration loop over D_802038F2..F6 flags (stride 0x1C), a func_801CA140 call, and many func_801CB74C / func_801CBF48 calls with the same D_801D4FC0 argument. The draft has repair placeholders (__repair_phase_i/s1, a2/a3 names) that should be cleaned up. Start by writing the GW macro and splitting the function into its phases (setup GW block, loop over flags, text/value calls).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794742541.471943,
+  "score_before": 27288,
+  "score_after": 27288
+ },
+ {
+  "function": "func_801FDA44",
+  "text": "Compiled a cleaned m2c-style display-list draft (rev edb2cc73ce0208372784) once: score 32038 (45.1%). Saved best is 30043, so this is worse; restore the saved best with get_candidate(base=\"saved_best\") before continuing. Target 584 insns, candidate 535. Frame: target addiu -0x40 with saves ra, s6..s2; candidate -0x48 with saves ra, s7..s2 plus an extra move $s2,$a0 at entry, so the pointer arg is held in one fewer register in the target. The target builds the GW word pairs with sll $v0,$v0,2 and andi $v1,$a2,0xffff; the candidate uses a phase variable reused for both the phase math and the 0x1C table offset, which changes register use. Raw address diffs: target loads 0xF643C2FC and 0x80218021 in the opposite order from candidate, so the switch cases and GW(0xF7000000,0x80218021) ordering differ. Also calls func_801CB74C with a pointer arg where the target passes an integer (warnings on arg 6 at lines 108 and 114): the arg 6 should be &D_80202580-derived value, not a pointer, check the prototype. Next step: fix the arg-6 type to match the target (use the value loaded from D_80202580 table directly), then restore saved_best and re-check frame size before changing the GW ordering.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794752308.849039,
+  "score_before": 27288,
+  "score_after": 27288
+ },
+ {
+  "function": "func_801FDA44",
+  "text": "Stopping this claim for now. Best candidate score is 32759 (43.9%), and the saved best is 30043 (start from get_candidate base=saved_best). This is a 584-instruction display-list builder; the draft is far off in structure (prologue register allocation, the 5-iteration address math, and the loop/call ordering). Changing the arg-6 prototype (M2C_UNK * vs s32) did not change the score, and the warnings show the call sites pass both pointers (&D_80203760, &D_80203744) and integer values (*(&D_80202580 + ...)), so the prototype must be split per call site or the arg is a pointer in some calls and an integer in others. Next steps: (1) resolve the arg-6 type per call site, (2) match the prologue (target saves s0-s3 and copies arg0 into s3), (3) then tune the loop address math.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794761300.7072818,
+  "score_before": 27288,
+  "score_after": 27288
+ },
+ {
+  "function": "func_801FDA44",
+  "text": "Not compiled by me; saved best 30043 is far off. The function is an N64 display-list emitter: each GW(arg0, w0, w1) appends two words to *arg0 (s32 *gp = *arg; *arg = gp+2). Structure to keep: fixed GBI words at the top (0xE7000000,0,0xBA001402,0x300000,0xF7000000,0x210021), switch on D_80203AA8 (case 0/1 emit 0xF63FC17C/0xF643C2FC variants), then a loop over i<5 with idx=(D_80203AB6+i)&0xFFFF, idx<0x10, flags at D_802038F2..F6 + idx*0x1C (stride 0x1C), each flag emitting a pair of words with ((i*0x28+0x6F)&0x3FF)<<14 and ((i*0x28+0x58)&0x3FF)<<14 packed fields. Then a block using D_80202624*2 for the viewport-like packing (a2/a3 masks 0x1E/0x3C0), and calls func_801CA140/func_801CA468/func_801CB74C/func_801CBF48. The last loop uses stride 0x1C over D_802038E8..F1. Next: the bit-packing expressions are where the mismatch is; match the order of the | and << operations on the first GW call before touching the loops.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794763233.835377,
+  "score_before": 27288,
+  "score_after": 27288
+ },
+ {
+  "function": "func_801FDA44",
+  "text": "Profile probe: this saved C scores 10728 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (9 of its 12 nearest matched neighbours were built with it), 26059 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721331.312074,
+  "score_before": 26059,
+  "score_after": 10728,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:cbaf21749afdd44296d168932654f307144926951c0e3107683c119a558be003"
  }
 ]
