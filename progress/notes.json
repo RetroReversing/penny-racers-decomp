@@ -7056,14 +7056,6 @@
   "score_after": 20252
  },
  {
-  "function": "func_802040C4",
-  "text": "No exact match. Saved best 7225 (Wwww) remains. Findings: the three float globals D_8011F308/30C/310 are consecutive f32s indexed by (arg1&0xFFFF)*25 (stride 100 bytes), index recomputed at each load (no CSE). Each float->int conversion is the usual gcc MIPS pattern: c.le.s against 2^31 with bc1tl to the subtract/or-0x80000000 path, fall-through trunc path. Shifts: R<<8, G<<3, B>>2 (B unsigned). Packing: ((R&F800)|(G&7C0)|(B&3E))|1 <<16 |1 | second-set. Target re-reads *arg0 fresh for each gfx write (lw from ($a0)), so use temp = *arg0; *arg0 = temp+8 each time, not a single p. Tried: (1) f2i with `if (f>=2^31)` sub-branch first: 11205; (2) reversed `if (f<2^31)` form: 15275 (worse). Next step: keep the f2i branch sense as in (1) but keep *arg0 re-reads as in the saved best and match the branch-likely ordering; the target's packing order (lui/ori for BA001402 before 0x300000 store) is also still off.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794712207.498395,
-  "score_before": 7225,
-  "score_after": 7225
- },
- {
   "function": "func_8015E484",
   "text": "Target (42 insns) is the FIFO packet writer sibling of the matched func_8015E404/func_8015D368. Shape is settled: idx=(arg1&0xFFFF)*0x64 in a3; obj = *(u8 **)(D_8011F350 + idx) loaded BEFORE the branch; condition `if (*(D_8011F2FC + idx) != 0xFF)`; body does the two 8-byte packets (0xB6000000/0x3000 then 0xFA000000) through *arg0, then q[1] = (obj[0x17]<<24)|(obj[0x18]<<16)|(obj[0x19]<<8)|*(D_8011F2FC+idx).\n\nBest local source (revision ab9829105852e0629779, score 1185 vs rechecked baseline 1240) reproduces every instruction except ORDER and REGALLOC: gcc schedules the F2FC load before the F350 load and keeps arg0 in $a0, while the target has the F350 load first with obj in $a1, arg0 copied to $a2 (addu $a2,$a0,$zero in the beq delay slot), q in $a0, p in $v1.\n\nKey evidence: making the branch depend on obj (variant `if (obj[0x16] != 0xFF)`, revision 2f18c2fa3904288a3bb0, score 1130) PUTS THE F350 LOAD FIRST exactly like the target \u2014 i.e. the target's obj load is on the branch's critical path, so the original condition must read something the obj load feeds, or the RTL order otherwise makes the F350 load branch-critical. Tried and worse: separate `flag` temp (1625), slot-pointer two-step (1360), void* p/q with byte offsets / decl reorder (1185), declaring obj first (1185), inline index instead of idx var (1630). Next idea: find a C shape where the 0xFF compare operand depends on both the obj load and F2FC (e.g. an && / comma form the optimiser folds to one compare) \u2014 that is the only thing that reproduced the target's scheduling.\n\nDo NOT write the D_8011F2FC access as a subscript (D_8011F2FC[off]) \u2014 that produces the addiu-base form; use *(D_8011F2FC + idx) which folds %lo into the lbu like the target.",
   "by": "opencode-deepseek-v4.1-flash-free-5",
@@ -9998,14 +9990,6 @@
   "created_at": 1794727321.4673018,
   "score_before": 6427,
   "score_after": 6427
- },
- {
-  "function": "func_802040C4",
-  "text": "No match. Saved best 7225 is better than my attempt (16395, candidate 569cd22ba0acb24c07c5), so start from the saved best. Looks like an N64 display-list builder: writes 0xE7000000/0 (RDPPIPESYNC), 0xBA001402/0x300000 (SETOTHERMODE), 0xF7000000 (SETFILLCOLOR-style), then a packed 16-bit colour word from three f32 values at D_8011F308/30C/310 indexed by (arg1&0xFFFF)*0x64, then 0xF64FC3BC/0 at the end. Target keeps arg0 (void **) in $a0 and does one `lw` of *arg0 per command, storing p+8 back before writing words through p. My draft reloads *arg0 each time, which is wrong. The f32->u32 conversion uses bc1tl/trunc.w.s/mfc1 (6 times), which the helper I wrote did not reproduce; the >=2.1474836e9f branch needs to match the compiler's float-to-unsigned sequence. Do not reuse my candidate; it is worse. Next step: restore saved_best, keep a single load of *arg0 into a local, and write the three float-to-int conversions as separate expressions in the order the target uses.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794727338.6037319,
-  "score_before": 7225,
-  "score_after": 7225
  },
  {
   "function": "func_80204760",
@@ -12990,14 +12974,6 @@
   "created_at": 1794740524.645443,
   "score_before": 5667,
   "score_after": 5667
- },
- {
-  "function": "func_802040C4",
-  "text": "Display-list builder (3 gs-style header words, then 3 float->packed-RGB fields per vertex, then 0xF64FC3BC). Saved best 7225 (draft with inline_fn masks and the 2.1474836e9f unsigned-float branch). Re-compiling it gave 9280 (56% match, 199 insns vs 211): the float-to-unsigned conversion is wrong. Target uses bc1tl (branch-likely) with `lui 0x8000` / `or` for the >=2^31 path and `sll 2`/`srl 2` for the shifts, while my form emits cvt.s.w and `sll 4`. Also my first body rewrite dropped the body (score 20315), discard that. Next step: rewrite only the three conversion blocks (f->s32 with the 2^31 correction) and check the shift amounts (<<8, *8, >>2 and the field masks 0xF800/0x7C0/0x3E) against the assembly before touching the header stores. The D_8011F308/30C/310 loads use index (arg1&0xFFFF)*100 each time, so keep that expression as-is.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794740546.8861198,
-  "score_before": 7225,
-  "score_after": 7225
  },
  {
   "function": "func_80204760",
@@ -18656,14 +18632,6 @@
   "score_after": 13558
  },
  {
-  "function": "func_802040C4",
-  "text": "Best saved score 7225 (m2c-style, with the float-to-u32 conversion split at 2.1474836e9f). My flattened version scored 18130 at 82 insns vs 211 target: the unsigned-float conversion branches are gone and the display-list words are reordered. Next step: restart from the saved m2c draft, keep the command words 0xE7000000/0xBA001402/0xF7000000/0xF64FC3BC, and fix the operand order of the packed fields. The target uses addu for the packing (13 times), so write the packing as masked sums of the conversion results. Released on a reasoned ask: the conversion-branch structure is the first thing to recover, and the session is at low effort; a restart from the saved draft needs a fresh claim.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794758194.891626,
-  "score_before": 7225,
-  "score_after": 7225
- },
- {
   "function": "func_80207EC0",
   "text": "Not matched. Saved best 7212 (permuter). My draft from the m2c output scored 15257. Findings: the target frame is 0x60 with ra/s0..s3 saved; my draft uses 0x70 and emits the calls' address setup (lui/addiu of D_400E00, D_8030BD90, D_404F10 and a subu for the length) before the stack adjust, so the arguments in the first call are not computed the same way. The target indexes D_8021B128 at +0 and +4 and D_800DB1B8 with 0x2110/0x2128 offsets that look like struct fields of size 0x28 per slot, so a struct layout for D_800DB1B8 is needed before matching the loops. The i*9 index on D_8021E20C/D_8021E20B and the loop over D_8021E16C are not verified against the target. Next: write the first call's argument expressions as the target does (check the raw addresses), then the 0x28 slot struct.",
   "by": "claude-haiku-5-5-22",
@@ -19390,14 +19358,6 @@
   "created_at": 1794759268.9961689,
   "score_before": 6450,
   "score_after": 6240
- },
- {
-  "function": "func_802040C4",
-  "text": "Best saved 5120 (75.7%), 211 target vs 199 insns, not matched. Source: display-list emitter. Four commands via p=*arg0; *arg0=p+8; words E7000000/0, BA001402/0x300000, F7000000 + word2, F64FC3BC/0. Word2 = (((XA|XB|XC)|1)<<16|1) | (XA|XB|XC), where XA=(CV(D_8011F308[i])<<8)&0xF800, XB=(CV(D_8011F30C[i])<<3)&0x7C0, XC=((u32)CV(D_8011F310[i])>>2)&0x3E, i=(arg1&0xFFFF)*100, and CV(f)= f>=2^31 ? ((s32)(f-2^31)|0x80000000) : (s32)f. Each of the 6 float conversions is re-fetched per word (target recomputes them, does not CSE). Remaining diffs: target branch form is `c.le.s(2^31,f)` with bc1tl where the delay slot does sub.s, then `lui $v0,0x8000; or` in the taken arm; mine uses bc1f and a separate sub.s path. Tried: flipped CV form (c.lt.s, else-arm first): 6320, worse. Next: keep the 5120 source, try writing CV as an if/else with the >=2^31 arm first and the sub.s inside the arm, and check that the second word's conversions use separate f temps so that the trunc.w.s register pairs match the target.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794759323.379672,
-  "score_before": 7225,
-  "score_after": 5120
  },
  {
   "function": "func_8003082C",
@@ -40632,5 +40592,62 @@
   "created_at": 1794769292.417601,
   "score_before": 2300,
   "score_after": 2300
+ },
+ {
+  "function": "func_802040C4",
+  "text": "No exact match. Saved best 7225 (Wwww) remains. Findings: the three float globals D_8011F308/30C/310 are consecutive f32s indexed by (arg1&0xFFFF)*25 (stride 100 bytes), index recomputed at each load (no CSE). Each float->int conversion is the usual gcc MIPS pattern: c.le.s against 2^31 with bc1tl to the subtract/or-0x80000000 path, fall-through trunc path. Shifts: R<<8, G<<3, B>>2 (B unsigned). Packing: ((R&F800)|(G&7C0)|(B&3E))|1 <<16 |1 | second-set. Target re-reads *arg0 fresh for each gfx write (lw from ($a0)), so use temp = *arg0; *arg0 = temp+8 each time, not a single p. Tried: (1) f2i with `if (f>=2^31)` sub-branch first: 11205; (2) reversed `if (f<2^31)` form: 15275 (worse). Next step: keep the f2i branch sense as in (1) but keep *arg0 re-reads as in the saved best and match the branch-likely ordering; the target's packing order (lui/ori for BA001402 before 0x300000 store) is also still off.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794712207.498395,
+  "score_before": 7225,
+  "score_after": 7225
+ },
+ {
+  "function": "func_802040C4",
+  "text": "No match. Saved best 7225 is better than my attempt (16395, candidate 569cd22ba0acb24c07c5), so start from the saved best. Looks like an N64 display-list builder: writes 0xE7000000/0 (RDPPIPESYNC), 0xBA001402/0x300000 (SETOTHERMODE), 0xF7000000 (SETFILLCOLOR-style), then a packed 16-bit colour word from three f32 values at D_8011F308/30C/310 indexed by (arg1&0xFFFF)*0x64, then 0xF64FC3BC/0 at the end. Target keeps arg0 (void **) in $a0 and does one `lw` of *arg0 per command, storing p+8 back before writing words through p. My draft reloads *arg0 each time, which is wrong. The f32->u32 conversion uses bc1tl/trunc.w.s/mfc1 (6 times), which the helper I wrote did not reproduce; the >=2.1474836e9f branch needs to match the compiler's float-to-unsigned sequence. Do not reuse my candidate; it is worse. Next step: restore saved_best, keep a single load of *arg0 into a local, and write the three float-to-int conversions as separate expressions in the order the target uses.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794727338.6037319,
+  "score_before": 7225,
+  "score_after": 7225
+ },
+ {
+  "function": "func_802040C4",
+  "text": "Display-list builder (3 gs-style header words, then 3 float->packed-RGB fields per vertex, then 0xF64FC3BC). Saved best 7225 (draft with inline_fn masks and the 2.1474836e9f unsigned-float branch). Re-compiling it gave 9280 (56% match, 199 insns vs 211): the float-to-unsigned conversion is wrong. Target uses bc1tl (branch-likely) with `lui 0x8000` / `or` for the >=2^31 path and `sll 2`/`srl 2` for the shifts, while my form emits cvt.s.w and `sll 4`. Also my first body rewrite dropped the body (score 20315), discard that. Next step: rewrite only the three conversion blocks (f->s32 with the 2^31 correction) and check the shift amounts (<<8, *8, >>2 and the field masks 0xF800/0x7C0/0x3E) against the assembly before touching the header stores. The D_8011F308/30C/310 loads use index (arg1&0xFFFF)*100 each time, so keep that expression as-is.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794740546.8861198,
+  "score_before": 7225,
+  "score_after": 7225
+ },
+ {
+  "function": "func_802040C4",
+  "text": "Best saved score 7225 (m2c-style, with the float-to-u32 conversion split at 2.1474836e9f). My flattened version scored 18130 at 82 insns vs 211 target: the unsigned-float conversion branches are gone and the display-list words are reordered. Next step: restart from the saved m2c draft, keep the command words 0xE7000000/0xBA001402/0xF7000000/0xF64FC3BC, and fix the operand order of the packed fields. The target uses addu for the packing (13 times), so write the packing as masked sums of the conversion results. Released on a reasoned ask: the conversion-branch structure is the first thing to recover, and the session is at low effort; a restart from the saved draft needs a fresh claim.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794758194.891626,
+  "score_before": 7225,
+  "score_after": 7225
+ },
+ {
+  "function": "func_802040C4",
+  "text": "Best saved 5120 (75.7%), 211 target vs 199 insns, not matched. Source: display-list emitter. Four commands via p=*arg0; *arg0=p+8; words E7000000/0, BA001402/0x300000, F7000000 + word2, F64FC3BC/0. Word2 = (((XA|XB|XC)|1)<<16|1) | (XA|XB|XC), where XA=(CV(D_8011F308[i])<<8)&0xF800, XB=(CV(D_8011F30C[i])<<3)&0x7C0, XC=((u32)CV(D_8011F310[i])>>2)&0x3E, i=(arg1&0xFFFF)*100, and CV(f)= f>=2^31 ? ((s32)(f-2^31)|0x80000000) : (s32)f. Each of the 6 float conversions is re-fetched per word (target recomputes them, does not CSE). Remaining diffs: target branch form is `c.le.s(2^31,f)` with bc1tl where the delay slot does sub.s, then `lui $v0,0x8000; or` in the taken arm; mine uses bc1f and a separate sub.s path. Tried: flipped CV form (c.lt.s, else-arm first): 6320, worse. Next: keep the 5120 source, try writing CV as an if/else with the >=2^31 arm first and the sub.s inside the arm, and check that the second word's conversions use separate f temps so that the trunc.w.s register pairs match the target.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794759323.379672,
+  "score_before": 7225,
+  "score_after": 5120
+ },
+ {
+  "function": "func_802040C4",
+  "text": "Hand-off of func_802040C4: best 3750 (80 differing rows) in /tmp/dd-haiku-pr20/start/best.c.\n\nRemaining rows (marker | target | candidate):\n  o | addiu $v0, $v1, 8 | \n  o | sw $v0, ($a0) | \n  | | lw $v1, ($a0) | addiu $v1, $v1, 8\n  < | move $t1, $v1 | \n  r | sw $v0, ($t1) | sw $v0, ($v1)\n  > |  | addiu $t0, $v1, 4\n  | | bc1tl .La8 | bc1f .La4\n  > |  | addiu $sp, $sp, -0x10\n  r | trunc.w.s $f0, $f2 | trunc.w.s $f2, $f0\n  r | mfc1 $a2, $f0 | mfc1 $v0, $f2\n  r | sll $v0, $a2, 8 | sll $v0, $v0, 8\n  < | lui $v0, 0x8000 | \n  r | trunc.w.s $f2, $f0 | trunc.w.s $f0, $f2\n  r | mfc1 $a2, $f2 | mfc1 $v0, $f0\n  < | or $a2, $a2, $v0 | \n  r | sll $v0, $a2, 8 | sll $v0, $v0, 8\n  r | andi $a3, $v0, 0xf800 | andi $a2, $v0, 0xf800\n  > |  | bc1f .L110\n  < | bc1tl .L11c | \n  r | trunc.w.s $f0, $f2 | trunc.w.s $f2, $f0\n  r | mfc1 $a2, $f0 | mfc1 $v0, $f2\n  r | sll $v0, $a2, 3 | sll $v0, $v0, 3\n  < | lui $v0, 0x8000 | \n  r | trunc.w.s $f2, $f0 | trunc.w.s $f0, $f2\n  r | mfc1 $a2, $f2 | mfc1 $v0, $f0\n  < | or $a2, $a2, $v0 | \n  r | sll $v0, $a2, 3 | sll $v0, $v0, 3\n  r | or $a3, $a3, $v0 | or $a2, $a2, $v0\n  > |  | bc1f .L180\n  < | bc1tl .L194 | \n  r | trunc.w.s $f0, $f2 | trunc.w.s $f2, $f0\n  r | mfc1 $a2, $f0 | mfc1 $v0, $f2\n  r | srl $v0, $a2, 2 | srl $v0, $v0, 2\n  < | lui $v0, 0x8000 | \n  r | trunc.w.s $f2, $f0 | trunc.w.s $f0, $f2\n  r | mfc1 $a2, $f2 | mfc1 $v0, $f0\n  < | or $a2, $a2, $v0 | \n  r | srl $v0, $a2, 2 | srl $v0, $v0, 2\n  r | or $v0, $a3, $v0 | or $v0, $a2, $v0\n  r | ori $t0, $v0, 1 | ori $a3, $v0, 1\n  ... 40 more (fast_judge.py --diff --rows all)\n\nRegister pairs (explain_regs.py):\n  $v0 where the target has $a2 (20 rows):\n  why not $a2: block-local: local-alloc gives quantities registers in priority order and $a2 was taken or tied up in that block (also in $a2: pseudo 85 (1.04), pseudo 86 (1.09)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $a2: block-local: local-alloc gives quantities registers in priority order and $a2 was taken or tied up in that block (also in $a2: pseudo 85 (1.04), pseudo 86 (1.09)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $a2: block-local: local-alloc gives quantities registers in priority order and $a2 was taken or tied up in that block (also in $a2: pseudo 85 (1.04), pseudo 86 (1.09)). Move it: change its refs/length against those, or make it global (a use in another block).\n  $f0 where the target has $f2 (18 rows):\n  why not $f2: block-local: local-alloc gives quantities registers in priority order and $f2 was taken or tied up in that block (also in $f2: pseudo 97 (4.00), pseudo 137 (4.00)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $f2: block-local: local-alloc gives quantities registers in priority order and $f2 was taken or tied up in that block (also in $f2: pseudo 97 (4.00), pseudo 137 (4.00)). Move it: change its refs/length against those, or make it global (a use in another block).\n  why not $f2: block-local: local-alloc gives quantities registers in priority order and $f2 was taken or tied up in that block (also in $f2: pseudo 97 (4.00), pseudo 137 (4.00)). Move it: change its refs/length against those, or make it global (a use in another block).\n  $f2 where the target has $f0 (18 rows):\n  why not $f0: $f0 is live across it (a fixed use: an argument, return value or call-clobbered register), so it can never get it: shorten its life or move the use of $f0.\n  why not $f0: $f0 is live across it (a fixed use: an argument, return value or call-clobbered register), so it can never get it: shorten its life or move the use of $f0.\n  why not $f0: $f0 is live across it (a fixed use: an argument, return value or call-clobbered register), so it can never get it: shorten its life or move the use of $f0.\n  $a2 where the target has $a3 (5 rows):\n  why not $a3: $a3 was free in its conflicts; global.c picks the first free register of the cla",
+  "by": "manual-7399cac01e854d91",
+  "created_at": 1795713584.417655,
+  "score_before": 3750,
+  "score_after": 3750
+ },
+ {
+  "function": "func_802040C4",
+  "text": "Haiku pr20: saved best 3750 (default profile). Clean rewrites 5060 and 9770; -O1 worse. Frame gone in statement-form CV; branch sense (target bc1tl, big arm taken) still open.",
+  "by": "manual-7399cac01e854d91",
+  "created_at": 1795713603.18091,
+  "score_before": 3750,
+  "score_after": 3750,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:9bd62b370fc41d8e14623a5b3388b416227993b838776576ae762b3943d78e65"
  }
 ]
