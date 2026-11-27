@@ -6144,14 +6144,6 @@
   "score_after": 9125
  },
  {
-  "function": "func_80217F44",
-  "text": "Not matched; releasing now. Best saved 6427 is the goto-form m2c draft (62a9b724263713104307); my do-while rewrite scored 9424 (8ca04cdc047c576e802e), and the held revision is the saved best. The gap is structural: target frame 0x48 saves ra, s0-s3 and callee-saved doubles f20-f26 (sdc1 at 0x28..0x40), so more float values are live across the __sinf/__cosf calls than my versions keep. s3 is the arg0 base, s2 the row pointer advanced by 0x20 per iteration; the D_8021DEE8/DEF0/DEF8 doubles load once before the loop. Next step: keep the draft's goto/loop shape, make the sin/cos argument (f64 product divided by D_8021DEF0) a shared f64 local so the compiler spills f20-f26, then fix frame size before register order.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794712177.346625,
-  "score_before": 6427,
-  "score_after": 6427
- },
- {
   "function": "func_80148754",
   "text": "Not matched; best saved score 20932 (16.9%) is the inherited attempt, my rewrite scored the same. Structure is understood: two symmetric blocks (on (u16)D_80189CBC>>8 and D_80189CC4>>8, bit 8 gates, bit 7 gates a copy of 0x16A byte + 9/8 halfword copies at s7/fp +0x6E + idx*18), then a fixed u16 shuffle of D_80189C9E (c[sp1F*2]=c[0x1E], c[sp17*2]=c[0x26], c2=c+0xC gets c[0x26]/c[0x1E] swapped), then two loops of 14 over D_8021F048 (stride 14/sp) and D_8021F270 (stride 0xE0/sp, inner 16-byte rows). Callee func_80149778 is called with 4 args in the first call and 2 args in the second (a2/a3 leftover), so declare it unprototyped. Open mismatch: target frame is 0x48 and saves s0-s7+fp+ra (more live values than my 0x40 frame), and sp17/sp1F live in stack slots 0x17/0x1F that are reloaded (not volatile: volatile made it worse, 22780). Next idea: keep sp17/sp1F as plain locals but force the spill via an address-taken array (e.g. u8 pad[0x10] adjacent), and check whether the 9-iteration loop is a separate induction from the 8-iteration one. Untested.",
   "by": "claude-haiku-5-5-24",
@@ -8198,14 +8190,6 @@
   "created_at": 1794727321.351348,
   "score_before": 12815,
   "score_after": 12815
- },
- {
-  "function": "func_80217F44",
-  "text": "Not matched. Best hand-cleaned C (from m2c draft, with goto/label removed as a while loop) scores 9654 (53.8%), worse than saved best 6427. Target has a 0x48-byte frame and saves f20/f22/f24/f26 (sdc1 at 0x28..0x40), so the sin/cos math values (D_8021DEE8/DEF0/DEF8, and the 150.0f scale) are held in callee-saved double registers across the __sinf/__cosf and func_8012913C calls. My version does not keep them live that way, and loads D_8021DEE8 via lui/ldc1 each time. Also the target keeps p (arg0) in s2 and loads D_8022A772 via lbu rather than the %hi address my draft used. Next: write the two sin/cos blocks with the f64 constants as locals declared before the loop so GCC keeps them in $f20-$f26, and keep the s0/s1 row pointers as separate locals computed once per row. Start from saved best 6427, not from this rewrite.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794727321.4673018,
-  "score_before": 6427,
-  "score_after": 6427
  },
  {
   "function": "func_80204760",
@@ -10526,14 +10510,6 @@
   "created_at": 1794740497.1399739,
   "score_before": 15,
   "score_after": 15
- },
- {
-  "function": "func_80217F44",
-  "text": "Best score 6070 (70.9%). Progress: hoisting the D_8011F2F0 base into a local `s3` and the 0.0f into a local `fz` (both assigned inside the `if`) took it from 7620 to 6070. Remaining diff: the target frame is 0x48 (saves ra,s0-s3 and 4 doubles) but mine is 0x50 because the compiler also hoists `lui D_8022A772` into an extra saved reg `$s5`. The target recomputes `s2[1]*0x8F0` each time and reloads `lbu a1,1(s2)` three times, and its float zero lives in $f20 while mine is $f26. Next: keep `s2` as the raw arg (the target has `move $s2,$a0`, mine biases it to a0+0x14), and try to stop the D_8022A772 hoist so the frame drops to 0x48. Draft and both m2c errors are gone; the source uses FLD(p,T,off) byte-offset accessors and typed u8[] externs.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794740524.645443,
-  "score_before": 5667,
-  "score_after": 5667
  },
  {
   "function": "func_80204760",
@@ -13736,14 +13712,6 @@
   "score_after": 6255
  },
  {
-  "function": "func_80217F44",
-  "text": "Not matched. Best 8562 (59.0%) with hand C (revision 39d47d0646d8f1c52f79). Confirmed: the FP constants are hoisted in the prologue as DEE8 (fs3), DEF0 (fs2), DEF8 (fs1), with a 0.0f in fs0 (mtc1 $zero). Those four callee-saved FP regs match the target's sdc1 f20..f26 saves. The f32 `zero` local did not take a callee-saved FP reg in my build, so the target frame is 0x48 and mine is 0x50. My extra frame comes from an extra saved s-reg (s5 is used for the address of D_8022A772 via `&D_8022A772 + s2[1]*0x8F0`). Target keeps s3 = &D_8011F2F0 hoisted before the loop and s2 = arg0 walk pointer. Next: hoist `u8 *base = D_8011F2F0` to match s3, and replace the `&D_8022A772` expression with a single byte load, to remove the s5 save. Loop body structure (a1/s0/a0/v1 record copies, the -0x13 byte store path, the cos/sin block, the func_8012913C pair, and the 8-iteration zeroing loop guarded by type==2) is already in the right order.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794755935.1143281,
-  "score_before": 5667,
-  "score_after": 5667
- },
- {
   "function": "func_80216128",
   "text": "Not matched. Restored saved_best source (the switch on slot->state with case 0 / 16 / 32 and the func_801CABF4 / func_8014A4C8 call sequence). Compiled once today: 6475 (60.0%), target 162 insns vs mine 160. The target saves ra, fp, s7..s0 in a big prologue (sw at 0x54..0x34 of $sp) and keeps the slot pointer in $fp/$s6 with a 0x40 offset; mine saves fewer registers and reloads the D_802030B0 base each time. The saved 65 does not reproduce from this source under this profile. Next: make the slot pointer live across the calls (e.g. read slot->state into a local before each call group), use the D_802030B0 base address in a local, and check the arg0 register (target keeps arg0 in $s0 and moves it into $a0 before each call). Also the D_8011F2F0 stride (0x64) from arg1 & 0xFFFF needs confirming: target does sll/addu with the x3 multiplier, not a 0x64 multiply.",
   "by": "claude-haiku-5-5-24",
@@ -14526,14 +14494,6 @@
   "created_at": 1794758538.673739,
   "score_before": 9235,
   "score_after": 9235
- },
- {
-  "function": "func_80217F44",
-  "text": "Not matched; releasing now because this draft is far from the target and needs a rewrite, not tuning. Best 8562 (59.0%), revision 39d47d0646d8f1c52f79. Target is an 836-byte loop over 0x20-byte records (while s2[0] != 0; s2 += 0x20) with a 0x48-byte frame. The draft has a 0x50 frame and spills the three f64 constants (D_8021DEE8/DEF0/DEF8) into sdc1 slots that the target does not use; the target loads them inline inside the __sinf/__cosf expressions. Record reads are also off: the target reads bytes at 1(s2), 0x1d, 0x1f and floats at 0x14/0x18/0x1c with lwc1, while the draft's pointer casts produce negative-offset lbu. Next: rewrite the record access with s2 as u8* and explicit offsets, inline the f64 constants, and fix the frame before tuning registers.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794758596.401667,
-  "score_before": 5667,
-  "score_after": 5667
  },
  {
   "function": "nuScWaitTaskReady",
@@ -41558,5 +41518,54 @@
   "created_at": 1794758933.802944,
   "score_before": 10073,
   "score_after": 10073
+ },
+ {
+  "function": "func_80217F44",
+  "text": "Not matched; releasing now. Best saved 6427 is the goto-form m2c draft (62a9b724263713104307); my do-while rewrite scored 9424 (8ca04cdc047c576e802e), and the held revision is the saved best. The gap is structural: target frame 0x48 saves ra, s0-s3 and callee-saved doubles f20-f26 (sdc1 at 0x28..0x40), so more float values are live across the __sinf/__cosf calls than my versions keep. s3 is the arg0 base, s2 the row pointer advanced by 0x20 per iteration; the D_8021DEE8/DEF0/DEF8 doubles load once before the loop. Next step: keep the draft's goto/loop shape, make the sin/cos argument (f64 product divided by D_8021DEF0) a shared f64 local so the compiler spills f20-f26, then fix frame size before register order.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794712177.346625,
+  "score_before": 6427,
+  "score_after": 6427
+ },
+ {
+  "function": "func_80217F44",
+  "text": "Not matched. Best hand-cleaned C (from m2c draft, with goto/label removed as a while loop) scores 9654 (53.8%), worse than saved best 6427. Target has a 0x48-byte frame and saves f20/f22/f24/f26 (sdc1 at 0x28..0x40), so the sin/cos math values (D_8021DEE8/DEF0/DEF8, and the 150.0f scale) are held in callee-saved double registers across the __sinf/__cosf and func_8012913C calls. My version does not keep them live that way, and loads D_8021DEE8 via lui/ldc1 each time. Also the target keeps p (arg0) in s2 and loads D_8022A772 via lbu rather than the %hi address my draft used. Next: write the two sin/cos blocks with the f64 constants as locals declared before the loop so GCC keeps them in $f20-$f26, and keep the s0/s1 row pointers as separate locals computed once per row. Start from saved best 6427, not from this rewrite.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794727321.4673018,
+  "score_before": 6427,
+  "score_after": 6427
+ },
+ {
+  "function": "func_80217F44",
+  "text": "Best score 6070 (70.9%). Progress: hoisting the D_8011F2F0 base into a local `s3` and the 0.0f into a local `fz` (both assigned inside the `if`) took it from 7620 to 6070. Remaining diff: the target frame is 0x48 (saves ra,s0-s3 and 4 doubles) but mine is 0x50 because the compiler also hoists `lui D_8022A772` into an extra saved reg `$s5`. The target recomputes `s2[1]*0x8F0` each time and reloads `lbu a1,1(s2)` three times, and its float zero lives in $f20 while mine is $f26. Next: keep `s2` as the raw arg (the target has `move $s2,$a0`, mine biases it to a0+0x14), and try to stop the D_8022A772 hoist so the frame drops to 0x48. Draft and both m2c errors are gone; the source uses FLD(p,T,off) byte-offset accessors and typed u8[] externs.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794740524.645443,
+  "score_before": 5667,
+  "score_after": 5667
+ },
+ {
+  "function": "func_80217F44",
+  "text": "Not matched. Best 8562 (59.0%) with hand C (revision 39d47d0646d8f1c52f79). Confirmed: the FP constants are hoisted in the prologue as DEE8 (fs3), DEF0 (fs2), DEF8 (fs1), with a 0.0f in fs0 (mtc1 $zero). Those four callee-saved FP regs match the target's sdc1 f20..f26 saves. The f32 `zero` local did not take a callee-saved FP reg in my build, so the target frame is 0x48 and mine is 0x50. My extra frame comes from an extra saved s-reg (s5 is used for the address of D_8022A772 via `&D_8022A772 + s2[1]*0x8F0`). Target keeps s3 = &D_8011F2F0 hoisted before the loop and s2 = arg0 walk pointer. Next: hoist `u8 *base = D_8011F2F0` to match s3, and replace the `&D_8022A772` expression with a single byte load, to remove the s5 save. Loop body structure (a1/s0/a0/v1 record copies, the -0x13 byte store path, the cos/sin block, the func_8012913C pair, and the 8-iteration zeroing loop guarded by type==2) is already in the right order.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794755935.1143281,
+  "score_before": 5667,
+  "score_after": 5667
+ },
+ {
+  "function": "func_80217F44",
+  "text": "Not matched; releasing now because this draft is far from the target and needs a rewrite, not tuning. Best 8562 (59.0%), revision 39d47d0646d8f1c52f79. Target is an 836-byte loop over 0x20-byte records (while s2[0] != 0; s2 += 0x20) with a 0x48-byte frame. The draft has a 0x50 frame and spills the three f64 constants (D_8021DEE8/DEF0/DEF8) into sdc1 slots that the target does not use; the target loads them inline inside the __sinf/__cosf expressions. Record reads are also off: the target reads bytes at 1(s2), 0x1d, 0x1f and floats at 0x14/0x18/0x1c with lwc1, while the draft's pointer casts produce negative-offset lbu. Next: rewrite the record access with s2 as u8* and explicit offsets, inline the f64 constants, and fix the frame before tuning registers.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794758596.401667,
+  "score_before": 5667,
+  "score_after": 5667
+ },
+ {
+  "function": "func_80217F44",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 4768 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (9 of its 12 nearest matched neighbours were built with it), the saved C scores 6286 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721249.903779,
+  "score_before": 6286,
+  "score_after": 4768,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:38bc62bc7e6265c6e21bca98043d72182c08c12da15fa4ea3c0d27c6d3ef8e0a"
  }
 ]
