@@ -6424,14 +6424,6 @@
   "score_after": 14855
  },
  {
-  "function": "func_80234484",
-  "text": "Baseline compiles at 48077 (37%, 764 target insns vs 770 ours) at revision 211e58d689ad42e9cab3. Frame differs: target -0x60, ours -0x80 with an extra `lui/lbu` of D_8006FAF0+0x21 that the target computes differently (it is loaded inside the loops, and the target does `sll $v0,$s2,0x10` 19 times, i.e. the 16-bit index is kept as u16 shifted each time). The 12-byte slot stride is `(i*12)` built as `sll $v1,$v0,1; addu; sll 3; addu; sll 2`, i.e. (i*3)*4 with a u16 index: write the index as u16 and multiply by 0xC. Note the machine draft in the claim text does NOT compile (pointer arithmetic on incomplete types), so use the revision above, not the draft. Next: fix the stack frame by removing the extra local that causes the 0x80 frame, then the sort loops. Not matched.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794719635.537023,
-  "score_before": 48077,
-  "score_after": 48077
- },
- {
   "function": "func_80132AB0",
   "text": "Releasing now: the function is 3328 bytes (832 insns) and the best saved score is 53289 (~the 5.7% range for my rebuilt prefix). The machine draft does not compile as given (wrong arity on func_801CB9EC), and my remaining effort budget is too low to rebuild the full body reliably in this session. Next steps for whoever picks it up: (1) fix the call arities using the decl from the brief; (2) rebuild the whole if/else structure around D_80189CC8 and D_800DD2C0 before touching registers; (3) target frame is 0x88, so the saved-register set (s0-s7, fp, ra) is wrong in every candidate so far. Not confirmed by a second model; no share_knowledge.",
   "by": "claude-haiku-5-5-22",
@@ -10432,14 +10424,6 @@
   "score_after": 605
  },
  {
-  "function": "func_80234484",
-  "text": "Not compiled this session. The inherited candidate (rev 42f93e7be27d75526f24, best 48077 over 7 attempts) does not compile: the draft does byte-offset pointer arithmetic on s32/u8 arrays (&D_8022AD04 + idx*0x8F0, D_8022AD06 + ..., &D_80237640 + n*0xC) and void* temp_s1 arithmetic. Errors at func.c:342/352/367/419/432 (\"arithmetic on pointer to an incomplete type\", \"array with unspecified bounds\"). Needed first: declare the per-slot tables as real struct arrays with stride 0x8F0 (D_8022AD04/AD07/AD08/AFE9/AD06), and a 0xC-byte record struct for D_80237640 (u16 f0 @0, s16 f2 @2, f32 f4 @4, s16 f8 @8 = row index, u8 fA @0xA flag). Then rewrite the goto/do-while loops cleanly. Prototype evidence disagrees with defs for func_801E2F38 (caller u8->s32, def void(s32)) and func_801E43A0. Stopping: a ~760-instruction function with unresolved struct layouts needs more than one pass.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794743601.0138419,
-  "score_before": 48077,
-  "score_after": 48077
- },
- {
   "function": "func_80136A28",
   "text": "Not compiled this session. Inherited draft (rev 3f2bdef0c628f9f6e644) fails to compile: \"too few arguments to function func_801CC150\" at func.c:109 (calls pass 17 args; the prototype is `s32 func_801CC150();` so declare the real arity), plus void*/char-array byte arithmetic (D_8011F2F0, D_80167FA0, D_8022AD06, D_8022ACD3 etc. need struct-typed declarations with stride 0x64 for the per-slot records and 0x8F0 for D_8022AFE9 slots). Also the switch/goto block_25/block_26 shape and the sp54/sp5C/sp6C locals are unverified against the ROM. 2936 bytes, many calls: needs a real pass on the call signatures first. Released unworked for lack of a single session's budget.",
   "by": "claude-haiku-5-5-24",
@@ -11574,14 +11558,6 @@
   "created_at": 1794752431.940463,
   "score_before": 56110,
   "score_after": 54477
- },
- {
-  "function": "func_80234484",
-  "text": "No match. The saved m2c draft does not compile (incomplete-type pointer arithmetic on Slot_8011F32E / Slot_8022A772 unspecified-size arrays, goto/label soup). One probe compile of a tiny reduced version failed only because D_8011F32E and D_8023761E were not declared in the source (declare them as in get_context before retrying). Function is 3056 bytes and needs a full rewrite from get_assembly: set struct strides first (0x2 slot for D_8011F32E, 0x8F0 rows for D_8022A772, 0xC-byte records for the D_80237640 table), write the 7-slot init and three insertion-sort passes as plain for loops, then match frame and saved registers.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794752432.399771,
-  "score_before": 48077,
-  "score_after": 48077
  },
  {
   "function": "func_80025C50",
@@ -14560,14 +14536,6 @@
   "score_after": 395
  },
  {
-  "function": "func_80234484",
-  "text": "Not attempted in depth. The machine draft does not compile: 'arithmetic on pointer to an incomplete type' and 'invalid use of array with unspecified bounds' at the uses of D_8023764A/D_80237648/D_8022AFE9 etc. Also several locals (var_s7, temp_a0 etc.) are used without declarations, and the goto/label structure is machine-generated. Needs a fresh hand rewrite with proper bounded array types for D_80237640 (12-byte records: u16 id, s16, f32 score, u16 next, u8 flag at +0xA) and D_8022AD04/D_8022AD07/D_8022AD08 (stride 0x8F0). 764 insns; hard, low priority.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794761555.110219,
-  "score_before": 48077,
-  "score_after": 48077
- },
- {
   "function": "func_801485C8",
   "text": "Same unit as func_801497AC/func_80149A80, which match only at -O1. Best try_compiler result: -O1 score 1690 (better than saved 1825) with: u8 D_8018A276[]; i=1; if(D_80189B34==1){u8*p=&D_8018A276[1]; p[0]|=0x10;p[1]|=0x10;p[2]|=0x10;} else { do{v=D_8018A276[i]; if((v&0xF)==D_80189CB6) D_8018A276[i]=v|0x10; i++;}while(i<4); i=1;} count=0; do{count+=(D_8018A276[i]&0x10)==0;i++;}while(i<4); return count. Remaining at -O1: p[1],p[2] fold into %lo(D_8018A278) instead of off(v1), and &D_80189CB6 is not hoisted into $a2 before the loop. -O1 -fforce-addr fixes both but then also hoists the array base (2020). -O1 -funroll-loops is far off. Next: find C that keeps p and &D_80189CB6 in registers at plain -O1 (e.g. pointer params/struct, a local pointer used in loop condition), or a different flag mix.",
   "by": "claude-opus-medium-1",
@@ -15342,14 +15310,6 @@
   "created_at": 1794764333.316572,
   "score_before": 57183,
   "score_after": 57183
- },
- {
-  "function": "func_80234484",
-  "text": "Unmatched, 3056 B (764 target insns). Machine draft does not compile as written (arithmetic on pointers to incomplete types, invalid use of arrays with unspecified bounds at lines 342-432, and goto/label structure that isn't valid C). A minimal stub compiles but scores 73870 (3.3%); saved best 48077 is a different source. Target: 0x60 frame saving ra, fp, s7..s0; first block is the D_8011F32E[idx].f0 == 0 init that stores 0 into D_8023761E[0..6] (u8 table at 0x0 stride 2) and sets f0=1; then a repair pass over 6 rows of D_8022A772 (2286-byte records, u16 at 0) copying into 12-byte records at D_80237640 (u16 idx at +8, u8 flag at +0xA); then an insertion-sort style pass over those 12-byte records with func_80235074 swaps keyed by a byte at +0x0C of the table D_8023764A/D_80237648; then a priority loop calling func_801E3FE8, func_801E435C, func_801E43A0, func_801DD938 and func_8003DE60. Needs a full rewrite from the assembly with the record struct declared once; nothing verified. Next step: write the record struct and the first (f0==0) block, compile that, then add the sort passes one at a time.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794764333.4555871,
-  "score_before": 48077,
-  "score_after": 48077
  },
  {
   "function": "func_80136A28",
@@ -41764,5 +41724,45 @@
   "created_at": 1795721374.358926,
   "score_before": 86513,
   "score_after": 39270
+ },
+ {
+  "function": "func_80234484",
+  "text": "Baseline compiles at 48077 (37%, 764 target insns vs 770 ours) at revision 211e58d689ad42e9cab3. Frame differs: target -0x60, ours -0x80 with an extra `lui/lbu` of D_8006FAF0+0x21 that the target computes differently (it is loaded inside the loops, and the target does `sll $v0,$s2,0x10` 19 times, i.e. the 16-bit index is kept as u16 shifted each time). The 12-byte slot stride is `(i*12)` built as `sll $v1,$v0,1; addu; sll 3; addu; sll 2`, i.e. (i*3)*4 with a u16 index: write the index as u16 and multiply by 0xC. Note the machine draft in the claim text does NOT compile (pointer arithmetic on incomplete types), so use the revision above, not the draft. Next: fix the stack frame by removing the extra local that causes the 0x80 frame, then the sort loops. Not matched.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794719635.537023,
+  "score_before": 48077,
+  "score_after": 48077
+ },
+ {
+  "function": "func_80234484",
+  "text": "Not compiled this session. The inherited candidate (rev 42f93e7be27d75526f24, best 48077 over 7 attempts) does not compile: the draft does byte-offset pointer arithmetic on s32/u8 arrays (&D_8022AD04 + idx*0x8F0, D_8022AD06 + ..., &D_80237640 + n*0xC) and void* temp_s1 arithmetic. Errors at func.c:342/352/367/419/432 (\"arithmetic on pointer to an incomplete type\", \"array with unspecified bounds\"). Needed first: declare the per-slot tables as real struct arrays with stride 0x8F0 (D_8022AD04/AD07/AD08/AFE9/AD06), and a 0xC-byte record struct for D_80237640 (u16 f0 @0, s16 f2 @2, f32 f4 @4, s16 f8 @8 = row index, u8 fA @0xA flag). Then rewrite the goto/do-while loops cleanly. Prototype evidence disagrees with defs for func_801E2F38 (caller u8->s32, def void(s32)) and func_801E43A0. Stopping: a ~760-instruction function with unresolved struct layouts needs more than one pass.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794743601.0138419,
+  "score_before": 48077,
+  "score_after": 48077
+ },
+ {
+  "function": "func_80234484",
+  "text": "No match. The saved m2c draft does not compile (incomplete-type pointer arithmetic on Slot_8011F32E / Slot_8022A772 unspecified-size arrays, goto/label soup). One probe compile of a tiny reduced version failed only because D_8011F32E and D_8023761E were not declared in the source (declare them as in get_context before retrying). Function is 3056 bytes and needs a full rewrite from get_assembly: set struct strides first (0x2 slot for D_8011F32E, 0x8F0 rows for D_8022A772, 0xC-byte records for the D_80237640 table), write the 7-slot init and three insertion-sort passes as plain for loops, then match frame and saved registers.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794752432.399771,
+  "score_before": 48077,
+  "score_after": 48077
+ },
+ {
+  "function": "func_80234484",
+  "text": "Not attempted in depth. The machine draft does not compile: 'arithmetic on pointer to an incomplete type' and 'invalid use of array with unspecified bounds' at the uses of D_8023764A/D_80237648/D_8022AFE9 etc. Also several locals (var_s7, temp_a0 etc.) are used without declarations, and the goto/label structure is machine-generated. Needs a fresh hand rewrite with proper bounded array types for D_80237640 (12-byte records: u16 id, s16, f32 score, u16 next, u8 flag at +0xA) and D_8022AD04/D_8022AD07/D_8022AD08 (stride 0x8F0). 764 insns; hard, low priority.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794761555.110219,
+  "score_before": 48077,
+  "score_after": 48077
+ },
+ {
+  "function": "func_80234484",
+  "text": "Unmatched, 3056 B (764 target insns). Machine draft does not compile as written (arithmetic on pointers to incomplete types, invalid use of arrays with unspecified bounds at lines 342-432, and goto/label structure that isn't valid C). A minimal stub compiles but scores 73870 (3.3%); saved best 48077 is a different source. Target: 0x60 frame saving ra, fp, s7..s0; first block is the D_8011F32E[idx].f0 == 0 init that stores 0 into D_8023761E[0..6] (u8 table at 0x0 stride 2) and sets f0=1; then a repair pass over 6 rows of D_8022A772 (2286-byte records, u16 at 0) copying into 12-byte records at D_80237640 (u16 idx at +8, u8 flag at +0xA); then an insertion-sort style pass over those 12-byte records with func_80235074 swaps keyed by a byte at +0x0C of the table D_8023764A/D_80237648; then a priority loop calling func_801E3FE8, func_801E435C, func_801E43A0, func_801DD938 and func_8003DE60. Needs a full rewrite from the assembly with the record struct declared once; nothing verified. Next step: write the record struct and the first (f0==0) block, compile that, then add the sort passes one at a time.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794764333.4555871,
+  "score_before": 48077,
+  "score_after": 48077
  }
 ]
