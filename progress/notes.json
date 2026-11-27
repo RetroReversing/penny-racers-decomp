@@ -6328,14 +6328,6 @@
   "score_after": 2520
  },
  {
-  "function": "func_80207044",
-  "text": "Best saved candidate 11809 (53.6%, revision 26bcefe3c6f750345421); frame 0x30 vs target 0x28. Control flow is decoded and the outline is right; remaining diffs are register allocation and frame. Facts: (1) switch on D_8011F32E[idx].f0 (stride 100): 1 -> blockA, 0 -> blockB, 3 -> blockC, else return. (2) D_8021E180+0x20 is the SAME address as D_8021E1A0[0] (mode counter); D_8021E1A0 is s16[] indexed by mode, with arr[mode+3] used for clamping and arr[1], arr[4], arr[6] tested. (3) blockC stores 9 to (s16)((u8*)&D_8021E1A2 - 0x16). (4) Target keeps &D_8021E180 in s0 across the first calls and arg0 in s1; my build spills arg0 to s2 and adds an extra saved reg. Tried: u8* pointer local for D_8021E180 (best); D_8021E180+0x20 via pointer (11889); tail via D_8021E1A0[0] (11929). Untested next steps: (a) make arg0 the only value live across calls (drop r local, compute r&8 inline); (b) reload the D_8021E180 base in the tail as the target does; (c) goto clamp from both the 0x3D and 0x3A paths as the asm does. Budget exhausted at 3/3 without improvement.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794712425.970755,
-  "score_before": 22315,
-  "score_after": 11809
- },
- {
   "function": "func_8015C838",
   "text": "Target shape (27 insns) fully decoded, best 1395 (rev dd7fa4d39765e76f67c2; also dea47f7a310e2efe481a at 1475):\n  idx = (arg0 & 0xFFFF) * 0x64  (kept in v1, reused by the else path)\n  v = *(D_8011F2FC + idx) - 2   (lbu + addiu, %lo folded into the lbu)\n  bgtzl v -> store_v, delay slot andi $v1,$a0,0xFFFF\n  fall-through (v <= 0): D_8011F2FD[idx] = 2; j end      <- idx, i.e. *0x64, not the plain racer index\n  store_v: RECOMPUTES idx from arg0&0xFFFF (sll/addu/sll/addu/sll) then sb %lo(D_8011F2FC)\nNote D_8011F2FD is indexed by idx*0x64, same as matched donor func_8014AFD8.\n\nBlocker: gcc CSEs the D_8011F2FC address across the two paths and materialises the base (lui/addiu then lbu/sb ($reg)) -> 19-20 insns. The target never materialises: every access is lui %hi + addu + %lo folded into the lbu/sb, i.e. each address value is used exactly once per path. Tried: early return in the then block; early return in the else block; with and without an `idx` variable; inline (arg0 & 0xFFFF) * 0x64 in every access. Next idea: make the store path's address tree genuinely distinct (separate declaration/cast of the same address) so CSE cannot merge it while still emitting %lo(D_8011F2FC).\n\nUPDATE \u2014 score 960 (rev 09997bea9226316606ed), structure now matches except the last block. Working source:\n\n  extern u8 D_8011F2FC[]; extern char D_8011F2FD[];\n  void func_8015C838(s32 arg0) {\n      s32 idx; s32 v;\n      idx = (arg0 & 0xFFFF) * 0x64;\n      v = *(D_8011F2FC + idx) - 2;\n      if (v <= 0) { *(D_8011F2FD + idx) = 2; return; }\n      *(D_8011F2FC + (arg0 & 0xFFFF) * 0x64) = v;\n  }\n\nThis gives: idx in register, folded lbu (lui %hi + addu + lbu %lo), bgtz to the store block with the F2FD path as fall-through, exactly like the target. Remaining diff (5 insns): the target RECOMPUTES the index in the store block (andi $v1,$a0,0xFFFF; sll/addu/sll/addu/sll = x*100) and therefore fills the branch delay slot with the andi and emits bgtzl; gcc reuses the idx register instead (plain bgtz + nop).\n\nNext experiment (untested): kill the idx value before the store so gcc cannot CSE it, e.g.\n\n      if (v <= 0) { *(D_8011F2FD + idx) = 2; return; }\n      idx = (arg0 & 0xFFFF) * 0x64;\n      *(D_8011F2FC + idx) = v;\n\nwhich should force the recompute and the bgtzl fill.",
   "by": "opencode-deepseek-v4.1-flash-free-5",
@@ -8526,14 +8518,6 @@
   "created_at": 1794727739.2371619,
   "score_before": 5100,
   "score_after": 5100
- },
- {
-  "function": "func_80207044",
-  "text": "Best score stays 10894 (57.2%), not matched. Verified this session: (1) the saved source compiles with the extern block as given. (2) Frame mismatch: target frame 0x28, saves only ra, s0, s1 (arg0 is kept raw in $s1 and andi'd each use; $s0 holds a pointer). Mine is 0x30 and saves s0,s1,s2, so one callee-saved register too many; the compiler hoists `lui $s0,%hi(D_8011F32E)` across the function, which the target never does (it recomputes the lui in each block). (3) Tried: local `u16 *c` removed (no effect); signedness family on f0 (no effect); replacing the local `p` with direct D_8021E180[...] accesses (worse, 10974). The target loads D_8021E180 as `lui $a0,%hi; lbu ($a0)` and uses `sh $v0,0x20($a0)`, i.e. a pointer in $a0 for the block's field accesses, which a plain global-array index does not reproduce. Next idea not yet tried: write p as a `u8 *p` local assigned right before its uses in the blockA tail only (so it is not live across the func_8014A870 / func_8014B854 calls), which would drop the saved s0. Also check whether the jump-table-free dispatch at the top (beql/slti/beqz) matches the source's if-chain order.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794727777.0011141,
-  "score_before": 10894,
-  "score_after": 10894
  },
  {
   "function": "func_801E2D18",
@@ -10942,14 +10926,6 @@
   "created_at": 1794740638.717163,
   "score_before": 5100,
   "score_after": 5100
- },
- {
-  "function": "func_80207044",
-  "text": "Unmatched, best 10369 (59.3%), same as the saved best. Target is 255 insns with a 0x28 frame saving $ra,$s1,$s0; my draft uses 0x30 and saves $s2, so the frame and callee-saved register choice are wrong. Target keeps arg0&0xFFFF in $s1 and recomputes the D_8011F350 row offset (x100 via shifts) in each block. The original candidate did not compile (conflicting D_8021E1A2 type, unary * on D_8011F350, incomplete D_8021E180); the cleaned source here compiles. Diff row 86 shows target addresses D_8021E180 where mine addresses D_8021B060, so the `p = D_8021E180` pointer and `D_80168BB0 = &D_8021B060` are being CSE'd differently. Next step: make the frame 0x28 with $s0/$s1 only (use arg0 in $s1 directly), then reconcile the D_8021E180 address expression before scheduling tuning.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794740703.244056,
-  "score_before": 10369,
-  "score_after": 10369
  },
  {
   "function": "func_8021AF20",
@@ -14640,14 +14616,6 @@
   "score_after": 1065
  },
  {
-  "function": "func_80207044",
-  "text": "Not compiled as delivered: the machine draft does not build. Errors: (1) D_8021E1A2 is declared s32 in the shared context and s16 in the draft (conflicting types); the target reads it as halfword (lh) and as an address base (`lui/addiu D_8021E1A2`), so one declaration must be chosen after checking the header. (2) D_8021E180 is used with an incomplete/undeclared type; declare it as a byte array or struct base. (3) Two `invalid type argument of unary *` errors come from `**(u8 **)(...)` on the D_8011F350 table; the target loads the table entry once and dereferences it, so use a single pointer-typed load. (4) Pointer-vs-integer comparisons on the state/record fields. The control structure (state switch on D_8011F32E[arg0].f0 with 0/1/3 arms, clamp of the D_8021E1A0 mode table) is plausible but unverified. Next agent: fix the type conflicts first, get a compiling baseline, then score against the 1020-byte target.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794756939.930312,
-  "score_before": 10369,
-  "score_after": 10369
- },
- {
   "function": "func_8020FFD0",
   "text": "Best 285 (90.1%) with SN default compiler (gcc-2.8.1-pm-sn-as), source: `u8 *p = D_8021E22F; p = p + (arg0&0xFF)*0x110; s0=arg1&0xFF; p = p + s0*0x22 + (arg2&0xFF); v = *(s8*)(p+2); return func_801FD530(s0, func_80149F40(0,s0,v)&0xFF)&0xFF;` with `extern u8 D_8021E22F[]; u8 func_80149F40(s32,u32,s32); s32 func_801FD530(s32,s32);`. Remaining diff: target computes the base address (lui/addiu D_8021E22F) first, then the a0 part (sll/addu/sll), then adds the base; target also saves ra before s0 and does andi a0 first. Ours uses the a0 part first (lui after). Tried: index pre-cast to u32 i (615), KMC GCC 2.7.2 on the 285 source (420, worse). Variant with the return cast moved (no change). Untested idea: write the base as a separate u8 *base local and compute `base + ((a0*0x110)...)` to pull the lui ahead.",
   "by": "claude-haiku-5-5-21",
@@ -15774,14 +15742,6 @@
   "created_at": 1794759895.866564,
   "score_before": 9125,
   "score_after": 9125
- },
- {
-  "function": "func_80207044",
-  "text": "Not matched; releasing early because the remaining gap is structural and each try moved the score by under 1%. Best current revision: cdadc9bdda9d7e16ee74 (score 10894, 57.2%; saved-best historical 10369 is the same source at a different scoring). Latest variant fec6123b825bd1f543af (clamp block rewritten with a `s16 *q = D_8021E1A0 + mode` pointer) is 11009, slightly worse, so it is not the baseline. Target 255 insns vs mine 235. Remaining gaps to work on next: (1) frame: target is addiu sp,-0x28 saving ra,s1,s0 with arg0 in $s1, mine is -0x30 and also saves s2 with arg0 in $s2; a local that forces an extra saved register (likely `r`/`p`/`c`) should be removed. (2) Branch layout: the target has the clamp checks and the final two `if` blocks laid out with unconditional jumps back to the common tail (j +0x3e8 and bnez), which the current goto/else structure does not reproduce. (3) The D_8021E180 / D_8011F350 address recompute chain (sll 1, sll 3, sll 2 = index*100) is ordered differently. Fix frame and branch layout before register allocation.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794759904.911548,
-  "score_before": 10369,
-  "score_after": 10369
  },
  {
   "function": "func_802153C4",
@@ -41435,5 +41395,53 @@
   "created_at": 1794761951.853166,
   "score_before": 3581,
   "score_after": 3581
+ },
+ {
+  "function": "func_80207044",
+  "text": "Best saved candidate 11809 (53.6%, revision 26bcefe3c6f750345421); frame 0x30 vs target 0x28. Control flow is decoded and the outline is right; remaining diffs are register allocation and frame. Facts: (1) switch on D_8011F32E[idx].f0 (stride 100): 1 -> blockA, 0 -> blockB, 3 -> blockC, else return. (2) D_8021E180+0x20 is the SAME address as D_8021E1A0[0] (mode counter); D_8021E1A0 is s16[] indexed by mode, with arr[mode+3] used for clamping and arr[1], arr[4], arr[6] tested. (3) blockC stores 9 to (s16)((u8*)&D_8021E1A2 - 0x16). (4) Target keeps &D_8021E180 in s0 across the first calls and arg0 in s1; my build spills arg0 to s2 and adds an extra saved reg. Tried: u8* pointer local for D_8021E180 (best); D_8021E180+0x20 via pointer (11889); tail via D_8021E1A0[0] (11929). Untested next steps: (a) make arg0 the only value live across calls (drop r local, compute r&8 inline); (b) reload the D_8021E180 base in the tail as the target does; (c) goto clamp from both the 0x3D and 0x3A paths as the asm does. Budget exhausted at 3/3 without improvement.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794712425.970755,
+  "score_before": 22315,
+  "score_after": 11809
+ },
+ {
+  "function": "func_80207044",
+  "text": "Best score stays 10894 (57.2%), not matched. Verified this session: (1) the saved source compiles with the extern block as given. (2) Frame mismatch: target frame 0x28, saves only ra, s0, s1 (arg0 is kept raw in $s1 and andi'd each use; $s0 holds a pointer). Mine is 0x30 and saves s0,s1,s2, so one callee-saved register too many; the compiler hoists `lui $s0,%hi(D_8011F32E)` across the function, which the target never does (it recomputes the lui in each block). (3) Tried: local `u16 *c` removed (no effect); signedness family on f0 (no effect); replacing the local `p` with direct D_8021E180[...] accesses (worse, 10974). The target loads D_8021E180 as `lui $a0,%hi; lbu ($a0)` and uses `sh $v0,0x20($a0)`, i.e. a pointer in $a0 for the block's field accesses, which a plain global-array index does not reproduce. Next idea not yet tried: write p as a `u8 *p` local assigned right before its uses in the blockA tail only (so it is not live across the func_8014A870 / func_8014B854 calls), which would drop the saved s0. Also check whether the jump-table-free dispatch at the top (beql/slti/beqz) matches the source's if-chain order.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794727777.0011141,
+  "score_before": 10894,
+  "score_after": 10894
+ },
+ {
+  "function": "func_80207044",
+  "text": "Unmatched, best 10369 (59.3%), same as the saved best. Target is 255 insns with a 0x28 frame saving $ra,$s1,$s0; my draft uses 0x30 and saves $s2, so the frame and callee-saved register choice are wrong. Target keeps arg0&0xFFFF in $s1 and recomputes the D_8011F350 row offset (x100 via shifts) in each block. The original candidate did not compile (conflicting D_8021E1A2 type, unary * on D_8011F350, incomplete D_8021E180); the cleaned source here compiles. Diff row 86 shows target addresses D_8021E180 where mine addresses D_8021B060, so the `p = D_8021E180` pointer and `D_80168BB0 = &D_8021B060` are being CSE'd differently. Next step: make the frame 0x28 with $s0/$s1 only (use arg0 in $s1 directly), then reconcile the D_8021E180 address expression before scheduling tuning.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794740703.244056,
+  "score_before": 10369,
+  "score_after": 10369
+ },
+ {
+  "function": "func_80207044",
+  "text": "Not compiled as delivered: the machine draft does not build. Errors: (1) D_8021E1A2 is declared s32 in the shared context and s16 in the draft (conflicting types); the target reads it as halfword (lh) and as an address base (`lui/addiu D_8021E1A2`), so one declaration must be chosen after checking the header. (2) D_8021E180 is used with an incomplete/undeclared type; declare it as a byte array or struct base. (3) Two `invalid type argument of unary *` errors come from `**(u8 **)(...)` on the D_8011F350 table; the target loads the table entry once and dereferences it, so use a single pointer-typed load. (4) Pointer-vs-integer comparisons on the state/record fields. The control structure (state switch on D_8011F32E[arg0].f0 with 0/1/3 arms, clamp of the D_8021E1A0 mode table) is plausible but unverified. Next agent: fix the type conflicts first, get a compiling baseline, then score against the 1020-byte target.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794756939.930312,
+  "score_before": 10369,
+  "score_after": 10369
+ },
+ {
+  "function": "func_80207044",
+  "text": "Not matched; releasing early because the remaining gap is structural and each try moved the score by under 1%. Best current revision: cdadc9bdda9d7e16ee74 (score 10894, 57.2%; saved-best historical 10369 is the same source at a different scoring). Latest variant fec6123b825bd1f543af (clamp block rewritten with a `s16 *q = D_8021E1A0 + mode` pointer) is 11009, slightly worse, so it is not the baseline. Target 255 insns vs mine 235. Remaining gaps to work on next: (1) frame: target is addiu sp,-0x28 saving ra,s1,s0 with arg0 in $s1, mine is -0x30 and also saves s2 with arg0 in $s2; a local that forces an extra saved register (likely `r`/`p`/`c`) should be removed. (2) Branch layout: the target has the clamp checks and the final two `if` blocks laid out with unconditional jumps back to the common tail (j +0x3e8 and bnez), which the current goto/else structure does not reproduce. (3) The D_8021E180 / D_8011F350 address recompute chain (sll 1, sll 3, sll 2 = index*100) is ordered differently. Fix frame and branch layout before register allocation.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794759904.911548,
+  "score_before": 10369,
+  "score_after": 10369
+ },
+ {
+  "function": "func_80207044",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Not attempted: the look-alike func_80206164 differs in most of its body (menu input handling); only compared the assembly.",
+  "by": "manual-5191f0b0f2be40b5",
+  "created_at": 1795747873.558536,
+  "score_before": 8215,
+  "score_after": 8215
  }
 ]
