@@ -6760,14 +6760,6 @@
   "score_after": 13448
  },
  {
-  "function": "func_8015E8E4",
-  "text": "Best 5694 (saved; from the byte-offset rewrite: u8 *arg0, every global accessed as *(T*)((u8*)&SYM + idx*0x64 / off*0x7C), no s32-typed pointer arithmetic). Structure matches reasonably (74%). Remaining diffs: target keeps arg0 in $s1 via an early `move $s1,$a0` and the masked index in $s2 (`andi $s2,$v0,0xFFFF; ori $v0,0xFFFF; beq $s2,$v0`) while the full v0 is kept in $s0; target frame is 0x58 with only ra,s0,s1,s2 saved (no s3). My attempts to copy arg0 into a local s1 made it worse (6072), and 0.0f vs 0 for the float store made no difference. Also the target's compare chain branches to the end label differently (bnez/beqz to 0x35c vs mine to 0x340); a shared exit label for the three early returns may help. Next: restructure the second call's `if (idx != 0xFFFF)` to match the target's use of s2 across both calls, and check the trunc.w.s pair (float->int of a computed float argument) that the target does not emit. Budget 3/3 without improvement exhausted.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794711188.865477,
-  "score_before": 8092,
-  "score_after": 5694
- },
- {
   "function": "func_8015E530",
   "text": "Not matched. Saved best 12148 (from an earlier attempt) is still the baseline; my byte-offset rewrite (u8 *arg0, &SYM + off casts, the same style that got func_8015E8E4 to 5694) scored 13588 and was discarded. Target frame is 0x68 with ra,s0,s1,s2,s3 saved; the rewrite gets 0x70 with an sdc1 $f20 spill, meaning it has one more live float than the target. The target reads the first guard as `lw $s0,0x898($s1)` and compares to 1 directly (so the 0x898 value is kept live in s0 across the call), and reloads lhu 0x560 at each use. The rewrite also puts the func_8013E364 result in an extra temp, and the second `if (*(u8*)(arg0+0x74C) < 5)` block is not a fall-through after the first call's stores in the target. Next: write the first block's stores before the second block without the float spill (f32 constants inline, no f20 live value), and keep the masked index in s1 with 0xFFFF in s3 for the compare.",
   "by": "claude-haiku-5-5-24",
@@ -9792,14 +9784,6 @@
   "score_after": 625
  },
  {
-  "function": "func_8015E8E4",
-  "text": "Stopping at low effort, not a proven limit. Best revision 52b177da1a52ec079eb9 scores 4824 (78.1%); target 221 insns vs candidate 215. Gains came from dropping the local func_8013E49C prototype (header already declares it) and comparing raw v0 to 0xFFFF in the first test. Remaining structure: target keeps the full v0 in $s0 and masks to $s2 for the later beq, and holds arg0 in $s1 (`move $s1,$a0` x3), while candidate keeps arg0 in $s0 and the masks in $s1/$s2. The 18-argument call to func_800DE41C has stack args (v0 at 0x14, zero at 0x18) that differ from the candidate's. Next: compile_family(branch_orientation) on revision 52b177da1a52ec079eb9, then try binding the second call's result to a local and using the arg0 copy in $s1.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794727959.363202,
-  "score_before": 5154,
-  "score_after": 4824
- },
- {
   "function": "func_8015E530",
   "text": "Not matched. Current candidate compiles (revision 3d7ba9458a7eb448f5f8) at 12248 (48.3%); saved best 12148 is from an earlier source. The draft had repair artifacts and wrong types; fixed: removed __repair_phase var, func_8013E49C takes one u16 (context declaration), two-arg calls changed to one arg. Remaining: the target frame is 0x68 with s0..s3 saved and no $f20 spill; mine is 0x70 with sdc1 $f20 and extra s-register saves, and the target's first branch compares s0 against a value from func_8013E364 with an early `nop` before the `andi`/`move $s3` pair. The 0x7C table at D_8018D6C0/D_8018D6C8 is addressed as `lui $at,%hi(D_8018D6C8)` nine times in the target, so write it as one base expression, not casts of 0x8018d6c0. Restart from the assembly with a clean rewrite (the state-1 test on *(s32*)(arg0+0x898), flags at 0x560 mask 0x18, the 0x7C-stride writes, and the 0x64-stride float writes to D_8011F334/D_8011F338).",
   "by": "claude-haiku-5-5-21",
@@ -12662,14 +12646,6 @@
   "created_at": 1794740842.752337,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_8015E8E4",
-  "text": "Best saved 4322 (80.4%, revision 03848397fdb0e7855c93); restore that with get_candidate(base=\"saved_best\") before any retry. Control flow and call args match. Remaining diffs are register allocation and frame: target is 0x58 with ra,s0,s1,s2 saved; my closest versions are 0x60 and also save $s3 (the 0xFFFF compare constant is hoisted into a register). Tried and failed: 65535 literal (no change); (u16)t0 != 0xFFFF inline (4887, worse, changes gate order). Untried: restructure the gate as a nested if to remove the compare-then-store order; declare arg0 as a u8* parameter so the early move $s1,$a0 is not needed. Why it can't get closer with the current approach: the frame/register set depends on how GCC places the three gate values, and the single-source fixes I tried moved the diff rather than closing it.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794740870.42382,
-  "score_before": 4824,
-  "score_after": 4322
  },
  {
   "function": "func_8015D410",
@@ -17352,14 +17328,6 @@
   "score_after": 1985
  },
  {
-  "function": "func_8015E8E4",
-  "text": "Best 4322 (80.4%, revision 08db0a731261b01cb849). Target frame is 0x58 with saves ra,s2,s1,s0; my version uses 0x60 and an extra s3 (from `ori $s3,0xffff`, the 0xFFFF compare on the second func_8013E364 result). Merging `t` into `t0` (revision ec006ade6e3d2aacba71) had no effect. Next: keep the 0xFFFF compare against a single u16 temp, and check whether the `i` local should be the 0x7C stride for the first block and 0x64 for the second, so only one long-lived index is saved. Calls: func_800DE41C(18 args), func_8013E818, func_801D7028(u16, 0x2C), func_8013E49C(u16).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794756652.5514119,
-  "score_before": 4322,
-  "score_after": 4322
- },
- {
   "function": "func_801E2D18",
   "text": "Solved byte-exact under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1. Function-only suggestion submitted and reverified EXACT, but auto compiler changes are off, so pending application. Exact source is current revision 8dfc4cd901eaec789f74 and compiler diagnostic trial 99d75eba0a6f13a0c411. Header bytes first, i=0 then src0..4 initializations, loads *(u8 *)(off+(u32)srcN). O2 recompiles score 4855. Do not retune O2: apply pending function-only profile suggestion to save exact pair. Shared reusable operand-order discovery #339302416470.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -18310,14 +18278,6 @@
   "created_at": 1794758687.341301,
   "score_before": 1565,
   "score_after": 1565
- },
- {
-  "function": "func_8015E8E4",
-  "text": "Releasing early with the notes in this message. Not matched; best 4322 (80.4%), same as saved best. Reason for early release: this session is ending, and the next steps need several more compiles that I cannot finish here. The frame differs: target `addiu $sp,-0x58` with ra at 0x54, s2 at 0x50, s1 at 0x4c; my draft is -0x60 with an extra s3 (from `ori $s3,$zero,0xffff`). Suspect an extra live variable across calls: merge t and s2 (the 0xFFFF compare) so only s0/s1/s2 survive the calls. Also the target sets s1 = arg0 before the first func_8013E364 call, my draft sets it later. Register tuning comes last. Avoid declaring func_8013E49C locally: it conflicts with include/context.h. Never run compile_family signedness here first; it was not useful on func_8014B108.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794758723.528171,
-  "score_before": 4322,
-  "score_after": 4322
  },
  {
   "function": "func_80195124",
@@ -40789,5 +40749,62 @@
   "score_before": 3658,
   "score_after": 3198,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:cf9c591cfa49a0d2554e998eddd20a8be7ca028e5adcb945b4c5be10f470b67f"
+ },
+ {
+  "function": "func_8015E8E4",
+  "text": "Best 5694 (saved; from the byte-offset rewrite: u8 *arg0, every global accessed as *(T*)((u8*)&SYM + idx*0x64 / off*0x7C), no s32-typed pointer arithmetic). Structure matches reasonably (74%). Remaining diffs: target keeps arg0 in $s1 via an early `move $s1,$a0` and the masked index in $s2 (`andi $s2,$v0,0xFFFF; ori $v0,0xFFFF; beq $s2,$v0`) while the full v0 is kept in $s0; target frame is 0x58 with only ra,s0,s1,s2 saved (no s3). My attempts to copy arg0 into a local s1 made it worse (6072), and 0.0f vs 0 for the float store made no difference. Also the target's compare chain branches to the end label differently (bnez/beqz to 0x35c vs mine to 0x340); a shared exit label for the three early returns may help. Next: restructure the second call's `if (idx != 0xFFFF)` to match the target's use of s2 across both calls, and check the trunc.w.s pair (float->int of a computed float argument) that the target does not emit. Budget 3/3 without improvement exhausted.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794711188.865477,
+  "score_before": 8092,
+  "score_after": 5694
+ },
+ {
+  "function": "func_8015E8E4",
+  "text": "Stopping at low effort, not a proven limit. Best revision 52b177da1a52ec079eb9 scores 4824 (78.1%); target 221 insns vs candidate 215. Gains came from dropping the local func_8013E49C prototype (header already declares it) and comparing raw v0 to 0xFFFF in the first test. Remaining structure: target keeps the full v0 in $s0 and masks to $s2 for the later beq, and holds arg0 in $s1 (`move $s1,$a0` x3), while candidate keeps arg0 in $s0 and the masks in $s1/$s2. The 18-argument call to func_800DE41C has stack args (v0 at 0x14, zero at 0x18) that differ from the candidate's. Next: compile_family(branch_orientation) on revision 52b177da1a52ec079eb9, then try binding the second call's result to a local and using the arg0 copy in $s1.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794727959.363202,
+  "score_before": 5154,
+  "score_after": 4824
+ },
+ {
+  "function": "func_8015E8E4",
+  "text": "Best saved 4322 (80.4%, revision 03848397fdb0e7855c93); restore that with get_candidate(base=\"saved_best\") before any retry. Control flow and call args match. Remaining diffs are register allocation and frame: target is 0x58 with ra,s0,s1,s2 saved; my closest versions are 0x60 and also save $s3 (the 0xFFFF compare constant is hoisted into a register). Tried and failed: 65535 literal (no change); (u16)t0 != 0xFFFF inline (4887, worse, changes gate order). Untried: restructure the gate as a nested if to remove the compare-then-store order; declare arg0 as a u8* parameter so the early move $s1,$a0 is not needed. Why it can't get closer with the current approach: the frame/register set depends on how GCC places the three gate values, and the single-source fixes I tried moved the diff rather than closing it.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794740870.42382,
+  "score_before": 4824,
+  "score_after": 4322
+ },
+ {
+  "function": "func_8015E8E4",
+  "text": "Best 4322 (80.4%, revision 08db0a731261b01cb849). Target frame is 0x58 with saves ra,s2,s1,s0; my version uses 0x60 and an extra s3 (from `ori $s3,0xffff`, the 0xFFFF compare on the second func_8013E364 result). Merging `t` into `t0` (revision ec006ade6e3d2aacba71) had no effect. Next: keep the 0xFFFF compare against a single u16 temp, and check whether the `i` local should be the 0x7C stride for the first block and 0x64 for the second, so only one long-lived index is saved. Calls: func_800DE41C(18 args), func_8013E818, func_801D7028(u16, 0x2C), func_8013E49C(u16).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794756652.5514119,
+  "score_before": 4322,
+  "score_after": 4322
+ },
+ {
+  "function": "func_8015E8E4",
+  "text": "Releasing early with the notes in this message. Not matched; best 4322 (80.4%), same as saved best. Reason for early release: this session is ending, and the next steps need several more compiles that I cannot finish here. The frame differs: target `addiu $sp,-0x58` with ra at 0x54, s2 at 0x50, s1 at 0x4c; my draft is -0x60 with an extra s3 (from `ori $s3,$zero,0xffff`). Suspect an extra live variable across calls: merge t and s2 (the 0xFFFF compare) so only s0/s1/s2 survive the calls. Also the target sets s1 = arg0 before the first func_8013E364 call, my draft sets it later. Register tuning comes last. Avoid declaring func_8013E49C locally: it conflicts with include/context.h. Never run compile_family signedness here first; it was not useful on func_8014B108.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794758723.528171,
+  "score_before": 4322,
+  "score_after": 4322
+ },
+ {
+  "function": "func_8015E8E4",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Not started: switched to a smaller target.",
+  "by": "manual-0d2866643d514aba",
+  "created_at": 1795713097.557081,
+  "score_before": 2249,
+  "score_after": 2249
+ },
+ {
+  "function": "func_8015E8E4",
+  "text": "Profile probe: this saved C scores 1010 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (8 of its 12 nearest matched neighbours were built with it), 2249 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721250.1166568,
+  "score_before": 2249,
+  "score_after": 1010,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:b0bea9642c26112a6091ac68d0bb3f10acab16333a2ca6a7ccfc2b2d70293c66"
  }
 ]
