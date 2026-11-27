@@ -6960,14 +6960,6 @@
   "score_after": 17875
  },
  {
-  "function": "func_802109DC",
-  "text": "Saved best is still the switch draft at 9385 (revision d3dea5d25580e3bd9512). It is wrong in the inner loop, but it gets the call sequence right. My rewrite (if/else on state 0 / 0x10, the same call list, and the table copy written out) scored 13553, worse. Facts from the asm: state at D_8011F330[(arg1&0xFFFF)*50] (stride 100 bytes); 0 -> store 0x10 and return; not 0x10 -> return. Calls in order: 801CA140(a0); 801CA468(a0,0xFF); 801CA494(a0,0,0,0,0x7F); 8014A4C8(a0,0x20,0x5D,0xB,0x40); 8014A4C8(a0,2,0x19,0xB,0x41); 801CA468; 8014A4C8(a0,0x8E,0x43,9,1); 8014A4C8(a0,0x118,0x43,9,2); 801CA494(a0,0x91,0x83,0x47,0xFF); 8014A4C8(a0,0,0x17,0xB,0x41); 801CA468(a0,0xFF); if (D_8021EFA0&0x4000) {8014A4C8(a0,0x28,0x1A,9,0); a3=0xFF} else {8014A4C8(a0,0x29,0x17,9,6); 8014A4C8(a0,0x35,0x33,9,7); a3=0x80}; a3&=0xFFFF; 801CA494(a0,a3,a3,a3,0xFF); two iterations of 8014A4C8(a0, D_8021B631[6i], D_8021B632[6i], 9, D_8021B635[6i]) (stride 6 bytes); 8014A4C8(a0,0xC4,0xC8,9,4). Outer loop i=0..5 with inner j=0..14: k counts j==5 or j==10 (k reset per i); D_8021EED0[j+k] = *(u16*)D_80203080[15*i + j + D_8021EED0[-6]] (D_80203080 is an array of pointers, word stride). After the inner loop: D_8021EEDA[0]=0, [6]=0, [12]=0xFFFF; if i==5 zero D_8021EED0[12..16]; then 801CABF4(a0,0x28,(16*i+i+0x5E)&0xFFFF,0xE,D_802D92A0,D_8021EED0,0,D_802D6898,0xE,0x10,0xE0,0x60). Frame 0x48 saves ra,s0-s3 with the a0 argument kept in s1. Untested next step: put the table copy in the saved draft instead of the zero loop, keeping the switch.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794712553.958674,
-  "score_before": 9385,
-  "score_after": 9385
- },
- {
   "function": "func_801AEFBC",
   "text": "Float-heavy (sinf/cosf, 1050.0f, 400.0f, 0.69813174f constants). My first rewrite (the machine draft with declarations added) scored 16478, far worse than the saved best 1960. Saved best (1960) is the one to start from; do not use the draft at revision f2e92a61f44f0954fcab. The target loads the struct at D_801C6BC0 with lwc1 at offsets 0x8, 0xC, 0x10 and keeps s0/s2 as base pointers, and it materializes the float constants with lui+mtc1 in the order the asm gives, while my version reloads D_801C7068 and D_801C6BB9 with lb each time. Next step: restart from the saved best and match the constant load order before touching the arithmetic; try static float locals for the constants only if the asm shows them loaded once.",
   "by": "claude-haiku-5-5-24",
@@ -9686,14 +9678,6 @@
   "created_at": 1794727576.1164758,
   "score_before": 19847,
   "score_after": 18467
- },
- {
-  "function": "func_802109DC",
-  "text": "Best remains the saved 8822 (62.4%). Removing `volatile` from arg1 stops the arg1 stack spill but scored 9385 (worse), so the saved-best source keeps the volatile version. Target: prologue frame 0x48 saving ra/s3/s2/s1/s0 at 0x40..0x30; index (arg1&0xFFFF)*0x32 into D_8011F330 as u16. Unresolved: prologue save order, switch dispatch shape (beqz / beq 0x10 then j to a shared exit), move $s1,$a0 placement, and the D_8011F330 lui/addiu sharing. Next: reduce live locals so the frame is 0x48, and write the case-0 store with a precomputed index.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794727628.662753,
-  "score_before": 8822,
-  "score_after": 8822
  },
  {
   "function": "func_80206848",
@@ -12542,14 +12526,6 @@
   "created_at": 1794740638.717163,
   "score_before": 5100,
   "score_after": 5100
- },
- {
-  "function": "func_802109DC",
-  "text": "Not matched. Best saved is 8822 (historical). Current draft (switch on D_8011F330[arg1*0x32], case 0 and case 16 body with a3 selected by D_8021EFA0 & 0x4000, loop over i<2 with D_8021B631/32/35, and a nested 6x15 loop that zeroes D_8021EED0 then calls func_801CABF4) scores 9385 (60%). Target is 235 insns vs 183 and has frame 0x40 saving $ra,$s3,$s2,$s1,$s0; my draft saves only $s1, so the loop state is not kept in callee-saved registers. Target recomputes D_8011F330 index as (arg1&0xFFFF)*0x32 via lui/addiu and keeps arg1 in $s1 across calls. Next step: write arg1 as the u16 parameter and keep the switch index in a local, then fix the nested-loop register allocation. Budget exhausted.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794740651.298086,
-  "score_before": 8822,
-  "score_after": 8822
  },
  {
   "function": "func_8014B108",
@@ -17416,14 +17392,6 @@
   "score_after": 7580
  },
  {
-  "function": "func_802109DC",
-  "text": "Score 8822 (62%). Target is 235 insns with a 0x48 frame (ra at 0x40, s0-s3 saved at 0x30-0x3c) and heavy use of `addu $at,$at,$v1` / `sll ...,1` / `sll ...,4` indexing into D_8011F330 and D_8021EED0 tables; the draft only covers the switch cases 0 and 16 and is missing a large part of the target body (possibly more cases and loops). The candidate's `lhu $v1,0x30($sp)` / `sh $a1,0x30($sp)` spill of arg1 is not in the target: the target keeps arg1 in a register (`andi $v1,$a1,0xffff`). Next agent: rebuild the switch from the full target body (use get_assembly paging) before tuning registers; start by fixing the arg1 handling and the frame.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794756926.991435,
-  "score_before": 8822,
-  "score_after": 8822
- },
- {
   "function": "func_80026D40",
   "text": "No work needed: already byte-exact at gcc-2.7.2-kmc -O1 with the nonvolatile FlagDesc loop; function-only suggestion pending user application.",
   "by": "claude-opus-medium-1",
@@ -18758,14 +18726,6 @@
   "created_at": 1794759671.2357051,
   "score_before": 6793,
   "score_after": 6793
- },
- {
-  "function": "func_802109DC",
-  "text": "Not matched. Best saved stays 8822. The draft (switch on D_8011F330[(arg1&0xFFFF)*0x32], case 0 and case 16 bodies, two loops, D_8021EED0 zeroing) scored 9385 (60.0%). Target is 235 insns vs 183 mine. Target saves ra + s0..s3 (frame 0x40), and mine saves only s0/s1, so the target keeps more live values across calls, possibly the arg1 index and loop counters. Missing from mine: each index use recomputes the `(arg1&0xFFFF)*0x32` address with lui/addiu D_8011F330, which the target repeats (about 3 times). The `D_8021EFA0 & 0x4000` branch structure differs. The 6x15 loop is written as `D_8021EED0[j + i*0xF]`, but the target's loop body uses sll/addu index chains. Next step: keep the index as a plain `u16 idx = arg1 & 0xFFFF` to match the target's `andi $v1,$a1,0xffff` then `sll/addu` (multiply-by-50 chains), and check the loop shape with a do/while. Verify the 0x118/0x91 arg order against the asm before further tuning.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794759680.255522,
-  "score_before": 8822,
-  "score_after": 8822
  },
  {
   "function": "func_80160B68",
@@ -40815,5 +40775,54 @@
   "score_before": 2230,
   "score_after": 1710,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:c01410670c36aa1e8c5a48f8039ed2d478e1fb1a82735d3d9e7d6374d616b8a3"
+ },
+ {
+  "function": "func_802109DC",
+  "text": "Saved best is still the switch draft at 9385 (revision d3dea5d25580e3bd9512). It is wrong in the inner loop, but it gets the call sequence right. My rewrite (if/else on state 0 / 0x10, the same call list, and the table copy written out) scored 13553, worse. Facts from the asm: state at D_8011F330[(arg1&0xFFFF)*50] (stride 100 bytes); 0 -> store 0x10 and return; not 0x10 -> return. Calls in order: 801CA140(a0); 801CA468(a0,0xFF); 801CA494(a0,0,0,0,0x7F); 8014A4C8(a0,0x20,0x5D,0xB,0x40); 8014A4C8(a0,2,0x19,0xB,0x41); 801CA468; 8014A4C8(a0,0x8E,0x43,9,1); 8014A4C8(a0,0x118,0x43,9,2); 801CA494(a0,0x91,0x83,0x47,0xFF); 8014A4C8(a0,0,0x17,0xB,0x41); 801CA468(a0,0xFF); if (D_8021EFA0&0x4000) {8014A4C8(a0,0x28,0x1A,9,0); a3=0xFF} else {8014A4C8(a0,0x29,0x17,9,6); 8014A4C8(a0,0x35,0x33,9,7); a3=0x80}; a3&=0xFFFF; 801CA494(a0,a3,a3,a3,0xFF); two iterations of 8014A4C8(a0, D_8021B631[6i], D_8021B632[6i], 9, D_8021B635[6i]) (stride 6 bytes); 8014A4C8(a0,0xC4,0xC8,9,4). Outer loop i=0..5 with inner j=0..14: k counts j==5 or j==10 (k reset per i); D_8021EED0[j+k] = *(u16*)D_80203080[15*i + j + D_8021EED0[-6]] (D_80203080 is an array of pointers, word stride). After the inner loop: D_8021EEDA[0]=0, [6]=0, [12]=0xFFFF; if i==5 zero D_8021EED0[12..16]; then 801CABF4(a0,0x28,(16*i+i+0x5E)&0xFFFF,0xE,D_802D92A0,D_8021EED0,0,D_802D6898,0xE,0x10,0xE0,0x60). Frame 0x48 saves ra,s0-s3 with the a0 argument kept in s1. Untested next step: put the table copy in the saved draft instead of the zero loop, keeping the switch.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794712553.958674,
+  "score_before": 9385,
+  "score_after": 9385
+ },
+ {
+  "function": "func_802109DC",
+  "text": "Best remains the saved 8822 (62.4%). Removing `volatile` from arg1 stops the arg1 stack spill but scored 9385 (worse), so the saved-best source keeps the volatile version. Target: prologue frame 0x48 saving ra/s3/s2/s1/s0 at 0x40..0x30; index (arg1&0xFFFF)*0x32 into D_8011F330 as u16. Unresolved: prologue save order, switch dispatch shape (beqz / beq 0x10 then j to a shared exit), move $s1,$a0 placement, and the D_8011F330 lui/addiu sharing. Next: reduce live locals so the frame is 0x48, and write the case-0 store with a precomputed index.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794727628.662753,
+  "score_before": 8822,
+  "score_after": 8822
+ },
+ {
+  "function": "func_802109DC",
+  "text": "Not matched. Best saved is 8822 (historical). Current draft (switch on D_8011F330[arg1*0x32], case 0 and case 16 body with a3 selected by D_8021EFA0 & 0x4000, loop over i<2 with D_8021B631/32/35, and a nested 6x15 loop that zeroes D_8021EED0 then calls func_801CABF4) scores 9385 (60%). Target is 235 insns vs 183 and has frame 0x40 saving $ra,$s3,$s2,$s1,$s0; my draft saves only $s1, so the loop state is not kept in callee-saved registers. Target recomputes D_8011F330 index as (arg1&0xFFFF)*0x32 via lui/addiu and keeps arg1 in $s1 across calls. Next step: write arg1 as the u16 parameter and keep the switch index in a local, then fix the nested-loop register allocation. Budget exhausted.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794740651.298086,
+  "score_before": 8822,
+  "score_after": 8822
+ },
+ {
+  "function": "func_802109DC",
+  "text": "Score 8822 (62%). Target is 235 insns with a 0x48 frame (ra at 0x40, s0-s3 saved at 0x30-0x3c) and heavy use of `addu $at,$at,$v1` / `sll ...,1` / `sll ...,4` indexing into D_8011F330 and D_8021EED0 tables; the draft only covers the switch cases 0 and 16 and is missing a large part of the target body (possibly more cases and loops). The candidate's `lhu $v1,0x30($sp)` / `sh $a1,0x30($sp)` spill of arg1 is not in the target: the target keeps arg1 in a register (`andi $v1,$a1,0xffff`). Next agent: rebuild the switch from the full target body (use get_assembly paging) before tuning registers; start by fixing the arg1 handling and the frame.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794756926.991435,
+  "score_before": 8822,
+  "score_after": 8822
+ },
+ {
+  "function": "func_802109DC",
+  "text": "Not matched. Best saved stays 8822. The draft (switch on D_8011F330[(arg1&0xFFFF)*0x32], case 0 and case 16 bodies, two loops, D_8021EED0 zeroing) scored 9385 (60.0%). Target is 235 insns vs 183 mine. Target saves ra + s0..s3 (frame 0x40), and mine saves only s0/s1, so the target keeps more live values across calls, possibly the arg1 index and loop counters. Missing from mine: each index use recomputes the `(arg1&0xFFFF)*0x32` address with lui/addiu D_8011F330, which the target repeats (about 3 times). The `D_8021EFA0 & 0x4000` branch structure differs. The 6x15 loop is written as `D_8021EED0[j + i*0xF]`, but the target's loop body uses sll/addu index chains. Next step: keep the index as a plain `u16 idx = arg1 & 0xFFFF` to match the target's `andi $v1,$a1,0xffff` then `sll/addu` (multiply-by-50 chains), and check the loop shape with a do/while. Verify the 0x118/0x91 arg order against the asm before further tuning.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794759680.255522,
+  "score_before": 8822,
+  "score_after": 8822
+ },
+ {
+  "function": "func_802109DC",
+  "text": "Profile probe: this saved C scores 5862 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (10 of its 12 nearest matched neighbours were built with it), 8002 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721265.014077,
+  "score_before": 8002,
+  "score_after": 5862,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:606a8e8ebe9a68e0cf9e075d0d3866a7ecda0973a097c65dddf7fbec9e4c6a36"
  }
 ]
