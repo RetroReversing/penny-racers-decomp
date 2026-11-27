@@ -6792,14 +6792,6 @@
   "score_after": 1999
  },
  {
-  "function": "func_801979CC",
-  "text": "Best candidate is revision af9f24bf905241c55361 (score 7905, 56.3%). Use stride-100 byte-offset struct access: D_8011F2FC/308/30C/310 are fields at offsets 0/12/16/20 of a 100-byte entry indexed by (arg0&0xFFFF); D_8011F32E and D_801C7074 are u16 (lhu); D_801C7068/D_801C6BB9 are s8 (lb); D_801C7ABD is u8; D_801C6B31 is u8, stored then re-read (lbu) before the final branch. Target keeps arg0 in s0 across calls and recomputes D_801C7074*100 per condition. Tried, not better: u8 state types (8580), local off=(arg0&0xFFFF)*100 (9230), 308/310/30C store reorder (7965). Still differing: the target computes idx*100 once into $v1 and interleaves the float chain with it; gcc here recomputes the index per store and places the 30C zero store early. Next ideas: use an explicit s32 idx local (no arg0 reuse) that is live across the calls, and try a single shared float temp for the 308/310 values. Stopping after 5 non-improving compiles since the no-improvement budget is 4/8 with 3 left for this claim; the structure is close but the scheduling is not solved.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794710991.8231318,
-  "score_before": 2300,
-  "score_after": 2300
- },
- {
   "function": "func_8003DAA0",
   "text": "Not matched. Naive byte-loop memmove scores 18710 (5.9%); saved best 12595 is historical. Target is memmove-style, 199 insns: returns dst (b); n==0 or a==b -> return; overlap test (b>=a && b<a+n) selects a backward copy, else forward. Both paths align on (ptr & 3) with a switch of 1/2/3-byte head copies (case 0 = nothing; default 1 byte; 2 halfword; 3 byte+halfword), then unrolled 32-byte and 16-byte block loops, a 4-byte word loop, then a byte tail. The backward path uses the end pointers (a+n, b+n) with the same blocks in reverse. The machine draft (m2c) has the right block structure but needs plain u8/u32 pointer code instead of its M2C macros; its 'Duplicate return node #10' note is the shared return. Next: write the forward path first (alignment switch + 0x20/0x10/4 loops + byte tail), compile it against the target's forward half, then do the backward path.",
   "by": "claude-haiku-5-5-21",
@@ -9808,14 +9800,6 @@
   "score_after": 1985
  },
  {
-  "function": "func_801979CC",
-  "text": "func_801979CC (724 B): not matched. Attempt score 10755 (saved best 2300 is from an earlier source, not beaten). Findings: (1) the target has a stack frame (addiu $sp,-0x18 near the top, after the float setup), so the draft's frameless shape is wrong; the function makes calls (func_801987A8, func_80198968, func_8019839C, func_80198DF0) that need saved registers. (2) D_8011F32E and D_801C7074 are read as lhu (u16), not lbu; my u8 read gave the wrong comparison forms. Use u16 for the table element. (3) The target computes the float stores in the order: lui/lb D_801C7068 -> addiu -1 -> mtc1/cvt.s.w -> mul.s by 400.0 -> lui 0x3f00 (0.5f) -> mul; the store to D_8011F308 is first. (4) The index is idx = (arg0&0xFFFF)*100 via sll/addu chain, computed once and reused. Next: write the tail as the same if-else chain the draft has, but type the table as u16 and let the frame come from the calls; check the save list in the target before reordering the float expression.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794727103.192169,
-  "score_before": 2300,
-  "score_after": 2300
- },
- {
   "function": "func_80192B34",
   "text": "Not matched. One clean attempt this session scored 10070 (rev 3d86b6d1d52b2eb8e583); saved best is 2175 (not mine). Instruction count matches (179 vs 179), so the remaining diff is ordering and register use. Facts from the asm: frame 0x58; saves are ra at 0x50, s1 at 0x4c, s0 at 0x48 (the compiler saves s0 last in my version but target order is ra,s1,s0 \u2014 check the save order after the first call). s1 = u8 D_8011F32F[D_801C7074*100] is read first, before func_8019E734/func_8019F7C0(s0) with s0 = arg0&0xFFFF. Then D_801C7D18*100 indexes three float tables: D_8011F308 = (f32)D_801C7068*400*0.5f, D_8011F30C = 0 (word store), D_8011F310 = (f32)D_801C6BB9*400*0.5f. The target loads D_801C7D18 (lhu) before the first D_8011F308 store and reads D_801C7068 as lb after the multiplication setup. The D_801E9990 test is at offset s0*0x70 (s0*8-s0 then <<4), must equal 1. Inside the ==5 path: D7068 != 0 or (D6BB9 != 0 and != 0x17) enter the store block; D7068==0x17 and (D6BB9==0 or D6BB9==D7068) return s1. Store block writes D_801C6BB0[0] = (u8)D7068, [1] = (u8)D6BB9, halfword [4] = (s8)D7068 + 24*(s8)D6BB9, then the 18-arg call func_800DE41C(0,0,3,0,0x53,0xFF,0,0,&func_801B3F08,f1,0,f2,0,0,0,.5,.5,.5) with f1, f2 = (f32)(s8)byte*400*0.5f. Then D_801C746A = result (sh); D_8011F2F4[idx] |= 0x20 (halfword); D_8011F2FB[idx] = 0xC; s1 = 6; D_801C5EA4 = 0 (halfword); func_8014B854(0x3D). Next: match the prologue save order and the register usage for the 18-arg call first; the body of the arithmetic is already right.",
   "by": "claude-haiku-5-5-21",
@@ -12758,14 +12742,6 @@
   "created_at": 1794740346.457178,
   "score_before": 1999,
   "score_after": 1999
- },
- {
-  "function": "func_801979CC",
-  "text": "Not matched. Best this attempt 9315 (48.5%); saved best 2300 is from an older attempt. The draft's types are wrong: D_8011F308/30C/310 are f32 at stride 0x64 (idx = (u16)arg0*100), D_8011F32E is u16 at D_801C7074*100, D_8011F2FC is u8. Frame in target is 0x18 with ra; target re-evaluates D_801C7074*100 and the F32E load at every test (about 10 lhu and 18 addu), and reloads D_801C7068 each time, so the C should write each access out in full instead of sharing temp_v1_2/3. Our version is 117 insns vs 181. Next try: write each F32E read with its own D_801C7074 * 0x64 expression, and check the branch order of the 0x11/0x13 range test against the target (the draft's ((u32)(m-0x11)>=2 && ...) form is not yet verified). Not tested beyond this one candidate.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794740365.1436238,
-  "score_before": 2300,
-  "score_after": 2300
  },
  {
   "function": "func_80194E60",
@@ -17752,14 +17728,6 @@
   "score_after": 5220
  },
  {
-  "function": "func_801979CC",
-  "text": "Cleaned the draft (revision e82bd698d2755eb86722): 11510 (36.4%), worse than saved best 2300. The target computes the 0x64 stride from D_801C7074 and arg0 with shift/add chains (sll 1, addu, sll 3, addu, sll 2) and does not use a mul, so the candidate's `* 0x64` form mismatches; the target also saves s0 and keeps sw ra at 0x14. The f32 stores use (D_801C7068 - 1) and D_801C6BB9 via cvt.s.w then mul.s by 400.0f, with a 0.5f mul after it; the target does lui $at,0x43c8 then mtc1, which is 400.0f. Next experiment: write the 0x64 stride as a shift chain, keep the first store block at the top of the function, and check whether the else branch falls through to the 0x11/0x13 test before the D_801C7068 != 0 test.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794756464.725939,
-  "score_before": 2300,
-  "score_after": 2300
- },
- {
   "function": "func_801FA240",
   "text": "Can't get closer under -O2: the C is already exact under -O1 (try_compiler byte match); suggest bundle submitted for the user to apply. No more C tuning needed.",
   "by": "claude-opus-medium-1",
@@ -18910,14 +18878,6 @@
   "created_at": 1794758794.084299,
   "score_before": 17857,
   "score_after": 17857
- },
- {
-  "function": "func_801979CC",
-  "text": "No match. Best compiling source: byte-array externs (`*(f32 *)(D_8011F308 + temp)`, `*(u16 *)(D_8011F32E + ...)`), score 8805 (51%). Sibling of func_801976F8 (same shape with +/- 1 on D_801C7068 and D_801C6BB9, returns from func_801987A8/func_80198968/func_8019839C/func_80198DF0). Caching the masked index in a local u16 `idx` changed nothing. Remaining differences are structural: target has a stack frame (`sw ra`, `sw s0`) and runs the float chain (`lui $at,0x43c8; mtc1; lui $at,0x3f00; mtc1; cvt.s.w; mul.s`) before the index; ours has no frame, so arg0/idx is not kept across the calls. Next step: make the frame match first (check that the call results and idx are both live across calls), then order the float constants to match the target. Same unresolved issue as 801976F8 and 80195124: fix one, apply to all three.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794758804.282945,
-  "score_before": 2300,
-  "score_after": 2300
  },
  {
   "function": "func_801493F0",
@@ -23166,14 +23126,6 @@
   "created_at": 1794768110.388245,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_801979CC",
-  "text": "No match. Saved best is 2300 (inherited, from an older attempt whose source is not in the saved-best view; the saved-best view shows the m2c draft). My best this session is 8245 (54.4%), revision e2a492690eab298fa352, which is worse than the saved 2300. Layout facts from the target: the index (x*0x64) is computed as ((2x+x)<<3 + x)<<2 = x*100 bytes, so the struct stride is 100 bytes, not 4-byte element stride as in the m2c draft. Fields at a common base: f32 D_8011F308 +0, s32 D_8011F30C +0, f32 D_8011F310 +0 (all indexed by (arg0&0xFFFF)*100 bytes); s8 D_8011F2FC at the same stride; D_8011F32E is a u16 read at D_801C7074*100 bytes, and D_801C7074 is u16 read via lhu. The function is non-leaf: frame 0x18, saves $ra and $s0 (arg0 kept in $s0 across the calls to func_801987A8/func_80198968/func_8019839C/func_80198DF0). D_801C7068 is read as s8 (lb). The float constants come from lui 0x43C8 (400.0f) and lui 0x3F00 (0.5f), in the order (x-1)*400*0.5. Remaining structural gap: the target re-reads D_801C7074 and D_8011F32E in each else-if test (lui/lhu/sll chain each time), and keeps arg0 in $s0 for the prologue. Next steps: match the prologue (sw $s0/$ra, move arg0 to $s0) first, then the per-branch re-read of D_801C7074 (no CSE across the if-chain).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794768125.520413,
-  "score_before": 2300,
-  "score_after": 2300
  },
  {
   "function": "func_80197CA0",
@@ -40676,5 +40628,53 @@
   "score_before": 2235,
   "score_after": 1380,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a7bf99eb4a625ff12b7489cbeba2483ce0850861f55a1e8c01aa3796192a999b"
+ },
+ {
+  "function": "func_801979CC",
+  "text": "Best candidate is revision af9f24bf905241c55361 (score 7905, 56.3%). Use stride-100 byte-offset struct access: D_8011F2FC/308/30C/310 are fields at offsets 0/12/16/20 of a 100-byte entry indexed by (arg0&0xFFFF); D_8011F32E and D_801C7074 are u16 (lhu); D_801C7068/D_801C6BB9 are s8 (lb); D_801C7ABD is u8; D_801C6B31 is u8, stored then re-read (lbu) before the final branch. Target keeps arg0 in s0 across calls and recomputes D_801C7074*100 per condition. Tried, not better: u8 state types (8580), local off=(arg0&0xFFFF)*100 (9230), 308/310/30C store reorder (7965). Still differing: the target computes idx*100 once into $v1 and interleaves the float chain with it; gcc here recomputes the index per store and places the 30C zero store early. Next ideas: use an explicit s32 idx local (no arg0 reuse) that is live across the calls, and try a single shared float temp for the 308/310 values. Stopping after 5 non-improving compiles since the no-improvement budget is 4/8 with 3 left for this claim; the structure is close but the scheduling is not solved.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794710991.8231318,
+  "score_before": 2300,
+  "score_after": 2300
+ },
+ {
+  "function": "func_801979CC",
+  "text": "func_801979CC (724 B): not matched. Attempt score 10755 (saved best 2300 is from an earlier source, not beaten). Findings: (1) the target has a stack frame (addiu $sp,-0x18 near the top, after the float setup), so the draft's frameless shape is wrong; the function makes calls (func_801987A8, func_80198968, func_8019839C, func_80198DF0) that need saved registers. (2) D_8011F32E and D_801C7074 are read as lhu (u16), not lbu; my u8 read gave the wrong comparison forms. Use u16 for the table element. (3) The target computes the float stores in the order: lui/lb D_801C7068 -> addiu -1 -> mtc1/cvt.s.w -> mul.s by 400.0 -> lui 0x3f00 (0.5f) -> mul; the store to D_8011F308 is first. (4) The index is idx = (arg0&0xFFFF)*100 via sll/addu chain, computed once and reused. Next: write the tail as the same if-else chain the draft has, but type the table as u16 and let the frame come from the calls; check the save list in the target before reordering the float expression.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794727103.192169,
+  "score_before": 2300,
+  "score_after": 2300
+ },
+ {
+  "function": "func_801979CC",
+  "text": "Not matched. Best this attempt 9315 (48.5%); saved best 2300 is from an older attempt. The draft's types are wrong: D_8011F308/30C/310 are f32 at stride 0x64 (idx = (u16)arg0*100), D_8011F32E is u16 at D_801C7074*100, D_8011F2FC is u8. Frame in target is 0x18 with ra; target re-evaluates D_801C7074*100 and the F32E load at every test (about 10 lhu and 18 addu), and reloads D_801C7068 each time, so the C should write each access out in full instead of sharing temp_v1_2/3. Our version is 117 insns vs 181. Next try: write each F32E read with its own D_801C7074 * 0x64 expression, and check the branch order of the 0x11/0x13 range test against the target (the draft's ((u32)(m-0x11)>=2 && ...) form is not yet verified). Not tested beyond this one candidate.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794740365.1436238,
+  "score_before": 2300,
+  "score_after": 2300
+ },
+ {
+  "function": "func_801979CC",
+  "text": "Cleaned the draft (revision e82bd698d2755eb86722): 11510 (36.4%), worse than saved best 2300. The target computes the 0x64 stride from D_801C7074 and arg0 with shift/add chains (sll 1, addu, sll 3, addu, sll 2) and does not use a mul, so the candidate's `* 0x64` form mismatches; the target also saves s0 and keeps sw ra at 0x14. The f32 stores use (D_801C7068 - 1) and D_801C6BB9 via cvt.s.w then mul.s by 400.0f, with a 0.5f mul after it; the target does lui $at,0x43c8 then mtc1, which is 400.0f. Next experiment: write the 0x64 stride as a shift chain, keep the first store block at the top of the function, and check whether the else branch falls through to the 0x11/0x13 test before the D_801C7068 != 0 test.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794756464.725939,
+  "score_before": 2300,
+  "score_after": 2300
+ },
+ {
+  "function": "func_801979CC",
+  "text": "No match. Best compiling source: byte-array externs (`*(f32 *)(D_8011F308 + temp)`, `*(u16 *)(D_8011F32E + ...)`), score 8805 (51%). Sibling of func_801976F8 (same shape with +/- 1 on D_801C7068 and D_801C6BB9, returns from func_801987A8/func_80198968/func_8019839C/func_80198DF0). Caching the masked index in a local u16 `idx` changed nothing. Remaining differences are structural: target has a stack frame (`sw ra`, `sw s0`) and runs the float chain (`lui $at,0x43c8; mtc1; lui $at,0x3f00; mtc1; cvt.s.w; mul.s`) before the index; ours has no frame, so arg0/idx is not kept across the calls. Next step: make the frame match first (check that the call results and idx are both live across calls), then order the float constants to match the target. Same unresolved issue as 801976F8 and 80195124: fix one, apply to all three.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794758804.282945,
+  "score_before": 2300,
+  "score_after": 2300
+ },
+ {
+  "function": "func_801979CC",
+  "text": "No match. Saved best is 2300 (inherited, from an older attempt whose source is not in the saved-best view; the saved-best view shows the m2c draft). My best this session is 8245 (54.4%), revision e2a492690eab298fa352, which is worse than the saved 2300. Layout facts from the target: the index (x*0x64) is computed as ((2x+x)<<3 + x)<<2 = x*100 bytes, so the struct stride is 100 bytes, not 4-byte element stride as in the m2c draft. Fields at a common base: f32 D_8011F308 +0, s32 D_8011F30C +0, f32 D_8011F310 +0 (all indexed by (arg0&0xFFFF)*100 bytes); s8 D_8011F2FC at the same stride; D_8011F32E is a u16 read at D_801C7074*100 bytes, and D_801C7074 is u16 read via lhu. The function is non-leaf: frame 0x18, saves $ra and $s0 (arg0 kept in $s0 across the calls to func_801987A8/func_80198968/func_8019839C/func_80198DF0). D_801C7068 is read as s8 (lb). The float constants come from lui 0x43C8 (400.0f) and lui 0x3F00 (0.5f), in the order (x-1)*400*0.5. Remaining structural gap: the target re-reads D_801C7074 and D_8011F32E in each else-if test (lui/lhu/sll chain each time), and keeps arg0 in $s0 for the prologue. Next steps: match the prologue (sw $s0/$ra, move arg0 to $s0) first, then the per-branch re-read of D_801C7074 (no CSE across the if-chain).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794768125.520413,
+  "score_before": 2300,
+  "score_after": 2300
  }
 ]
