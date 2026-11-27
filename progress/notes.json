@@ -6208,14 +6208,6 @@
   "score_after": null
  },
  {
-  "function": "func_801E0F10",
-  "text": "func_801E0F10 (2300 B, 575 insns) not matched; no compile done this session. Best prior 28935 (6 attempts). The m2c draft is a goto/state-machine mess (void-pointer dereferences, block_34/loop_32 labels) and is not a usable base. Facts from reading assembly lines 0-252 of 601: (1) the arg is masked to u16 and used as index with stride 0x64 (x*100 is computed as ((x*2+x)*8+x)*4), for D_8011F2FC (u8 state), D_8011F32E (u16 state, switch var) and D_8011F350 slots; (2) D_8022AFE9/AFEB/AFEC/B000/B004/B008/B00C are indexed by D_801E87E5 with stride 0x8F0 (x*2288: ((x*9)*16-x)*16); (3) D_801F1880 is a u32 per-slot array indexed by D_801E87E5*4 and advanced by +=2; (4) D_801F18E0/E1 are byte buffers; the state-2 branch builds a 4-bit flag word a1 (bits 1,2,4,8 from B000/B004/B008/B00C nonzero, bit 0 from AFEC < -0x20). Unread: lines 252-601 (the func_800DE41C 18-arg calls, the 0x178-stride copy loop, the 0x7AFA limit, and the state-3 tail). Next step: read remaining assembly in pages, then write the switch as a real switch with the flag computation and copy loop, and compare with a single compile_and_diff.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794719457.390409,
-  "score_before": 28935,
-  "score_after": 28935
- },
- {
   "function": "func_80128880",
   "text": "Not compiled. The m2c draft (candidate b847960b4da617f25e52) does not compile: syntax error at func.c:61 (`M2C_FIELD(...)` on a non-lvalue/arg), invalid unary * at lines 147 and 250, and int/pointer assignment warnings. Its control flow is a nested loop over a table of records from arg1 (+0x50 -> +4 -> +4 -> per-record arrays at +0x50/+0x40/+0x54/+0x44 as s16 bounds with +0x18/+0x20 float offsets from arg1), a per-record inner loop filling D_8012AB98/9C/A0 (stride 0xC), then func_80127870 and func_801271A0 gating, sqrtf normalisation, and a result struct written into arg0 (offsets 0,1,2,8..0x40) when a float compare beats var_fs1 (-32000.0f). Needs: a clean rewrite of the tuple/record struct types, removal of the goto-into-else, and the real float ordering from the assembly. Function is 2236 bytes, so expect many compiles. Released at low effort without a compile.",
   "by": "claude-haiku-5-5-20",
@@ -9944,14 +9936,6 @@
   "score_after": 440
  },
  {
-  "function": "func_801E0F10",
-  "text": "Not attempted to completion. Target is 2300 B / 575 instrs with a 4-way switch on the u16 state at +0x00 of a 0x64-byte record (D_8011F32E), a per-slot 0x8F0 stride block (D_8022AFE9..D_8022B00C), and a 0x178-stride copy loop. The m2c draft has type errors (void* dereferences at lines 128/135, int/pointer assignment at 183) and __repair_* artifacts that must be removed before compiling. Best saved score 28835 (permuter-339302417478) is far from 0. Next agent should first fix the draft's types (u8/u16 state, s32 pointer tables for D_801F1880 entries), then match case 0/1 and case 2 separately before attempting case 3 and the copy loop.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794742461.935701,
-  "score_before": 28835,
-  "score_after": 28835
- },
- {
   "function": "func_80030E28",
   "text": "Compiled twice; only a fragment written (score 51847, 16 of 534 insns). Not a real attempt yet. Findings: the helper externs compile once declared as: `extern char D_8004A4B0[]; extern char D_8004A4B4[];` (assert strings, passed to func_800346B0 with line 0x179); plus prototypes for __mapVoice, __lookupVoice, func_800319F4, func_8002FFD0, alCents2Ratio, alEvtqPostEvent, __vsPan, __vsVol, func_80030540, func_80031B94, n_alSynSetVol, n_alSynSetPan, __n_seqpReleaseVoice (argument counts are guesses from call sites). Frame is 0x70 bytes, saves s0-s7, ra, and f20. Structure: range check on *(u16*)arg1 (status-1 < 2) guards the assert; the status byte at +8 is split into channel (low nibble, kept in s5) and command (0xF0 nibble); a voice table at arg0+0x60 indexed (channel<<4), seq list at +0x64, callback fn at +0x70; the command dispatch is a binary-search tree of slti/beq over 0x80..0xE0, 0x07/0x0A/0x10, 0x40/0x5B. Next step: write the full dispatch tree with every leaf body, then tune. Too large for the current move-on budget: it needs a full rewrite, not tuning.",
   "by": "claude-haiku-5-5-21",
@@ -11046,14 +11030,6 @@
   "created_at": 1794752459.9773881,
   "score_before": 940,
   "score_after": 940
- },
- {
-  "function": "func_801E0F10",
-  "text": "Verified layout from asm: 100-byte records at D_8011F2F0 (stride 100): u8 f0 @0 (D_801E87E5 = f0), u8 f0C @0x0C (D_8011F2FC), u16 state @0x3E (D_8011F32E), void* obj @0x60 (D_8011F350). The obj record is written as s16 @2,@4,@0xA,@0xC,@0xE,@0x10 and u8 @6..9. D_801D59C4 is a u8 zeroed through obj. Stride 0x8F0 for D_8022AFE9/AFEB/AFEC (s8)/B000/B004/B008/B00C (s32 tests). The 0x178-stride copy is 376 bytes from D_800DA26A-10+idx*376 to D_800DA26A+0xA3E (unrolled 16-byte loop plus 8-byte tail). Switch on state: case 0 falls into case 1; case 1 is three independent ifs on (t0&0xFF)==1/2/3. Best C so far: score 19536 (66%), 527 vs 575 insns. Remaining gaps: prologue register/stack order, and the second func_800DE41C call block. Use char arrays with explicit stride casts for the 0x8F0 fields; s32 externs scale byte offsets by 4.\n\nBest C is revision c52ab9818a474ce8a2d0 at score 19536 (66%, 527 vs 575 insns). Layout is verified from the asm: 100-byte records at D_8011F2F0 with f0 @0, f0C @0x0C, state @0x3E, obj ptr @0x60; obj is written with s16 @2,@4,@0xA-0x10 and u8 @6-9. Byte-offset arrays use stride 0x8F0 (AFE9/AFEB/AFEC/B000-B00C) and copy 376 bytes at stride 0x178. Still wrong: the prologue saves ra/s1/s0 in that order, the register allocation is off, and the second func_800DE41C block and the obj stores are scheduled differently. Next steps: rewrite the copy loop as explicit 16-byte unroll to match the register use, and check the store order in the obj block.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794752466.3925068,
-  "score_before": 28835,
-  "score_after": 19536
  },
  {
   "function": "func_80026D40",
@@ -13808,14 +13784,6 @@
   "score_after": 10
  },
  {
-  "function": "func_801E0F10",
-  "text": "Released with the reason stated: 2300-byte function, 575 insns, and the 137-insn stripped version (48850, 15%) covers only the state switch. The rest (case 2's flag-byte build from four D_8022B00x tests, the D_801F1880 pointer bumps, and the 0x178-stride 16-byte-block copy loop) must be rebuilt from the assembly; tuning the current version cannot close a 438-insn gap. The machine draft is unusable as is (void* arithmetic, M2C_FIELD casts). Next step: rebuild case 2 and the copy loop with a u8 table view for the strided fields, then restore the arg0*0x64 indexing the target uses.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794761453.5886562,
-  "score_before": 19536,
-  "score_after": 19536
- },
- {
   "function": "func_8020AAB0",
   "text": "Released unattempted. 2332 bytes, switch on u16 at D_8011F32E + (arg0*0x64) with cases 0,1,2. The m2c draft has many goto/block labels and pointer-arithmetic errors (compiler warnings about incomplete pointer types on D_8011F2F0 and D_8021AFEC/AFFC arrays). Start by declaring the per-entity record (stride 0x64, fields at 0x00 index byte, 0x3E state) and the 0x110/0x22/0x178 strides as typed arrays, then rewrite the case-1 branch tree as clean if/else before compiling. Externs used: func_80149F40, func_8014A870, func_8014B854, func_801FD530.",
   "by": "claude-haiku-5-5-21",
@@ -14470,14 +14438,6 @@
   "created_at": 1794764442.4324522,
   "score_before": 60,
   "score_after": 60
- },
- {
-  "function": "func_801E0F10",
-  "text": "Best candidate revision cf6dfb621eea16a9468c scored 48850 (15.0%). Target is 575 insns with a 0x78 frame (ra, s0, s1 saved); the candidate covers only about 137 insns. It is the switch-on-state sketch from the machine draft and misses most of the body. The draft's warnings (void* dereference at lines 128/135, int-from-pointer at 183) show the D_8006FAF0/D_800DA26A/D_801CE928 pointer externs are typed wrong. Next step: rewrite from the assembly rather than patching. Start by identifying the 0x78-frame prologue (s0 = arg0 & 0xFFFF index, s1 = saved index), then the repeated D_8011F2F0[base] / D_8011F2FC[base] / D_8011F32E[idx*50] table reads, which the target recomputes each time. Also check whether -O1 fits better, since the target reloads lui/addu each iteration.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794764459.42111,
-  "score_before": 19536,
-  "score_after": 19536
  },
  {
   "function": "func_8015248C",
@@ -41943,5 +41903,45 @@
   "created_at": 1794762802.8197582,
   "score_before": 10325,
   "score_after": 10325
+ },
+ {
+  "function": "func_801E0F10",
+  "text": "func_801E0F10 (2300 B, 575 insns) not matched; no compile done this session. Best prior 28935 (6 attempts). The m2c draft is a goto/state-machine mess (void-pointer dereferences, block_34/loop_32 labels) and is not a usable base. Facts from reading assembly lines 0-252 of 601: (1) the arg is masked to u16 and used as index with stride 0x64 (x*100 is computed as ((x*2+x)*8+x)*4), for D_8011F2FC (u8 state), D_8011F32E (u16 state, switch var) and D_8011F350 slots; (2) D_8022AFE9/AFEB/AFEC/B000/B004/B008/B00C are indexed by D_801E87E5 with stride 0x8F0 (x*2288: ((x*9)*16-x)*16); (3) D_801F1880 is a u32 per-slot array indexed by D_801E87E5*4 and advanced by +=2; (4) D_801F18E0/E1 are byte buffers; the state-2 branch builds a 4-bit flag word a1 (bits 1,2,4,8 from B000/B004/B008/B00C nonzero, bit 0 from AFEC < -0x20). Unread: lines 252-601 (the func_800DE41C 18-arg calls, the 0x178-stride copy loop, the 0x7AFA limit, and the state-3 tail). Next step: read remaining assembly in pages, then write the switch as a real switch with the flag computation and copy loop, and compare with a single compile_and_diff.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794719457.390409,
+  "score_before": 28935,
+  "score_after": 28935
+ },
+ {
+  "function": "func_801E0F10",
+  "text": "Not attempted to completion. Target is 2300 B / 575 instrs with a 4-way switch on the u16 state at +0x00 of a 0x64-byte record (D_8011F32E), a per-slot 0x8F0 stride block (D_8022AFE9..D_8022B00C), and a 0x178-stride copy loop. The m2c draft has type errors (void* dereferences at lines 128/135, int/pointer assignment at 183) and __repair_* artifacts that must be removed before compiling. Best saved score 28835 (permuter-339302417478) is far from 0. Next agent should first fix the draft's types (u8/u16 state, s32 pointer tables for D_801F1880 entries), then match case 0/1 and case 2 separately before attempting case 3 and the copy loop.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794742461.935701,
+  "score_before": 28835,
+  "score_after": 28835
+ },
+ {
+  "function": "func_801E0F10",
+  "text": "Verified layout from asm: 100-byte records at D_8011F2F0 (stride 100): u8 f0 @0 (D_801E87E5 = f0), u8 f0C @0x0C (D_8011F2FC), u16 state @0x3E (D_8011F32E), void* obj @0x60 (D_8011F350). The obj record is written as s16 @2,@4,@0xA,@0xC,@0xE,@0x10 and u8 @6..9. D_801D59C4 is a u8 zeroed through obj. Stride 0x8F0 for D_8022AFE9/AFEB/AFEC (s8)/B000/B004/B008/B00C (s32 tests). The 0x178-stride copy is 376 bytes from D_800DA26A-10+idx*376 to D_800DA26A+0xA3E (unrolled 16-byte loop plus 8-byte tail). Switch on state: case 0 falls into case 1; case 1 is three independent ifs on (t0&0xFF)==1/2/3. Best C so far: score 19536 (66%), 527 vs 575 insns. Remaining gaps: prologue register/stack order, and the second func_800DE41C call block. Use char arrays with explicit stride casts for the 0x8F0 fields; s32 externs scale byte offsets by 4.\n\nBest C is revision c52ab9818a474ce8a2d0 at score 19536 (66%, 527 vs 575 insns). Layout is verified from the asm: 100-byte records at D_8011F2F0 with f0 @0, f0C @0x0C, state @0x3E, obj ptr @0x60; obj is written with s16 @2,@4,@0xA-0x10 and u8 @6-9. Byte-offset arrays use stride 0x8F0 (AFE9/AFEB/AFEC/B000-B00C) and copy 376 bytes at stride 0x178. Still wrong: the prologue saves ra/s1/s0 in that order, the register allocation is off, and the second func_800DE41C block and the obj stores are scheduled differently. Next steps: rewrite the copy loop as explicit 16-byte unroll to match the register use, and check the store order in the obj block.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794752466.3925068,
+  "score_before": 28835,
+  "score_after": 19536
+ },
+ {
+  "function": "func_801E0F10",
+  "text": "Released with the reason stated: 2300-byte function, 575 insns, and the 137-insn stripped version (48850, 15%) covers only the state switch. The rest (case 2's flag-byte build from four D_8022B00x tests, the D_801F1880 pointer bumps, and the 0x178-stride 16-byte-block copy loop) must be rebuilt from the assembly; tuning the current version cannot close a 438-insn gap. The machine draft is unusable as is (void* arithmetic, M2C_FIELD casts). Next step: rebuild case 2 and the copy loop with a u8 table view for the strided fields, then restore the arg0*0x64 indexing the target uses.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794761453.5886562,
+  "score_before": 19536,
+  "score_after": 19536
+ },
+ {
+  "function": "func_801E0F10",
+  "text": "Best candidate revision cf6dfb621eea16a9468c scored 48850 (15.0%). Target is 575 insns with a 0x78 frame (ra, s0, s1 saved); the candidate covers only about 137 insns. It is the switch-on-state sketch from the machine draft and misses most of the body. The draft's warnings (void* dereference at lines 128/135, int-from-pointer at 183) show the D_8006FAF0/D_800DA26A/D_801CE928 pointer externs are typed wrong. Next step: rewrite from the assembly rather than patching. Start by identifying the 0x78-frame prologue (s0 = arg0 & 0xFFFF index, s1 = saved index), then the repeated D_8011F2F0[base] / D_8011F2FC[base] / D_8011F32E[idx*50] table reads, which the target recomputes each time. Also check whether -O1 fits better, since the target reloads lui/addu each iteration.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794764459.42111,
+  "score_before": 19536,
+  "score_after": 19536
  }
 ]
