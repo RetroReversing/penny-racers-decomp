@@ -6088,22 +6088,6 @@
   "score_after": 875
  },
  {
-  "function": "func_80140E0C",
-  "text": "Switch on a u16 state at D_8011F32E (stride 0x64, 8 cases, jump table D_801834C8). Best 15900 (43%, 279 vs 239 insns). Target recomputes idx*100 per use and addresses the globals as `lui $at,%hi(X); addu $at,$at,off; sh ...,%lo(X)($at)`; my pointer-style `base + off` forms produce `addiu`+`($a1)` stores instead. Target saves 5 regs (s0-s3, ra) with obj in s3 and the (u16)arg0 value in s2. Tried: `(u16)arg0` casts everywhere (15900) and a local `u16 idx` (15905). Untried: indexing the globals as arrays directly, and matching the saved-register layout by making obj/base live across the calls.\n\nRe-claimed and released without compiling. Candidate b14e0b2802be80aff9ec differs from my earlier draft in cases 2 and 6 (the func_8013F44C call is in the else branch of the decrement). Untested, so it may be worth a compile. Earlier best remains 15900 (43%) with the switch index problem described in my previous note.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794714244.74259,
-  "score_before": 15900,
-  "score_after": 15900
- },
- {
-  "function": "func_80140E0C",
-  "text": "Best verified 10760 (61.4%) at revision e3b0c44298fc1c149afb with the \"two syntactically different 16-bit conversions\" trick: base/switch index use (u16)arg0, every case body uses arg0 & 0xFFFF. Remaining diff: target keeps D_8011F330 base in a register (lui %hi + sh %lo(D_8011F330)($at) x17, lhu %lo($v0) x8, addu $v0,$v0,$a0 x21) while candidate folds addiu %lo and indexes with ($a2). Next: declare `u16 *tbl = D_8011F330;` style base pointer hoisted before the switch so gcc keeps the base in a register, and make the index (arg0&0xFFFF)*50 via a byte-offset pointer. Also target prologue saves s0..s3 and ra at 0x10..0x20 -> frame 0x28.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794714520.364605,
-  "score_before": 15900,
-  "score_after": 10760
- },
- {
   "function": "sqrtf",
   "text": "Target is a bare leaf: `jr $ra` + `sqrt.s $fv0,$fa0` in the delay slot, no errno check or call. Best C (`return __builtin_sqrtf(x);`) scores 960 with gcc-2.7.2-kmc at all flags tried (search_flags) and with sn-n64-281: the compiler always emits the c.eq.s NaN check and a jal sqrtf fallback. Plain C cannot drop that check, so this looks like a hand-written libm stub. Suggest leaving it as not_c unless a flag removes the errno check.",
   "by": "claude-haiku-5-5-21",
@@ -10152,14 +10136,6 @@
   "score_after": 915
  },
  {
-  "function": "func_80140E0C",
-  "text": "No C written; released before any compile. Target findings: entry struct is 0x64 bytes, indexed by (u16)arg0 (offset = x*100, computed as ((x*3)*8+x)*4). Base D_8011F2F0; fields: +0x1C float (add/sub 4.0f = 0x40800000), +0x3E u16 state (0..7, dispatched via jump table at D_801834C8, which is not in the loaded ROM view so the switch table is unresolved), +0x40 s16 countdown (reset to 0xA when it reaches 0), +0x60 u32 (loaded into s3, passed to func_8013F1D4 / func_8013F44C). Calls: func_8013AE60((u16)arg0) first, func_801D7028(..., 0x23) in several states, then a loop zeroing bytes at s3+0x67..+0x6D. Blocker: jump table unresolved. Next step: resolve the table at D_801834C8 (load that ROM segment), then write a switch with 8 cases and the countdown logic repeated per state.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794741457.7711391,
-  "score_before": 9235,
-  "score_after": 9235
- },
- {
   "function": "func_801497AC",
   "text": "Best 405 (85.5%) at rev 85af02f5f1182a06e82e; the 345 (87.6%) revision 8da746234cdd57b7b9cc was scored under a different source, so compare by rechecking. Current C: u8 var_a1=0xFF; if ((u8)arg0 != 0xFF) { arg0 &= 7; if (D_80189B34==2) { if (D_8021E1A2==1) var_a1=D_80168D28[(u8)arg0]; else var_a1=D_80168D20[(u8)arg0]; } else var_a1=D_80168D30[(u8)arg0]; } return var_a1 & 0xFF. Remaining diff is 3 rows: the target has a plain `bne $v1,$v0` in the D_8021E1A2 test (delay slot holds `andi $v0,$a0,0xff`), but ours emits `bnel` with the index computed after the branch; and the return keeps `andi $v0,$a1,0xff` where ours emits `move`. Tried: return (u8)var_a1 (no effect), s32 var_a1 (855, worse), u8 vs s32 index temp (680, worse). Next: compile_family(branch_orientation) on rev 85af02f5f1182a06e82e, or move the index computation into the else arm so the delay slot holds it.",
   "by": "claude-haiku-5-5-22",
@@ -11326,14 +11302,6 @@
   "created_at": 1794749865.4597461,
   "score_before": 0,
   "score_after": 0
- },
- {
-  "function": "func_80140E0C",
-  "text": "Not attempted to a match; no compile run. Target is an 8-way switch (sltiu 0x8, jump table at D_801834C8, which the machine draft could not resolve), on the u16 state at D_8011F32E + idx*0x64 (state +0x3E relative to D_8011F2F0). Struct stride 100 bytes: +0x1C float position (adds/subs 4.0f in cases), +0x40 u16 countdown (D_8011F330), +0x60 pointer D_8011F350 (s3 = *(u8**)). Stored states seen in the asm: 1, 2, 3, 4, 5, 0x64 (countdown reset values 10 and 100); calls: func_8013AE60(idx) before the switch, func_801D7028(idx, 0x23) on a countdown transition, func_8013F1D4(idx, s3) and func_8013F44C(idx, s3) in the state bodies, and s3[0x67..0x6D] zeroed in one case. The case bodies must be read from get_assembly pages 172+ before writing the switch; the previous candidate with only 4 cases will not match because the target uses a jump table. Next: read all 8 table entries (read_data on D_801834C8) and write the full switch.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794749975.667434,
-  "score_before": 9235,
-  "score_after": 9235
  },
  {
   "function": "func_800E0B8C",
@@ -13728,14 +13696,6 @@
   "score_after": 870
  },
  {
-  "function": "func_80140E0C",
-  "text": "Not matched. Best 23153 (17%) from the switch-on-state draft, using idx*100 base into D_8011F2F0; target is 279 insns vs 109 mine. search_flags: -O1 scores 20378 (closest), project -O2 23153. The target recomputes idx*0x64 (addu/sll chains, 53 addu) at each access and uses `lui %hi(D_8011F2F0)` 33 times and `sh ... %lo(D_8011F330)` 22 times, so the code touches a fixed global object at D_8011F2F0+0x40 region rather than a per-index pointer. My draft is too short: it probably misses several cases/unrolled branches. Next step: reconstruct the case count from the jump table in the target (the switch uses jr on a table, which m2c could not read; read the table labels with get_assembly), write each case against fixed globals D_8011F330 etc., and try -O1 once the structure matches. Candidate revision 01bbd30a279f819ada59.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794758538.673739,
-  "score_before": 9235,
-  "score_after": 9235
- },
- {
   "function": "nuScWaitTaskReady",
   "text": "SOLVED but blocked by the unit's compiler profile. The saved candidate C (WaitNode{next,mq,flag}, irq save/restore around list insert, while(func_80039AD0()==want || func_80039B10()==want) osRecvMesg loop, then unlink loop) is byte-identical under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2 (try_compiler returned \"MATCHES the game byte for byte\"). Under the unit's assigned gcc-2.8.1-pm-sn-as -O2 it scores 260 with 9 rows: the D_800DDE88->next store is scheduled before the `j` with a nop delay slot instead of into the delay slot, plus the irq `move $a0,$v0` lands one row early. Those are pure scheduling/regalloc differences, not C errors. suggest() was filed for the function-only KMC bundle; once applied, re-run compile_and_diff with the unchanged source and it should save at score 0. No C change needed.",
   "by": "api-route-llm-code-1",
@@ -14958,14 +14918,6 @@
   "created_at": 1794761927.6564538,
   "score_before": 395,
   "score_after": 395
- },
- {
-  "function": "func_80140E0C",
-  "text": "Cannot get closer in this session: the hand draft (score 23153, 17%) is structurally wrong, with 109 instructions against 279 in the target. The target saves ra and s0-s3 in a 0x28-byte frame, keeps arg0 and idx in s2/s1 across calls, and has many more call sites and loop bodies than the draft. The m2c jump table for the switch on *(u16*)(s1+0x3E) also fails to decode, so the switch shape is unverified. Next agent: read the full get_assembly, map each case's call sequence and loops, and rewrite from control flow, not from the draft. Verified: idx*100 indexing (sll/addu chain, same as func_801C1680), and the D_8011F2F0 base. Unverified: the switch jump table, the 0x3E/0x40 field semantics, and the s3 = *(u8**)(s1+0x60) pointer.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794761933.826735,
-  "score_before": 9235,
-  "score_after": 9235
  },
  {
   "function": "func_802312F8",
@@ -41739,5 +41691,53 @@
   "score_before": 20653,
   "score_after": 15152,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:ebeae665a9ca2acf8182d62e10deae0b566dadfbb013b97de33496cc3704c1f7"
+ },
+ {
+  "function": "func_80140E0C",
+  "text": "Switch on a u16 state at D_8011F32E (stride 0x64, 8 cases, jump table D_801834C8). Best 15900 (43%, 279 vs 239 insns). Target recomputes idx*100 per use and addresses the globals as `lui $at,%hi(X); addu $at,$at,off; sh ...,%lo(X)($at)`; my pointer-style `base + off` forms produce `addiu`+`($a1)` stores instead. Target saves 5 regs (s0-s3, ra) with obj in s3 and the (u16)arg0 value in s2. Tried: `(u16)arg0` casts everywhere (15900) and a local `u16 idx` (15905). Untried: indexing the globals as arrays directly, and matching the saved-register layout by making obj/base live across the calls.\n\nRe-claimed and released without compiling. Candidate b14e0b2802be80aff9ec differs from my earlier draft in cases 2 and 6 (the func_8013F44C call is in the else branch of the decrement). Untested, so it may be worth a compile. Earlier best remains 15900 (43%) with the switch index problem described in my previous note.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794714244.74259,
+  "score_before": 15900,
+  "score_after": 15900
+ },
+ {
+  "function": "func_80140E0C",
+  "text": "Best verified 10760 (61.4%) at revision e3b0c44298fc1c149afb with the \"two syntactically different 16-bit conversions\" trick: base/switch index use (u16)arg0, every case body uses arg0 & 0xFFFF. Remaining diff: target keeps D_8011F330 base in a register (lui %hi + sh %lo(D_8011F330)($at) x17, lhu %lo($v0) x8, addu $v0,$v0,$a0 x21) while candidate folds addiu %lo and indexes with ($a2). Next: declare `u16 *tbl = D_8011F330;` style base pointer hoisted before the switch so gcc keeps the base in a register, and make the index (arg0&0xFFFF)*50 via a byte-offset pointer. Also target prologue saves s0..s3 and ra at 0x10..0x20 -> frame 0x28.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794714520.364605,
+  "score_before": 15900,
+  "score_after": 10760
+ },
+ {
+  "function": "func_80140E0C",
+  "text": "No C written; released before any compile. Target findings: entry struct is 0x64 bytes, indexed by (u16)arg0 (offset = x*100, computed as ((x*3)*8+x)*4). Base D_8011F2F0; fields: +0x1C float (add/sub 4.0f = 0x40800000), +0x3E u16 state (0..7, dispatched via jump table at D_801834C8, which is not in the loaded ROM view so the switch table is unresolved), +0x40 s16 countdown (reset to 0xA when it reaches 0), +0x60 u32 (loaded into s3, passed to func_8013F1D4 / func_8013F44C). Calls: func_8013AE60((u16)arg0) first, func_801D7028(..., 0x23) in several states, then a loop zeroing bytes at s3+0x67..+0x6D. Blocker: jump table unresolved. Next step: resolve the table at D_801834C8 (load that ROM segment), then write a switch with 8 cases and the countdown logic repeated per state.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794741457.7711391,
+  "score_before": 9235,
+  "score_after": 9235
+ },
+ {
+  "function": "func_80140E0C",
+  "text": "Not attempted to a match; no compile run. Target is an 8-way switch (sltiu 0x8, jump table at D_801834C8, which the machine draft could not resolve), on the u16 state at D_8011F32E + idx*0x64 (state +0x3E relative to D_8011F2F0). Struct stride 100 bytes: +0x1C float position (adds/subs 4.0f in cases), +0x40 u16 countdown (D_8011F330), +0x60 pointer D_8011F350 (s3 = *(u8**)). Stored states seen in the asm: 1, 2, 3, 4, 5, 0x64 (countdown reset values 10 and 100); calls: func_8013AE60(idx) before the switch, func_801D7028(idx, 0x23) on a countdown transition, func_8013F1D4(idx, s3) and func_8013F44C(idx, s3) in the state bodies, and s3[0x67..0x6D] zeroed in one case. The case bodies must be read from get_assembly pages 172+ before writing the switch; the previous candidate with only 4 cases will not match because the target uses a jump table. Next: read all 8 table entries (read_data on D_801834C8) and write the full switch.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794749975.667434,
+  "score_before": 9235,
+  "score_after": 9235
+ },
+ {
+  "function": "func_80140E0C",
+  "text": "Not matched. Best 23153 (17%) from the switch-on-state draft, using idx*100 base into D_8011F2F0; target is 279 insns vs 109 mine. search_flags: -O1 scores 20378 (closest), project -O2 23153. The target recomputes idx*0x64 (addu/sll chains, 53 addu) at each access and uses `lui %hi(D_8011F2F0)` 33 times and `sh ... %lo(D_8011F330)` 22 times, so the code touches a fixed global object at D_8011F2F0+0x40 region rather than a per-index pointer. My draft is too short: it probably misses several cases/unrolled branches. Next step: reconstruct the case count from the jump table in the target (the switch uses jr on a table, which m2c could not read; read the table labels with get_assembly), write each case against fixed globals D_8011F330 etc., and try -O1 once the structure matches. Candidate revision 01bbd30a279f819ada59.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794758538.673739,
+  "score_before": 9235,
+  "score_after": 9235
+ },
+ {
+  "function": "func_80140E0C",
+  "text": "Cannot get closer in this session: the hand draft (score 23153, 17%) is structurally wrong, with 109 instructions against 279 in the target. The target saves ra and s0-s3 in a 0x28-byte frame, keeps arg0 and idx in s2/s1 across calls, and has many more call sites and loop bodies than the draft. The m2c jump table for the switch on *(u16*)(s1+0x3E) also fails to decode, so the switch shape is unverified. Next agent: read the full get_assembly, map each case's call sequence and loops, and rewrite from control flow, not from the draft. Verified: idx*100 indexing (sll/addu chain, same as func_801C1680), and the D_8011F2F0 base. Unverified: the switch jump table, the 0x3E/0x40 field semantics, and the s3 = *(u8**)(s1+0x60) pointer.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794761933.826735,
+  "score_before": 9235,
+  "score_after": 9235
  }
 ]
