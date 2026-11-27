@@ -6704,14 +6704,6 @@
   "score_after": 22375
  },
  {
-  "function": "func_802178B4",
-  "text": "Not attempted: 1680 bytes, 420 insns, jump table on the ST(arg0) switch (same pattern as func_801E3038: lhu from D_8011F32E with stride 100, then sltiu 0xB and a jr through a table), no saved C and no compiling draft. Needs a full C draft from the assembly before any compile. Start with the switch structure from get_assembly, then the externs in the brief.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794719235.131125,
-  "score_before": 9595,
-  "score_after": 9595
- },
- {
   "function": "func_8022F780",
   "text": "Large (412 insns, 1648 B) driver-style function with a jr jump table (lw from D_80232C20 indexed by s2-1, cases 0..8, default branch to func_8003DE60 via D_80232C10). Opening: arg0 (u16 via andi 0xFFFF) normalised: if (s2==0 || s2>=0x14) s2=1; loop over D_80232840[] (u16 table), advancing s2 with wrap at 0x14 until nonzero; store s2 into D_8006FAF0+0x20 (sh); D_802CBF30[s2] (u32) saved to 0x4C($sp); if D_8021E144 != 1 call alSeqpStop(D_8006FB38). Switch cases load pairs of base pointers (D_2243D0, D_1F9030, D_2632D0, D_2AFC80, D_2D58C0, D_2FDC40, D_32F100, D_355850, D_3836A0, D_3B7C00) and call func_800294A0(ptr, D_802D6890, diff). Tail: func_8013D1A4(s0), sb 0 to D_802330B0, D_802330B1 bytes, D_802330B4 words, a 0x51-entry stack-arg block, mtc1 1.0f, call func_800DE41C. First draft (opening only, 39 insns) scored 39512 (4%); switch and tail are unwritten. Needs a full rewrite. Move-on: not completed.",
   "by": "claude-haiku-5-5-23",
@@ -11168,14 +11160,6 @@
   "score_after": 1490
  },
  {
-  "function": "func_802178B4",
-  "text": "Not compiled. Same blocker as func_8013B1BC and func_8021A334: machine draft cannot find the jump table for the jr at line 21 (the table data is not readable from this session). Resolve the table address and contents before writing the switch.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794742258.499413,
-  "score_before": 9595,
-  "score_after": 9595
- },
- {
   "function": "func_8022F780",
   "text": "No compile yet. 412 instructions, 1648 bytes, gcc-2.7.2-kmc -O2, with a jump table (jr needs a jtbl-named read; the machine draft failed on it). Layout read from the first ~170 lines: prologue saves s0-s7/fp/ra and fs0 (sdc1 at 0x80). Arg a0 is a 16-bit index that is clamped: if (u16)a0 == 0 or >= 0x14 it is set to 1. The loop at .L8022F7FC/.L8022F80C walks a halfword table at D_80232840 and advances while the entry is 0. The result is stored as halfword into D_8006FAF0+0x20. Later, a sequence of 16-bit indices (0x2..0x7) selects a table of D_2D58C0/D_2AFC80/D_2FDC40/D_32F100/D_355850/D_3836A0/D_3B7C00 pointers, and each is passed to func_800294A0. Calls to func_8013D1A4, func_8003DE60. It writes bytes to D_802330B0/B1 and words to D_802330B4 indexed by (s1<<4). Next step: finish reading the jump table at the end (around line 74 of the target) and type the globals before compiling anything.",
   "by": "claude-haiku-5-5-20",
@@ -12486,14 +12470,6 @@
   "created_at": 1794751951.8531158,
   "score_before": 18918,
   "score_after": 18918
- },
- {
-  "function": "func_802178B4",
-  "text": "Not started. 1680 bytes with a jump table (m2c: \"Unable to determine jump table for jr at line 21\"). No C saved yet. Next agent: read the assembly from the top, find the jump table data, and write the switch before anything else.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794752011.8884292,
-  "score_before": 9595,
-  "score_after": 9595
  },
  {
   "function": "func_801B312C",
@@ -16024,14 +16000,6 @@
   "score_after": 23951
  },
  {
-  "function": "func_802178B4",
-  "text": "No compile attempted. m2c failed to build a draft: \"Unable to determine jump table for jr\" at line 21, so there is no saved C. The function is 420 instructions and touches about 24 globals, several in the same D_8011F3xx record region as func_801FBBFC (0x64-stride records at D_8011F32E, 0x24-stride records at D_80221080). Next step: read get_assembly from the jr onward to locate the jump table, write a hand-made switch on the arg0 (u16) index, and compile to check the frame (target uses addiu $sp,-0x20, saves $ra and $s0). Shares the record-indexing problem noted on func_801FBBFC, so resolve that struct layout first.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794761225.1345122,
-  "score_before": 9595,
-  "score_after": 9595
- },
- {
   "function": "func_8002B534",
   "text": "Not matched. Best saved candidate is 15851 (restructured note-on/off/controller/pitch-bend switch, same as func_80030E28's family). Latest candidate 49048ad3fcf27c9908a6 scores 15951 (70.7%) and is slightly worse. Target frame is -0x80 saving ra, fp, s7..s0 at 0x74..0x50; ours is -0x68 with fewer saves, so the function needs about 24 more bytes of stack locals (likely more 8-byte or struct-sized temporaries than sp20..sp3C/sp44 cover) and a different s-register set. The alCents2Ratio prototype comes from context.h (f32 alCents2Ratio(s32)); do not redeclare it. Next steps: (1) add the missing stack locals and match the -0x80 frame first; (2) then fix the s-register order in the 0x90 path. Verify __vsVol/__vsPan return types against the matched definitions before tuning arithmetic. Note that func_80030E28 (same command-dispatch shape, different function) is the closest template.",
   "by": "claude-haiku-5-5-24",
@@ -16766,14 +16734,6 @@
   "created_at": 1794762555.589397,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_802178B4",
-  "text": "Not matched; 420 insns, only a 53-insn partial draft (score 38405). Released unfinished.\n\nFindings for the next agent:\n- Indexing: idx = a0 & 0xFFFF, kept in $s0 across calls, so the prologue needs sw $ra/sw $s0 and frame 0x20. Keep idx live past a jal (e.g. use it after func_80203DF8) or the prologue will not match.\n- Entity stride is 100 bytes (idx*100 built as (x*3)*8 + x)*4). Use the struct-array form from proposal #339302416501. Layout: u16 +0x02, u8 +0x0D, u16 +0x10, u16 state +0x3E (D_8011F32E; switch on it, <6, jump table at D_8021DED0 with 6 entries, not yet read), float +0x44 (D_8011F334), word +0x48 (D_8011F338, also stored as float after unsigned-float conversion), float +0x4C (D_8011F33C), void* +0x60 (D_8011F350).\n- Globals: D_8018BC3C u16 (a current index), D_8021C114 u16 and D_8021C116 u16 (counter pair), D_8021C110 u8, D_801E99C0 s32, D_800E1850 u16, D_8006FB38 is a seq player (alSeqpStop call).\n- Case 0 (from the first block after jr): C114=0; C116++; ((PRSlot*)E[D_8018BC3C].f60)->u16 +4 = 0; if (C116 >= 0x14) { state=5; C116=0; func_80203DF8(1,0x3C,0xFF,0xFF,0xFF) }. The partial draft covers only this case.\n- Float-to-u16 pattern: 0x4F000000 (2^31) compare, with sub and the 0x80000000 OR trick (the usual unsigned float to int path). Use a helper with the same branch shape.\n- Other cases: calls func_80211C7C(0x14), func_802319E8, func_80231C5C, func_801CF468, func_8021F5F0, func_801D63F4, alSeqpStop, and a nested loop over 4x 0x14-byte-stride rows in D_8022A772 / D_8022AD64 (u16 field at stride 0x... with xori/sltu boolean). Cases 1..5 are not written yet.\nNext step: read D_8021DED0 for case addresses, then write cases 1 to 5 in order and get the epilogue right.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794762595.85474,
-  "score_before": 9595,
-  "score_after": 9595
  },
  {
   "function": "func_80207DC8",
@@ -41460,5 +41420,45 @@
   "created_at": 1794762609.9474628,
   "score_before": 7846,
   "score_after": 7846
+ },
+ {
+  "function": "func_802178B4",
+  "text": "Not attempted: 1680 bytes, 420 insns, jump table on the ST(arg0) switch (same pattern as func_801E3038: lhu from D_8011F32E with stride 100, then sltiu 0xB and a jr through a table), no saved C and no compiling draft. Needs a full C draft from the assembly before any compile. Start with the switch structure from get_assembly, then the externs in the brief.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794719235.131125,
+  "score_before": 9595,
+  "score_after": 9595
+ },
+ {
+  "function": "func_802178B4",
+  "text": "Not compiled. Same blocker as func_8013B1BC and func_8021A334: machine draft cannot find the jump table for the jr at line 21 (the table data is not readable from this session). Resolve the table address and contents before writing the switch.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794742258.499413,
+  "score_before": 9595,
+  "score_after": 9595
+ },
+ {
+  "function": "func_802178B4",
+  "text": "Not started. 1680 bytes with a jump table (m2c: \"Unable to determine jump table for jr at line 21\"). No C saved yet. Next agent: read the assembly from the top, find the jump table data, and write the switch before anything else.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794752011.8884292,
+  "score_before": 9595,
+  "score_after": 9595
+ },
+ {
+  "function": "func_802178B4",
+  "text": "No compile attempted. m2c failed to build a draft: \"Unable to determine jump table for jr\" at line 21, so there is no saved C. The function is 420 instructions and touches about 24 globals, several in the same D_8011F3xx record region as func_801FBBFC (0x64-stride records at D_8011F32E, 0x24-stride records at D_80221080). Next step: read get_assembly from the jr onward to locate the jump table, write a hand-made switch on the arg0 (u16) index, and compile to check the frame (target uses addiu $sp,-0x20, saves $ra and $s0). Shares the record-indexing problem noted on func_801FBBFC, so resolve that struct layout first.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794761225.1345122,
+  "score_before": 9595,
+  "score_after": 9595
+ },
+ {
+  "function": "func_802178B4",
+  "text": "Not matched; 420 insns, only a 53-insn partial draft (score 38405). Released unfinished.\n\nFindings for the next agent:\n- Indexing: idx = a0 & 0xFFFF, kept in $s0 across calls, so the prologue needs sw $ra/sw $s0 and frame 0x20. Keep idx live past a jal (e.g. use it after func_80203DF8) or the prologue will not match.\n- Entity stride is 100 bytes (idx*100 built as (x*3)*8 + x)*4). Use the struct-array form from proposal #339302416501. Layout: u16 +0x02, u8 +0x0D, u16 +0x10, u16 state +0x3E (D_8011F32E; switch on it, <6, jump table at D_8021DED0 with 6 entries, not yet read), float +0x44 (D_8011F334), word +0x48 (D_8011F338, also stored as float after unsigned-float conversion), float +0x4C (D_8011F33C), void* +0x60 (D_8011F350).\n- Globals: D_8018BC3C u16 (a current index), D_8021C114 u16 and D_8021C116 u16 (counter pair), D_8021C110 u8, D_801E99C0 s32, D_800E1850 u16, D_8006FB38 is a seq player (alSeqpStop call).\n- Case 0 (from the first block after jr): C114=0; C116++; ((PRSlot*)E[D_8018BC3C].f60)->u16 +4 = 0; if (C116 >= 0x14) { state=5; C116=0; func_80203DF8(1,0x3C,0xFF,0xFF,0xFF) }. The partial draft covers only this case.\n- Float-to-u16 pattern: 0x4F000000 (2^31) compare, with sub and the 0x80000000 OR trick (the usual unsigned float to int path). Use a helper with the same branch shape.\n- Other cases: calls func_80211C7C(0x14), func_802319E8, func_80231C5C, func_801CF468, func_8021F5F0, func_801D63F4, alSeqpStop, and a nested loop over 4x 0x14-byte-stride rows in D_8022A772 / D_8022AD64 (u16 field at stride 0x... with xori/sltu boolean). Cases 1..5 are not written yet.\nNext step: read D_8021DED0 for case addresses, then write cases 1 to 5 in order and get the epilogue right.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794762595.85474,
+  "score_before": 9595,
+  "score_after": 9595
  }
 ]
