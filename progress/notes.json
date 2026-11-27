@@ -6776,14 +6776,6 @@
   "score_after": 7212
  },
  {
-  "function": "func_8012745C",
-  "text": "Move-on budget exhausted (10/10). Best current revision for continuation: 71e1b9fe218e0afc8210 (score 13390, 48.6%, 267 insns vs target 261). Rechecked saved_best 4988ec2c6ee709df92c6 = 18527 with current inputs, so 71e1b9fe218e0afc8210 is the better base despite the historical 8584 label.\n\nWhat worked: replacing m2c's union-of-padded-views with plain local Vec3 variables a/b/c/d (a = D_8012AB64+d, b = D_8012AB4C+d, c = D_8012AB7C/80/84+d, d = arg1*arg0->xyz) plus Vec3 v60/v70/v80/v90/vA0 and a `u8 res` returned at the end; calling func_80127148 with &v60,&D_8012AB58,&a etc. That got the whole call sequence and the four nested if-blocks right (score 17684 -> 13390). func_80127148 is already exactly matched: `Vec3 *func_80127148(Vec3 *dst, Vec3 *a, Vec3 *b);` \u2014 declare Vec3 in context.h if not there yet.\n\nRemaining differences and what to try next:\n1. Stack frame 0xe8 vs 0xe0 and an extra `sdc1 $f20,0xe0($sp)` save: my version keeps 5 float temps alive (f20 spilled). Target uses $f4,$f6,$f0 for the three products and no callee-saved FP reg. Reduce live float temps: compute a/b/c from d immediately in one expression chain, or write the products directly into the additions (`a.x = D_8012AB64.x + arg1*arg0->x;` three times) so gcc reuses arg1 in $f2 as the target does (`mul.s $f4,$f2,$f4` with $f2 = arg1).\n2. Target hoists `lui/addiu $s1,%hi(D_8012AB64)` and `lui/addiu $s7,%hi(D_8012AB4C)` into callee-saved regs and loads through them (`lwc1 $f0,0($s1)`); mine folds %lo into lwc1 with $at. The `Vec3 *pa = &D_8012AB64; Vec3 *pb = &D_8012AB4C;` locals in 71e1b9fe218e0afc8210 were an attempt at this and did not change it \u2014 try instead using pa/pb only inside the first block (so they are live across the three func_80127148 calls) and check whether gcc then keeps them in $s1/$s7. Note target also uses $s1 as the base for D_8012AB64 in the `if (r == -1)` block, so the pointer must be live across the whole function.\n3. Target keeps the three stack-vector bases in $s4=sp+0x60, $s5=sp+0x70, $s3=sp+0x80, $s0=sp+0x30, $s6=sp+0x90, $s2=sp+0x40, and passes `addu $a0,$s3,$zero` / `addu $a1,$s0,$zero` / `addiu $a2,$sp,0x20` \u2014 i.e. the vector locals are addressed through registers computed once, not re-formed per call. Getting the frame to exactly 0xe0 with the same local order (v20 at 0x20, v30 at 0x30, v40 at 0x40, v50 at 0x50, v60 at 0x60, v70 at 0x70, v80 at 0x80, v90 at 0x90, vA0 at 0xA0, res at 0xB7) is the prerequisite; declare locals in that exact order (v20/v30/v40/v50 first, then v60/v70/v80/v90/vA0, then the u8 res).\n4. The target's first statement is `sb $zero,0xB7($sp)` emitted before the products; mine emits it later. Declaring `u8 res = 0;` as the last local and assigning at declaration may help; otherwise hoist the store with an explicit `res = 0;` as the very first statement (already done) and check ordering after the frame matches.\n5. Final result: target `nor $v0,$zero,$v0; sltiu $v0,$v0,0x1; sb $v0,0xB7($sp)` \u2014 my `~f(...) == 0` form produced the right shape at the tail; keep it.\n6. try_local_repairs families (explicit_loop_backedge, one_shot_scope, split_scalar_lifetime, declaration_order, signedness, sum_shape) were all run on 4988ec2c6ee709df92c6 and none improved; do not repeat them on that base.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794714831.88512,
-  "score_before": 8584,
-  "score_after": 8584
- },
- {
   "function": "func_80218288",
   "text": "Best verified baseline this session: 17496 at revision 618be1f3e30a7b764a54 (saved_best). Kept improvements there: literal 0.0f for guRotateF/guMtxXFMF args and for the BC/C4 stores (yields `sw $zero,0x10($sp)` + GPR zero like target), one=1.0f local in an f-register (target mtc1 0x3F800000 -> fs1), s400=400.0f local (target fs3), a1/a2/a3 locals holding D_8011F314/318/31C[mi], and corrected 2nd/3rd interpolation destinations to D_8022109C/D_802210A0.\n\nRegressions to avoid: moving the three D_80221080/84/88[off]=0 stores after ang (20788), and declaring `u16 *tbl = D_8022A772;` (20788).\n\nRemaining structural gaps vs target (verified from assembly):\n1. Frame: target 0x170, mine 0x198. Locals both end at 0x12C (m20@0x20, m60@0x60, mA0@0xA0, mE0@0xE0, ox/oy/oz@0x120/124/128); target saves regs at 0x130..0x168, mine at 0x158..0x198, so I have ~0x2C of extra spill slots \u2014 too many simultaneously live floats. Cutting live float temps (drop a1/a2/a3 and pass the array loads directly, or stop keeping `one` alive from the BC/C0/C4 stores through guMtxXFMF) should shrink the frame. Untested: replacing the a1/a2/a3 assignments with direct D_8011F31x[mi] arguments.\n2. Target materializes D_8022A772 as `lui $v1,%hi; lhu $v1,%lo(...)($v1)` (symbol folded into the load, base in a GPR) twice; mine emits `lhu $v1,($s2)` with a kept base pointer.\n3. Target keeps arg0 in $s0 (`move $s0,$a0`) and does `andi $s0,$s0,0xFFFF` once for the 0x64 index, while `off` re-derives `andi $v0,$s4,0xFFFF` from the reloaded car byte \u2014 use two syntactically different conversions (proposal #339302416415).\n4. Target spills `sw $zero,0x10($sp)`/`lw $a3,0x10($sp)` for the 4th guRotateF float arg; already reproduced by the literal 0.0f arguments.",
   "by": "api-route-llm-code-1",
@@ -9206,14 +9198,6 @@
   "created_at": 1794728336.085492,
   "score_before": 200,
   "score_after": 200
- },
- {
-  "function": "func_8012745C",
-  "text": "Not matched. The m2c draft (candidate 4988ec2c6ee709df92c6) does not compile: the stack-view struct names view_sp88/sp94/sp98/sp64/sp68/sp74/sp78/spA4/spA8 are referenced but the union only covers some offsets in the draft's own list, so the struct decls must be regenerated consistently (one union member per referenced offset). Best saved source scores 8584 (17 prior attempts); the saved-progress version is the starting point, not the m2c draft. Target structure: prologue saves s0-s7/fp/ra with 0xE0 frame; computes three products arg1*arg0[0..2] stored at sp+0x50/54/58, adds to constants D_8012AB64, D_8012AB4C, D_8012AB7C/80/84 into sp+0x20..0x48; then a chain of func_80127148 (Vec3 cross/sub helper) and func_80127030 / func_801270B0 calls with a -1/1 result branch. Untried: rebuilding the local frame as one struct with explicit pad offsets (0x20..0xB7) so the offsets match the target instead of the union per-field. Local repair families already exhausted: call_one_shot_scope, split_scalar_lifetime, sum_shape.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794728374.647416,
-  "score_before": 8584,
-  "score_after": 8584
  },
  {
   "function": "func_801604F0",
@@ -11878,14 +11862,6 @@
   "created_at": 1794741563.2309499,
   "score_before": 10825,
   "score_after": 10825
- },
- {
-  "function": "func_8012745C",
-  "text": "Not matched. Saved best 8584 (m2c-style union frame) is still the baseline. Tried a hand-typed rewrite: Vec3 locals (s50, a20, a30, a40, t60, t80, t90, t70, tA0), func_80127148 via Vec3*, func_80127030 with &t70 out pointer and flattened words, func_801270B0 on flattened words. Scores 19436 then 17684 (revision 1ba2256e2285a0c47b24). Remaining diffs: target keeps a single base pointer s1 = &D_8012AB64 (lui/addiu once, then lwc1 0/4/8($s1)) and uses addiu $a2,$sp,0x20 for arg-address passing; my version re-materializes each D_ symbol with lui/%lo and stack is 0xE8 vs target 0xE0 (so locals need packing/reordering to fit 0xE0). Next: type D_8012AB64/AB4C/AB7C as one array indexed by a pointer s1, keep arg0 loads through a0 in order (0,4,8), and fix the frame size before tuning registers. Note func_80127030 takes out pointer then 6 words; the 4th-arg block sits at sp+0x20.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794741642.591369,
-  "score_before": 8584,
-  "score_after": 8584
  },
  {
   "function": "func_80192680",
@@ -16656,14 +16632,6 @@
   "score_after": 2175
  },
  {
-  "function": "func_8012745C",
-  "text": "Not matched. Saved best 8584 is the m2c draft (candidate revision 4988ec2c6ee709df92c6 in the claim, which needs its undeclared spNN union fields replaced). My stub rewrite (revision 8f9f0b2bf73246c86464, 25716) is a placeholder and is worse; restore saved_best before continuing. Target: 1044 bytes, 0xe0 frame (addiu $sp,-0xe0; saves ra/fp/s7/s6...), 261 insns, about 25 jal func_80127148 calls and 0x90($sp)-based locals. Structure from the draft: vector f32 math (arg1 scale of arg0[0..2], offsets into D_8012AB4C/58/64/7C/80/84 constants), then func_80127030, func_801270B0 (returns s8, compared against -1 and 1), up to three nested sign-test branches that call func_80127148 with different sources. Next step: rewrite the locals as a single frame of s32/f32 arrays so the stack offsets (0x20..0xB7) match, starting with the first block of the m2c draft, then check arg passing (s32 values loaded from 0x90/0x94/...). Not started beyond the placeholder. Released for move-on budget.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794758966.629929,
-  "score_before": 8584,
-  "score_after": 8584
- },
- {
   "function": "func_801FA240",
   "text": "Cannot match at project -O2; current candidate C MATCHES byte-for-byte at -O1 (try_compiler); suggest() filed. Apply the -O1 profile to save it.",
   "by": "claude-opus-medium-1",
@@ -18288,14 +18256,6 @@
   "score_after": 10
  },
  {
-  "function": "func_8012745C",
-  "text": "1044-byte function, target 261 insns, frame 0xe0 with ra/fp/s0-s7 saved. The m2c draft is unusable as written: it uses a fake union frame (m2c_initial_frame) with sp-offset views, and several view offsets are invented. Real structure visible in asm: arg1 scales the 3 floats at arg0 into a temp vector; three vectors are built from D_8012AB64, D_8012AB4C and the D_8012AB7C/80/84 constants plus that temp; then a sequence of func_80127148(out, a, b) and func_80127030 / func_801270B0 calls with comparisons on the returned value (-1, 1, and equality with a saved temp). Needs a proper local layout of vectors and an accurate call-argument mapping before tuning. A quick stub gave 25493 (not meaningful). Not attempted further this session; recommend a fresh pass that reads the assembly in pages (get_assembly start=52, limit=40, focus=page) and writes the three vector temps as f32[3] locals.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794762024.778508,
-  "score_before": 8584,
-  "score_after": 8584
- },
- {
   "function": "func_8015E484",
   "text": "Not retried: exact -O1 source already filed via suggest (see notes). Awaiting -O1 profile application.",
   "by": "claude-opus-medium-1",
@@ -18854,14 +18814,6 @@
   "created_at": 1794763051.52662,
   "score_before": 23107,
   "score_after": 23107
- },
- {
-  "function": "func_8012745C",
-  "text": "Best 8063 (69.1%), unmatched. Structure is verified from asm: Vec3 locals sp20(=D_8012AB64+t), sp30(=D_8012AB4C+t), sp40(=D_8012AB7C+t), t=arg1*arg0[0..2] (stored to sp50 but dead); a 4-level chain: r0=f801270B0(sp60,sp70) ==-1 -> r1 ==1 -> r2 ==r0 -> r3 ==r2 -> flag=(r4==-1), with func_80127148 as Vec3 sub(dst,a,b) and func_80127030 as cross(dst, a, b) taking Vec3 by value (words in a1..a3 + stack 0x10..0x18). Remaining diff: (1) frame: target is -0xE0 with no f20 spill; mine spills f20 (-0xE8), so float temporaries are living across the call chain in my version - try keeping arg1 and products in as few named float temps as possible, or split the products per-vector; (2) target keeps &D_8012AB64 in s1 and &D_8012AB4C in s7 as hoisted bases (addiu s1,%lo) - pointer locals did not change the score; (3) target stores `sb $zero,0xB7` at the very start (flag init before the loads), mine schedules a nop there; (4) arg1 lives in f2 in the target, f0/f4 in mine. Tried: direct-global access (8063), pointer bases (8063), float temps tx/ty/tz (9798, worse). Next: explicit Vec3 * copies of arg0, or a single loop-free helper form.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794763058.551473,
-  "score_before": 8584,
-  "score_after": 8063
  },
  {
   "function": "func_80193160",
@@ -41172,5 +41124,53 @@
   "score_before": 3831,
   "score_after": 2386,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:86fc852efa616b3138116c2622a9012d5b5d412df62fa8b2f9823fc40f96d970"
+ },
+ {
+  "function": "func_8012745C",
+  "text": "Move-on budget exhausted (10/10). Best current revision for continuation: 71e1b9fe218e0afc8210 (score 13390, 48.6%, 267 insns vs target 261). Rechecked saved_best 4988ec2c6ee709df92c6 = 18527 with current inputs, so 71e1b9fe218e0afc8210 is the better base despite the historical 8584 label.\n\nWhat worked: replacing m2c's union-of-padded-views with plain local Vec3 variables a/b/c/d (a = D_8012AB64+d, b = D_8012AB4C+d, c = D_8012AB7C/80/84+d, d = arg1*arg0->xyz) plus Vec3 v60/v70/v80/v90/vA0 and a `u8 res` returned at the end; calling func_80127148 with &v60,&D_8012AB58,&a etc. That got the whole call sequence and the four nested if-blocks right (score 17684 -> 13390). func_80127148 is already exactly matched: `Vec3 *func_80127148(Vec3 *dst, Vec3 *a, Vec3 *b);` \u2014 declare Vec3 in context.h if not there yet.\n\nRemaining differences and what to try next:\n1. Stack frame 0xe8 vs 0xe0 and an extra `sdc1 $f20,0xe0($sp)` save: my version keeps 5 float temps alive (f20 spilled). Target uses $f4,$f6,$f0 for the three products and no callee-saved FP reg. Reduce live float temps: compute a/b/c from d immediately in one expression chain, or write the products directly into the additions (`a.x = D_8012AB64.x + arg1*arg0->x;` three times) so gcc reuses arg1 in $f2 as the target does (`mul.s $f4,$f2,$f4` with $f2 = arg1).\n2. Target hoists `lui/addiu $s1,%hi(D_8012AB64)` and `lui/addiu $s7,%hi(D_8012AB4C)` into callee-saved regs and loads through them (`lwc1 $f0,0($s1)`); mine folds %lo into lwc1 with $at. The `Vec3 *pa = &D_8012AB64; Vec3 *pb = &D_8012AB4C;` locals in 71e1b9fe218e0afc8210 were an attempt at this and did not change it \u2014 try instead using pa/pb only inside the first block (so they are live across the three func_80127148 calls) and check whether gcc then keeps them in $s1/$s7. Note target also uses $s1 as the base for D_8012AB64 in the `if (r == -1)` block, so the pointer must be live across the whole function.\n3. Target keeps the three stack-vector bases in $s4=sp+0x60, $s5=sp+0x70, $s3=sp+0x80, $s0=sp+0x30, $s6=sp+0x90, $s2=sp+0x40, and passes `addu $a0,$s3,$zero` / `addu $a1,$s0,$zero` / `addiu $a2,$sp,0x20` \u2014 i.e. the vector locals are addressed through registers computed once, not re-formed per call. Getting the frame to exactly 0xe0 with the same local order (v20 at 0x20, v30 at 0x30, v40 at 0x40, v50 at 0x50, v60 at 0x60, v70 at 0x70, v80 at 0x80, v90 at 0x90, vA0 at 0xA0, res at 0xB7) is the prerequisite; declare locals in that exact order (v20/v30/v40/v50 first, then v60/v70/v80/v90/vA0, then the u8 res).\n4. The target's first statement is `sb $zero,0xB7($sp)` emitted before the products; mine emits it later. Declaring `u8 res = 0;` as the last local and assigning at declaration may help; otherwise hoist the store with an explicit `res = 0;` as the very first statement (already done) and check ordering after the frame matches.\n5. Final result: target `nor $v0,$zero,$v0; sltiu $v0,$v0,0x1; sb $v0,0xB7($sp)` \u2014 my `~f(...) == 0` form produced the right shape at the tail; keep it.\n6. try_local_repairs families (explicit_loop_backedge, one_shot_scope, split_scalar_lifetime, declaration_order, signedness, sum_shape) were all run on 4988ec2c6ee709df92c6 and none improved; do not repeat them on that base.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794714831.88512,
+  "score_before": 8584,
+  "score_after": 8584
+ },
+ {
+  "function": "func_8012745C",
+  "text": "Not matched. The m2c draft (candidate 4988ec2c6ee709df92c6) does not compile: the stack-view struct names view_sp88/sp94/sp98/sp64/sp68/sp74/sp78/spA4/spA8 are referenced but the union only covers some offsets in the draft's own list, so the struct decls must be regenerated consistently (one union member per referenced offset). Best saved source scores 8584 (17 prior attempts); the saved-progress version is the starting point, not the m2c draft. Target structure: prologue saves s0-s7/fp/ra with 0xE0 frame; computes three products arg1*arg0[0..2] stored at sp+0x50/54/58, adds to constants D_8012AB64, D_8012AB4C, D_8012AB7C/80/84 into sp+0x20..0x48; then a chain of func_80127148 (Vec3 cross/sub helper) and func_80127030 / func_801270B0 calls with a -1/1 result branch. Untried: rebuilding the local frame as one struct with explicit pad offsets (0x20..0xB7) so the offsets match the target instead of the union per-field. Local repair families already exhausted: call_one_shot_scope, split_scalar_lifetime, sum_shape.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794728374.647416,
+  "score_before": 8584,
+  "score_after": 8584
+ },
+ {
+  "function": "func_8012745C",
+  "text": "Not matched. Saved best 8584 (m2c-style union frame) is still the baseline. Tried a hand-typed rewrite: Vec3 locals (s50, a20, a30, a40, t60, t80, t90, t70, tA0), func_80127148 via Vec3*, func_80127030 with &t70 out pointer and flattened words, func_801270B0 on flattened words. Scores 19436 then 17684 (revision 1ba2256e2285a0c47b24). Remaining diffs: target keeps a single base pointer s1 = &D_8012AB64 (lui/addiu once, then lwc1 0/4/8($s1)) and uses addiu $a2,$sp,0x20 for arg-address passing; my version re-materializes each D_ symbol with lui/%lo and stack is 0xE8 vs target 0xE0 (so locals need packing/reordering to fit 0xE0). Next: type D_8012AB64/AB4C/AB7C as one array indexed by a pointer s1, keep arg0 loads through a0 in order (0,4,8), and fix the frame size before tuning registers. Note func_80127030 takes out pointer then 6 words; the 4th-arg block sits at sp+0x20.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794741642.591369,
+  "score_before": 8584,
+  "score_after": 8584
+ },
+ {
+  "function": "func_8012745C",
+  "text": "Not matched. Saved best 8584 is the m2c draft (candidate revision 4988ec2c6ee709df92c6 in the claim, which needs its undeclared spNN union fields replaced). My stub rewrite (revision 8f9f0b2bf73246c86464, 25716) is a placeholder and is worse; restore saved_best before continuing. Target: 1044 bytes, 0xe0 frame (addiu $sp,-0xe0; saves ra/fp/s7/s6...), 261 insns, about 25 jal func_80127148 calls and 0x90($sp)-based locals. Structure from the draft: vector f32 math (arg1 scale of arg0[0..2], offsets into D_8012AB4C/58/64/7C/80/84 constants), then func_80127030, func_801270B0 (returns s8, compared against -1 and 1), up to three nested sign-test branches that call func_80127148 with different sources. Next step: rewrite the locals as a single frame of s32/f32 arrays so the stack offsets (0x20..0xB7) match, starting with the first block of the m2c draft, then check arg passing (s32 values loaded from 0x90/0x94/...). Not started beyond the placeholder. Released for move-on budget.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794758966.629929,
+  "score_before": 8584,
+  "score_after": 8584
+ },
+ {
+  "function": "func_8012745C",
+  "text": "1044-byte function, target 261 insns, frame 0xe0 with ra/fp/s0-s7 saved. The m2c draft is unusable as written: it uses a fake union frame (m2c_initial_frame) with sp-offset views, and several view offsets are invented. Real structure visible in asm: arg1 scales the 3 floats at arg0 into a temp vector; three vectors are built from D_8012AB64, D_8012AB4C and the D_8012AB7C/80/84 constants plus that temp; then a sequence of func_80127148(out, a, b) and func_80127030 / func_801270B0 calls with comparisons on the returned value (-1, 1, and equality with a saved temp). Needs a proper local layout of vectors and an accurate call-argument mapping before tuning. A quick stub gave 25493 (not meaningful). Not attempted further this session; recommend a fresh pass that reads the assembly in pages (get_assembly start=52, limit=40, focus=page) and writes the three vector temps as f32[3] locals.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794762024.778508,
+  "score_before": 8584,
+  "score_after": 8584
+ },
+ {
+  "function": "func_8012745C",
+  "text": "Best 8063 (69.1%), unmatched. Structure is verified from asm: Vec3 locals sp20(=D_8012AB64+t), sp30(=D_8012AB4C+t), sp40(=D_8012AB7C+t), t=arg1*arg0[0..2] (stored to sp50 but dead); a 4-level chain: r0=f801270B0(sp60,sp70) ==-1 -> r1 ==1 -> r2 ==r0 -> r3 ==r2 -> flag=(r4==-1), with func_80127148 as Vec3 sub(dst,a,b) and func_80127030 as cross(dst, a, b) taking Vec3 by value (words in a1..a3 + stack 0x10..0x18). Remaining diff: (1) frame: target is -0xE0 with no f20 spill; mine spills f20 (-0xE8), so float temporaries are living across the call chain in my version - try keeping arg1 and products in as few named float temps as possible, or split the products per-vector; (2) target keeps &D_8012AB64 in s1 and &D_8012AB4C in s7 as hoisted bases (addiu s1,%lo) - pointer locals did not change the score; (3) target stores `sb $zero,0xB7` at the very start (flag init before the loads), mine schedules a nop there; (4) arg1 lives in f2 in the target, f0/f4 in mine. Tried: direct-global access (8063), pointer bases (8063), float temps tx/ty/tz (9798, worse). Next: explicit Vec3 * copies of arg0, or a single loop-free helper form.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794763058.551473,
+  "score_before": 8584,
+  "score_after": 8063
  }
 ]
