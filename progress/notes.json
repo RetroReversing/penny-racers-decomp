@@ -3808,14 +3808,6 @@
   "score_after": 20
  },
  {
-  "function": "func_80129348",
-  "text": "Deep permuter: score 10925 \u2192 10595; 1 improvements; 106 candidates tested; 40 cached skips; 0 rejected; 7205s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935285",
-  "created_at": 1794356300.739786,
-  "score_before": 10925,
-  "score_after": 10595
- },
- {
   "function": "func_80198250",
   "text": "Deep permuter: score 20 \u2192 20; 0 improvements; 86 candidates tested; 21 cached skips; 0 rejected; 7205s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934703",
@@ -6166,14 +6158,6 @@
   "created_at": 1794719115.2071118,
   "score_before": 24501,
   "score_after": 24501
- },
- {
-  "function": "func_80129348",
-  "text": "Not attempted. 1488 bytes; m2c draft compiles but is a mess of duplicate returns and goto blocks. Structure: takes u16 *arg0 (a table index, *arg0*0x64 into D_8011F340/D_8011F308/D_8011F310 arrays), u16 *arg1 (flag), f32 arg2/arg4 (x/z point). Box-containment tests on s16 fields at +0x40/+0x44/+0x50/+0x54 of a pointer chain (D_8011F340 entry -> +4 -> +4 -> +4), with a 0x1E margin, returning 0/1/2. Rewrite the control flow from the asm (not from the draft) and only then fix types.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794719120.514981,
-  "score_before": 10325,
-  "score_after": 10325
  },
  {
   "function": "func_802312F8",
@@ -9904,14 +9888,6 @@
   "score_after": 24501
  },
  {
-  "function": "func_80129348",
-  "text": "Target is 372 insns; saved best (m2c-derived, 10325) is a goto-heavy draft. My clean rewrite scored 33370 (10.2%) and is worse, so it was not kept. Rewrite notes: the record is stride 0x64 with base pointer at D_8011F340+i*0x64, then three pointer hops (+4 each) to a geometry struct with s16 bounds at +0x40, +0x44, +0x50, +0x54 and floats at D_8011F308/D_8011F310 indexed i*0x64. The target does far more work than the m2c draft shows (many addu/add.s/c.le.s and cvt.s.w groups, and it stores back through the arg0/arg1 index pair), so the logic is incomplete. Also: a static helper like chain() is not a symbol at link time, so inline the hops. Next step: map the full control flow from get_assembly before writing more C, starting from the saved draft's block_11/block_32/block_47/block_48 exits.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794742230.243565,
-  "score_before": 10325,
-  "score_after": 10325
- },
- {
   "function": "func_8014D740",
   "text": "Low progress after 28 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: instruction order / control flow; first differing row 0; 57 differing rows (3 opcode, 14 register, 4 branch target, 11 operand, 4 inserted, 21 deleted; advisory).\nTarget: andi $v1, $a0, 0xffff\nCandidate: andi $a0, $a0, 0xffff\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\nr T: andi $v1, $a0, 0xffff | C: andi $a0, $a0, 0xffff\nr T: sll $v0, $v1, 1 | C: sll $v0, $a0, 1\nr T: addu $v0, $v0, $v1 | C: addu $v0, $v0, $a0\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nRechecked baseline (candidate d866205d970320c632b6) scores 3025; saved historical best 1490 used a different source and cannot be reproduced. Variants tried this session: volatile u16 *p alias for the D_8011F32E[(arg0&0xFFFF)*50] counter with u16 loop counter (3320, worse), byte-offset (u8*)base+(i<<1) addressing for both loops, while-loop form, and byte-offset only for the copy loop. None improved. Remaining families from handoff: signedness, parameter_width, array_index_width, guard_shape. Suggest trying try_local_repairs on a fresh claim rather than repeating the volatile-pointer alias.",
   "by": "api-route-llm-code-1",
@@ -10974,14 +10950,6 @@
   "created_at": 1794751782.033939,
   "score_before": 60,
   "score_after": 60
- },
- {
-  "function": "func_80129348",
-  "text": "Not matched; releasing early. Saved best is 10325 (earlier attempt). My best this session was 14675 (rev 2cbc118bc3f4c00edbb5, 330 insns vs 372 target). A variant with a helper function (rev a04ee60f1224283f5ea6, 25355) was worse and referenced a non-symbol helper blk_box, so the helper must be a macro, not a function. Semantics recovered from asm (valid, use them):\n- REC(i)=D_8011F2F0+i*0x64; fx=REC+0x18, fy=REC+0x20 (floats). Box = ((((REC+0x50)->+4)->+4)->+4); box s16 fields: 0x40 lo_x, 0x50 hi_x, 0x44 lo_y, 0x54 hi_y.\n- arg2 = x (float in $a2), arg4 = y (float, stack 0x10). arg1 = u16* flag.\n- (1) strict inside test on REC(*arg0) (no margin) -> return 1.\n- (2) block1: selector a from u16 fields @0xA/@0xE of REC(*arg0)->0x50 ptr; if *arg1==0 use 0xA unless 0xFFFF (then 0xE, *arg1=1); else use 0xE unless 0xFFFF (then 0xA, *arg1=0). Margin test (+/-0x1E on four box fields, using REC(a)) fails -> block2. Passing margin: A lo_x+fx>=arg2 else {*arg0=a; ret 2}; B hi_x+fx<=arg2 else {store; ret 2}; C arg4<=lo_y+fy else {store; ret 2}; D hi_y+fy<=arg4 ? ret 1 : ret 2 (no store).\n- (3) block2: same with fields 0x8/0xC; margin fail -> return 0; then the same A-D checks.\nStructural gap: target computes 100*idx once and keeps the base pointer chain in registers; repeated lui/addu/lw chains in mine. Next attempt: a macro (not a function) for the box lookup, keep one REC pointer per block, fx/fy in FP locals; fix frame (target 0x38-0x40 with fs regs) and arg4 stack load last.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794752025.6037881,
-  "score_before": 10325,
-  "score_after": 10325
  },
  {
   "function": "alBnkfNew",
@@ -13456,14 +13424,6 @@
   "score_after": 24501
  },
  {
-  "function": "func_80129348",
-  "text": "Not matched; releasing now. Why it cannot get closer this session: the function is 372 insns with a long chain of float box-containment tests and two index-selection branches keyed on *arg1. The two stub compiles I ran were placeholders, not real attempts, so their scores (37060) mean nothing. The best saved source is the m2c draft at revision baffe8d92ee70675f308 (saved score 10325, historical). It was never compiled in this session. Record layout from it: D_8011F340 is an array of 100-byte entries indexed by *arg0*0x64; ptr chain +4,+4,+4 reaches a struct whose s16 fields at 0x40/0x44/0x50/0x54 are the box bounds with +/-0x1E margins; D_8011F308/D_8011F310 are per-entry f32 offsets. Entry u16 at +8/+A/+C/+E are candidate indices with 0xFFFF as sentinel. Next step for whoever picks it up: compile the m2c draft as-is, check that the goto/duplicate-return structure is compiled to the same branch order, then fix control flow before registers.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794760121.11731,
-  "score_before": 10325,
-  "score_after": 10325
- },
- {
   "function": "func_8013835C",
   "text": "Not attempted in substance: the saved candidate (revision 4bd738d8825c7d024686) is an empty stub `void func_8013835C(s32 arg0) {}` with undeclared sp2C/sp34/sp38/sp3C locals and an sqrtf implicit-declaration warning, so it scores nothing. The function is 1984 bytes and has sqrtf normalizations and float arithmetic like func_80162460; the sibling function func_80162460 is a good template for the float-vector update pattern. Next step: write a fresh C draft from get_assembly, starting with the frame and saved registers, then the stack-local float temporaries (sp2C..sp3C). Not matched.",
   "by": "claude-haiku-5-5-24",
@@ -14262,14 +14222,6 @@
   "created_at": 1794762797.934717,
   "score_before": 24501,
   "score_after": 24501
- },
- {
-  "function": "func_80129348",
-  "text": "Not worked on yet. Machine draft (m2c) is control-flow heavy: nested pointer chains off D_8011F340 (entity table, 0x64 stride), with gotos to block_11/32/47/48 and duplicate return nodes; it should be rewritten from the assembly rather than patched. Index D_8011F308/D_8011F310 as f32 fields at the same 0x64 stride (see the struct-array evidence for D_8011F2F0-family). Do not use the stub candidate from this session (score 36865); the saved best 10325 is the baseline to restore.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794762802.8197582,
-  "score_before": 10325,
-  "score_after": 10325
  },
  {
   "function": "func_801496B0",
@@ -41943,5 +41895,53 @@
   "score_before": 16704,
   "score_after": 12510,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:9343f9e09ba3b2c991b5a653bbb396126f50309585cce96bc7456e90d839b723"
+ },
+ {
+  "function": "func_80129348",
+  "text": "Deep permuter: score 10925 \u2192 10595; 1 improvements; 106 candidates tested; 40 cached skips; 0 rejected; 7205s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935285",
+  "created_at": 1794356300.739786,
+  "score_before": 10925,
+  "score_after": 10595
+ },
+ {
+  "function": "func_80129348",
+  "text": "Not attempted. 1488 bytes; m2c draft compiles but is a mess of duplicate returns and goto blocks. Structure: takes u16 *arg0 (a table index, *arg0*0x64 into D_8011F340/D_8011F308/D_8011F310 arrays), u16 *arg1 (flag), f32 arg2/arg4 (x/z point). Box-containment tests on s16 fields at +0x40/+0x44/+0x50/+0x54 of a pointer chain (D_8011F340 entry -> +4 -> +4 -> +4), with a 0x1E margin, returning 0/1/2. Rewrite the control flow from the asm (not from the draft) and only then fix types.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794719120.514981,
+  "score_before": 10325,
+  "score_after": 10325
+ },
+ {
+  "function": "func_80129348",
+  "text": "Target is 372 insns; saved best (m2c-derived, 10325) is a goto-heavy draft. My clean rewrite scored 33370 (10.2%) and is worse, so it was not kept. Rewrite notes: the record is stride 0x64 with base pointer at D_8011F340+i*0x64, then three pointer hops (+4 each) to a geometry struct with s16 bounds at +0x40, +0x44, +0x50, +0x54 and floats at D_8011F308/D_8011F310 indexed i*0x64. The target does far more work than the m2c draft shows (many addu/add.s/c.le.s and cvt.s.w groups, and it stores back through the arg0/arg1 index pair), so the logic is incomplete. Also: a static helper like chain() is not a symbol at link time, so inline the hops. Next step: map the full control flow from get_assembly before writing more C, starting from the saved draft's block_11/block_32/block_47/block_48 exits.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794742230.243565,
+  "score_before": 10325,
+  "score_after": 10325
+ },
+ {
+  "function": "func_80129348",
+  "text": "Not matched; releasing early. Saved best is 10325 (earlier attempt). My best this session was 14675 (rev 2cbc118bc3f4c00edbb5, 330 insns vs 372 target). A variant with a helper function (rev a04ee60f1224283f5ea6, 25355) was worse and referenced a non-symbol helper blk_box, so the helper must be a macro, not a function. Semantics recovered from asm (valid, use them):\n- REC(i)=D_8011F2F0+i*0x64; fx=REC+0x18, fy=REC+0x20 (floats). Box = ((((REC+0x50)->+4)->+4)->+4); box s16 fields: 0x40 lo_x, 0x50 hi_x, 0x44 lo_y, 0x54 hi_y.\n- arg2 = x (float in $a2), arg4 = y (float, stack 0x10). arg1 = u16* flag.\n- (1) strict inside test on REC(*arg0) (no margin) -> return 1.\n- (2) block1: selector a from u16 fields @0xA/@0xE of REC(*arg0)->0x50 ptr; if *arg1==0 use 0xA unless 0xFFFF (then 0xE, *arg1=1); else use 0xE unless 0xFFFF (then 0xA, *arg1=0). Margin test (+/-0x1E on four box fields, using REC(a)) fails -> block2. Passing margin: A lo_x+fx>=arg2 else {*arg0=a; ret 2}; B hi_x+fx<=arg2 else {store; ret 2}; C arg4<=lo_y+fy else {store; ret 2}; D hi_y+fy<=arg4 ? ret 1 : ret 2 (no store).\n- (3) block2: same with fields 0x8/0xC; margin fail -> return 0; then the same A-D checks.\nStructural gap: target computes 100*idx once and keeps the base pointer chain in registers; repeated lui/addu/lw chains in mine. Next attempt: a macro (not a function) for the box lookup, keep one REC pointer per block, fx/fy in FP locals; fix frame (target 0x38-0x40 with fs regs) and arg4 stack load last.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794752025.6037881,
+  "score_before": 10325,
+  "score_after": 10325
+ },
+ {
+  "function": "func_80129348",
+  "text": "Not matched; releasing now. Why it cannot get closer this session: the function is 372 insns with a long chain of float box-containment tests and two index-selection branches keyed on *arg1. The two stub compiles I ran were placeholders, not real attempts, so their scores (37060) mean nothing. The best saved source is the m2c draft at revision baffe8d92ee70675f308 (saved score 10325, historical). It was never compiled in this session. Record layout from it: D_8011F340 is an array of 100-byte entries indexed by *arg0*0x64; ptr chain +4,+4,+4 reaches a struct whose s16 fields at 0x40/0x44/0x50/0x54 are the box bounds with +/-0x1E margins; D_8011F308/D_8011F310 are per-entry f32 offsets. Entry u16 at +8/+A/+C/+E are candidate indices with 0xFFFF as sentinel. Next step for whoever picks it up: compile the m2c draft as-is, check that the goto/duplicate-return structure is compiled to the same branch order, then fix control flow before registers.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794760121.11731,
+  "score_before": 10325,
+  "score_after": 10325
+ },
+ {
+  "function": "func_80129348",
+  "text": "Not worked on yet. Machine draft (m2c) is control-flow heavy: nested pointer chains off D_8011F340 (entity table, 0x64 stride), with gotos to block_11/32/47/48 and duplicate return nodes; it should be rewritten from the assembly rather than patched. Index D_8011F308/D_8011F310 as f32 fields at the same 0x64 stride (see the struct-array evidence for D_8011F2F0-family). Do not use the stub candidate from this session (score 36865); the saved best 10325 is the baseline to restore.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794762802.8197582,
+  "score_before": 10325,
+  "score_after": 10325
  }
 ]
