@@ -7096,14 +7096,6 @@
   "score_after": 8516
  },
  {
-  "function": "func_80134688",
-  "text": "Not matched. Best this session 6990 (51.4%), revision 708c86b33d4f6580d166. Semantics are right per asm: D_80189C96 = func_800DE41C(0,0,3,0, 0x80,0xFF,0, &D_801CE928, &D_801CEC2C, then 9 zero stack slots) (18 args total, 14 stack slots 0x10..0x44); then ENT(idx)=&D_801D59B2 where ENT(i)=*(u8**)(D_8011F350 + i*100) with idx reloaded from D_80189C96 at each store (target reloads the whole index chain each time); D_801D59B2=0; ENT.s16[2]=0x46, s16[4]=0, u8[6..8]=0xFF, u8[9]=0xC8, s16[0xA]=0x6E, s16[0xC]= (s16 D_800DB1B8+0x2108 == 1 ? 0xDB : 0x75), s16[0xE]=0x64, s16[0x10]=5. Remaining diff: frame. Target frame is 0x50 (ra at 0x48, outgoing args 0x10..0x44), mine is 0x58, so my build reserves 8 extra bytes; check the 18-arg prototype and whether the callee takes a0..a3 as in the target (target sets a0=a1=a3=0, a2=3). Also the target stores the slot values in a different order (0x10=0x80 first, then 0x14=0xFF, 0x18..0x44 zeros). Next: try the 18-arg prototype with u16 return, and an explicit `s32` cast on the two pointer args.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794710740.8252978,
-  "score_before": 2534,
-  "score_after": 2534
- },
- {
   "function": "func_802114C8",
   "text": "Best 13233 (28.4%), not matched; restore saved best (the revision with var_a3 scored 13253, worse). Decoded target: frame 0x40, saves ra/s0/s1; arg0 in s1; s0 = &D_8021EEC0 (lui/addiu once, kept across calls, reused for lbu [0] and lw 0xE0). Ptr bump at D_800DE080+0x64 with words 0xED000000 and 0x5003C0. func_801CABF4 first call: stack args D_802D92A0, D_80187BF0+D_8021E231[D_8021E15F*0x110+D_8021EEC0[0]]*0x12, 0, D_802D6898, 0xE, 0x10, 0xE0, 0x60 (constants stored one at a time via addiu v0 / sw, so they are rematerialised, not kept in registers). Tail args: goto-path sets (a1,a2,5th) = (0x9D,0x21,0x28); else-path sets (var, 0x3C, 0x2B) after the 0x22 call on D_8021EEC6; the 0x9D path and else path share the final func_8014A4C8(arg0,a1,a2,0xB,x). Main problem: GCC hoists the constants 0xE/0x10/0xE0/0x60 and the addresses D_802D92A0/D_802D6898 into s2..s6, giving frame 0x50 and extra saved regs; the target does not. Untried ideas: different argument types for the stack args (void* vs s32 for D_802D92A0/D_802D6898), splitting the first call's args through a temporary, or declaring func_801CABF4 with fewer params. Note: the 0x4000/bit11 test reuses one lw of 0xE0; the else-path D_8021EEC1 table code (0x5A check, 6-byte D_8021B633 entries, shift-16 sign extension) is probably right as in the candidate.",
   "by": "claude-haiku-5-5-21",
@@ -10512,14 +10504,6 @@
   "score_after": 4625
  },
  {
-  "function": "func_80134688",
-  "text": "Not matched. Best this session 6990, worse than the saved 2534, so keep the saved draft as the starting point. What I learned: D_8011F350 is a table of 0x64-byte records whose first word is a pointer (the record is reached through *(void**)(D_8011F350 + i*0x64)); every field store recomputes the index from the global D_80189C96 (lhu, and the sll/addu chain for *100) because each store may alias, so do not cache the index or the record pointer in a temp (the saved draft's temp_v0 for the first stores is wrong). The first store is sh v0,D_80189C96 right after the call, then the record pointer is stored with sw &D_801D59B2 and the byte D_801D59B2 is cleared. Fields: +2 s16 0x46, +4 s16 0, +6/+7/+8 u8 0xFF, +9 u8 0xC8, +0xA s16 0x6E, +0xC s16 (D_800DD2C0 == 1 ? 0xDB : 0x75) where D_800DD2C0 is read as lh from the address D_800DB1B8+0x2108, +0xE s16 0x64, +0x10 s16 5. The call func_800DE41C has 18 args: a0..a3 = 0,0,3,0 and stack words 0x80, 0xFF, 0, &D_801CE928, &D_801CEC2C then nine zeros; the target frame is 0x50 with ra at 0x48 and the arg block from 0x10. My C with 18 args got a 0x58 frame (one word too many), so check the stack arg count (the target has the 5th-arg 0x80 at 0x10 and the zero at 0x24..0x44). Result unit still needs the frame fix before anything else.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794726298.38831,
-  "score_before": 2534,
-  "score_after": 2534
- },
- {
   "function": "func_8013CF4C",
   "text": "Not matched. Best this session 6753 (54.9%), revision c26db0ec0914292e153d; saved best 4403 is from an earlier attempt. Verified by compiles: (1) float literal suffixes (360.0f in the compare is correct; 1.0 and 3.14159/180.0 as doubles match the ldc1 constants, but using f on 3.14159/180.0 scored 8613); (2) a pointer walk over D_80183B80 with separate u16/f32 pointers scored 7813 (worse). Target frame is 0x60 and saves ra plus s1..s6, and mine is 0x58 with fewer saved regs, so the target has more live values across the func_8013AE60 and __sinf calls (likely the sinf argument and the sp copy kept in callee-saved regs). Next: find which local (probably sp copy or a loop pointer) needs a second callee-saved slot; try declaring the sp V8 copy as a pointer to D_80183308 instead of a value copy, and check the frame size. Moving on after that.",
   "by": "claude-haiku-5-5-22",
@@ -13822,14 +13806,6 @@
   "created_at": 1794740091.48464,
   "score_before": 649,
   "score_after": 649
- },
- {
-  "function": "func_80134688",
-  "text": "Not matched. Best this session 2820 (80% aligned; 137 vs 144 insns). Model: D_8011F350 is a byte-addressed table with 100-byte stride; each entry is a pointer, and the code writes &D_801D59B2 into entry[idx] then reads fields through it (s16 at +2, +4, +0xA, +0xC, +0xE, +0x10; u8 at +6..+9). Global D_800DD2C0 (s16) selects 0xDB vs 0x75 at +0xC. The first three field stores reuse the index computed once (temp_v0); later stores reload D_80189C96 each time, and the 0xA store reuses the index in $a0. The call func_800DE41C takes 18 args (0,0,3,0 in regs; 0x80,0xFF,0,&D_801CE928,&D_801CEC2C, then nine zeros on the stack); D_80189C96 = its u16 return. Open issue: the target frame is 0x50 with ra at 0x48, mine is 0x68 with ra at 0x60, even with the prototype replaced by `s32 func_800DE41C();`. Ordering: the target stores &D_801CEC2C before the zero run; the loads of D_80189C96 (lhu, lui/sll chain) are interleaved in a different order than mine. Next: find what adds the extra 0x18 of frame (try declaring the call's stack args as an explicit local array or a struct), then reorder the index loads.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794740105.342421,
-  "score_before": 2534,
-  "score_after": 2534
  },
  {
   "function": "func_800E067C",
@@ -18648,14 +18624,6 @@
   "score_after": 6820
  },
  {
-  "function": "func_80134688",
-  "text": "Not matched. Best 6885 (52.1%) this claim (saved best 2534, historical). Why release now: the remaining gap is the 0x58 vs 0x50 frame, which I could not attribute to a single source expression in two compiles; further edits are guesses. Known facts: call func_800DE41C(0,0,3,0,0x80,0xFF,0,D_801CE928,D_801CEC2C,0,0,0,0,0,0,0,0,0) with 14 stack words (0x80,0xFF,0,...), result stored as u16 into D_80189C96; entry = D_8011F350 + D_80189C96*0x64 holds a pointer to D_801D59B2 at offset 0 and D_801D59B2[0]=0; entry fields: s16 +2=0x46, s16 +4=0, u8 +6,+7,+8=0xFF, u8 +9=0xC8, s16 +0xA=0x6E, s16 +0xC=(D_800DD2C0==1?0xDB:0x75), s16 +0xE=0x64, s16 +0x10=5. Target reloads D_80189C96 (lhu) and recomputes the *0x64 per store group rather than hoisting it. Next agent: try grouping the stores by reload, then check the frame size against the 14-word outgoing area.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794754718.07703,
-  "score_before": 2534,
-  "score_after": 2534
- },
- {
   "function": "func_8014B590",
   "text": "Target structure (388 B, frame 0x18, saves ra and s0): if ((a0&0xFF) < 4) { s0=0xFF set in delay slot before branch; body sets s0=0; loop A i<14: buf[i+4]=D_8021F048[14*t+i], inner j<8 copies u16 buf[0x1C+16i+2j] from D_8021F270[224*t+16i+2j]; loop B i<8: word buf[0x47+i] (offset 0x11C) from D_8018D3A0[32*t+4i], byte buf[0x14+i]=D_8021E22F[272*t+34i] (one loop, both stores); loop C buf[0x13C+i]=0 for i<4; loop D sum of u8 buf[4..319]; store sum to buf[0] in jal delay slot; call func_8003DE60(D_80183750, sum, 320). Return s0&0xFF. Best C reached 9215 (non-volatile arg0) and 8540 (volatile arg0); both miss the frame/ra-s0 prologue ordering and the move t1,a0 before andi. Loop codegen still differs (target uses addu t3 about 13x, per-iteration address forms). Next step: get the prologue and s0 live-across-call right first, then the four loops' address arithmetic. Move-on budget exhausted.",
   "by": "claude-haiku-5-5-20",
@@ -20502,14 +20470,6 @@
   "created_at": 1794758400.420216,
   "score_before": 1647,
   "score_after": 1647
- },
- {
-  "function": "func_80134688",
-  "text": "Not matched. Target frame is 0x50 with ra at 0x48; func_800DE41C takes 18 args (4 regs, 14 stack words: 0x10=0x80, 0x14=0xFF, 0x18=0, 0x1C=&D_801CE928, 0x20=&D_801CEC2C, then 9 zeros). Declaring the callee prototype with 18 params gives a 0x58 frame at -O2; a temp s32 local keeps 0x50. Best -O2 score 6453 (temp_v0 = D_80189C96*0x64 variant); saved best 2534 is from a different source and was not recovered. Key finding: the target looks like KMC -O1 (no CSE across statements): every field store recomputes D_80189C96*0x64 by reloading the global (lhu, sll, addu, sll, addu, sll), and each store does lui/addu/lw of D_8011F350+idx. -O1 variants scored 4889-5545 (not matched). Pointer store *(void**)(D_8011F350+idx)=&D_801D59B2 followed by sb $zero,(p) matches the target shape with a local s8 *p. Still differing at -O1: frame 0x58 vs 0x50 for direct/p variants, and register choice (target loads D_8011F350 into a0 for the first field). Next: find a source form giving frame 0x50 at -O1 (temp_v0 form with per-statement recompute), or check whether the callee's arg list is shorter than 18.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794758402.175231,
-  "score_before": 2534,
-  "score_after": 2534
  },
  {
   "function": "func_8013CBBC",
@@ -25502,14 +25462,6 @@
   "created_at": 1794767885.949962,
   "score_before": 7320,
   "score_after": 7320
- },
- {
-  "function": "func_80134688",
-  "text": "Not matched. Best saved 2534 (m2c-style source with byte-indexed D_8011F350 and M2C_FIELD-like stores); this session's version with char-pointer casts scores 2820 (80.4%), revision 0a2d4b897e41fa6387a1. Keep the struct-free form: a rewrite with u8** and the idx local scored 9443 (34%), because the target indexes D_8011F350 as a byte array of records (stride 0x64 via D_80189C96 * 0x64 recomputed each time, with lhu/lui reloads of D_80189C96 at each use). Remaining diffs: target frame is -0x50 (ra at 0x48, args at 0x10-0x1C), ours is -0x68 with an extra slot at 0x20 and ra at 0x60, so the func_800DE41C argument list is probably too wide (18 params declared; the target passes 5 stack args). Next: narrow the prototype to the real arity, and recompute D_80189C96 * 0x64 at each use rather than caching it in temp_a0/temp_v0_2.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794767886.078723,
-  "score_before": 2534,
-  "score_after": 2534
  },
  {
   "function": "func_8013CF4C",
@@ -40005,5 +39957,62 @@
   "score_before": 3621,
   "score_after": 3220,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a981c24d7354e27d1ec3071aa9c7685f936ff1c32ffc355c9dcd4bdcb99dc151"
+ },
+ {
+  "function": "func_80134688",
+  "text": "Not matched. Best this session 6990 (51.4%), revision 708c86b33d4f6580d166. Semantics are right per asm: D_80189C96 = func_800DE41C(0,0,3,0, 0x80,0xFF,0, &D_801CE928, &D_801CEC2C, then 9 zero stack slots) (18 args total, 14 stack slots 0x10..0x44); then ENT(idx)=&D_801D59B2 where ENT(i)=*(u8**)(D_8011F350 + i*100) with idx reloaded from D_80189C96 at each store (target reloads the whole index chain each time); D_801D59B2=0; ENT.s16[2]=0x46, s16[4]=0, u8[6..8]=0xFF, u8[9]=0xC8, s16[0xA]=0x6E, s16[0xC]= (s16 D_800DB1B8+0x2108 == 1 ? 0xDB : 0x75), s16[0xE]=0x64, s16[0x10]=5. Remaining diff: frame. Target frame is 0x50 (ra at 0x48, outgoing args 0x10..0x44), mine is 0x58, so my build reserves 8 extra bytes; check the 18-arg prototype and whether the callee takes a0..a3 as in the target (target sets a0=a1=a3=0, a2=3). Also the target stores the slot values in a different order (0x10=0x80 first, then 0x14=0xFF, 0x18..0x44 zeros). Next: try the 18-arg prototype with u16 return, and an explicit `s32` cast on the two pointer args.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794710740.8252978,
+  "score_before": 2534,
+  "score_after": 2534
+ },
+ {
+  "function": "func_80134688",
+  "text": "Not matched. Best this session 6990, worse than the saved 2534, so keep the saved draft as the starting point. What I learned: D_8011F350 is a table of 0x64-byte records whose first word is a pointer (the record is reached through *(void**)(D_8011F350 + i*0x64)); every field store recomputes the index from the global D_80189C96 (lhu, and the sll/addu chain for *100) because each store may alias, so do not cache the index or the record pointer in a temp (the saved draft's temp_v0 for the first stores is wrong). The first store is sh v0,D_80189C96 right after the call, then the record pointer is stored with sw &D_801D59B2 and the byte D_801D59B2 is cleared. Fields: +2 s16 0x46, +4 s16 0, +6/+7/+8 u8 0xFF, +9 u8 0xC8, +0xA s16 0x6E, +0xC s16 (D_800DD2C0 == 1 ? 0xDB : 0x75) where D_800DD2C0 is read as lh from the address D_800DB1B8+0x2108, +0xE s16 0x64, +0x10 s16 5. The call func_800DE41C has 18 args: a0..a3 = 0,0,3,0 and stack words 0x80, 0xFF, 0, &D_801CE928, &D_801CEC2C then nine zeros; the target frame is 0x50 with ra at 0x48 and the arg block from 0x10. My C with 18 args got a 0x58 frame (one word too many), so check the stack arg count (the target has the 5th-arg 0x80 at 0x10 and the zero at 0x24..0x44). Result unit still needs the frame fix before anything else.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794726298.38831,
+  "score_before": 2534,
+  "score_after": 2534
+ },
+ {
+  "function": "func_80134688",
+  "text": "Not matched. Best this session 2820 (80% aligned; 137 vs 144 insns). Model: D_8011F350 is a byte-addressed table with 100-byte stride; each entry is a pointer, and the code writes &D_801D59B2 into entry[idx] then reads fields through it (s16 at +2, +4, +0xA, +0xC, +0xE, +0x10; u8 at +6..+9). Global D_800DD2C0 (s16) selects 0xDB vs 0x75 at +0xC. The first three field stores reuse the index computed once (temp_v0); later stores reload D_80189C96 each time, and the 0xA store reuses the index in $a0. The call func_800DE41C takes 18 args (0,0,3,0 in regs; 0x80,0xFF,0,&D_801CE928,&D_801CEC2C, then nine zeros on the stack); D_80189C96 = its u16 return. Open issue: the target frame is 0x50 with ra at 0x48, mine is 0x68 with ra at 0x60, even with the prototype replaced by `s32 func_800DE41C();`. Ordering: the target stores &D_801CEC2C before the zero run; the loads of D_80189C96 (lhu, lui/sll chain) are interleaved in a different order than mine. Next: find what adds the extra 0x18 of frame (try declaring the call's stack args as an explicit local array or a struct), then reorder the index loads.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794740105.342421,
+  "score_before": 2534,
+  "score_after": 2534
+ },
+ {
+  "function": "func_80134688",
+  "text": "Not matched. Best 6885 (52.1%) this claim (saved best 2534, historical). Why release now: the remaining gap is the 0x58 vs 0x50 frame, which I could not attribute to a single source expression in two compiles; further edits are guesses. Known facts: call func_800DE41C(0,0,3,0,0x80,0xFF,0,D_801CE928,D_801CEC2C,0,0,0,0,0,0,0,0,0) with 14 stack words (0x80,0xFF,0,...), result stored as u16 into D_80189C96; entry = D_8011F350 + D_80189C96*0x64 holds a pointer to D_801D59B2 at offset 0 and D_801D59B2[0]=0; entry fields: s16 +2=0x46, s16 +4=0, u8 +6,+7,+8=0xFF, u8 +9=0xC8, s16 +0xA=0x6E, s16 +0xC=(D_800DD2C0==1?0xDB:0x75), s16 +0xE=0x64, s16 +0x10=5. Target reloads D_80189C96 (lhu) and recomputes the *0x64 per store group rather than hoisting it. Next agent: try grouping the stores by reload, then check the frame size against the 14-word outgoing area.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794754718.07703,
+  "score_before": 2534,
+  "score_after": 2534
+ },
+ {
+  "function": "func_80134688",
+  "text": "Not matched. Target frame is 0x50 with ra at 0x48; func_800DE41C takes 18 args (4 regs, 14 stack words: 0x10=0x80, 0x14=0xFF, 0x18=0, 0x1C=&D_801CE928, 0x20=&D_801CEC2C, then 9 zeros). Declaring the callee prototype with 18 params gives a 0x58 frame at -O2; a temp s32 local keeps 0x50. Best -O2 score 6453 (temp_v0 = D_80189C96*0x64 variant); saved best 2534 is from a different source and was not recovered. Key finding: the target looks like KMC -O1 (no CSE across statements): every field store recomputes D_80189C96*0x64 by reloading the global (lhu, sll, addu, sll, addu, sll), and each store does lui/addu/lw of D_8011F350+idx. -O1 variants scored 4889-5545 (not matched). Pointer store *(void**)(D_8011F350+idx)=&D_801D59B2 followed by sb $zero,(p) matches the target shape with a local s8 *p. Still differing at -O1: frame 0x58 vs 0x50 for direct/p variants, and register choice (target loads D_8011F350 into a0 for the first field). Next: find a source form giving frame 0x50 at -O1 (temp_v0 form with per-statement recompute), or check whether the callee's arg list is shorter than 18.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794758402.175231,
+  "score_before": 2534,
+  "score_after": 2534
+ },
+ {
+  "function": "func_80134688",
+  "text": "Not matched. Best saved 2534 (m2c-style source with byte-indexed D_8011F350 and M2C_FIELD-like stores); this session's version with char-pointer casts scores 2820 (80.4%), revision 0a2d4b897e41fa6387a1. Keep the struct-free form: a rewrite with u8** and the idx local scored 9443 (34%), because the target indexes D_8011F350 as a byte array of records (stride 0x64 via D_80189C96 * 0x64 recomputed each time, with lhu/lui reloads of D_80189C96 at each use). Remaining diffs: target frame is -0x50 (ra at 0x48, args at 0x10-0x1C), ours is -0x68 with an extra slot at 0x20 and ra at 0x60, so the func_800DE41C argument list is probably too wide (18 params declared; the target passes 5 stack args). Next: narrow the prototype to the real arity, and recompute D_80189C96 * 0x64 at each use rather than caching it in temp_a0/temp_v0_2.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794767886.078723,
+  "score_before": 2534,
+  "score_after": 2534
+ },
+ {
+  "function": "func_80134688",
+  "text": "Small-model attempt at func_80134688: 14 tries.\n  best 1344 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 1539 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 2385 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 4445 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 4917 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n14 tries, best 1344 under gcc-2.7.2-kmc -O1 (own profile 4540, saved 3622). Win: index local idx = D_80189C96*0x64 reused for the first three field stores, then the global reloaded. Left: target frame is 0x50, ours 0x68 (locals idx and p cost stack); table loads not folded into lw %lo; register choice for the first sh.",
+  "by": "manual-dd20dc5e769042d0",
+  "created_at": 1795719935.066435,
+  "score_before": 4540,
+  "score_after": 4540,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:15ec6a8afd83a7ac7ac06329c4483c698c44d2c9f03e311af662e6df3f132b8f"
  }
 ]
