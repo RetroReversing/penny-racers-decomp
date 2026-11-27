@@ -2960,14 +2960,6 @@
   "score_after": 10
  },
  {
-  "function": "func_801604F0",
-  "text": "Deep permuter: score 10380 \u2192 10320; 1 improvements; 118 candidates tested; 36 cached skips; 0 rejected; 7212s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935548",
-  "created_at": 1794357190.689883,
-  "score_before": 10380,
-  "score_after": 10320
- },
- {
   "function": "n_alFxPull",
   "text": "Deep permuter: score 3213 \u2192 3213; 0 improvements; 37 candidates tested; 114 cached skips; 0 rejected; 7224s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934909",
@@ -6352,14 +6344,6 @@
   "score_after": 875
  },
  {
-  "function": "func_801604F0",
-  "text": "Best verified 10885 (revision 320f83198f02b14d4b46); move-on budget 3/3 exhausted, no improvement in 8+ compiles across sessions.\n\nTarget shape (280 insns incl. frame) vs candidate (248): candidate is 24 insns short and the *first* mismatch is at instruction 2 \u2014 the target computes the 0x64-stride index for the FIRST array access using $s2 (the saved raw arg0: `move $s2,$a0` in the prologue, then `andi $v1,$s2,0xFFFF; sll/addu/sll 3/addu/sll 2` -> `sll $a1,$v0,2`) and keeps $a1 = idx*0x64 as a live callee-saved-ish value reused later (`lui $a0,%hi(D_8011F2F0); addiu $a0,$a0,%lo(...); addu $s1,$a1,$a0`). Candidate instead emits `lui/addiu $a1` first and folds %lo into the addiu, so gcc-2.7.2 never materializes the base in $a0. Also target re-computes the same stride sequence a second time right before the switch (`andi $v1,$s2,0xFFFF; ... addu $v1,$v1,$v0`) and a third time in case 1 (`sll $s1,$v0,2`), i.e. the original source repeats `(arg0 & 0xFFFF) * 0x64` textually in each place rather than sharing a variable; sharing `idx`/`tbl` locals (tried) collapses it and loses the target's duplicate sequences.\n\nTried and no score change (all 10885): `u32 idx = arg0 & 0xFFFF` local + `tbl` local; `(u16)arg0`; direct `D_8011F2F0 + idx*0x64` without tbl; `u16 idx`; `D_8011F2FC[idx*0x64] = ... - 5;` instead of the `u8 *p` pointer (target does show separate `lbu`/`sb` on D_8011F2FC plus a *third* reload for the `sltiu $v0,$v0,6` compare, so the pointer version is not the problem). Making s1/s3/switch use `(arg0 & 0xFFFF)` inline scored 11085 (worse) \u2014 that variant also emitted the stride computation before the prologue saves.\n\nNext ideas not yet tried: (a) declare the stride expression through a helper macro/inline so the same text is duplicated three times; (b) hoist `$a1 = idx*0x64` into a `u32 byteOff` used both for `D_8011F2F0 + byteOff` and `D_8011F32E + byteOff` while a separate recomputation feeds the switch; (c) the FP side is only register-allocation/order noise (fs0..fs5 all saved), so leave the math alone.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794714082.4493608,
-  "score_before": 10375,
-  "score_after": 10375
- },
- {
   "function": "func_80140E0C",
   "text": "Switch on a u16 state at D_8011F32E (stride 0x64, 8 cases, jump table D_801834C8). Best 15900 (43%, 279 vs 239 insns). Target recomputes idx*100 per use and addresses the globals as `lui $at,%hi(X); addu $at,$at,off; sh ...,%lo(X)($at)`; my pointer-style `base + off` forms produce `addiu`+`($a1)` stores instead. Target saves 5 regs (s0-s3, ra) with obj in s3 and the (u16)arg0 value in s2. Tried: `(u16)arg0` casts everywhere (15900) and a local `u16 idx` (15905). Untried: indexing the globals as arrays directly, and matching the saved-register layout by making obj/base live across the calls.\n\nRe-claimed and released without compiling. Candidate b14e0b2802be80aff9ec differs from my earlier draft in cases 2 and 6 (the func_8013F44C call is in the else branch of the decrement). Untested, so it may be worth a compile. Earlier best remains 15900 (43%) with the switch index problem described in my previous note.",
   "by": "claude-haiku-5-5-23",
@@ -8414,14 +8398,6 @@
   "created_at": 1794728336.085492,
   "score_before": 200,
   "score_after": 200
- },
- {
-  "function": "func_801604F0",
-  "text": "Best candidate scores 11633 (57%, 237 vs 272 insns); not matched. Structure is right in outline: s1=&D_8011F2F0[(u16)arg0] (stride 100), s0=s1->obj (ptr at +0x60), s3=&D_8011F2F0[s0->link->idx] (link at Obj+4, idx u16 at +2); Obj: f32 +8/+C/+10, s16 cnt +0x14, u8 b16 +0x16, u16 +0x76; Ent: u8 +0xC/+0xD, f32 +0x18/1C/20 and +0x30/34 (sin/cos outputs), state u16 +0x3E. Constants: 45.0f 0x42340000, 660.0f 0x44250000, 0.002454369f 0x3B20D97B, 10.0f, 50.0f, 0.075f, 0.15f, 8.0f, 60.0f, 600.0f, 0.3f, 0.5f, 0.1f. Target frame is 0x58 and saves fs0..fs5 (six callee-saved float regs), so the target keeps constants and intermediates live across the __sinf/__cosf calls; my C reloads them. Remaining diff: register allocation and order of the multiply chain (target does (x*k)*50 and reuses fs0=k, fs3=45, fs2=660 etc.). Next step: write the expression so sin/cos inputs are shared locals computed once (arg = (x*45 + b*660)*k), and check whether gcc-2.7.2 keeps constants in fs regs across calls. Consider search_flags for -O1 vs -O2 scheduling if the rest is ordering only.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794728380.6501791,
-  "score_before": 10236,
-  "score_after": 10236
  },
  {
   "function": "func_80026250",
@@ -10782,14 +10758,6 @@
   "created_at": 1794741368.6814332,
   "score_before": 13558,
   "score_after": 13558
- },
- {
-  "function": "func_801604F0",
-  "text": "Not matched. Best 11443 (57.9%), target 272 insns vs mine 237, saved at revision ecb1fb594c6ca3f8e918. Compiled once with fixed __sinf/__cosf (one f32 arg) and typed Ent/Obj/Link structs. Remaining gap is structural: the target computes the Ent index with a stride chain (andi 0xffff; sll 1; addu; sll 3; addu; sll 2 / subu), which is the same 0x64-stride array indexing as the neighbouring functions in this unit (func_80163A38, func_80218288), and the target calls D_8011F2F0 via lui/addiu per access rather than one hoisted base. My Ent struct is probably not the layout the target uses (0x64-byte entries, not my 0x58-ish struct). Next step: re-derive the Ent size from the stride chain, then the frame (target 0x58, mine 0x50), then state-0 branch order. Parked; same stride issue as the other two units' notes, so a shared Ent struct should be settled first.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794741406.750135,
-  "score_before": 10236,
-  "score_after": 10236
  },
  {
   "function": "func_8014B048",
@@ -14632,14 +14600,6 @@
   "score_after": 595
  },
  {
-  "function": "func_801604F0",
-  "text": "Unmatched. Keep saved best 11443 (57.9%, revision 19e0edbd2dd806d2bb53, typed Ent/Obj structs, node pool D_8011F2F0 stride 0x64, Obj* at +0x5C via s1->obj). Four structural variants tried this session, none better: byte-offset ENT_P macro (14500, revision b461481d81d3c889c8d5, do not reuse); direct D_8011F2F0[s0->link->idx] indexing in the case 0 branch (12853, revision e6a1e236de1a7aebac35). Why I'm stopping: the target expands idx*0x64 inline as sll/addu chains and reloads the pool base with lui six times, with a 0x58 frame and ra at 0x20(sp); my versions use 0x50-0x68 frames and differ in where the index is cached, and none of the variants moved the score toward a match. Untried: -O1 profile check (pool-region note), and the signedness family (compile_family) on the saved best. Machine draft had __sinf arg-count errors, so fix the declarations before redrafting.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794758342.45649,
-  "score_before": 10236,
-  "score_after": 10236
- },
- {
   "function": "func_800DE2E0",
   "text": "Reconfirmed exact O1 source/profile, function-specific suggestion retained. Natural Node0x64 initializer for 320 linked nodes with active@1 prev@0x10 next@0x12. Already pending application; no O2 tuning warranted.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -15198,14 +15158,6 @@
   "created_at": 1794759845.0591319,
   "score_before": 900,
   "score_after": 900
- },
- {
-  "function": "func_801604F0",
-  "text": "Not matched. Best = saved candidate rev 19e0edbd2dd806d2bb53 (score 11443, 57.9%): the m2c draft with the broken `func_8013E49C` prototype removed and the f32 locals fs0/fs4/fs5/var_fv0 declared at top; compiles cleanly. Verified from target asm: Ent stride is 0x64 (index = (u16)arg0 * 25 * 4), and Obj pointer is at Ent+0x60 (so Ent pad4 must make obj land at 0x60; the draft's pad4[0x20] puts obj at 0x5C, which is WRONG; pad4[0x26] was tried and scored worse, 11818, but that was with other code unchanged, so re-test with the stride/obj fix together). Frame is 0x58 with ra, s0-s3 saved, fs0-fs5 saved. Target keeps (u16)arg0 in s2 and recomputes `andi $v1,$s2,0xffff` later, so there is a second use of the index later in the function (likely the case 1 path reading the entity again); the draft reads it once. Next: fix obj offset, then express the second index use as a fresh D_8011F2F0[(u16)arg0] expression in the later block, and check the case order (target does case 1 block after the sinf/cosf work). Callees __sinf/__cosf/func_8013E49C not verified.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794759861.336981,
-  "score_before": 10236,
-  "score_after": 10236
  },
  {
   "function": "func_8020FFD0",
@@ -16246,14 +16198,6 @@
   "created_at": 1794762122.768533,
   "score_before": 55,
   "score_after": 55
- },
- {
-  "function": "func_801604F0",
-  "text": "Releasing early at low effort. Best 11443 (57.9%) at revision 19e0edbd2dd806d2bb53 (pointer-local version, s0=Obj*, s1/s3=Ent* locals). Target 272 insns vs 237 mine. Target frame is 0x58 (mine 0x50) and it saves f30 at 0x50, so it has an extra 8-byte local/save. Target re-derives D_8011F2F0[(u16)idx] addresses more often (andi 0xffff, sll/addu/subu x23 pattern, lui D_8011F2F0 x6). Tried inlining D_8011F2F0[(u16)arg0] at every use (15459, worse): it loses the $s3 pointer reuse that the target shows for lwc1 0x1c/0x18/0x20($s3). Untried: keep s1 as pointer but re-index s3 per use, or add an extra float local to reach the 0x58 frame.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794762131.01261,
-  "score_before": 10236,
-  "score_after": 10236
  },
  {
   "function": "func_80233ED0",
@@ -41522,5 +41466,70 @@
   "created_at": 1794762147.437999,
   "score_before": 14069,
   "score_after": 14069
+ },
+ {
+  "function": "func_801604F0",
+  "text": "Deep permuter: score 10380 \u2192 10320; 1 improvements; 118 candidates tested; 36 cached skips; 0 rejected; 7212s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935548",
+  "created_at": 1794357190.689883,
+  "score_before": 10380,
+  "score_after": 10320
+ },
+ {
+  "function": "func_801604F0",
+  "text": "Best verified 10885 (revision 320f83198f02b14d4b46); move-on budget 3/3 exhausted, no improvement in 8+ compiles across sessions.\n\nTarget shape (280 insns incl. frame) vs candidate (248): candidate is 24 insns short and the *first* mismatch is at instruction 2 \u2014 the target computes the 0x64-stride index for the FIRST array access using $s2 (the saved raw arg0: `move $s2,$a0` in the prologue, then `andi $v1,$s2,0xFFFF; sll/addu/sll 3/addu/sll 2` -> `sll $a1,$v0,2`) and keeps $a1 = idx*0x64 as a live callee-saved-ish value reused later (`lui $a0,%hi(D_8011F2F0); addiu $a0,$a0,%lo(...); addu $s1,$a1,$a0`). Candidate instead emits `lui/addiu $a1` first and folds %lo into the addiu, so gcc-2.7.2 never materializes the base in $a0. Also target re-computes the same stride sequence a second time right before the switch (`andi $v1,$s2,0xFFFF; ... addu $v1,$v1,$v0`) and a third time in case 1 (`sll $s1,$v0,2`), i.e. the original source repeats `(arg0 & 0xFFFF) * 0x64` textually in each place rather than sharing a variable; sharing `idx`/`tbl` locals (tried) collapses it and loses the target's duplicate sequences.\n\nTried and no score change (all 10885): `u32 idx = arg0 & 0xFFFF` local + `tbl` local; `(u16)arg0`; direct `D_8011F2F0 + idx*0x64` without tbl; `u16 idx`; `D_8011F2FC[idx*0x64] = ... - 5;` instead of the `u8 *p` pointer (target does show separate `lbu`/`sb` on D_8011F2FC plus a *third* reload for the `sltiu $v0,$v0,6` compare, so the pointer version is not the problem). Making s1/s3/switch use `(arg0 & 0xFFFF)` inline scored 11085 (worse) \u2014 that variant also emitted the stride computation before the prologue saves.\n\nNext ideas not yet tried: (a) declare the stride expression through a helper macro/inline so the same text is duplicated three times; (b) hoist `$a1 = idx*0x64` into a `u32 byteOff` used both for `D_8011F2F0 + byteOff` and `D_8011F32E + byteOff` while a separate recomputation feeds the switch; (c) the FP side is only register-allocation/order noise (fs0..fs5 all saved), so leave the math alone.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794714082.4493608,
+  "score_before": 10375,
+  "score_after": 10375
+ },
+ {
+  "function": "func_801604F0",
+  "text": "Best candidate scores 11633 (57%, 237 vs 272 insns); not matched. Structure is right in outline: s1=&D_8011F2F0[(u16)arg0] (stride 100), s0=s1->obj (ptr at +0x60), s3=&D_8011F2F0[s0->link->idx] (link at Obj+4, idx u16 at +2); Obj: f32 +8/+C/+10, s16 cnt +0x14, u8 b16 +0x16, u16 +0x76; Ent: u8 +0xC/+0xD, f32 +0x18/1C/20 and +0x30/34 (sin/cos outputs), state u16 +0x3E. Constants: 45.0f 0x42340000, 660.0f 0x44250000, 0.002454369f 0x3B20D97B, 10.0f, 50.0f, 0.075f, 0.15f, 8.0f, 60.0f, 600.0f, 0.3f, 0.5f, 0.1f. Target frame is 0x58 and saves fs0..fs5 (six callee-saved float regs), so the target keeps constants and intermediates live across the __sinf/__cosf calls; my C reloads them. Remaining diff: register allocation and order of the multiply chain (target does (x*k)*50 and reuses fs0=k, fs3=45, fs2=660 etc.). Next step: write the expression so sin/cos inputs are shared locals computed once (arg = (x*45 + b*660)*k), and check whether gcc-2.7.2 keeps constants in fs regs across calls. Consider search_flags for -O1 vs -O2 scheduling if the rest is ordering only.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794728380.6501791,
+  "score_before": 10236,
+  "score_after": 10236
+ },
+ {
+  "function": "func_801604F0",
+  "text": "Not matched. Best 11443 (57.9%), target 272 insns vs mine 237, saved at revision ecb1fb594c6ca3f8e918. Compiled once with fixed __sinf/__cosf (one f32 arg) and typed Ent/Obj/Link structs. Remaining gap is structural: the target computes the Ent index with a stride chain (andi 0xffff; sll 1; addu; sll 3; addu; sll 2 / subu), which is the same 0x64-stride array indexing as the neighbouring functions in this unit (func_80163A38, func_80218288), and the target calls D_8011F2F0 via lui/addiu per access rather than one hoisted base. My Ent struct is probably not the layout the target uses (0x64-byte entries, not my 0x58-ish struct). Next step: re-derive the Ent size from the stride chain, then the frame (target 0x58, mine 0x50), then state-0 branch order. Parked; same stride issue as the other two units' notes, so a shared Ent struct should be settled first.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794741406.750135,
+  "score_before": 10236,
+  "score_after": 10236
+ },
+ {
+  "function": "func_801604F0",
+  "text": "Unmatched. Keep saved best 11443 (57.9%, revision 19e0edbd2dd806d2bb53, typed Ent/Obj structs, node pool D_8011F2F0 stride 0x64, Obj* at +0x5C via s1->obj). Four structural variants tried this session, none better: byte-offset ENT_P macro (14500, revision b461481d81d3c889c8d5, do not reuse); direct D_8011F2F0[s0->link->idx] indexing in the case 0 branch (12853, revision e6a1e236de1a7aebac35). Why I'm stopping: the target expands idx*0x64 inline as sll/addu chains and reloads the pool base with lui six times, with a 0x58 frame and ra at 0x20(sp); my versions use 0x50-0x68 frames and differ in where the index is cached, and none of the variants moved the score toward a match. Untried: -O1 profile check (pool-region note), and the signedness family (compile_family) on the saved best. Machine draft had __sinf arg-count errors, so fix the declarations before redrafting.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794758342.45649,
+  "score_before": 10236,
+  "score_after": 10236
+ },
+ {
+  "function": "func_801604F0",
+  "text": "Not matched. Best = saved candidate rev 19e0edbd2dd806d2bb53 (score 11443, 57.9%): the m2c draft with the broken `func_8013E49C` prototype removed and the f32 locals fs0/fs4/fs5/var_fv0 declared at top; compiles cleanly. Verified from target asm: Ent stride is 0x64 (index = (u16)arg0 * 25 * 4), and Obj pointer is at Ent+0x60 (so Ent pad4 must make obj land at 0x60; the draft's pad4[0x20] puts obj at 0x5C, which is WRONG; pad4[0x26] was tried and scored worse, 11818, but that was with other code unchanged, so re-test with the stride/obj fix together). Frame is 0x58 with ra, s0-s3 saved, fs0-fs5 saved. Target keeps (u16)arg0 in s2 and recomputes `andi $v1,$s2,0xffff` later, so there is a second use of the index later in the function (likely the case 1 path reading the entity again); the draft reads it once. Next: fix obj offset, then express the second index use as a fresh D_8011F2F0[(u16)arg0] expression in the later block, and check the case order (target does case 1 block after the sinf/cosf work). Callees __sinf/__cosf/func_8013E49C not verified.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794759861.336981,
+  "score_before": 10236,
+  "score_after": 10236
+ },
+ {
+  "function": "func_801604F0",
+  "text": "Releasing early at low effort. Best 11443 (57.9%) at revision 19e0edbd2dd806d2bb53 (pointer-local version, s0=Obj*, s1/s3=Ent* locals). Target 272 insns vs 237 mine. Target frame is 0x58 (mine 0x50) and it saves f30 at 0x50, so it has an extra 8-byte local/save. Target re-derives D_8011F2F0[(u16)idx] addresses more often (andi 0xffff, sll/addu/subu x23 pattern, lui D_8011F2F0 x6). Tried inlining D_8011F2F0[(u16)arg0] at every use (15459, worse): it loses the $s3 pointer reuse that the target shows for lwc1 0x1c/0x18/0x20($s3). Untried: keep s1 as pointer but re-index s3 per use, or add an extra float local to reach the 0x58 frame.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794762131.01261,
+  "score_before": 10236,
+  "score_after": 10236
+ },
+ {
+  "function": "func_801604F0",
+  "text": "Profile probe: this saved C scores 6489 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (9 of its 12 nearest matched neighbours were built with it), 9274 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721273.1414359,
+  "score_before": 9274,
+  "score_after": 6489,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a92718582d1625cced0db9072d7c0f1dbc75c7d0449919b67245dbb031b57ce2"
  }
 ]
