@@ -9080,14 +9080,6 @@
   "score_after": 200
  },
  {
-  "function": "func_801493F0",
-  "text": "Not matched. Best this session 5457 (revision 9caff6c3cb879d2fea8b; saved best was 9127). Source: no f local, s1 = D_800DA260 + arg0*0x178 as u8*, D_8018994E=0 then D_8018994C=2/1/0 with float compares read as *(f32*)(s1+arg0*8+0x28) (<=3.0, >=0.4 && <=0.6, >=0.7), D_8018994A/B from func_801FA30C()&0xF table lookups with 0x1C<=0.9 -> 9 and 0x1C>=0.9 && D_80189B35==0 -> 9, then nine func_8003DE60 calls K&R-style (floats promoted to double: s1+0x14/0x18/0x1C/0x20, s1[0x24] byte, s1+arg0*8+0x28/0x2C, then D_8018994A/B bytes). Remaining diffs: our frame is 0x28 with sdc1 $f20 (a callee-saved double), target is 0x20 with ra,s0,s1 only; we likely keep a float live across a call. Target reloads 0x1C/0x28 after each call and uses lui/addiu+sb for D_8018994E (a p = &D_8018994E; p[-2] = 2 form did not change the score). Try: avoid any float value living across calls (keep reloads inline). Note: a `f32 *q` declaration in the middle of a block is a C89 parse error; declare at block start.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794726113.182293,
-  "score_before": 9127,
-  "score_after": 5457
- },
- {
   "function": "func_80164D00",
   "text": "Best current: revision 1f5d84a0aa1ed52fdeab, score 3510 (80.0%); target 176 insns, mine 170. Shape is right. Key facts that made the score move: re-read *(u16*)(arg0+2) at each use (target does lhu 2($s2) before each table index, not one cached idx); keep the raw func_8013E364() result in s3 and mask it at each use (s3&0xFFFF) instead of a cached s0. Remaining: the target keeps FOUR callee-saved FP values live (frame 0x88, sdc1 f20/f22/f24/f26): k8=8.0f (fs0), k180=180.0f (fs1), k314=3.14f (fs2) and the sin result (fs3) across the cos call. Mine only saves three (frame 0x80), so the sin*8 result is being recomputed or spilled differently. Also the target saves s3,s2,s1,s0 and keeps arg0 in s2 (move $s2,$a0) while mine uses s0 for arg0 and loads 0x898 from it. Next: make arg0 a local `u8 *obj = arg0` used through obj for every field, and hold fs3 in a local that is read only after the cos call.",
   "by": "claude-haiku-5-5-24",
@@ -11758,14 +11750,6 @@
   "created_at": 1794740039.6842601,
   "score_before": 58770,
   "score_after": 58770
- },
- {
-  "function": "func_801493F0",
-  "text": "Stopping here: best 5332 (69.7%), revision a873e0c82693c247852f. Control flow, thresholds, table lookups and the nine func_8003DE60 calls are right. Blocker: frame is -0x28 with an extra `sdc1 $f20,0x20($sp)` (target -0x20, saves ra/s1/s0 only). It persists under every prototype tried ((void*,...), (void*,f64), per-call casts), and the signedness family did nothing. Also target reuses one lui/addiu for &D_8018994E across the stores (ours re-materialises per store), and computes s0 = arg0*8 in call delay slots. Next step: find what makes gcc allocate a callee-saved FP reg here (try a plain f32 local for the 0x28 field, or compile a version without the 0x1C-based branch to isolate it).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794740055.702157,
-  "score_before": 5457,
-  "score_after": 5332
  },
  {
   "function": "func_80164D00",
@@ -15584,14 +15568,6 @@
   "score_after": 7136
  },
  {
-  "function": "func_801493F0",
-  "text": "Not matched. Best 10276 (41.6%, revision 5650a57488202f680717): a clean rewrite with u8 base D_800DA260 + arg0*0x178 (target computes this as ((arg0*3)<<4 - arg0)<<3), f32 field at +0x28 indexed by arg0*8, f32 at +0x1C, and u8 globals. Target keeps arg0 in s0 across the calls (0x20 frame with ra/s1/s0), and my version has no frame, so the calls and values are wrong. Target float compares use single-precision constants (lui 0x4040 + mtc1 for 3.0f + c.le.s); changing the constant to double made it worse (10896), so keep 3.0f. Callee func_8003DE60 is called with 1 or 2 args in the target; its prototype is unknown and I guessed (ptr, u8). Next: confirm the call signatures of func_8003DE60 and func_801FA30C (returns u32, masked &0xF), and make arg0 survive the calls via s0 so the 0x20 frame appears. Not tried: the draft's exact layout of the mfc1-based calls (12 mfc1 $a3,$f4 in target).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794754394.124846,
-  "score_before": 5332,
-  "score_after": 5332
- },
- {
   "function": "func_80029890",
   "text": "20 trials no improvement from verified9. Same nine stack offset mismatches as297E8; reversed Msg/mq declarations and explicit struct aggregate produce556 with extra saved register. Local repairs declarations/types/arity/guards exhausted current round without gain. Need message at sp10 queue28 while retaining s0 reuse after m.f20 store.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -16214,14 +16190,6 @@
   "created_at": 1794756408.227631,
   "score_before": 5100,
   "score_after": 5100
- },
- {
-  "function": "func_801493F0",
-  "text": "Scored 10276 (41.6%) at revision 80f2c21aaeed99aabe0c, with the straightforward C from the machine draft (drop the duplicate extern/prototype lines if the compiler complains). Target is 176 insns, ours 139. Key evidence: the target promotes the float comparisons through double (cvt.d.s $f4,$f0 x6, c.le.d style compares), so the literal comparisons 3.0f/0.4f/0.6f/0.7f/0.9f are probably double constants or the f32 field is compared as f64 \u2014 try `(f64)` on the loaded field before comparing. The target also keeps arg0 in s0 (move s0,a0 at entry, saves ra/s1/s0 with frame 0x18), and computes arg0*0x178 via sll/addu/subu (arg0*0x178 = (arg0*8 - arg0)*... check against target: sll v0,s0,1; addu; sll 3; addu; ... 0x178 = 376 = 8*47). Its record pointer s1 is then reused for the field loads at +0x1C and +0x24 and the s1+arg0*8+0x28 offsets. Several stores go through separate lui/addiu base computations, which suggests D_8018994E/A/B/C are one struct or contiguous bytes; check with read_data before naming them.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794756430.101986,
-  "score_before": 5332,
-  "score_after": 5332
  },
  {
   "function": "func_801FCBEC",
@@ -17190,14 +17158,6 @@
   "created_at": 1794758794.084299,
   "score_before": 17857,
   "score_after": 17857
- },
- {
-  "function": "func_801493F0",
-  "text": "Not matched. Best 5027 (71.4%, revision eab5a4419ab2e258271f: `s32 i = arg0`, D_8018994A as u8[] with [0]/[1], floats passed to the K&R func_8003DE60 as promoted doubles). Established from the target: the float args to func_8003DE60 are required (cvt.d.s + mfc1 a2/a3); D_8018994A is a 2-byte array; the frame is 0x20 with arg0 in $s0. Remaining gaps: (a) an extra sdc1 $f20 spill and 0x28 frame in mine; (b) the target stores D_8018994E through one $v1 base (lui/addiu, sb $zero,0($v1)) and writes D_8018994C as sb $v0,-2($v1), which suggests a shared base at 0x8018994E; a D_8018994E[-2] form did not change the score; (c) branch layout for the 0.4..0.6 range (bc1fl). Tried and worse or equal: local f (6307), s0 = s1+arg0*8 pointer (5882), i copy (5027), D_8018994E[-2] (5027). Next: find which expression spills $f20 (probably a float reload before the call sequence), and try a single source where the D_8018994C/E writes share one pointer.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794758813.895041,
-  "score_before": 5332,
-  "score_after": 5027
  },
  {
   "function": "func_80211A84",
@@ -20814,14 +20774,6 @@
   "created_at": 1794767550.1454499,
   "score_before": 8675,
   "score_after": 8675
- },
- {
-  "function": "func_801493F0",
-  "text": "Not matched. Best 5027 (71.4%), revision d9775df541283231c2b5 (clean rewrite of the m2c draft with declarations fixed: D_8018994E u8, D_8018994C s8, D_8018994A u8[], func_8003DE60 left unprototyped). Target frame is 0x20 (ra at 0x18, s1 at 0x14) with no double save; ours is 0x28 with sdc1 $f20, which suggests the float constants 0.4f/0.6f/0.7f/0.9f/3.0f are being kept in f20 across calls. Target loads each float constant per use and passes float args to func_8003DE60 as cvt.d.s/mfc1 pairs (unprototyped promotion is correct; a prototype with f32 made it worse, 9552). Target stores D_8018994E = 0 before the first compare with addiu $v1,%lo / sb $zero,($v1); ours uses lui $at, sb $zero, %lo. Next: try reordering so D_8018994E=0 is written at the top via a pointer temp, and test whether the three compare branches should be if/else chains.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794767800.305163,
-  "score_before": 5027,
-  "score_after": 5027
  },
  {
   "function": "func_80164D00",
@@ -41075,5 +41027,53 @@
   "score_before": null,
   "score_after": null,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:8b2c89ae1182aa39122bb8a34df8a29071a7189a4587465e09aaa6feed9b84cf"
+ },
+ {
+  "function": "func_801493F0",
+  "text": "Not matched. Best this session 5457 (revision 9caff6c3cb879d2fea8b; saved best was 9127). Source: no f local, s1 = D_800DA260 + arg0*0x178 as u8*, D_8018994E=0 then D_8018994C=2/1/0 with float compares read as *(f32*)(s1+arg0*8+0x28) (<=3.0, >=0.4 && <=0.6, >=0.7), D_8018994A/B from func_801FA30C()&0xF table lookups with 0x1C<=0.9 -> 9 and 0x1C>=0.9 && D_80189B35==0 -> 9, then nine func_8003DE60 calls K&R-style (floats promoted to double: s1+0x14/0x18/0x1C/0x20, s1[0x24] byte, s1+arg0*8+0x28/0x2C, then D_8018994A/B bytes). Remaining diffs: our frame is 0x28 with sdc1 $f20 (a callee-saved double), target is 0x20 with ra,s0,s1 only; we likely keep a float live across a call. Target reloads 0x1C/0x28 after each call and uses lui/addiu+sb for D_8018994E (a p = &D_8018994E; p[-2] = 2 form did not change the score). Try: avoid any float value living across calls (keep reloads inline). Note: a `f32 *q` declaration in the middle of a block is a C89 parse error; declare at block start.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794726113.182293,
+  "score_before": 9127,
+  "score_after": 5457
+ },
+ {
+  "function": "func_801493F0",
+  "text": "Stopping here: best 5332 (69.7%), revision a873e0c82693c247852f. Control flow, thresholds, table lookups and the nine func_8003DE60 calls are right. Blocker: frame is -0x28 with an extra `sdc1 $f20,0x20($sp)` (target -0x20, saves ra/s1/s0 only). It persists under every prototype tried ((void*,...), (void*,f64), per-call casts), and the signedness family did nothing. Also target reuses one lui/addiu for &D_8018994E across the stores (ours re-materialises per store), and computes s0 = arg0*8 in call delay slots. Next step: find what makes gcc allocate a callee-saved FP reg here (try a plain f32 local for the 0x28 field, or compile a version without the 0x1C-based branch to isolate it).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794740055.702157,
+  "score_before": 5457,
+  "score_after": 5332
+ },
+ {
+  "function": "func_801493F0",
+  "text": "Not matched. Best 10276 (41.6%, revision 5650a57488202f680717): a clean rewrite with u8 base D_800DA260 + arg0*0x178 (target computes this as ((arg0*3)<<4 - arg0)<<3), f32 field at +0x28 indexed by arg0*8, f32 at +0x1C, and u8 globals. Target keeps arg0 in s0 across the calls (0x20 frame with ra/s1/s0), and my version has no frame, so the calls and values are wrong. Target float compares use single-precision constants (lui 0x4040 + mtc1 for 3.0f + c.le.s); changing the constant to double made it worse (10896), so keep 3.0f. Callee func_8003DE60 is called with 1 or 2 args in the target; its prototype is unknown and I guessed (ptr, u8). Next: confirm the call signatures of func_8003DE60 and func_801FA30C (returns u32, masked &0xF), and make arg0 survive the calls via s0 so the 0x20 frame appears. Not tried: the draft's exact layout of the mfc1-based calls (12 mfc1 $a3,$f4 in target).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794754394.124846,
+  "score_before": 5332,
+  "score_after": 5332
+ },
+ {
+  "function": "func_801493F0",
+  "text": "Scored 10276 (41.6%) at revision 80f2c21aaeed99aabe0c, with the straightforward C from the machine draft (drop the duplicate extern/prototype lines if the compiler complains). Target is 176 insns, ours 139. Key evidence: the target promotes the float comparisons through double (cvt.d.s $f4,$f0 x6, c.le.d style compares), so the literal comparisons 3.0f/0.4f/0.6f/0.7f/0.9f are probably double constants or the f32 field is compared as f64 \u2014 try `(f64)` on the loaded field before comparing. The target also keeps arg0 in s0 (move s0,a0 at entry, saves ra/s1/s0 with frame 0x18), and computes arg0*0x178 via sll/addu/subu (arg0*0x178 = (arg0*8 - arg0)*... check against target: sll v0,s0,1; addu; sll 3; addu; ... 0x178 = 376 = 8*47). Its record pointer s1 is then reused for the field loads at +0x1C and +0x24 and the s1+arg0*8+0x28 offsets. Several stores go through separate lui/addiu base computations, which suggests D_8018994E/A/B/C are one struct or contiguous bytes; check with read_data before naming them.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794756430.101986,
+  "score_before": 5332,
+  "score_after": 5332
+ },
+ {
+  "function": "func_801493F0",
+  "text": "Not matched. Best 5027 (71.4%, revision eab5a4419ab2e258271f: `s32 i = arg0`, D_8018994A as u8[] with [0]/[1], floats passed to the K&R func_8003DE60 as promoted doubles). Established from the target: the float args to func_8003DE60 are required (cvt.d.s + mfc1 a2/a3); D_8018994A is a 2-byte array; the frame is 0x20 with arg0 in $s0. Remaining gaps: (a) an extra sdc1 $f20 spill and 0x28 frame in mine; (b) the target stores D_8018994E through one $v1 base (lui/addiu, sb $zero,0($v1)) and writes D_8018994C as sb $v0,-2($v1), which suggests a shared base at 0x8018994E; a D_8018994E[-2] form did not change the score; (c) branch layout for the 0.4..0.6 range (bc1fl). Tried and worse or equal: local f (6307), s0 = s1+arg0*8 pointer (5882), i copy (5027), D_8018994E[-2] (5027). Next: find which expression spills $f20 (probably a float reload before the call sequence), and try a single source where the D_8018994C/E writes share one pointer.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794758813.895041,
+  "score_before": 5332,
+  "score_after": 5027
+ },
+ {
+  "function": "func_801493F0",
+  "text": "Not matched. Best 5027 (71.4%), revision d9775df541283231c2b5 (clean rewrite of the m2c draft with declarations fixed: D_8018994E u8, D_8018994C s8, D_8018994A u8[], func_8003DE60 left unprototyped). Target frame is 0x20 (ra at 0x18, s1 at 0x14) with no double save; ours is 0x28 with sdc1 $f20, which suggests the float constants 0.4f/0.6f/0.7f/0.9f/3.0f are being kept in f20 across calls. Target loads each float constant per use and passes float args to func_8003DE60 as cvt.d.s/mfc1 pairs (unprototyped promotion is correct; a prototype with f32 made it worse, 9552). Target stores D_8018994E = 0 before the first compare with addiu $v1,%lo / sb $zero,($v1); ours uses lui $at, sb $zero, %lo. Next: try reordering so D_8018994E=0 is written at the top via a pointer temp, and test whether the three compare branches should be if/else chains.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794767800.305163,
+  "score_before": 5027,
+  "score_after": 5027
  }
 ]
