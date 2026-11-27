@@ -5992,14 +5992,6 @@
   "score_after": 12815
  },
  {
-  "function": "func_801E3FE8",
-  "text": "Move-on budget exhausted (3/3 no improvement). Best verified this session: 13448, revision 72374e515fc0aa8ade05 (score 0 nowhere).\n\nStructure recovered and confirmed against ROM (keep it):\n- D_801E9740=0; D_801E9738=0; n = *(u16*)(D_8006FAF0+0x20) - 1; p = D_8022A770+0x562.\n- if (*p == 0) { if (p[1] <= D_801E97A3[off] && p[2] <= D_801E97A4[off] && p[4] < D_801E97A5[off]) { func_8003DE60(D_801E9698); D_801E9738=1; store p[1],p[2],p[4] back to those three tables; 8x u16 copy loop from D_800DA26A+0x64+D_800DA260*0x12 into D_801E97B8[off]; } }\n- for (k=1;k<4;k++) { p = D_8022A770+0x562+k*5; same 3 compares against D_801E97A0/A1/A2[off] (note: p[4] < table); on success func_8003DE60(D_801E96B4,k); D_801E9740=k; store back; 8x u16 copy into D_801E97A6[off]; }\n- if (D_801E9740 || D_801E9738) { func_80029790(); D_801E9D58 = func_801E2F38(n & 0xFFFF); if (D_801E9D58) func_801DD938(0x10,0x4C,0xA,2,0xC8,0xB4,0x12,0x14,0,0x66); func_800297C8(); }\nwhere off = n*0x30.\n\nRemaining mismatch is purely codegen of the index: the target recomputes off from the single hoisted `n` in $s3 at every use as `sll $v0,$s3,1; addu $v0,$v0,$s3; sll $v0,$v0,4` (i.e. (n*3)<<4) and then folds it into `lui/addiu %lo(SYM); addu $at,$at,$off; lbu/sb %lo(SYM+1)($at)`. Writing `n * 0x30` (attempt 2, 14603) made it worse: GCC then kept the offset in a callee-saved reg and indexed with ($reg), and it also sank the D_8006FAF0 load. Attempt 1 with a hoisted `off` variable scored 13448 and produced the right per-use lui/addu %lo form.\n\nUntested next step: keep attempt 1 but write the scale explicitly as `(n * 3) << 4` in each index expression (no shared temp), so GCC emits sll/addu/sll per use; also declare the tables as u8[] and index with the byte offset. Also try making `n` `u32` vs `s32` for the `addiu $s3,$s3,-1` vs `addiu`/`andi` choice, and check the `sltu`/`xori 1`/`or` compare chain ordering (target compares field1 then field2 then field4 with sltu + or, i.e. plain `<=`/`<` on unsigned bytes as written).",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794711187.34637,
-  "score_before": 21327,
-  "score_after": 13448
- },
- {
   "function": "main",
   "text": "Asking to release now: nothing in C can get closer, the gap is the frame pointer flag. Source (revision 7aa6832693c842060ec6): typedef struct T T; extern T D_8004AAB0; extern u8 D_8004CE10[]; void func_80033C20(void); void func_80026E64(void *); void osCreateThread(T *t, s32 id, void (*entry)(void *), void *arg, void *sp, s32 prio); void osStartThread(T *t); void main(void) { func_80033C20(); osCreateThread(&D_8004AAB0, 1, func_80026E64, NULL, D_8004CE10, 10); osStartThread(&D_8004AAB0); }\nWith the range profile -G0 -mips3 -mgp32 -mfp32 -O1 that gives 22 insns, score 506: every instruction matches except the frame pointer bookkeeping (target: sw $fp,0x18(sp), addu $fp,$sp in the jal delay slot, addu $sp,$fp and lw $fp in the epilogue, $ra at 0x1C). With -fno-omit-frame-pointer added the same C matches byte-for-byte (verified with try_compiler). Filed suggest(compiler=\"gcc-2.7.2-kmc\", flags=\"-G0 -mips3 -mgp32 -mfp32 -O1 -fno-omit-frame-pointer\", function=\"main\"); automatic compiler changes are off, so the user must apply it and recompile this C.",
   "by": "opencode-deepseek-v4.1-flash-free-5",
@@ -7918,14 +7910,6 @@
   "created_at": 1794727150.116603,
   "score_before": 12595,
   "score_after": 12595
- },
- {
-  "function": "func_801E3FE8",
-  "text": "Not matched; unworked this session. The compile was a stub (score 21660, 1.9%) only to satisfy the compile-before-release rule; it is not a real attempt. The m2c draft does not compile as-is (M2C_FIELD macros, void-typed D_ symbols, pointer/int casts). Next: type the D_8022A770 block (offsets 0x562-0x564) and the 0x30-stride D_801E97A0/97A2/97B8 arrays as a struct, rewrite the two near-identical loops (func_8003DE60 with &D_801E9698 and &D_801E96B4), then compile the full body and read the diff. Target frame is 0x48 bytes with saves of ra, s0-s6.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794727215.866483,
-  "score_before": 11830,
-  "score_after": 11830
  },
  {
   "function": "func_801E189C",
@@ -10174,14 +10158,6 @@
   "created_at": 1794740398.661709,
   "score_before": 12595,
   "score_after": 12595
- },
- {
-  "function": "func_801E3FE8",
-  "text": "Not attempted. The m2c draft does not compile (invalid unary * on void*, arithmetic on incomplete type at func.c:125, cast of pointer to integer at line 125). It also has wrong types: the do-while loops index D_801E97B8/D_801E97A6 with byte offsets. Start by fixing the type of the per-slot table (stride 0x30 per index, 0x12 per D_800DA260 entry, 8 halfword copies) and the unknown void* args of func_8003DE60 / func_80029790 before any scoring. Structure is: two passes (slot test on D_8022A770+0x562 then loop over slots 1..3), a copy loop of 8 entries, and a final func_80029790 / func_801DD938 call block gated on D_801E9740 | D_801E9738.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794740421.4679282,
-  "score_before": 11830,
-  "score_after": 11830
  },
  {
   "function": "func_80207DC8",
@@ -13128,14 +13104,6 @@
   "score_after": 10
  },
  {
-  "function": "func_801E3FE8",
-  "text": "Not matched. Only a stub compiled (score 21660, 1.9%): it sets the two flags and computes the index, and nothing else. The real body is 221 instructions with a 0x48 frame. The m2c draft does not compile as-is (vars used before assignment, mixed u8/s32 counters, a goto into the do-while). Next agent: fix the types first (D_8022A770 base with byte fields at 0x562..0x564, stride-0x30 tables D_801E97A0..A7 and D_801E97B8, D_800DA260 as u16 stride 0x12), then compile the draft once and work from the diff. The frame and the four func_8003DE60 / func_801DD938 call sites are the first structure to match.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794755698.088585,
-  "score_before": 11830,
-  "score_after": 11830
- },
- {
   "function": "fixed60ToF64",
   "text": "Complete62instruction signed64-to-double software helper verified. Executed prior pending split complement/carry proposal:5860, same as all explicit variants for arg-based zero check, aligned union result and xor-with-all-ones syntax. Target manually spills two words to a temporary stack only at each return, uses xor self-zero, addiu a3,-1 then xor both words (GCC canonicalizes to nor even from explicit xor), repeated t9 masks and explicit64-bit shift macros. Those artifacts and absent compiler-like scheduling indicate handwritten runtime assembly; no inline asm used. Saved5810 source retained; current tested962b4235b567e403bf78 score5860.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -13494,14 +13462,6 @@
   "created_at": 1794757015.1506119,
   "score_before": 885,
   "score_after": 885
- },
- {
-  "function": "func_801E3FE8",
-  "text": "Not matched; only a stub compiled (score 21660, 1.9%). The target is 221 insns with a 0x48 frame saving s0-s6 and ra. The m2c redraft (redraft with the header declarations for func_8003DE60, func_801DD938 and the globals) is a usable starting point but has many unknown-typed data arrays: D_8022A770 is a struct with fields at 0x562..0x564 and per-record stride 0x30 at D_801E97A0/97A2/97A4/97B8, and D_8006FAF0 is a struct whose field 0x20 is read as lhu. Next steps: write those struct layouts (guess_struct on arg for D_8022A770 if available), then compile the m2c draft unchanged and fix structure before registers. Also func_80029790/func_801E2F38 signatures are guesses.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794757035.253112,
-  "score_before": 11830,
-  "score_after": 11830
  },
  {
   "function": "func_800DF1E0",
@@ -14094,14 +14054,6 @@
   "created_at": 1794758992.710847,
   "score_before": 1647,
   "score_after": 1647
- },
- {
-  "function": "func_801E3FE8",
-  "text": "Released without a match: the current draft (rev c623ac158b040f88754f, 7.3%) is a stub with placeholder logic and cannot get closer by tuning. It needs a full ladder rewrite from the asm (235 lines in get_assembly). Findings to reuse: frame 0x48 saves ra and s0..s6; idx=(u16)*(D_8006FAF0+0x20)-1 is held in s3; idx*48 indexes D_801E97A2+1, D_801E97A4, D_801E97A4+1, D_801E97B8 (copy dst: 8 u16 from D_800DA26A+0x64+v*18+2k, v=*(u16*)D_800DA260) and D_801E97A6. s0=D_8022A770+0x562 with byte reads at offsets 0,1,2,4. Calls: func_8003DE60(&D_801E9698,...), func_8003DE60(&D_801E96B4,...,s1), func_80029790, func_801E2F38(idx), func_801DD938 (args 0xC8,0xB4,0x12,0x14,0,0x66 on stack, a0=0x10,a1=0x4C,a2=0xA,a3=2), func_800297C8.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794758992.910233,
-  "score_before": 11830,
-  "score_after": 11830
  },
  {
   "function": "func_801E3640",
@@ -41695,5 +41647,53 @@
   "created_at": 1795721374.329788,
   "score_before": 40012,
   "score_after": 24370
+ },
+ {
+  "function": "func_801E3FE8",
+  "text": "Move-on budget exhausted (3/3 no improvement). Best verified this session: 13448, revision 72374e515fc0aa8ade05 (score 0 nowhere).\n\nStructure recovered and confirmed against ROM (keep it):\n- D_801E9740=0; D_801E9738=0; n = *(u16*)(D_8006FAF0+0x20) - 1; p = D_8022A770+0x562.\n- if (*p == 0) { if (p[1] <= D_801E97A3[off] && p[2] <= D_801E97A4[off] && p[4] < D_801E97A5[off]) { func_8003DE60(D_801E9698); D_801E9738=1; store p[1],p[2],p[4] back to those three tables; 8x u16 copy loop from D_800DA26A+0x64+D_800DA260*0x12 into D_801E97B8[off]; } }\n- for (k=1;k<4;k++) { p = D_8022A770+0x562+k*5; same 3 compares against D_801E97A0/A1/A2[off] (note: p[4] < table); on success func_8003DE60(D_801E96B4,k); D_801E9740=k; store back; 8x u16 copy into D_801E97A6[off]; }\n- if (D_801E9740 || D_801E9738) { func_80029790(); D_801E9D58 = func_801E2F38(n & 0xFFFF); if (D_801E9D58) func_801DD938(0x10,0x4C,0xA,2,0xC8,0xB4,0x12,0x14,0,0x66); func_800297C8(); }\nwhere off = n*0x30.\n\nRemaining mismatch is purely codegen of the index: the target recomputes off from the single hoisted `n` in $s3 at every use as `sll $v0,$s3,1; addu $v0,$v0,$s3; sll $v0,$v0,4` (i.e. (n*3)<<4) and then folds it into `lui/addiu %lo(SYM); addu $at,$at,$off; lbu/sb %lo(SYM+1)($at)`. Writing `n * 0x30` (attempt 2, 14603) made it worse: GCC then kept the offset in a callee-saved reg and indexed with ($reg), and it also sank the D_8006FAF0 load. Attempt 1 with a hoisted `off` variable scored 13448 and produced the right per-use lui/addu %lo form.\n\nUntested next step: keep attempt 1 but write the scale explicitly as `(n * 3) << 4` in each index expression (no shared temp), so GCC emits sll/addu/sll per use; also declare the tables as u8[] and index with the byte offset. Also try making `n` `u32` vs `s32` for the `addiu $s3,$s3,-1` vs `addiu`/`andi` choice, and check the `sltu`/`xori 1`/`or` compare chain ordering (target compares field1 then field2 then field4 with sltu + or, i.e. plain `<=`/`<` on unsigned bytes as written).",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794711187.34637,
+  "score_before": 21327,
+  "score_after": 13448
+ },
+ {
+  "function": "func_801E3FE8",
+  "text": "Not matched; unworked this session. The compile was a stub (score 21660, 1.9%) only to satisfy the compile-before-release rule; it is not a real attempt. The m2c draft does not compile as-is (M2C_FIELD macros, void-typed D_ symbols, pointer/int casts). Next: type the D_8022A770 block (offsets 0x562-0x564) and the 0x30-stride D_801E97A0/97A2/97B8 arrays as a struct, rewrite the two near-identical loops (func_8003DE60 with &D_801E9698 and &D_801E96B4), then compile the full body and read the diff. Target frame is 0x48 bytes with saves of ra, s0-s6.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794727215.866483,
+  "score_before": 11830,
+  "score_after": 11830
+ },
+ {
+  "function": "func_801E3FE8",
+  "text": "Not attempted. The m2c draft does not compile (invalid unary * on void*, arithmetic on incomplete type at func.c:125, cast of pointer to integer at line 125). It also has wrong types: the do-while loops index D_801E97B8/D_801E97A6 with byte offsets. Start by fixing the type of the per-slot table (stride 0x30 per index, 0x12 per D_800DA260 entry, 8 halfword copies) and the unknown void* args of func_8003DE60 / func_80029790 before any scoring. Structure is: two passes (slot test on D_8022A770+0x562 then loop over slots 1..3), a copy loop of 8 entries, and a final func_80029790 / func_801DD938 call block gated on D_801E9740 | D_801E9738.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794740421.4679282,
+  "score_before": 11830,
+  "score_after": 11830
+ },
+ {
+  "function": "func_801E3FE8",
+  "text": "Not matched. Only a stub compiled (score 21660, 1.9%): it sets the two flags and computes the index, and nothing else. The real body is 221 instructions with a 0x48 frame. The m2c draft does not compile as-is (vars used before assignment, mixed u8/s32 counters, a goto into the do-while). Next agent: fix the types first (D_8022A770 base with byte fields at 0x562..0x564, stride-0x30 tables D_801E97A0..A7 and D_801E97B8, D_800DA260 as u16 stride 0x12), then compile the draft once and work from the diff. The frame and the four func_8003DE60 / func_801DD938 call sites are the first structure to match.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794755698.088585,
+  "score_before": 11830,
+  "score_after": 11830
+ },
+ {
+  "function": "func_801E3FE8",
+  "text": "Not matched; only a stub compiled (score 21660, 1.9%). The target is 221 insns with a 0x48 frame saving s0-s6 and ra. The m2c redraft (redraft with the header declarations for func_8003DE60, func_801DD938 and the globals) is a usable starting point but has many unknown-typed data arrays: D_8022A770 is a struct with fields at 0x562..0x564 and per-record stride 0x30 at D_801E97A0/97A2/97A4/97B8, and D_8006FAF0 is a struct whose field 0x20 is read as lhu. Next steps: write those struct layouts (guess_struct on arg for D_8022A770 if available), then compile the m2c draft unchanged and fix structure before registers. Also func_80029790/func_801E2F38 signatures are guesses.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794757035.253112,
+  "score_before": 11830,
+  "score_after": 11830
+ },
+ {
+  "function": "func_801E3FE8",
+  "text": "Released without a match: the current draft (rev c623ac158b040f88754f, 7.3%) is a stub with placeholder logic and cannot get closer by tuning. It needs a full ladder rewrite from the asm (235 lines in get_assembly). Findings to reuse: frame 0x48 saves ra and s0..s6; idx=(u16)*(D_8006FAF0+0x20)-1 is held in s3; idx*48 indexes D_801E97A2+1, D_801E97A4, D_801E97A4+1, D_801E97B8 (copy dst: 8 u16 from D_800DA26A+0x64+v*18+2k, v=*(u16*)D_800DA260) and D_801E97A6. s0=D_8022A770+0x562 with byte reads at offsets 0,1,2,4. Calls: func_8003DE60(&D_801E9698,...), func_8003DE60(&D_801E96B4,...,s1), func_80029790, func_801E2F38(idx), func_801DD938 (args 0xC8,0xB4,0x12,0x14,0,0x66 on stack, a0=0x10,a1=0x4C,a2=0xA,a3=2), func_800297C8.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794758992.910233,
+  "score_before": 11830,
+  "score_after": 11830
  }
 ]
