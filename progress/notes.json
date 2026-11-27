@@ -4496,14 +4496,6 @@
   "score_after": 19039
  },
  {
-  "function": "func_8016711C",
-  "text": "Deep permuter: score 9280 \u2192 7750; 3 improvements; 247 candidates tested; 29 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935580",
-  "created_at": 1794359522.567252,
-  "score_before": 9280,
-  "score_after": 7750
- },
- {
   "function": "alSavePull",
   "text": "Deep permuter: score 1 \u2192 1; 0 improvements; 217 candidates tested; 33 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935037",
@@ -6654,14 +6646,6 @@
   "created_at": 1794712144.42163,
   "score_before": 19039,
   "score_after": 19039
- },
- {
-  "function": "func_8016711C",
-  "text": "Best verified source is revision e67353f5e94e606e4a5b / 1ab206e2670e5a034e73 (score 7380, 70.4%). Historical 2225 on the m2c draft is NOT comparable: recompiling that exact draft under the current header scores 9280, so ignore it.\n\nWhat works (keep): struct views Obj{h2@2,h560@0x560,f760@0x760,b7D1@0x7D1}, Actor{p4@4,f8@8,fC@0xC,f10@0x10,h14@0x14,h76@0x76}, Racer{f0,f18,f1C,f20,f28,f34,f38,p60} with 0x64 stride, St{h0} for D_8011F32E; float tables indexed with `*25` (0x64 bytes) via `f32 arr[]`; `v = (1.6f - t) * o->f10;` reused for D_8011F328 and D_8011F320 (removes one duplicate mul/add chain); `k = o->p4->h2;` hoisted before the h14==0 block for the D_8011F2F0[k] stores plus D_8011F320[k*25].\n\nRemaining known diffs (151 rows, mostly scheduling/regalloc):\n1) Prologue order: target sw ra,sw s2,sw s1,sw s0 then addu s2,a0; mine emits the stores after the index computation (scheduling).\n2) First address: target keeps the scaled index in $v0 and materializes &D_8011F2F0 in $v1 (`lui v1; addiu v1; addu s1,v0,v1`); mine puts the index in $a0 and the base in $v0. Trying `u8 *rb = (u8*)D_8011F2F0 + (arg0&0xFFFF)*0x64;` and `k` as u16 changed nothing (score 7380). Not solved.\n3) Case 0: target loads o->fC once (`lwc1 ft0,0xC(s0)`) and reuses it for the (10-fC) subtraction and the final add; mine hoists an extra `lwc1 f2,0xC(s0)` above the D_8011F30C add (extra insn at row ~32). Target also emits `swc1 fv1(fv0=30.0f),0xC(s0)` before the 1.0f store; mine orders them differently.\n4) Case 1: target computes t=(fC-20)*0.04 first, then the D_8011F324 address chain (lw 4(s0)/lhu/shifts), then add.s 0.4f, lwc1 f10, mul.s, store; mine schedules the float math before the address chain. Forcing that order (address chain before the float add) is the highest-value remaining experiment.\n5) Tail: target does `lbu v0,0x7D1(v0)` before `lbu v1,%lo(D_80233EC1)`, stores sb, then `jal func_8013AE60` with `andi a0,s2,0xFFFF` in the delay slot; mine emits andi before the jal. Also target reuses $s1 for the r->f0 store.\n\nCompiler/flags untested: only gcc-2.7.2-kmc -O2 tried; try_compiler/search_flags not run.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794712176.9598389,
-  "score_before": 2225,
-  "score_after": 2225
  },
  {
   "function": "func_80217F44",
@@ -9512,14 +9496,6 @@
   "score_after": 4030
  },
  {
-  "function": "func_8016711C",
-  "text": "func_8016711C (1000 B, unmatched). Best is still the saved 2225 (historical, m2c-style with s32 temp pointers). Re-measured this session: m2c draft 9380 (best this session); u8* byte-offset table access 9781; 'u16 i = arg0' variant 9781 (no effect); plain f32-field rewrite 12666. Main gap: target frame is 0x20 and saves only ra,s0,s1,s2 (arg0 kept in $s2; index*100 computed as sll1/addu/sll3/addu/sll2); every variant builds a 0x28 frame with an extra saved reg and reorders stores. Untried: keep table accesses s32-typed (&D_8011F308 + idx*0x64 on int arrays, the 9380 layout), drop the f32 temp locals t/v, which may cause the extra stack slot.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794728121.6610801,
-  "score_before": 2225,
-  "score_after": 2225
- },
- {
   "function": "func_800DECCC",
   "text": "Best 8763 (56.8%), not matched. Plateau: three rewrites (local v, explicit `(arg0&0xFFFF)*100` per access, bare u16 `arg0*100`) all give 8763 with identical instructions, so the compiler folds these forms away. Why it can't get closer from here: the target frame is 0x18 (only $ra@0x14 and $s0@0x10 saved) and recomputes `addu $v1,$v1,$v0` (the *100 index) at each of 13 accesses plus `lui $at,%hi(D_8011F304)` 9 times, i.e. no CSE across statements. Mine keeps a 0x38 frame with $s3 saved and loads the arrays through a pointer register. That points to the arrays being accessed through distinct symbols or volatile-ish types in the original, which I could not reproduce. Next agent: try declaring D_8011F2F1, D_8011F300, D_8011F302, D_8011F304 as separate distinct extern u16/u8 symbols per use site, or check whether the 0x7-slot 776-stride store pair uses a different base; try compile_family(branch_orientation) on revision 7d8600e8170b7da116bc.",
   "by": "claude-haiku-5-5-20",
@@ -12254,14 +12230,6 @@
   "created_at": 1794740995.264272,
   "score_before": 18946,
   "score_after": 18946
- },
- {
-  "function": "func_8016711C",
-  "text": "Not matched. Saved best is still the m2c-based 2225 draft; my hand rewrite (revision 54b3a684d4e1940cbc03) scores 9246 (63%) and is worse, so do not start from it.\n\nStructure, confirmed from the asm: obj = D_8011F2F0 + (arg0&0xFFFF)*100 (s1); sub = obj->0x60 (s0); p4 = sub->4 (reloaded from memory each use; p4->u16[2] is index k). Table reads are base + k*100 (`&D_8011F308`, `&D_8011F30C`, `&D_8011F310`, `&D_8011F324`, `&D_8011F328`, `&D_8011F320`, and the store `obj+0x38/0x34` via D_8011F2F0+k*100). Mode is the u16 at D_8011F32E + (arg0&0xFFFF)*100: 0 -> state A (sub+0xC blended toward 10 by 0.2f, clamp 30, set sub+8=1.0, mode=1), 1 -> state B (c+=sub+8; sub+8-=0.1f; clamp; then store (c-20)*0.04 table values), other -> skip. Timer at sub+0x14 (u16, decrement; on zero do the p4/sub+0x10 block, p4+0x760 -= 30000.0f, func_8013E49C(sub->u16 0x76), p4+0x560 &= 0xF7, D_8011F2FD+idx = 2). Tail: obj[0] = (s8)(p4[0x7D1] - D_80233EC1); func_8013AE60(arg0&0xFFFF).\n\nProblems with my rewrite: (1) frame is 0x28 with ra/s0/s1/s2 saved at 0x24/0x18/0x1C/0x20; target is 0x20 with saves at 0x1C/0x18/0x14/0x10. The extra 8 bytes look like a spilled float or pointer local; removing the `u16 tm` and `f32 t` locals did not change the frame. (2) The target keeps `k` in a register as `lhu` then `sll 2, sll 3, sll 1` chain; mine recomputes obj index as (arg0&0xFFFF)*100 each time, giving a different register order (`sll $a0,$v0,2`, `addu $s1,$a0,$v0`). Try writing obj as `(u8 *)&D_8011F2F0 + (u32)(arg0 & 0xFFFF) * 100` with the same shape as the target's sll/addu chain (x*2+x)<<3 + x)<<2.\n(3) Float constants: 5.0f, 359.0f (0x43B38000), 360.0f (0x43B40000), 10.0f (0x41200000), 0.2f (0x3E4CCCCD), 30.0f (0x41F00000), 1.0f, 0.1f (0x3DCCCCCD), 20.0f (0x41A00000), 0.04f (0x3D23D70A), 0.4f (0x3ECCCCCD), 1.6f (0x3FCCCCCD), 30000.0f (0x46EA6000). Check that the compiler emits these as lui/ori/mtc1 (it does in my last compile).\nUntried: the m2c draft's M2C_FIELD style with the 2225 draft plus a frame-shape fix.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794741003.8547158,
-  "score_before": 2225,
-  "score_after": 2225
  },
  {
   "function": "func_800DECCC",
@@ -16712,14 +16680,6 @@
   "score_after": 820
  },
  {
-  "function": "func_8016711C",
-  "text": "Release reason: the last 4 variants moved away from the target's register/frame shape (frame 0x20, saves ra,s2,s1,s0), and the saved best 2225 is still higher than any of my rewrites. Starting point for the next agent: get_candidate(base=\"saved_best\"). Not matched.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794756893.99986,
-  "score_before": 2225,
-  "score_after": 2225
- },
- {
   "function": "func_800DEFF8",
   "text": "Exact under gcc-2.7.2-kmc -O1 (try_compiler verified); suggestion submitted. Source: struct Ent (0x64) D_8011F2F0[]; for (idx = func_800E1850; idx != 0xFFFF; idx = D[idx].unk10) if (D[idx].unk0 != 0xFF) D[idx].unk2 |= 0x10; with u16 idx. No C tuning needed.",
   "by": "claude-opus-medium-1",
@@ -17574,14 +17534,6 @@
   "created_at": 1794758813.895041,
   "score_before": 5332,
   "score_after": 5027
- },
- {
-  "function": "func_8016711C",
-  "text": "Release requested at low effort, not because the function is impossible. Saved best 2225 is the machine draft (152d29ab70fd427465de); my rewrite 47162c8bd9f1a488a300 scored 9280, worse. Target uses sll-based stride math for the 0x64 index (sll 2/3 combos with addu against lui/addiu D_8011F2F0), my version emits sll 4 and cvt/trunc float paths, and the callee-saved spill order (ra at 0x1c, s2 at 0x18, s1 at 0x14, s0 at 0x10) differs. Next steps: write the stride as an explicit (idx*25)<<2 style expression, check the first 25 target instructions, then fix the switch lowering and the float paths.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794758823.9555788,
-  "score_before": 2225,
-  "score_after": 2225
  },
  {
   "function": "func_80211A84",
@@ -19406,14 +19358,6 @@
   "created_at": 1794761911.6886349,
   "score_before": 645,
   "score_after": 645
- },
- {
-  "function": "func_8016711C",
-  "text": "Not matched. Machine draft compiles at score 9280 (saved best 2225 from elsewhere; the draft is far worse). Its structure is off: the stride is 0x64 (100) per record, and the target computes it as shift/add sequences (sll 2 with addu, not sll 4), so write the index math as ((arg0 & 0xFFFF) * 100) and let GCC pick the sequence, or check the sll/addu pattern in get_assembly. Prologue saves ra at 0x1c, s2 at 0x18, s1 at 0x14, s0 at 0x10 (frame 0x20). Field offsets to verify: record pointer at 0x60, u16 counter at 0x14, f32 fields 0x08/0x0C/0x10/0x18-0x28, 0x34/0x38, u16 at 0x76, f32 at 0x760 in the sub-record, u8 at 0x7D1, u8 0x560 flag mask 0xF7. Needs a full rewrite; not attempted further this session.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794761927.54631,
-  "score_before": 2225,
-  "score_after": 2225
  },
  {
   "function": "func_80149A80",
@@ -40977,5 +40921,61 @@
   "score_before": 2796,
   "score_after": 2201,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:2c0352dda3df3336995e6355d8e59187de279d33ab83dad84be5c21b97f0e0ea"
+ },
+ {
+  "function": "func_8016711C",
+  "text": "Deep permuter: score 9280 \u2192 7750; 3 improvements; 247 candidates tested; 29 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935580",
+  "created_at": 1794359522.567252,
+  "score_before": 9280,
+  "score_after": 7750
+ },
+ {
+  "function": "func_8016711C",
+  "text": "Best verified source is revision e67353f5e94e606e4a5b / 1ab206e2670e5a034e73 (score 7380, 70.4%). Historical 2225 on the m2c draft is NOT comparable: recompiling that exact draft under the current header scores 9280, so ignore it.\n\nWhat works (keep): struct views Obj{h2@2,h560@0x560,f760@0x760,b7D1@0x7D1}, Actor{p4@4,f8@8,fC@0xC,f10@0x10,h14@0x14,h76@0x76}, Racer{f0,f18,f1C,f20,f28,f34,f38,p60} with 0x64 stride, St{h0} for D_8011F32E; float tables indexed with `*25` (0x64 bytes) via `f32 arr[]`; `v = (1.6f - t) * o->f10;` reused for D_8011F328 and D_8011F320 (removes one duplicate mul/add chain); `k = o->p4->h2;` hoisted before the h14==0 block for the D_8011F2F0[k] stores plus D_8011F320[k*25].\n\nRemaining known diffs (151 rows, mostly scheduling/regalloc):\n1) Prologue order: target sw ra,sw s2,sw s1,sw s0 then addu s2,a0; mine emits the stores after the index computation (scheduling).\n2) First address: target keeps the scaled index in $v0 and materializes &D_8011F2F0 in $v1 (`lui v1; addiu v1; addu s1,v0,v1`); mine puts the index in $a0 and the base in $v0. Trying `u8 *rb = (u8*)D_8011F2F0 + (arg0&0xFFFF)*0x64;` and `k` as u16 changed nothing (score 7380). Not solved.\n3) Case 0: target loads o->fC once (`lwc1 ft0,0xC(s0)`) and reuses it for the (10-fC) subtraction and the final add; mine hoists an extra `lwc1 f2,0xC(s0)` above the D_8011F30C add (extra insn at row ~32). Target also emits `swc1 fv1(fv0=30.0f),0xC(s0)` before the 1.0f store; mine orders them differently.\n4) Case 1: target computes t=(fC-20)*0.04 first, then the D_8011F324 address chain (lw 4(s0)/lhu/shifts), then add.s 0.4f, lwc1 f10, mul.s, store; mine schedules the float math before the address chain. Forcing that order (address chain before the float add) is the highest-value remaining experiment.\n5) Tail: target does `lbu v0,0x7D1(v0)` before `lbu v1,%lo(D_80233EC1)`, stores sb, then `jal func_8013AE60` with `andi a0,s2,0xFFFF` in the delay slot; mine emits andi before the jal. Also target reuses $s1 for the r->f0 store.\n\nCompiler/flags untested: only gcc-2.7.2-kmc -O2 tried; try_compiler/search_flags not run.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794712176.9598389,
+  "score_before": 2225,
+  "score_after": 2225
+ },
+ {
+  "function": "func_8016711C",
+  "text": "func_8016711C (1000 B, unmatched). Best is still the saved 2225 (historical, m2c-style with s32 temp pointers). Re-measured this session: m2c draft 9380 (best this session); u8* byte-offset table access 9781; 'u16 i = arg0' variant 9781 (no effect); plain f32-field rewrite 12666. Main gap: target frame is 0x20 and saves only ra,s0,s1,s2 (arg0 kept in $s2; index*100 computed as sll1/addu/sll3/addu/sll2); every variant builds a 0x28 frame with an extra saved reg and reorders stores. Untried: keep table accesses s32-typed (&D_8011F308 + idx*0x64 on int arrays, the 9380 layout), drop the f32 temp locals t/v, which may cause the extra stack slot.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794728121.6610801,
+  "score_before": 2225,
+  "score_after": 2225
+ },
+ {
+  "function": "func_8016711C",
+  "text": "Not matched. Saved best is still the m2c-based 2225 draft; my hand rewrite (revision 54b3a684d4e1940cbc03) scores 9246 (63%) and is worse, so do not start from it.\n\nStructure, confirmed from the asm: obj = D_8011F2F0 + (arg0&0xFFFF)*100 (s1); sub = obj->0x60 (s0); p4 = sub->4 (reloaded from memory each use; p4->u16[2] is index k). Table reads are base + k*100 (`&D_8011F308`, `&D_8011F30C`, `&D_8011F310`, `&D_8011F324`, `&D_8011F328`, `&D_8011F320`, and the store `obj+0x38/0x34` via D_8011F2F0+k*100). Mode is the u16 at D_8011F32E + (arg0&0xFFFF)*100: 0 -> state A (sub+0xC blended toward 10 by 0.2f, clamp 30, set sub+8=1.0, mode=1), 1 -> state B (c+=sub+8; sub+8-=0.1f; clamp; then store (c-20)*0.04 table values), other -> skip. Timer at sub+0x14 (u16, decrement; on zero do the p4/sub+0x10 block, p4+0x760 -= 30000.0f, func_8013E49C(sub->u16 0x76), p4+0x560 &= 0xF7, D_8011F2FD+idx = 2). Tail: obj[0] = (s8)(p4[0x7D1] - D_80233EC1); func_8013AE60(arg0&0xFFFF).\n\nProblems with my rewrite: (1) frame is 0x28 with ra/s0/s1/s2 saved at 0x24/0x18/0x1C/0x20; target is 0x20 with saves at 0x1C/0x18/0x14/0x10. The extra 8 bytes look like a spilled float or pointer local; removing the `u16 tm` and `f32 t` locals did not change the frame. (2) The target keeps `k` in a register as `lhu` then `sll 2, sll 3, sll 1` chain; mine recomputes obj index as (arg0&0xFFFF)*100 each time, giving a different register order (`sll $a0,$v0,2`, `addu $s1,$a0,$v0`). Try writing obj as `(u8 *)&D_8011F2F0 + (u32)(arg0 & 0xFFFF) * 100` with the same shape as the target's sll/addu chain (x*2+x)<<3 + x)<<2.\n(3) Float constants: 5.0f, 359.0f (0x43B38000), 360.0f (0x43B40000), 10.0f (0x41200000), 0.2f (0x3E4CCCCD), 30.0f (0x41F00000), 1.0f, 0.1f (0x3DCCCCCD), 20.0f (0x41A00000), 0.04f (0x3D23D70A), 0.4f (0x3ECCCCCD), 1.6f (0x3FCCCCCD), 30000.0f (0x46EA6000). Check that the compiler emits these as lui/ori/mtc1 (it does in my last compile).\nUntried: the m2c draft's M2C_FIELD style with the 2225 draft plus a frame-shape fix.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794741003.8547158,
+  "score_before": 2225,
+  "score_after": 2225
+ },
+ {
+  "function": "func_8016711C",
+  "text": "Release reason: the last 4 variants moved away from the target's register/frame shape (frame 0x20, saves ra,s2,s1,s0), and the saved best 2225 is still higher than any of my rewrites. Starting point for the next agent: get_candidate(base=\"saved_best\"). Not matched.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794756893.99986,
+  "score_before": 2225,
+  "score_after": 2225
+ },
+ {
+  "function": "func_8016711C",
+  "text": "Release requested at low effort, not because the function is impossible. Saved best 2225 is the machine draft (152d29ab70fd427465de); my rewrite 47162c8bd9f1a488a300 scored 9280, worse. Target uses sll-based stride math for the 0x64 index (sll 2/3 combos with addu against lui/addiu D_8011F2F0), my version emits sll 4 and cvt/trunc float paths, and the callee-saved spill order (ra at 0x1c, s2 at 0x18, s1 at 0x14, s0 at 0x10) differs. Next steps: write the stride as an explicit (idx*25)<<2 style expression, check the first 25 target instructions, then fix the switch lowering and the float paths.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794758823.9555788,
+  "score_before": 2225,
+  "score_after": 2225
+ },
+ {
+  "function": "func_8016711C",
+  "text": "Not matched. Machine draft compiles at score 9280 (saved best 2225 from elsewhere; the draft is far worse). Its structure is off: the stride is 0x64 (100) per record, and the target computes it as shift/add sequences (sll 2 with addu, not sll 4), so write the index math as ((arg0 & 0xFFFF) * 100) and let GCC pick the sequence, or check the sll/addu pattern in get_assembly. Prologue saves ra at 0x1c, s2 at 0x18, s1 at 0x14, s0 at 0x10 (frame 0x20). Field offsets to verify: record pointer at 0x60, u16 counter at 0x14, f32 fields 0x08/0x0C/0x10/0x18-0x28, 0x34/0x38, u16 at 0x76, f32 at 0x760 in the sub-record, u8 at 0x7D1, u8 0x560 flag mask 0xF7. Needs a full rewrite; not attempted further this session.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794761927.54631,
+  "score_before": 2225,
+  "score_after": 2225
  }
 ]
