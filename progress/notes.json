@@ -6448,14 +6448,6 @@
   "score_after": 4297
  },
  {
-  "function": "func_8013F1D4",
-  "text": "Not matched (best 6150 rechecked; saved historical 1330 is the same source). Logic matches the target: 7-slot loop, slot==-1 skip, idx*100 via shift/add, dist<thresh && flag==0, 0x560&0x20 test, 0x8F0 stride, ent update, return 1/return 0. The gap is register allocation and frame. Target frame is 0x58: ra@0x24, s0-s4 at 0x10-0x20, fs0-fs5 (f20-f30) doubles at 0x28-0x50. In the target s2=arg1, s3 holds px as an INTEGER (lw into s3, mtc1 each iteration, because all six callee-saved FP regs are taken by dz, dx, pz, py, 0.025 and 1.0), s4=constant 1 (two sb uses), s0=obj, s1=i; dy is a temp. My versions get a 0x60 frame with an extra s5 and arg1 in s4. Tried: saved-best source (6150), `if (slot != -1)` instead of continue (no change), `u32 i` signedness variant (6360, worse). Next step: find a declaration or copy form that makes px live in a GPR (for example a u32 temp copied from the loaded word) and forces arg1 into s2. Only then tune the constant-1 register.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794710845.656277,
-  "score_before": 1330,
-  "score_after": 1330
- },
- {
   "function": "func_80133F54",
   "text": "Best 3125 (79.8%), not matched. Saved best = if/else duplicated per branch: the 0x9E block and the 0x166 block each have their own float compare and increment, and each recomputes the index arg0*0x64 (target: andi $v1,$a0,0xffff before each). Structure: D_8022AFE9[D_8011F2F0[i*100]*0x8F0]==5 -> D_8011F2FD[i*100]=2; return. Then if D_8011F2FC[i*100]==3 {if ((u16)(u32)f<0x9E) f=(f32)(u16)((u32)f+1); else D_8011F2FD[i*100]=2;} else {same with 0x166}. Remaining diffs are register allocation and order: target keeps the byte offset in a1 (sll a1,v0,2 then addu at,at,a1 for the store) while ours keeps it in a0/v1, and the target's second block computes its index into v0 and v1 in a different order. Tried and worse: local f32* pointer (5150), shared u32 offset local (5335), limit variable (7090), s32/(u16) casts on the index (no change). Next: try an explicit u16 cast on arg0 in the else-branch index only, or a per-branch local index variable declared inside each block.",
   "by": "claude-haiku-5-5-21",
@@ -9134,14 +9126,6 @@
   "created_at": 1794726794.701142,
   "score_before": 1485,
   "score_after": 1485
- },
- {
-  "function": "func_8013F1D4",
-  "text": "Stopping: 5 compiles without improvement (best 6150, revision e7a8152e37667d21e566). The local repair families (record_slot_table, parameter_width, declaration_order) tried this session were worse or equal, so the remaining diff is structural (frame 0x58 vs my 0x60, arg1 register allocation). Next agent should first decide the struct layout of arg1 (u8* with +0x60 slot array, +0x67 flags, +0x70 radius float, +4 pointer to a table) and then retry the frame layout.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794726889.818451,
-  "score_before": 1330,
-  "score_after": 1330
  },
  {
   "function": "func_801FCBEC",
@@ -11830,14 +11814,6 @@
   "created_at": 1794740251.5318882,
   "score_before": 4297,
   "score_after": 4297
- },
- {
-  "function": "func_8013F1D4",
-  "text": "Unmatched. Best saved 1330 (historical); current best 6150 (61%). Compiles keep a 0x60 frame with 7 GP saves (ra,s0-s5) and an extra `move $s4,$a1`; target is 0x58 with ra,s0-s4 plus six fs doubles at 0x28..0x50, arg1 in s2, constant 1 in s4 (sb $s4 to arg1[0x67+i]), loop index s1, obj in s0. Key target detail not reproduced: px is loaded as an integer word (`lw $s3,%lo(D_8011F308)`) and moved with `mtc1 $s3,$ft1` each iteration, whereas py/pz are lwc1 fp values. A union {s32 i; f32 f;} for px and a signedness variant (u32 slot) changed nothing. Removing the `ent` local (inlining the 0x5B4 update) also changed nothing in frame size. Constants: 0.025f = 0x3CCCCCCD in fs2, 1.0f in fs3. Ideas not tried: keep arg1 unmodified and pass the 1-constant as a local used across the loop; test an explicit int-typed px (s32 px bits with a float cast at each use) to reproduce the mtc1 pattern.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794740265.955122,
-  "score_before": 1330,
-  "score_after": 1330
  },
  {
   "function": "func_80192B34",
@@ -16280,14 +16256,6 @@
   "score_after": 1647
  },
  {
-  "function": "func_8013F1D4",
-  "text": "No match. Best saved C scores 1330, but recompiling the same-looking source gives 6150 (baseline mismatch unresolved; the saved 1330 source may differ). Target: frame 0x58, six callee-saved double regs (f20-f30 via fs0-fs5), 0.025f (0x3CCCCCCD) and 1.0f hoisted to entry. Target loads px as a raw integer word (`lw $s3`, later `mtc1 $s3,$ft1`), while py/pz stay float regs. Tried a union {s32 i; f32 f;} to reproduce the integer load: 6200, worse. Next: restore saved_best and recompile to confirm the true baseline, then try to reproduce the 6-double-register allocation (more float locals live across the loop) before tuning the frame.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794756500.856884,
-  "score_before": 1330,
-  "score_after": 1330
- },
- {
   "function": "func_801E435C",
   "text": "Not matched. Best score 35 (97.9%), saved: return ((*(u16*)((u8*)D_801E97CA + (arg0&0xFF)*0x30) & *(u16*)((u8*)D_801E91D4 + (arg1&0xFF)*2)) >> ((arg1&0xFF)*4)) & 0xFF; the order with the D_801E97CA load first is what matched the target order. Remaining 7 diffs are register allocation: target uses $a0 for the D_801E97CA address temp and $v0 for the D_801E91D4 base, ours uses $at for both. Tried: separate s32 locals x and y (155, worse). Next: try an explicit u16 cast on the D_801E91D4 index (D_801E91D4[arg1&0xFF]) which may change the address temp, or try_local_repairs for allocation.",
   "by": "claude-haiku-5-5-23",
@@ -17246,14 +17214,6 @@
   "created_at": 1794758837.093698,
   "score_before": 7086,
   "score_after": 7086
- },
- {
-  "function": "func_8013F1D4",
-  "text": "Not matched. Saved best 1330 (other source) is the starting point; my rewrite scored 6150. Target: frame 0x58 (ra at 0x24, s-regs at 0x20.., sdc1 $f30 at 0x50); the loop index is scaled as (arg0&0xFFFF)*100 via sll/addu chains (x*3, x*0x64 decomposed with shifts); 7-iteration loop over arg1+0x60 slots with slot stride 0x8F0. Mine has frame 0x60, an extra saved register s4 (copy of arg1 unused in target) and a different save order. Next: restore saved_best (get_candidate base=saved_best), then try one change at a time: drop the `ent` pointer temp, and make the per-slot object base a single u8* computed once. Candidate used D_8022A772 (u16 index table) with i*0x8F0 stride; confirm with the assembly before editing.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794758837.240576,
-  "score_before": 1330,
-  "score_after": 1330
  },
  {
   "function": "func_801E2D18",
@@ -20886,14 +20846,6 @@
   "created_at": 1794767879.2427342,
   "score_before": 8675,
   "score_after": 8675
- },
- {
-  "function": "func_8013F1D4",
-  "text": "Not matched. First draft from the machine draft scores 6150 (61%); saved best 1330 is from the same source with a different revision. Target: 158 insns, frame 0x58, saves ra, s0..s4-ish, and an sdc1 $f30 (callee-saved double), so there is an extra f64/double temporary or a f32 kept across sqrtf that the draft lacks. Target loads D_8011F308 + idx into s3 and uses a computed index (sll 1, addu, sll 3, addu, sll 2) for the 100-byte stride; the loop index i is used as a byte offset (i*0x8F0) into D_8022A772. Ours uses the same stride but spills to a 0x60 frame. Next: check whether sqrtf is an intrinsic (sqrt.s + maybe a double temporary), and whether the loop is a do-while with counter in s5. Not done: the arg1 layout (0x60 slot array, 0x67 flags, 0x70 float radius, 0x4 pointer to a table) should be confirmed with guess_struct.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794767917.612952,
-  "score_before": 1330,
-  "score_after": 1330
  },
  {
   "function": "func_80135108",
@@ -41048,5 +41000,80 @@
   "score_before": 9523,
   "score_after": 7503,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:274e561e507390c3d3839e55e2e6e85534f24c23e59b6df2ab16801d355b2ba5"
+ },
+ {
+  "function": "func_8013F1D4",
+  "text": "Not matched (best 6150 rechecked; saved historical 1330 is the same source). Logic matches the target: 7-slot loop, slot==-1 skip, idx*100 via shift/add, dist<thresh && flag==0, 0x560&0x20 test, 0x8F0 stride, ent update, return 1/return 0. The gap is register allocation and frame. Target frame is 0x58: ra@0x24, s0-s4 at 0x10-0x20, fs0-fs5 (f20-f30) doubles at 0x28-0x50. In the target s2=arg1, s3 holds px as an INTEGER (lw into s3, mtc1 each iteration, because all six callee-saved FP regs are taken by dz, dx, pz, py, 0.025 and 1.0), s4=constant 1 (two sb uses), s0=obj, s1=i; dy is a temp. My versions get a 0x60 frame with an extra s5 and arg1 in s4. Tried: saved-best source (6150), `if (slot != -1)` instead of continue (no change), `u32 i` signedness variant (6360, worse). Next step: find a declaration or copy form that makes px live in a GPR (for example a u32 temp copied from the loaded word) and forces arg1 into s2. Only then tune the constant-1 register.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794710845.656277,
+  "score_before": 1330,
+  "score_after": 1330
+ },
+ {
+  "function": "func_8013F1D4",
+  "text": "Stopping: 5 compiles without improvement (best 6150, revision e7a8152e37667d21e566). The local repair families (record_slot_table, parameter_width, declaration_order) tried this session were worse or equal, so the remaining diff is structural (frame 0x58 vs my 0x60, arg1 register allocation). Next agent should first decide the struct layout of arg1 (u8* with +0x60 slot array, +0x67 flags, +0x70 radius float, +4 pointer to a table) and then retry the frame layout.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794726889.818451,
+  "score_before": 1330,
+  "score_after": 1330
+ },
+ {
+  "function": "func_8013F1D4",
+  "text": "Unmatched. Best saved 1330 (historical); current best 6150 (61%). Compiles keep a 0x60 frame with 7 GP saves (ra,s0-s5) and an extra `move $s4,$a1`; target is 0x58 with ra,s0-s4 plus six fs doubles at 0x28..0x50, arg1 in s2, constant 1 in s4 (sb $s4 to arg1[0x67+i]), loop index s1, obj in s0. Key target detail not reproduced: px is loaded as an integer word (`lw $s3,%lo(D_8011F308)`) and moved with `mtc1 $s3,$ft1` each iteration, whereas py/pz are lwc1 fp values. A union {s32 i; f32 f;} for px and a signedness variant (u32 slot) changed nothing. Removing the `ent` local (inlining the 0x5B4 update) also changed nothing in frame size. Constants: 0.025f = 0x3CCCCCCD in fs2, 1.0f in fs3. Ideas not tried: keep arg1 unmodified and pass the 1-constant as a local used across the loop; test an explicit int-typed px (s32 px bits with a float cast at each use) to reproduce the mtc1 pattern.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794740265.955122,
+  "score_before": 1330,
+  "score_after": 1330
+ },
+ {
+  "function": "func_8013F1D4",
+  "text": "No match. Best saved C scores 1330, but recompiling the same-looking source gives 6150 (baseline mismatch unresolved; the saved 1330 source may differ). Target: frame 0x58, six callee-saved double regs (f20-f30 via fs0-fs5), 0.025f (0x3CCCCCCD) and 1.0f hoisted to entry. Target loads px as a raw integer word (`lw $s3`, later `mtc1 $s3,$ft1`), while py/pz stay float regs. Tried a union {s32 i; f32 f;} to reproduce the integer load: 6200, worse. Next: restore saved_best and recompile to confirm the true baseline, then try to reproduce the 6-double-register allocation (more float locals live across the loop) before tuning the frame.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794756500.856884,
+  "score_before": 1330,
+  "score_after": 1330
+ },
+ {
+  "function": "func_8013F1D4",
+  "text": "Not matched. Saved best 1330 (other source) is the starting point; my rewrite scored 6150. Target: frame 0x58 (ra at 0x24, s-regs at 0x20.., sdc1 $f30 at 0x50); the loop index is scaled as (arg0&0xFFFF)*100 via sll/addu chains (x*3, x*0x64 decomposed with shifts); 7-iteration loop over arg1+0x60 slots with slot stride 0x8F0. Mine has frame 0x60, an extra saved register s4 (copy of arg1 unused in target) and a different save order. Next: restore saved_best (get_candidate base=saved_best), then try one change at a time: drop the `ent` pointer temp, and make the per-slot object base a single u8* computed once. Candidate used D_8022A772 (u16 index table) with i*0x8F0 stride; confirm with the assembly before editing.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794758837.240576,
+  "score_before": 1330,
+  "score_after": 1330
+ },
+ {
+  "function": "func_8013F1D4",
+  "text": "Not matched. First draft from the machine draft scores 6150 (61%); saved best 1330 is from the same source with a different revision. Target: 158 insns, frame 0x58, saves ra, s0..s4-ish, and an sdc1 $f30 (callee-saved double), so there is an extra f64/double temporary or a f32 kept across sqrtf that the draft lacks. Target loads D_8011F308 + idx into s3 and uses a computed index (sll 1, addu, sll 3, addu, sll 2) for the 100-byte stride; the loop index i is used as a byte offset (i*0x8F0) into D_8022A772. Ours uses the same stride but spills to a 0x60 frame. Next: check whether sqrtf is an intrinsic (sqrt.s + maybe a double temporary), and whether the loop is a do-while with counter in s5. Not done: the arg1 layout (0x60 slot array, 0x67 flags, 0x70 float radius, 0x4 pointer to a table) should be confirmed with guess_struct.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794767917.612952,
+  "score_before": 1330,
+  "score_after": 1330
+ },
+ {
+  "function": "func_8013F1D4",
+  "text": "Small-model attempt at func_8013F1D4: 12 tries.\n  best 400 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 4565 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 5166 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 6124 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 10376 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\nBest -O1 score 400 (saved -O2 best 2435 unbeaten under own profile). Remaining diffs: regalloc (target keeps px in s3, const 1 in s4; ours swapped) and a few reorders around the first loads. Wins: px as union Bits_px read as s32 (lw into GPR then mtc1), D_8022A772 as typed struct, 0x8F0 slot stride.",
+  "by": "manual-c4a3130ca9344109",
+  "created_at": 1795719017.8370829,
+  "score_before": 6124,
+  "score_after": 6124,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:8b2c89ae1182aa39122bb8a34df8a29071a7189a4587465e09aaa6feed9b84cf"
+ },
+ {
+  "function": "func_8013F1D4",
+  "text": "Near match 35 under -O1 (not the current -O2 profile): adapt matched func_8013EDFC. D_8018D672=0 first; x,y,z = D_8011F308[arg0 & 0xFFFF] fields; no ==4 test; after the 5B4 blend (keep two do-while(0) around it): hit[i]=1; D_8018D672=i; return 1; end return 0. Left: only x and the constant 1 swap s3/s4 (x priority 3 refs/57 vs const 5/174); fence/order searches did not move it.",
+  "by": "manual-f5090226cd3d41e3",
+  "created_at": 1795745298.0379488,
+  "score_before": 6124,
+  "score_after": 6124,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:8b2c89ae1182aa39122bb8a34df8a29071a7189a4587465e09aaa6feed9b84cf"
+ },
+ {
+  "function": "func_8013F1D4",
+  "text": "Near match 35 under -O1 from the sibling func_8013EDFC (see note); only x and constant 1 swap s3/s4. Fence and order searches did not move it.",
+  "by": "manual-f5090226cd3d41e3",
+  "created_at": 1795745334.744097,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:8b2c89ae1182aa39122bb8a34df8a29071a7189a4587465e09aaa6feed9b84cf"
  }
 ]
