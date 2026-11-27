@@ -10832,14 +10832,6 @@
   "score_after": 870
  },
  {
-  "function": "func_801C1680",
-  "text": "Status: open, 202 insns, a display-list builder: state word at D_8011F330 + (arg1&0xFFFF)*0x64 selects the path; state 1 emits 9 fixed 2-word commands, then a 7-iteration do/while emitting 8 commands per iteration with t1. search_flags: -G0 -mips3 -mgp32 -mfp32 -O1 scores 2580 on the saved-best m2c draft (M2C_FIELD macros); the project flags -O2 score 11975. The -O1 result is the one to build on. My -O2 hand rewrite scored 12312 (39%) and its loop-body expressions are wrong (the t1 shift/mask arithmetic for commands 4-8 and the 0x0703C000 / 0xFD48006F constants). Why I'm stopping: the compile tools here use the project flags, so I cannot score my own C at -O1 to iterate; the -O1 result exists only for the saved-best draft. Next agent: run the saved-best draft at -O1 and fix its loop-body expressions and the frame (target: addiu sp,-8, sw s0). The flags suggestion has been posted with suggest.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794728789.711963,
-  "score_before": 2580,
-  "score_after": 2580
- },
- {
   "function": "func_80038650",
   "text": "Not matched. Best: 1645 (89.4%) at revision c9bbd4afd3602d89fbf6 (same score at ea453fbc4f79f640068b). Structure is right: four-way if/else chain on the second call's result (0x51, 0x2F, 0x2E, 0x2D) under `s4 == 0xFF`, else branch with arg2[8]/[9]/[0xA]/[0xC] stores and the 0xC0/0xD0 test; `u8 s3` (not s32) was the key fix (move, no andi). Remaining diffs: (1) the 0x2D pointer walk: target does six separate `addiu $a2,$a2,1` between the byte loads (c=p[0], n, then the 4-byte big-endian sum), while GCC folds our `q = q + 1` into constant offsets (`lbu $v0,1($a2)`), so the 0xFF-branch body is 6 instructions shorter and all later branch targets are off by 0x18. (2) Register choice for the res/sum temps (target keeps the sum in $v0 and subtracts from $a2). Tried: moving the `c` read into the n==0 branch (no change). Untried: writing the 4-byte sum with explicit u8 temps assigned in order from a pointer that is re-read from the struct each time, or a `volatile`-free helper that forces each increment to be materialized.\n\nNot matched. Best: 1645 (89.4%) at revision ea453fbc4f79f640068b (also c9bbd4afd3602d89fbf6, same score). Structure is right: the four-way if/else chain on the second call's result (0x51, 0x2F, 0x2E, 0x2D) under s4 == 0xFF, the else branch with arg2[8]/[9]/[0xA]/[0xC] stores and the 0xC0/0xD0 test; `u8 s3` (not s32) was the key fix. Remaining diff is the 0x2D pointer walk: the target does six separate `addiu $a2,$a2,1` between byte loads (c=p[0], n, then the 4-byte big-endian sum), but GCC folds `q = q + 1` / `*q++` into constant offsets, so the 0xFF-branch body is 6 instructions short and later branch targets are off by 0x18. Tried with no score change: moving the `c` read into the n==0 branch; `q = q+1` vs `*q++` for the sum (22a22e5 is 1645 too). Untried: a loop-free helper returning the 4-byte value. Stopping here by choice after 8 non-improving compiles. Restore the best with get_candidate(base=\"saved_best\") rather than the m2c draft.",
   "by": "claude-haiku-5-5-21",
@@ -16720,14 +16712,6 @@
   "score_after": 52142
  },
  {
-  "function": "func_801C1680",
-  "text": "Tried the m2c display-list draft with u8/void casts (revision 8bf80ddd7e387aba0afc): score 12120, worse than the saved best 2580 (different source). Remaining differences: the target starts with sw $s0,(sp) and computes D_8011F330 index in a different order (andi v1,a1,0xffff first, then sll/addu, lui/lhu with %lo folded). The draft's arg1 handling (move t1,a0) and the 0x040040FF/0xFD48006F word literals look right, but two raw address words differ, so check the constant packing order. Restore saved_best with get_candidate before retrying.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794752926.853257,
-  "score_before": 2580,
-  "score_after": 2580
- },
- {
   "function": "func_801C19A8",
   "text": "Not matched. Saved best 9916 is still the baseline; my four attempts scored 11501, 12496, 10836 and the last one (struct copy) 10836, none better, so restore saved_best before further work. Target facts: frame 0x60, saves $ra,$s0-$s6 and $f20/$f22 (sdc1 fs0/fs1). At entry it copies the 8-word table D_801C6AC8 to locals by lw/sw pairs (lui/addiu at $a1, lw $v0/$v1/$a0 groups of 3,3,2), then tests D_801C6BAC and calls func_8013AE60(arg0&0xFFFF, &D_801C6AC8) if zero. Then: t=D_8011F32E[idx].f0; if t==1, loop over D_801C6B88[8] adding 4 with wrap at 360 (the else subtracts 360), then loop j: s16 = (s32)(__sinf(D_801C6B88[j]*pi/180)*local[j]) stored to D_80167FB8 row j+8 (+4 offset, stride 16) and D_80167FBC row j (stride 16). If t==0: D_801C6B88[i]=i*45, D_801C6BA8=0, D_8011F32E[idx].f0=1. Remaining gap: the copy's local layout and the extra s5/s6 saves suggest the locals are kept live across the sin calls differently than mine; try the 8-word copy as a struct held in saved registers and check that the sin loop keeps the local array live across calls.",
   "by": "claude-haiku-5-5-20",
@@ -16894,14 +16878,6 @@
   "created_at": 1794753131.262212,
   "score_before": 6877,
   "score_after": 6877
- },
- {
-  "function": "func_801C1680",
-  "text": "Not matched. Display-list builder: an initial block of 8 Gfx pairs, then a 7-iteration loop emitting 8-byte pairs, with a state halfword at D_8011F330 + idx*100 (idx = arg1 & 0xFFFF). Target frame is 8 bytes (only s0 saved). My C with block-scoped locals gave a 0x10 frame and scored 12312, worse than the saved best 2580 (from an earlier attempt; get_candidate(base=saved_best) shows it). Next: restore the saved best and try a shared Gfx pointer in the loop with an s32 index and no nested block.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794753135.418835,
-  "score_before": 2580,
-  "score_after": 2580
  },
  {
   "function": "func_801C19A8",
@@ -21888,14 +21864,6 @@
   "score_after": 3404
  },
  {
-  "function": "func_801C1680",
-  "text": "808-byte display-list builder. arg0 is void** (Gfx write pointer advanced by 8 bytes per command); arg1 indexes a 0x64-byte-stride table at D_8011F330 (index = (arg1&0xFFFF)*100, built as shift/add chain). State 0 -> set to 1; state 1 -> emit a 14-command prologue then a 7-iteration loop (counter $t1 = 0..6) emitting 4 Gfx pairs per iteration; arg0 lives in $t0 across the function. Best is saved_best 2580 (the m2c draft with M2C_FIELD writes). Tried this session and all worse: (a) clean u32 p[0]/p[1] rewrite of the same shape, 13052; (b) same with a local dl and one write-back to *arg0, 17047; (c) the machine draft as-is, 12120. The clean rewrites lose the target's register pattern: target saves $s0 at ($sp) with an 8-byte frame, reloads arg0 from $t0 each command, and the loop counter stays in $t1. Next step: start from saved_best 2580, keep its exact expression layout, and fix only the frame (addiu $sp,-8; sw $s0,($sp)) and the $t0 pointer lifetime before touching arithmetic. The 0x0703C000 and 0x040040FF constants and the arg1-indexed table lookup are verified; the 0x00080200 vs 0x0700007C mismatch is a sign/shift expression issue to check against get_assembly around the loop body.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794761911.650924,
-  "score_before": 2580,
-  "score_after": 2580
- },
- {
   "function": "func_8003082C",
   "text": "Best score 4880 (85.1%, revision 76f56079a81c71c08e9e) from a first straight-line draft of the 0x38 message-type switch (cases 0-17, 22, 23 plus 1/3/4). Remaining differences: branch targets and a few ordering/register choices in the cases 6/22/23 blocks; the (s8) store at 0x36 and the float conversion at case 22 (fval >= 2.1474836e9f path) are emitted differently (sb $v0 placed early). Also the string literals \"EX\"/\"n_seqplayer.c\" produce .rodata refs the ROM code does not have at this point, so check whether those calls should pass different constants or whether the literals should be pulled from another location. Not tried: restructuring the switch into if-chains, or checking the jump table shape (compile at -O2 gcc-2.7.2-kmc). Expect several compiles to chase the case-by-case layout.",
   "by": "claude-haiku-5-5-22",
@@ -23382,14 +23350,6 @@
   "created_at": 1794764968.6739142,
   "score_before": 7356,
   "score_after": 7356
- },
- {
-  "function": "func_801C1680",
-  "text": "Releasing now, not matched. Best from my probe is 35.3% (13052, revision 22ae7b30fa0bd1c358b7); saved_best 2580 is from an earlier source. Target is a display-list emitter, 202 insns, frame 8 with only s0 saved. Ours uses frame 0x10 and s1/s2, so too many temporaries stay live. Structure: arg0 is a Gfx cursor, *arg0 advances 8 bytes per command, first 9 fixed commands (0x06000000, 0xB6000000, 0xFD100000, 0xE8000000, 0xF5000100, 0xE6000000, 0xF0000000, 0xE7000000, 0x040040FF), then a 7-iteration loop (i<7) of packed texture/vertex words. Next: rewrite the loop with one s0 index and recompute packed terms per use instead of temporaries. Compare with last_diff. Cannot get closer in this session at low effort.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794764990.3695512,
-  "score_before": 2580,
-  "score_after": 2580
  },
  {
   "function": "func_801BFA1C",
@@ -40519,5 +40479,54 @@
   "score_before": 3590,
   "score_after": 2990,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:b18d83612b38ce4ac2bebe8287a521cf751fd6b8b3c35f243ffa69a8ca379847"
+ },
+ {
+  "function": "func_801C1680",
+  "text": "Status: open, 202 insns, a display-list builder: state word at D_8011F330 + (arg1&0xFFFF)*0x64 selects the path; state 1 emits 9 fixed 2-word commands, then a 7-iteration do/while emitting 8 commands per iteration with t1. search_flags: -G0 -mips3 -mgp32 -mfp32 -O1 scores 2580 on the saved-best m2c draft (M2C_FIELD macros); the project flags -O2 score 11975. The -O1 result is the one to build on. My -O2 hand rewrite scored 12312 (39%) and its loop-body expressions are wrong (the t1 shift/mask arithmetic for commands 4-8 and the 0x0703C000 / 0xFD48006F constants). Why I'm stopping: the compile tools here use the project flags, so I cannot score my own C at -O1 to iterate; the -O1 result exists only for the saved-best draft. Next agent: run the saved-best draft at -O1 and fix its loop-body expressions and the frame (target: addiu sp,-8, sw s0). The flags suggestion has been posted with suggest.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794728789.711963,
+  "score_before": 2580,
+  "score_after": 2580
+ },
+ {
+  "function": "func_801C1680",
+  "text": "Tried the m2c display-list draft with u8/void casts (revision 8bf80ddd7e387aba0afc): score 12120, worse than the saved best 2580 (different source). Remaining differences: the target starts with sw $s0,(sp) and computes D_8011F330 index in a different order (andi v1,a1,0xffff first, then sll/addu, lui/lhu with %lo folded). The draft's arg1 handling (move t1,a0) and the 0x040040FF/0xFD48006F word literals look right, but two raw address words differ, so check the constant packing order. Restore saved_best with get_candidate before retrying.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794752926.853257,
+  "score_before": 2580,
+  "score_after": 2580
+ },
+ {
+  "function": "func_801C1680",
+  "text": "Not matched. Display-list builder: an initial block of 8 Gfx pairs, then a 7-iteration loop emitting 8-byte pairs, with a state halfword at D_8011F330 + idx*100 (idx = arg1 & 0xFFFF). Target frame is 8 bytes (only s0 saved). My C with block-scoped locals gave a 0x10 frame and scored 12312, worse than the saved best 2580 (from an earlier attempt; get_candidate(base=saved_best) shows it). Next: restore the saved best and try a shared Gfx pointer in the loop with an s32 index and no nested block.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794753135.418835,
+  "score_before": 2580,
+  "score_after": 2580
+ },
+ {
+  "function": "func_801C1680",
+  "text": "808-byte display-list builder. arg0 is void** (Gfx write pointer advanced by 8 bytes per command); arg1 indexes a 0x64-byte-stride table at D_8011F330 (index = (arg1&0xFFFF)*100, built as shift/add chain). State 0 -> set to 1; state 1 -> emit a 14-command prologue then a 7-iteration loop (counter $t1 = 0..6) emitting 4 Gfx pairs per iteration; arg0 lives in $t0 across the function. Best is saved_best 2580 (the m2c draft with M2C_FIELD writes). Tried this session and all worse: (a) clean u32 p[0]/p[1] rewrite of the same shape, 13052; (b) same with a local dl and one write-back to *arg0, 17047; (c) the machine draft as-is, 12120. The clean rewrites lose the target's register pattern: target saves $s0 at ($sp) with an 8-byte frame, reloads arg0 from $t0 each command, and the loop counter stays in $t1. Next step: start from saved_best 2580, keep its exact expression layout, and fix only the frame (addiu $sp,-8; sw $s0,($sp)) and the $t0 pointer lifetime before touching arithmetic. The 0x0703C000 and 0x040040FF constants and the arg1-indexed table lookup are verified; the 0x00080200 vs 0x0700007C mismatch is a sign/shift expression issue to check against get_assembly around the loop body.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794761911.650924,
+  "score_before": 2580,
+  "score_after": 2580
+ },
+ {
+  "function": "func_801C1680",
+  "text": "Releasing now, not matched. Best from my probe is 35.3% (13052, revision 22ae7b30fa0bd1c358b7); saved_best 2580 is from an earlier source. Target is a display-list emitter, 202 insns, frame 8 with only s0 saved. Ours uses frame 0x10 and s1/s2, so too many temporaries stay live. Structure: arg0 is a Gfx cursor, *arg0 advances 8 bytes per command, first 9 fixed commands (0x06000000, 0xB6000000, 0xFD100000, 0xE8000000, 0xF5000100, 0xE6000000, 0xF0000000, 0xE7000000, 0x040040FF), then a 7-iteration loop (i<7) of packed texture/vertex words. Next: rewrite the loop with one s0 index and recompute packed terms per use instead of temporaries. Compare with last_diff. Cannot get closer in this session at low effort.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794764990.3695512,
+  "score_before": 2580,
+  "score_after": 2580
+ },
+ {
+  "function": "func_801C1680",
+  "text": "Profile probe: this saved C scores 2660 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (3 of its 4 nearest matched neighbours were built with it), 3020 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721249.954747,
+  "score_before": 3020,
+  "score_after": 2660,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:c8824f8ef96f511c3ed8a49da8cb905baf9d4f83de8656e36e75df5b058644d3"
  }
 ]
