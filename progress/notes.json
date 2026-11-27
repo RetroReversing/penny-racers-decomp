@@ -7512,14 +7512,6 @@
   "score_after": 15345
  },
  {
-  "function": "func_8020F354",
-  "text": "Not matched. Saved best is 19810. Why it can't get closer from the current draft: the target is 490 insns with a 0x50 frame (saves ra and s0 to s6), and the current rewrite (36125) covers only case 0 and the first half of case 16. Transcribing the full switch, the rest of case 16, the 8-row loop and the tail is a large job that this pass can't finish. Restore the saved best (get_candidate base=saved_best) before any further edits. Machine draft problems: undeclared globals (D_8021F270, D_8021B3F0, D_80203080, D_80187C00, D_801D4390, D_801CF4C8, D_8021EEB0, D_80168C60) and repair-tool scaffolding (__repair_phase_storage, __repair_rows goto, do-while(0)). Structure to keep: switch on the u16 at rec+0x40, with rec = idx*0x64 + D_8011F2F0 and idx = arg1 & 0xFFFF. Case 16 is a long func_8014A4C8 / func_801CA494 call sequence, then an 8-row loop (strides 0x17 and 0x22; tables D_8021B3E0, D_8021B3E8, D_8021B3F0, D_8021EEA8, D_80203080), then a tail with 0x3E state checks (0x10, 0x20) and func_8014A2D0 calls. Next person: transcribe case 16 in assembly order from get_assembly, then the row loop, then the tail. Registers and frame last.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794719377.7561479,
-  "score_before": 19810,
-  "score_after": 19810
- },
- {
   "function": "func_80218840",
   "text": "Not matched. Best 38288 (historical); current 41475 (13.4%). Candidate is 220 insns vs target 479, so the draft covers only the opening sequence. Verified in the first 90 target lines: frame 0x90 (ra, s7..s0 saved, fs0..fs3 via sdc1 at 0x70..0x88). The prologue loads s6=&D_800DA260, s7=&D_8022A770, s5=&D_80190CB0 and keeps them live; the first call is func_800DE41C(0,0xFF,3,0,0x7F,0,NULL,D_801D5A90,NULL,0,...,0) with 14 stack args stored at 0x10..0x44 (the candidate's first call matches this shape). Second call uses D_8021FE04 with 0x72/0xFF; D_80220E40 = 10.0f (0x41200000). Missing from the draft: about 19 variable-indexed `addu $at,$at,$v0` sequences (table writes indexed by a loop), 16 `lui $s6` reloads, 25 `swc1` to stack slot 0x34 (float args), and the rest of the body after line 90 (not read). Changing only the pointer locals (p5/p6/p7) had no effect. Next step: read target assembly lines 90-484 in chunks to recover the loop bodies, then write the complete function before trying register allocation.",
   "by": "claude-haiku-5-5-21",
@@ -12976,14 +12968,6 @@
   "score_after": 3
  },
  {
-  "function": "func_8020F354",
-  "text": "Not compiled yet; only the m2c draft exists and it does not compile. Blockers: (1) undeclared data symbols D_8021F270, D_8021B3F0, D_80203080, D_80187C00, D_801D4390, D_801CF4C8, D_8021EEB0, D_80168C60; declare them as u8/u16 arrays with the right element sizes from the target's data reads. (2) The switch on temp_v1 (u16 at offset 0x40 of a 0x64-byte record indexed by arg1&0xFFFF) is irregular: it has case 0 (store 0x10, return) and case 16 (the large body). The target's jump table must be recovered first; check the target dispatch with get_assembly before trusting case numbers. (3) Many m2c do/while loops and s8/s16 temporaries need rewriting to the target's loop shape. Next step: declare the data symbols, get a compiling draft, then compile_and_diff.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794742358.595794,
-  "score_before": 19480,
-  "score_after": 19480
- },
- {
   "function": "func_80218840",
   "text": "Releasing now, not at 10 compiles: the draft is 0.6% (47581) and its structure is wrong, not just registers. Target frame is addiu $sp,-0x70 with large float temporaries in the 0x34/0x88 slots, and the draft has none of that. Structure notes: (1) several func_800DE41C calls with constant args, (2) a nested copy of 0x10-word blocks from D_80238EC0 into D_8018F5D0 (outer stride 0x1A0, 14 outer x 8 inner), (3) table lookups via D_8011F304/D_8011F340 with *0x64 indices. Float constants (0x3D4CCCCD, 0x3DCCCCCD, 0x3D8F5C29, 0x3F8CCCCD, 0x40A00000, 0xC1A00000, 0x43B40000) are lui/ori pairs in the target and need to be literal float args. Next step: rebuild the frame and the copy loop from the assembly before any argument or register tuning. Work from get_assembly, not from this draft.",
   "by": "claude-haiku-5-5-23",
@@ -14584,14 +14568,6 @@
   "score_after": 0
  },
  {
-  "function": "func_8020F354",
-  "text": "Scored draft revision 5a3d2810b7dfd5ed4d87 = 24909 (49.1%). Main bug: externs declared as s32/M2C_UNK (D_8011F2F0, D_8021E22F, D_80187BF0, D_8021F270, D_80203080, D_8021B3E0/E8/F0, D_80168C60, D_801CF4C8, D_801D4390, D_8021EEA5/A8, D_8021EEB1, D_8021F260) make `&X + byte_offset` scale by 4, so rec becomes x*400 and the table offsets are wrong. Declare them as u8 arrays (or u16/u32 where the element type is known) and use byte offsets: rec = D_8011F2F0 + (arg1&0xFFFF)*0x64; table reads as HW(p,o) = *(u16 *)((u8 *)(p)+(o)). Also the 0x40 switch: case 0 writes 0x10; case 16 is the big setup. The loops are: for i<13 with (s16)(i*8+4); for i<8 with s0 = 23*i+0x12 and 23*i+0x13, 23*i+0x16. Untested rewrite with those types is the next step.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794752168.840539,
-  "score_before": 19480,
-  "score_after": 19480
- },
- {
   "function": "func_8014C7A0",
   "text": "Not matched; saved best 39763 (permuter-339302417289, 18 prior attempts). 1968 bytes, 492 insns. Structure: a straight sequence of ~14 calls to func_800DE41C(0, n, 2, flags, 0x51/0x53/0x54/0x55, 0x96/0xFF, <ptr D_80168DD0+off or &D_80168E50+0x10>, <fn ptr>, <fn ptr or NULL>, six 32-bit words, 3 f32 scales), plus one call to func_80148230() gating two more calls. The draft's middle \"word\" args (0xC4BB8000, 0x42976B85, ...) look like IEEE float bit patterns passed in integer slots, and the draft's function-pointer args cause incompatible-pointer warnings, so the declared prototype of func_800DE41C is probably wrong (its arg 7 and 8 are function pointers, not s32*). Next: fix the prototype first (get_assembly to see which args go in $a0-$a3 vs stack, and whether the 0x.... constants are loaded via lui/ori into registers or lwc1 from rodata), then reconcile the 9-stack-arg layout. Do not spend more compiles on the draft's register ordering until the prototype is settled.",
   "by": "claude-haiku-5-5-21",
@@ -14622,14 +14598,6 @@
   "created_at": 1794752190.508533,
   "score_before": 40575,
   "score_after": 40575
- },
- {
-  "function": "func_8020F354",
-  "text": "Tried the saved draft once: score 24909 (49.1%), 493 insns vs 490. Diff: target frame is 0x50 (8 saved regs, s0-s6 + ra), draft frame is 0x60 because of too many spill locals; first real mismatch is at the start, where target computes temp_s5 = a1*100 as shifts (sll 1/addu/sll 3/addu/sll 2) and draft computes a different index sequence. Target uses D_8021E22F as base with stride 0x22 and D_8021F270 with stride 0xE0/0x10. Next steps: reduce locals (many var_* duplicates can merge), make arg1 handling match the target's first 5 instructions, then re-diff. Not matched; no shares made.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794752194.0636642,
-  "score_before": 19480,
-  "score_after": 19480
  },
  {
   "function": "func_8022FE50",
@@ -18936,14 +18904,6 @@
   "score_after": 7470
  },
  {
-  "function": "func_8020F354",
-  "text": "Best 24909 (49.1%), revision 5a3d2810b7dfd5ed4d87. Cannot get closer without more work: the mismatch is structural, not register-level. (1) Frame: target addiu $sp,-0x50 with $ra,$s0..$s6 saved; mine -0x60, so I have too many live locals across the 8-iteration loop. (2) Record indexing: target uses sll by 2 on the 0x64-stride record index, mine sll 4; need the D_8011F2F0 record struct (0x40 = state u16, 0x3E = sub-state u16, 0x64 stride) written as a typed struct so the index scales the same way. (3) Table bases look swapped: target keeps D_8021E22F and D_8021F270 as separate loop bases, mine merges the offset arithmetic. Tried: signedness family (s16->u16 on temp_s0) = same score, no effect. Next: derive the record struct, then rewrite the two loops with the fewest temps. Requires struct layout work before further compiles are useful.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794761313.4536572,
-  "score_before": 19480,
-  "score_after": 19480
- },
- {
   "function": "func_80210050",
   "text": "Released. Best of my compiles: 28692 (37.7%) from a clean rewrite with loops and no repair labels (saved best from the earlier draft is 23267, so I did not replace it). Target is 461 insns with a 0x70 frame that saves $ra,$s0-$s3 and $f20, so it is much larger than my 291-insn version: the 0xE x 8 copy loop and the 4-iteration clear loop are probably unrolled, and the func_800DE41C calls take many more live values. The first call's argument order is confirmed: a0=&D_419270 (src), a1=D_8030BD90, a2=D_41CF00-D_419270 in $a2 via a separate lui/addiu pair. Next step: reconstruct the unrolled copy blocks (0x10-byte records with sw x4 per block) and the func_800DE41C argument lists from the assembly.",
   "by": "claude-haiku-5-5-20",
@@ -19982,14 +19942,6 @@
   "created_at": 1794762644.247218,
   "score_before": 25072,
   "score_after": 25072
- },
- {
-  "function": "func_8020F354",
-  "text": "Not compiled yet. The machine draft (m2c) does not compile as is: it uses undeclared symbols (D_8021F270, D_8021B3F0, D_80203080, D_80187C00, D_801D4390, D_801CF4C8, D_8021EEB0, D_80168C60) and M2C_FIELD casts, and it has wrong prototypes (func_801CA140 takes 2 args in the draft, func_8014A2D0 is also used). Structure to start from: a switch on the u16 at entity+0x40 (case 0 sets it to 0x10 and returns; case 0x10 is the big draw path). The case 0x10 path has an 8-iteration loop with a 0xD-iteration loop, and a second inner loop that copies a table through D_80203080 until 0xFFFF. Declare the D_8021xxxx symbols before compiling. Entity base is D_8011F2F0 + idx*0x64 (proposal #339302416501). Budget not spent: work this from a clean rewrite, not from the draft.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794762674.766884,
-  "score_before": 19480,
-  "score_after": 19480
  },
  {
   "function": "func_80143600",
@@ -40960,5 +40912,61 @@
   "score_before": 2704,
   "score_after": 1230,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a384df111bc6cc6d4daffde0b9a46a09cf7baa2991ffc46c3a076af6350a88dc"
+ },
+ {
+  "function": "func_8020F354",
+  "text": "Not matched. Saved best is 19810. Why it can't get closer from the current draft: the target is 490 insns with a 0x50 frame (saves ra and s0 to s6), and the current rewrite (36125) covers only case 0 and the first half of case 16. Transcribing the full switch, the rest of case 16, the 8-row loop and the tail is a large job that this pass can't finish. Restore the saved best (get_candidate base=saved_best) before any further edits. Machine draft problems: undeclared globals (D_8021F270, D_8021B3F0, D_80203080, D_80187C00, D_801D4390, D_801CF4C8, D_8021EEB0, D_80168C60) and repair-tool scaffolding (__repair_phase_storage, __repair_rows goto, do-while(0)). Structure to keep: switch on the u16 at rec+0x40, with rec = idx*0x64 + D_8011F2F0 and idx = arg1 & 0xFFFF. Case 16 is a long func_8014A4C8 / func_801CA494 call sequence, then an 8-row loop (strides 0x17 and 0x22; tables D_8021B3E0, D_8021B3E8, D_8021B3F0, D_8021EEA8, D_80203080), then a tail with 0x3E state checks (0x10, 0x20) and func_8014A2D0 calls. Next person: transcribe case 16 in assembly order from get_assembly, then the row loop, then the tail. Registers and frame last.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794719377.7561479,
+  "score_before": 19810,
+  "score_after": 19810
+ },
+ {
+  "function": "func_8020F354",
+  "text": "Not compiled yet; only the m2c draft exists and it does not compile. Blockers: (1) undeclared data symbols D_8021F270, D_8021B3F0, D_80203080, D_80187C00, D_801D4390, D_801CF4C8, D_8021EEB0, D_80168C60; declare them as u8/u16 arrays with the right element sizes from the target's data reads. (2) The switch on temp_v1 (u16 at offset 0x40 of a 0x64-byte record indexed by arg1&0xFFFF) is irregular: it has case 0 (store 0x10, return) and case 16 (the large body). The target's jump table must be recovered first; check the target dispatch with get_assembly before trusting case numbers. (3) Many m2c do/while loops and s8/s16 temporaries need rewriting to the target's loop shape. Next step: declare the data symbols, get a compiling draft, then compile_and_diff.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794742358.595794,
+  "score_before": 19480,
+  "score_after": 19480
+ },
+ {
+  "function": "func_8020F354",
+  "text": "Scored draft revision 5a3d2810b7dfd5ed4d87 = 24909 (49.1%). Main bug: externs declared as s32/M2C_UNK (D_8011F2F0, D_8021E22F, D_80187BF0, D_8021F270, D_80203080, D_8021B3E0/E8/F0, D_80168C60, D_801CF4C8, D_801D4390, D_8021EEA5/A8, D_8021EEB1, D_8021F260) make `&X + byte_offset` scale by 4, so rec becomes x*400 and the table offsets are wrong. Declare them as u8 arrays (or u16/u32 where the element type is known) and use byte offsets: rec = D_8011F2F0 + (arg1&0xFFFF)*0x64; table reads as HW(p,o) = *(u16 *)((u8 *)(p)+(o)). Also the 0x40 switch: case 0 writes 0x10; case 16 is the big setup. The loops are: for i<13 with (s16)(i*8+4); for i<8 with s0 = 23*i+0x12 and 23*i+0x13, 23*i+0x16. Untested rewrite with those types is the next step.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794752168.840539,
+  "score_before": 19480,
+  "score_after": 19480
+ },
+ {
+  "function": "func_8020F354",
+  "text": "Tried the saved draft once: score 24909 (49.1%), 493 insns vs 490. Diff: target frame is 0x50 (8 saved regs, s0-s6 + ra), draft frame is 0x60 because of too many spill locals; first real mismatch is at the start, where target computes temp_s5 = a1*100 as shifts (sll 1/addu/sll 3/addu/sll 2) and draft computes a different index sequence. Target uses D_8021E22F as base with stride 0x22 and D_8021F270 with stride 0xE0/0x10. Next steps: reduce locals (many var_* duplicates can merge), make arg1 handling match the target's first 5 instructions, then re-diff. Not matched; no shares made.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794752194.0636642,
+  "score_before": 19480,
+  "score_after": 19480
+ },
+ {
+  "function": "func_8020F354",
+  "text": "Best 24909 (49.1%), revision 5a3d2810b7dfd5ed4d87. Cannot get closer without more work: the mismatch is structural, not register-level. (1) Frame: target addiu $sp,-0x50 with $ra,$s0..$s6 saved; mine -0x60, so I have too many live locals across the 8-iteration loop. (2) Record indexing: target uses sll by 2 on the 0x64-stride record index, mine sll 4; need the D_8011F2F0 record struct (0x40 = state u16, 0x3E = sub-state u16, 0x64 stride) written as a typed struct so the index scales the same way. (3) Table bases look swapped: target keeps D_8021E22F and D_8021F270 as separate loop bases, mine merges the offset arithmetic. Tried: signedness family (s16->u16 on temp_s0) = same score, no effect. Next: derive the record struct, then rewrite the two loops with the fewest temps. Requires struct layout work before further compiles are useful.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794761313.4536572,
+  "score_before": 19480,
+  "score_after": 19480
+ },
+ {
+  "function": "func_8020F354",
+  "text": "Not compiled yet. The machine draft (m2c) does not compile as is: it uses undeclared symbols (D_8021F270, D_8021B3F0, D_80203080, D_80187C00, D_801D4390, D_801CF4C8, D_8021EEB0, D_80168C60) and M2C_FIELD casts, and it has wrong prototypes (func_801CA140 takes 2 args in the draft, func_8014A2D0 is also used). Structure to start from: a switch on the u16 at entity+0x40 (case 0 sets it to 0x10 and returns; case 0x10 is the big draw path). The case 0x10 path has an 8-iteration loop with a 0xD-iteration loop, and a second inner loop that copies a table through D_80203080 until 0xFFFF. Declare the D_8021xxxx symbols before compiling. Entity base is D_8011F2F0 + idx*0x64 (proposal #339302416501). Budget not spent: work this from a clean rewrite, not from the draft.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794762674.766884,
+  "score_before": 19480,
+  "score_after": 19480
+ },
+ {
+  "function": "func_8020F354",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 9172 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (321 functions of this project were built with it), the saved C scores 19216 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721320.4584699,
+  "score_before": 19216,
+  "score_after": 9172
  }
 ]
