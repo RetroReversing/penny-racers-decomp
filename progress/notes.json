@@ -7176,14 +7176,6 @@
   "score_after": 400
  },
  {
-  "function": "func_801FE364",
-  "text": "Unmatched. Best 14074 (61%, 353 vs 361 insns), source = saved best (revision ad5cfba53d68d82729cf). Remaining diffs: target keeps only s0-s6 live (frame 0x40); ours saves fp/s7 too (frame 0x48) because the loop keeps extra locals (s3 = i+D_80203ABE, idx, y) and separate lui/addiu address materialisations for D_801D7DF4/D_801D7E06 that the target does not do. Target computes `andi $s0,$s3,0xffff` (idx) and reloads D_80203ABE via lhu at each use. Tried: folding s3 into idx and recomputing i+D_80203ABE inline -> 14184 (worse). Untried: a single u16 loop index for i with idx derived from it, and writing the struct-field loads (D_801D7DF4 + idx*44 etc.) through one shared base pointer. Also the candidate has warnings (char[] passed as s32 arg 6 of func_801CB74C); casts (s32) on all data-arg sites are needed.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794718040.08226,
-  "score_before": 14074,
-  "score_after": 14074
- },
- {
   "function": "func_800267FC",
   "text": "Best score 120 (92%, 15 insns each), revision 0a1f5228a1af34d52579. Source: extern D_80046838; osViSetYScale(1.0f); D_80046838 = 1; nuGfxDisplayOff(); osViBlack(1). Target matches all instructions. Only remaining diff: GCC hoists `lui $at,0x3f80; mtc1 $at,$f12` above the `addiu $sp` frame setup, while the target keeps the prologue first (sw $ra, then lui/mtc1, jal osViSetYScale, nop). Tried: f32 local, (f32)1 cast, s32 one=1 temp, store-after-call via nuGfxDisplayOff return. None changed the ordering. Not yet tried: search_flags / other -O level for prologue scheduling.",
   "by": "claude-haiku-5-5-24",
@@ -12872,14 +12864,6 @@
   "score_after": 350
  },
  {
-  "function": "func_801FE364",
-  "text": "Best 21679 (39.9%), revision 2b814f29d355b460bbb8. Cannot get closer without the real signatures of func_801CB74C and func_801CBF48 (unnamed helpers, no find_similar match); the prototypes used are guesses, so the arguments and the bottom loop are approximations. Candidate frame is -0x48 with s0-s7/fp against the target's -0x40 with s0-s6, so the loop body keeps fewer values live than written. Next: establish the helper signatures, then rewrite the loop to match the target's register use.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794741880.909065,
-  "score_before": 12701,
-  "score_after": 12701
- },
- {
   "function": "func_8020EE18",
   "text": "Not matched. Target 335 insns, 0x30 frame (saves ra, s0-s4). Saved best 9328 is the starting point. My revision 23e27a061df51ded0f5f (score 26453) is worse: it omits the case 0x20 and 0x30 bodies, so do not reuse it as-is. Structure from the draft: a 0x64-byte record at D_8011F2F0 + (u16)arg0*0x64; state at record+0x3E (u16) with cases 0, 0x10, 0x12, 0x20, 0x30, 0x31; the case-0x20 body is a cursor p[0] cycle with &7, a mask-based counter update using D_8021E230[(p[0]*0x22)+(p[3]*0x110)], then p[1]/p[2] sums via func_8020FFD0. The draft's jump-table failure is only in the decompiler; C switch should work. Next step: write the full case 0x20 and 0x30 bodies (the draft's text is correct but was dropped), then compare; s2 (input mask from func_8014A870) must stay live across calls, so s2 needs to be a local that survives func_8014B854 calls.",
   "by": "claude-haiku-5-5-21",
@@ -14574,14 +14558,6 @@
   "created_at": 1794751435.020469,
   "score_before": 19859,
   "score_after": 19859
- },
- {
-  "function": "func_801FE364",
-  "text": "Best 18244 (49.4%), revision cc697fabfaa3e884e240. Loop rewritten from assembly: i (s4) 0..3 do/while on (u16)i<4; a=i+D_80203ABE; idx=(u16)a; if idx<8: y=((u16)i+2)*0x30; CBF48(arg0,y,0x8C,8,base,5,(s16)a); a5 at 0x96 is &D_80203854 if lh(D_801D7DF4+idx*0x2C)==-1 else *(void**)(D_801D75E0+12*lhu(D_801D7E04+idx*0x2C)); then CBF48 at 0xA0 (lh D_801D7E06), 0xAA (lbu D_801D7E08), 0xB4 ((s16)f32 D_801D7E00), 0xBE (lbu D_801D7E09), 0xC8 (lbu D_801D7E16). Hoisting base=&D_801D4FC0 and five=5 before the loop matches the target's s0/s6 use; declaring them at the top was worse (18329). Remaining diff: gcc hoists &D_801D4FC0 out of the first pre-loop if-block (target reloads it inside the block at the 0x3C call), so the beqz target is 2 instructions shorter; and the 0x1E/0x1E call pointer is off (target D_802037C4, ours D_802037AC lines). Frame: target 0x40 with s0-s6 only; ours still allocates s7/fp (0x48) so the loop has one too many live values. Untried: write the pre-loop calls with a distinct expression for the D_801D4FC0 argument so gcc does not CSE it.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794751474.645959,
-  "score_before": 12701,
-  "score_after": 12701
  },
  {
   "function": "func_80164FC0",
@@ -18272,14 +18248,6 @@
   "score_after": 645
  },
  {
-  "function": "func_801FE364",
-  "text": "Session 3 (a1): best candidate still 19476 (46%), rev 69326eb0a9a19cbf5100. try_local_repairs ran 6 variants (slot-table typedef for D_801D7DF4, temp reuse, goto loop, declaration order): none improved; one worse (19831). Mismatch is structural: target prologue is addiu $sp,-0x40 while candidate starts with lui for D_80202628; the 'do-while' body and the 4-iteration loop are likely right but the call sequence/order differs widely (343 rows, 129 reordered, 85 deleted). Untried: check get_assembly(focus=mismatch) for the real call order and whether the 0x80 test and first call are in the target at all; consider -O1 via try_compiler; the func_801CBF48 sixth arg may be pointer not int. Move on.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794759349.811289,
-  "score_before": 12701,
-  "score_after": 12701
- },
- {
   "function": "func_800DE2E0",
   "text": "Byte-exact with KMC gcc-2.7.2 -O1 (suggested). Uses the Obj64 100-byte struct at D_8011F2F0, plus extern u16 D_8011F300[]/D_80126F9C[] for the fixed entry-0/entry-319 stores.",
   "by": "claude-opus-medium-1",
@@ -20214,14 +20182,6 @@
   "created_at": 1794762346.400141,
   "score_before": 8990,
   "score_after": 8990
- },
- {
-  "function": "func_801FE364",
-  "text": "Best 19476 (46%), revision 69326eb0a9a19cbf5100 (saved best, rechecked this session). Tried: the current draft (d0cde3d266b5a91479d2, 20853) with the 7-arg func_801CB74C prototype. Its call sequence is right but the frame is 0x48 (target 0x40), and the 0x6-arg calls are emitted with the wrong arg order.\nOpen differences: (1) frame size 0x40 vs 0x48 and saved-register set (target saves s3..s6, ra not spilled at 0x3c); (2) target loads D_802037C4 before D_802037AC-style record addresses are set up, with lui/addiu of %hi/%lo emitted per call instead of hoisted; (3) the loop body in the target reuses one computed index (sll/addu chains x5-8) rather than recomputing the stride per call; (4) the D_801D4FC0 base is materialised inside the loop in ours but hoisted in the target. Next step: fix the frame and save-register set first, then the argument-setup order in the loop. Two record addresses (0x802037C4 vs 0x802037AC, 0x8020379C vs 0x802037A4) are swapped in our output; check the static data layout before changing expressions.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794762369.490342,
-  "score_before": 12701,
-  "score_after": 12701
  },
  {
   "function": "func_8013B1BC",
@@ -40885,5 +40845,54 @@
   "score_before": 3764,
   "score_after": 3379,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:94bd332c17aabde4a76ed5a2449e108bf4732c1cec36154b443e898cd371cec1"
+ },
+ {
+  "function": "func_801FE364",
+  "text": "Unmatched. Best 14074 (61%, 353 vs 361 insns), source = saved best (revision ad5cfba53d68d82729cf). Remaining diffs: target keeps only s0-s6 live (frame 0x40); ours saves fp/s7 too (frame 0x48) because the loop keeps extra locals (s3 = i+D_80203ABE, idx, y) and separate lui/addiu address materialisations for D_801D7DF4/D_801D7E06 that the target does not do. Target computes `andi $s0,$s3,0xffff` (idx) and reloads D_80203ABE via lhu at each use. Tried: folding s3 into idx and recomputing i+D_80203ABE inline -> 14184 (worse). Untried: a single u16 loop index for i with idx derived from it, and writing the struct-field loads (D_801D7DF4 + idx*44 etc.) through one shared base pointer. Also the candidate has warnings (char[] passed as s32 arg 6 of func_801CB74C); casts (s32) on all data-arg sites are needed.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794718040.08226,
+  "score_before": 14074,
+  "score_after": 14074
+ },
+ {
+  "function": "func_801FE364",
+  "text": "Best 21679 (39.9%), revision 2b814f29d355b460bbb8. Cannot get closer without the real signatures of func_801CB74C and func_801CBF48 (unnamed helpers, no find_similar match); the prototypes used are guesses, so the arguments and the bottom loop are approximations. Candidate frame is -0x48 with s0-s7/fp against the target's -0x40 with s0-s6, so the loop body keeps fewer values live than written. Next: establish the helper signatures, then rewrite the loop to match the target's register use.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794741880.909065,
+  "score_before": 12701,
+  "score_after": 12701
+ },
+ {
+  "function": "func_801FE364",
+  "text": "Best 18244 (49.4%), revision cc697fabfaa3e884e240. Loop rewritten from assembly: i (s4) 0..3 do/while on (u16)i<4; a=i+D_80203ABE; idx=(u16)a; if idx<8: y=((u16)i+2)*0x30; CBF48(arg0,y,0x8C,8,base,5,(s16)a); a5 at 0x96 is &D_80203854 if lh(D_801D7DF4+idx*0x2C)==-1 else *(void**)(D_801D75E0+12*lhu(D_801D7E04+idx*0x2C)); then CBF48 at 0xA0 (lh D_801D7E06), 0xAA (lbu D_801D7E08), 0xB4 ((s16)f32 D_801D7E00), 0xBE (lbu D_801D7E09), 0xC8 (lbu D_801D7E16). Hoisting base=&D_801D4FC0 and five=5 before the loop matches the target's s0/s6 use; declaring them at the top was worse (18329). Remaining diff: gcc hoists &D_801D4FC0 out of the first pre-loop if-block (target reloads it inside the block at the 0x3C call), so the beqz target is 2 instructions shorter; and the 0x1E/0x1E call pointer is off (target D_802037C4, ours D_802037AC lines). Frame: target 0x40 with s0-s6 only; ours still allocates s7/fp (0x48) so the loop has one too many live values. Untried: write the pre-loop calls with a distinct expression for the D_801D4FC0 argument so gcc does not CSE it.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794751474.645959,
+  "score_before": 12701,
+  "score_after": 12701
+ },
+ {
+  "function": "func_801FE364",
+  "text": "Session 3 (a1): best candidate still 19476 (46%), rev 69326eb0a9a19cbf5100. try_local_repairs ran 6 variants (slot-table typedef for D_801D7DF4, temp reuse, goto loop, declaration order): none improved; one worse (19831). Mismatch is structural: target prologue is addiu $sp,-0x40 while candidate starts with lui for D_80202628; the 'do-while' body and the 4-iteration loop are likely right but the call sequence/order differs widely (343 rows, 129 reordered, 85 deleted). Untried: check get_assembly(focus=mismatch) for the real call order and whether the 0x80 test and first call are in the target at all; consider -O1 via try_compiler; the func_801CBF48 sixth arg may be pointer not int. Move on.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794759349.811289,
+  "score_before": 12701,
+  "score_after": 12701
+ },
+ {
+  "function": "func_801FE364",
+  "text": "Best 19476 (46%), revision 69326eb0a9a19cbf5100 (saved best, rechecked this session). Tried: the current draft (d0cde3d266b5a91479d2, 20853) with the 7-arg func_801CB74C prototype. Its call sequence is right but the frame is 0x48 (target 0x40), and the 0x6-arg calls are emitted with the wrong arg order.\nOpen differences: (1) frame size 0x40 vs 0x48 and saved-register set (target saves s3..s6, ra not spilled at 0x3c); (2) target loads D_802037C4 before D_802037AC-style record addresses are set up, with lui/addiu of %hi/%lo emitted per call instead of hoisted; (3) the loop body in the target reuses one computed index (sll/addu chains x5-8) rather than recomputing the stride per call; (4) the D_801D4FC0 base is materialised inside the loop in ours but hoisted in the target. Next step: fix the frame and save-register set first, then the argument-setup order in the loop. Two record addresses (0x802037C4 vs 0x802037AC, 0x8020379C vs 0x802037A4) are swapped in our output; check the static data layout before changing expressions.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794762369.490342,
+  "score_before": 12701,
+  "score_after": 12701
+ },
+ {
+  "function": "func_801FE364",
+  "text": "Profile probe: this saved C scores 7620 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (9 of its 12 nearest matched neighbours were built with it), 14170 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721291.0951622,
+  "score_before": 14170,
+  "score_after": 7620,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:87ae524ecc8a3ba3dcd7e2acac922ec191d3903412574301d9c428441602b5f0"
  }
 ]
