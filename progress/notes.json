@@ -6656,14 +6656,6 @@
   "score_after": 59841
  },
  {
-  "function": "func_801528B4",
-  "text": "Straight-line sequence of ~70 calls to func_800DE41C (18 args: 4 regs, 14 on stack; stack slots 0x10..0x44 hold args 5..18, with floats 1.0f/2.0f/3.0f in 0x3C/0x40/0x44). Best score 127949 (2.6%), 1214 vs 1314 insns, source = machine draft with pointers as char arrays (D_8016D150 + off), u32 hex literals for the bit-pattern args, f32 literals for the last three. Mismatch: target frame is 0xa0 and saves $fs0..$fs5 at 0x70..0x98 with sw $ra at 0x6c; mine has frame 0x118 and spills every u32 constant via lui/ori/sw $t2 to 0x4c. Next: reduce live values across calls so the frame shrinks to 0xa0 (target only keeps pointers s0..s6 and fs0..fs5), and pick the int/float typing of args 9-11 so the constants are written by lui/ori+sw straight into the stack slots. Compile errors to avoid: do not redeclare u32/f32 typedefs (already in context.h).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794719831.315768,
-  "score_before": 127949,
-  "score_after": 127949
- },
- {
   "function": "func_8003EBF0",
   "text": "Cache-maintenance routine, not C: both loops' bodies are MIPS `cache` ops (0x19 = create-dirty-exclusive on the aligned loop, 0x01 = index-invalidate on the KSEG0 0x80000000 loop), annotated \"handwritten instruction\" in the target. gcc-2.7.2-kmc cannot emit cache ops from plain C. Surrounding structure is plain (blez guard, 0x2000 size check -> func_8000F020 fallback, align down with andi 0xF/subu, addiu -0x10 end, sltu/bnez do-while with addiu in the delay slot), but the two cache instructions make byte match impossible.",
   "by": "api-route-llm-code-1",
@@ -12016,14 +12008,6 @@
   "score_after": 52929
  },
  {
-  "function": "func_801528B4",
-  "text": "Tried the m2c table draft with two fixes: (1) D_8016D150, D_802398E8, D_8023991C declared as u8 arrays so +0x10 offsets are byte offsets (the s32-typed draft scaled them by 4); (2) callee prototype made explicit: s32 func_800DE41C(s32 x6, void*x3, s32 x6, f32 x3). Score 127949 (2.6%), no improvement over saved best. Remaining mismatch: the target stores the hex-constant args (0xC5041266, 0x43898000, 0x44FDE7AE, etc.) as FLOAT values: lui $at + mtc1 $at,$f22 + swc1 $f22,0x3c($sp)-style stores (119 swc1 to 0x3c, 76 mtc1). My draft emits them as integer lui/ori + sw. So these args are f32 in the source; they need to be float literals (decimal values whose bit pattern equals the hex shown), not hex ints. Also the target frame is -0xA0 with fs0-fs5 saved; mine is -0x118, so the float-constant rewrite should shrink it. Next step: decode each hex pattern to its float value (sign/exp/mantissa), write it as a decimal f32 literal that round-trips, and re-run compile_and_diff. Not tried: the float-literal conversion (needs exact decoding of ~130 values, no script available here).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794752709.015564,
-  "score_before": 127949,
-  "score_after": 127949
- },
- {
   "function": "func_80127AB0",
   "text": "Not attempted to match. Claim expired before release. The m2c draft (revision 4bb32fc717fc1de38b42) does not compile: syntax error at `temp_ft0_4 = ...` inside an && chain; undefined sp34/sp38/sp44/sp48 used as func_80127030 args; func_80127148 called with wrong arg count (matched reference: Vec3 *func_80127148(Vec3 *dst, Vec3 *a, Vec3 *b)); M2C_BITWISE(f32, &sp40) misuse. 884 instructions with a deep goto web (loop_1/3/5/27/31, block_25..71); needs a structured rewrite before register tuning. Callee func_80127000 is an exact match with reference signature f32(void*,void*), which conflicts with the caller decl f32(f32*,f32*); resolve first. Empty stub scored 88260. Suggested first step: restructure the strided D_8012AB98 record loops (stride 0xC/0x10) into typed locals, then compile and diff.",
   "by": "claude-haiku-5-5-21",
@@ -12174,14 +12158,6 @@
   "created_at": 1794752959.00067,
   "score_before": 52929,
   "score_after": 52929
- },
- {
-  "function": "func_801528B4",
-  "text": "Unmatched. Target is 1314 insns, frame 0xa0, saves s0-s7/fp/ra. Body is a long sequence of func_800DE41C calls with float literal args (the m2c draft passes float bit patterns as s32; these must be rewritten as f32 constants). A two-call prefix scored 125796 (4.2%). Needs full transcription of each call from assembly; no progress beyond that.\n\nUnmatched, best 125796 (4.2%). Target: 1316 asm lines, frame 0xa0, saves ra/fp/s0-s7 and fs0-fs5 (double saves). Stack args 0x10..0x44 are the 12 extra params of func_800DE41C (0x53, 0x96, ptrs, zeros, then 1.0f floats at 0x3C/0x40/0x44). Regs a0..a3 = 0,7,2,0 for the first call. The target keeps 0x96, D_8016D150 base, and the func pointers in s-regs across calls, so the source likely reuses named locals (not literals). The m2c draft's float args are raw bit patterns (0xC5041266 etc.) that must become real f32 constants; this is what keeps the score low. Next: transcribe calls in order, using locals for the reused constants and base pointers, and check the float-constant loads (lui/mtc1 into fs regs) per call. Budget ran out at 3 compiles without improvement; the two-call prefix is not a useful baseline for the full body.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794752965.749417,
-  "score_before": 127949,
-  "score_after": 125796
  },
  {
   "function": "func_8014F5A8",
@@ -15248,14 +15224,6 @@
   "score_after": 125388
  },
  {
-  "function": "func_801528B4",
-  "text": "Not attempted with compiles. func_801528B4 is 5256 bytes / 1314 insns, with a 0xA0-byte frame that saves $ra, $fp and $s0-$s7. The only prior \"best\" (score 125796) is a two-call stub of func_800DE41C, not a real body, so it does not show the structure. Data used: D_8016D150, D_802398E8, D_8023991C. Next agent: get_assembly in chunks to find the loop and call structure before writing any C. Expect to split the body into helpers with split_function, or work out the callee shapes first. The stub should not be used as a starting point.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794761758.769989,
-  "score_before": 125796,
-  "score_after": 125796
- },
- {
   "function": "func_8014F5A8",
   "text": "Not matched. The saved machine draft (revision 075e252709bc7dedf089) rechecks at score 144443, far from 0. The function is about 60 straight-line calls to func_800DE41C, each with three float-like arguments passed as hex bit patterns (e.g. 0x42960000, 0xC4160000) and trailing 1.0f/0.8f values. Those hex values sit in integer-typed slots, while the prototype declares the last three params as f32. Next step: rewrite the call table with the float slots typed as f32 and the constants as real float literals, then compile_and_diff the whole function to check the register/arg layout. Local-repair families (global_scalar_type, global_address_table, call_one_shot_scope) are untried. The function is large, so do not expect a quick match.",
   "by": "claude-haiku-5-5-22",
@@ -16054,14 +16022,6 @@
   "created_at": 1794764770.175967,
   "score_before": 23132,
   "score_after": 23132
- },
- {
-  "function": "func_801528B4",
-  "text": "Compiled stub only: score 125796 (4.2%), target 1314 insns vs 65 mine. The stub (two func_800DE41C calls with D_8016D150 / +0x10 and callbacks func_80151F70/func_80151FFC and func_8015211C/func_80152198, trailing 1.0f args) covers only the tail of the function. Target has a large prologue (addiu -0xa0, saves ra/fp/s7..s0, sdc1 f30..f20) and hundreds of repeated `sw $ra`-style register saves, i.e. many calls with float-literal args. Next step: read get_assembly for the call sequence and the float constants (mtc1 $at into f22 is frequent), then write the full body as a series of func_800DE41C calls. Expect this to take multiple passes; split_function may help.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794764792.260221,
-  "score_before": 125796,
-  "score_after": 125796
  },
  {
   "function": "func_8013BB54",
@@ -41670,5 +41630,53 @@
   "created_at": 1794758882.70114,
   "score_before": 10235,
   "score_after": 10235
+ },
+ {
+  "function": "func_801528B4",
+  "text": "Straight-line sequence of ~70 calls to func_800DE41C (18 args: 4 regs, 14 on stack; stack slots 0x10..0x44 hold args 5..18, with floats 1.0f/2.0f/3.0f in 0x3C/0x40/0x44). Best score 127949 (2.6%), 1214 vs 1314 insns, source = machine draft with pointers as char arrays (D_8016D150 + off), u32 hex literals for the bit-pattern args, f32 literals for the last three. Mismatch: target frame is 0xa0 and saves $fs0..$fs5 at 0x70..0x98 with sw $ra at 0x6c; mine has frame 0x118 and spills every u32 constant via lui/ori/sw $t2 to 0x4c. Next: reduce live values across calls so the frame shrinks to 0xa0 (target only keeps pointers s0..s6 and fs0..fs5), and pick the int/float typing of args 9-11 so the constants are written by lui/ori+sw straight into the stack slots. Compile errors to avoid: do not redeclare u32/f32 typedefs (already in context.h).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794719831.315768,
+  "score_before": 127949,
+  "score_after": 127949
+ },
+ {
+  "function": "func_801528B4",
+  "text": "Tried the m2c table draft with two fixes: (1) D_8016D150, D_802398E8, D_8023991C declared as u8 arrays so +0x10 offsets are byte offsets (the s32-typed draft scaled them by 4); (2) callee prototype made explicit: s32 func_800DE41C(s32 x6, void*x3, s32 x6, f32 x3). Score 127949 (2.6%), no improvement over saved best. Remaining mismatch: the target stores the hex-constant args (0xC5041266, 0x43898000, 0x44FDE7AE, etc.) as FLOAT values: lui $at + mtc1 $at,$f22 + swc1 $f22,0x3c($sp)-style stores (119 swc1 to 0x3c, 76 mtc1). My draft emits them as integer lui/ori + sw. So these args are f32 in the source; they need to be float literals (decimal values whose bit pattern equals the hex shown), not hex ints. Also the target frame is -0xA0 with fs0-fs5 saved; mine is -0x118, so the float-constant rewrite should shrink it. Next step: decode each hex pattern to its float value (sign/exp/mantissa), write it as a decimal f32 literal that round-trips, and re-run compile_and_diff. Not tried: the float-literal conversion (needs exact decoding of ~130 values, no script available here).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794752709.015564,
+  "score_before": 127949,
+  "score_after": 127949
+ },
+ {
+  "function": "func_801528B4",
+  "text": "Unmatched. Target is 1314 insns, frame 0xa0, saves s0-s7/fp/ra. Body is a long sequence of func_800DE41C calls with float literal args (the m2c draft passes float bit patterns as s32; these must be rewritten as f32 constants). A two-call prefix scored 125796 (4.2%). Needs full transcription of each call from assembly; no progress beyond that.\n\nUnmatched, best 125796 (4.2%). Target: 1316 asm lines, frame 0xa0, saves ra/fp/s0-s7 and fs0-fs5 (double saves). Stack args 0x10..0x44 are the 12 extra params of func_800DE41C (0x53, 0x96, ptrs, zeros, then 1.0f floats at 0x3C/0x40/0x44). Regs a0..a3 = 0,7,2,0 for the first call. The target keeps 0x96, D_8016D150 base, and the func pointers in s-regs across calls, so the source likely reuses named locals (not literals). The m2c draft's float args are raw bit patterns (0xC5041266 etc.) that must become real f32 constants; this is what keeps the score low. Next: transcribe calls in order, using locals for the reused constants and base pointers, and check the float-constant loads (lui/mtc1 into fs regs) per call. Budget ran out at 3 compiles without improvement; the two-call prefix is not a useful baseline for the full body.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794752965.749417,
+  "score_before": 127949,
+  "score_after": 125796
+ },
+ {
+  "function": "func_801528B4",
+  "text": "Not attempted with compiles. func_801528B4 is 5256 bytes / 1314 insns, with a 0xA0-byte frame that saves $ra, $fp and $s0-$s7. The only prior \"best\" (score 125796) is a two-call stub of func_800DE41C, not a real body, so it does not show the structure. Data used: D_8016D150, D_802398E8, D_8023991C. Next agent: get_assembly in chunks to find the loop and call structure before writing any C. Expect to split the body into helpers with split_function, or work out the callee shapes first. The stub should not be used as a starting point.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794761758.769989,
+  "score_before": 125796,
+  "score_after": 125796
+ },
+ {
+  "function": "func_801528B4",
+  "text": "Compiled stub only: score 125796 (4.2%), target 1314 insns vs 65 mine. The stub (two func_800DE41C calls with D_8016D150 / +0x10 and callbacks func_80151F70/func_80151FFC and func_8015211C/func_80152198, trailing 1.0f args) covers only the tail of the function. Target has a large prologue (addiu -0xa0, saves ra/fp/s7..s0, sdc1 f30..f20) and hundreds of repeated `sw $ra`-style register saves, i.e. many calls with float-literal args. Next step: read get_assembly for the call sequence and the float constants (mtc1 $at into f22 is frequent), then write the full body as a series of func_800DE41C calls. Expect this to take multiple passes; split_function may help.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794764792.260221,
+  "score_before": 125796,
+  "score_after": 125796
+ },
+ {
+  "function": "func_801528B4",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 96964 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (10 of its 12 nearest matched neighbours were built with it), the saved C scores 118993 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721449.3269079,
+  "score_before": 118993,
+  "score_after": 96964
  }
 ]
