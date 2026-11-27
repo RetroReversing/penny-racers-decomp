@@ -2992,14 +2992,6 @@
   "score_after": 947
  },
  {
-  "function": "func_8015B344",
-  "text": "Deep permuter: score 20870 \u2192 17045; 7 improvements; 71 candidates tested; 232 cached skips; 0 rejected; 7224s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935523",
-  "created_at": 1794357264.113466,
-  "score_before": 20870,
-  "score_after": 17045
- },
- {
   "function": "func_801632D0",
   "text": "Deep permuter: score 5725 \u2192 5460; 4 improvements; 57 candidates tested; 61 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935557",
@@ -7558,14 +7550,6 @@
   "created_at": 1794714332.993283,
   "score_before": 4260,
   "score_after": 4260
- },
- {
-  "function": "func_8015B344",
-  "text": "Not matched; saved best stays 5837 (m2c-derived, revision 1d2dea3275e8856279dc). My hand-written C (current revision 9593bd0e1cdc87b065fc, score 17467) is still far worse, so it is not saved as best. Findings from 4 compiles: (1) target frame is 0x18 and saves s0-s5 plus ra; mine uses 0x10 and fewer saves, so the locals/loop shape need rework. (2) D_8011F32E is u16 (lhu) and D_8011F330 is a byte/halfword read (target uses lhu for F32E; F330 check still open, mine uses lbu). (3) idx = (arg1&0xFFFF)*0x64 is compiled as shift/add chains, not mul; the target's index ordering differs (sll 2 then addu). (4) The D_800DE080+0x64 Dl pointer is re-lui'd and stored fresh each time (3 times in the first block); my cached d pointer loses that. (5) The second half (loop body, cond-true vs else branch) emits 7 and 7 DL pairs; the else branch in my version is a placeholder that does not compute the real a0/w0 values, so it is far from target; redo it from the m2c draft's arithmetic: a1_2 = (t0-1)*0x14, a2 = a1_2+0x13, w0 = ((((a2-a1_2)+8)>>3)&0x1FF)<<9 | 0xF5480000, and the 0xF4/0xF2 words use ((a1_2*4)&0xFFF)<<12 | ((t1-1)*0x2C)&0xFFC. Next: restore the full else-branch arithmetic, fix the frame to 0x18 by keeping only t0/t1/idx/d live, then check register order. Not tried: compile_family constant_local, search_flags.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794714359.598122,
-  "score_before": 5837,
-  "score_after": 5837
  },
  {
   "function": "func_80211094",
@@ -13800,14 +13784,6 @@
   "score_after": 16970
  },
  {
-  "function": "func_8015B344",
-  "text": "Not solved. One compile this session (rev 4fdba66a80ba736db6be, score 20870, 33.5%), which is worse than the saved best 5837. The m2c draft is a display-list builder: arg0 is a Gfx** cursor (each word is 8 bytes, `*arg0 += 8`), and the record stride is 0x64 from D_8011F32E/D_8011F330. The compile shows the index math is wrong: the target builds the offset as (u16)arg1*0x64 via sll/addu chains (x*3 then <<2 shifts, `sll $v1,$v0,2` x4), while the draft's loop structure differs. Next: rewrite from the target assembly with a clean cursor helper (struct Gfx { u32 w0, w1; }), start from the first 40 instructions, and do not reuse the m2c goto/loop_4 shape.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794741551.9898582,
-  "score_before": 5837,
-  "score_after": 5837
- },
- {
   "function": "func_8015F33C",
   "text": "Why it can't get closer now: the 303-insn target needs the D_8011F350 object typed as a struct with offsets 0x4, 0x8, 0x14, 0x76, 0x560, 0x714-0x728, 0x748, 0x784-0x7CC, 0x860, 0x890 and 0x8A1, and the redraft depends on those. Small edits to the 2-line stub score 28130 and only move on register or stack details, so more blind compiles will not help. Saved-best 2995 is still the reference. Next agent: start from the m2c draft in get_candidate (saved draft in claim brief), type the object first, then redraft and compile. Notes from the earlier attempt: the 0x748 float is +100 with clamp to 7000.0f; the 0x14 s16 is a countdown that calls func_8013E49C(*(u16*)+0x76) at zero; the two func_800DE41C blocks (args 0x5B,0x7F, &D_802390C8, &func_8013AF08, &func_8015FD04, floats from +0x714/+0x718/+0x71C and +0x720/+0x724/+0x728, then 0.08f x3) write the D_8011F2F0 table.",
   "by": "claude-haiku-5-5-23",
@@ -15622,14 +15598,6 @@
   "created_at": 1794749982.536088,
   "score_before": 14870,
   "score_after": 14870
- },
- {
-  "function": "func_8015B344",
-  "text": "Display-list generator (1256 bytes, ~314 target insns, has a $s0-$s5 callee-saved prologue, so it is not a simple gfx-writer). m2c draft is structurally wrong for the target. My typed version (Gfx{w0,w1} with *dl++ writes, D_800DE080+0x64 as a Gfx* cursor, u16 gating at D_8011F32E/D_8011F330 with stride 0x64) reached 26280 (16%) vs saved best 5837. Gaps: the 2-level loop (k over 0..0xC, inner j over 0..0xE, with the case split on j==0||j==0xE and k==0||k==0xC) is unwritten; the target keeps the dl pointer in a register across both loops instead of reloading through arg0. Next step: write the inner loop body and its two-branch case with the w1 address math from the draft (temp_a2/temp_a1 values: ((j-1)*0x14+0x13 etc.), then fix register use. Index stride for D_8011F32E is unverified (draft uses *0x64; check the sll/addu sequence before line 52 of the asm). Budget was 3 compiles without improvement, so released.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794750037.26565,
-  "score_before": 5837,
-  "score_after": 5837
  },
  {
   "function": "func_8015F33C",
@@ -19544,14 +19512,6 @@
   "score_after": 9235
  },
  {
-  "function": "func_8015B344",
-  "text": "Not started. My only compile was a stub (empty body, score 31260), so no real evidence yet. The machine draft (m2c, -O1, revision 1d2dea3275e8856279dc) is a display-list builder that writes Gfx words through *arg0 with an 8-byte stride, gated on D_8011F32E and D_8011F330 at arg1*0x64, with a nested loop over var_t1 (0..0xC) and var_t0 (0..0xE). Next: compile the full draft with Gfx/pool structs, then fix the incompatible-pointer warnings before tuning.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794758547.3480902,
-  "score_before": 5837,
-  "score_after": 5837
- },
- {
   "function": "func_80216958",
   "text": "Not matched, released at the session's effort limit. Saved best is 3581 (earlier attempt, different source; restore with get_candidate(base=\"saved_best\")). Current draft scores 8946 (66.3%). Target: 0x28-frame state machine over 1064 bytes on node pool D_8011F2F0 (stride 0x64, state u16 at 0x3E, counter at 0x40). Mismatch: the draft's temp_s4 = &D_80190CA8 - 0xA gives the wrong base (0x80190C80), and the target keeps D_80190CA8 in $s1 with lbu/sb through ($s1) and lbu -1($v1). Variants tried without gain: temp_s4 as (u8*)&D_80190CA8; signedness on var_s2 (u32). Next step: read the target's byte-access sequence in get_assembly to identify the struct at D_80190CA8 and its field offsets, then redraft with that struct. Do not spend more compiles on the global cast alone.",
   "by": "claude-haiku-5-5-20",
@@ -21910,14 +21870,6 @@
   "created_at": 1794761997.065595,
   "score_before": 2520,
   "score_after": 2520
- },
- {
-  "function": "func_8015B344",
-  "text": "Not attempted to a match this session. Target is a 314-instruction display-list builder (1256 bytes) packing 64-bit Gfx words with shifted/masked fields in two nested loops (var_t1 0..0xC, var_t0 0..0xE), plus a 0x18-byte frame saving s0-s5. The saved best (5837, m2c draft) gets the control flow roughly right but the bit-field arithmetic and temp/register lifetimes differ. Next step: rewrite from assembly as a clean loop with explicit u32 word-pair emission (a helper macro for the two 32-bit halves), keep the two conditional branches inside the inner loop as in the target, and fix register allocation last.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794761997.6051772,
-  "score_before": 5837,
-  "score_after": 5837
  },
  {
   "function": "func_801B4CF8",
@@ -40537,5 +40489,62 @@
   "score_before": 3540,
   "score_after": 2490,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:fdcc25c88e9e9a7c08d1ad870ba02443248cc06968ad8c50514ceda2c4148956"
+ },
+ {
+  "function": "func_8015B344",
+  "text": "Deep permuter: score 20870 \u2192 17045; 7 improvements; 71 candidates tested; 232 cached skips; 0 rejected; 7224s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935523",
+  "created_at": 1794357264.113466,
+  "score_before": 20870,
+  "score_after": 17045
+ },
+ {
+  "function": "func_8015B344",
+  "text": "Not matched; saved best stays 5837 (m2c-derived, revision 1d2dea3275e8856279dc). My hand-written C (current revision 9593bd0e1cdc87b065fc, score 17467) is still far worse, so it is not saved as best. Findings from 4 compiles: (1) target frame is 0x18 and saves s0-s5 plus ra; mine uses 0x10 and fewer saves, so the locals/loop shape need rework. (2) D_8011F32E is u16 (lhu) and D_8011F330 is a byte/halfword read (target uses lhu for F32E; F330 check still open, mine uses lbu). (3) idx = (arg1&0xFFFF)*0x64 is compiled as shift/add chains, not mul; the target's index ordering differs (sll 2 then addu). (4) The D_800DE080+0x64 Dl pointer is re-lui'd and stored fresh each time (3 times in the first block); my cached d pointer loses that. (5) The second half (loop body, cond-true vs else branch) emits 7 and 7 DL pairs; the else branch in my version is a placeholder that does not compute the real a0/w0 values, so it is far from target; redo it from the m2c draft's arithmetic: a1_2 = (t0-1)*0x14, a2 = a1_2+0x13, w0 = ((((a2-a1_2)+8)>>3)&0x1FF)<<9 | 0xF5480000, and the 0xF4/0xF2 words use ((a1_2*4)&0xFFF)<<12 | ((t1-1)*0x2C)&0xFFC. Next: restore the full else-branch arithmetic, fix the frame to 0x18 by keeping only t0/t1/idx/d live, then check register order. Not tried: compile_family constant_local, search_flags.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794714359.598122,
+  "score_before": 5837,
+  "score_after": 5837
+ },
+ {
+  "function": "func_8015B344",
+  "text": "Not solved. One compile this session (rev 4fdba66a80ba736db6be, score 20870, 33.5%), which is worse than the saved best 5837. The m2c draft is a display-list builder: arg0 is a Gfx** cursor (each word is 8 bytes, `*arg0 += 8`), and the record stride is 0x64 from D_8011F32E/D_8011F330. The compile shows the index math is wrong: the target builds the offset as (u16)arg1*0x64 via sll/addu chains (x*3 then <<2 shifts, `sll $v1,$v0,2` x4), while the draft's loop structure differs. Next: rewrite from the target assembly with a clean cursor helper (struct Gfx { u32 w0, w1; }), start from the first 40 instructions, and do not reuse the m2c goto/loop_4 shape.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794741551.9898582,
+  "score_before": 5837,
+  "score_after": 5837
+ },
+ {
+  "function": "func_8015B344",
+  "text": "Display-list generator (1256 bytes, ~314 target insns, has a $s0-$s5 callee-saved prologue, so it is not a simple gfx-writer). m2c draft is structurally wrong for the target. My typed version (Gfx{w0,w1} with *dl++ writes, D_800DE080+0x64 as a Gfx* cursor, u16 gating at D_8011F32E/D_8011F330 with stride 0x64) reached 26280 (16%) vs saved best 5837. Gaps: the 2-level loop (k over 0..0xC, inner j over 0..0xE, with the case split on j==0||j==0xE and k==0||k==0xC) is unwritten; the target keeps the dl pointer in a register across both loops instead of reloading through arg0. Next step: write the inner loop body and its two-branch case with the w1 address math from the draft (temp_a2/temp_a1 values: ((j-1)*0x14+0x13 etc.), then fix register use. Index stride for D_8011F32E is unverified (draft uses *0x64; check the sll/addu sequence before line 52 of the asm). Budget was 3 compiles without improvement, so released.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794750037.26565,
+  "score_before": 5837,
+  "score_after": 5837
+ },
+ {
+  "function": "func_8015B344",
+  "text": "Not started. My only compile was a stub (empty body, score 31260), so no real evidence yet. The machine draft (m2c, -O1, revision 1d2dea3275e8856279dc) is a display-list builder that writes Gfx words through *arg0 with an 8-byte stride, gated on D_8011F32E and D_8011F330 at arg1*0x64, with a nested loop over var_t1 (0..0xC) and var_t0 (0..0xE). Next: compile the full draft with Gfx/pool structs, then fix the incompatible-pointer warnings before tuning.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794758547.3480902,
+  "score_before": 5837,
+  "score_after": 5837
+ },
+ {
+  "function": "func_8015B344",
+  "text": "Not attempted to a match this session. Target is a 314-instruction display-list builder (1256 bytes) packing 64-bit Gfx words with shifted/masked fields in two nested loops (var_t1 0..0xC, var_t0 0..0xE), plus a 0x18-byte frame saving s0-s5. The saved best (5837, m2c draft) gets the control flow roughly right but the bit-field arithmetic and temp/register lifetimes differ. Next step: rewrite from assembly as a clean loop with explicit u32 word-pair emission (a helper macro for the two 32-bit halves), keep the two conditional branches inside the inner loop as in the target, and fix register allocation last.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794761997.6051772,
+  "score_before": 5837,
+  "score_after": 5837
+ },
+ {
+  "function": "func_8015B344",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 7217 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (10 of its 12 nearest matched neighbours were built with it), the saved C scores 8385 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721281.217806,
+  "score_before": 8385,
+  "score_after": 7217,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:7c0e2a3060e9de5c8948219528081e3327d992d711533d833d178506d20f74c8"
  }
 ]
