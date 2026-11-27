@@ -3240,14 +3240,6 @@
   "score_after": 6450
  },
  {
-  "function": "func_8015CFD8",
-  "text": "Deep permuter: score 12948 \u2192 11433; 4 improvements; 80 candidates tested; 91 cached skips; 0 rejected; 7202s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935530",
-  "created_at": 1794348596.8248608,
-  "score_before": 12948,
-  "score_after": 11433
- },
- {
   "function": "func_80141C28",
   "text": "Deep permuter: score 15792 \u2192 15232; 2 improvements; 92 candidates tested; 12 cached skips; 0 rejected; 7223s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935367",
@@ -7000,14 +6992,6 @@
   "score_after": 13956
  },
  {
-  "function": "func_8015CFD8",
-  "text": "Best verified attempt this session: revision 3c853506f96af042f58f, score 10825 (52.5%). It declares the 0x64-stride tables as struct arrays (Row16{st;pad[0x62]}, RowP{p;pad[0x60]}, RowF{v;pad[0x60]}) indexed by the u16 arg0, so GCC folds %lo into lhu/lw/lwc1/lbu and reuses one stride multiply; that fixed ~45 target rows vs the byte-index form (12948/16163). Restore it with get_candidate(base=\"saved_best\") if the saved best is not it, and keep that base.\n\nRemaining diffs on 3c853506 (target 228 insns, ours 214):\n1) Stride recomputation: target recomputes `andi $v0,$s0,0xffff; sll/addu x3; sll 2` in each case body (5 sites); ours CSEs the byte index into $s2 once. Re-masking per use did not change it; try reading arg0 again after each call (calls should clobber the CSE) or separate per-case locals.\n2) func_8013EB20 call shape: target does `sw $zero,0x10($sp); move a0,s0; lw $a2,0x10($sp); lui/ori a3,-0.1f; jal; move a1,s1`, i.e. 3rd arg 0.0f via the outgoing stack slot, 5th arg 0.0f. Ours passes integer 0 and materialises 0.0f with mtc1/mfc1 plus a store. Prototype func_8013EB20 as (u16, f32 *, f32, f32, f32) and call with 0.0f, -0.1f, 0.0f (and 0.0f, -0.15f, 0.0f in case 2).\n3) func_8013EC48 shows cvt.d.s / mfc1 $a3,$f6 in ours: with an unprototyped declaration the float arg is promoted to double. Retry `void func_8013EC48(s32, f32);` alone on 3c853506.\n4) `*(u16*)(p+0x14) -= 1; if (*(u16*)(p+0x14) & 0x8000)` yields `andi 0x8000; beqz`; target uses `sll $v0,$v0,0x10; bgez`, i.e. a signed test. Write `if ((s16)*(u16*)(p+0x14) < 0)` or keep an s16 local and test `< 0`.\n5) Case 2 tail: target reloads D_8011F2FC twice with `lui/addu/lbu %lo` (no addiu of the base); ours hoists `addiu $v1,%lo(D_8011F2FC)`. Keep the two separate indexed expressions, no pointer local, with the fresh stride index.\n6) Frame: target -0x28 with only s0/s1 saved; ours also saves s2 because of the CSE'd byte index \u2014 fixing (1) should remove it.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794711565.661066,
-  "score_before": 7015,
-  "score_after": 7015
- },
- {
   "function": "func_8003EA40",
   "text": "func_8003EA40 is osInvalDCache (libultra): the loop bodies are `cache 0x10,0($t0)` (invalidate-data, 0x10) and `cache 0x00,0($t0)` in the >=0x4000 fallback path over 0x80000000..0x80003FE0. Pure C cannot emit the MIPS `cache` opcode, so no C source can be byte-identical; the shell code around them is trivially reproducible (the m2c draft already has it) and the target itself annotates both as handwritten instructions. Keep status open: this one needs to be flagged as assembly, not decompiled.",
   "by": "opencode-deepseek-v4.1-flash-free-5",
@@ -10192,14 +10176,6 @@
   "score_after": 12148
  },
  {
-  "function": "func_8015CFD8",
-  "text": "Not matched. Best candidate: revision cd67fbb681a2b5a64e7a (score 10818, 52.5%), using a local `u32 off = (u16)arg0 * 0x64;` for all table indexes. Revision e278b147cb6871a0d6e3 (12948) and the inlined `(u16)arg0 * 0x64` form (12948) are worse. Target: frame 0x28, saves ra/s0/s1 only, no s2. The index is recomputed from s0 after each call (andi $v0,$s0,0xffff then sll/addu chain for *100), not held in a callee-saved register. Any local that lives across calls (off, or CSE of arg0*0x64) pulls in s2 and a 0x30/0x38 frame. Next: find a form where the multiply is recomputed per use and not kept live, and get the lui/addu/lw pointer load for D_8011F350 into s1. The target loads the D_8011F32E state through lui $at. Stopping here: the remaining gap is the frame and register allocation, not the control flow.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794727991.5969138,
-  "score_before": 7015,
-  "score_after": 7015
- },
- {
   "function": "func_8015CB40",
   "text": "Best 12170 (51.5%, 239 vs 251 insns) at revision 6dac0142dcdcff426539, a machine-draft-based C with the declarations filled in. Not close. The target keeps the loop index as u16 (`andi $s0,$s1,0xffff` x4) and carries the frame's f32 temporaries in $f24 and $f26, while mine uses f64 locals (`cvt.s.w` x6, `sdc1` to 0x80). Shape to try next: rewrite the three random-offset computations as u16 with an explicit f32 cast, and drop the f64 temps. Callees: func_800DE41C (18 args), func_8013E364, func_8013E818, func_801FA30C, func_8013E49C (s32 in context). Released after 1 compile because the structure is wrong, not just registers.",
   "by": "claude-haiku-5-5-24",
@@ -13174,14 +13150,6 @@
   "created_at": 1794740832.1438541,
   "score_before": 13956,
   "score_after": 13956
- },
- {
-  "function": "func_8015CFD8",
-  "text": "Not matched. Best this session: 10818 (revision 7d366c56ab82bedd638b, or cd67fbb681a2b5a64e7a with the same score), using a local `u32 off = (u16)arg0 * 0x64;` for every table index. The historical saved best (7015) did not reproduce on recheck; the original draft rechecks at 12948. Findings: target frame is 0x28 and saves only ra, s0, s1. Target keeps arg0 in s0 (`move $s0,$a0`) and recomputes the index chain from s0 at each use (andi, then sll/addu sequence, then sll 2), so it does not keep a long-lived index register. Our versions keep `off` in s2 across calls and grow the frame to 0x30/0x38. That is the main gap. Inline `((u16)arg0)*0x64` at each site scored 12948. Next try: force a per-use recomputation from u16 arg0 without a shared local, and check whether the chain comes from `arg0 * 100` rather than `* 0x64`. The target loads p = *(u8**)(D_8011F350+idx) first, before switching on D_8011F32E.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794740834.6547751,
-  "score_before": 7015,
-  "score_after": 7015
  },
  {
   "function": "func_8021AF20",
@@ -18600,14 +18568,6 @@
   "score_after": 3081
  },
  {
-  "function": "func_8015CFD8",
-  "text": "Two drafts tried, both worse than the saved best 7015; keep the saved best as the starting point. Findings: (1) target frame is 0x28 with ra at 0x20, s1 at 0x1c, s0 at 0x18 and p kept in s0 (`move $s0,$a0` right after the prologue); the drafts use a 0x38 frame and extra s2/s3 saves, so the index `arg0*0x64` is being kept live. (2) The target computes arg0*100 as a shift/add chain (`sll v1,v0,1; addu; sll 3; addu; sll 2`), i.e. the u16 index is multiplied out once and reused; try a single `u32 idx = (u16)arg0 * 100` (or `s32 idx`) local used for all table offsets so the expression is shared. (3) Adding f32 prototypes for func_8013EBB0/EC48/EB20/EA18/EA90 removed the cvt.d.s promotions but scored worse overall (13920), so the target does pass the f32 args as floats: keep those prototypes, but first fix the frame/index before judging the rest. (4) Target has `lui $s1,%hi(D_8011F350)` reloaded 5-6 times, which suggests the table bases are not hoisted.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794758040.1117818,
-  "score_before": 7015,
-  "score_after": 7015
- },
- {
   "function": "func_801FF978",
   "text": "Released early at low effort: 932 bytes, 233 target insns. Best saved 26870 (0% match); 8 compiles without improvement, plus one signedness variant (worse, 26875). Cause: the target keeps &D_802038E0 / D_802038E4 in $s0 across the whole function and reads each global with its own lui/%lo, while our globals are addressed through D_8006FB38 and D_801D7DF0 with folded offsets, so the diff is structural from the first block. Next step: declare the D_802038xx globals as individual extern symbols (not arrays), write the tempo block first and compile it alone, then the 0x1C-stride init loop (entries: +0 byte, +1 byte, +4 word, +8 byte, +9 byte; second loop reads +10..+14 flags and writes +15..+25), then the final 8-entry loop over D_801D7DF0 (stride 0x2C, field +0xC).",
   "by": "claude-haiku-5-5-24",
@@ -19910,14 +19870,6 @@
   "created_at": 1794759883.076465,
   "score_before": 13669,
   "score_after": 12115
- },
- {
-  "function": "func_8015CFD8",
-  "text": "func_8015CFD8 (912 bytes, 228 insns). Not matched. Saved best 7015 (25 prior attempts) stays best. Recompiled the saved-best source this session: 12948 (43.2%), worse. Differences: (1) target frame is 0x28 saving ra, s0, s1 only; my versions use 0x38 and an extra s2 spill. Keep arg0 (masked to 0xFFFF) in s0 and index*100 via the shift/add chain (x*2+x)<<3 +x, <<2. (2) Compiled output references .rodata+0x0 and +0x8 for float constants that the target does not reference at those places; the float literals (0.01f, 0.1f, 0.3f, 0.2f, 0.05f, 2.9f, -0.1f, -0.15f) need to match the ROM's constant pool and operand form. The cvt.d.s and sdc1 stores in my version suggest a double promotion that the target does not do; keep the expressions in f32. (3) Prototype for func_8013EB20 is (u16, f32*, f32, f32, f32) per the exact-matched neighbour, so the saved-best call with (arg0, p, 0, -0.1f) may have the wrong arity; check the arg order. Next step: fix the prototype and float expressions before register roles.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794759883.2123048,
-  "score_before": 7015,
-  "score_after": 7015
  },
  {
   "function": "func_8020FFD0",
@@ -21398,14 +21350,6 @@
   "created_at": 1794762063.585423,
   "score_before": 4269,
   "score_after": 4269
- },
- {
-  "function": "func_8015CFD8",
-  "text": "Not matched. Best reproduced: 14385 (36.9%), target 228 insns vs 193, revision b067858a8c26acf63dc2. Saved best 7015 is a different source and does not reproduce here. The s32-arg0 variant with inline (arg0 & 0xFFFF) (f8af5450c43291ac618d) gave the same score. Why it cannot get closer now: the frame and register lifetimes are wrong. The target keeps ra, s1 and s0 saved (frame 0x28) with move $s0,$a0 so arg0 survives the calls, and keeps lui $s1,%hi(D_8011F350) live over 7 uses. The candidate saves only s1 and computes the index into s1. Next agent: force arg0 and p to live across the calls (for example by reading arg0 after the first call), then fix the switch dispatch (target does a sll/addu index chain before the switch). Callees: func_8013EA18(void*,s32,s32,s32), func_8013EA90(void*,s32,s32,s32), func_8013EB20(s32,void*,s32,f32), func_8013EBB0(s32,f32,f32,f32), func_8013EC48(s32,f32), func_801FA30C(void) returns s32; func_8013E49C(u16) is in context. Data: D_8011F350 (pointer table, stride 0x64, p = *(u8**)), D_8011F32E (u16 state, stride 0x64), D_8011F320 (f32, stride 0x64), D_8011F2FC (u8 counter, stride 0x64), D_8011F2FD (u8 flag, stride 0x64).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794762072.712801,
-  "score_before": 7015,
-  "score_after": 7015
  },
  {
   "function": "func_8013D1A4",
@@ -40623,5 +40567,70 @@
   "created_at": 1794762626.5532212,
   "score_before": 9496,
   "score_after": 9496
+ },
+ {
+  "function": "func_8015CFD8",
+  "text": "Deep permuter: score 12948 \u2192 11433; 4 improvements; 80 candidates tested; 91 cached skips; 0 rejected; 7202s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935530",
+  "created_at": 1794348596.8248608,
+  "score_before": 12948,
+  "score_after": 11433
+ },
+ {
+  "function": "func_8015CFD8",
+  "text": "Best verified attempt this session: revision 3c853506f96af042f58f, score 10825 (52.5%). It declares the 0x64-stride tables as struct arrays (Row16{st;pad[0x62]}, RowP{p;pad[0x60]}, RowF{v;pad[0x60]}) indexed by the u16 arg0, so GCC folds %lo into lhu/lw/lwc1/lbu and reuses one stride multiply; that fixed ~45 target rows vs the byte-index form (12948/16163). Restore it with get_candidate(base=\"saved_best\") if the saved best is not it, and keep that base.\n\nRemaining diffs on 3c853506 (target 228 insns, ours 214):\n1) Stride recomputation: target recomputes `andi $v0,$s0,0xffff; sll/addu x3; sll 2` in each case body (5 sites); ours CSEs the byte index into $s2 once. Re-masking per use did not change it; try reading arg0 again after each call (calls should clobber the CSE) or separate per-case locals.\n2) func_8013EB20 call shape: target does `sw $zero,0x10($sp); move a0,s0; lw $a2,0x10($sp); lui/ori a3,-0.1f; jal; move a1,s1`, i.e. 3rd arg 0.0f via the outgoing stack slot, 5th arg 0.0f. Ours passes integer 0 and materialises 0.0f with mtc1/mfc1 plus a store. Prototype func_8013EB20 as (u16, f32 *, f32, f32, f32) and call with 0.0f, -0.1f, 0.0f (and 0.0f, -0.15f, 0.0f in case 2).\n3) func_8013EC48 shows cvt.d.s / mfc1 $a3,$f6 in ours: with an unprototyped declaration the float arg is promoted to double. Retry `void func_8013EC48(s32, f32);` alone on 3c853506.\n4) `*(u16*)(p+0x14) -= 1; if (*(u16*)(p+0x14) & 0x8000)` yields `andi 0x8000; beqz`; target uses `sll $v0,$v0,0x10; bgez`, i.e. a signed test. Write `if ((s16)*(u16*)(p+0x14) < 0)` or keep an s16 local and test `< 0`.\n5) Case 2 tail: target reloads D_8011F2FC twice with `lui/addu/lbu %lo` (no addiu of the base); ours hoists `addiu $v1,%lo(D_8011F2FC)`. Keep the two separate indexed expressions, no pointer local, with the fresh stride index.\n6) Frame: target -0x28 with only s0/s1 saved; ours also saves s2 because of the CSE'd byte index \u2014 fixing (1) should remove it.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794711565.661066,
+  "score_before": 7015,
+  "score_after": 7015
+ },
+ {
+  "function": "func_8015CFD8",
+  "text": "Not matched. Best candidate: revision cd67fbb681a2b5a64e7a (score 10818, 52.5%), using a local `u32 off = (u16)arg0 * 0x64;` for all table indexes. Revision e278b147cb6871a0d6e3 (12948) and the inlined `(u16)arg0 * 0x64` form (12948) are worse. Target: frame 0x28, saves ra/s0/s1 only, no s2. The index is recomputed from s0 after each call (andi $v0,$s0,0xffff then sll/addu chain for *100), not held in a callee-saved register. Any local that lives across calls (off, or CSE of arg0*0x64) pulls in s2 and a 0x30/0x38 frame. Next: find a form where the multiply is recomputed per use and not kept live, and get the lui/addu/lw pointer load for D_8011F350 into s1. The target loads the D_8011F32E state through lui $at. Stopping here: the remaining gap is the frame and register allocation, not the control flow.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794727991.5969138,
+  "score_before": 7015,
+  "score_after": 7015
+ },
+ {
+  "function": "func_8015CFD8",
+  "text": "Not matched. Best this session: 10818 (revision 7d366c56ab82bedd638b, or cd67fbb681a2b5a64e7a with the same score), using a local `u32 off = (u16)arg0 * 0x64;` for every table index. The historical saved best (7015) did not reproduce on recheck; the original draft rechecks at 12948. Findings: target frame is 0x28 and saves only ra, s0, s1. Target keeps arg0 in s0 (`move $s0,$a0`) and recomputes the index chain from s0 at each use (andi, then sll/addu sequence, then sll 2), so it does not keep a long-lived index register. Our versions keep `off` in s2 across calls and grow the frame to 0x30/0x38. That is the main gap. Inline `((u16)arg0)*0x64` at each site scored 12948. Next try: force a per-use recomputation from u16 arg0 without a shared local, and check whether the chain comes from `arg0 * 100` rather than `* 0x64`. The target loads p = *(u8**)(D_8011F350+idx) first, before switching on D_8011F32E.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794740834.6547751,
+  "score_before": 7015,
+  "score_after": 7015
+ },
+ {
+  "function": "func_8015CFD8",
+  "text": "Two drafts tried, both worse than the saved best 7015; keep the saved best as the starting point. Findings: (1) target frame is 0x28 with ra at 0x20, s1 at 0x1c, s0 at 0x18 and p kept in s0 (`move $s0,$a0` right after the prologue); the drafts use a 0x38 frame and extra s2/s3 saves, so the index `arg0*0x64` is being kept live. (2) The target computes arg0*100 as a shift/add chain (`sll v1,v0,1; addu; sll 3; addu; sll 2`), i.e. the u16 index is multiplied out once and reused; try a single `u32 idx = (u16)arg0 * 100` (or `s32 idx`) local used for all table offsets so the expression is shared. (3) Adding f32 prototypes for func_8013EBB0/EC48/EB20/EA18/EA90 removed the cvt.d.s promotions but scored worse overall (13920), so the target does pass the f32 args as floats: keep those prototypes, but first fix the frame/index before judging the rest. (4) Target has `lui $s1,%hi(D_8011F350)` reloaded 5-6 times, which suggests the table bases are not hoisted.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794758040.1117818,
+  "score_before": 7015,
+  "score_after": 7015
+ },
+ {
+  "function": "func_8015CFD8",
+  "text": "func_8015CFD8 (912 bytes, 228 insns). Not matched. Saved best 7015 (25 prior attempts) stays best. Recompiled the saved-best source this session: 12948 (43.2%), worse. Differences: (1) target frame is 0x28 saving ra, s0, s1 only; my versions use 0x38 and an extra s2 spill. Keep arg0 (masked to 0xFFFF) in s0 and index*100 via the shift/add chain (x*2+x)<<3 +x, <<2. (2) Compiled output references .rodata+0x0 and +0x8 for float constants that the target does not reference at those places; the float literals (0.01f, 0.1f, 0.3f, 0.2f, 0.05f, 2.9f, -0.1f, -0.15f) need to match the ROM's constant pool and operand form. The cvt.d.s and sdc1 stores in my version suggest a double promotion that the target does not do; keep the expressions in f32. (3) Prototype for func_8013EB20 is (u16, f32*, f32, f32, f32) per the exact-matched neighbour, so the saved-best call with (arg0, p, 0, -0.1f) may have the wrong arity; check the arg order. Next step: fix the prototype and float expressions before register roles.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794759883.2123048,
+  "score_before": 7015,
+  "score_after": 7015
+ },
+ {
+  "function": "func_8015CFD8",
+  "text": "Not matched. Best reproduced: 14385 (36.9%), target 228 insns vs 193, revision b067858a8c26acf63dc2. Saved best 7015 is a different source and does not reproduce here. The s32-arg0 variant with inline (arg0 & 0xFFFF) (f8af5450c43291ac618d) gave the same score. Why it cannot get closer now: the frame and register lifetimes are wrong. The target keeps ra, s1 and s0 saved (frame 0x28) with move $s0,$a0 so arg0 survives the calls, and keeps lui $s1,%hi(D_8011F350) live over 7 uses. The candidate saves only s1 and computes the index into s1. Next agent: force arg0 and p to live across the calls (for example by reading arg0 after the first call), then fix the switch dispatch (target does a sll/addu index chain before the switch). Callees: func_8013EA18(void*,s32,s32,s32), func_8013EA90(void*,s32,s32,s32), func_8013EB20(s32,void*,s32,f32), func_8013EBB0(s32,f32,f32,f32), func_8013EC48(s32,f32), func_801FA30C(void) returns s32; func_8013E49C(u16) is in context. Data: D_8011F350 (pointer table, stride 0x64, p = *(u8**)), D_8011F32E (u16 state, stride 0x64), D_8011F320 (f32, stride 0x64), D_8011F2FC (u8 counter, stride 0x64), D_8011F2FD (u8 flag, stride 0x64).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794762072.712801,
+  "score_before": 7015,
+  "score_after": 7015
+ },
+ {
+  "function": "func_8015CFD8",
+  "text": "Profile probe: this saved C scores 2218 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (9 of its 12 nearest matched neighbours were built with it), 2730 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721264.992331,
+  "score_before": 2730,
+  "score_after": 2218,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:1bb25a120802403b869852a2d24a09a28cf3dd57a2fcc457b96759f4d2e23465"
  }
 ]
