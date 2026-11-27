@@ -6752,14 +6752,6 @@
   "score_after": 12815
  },
  {
-  "function": "func_80161180",
-  "text": "Tried a byte-offset rewrite (u8* arg0, &SYM + idx*0x64 cast to f32*) to fix the m2c draft's s32-typed pointer arithmetic (the draft's &D_x + n*0x64 scales by 4, which is wrong; target uses byte offsets). It compiles and scores 10775 (worse than saved 7042). Remaining diff: target keeps arg0 in $s2 (saved s0-s3 plus $ra frame of 0x78), while the rewrite keeps it in $s1 and spills a double ($f20, sdc1/ldc1 at 0x70). The target reloads 0x2($s2) and recomputes idx*0x64 at each use (6x), and uses sll/addu chains rather than a single multiply. Next step if retried: hold arg0 in a register variable that survives the calls (declare it as the first local copy, `u8 *s2 = arg0;` at top), avoid the f32 local spilled as double, and keep idx re-read from memory at each float load instead of hoisting into `off`. Budget 3/3 without improvement exhausted.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794711120.445324,
-  "score_before": 2425,
-  "score_after": 2425
- },
- {
   "function": "func_801E3FE8",
   "text": "Move-on budget exhausted (3/3 no improvement). Best verified this session: 13448, revision 72374e515fc0aa8ade05 (score 0 nowhere).\n\nStructure recovered and confirmed against ROM (keep it):\n- D_801E9740=0; D_801E9738=0; n = *(u16*)(D_8006FAF0+0x20) - 1; p = D_8022A770+0x562.\n- if (*p == 0) { if (p[1] <= D_801E97A3[off] && p[2] <= D_801E97A4[off] && p[4] < D_801E97A5[off]) { func_8003DE60(D_801E9698); D_801E9738=1; store p[1],p[2],p[4] back to those three tables; 8x u16 copy loop from D_800DA26A+0x64+D_800DA260*0x12 into D_801E97B8[off]; } }\n- for (k=1;k<4;k++) { p = D_8022A770+0x562+k*5; same 3 compares against D_801E97A0/A1/A2[off] (note: p[4] < table); on success func_8003DE60(D_801E96B4,k); D_801E9740=k; store back; 8x u16 copy into D_801E97A6[off]; }\n- if (D_801E9740 || D_801E9738) { func_80029790(); D_801E9D58 = func_801E2F38(n & 0xFFFF); if (D_801E9D58) func_801DD938(0x10,0x4C,0xA,2,0xC8,0xB4,0x12,0x14,0,0x66); func_800297C8(); }\nwhere off = n*0x30.\n\nRemaining mismatch is purely codegen of the index: the target recomputes off from the single hoisted `n` in $s3 at every use as `sll $v0,$s3,1; addu $v0,$v0,$s3; sll $v0,$v0,4` (i.e. (n*3)<<4) and then folds it into `lui/addiu %lo(SYM); addu $at,$at,$off; lbu/sb %lo(SYM+1)($at)`. Writing `n * 0x30` (attempt 2, 14603) made it worse: GCC then kept the offset in a callee-saved reg and indexed with ($reg), and it also sank the D_8006FAF0 load. Attempt 1 with a hoisted `off` variable scored 13448 and produced the right per-use lui/addu %lo form.\n\nUntested next step: keep attempt 1 but write the scale explicitly as `(n * 3) << 4` in each index expression (no shared temp), so GCC emits sll/addu/sll per use; also declare the tables as u8[] and index with the byte offset. Also try making `n` `u32` vs `s32` for the `addiu $s3,$s3,-1` vs `addiu`/`andi` choice, and check the `sltu`/`xori 1`/`or` compare chain ordering (target compares field1 then field2 then field4 with sltu + or, i.e. plain `<=`/`<` on unsigned bytes as written).",
   "by": "api-route-llm-code-1",
@@ -9792,14 +9784,6 @@
   "score_after": 6541
  },
  {
-  "function": "func_80161180",
-  "text": "Releasing early: best 5767 (73.0%), not matched. The saved source is the clean rewrite (typed arg0 as u8*, field reads at byte offsets, direct calls). Blocking differences: (1) table indexing: the target computes off = idx*100 as ((x*2+x)*8+x)*4 in bytes; f32-array indexing with *0x64 gives sll 4 and *25 gives the right shifts but wrong element loads (lbu/lui for D_8011F30C, mtc1 for the 0x41700000 constant). Byte-offset reads of the same tables are untested in a clean form and the two tries that touched them scored 10289 and 10460. (2) Frame/register: target keeps arg0 in $s2 and saves ra,s3,s2,s1,s0; mine puts arg0 in $s1 and spills $f20 via sdc1, which the target never does. Next: resolve the element type of D_8011F308..D_8011F328 and D_8011F30C (f32 or s16/u8 stride 100) before any further tuning; the 5767 source is the starting point. Session compile budget for this function is spent.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794727911.138855,
-  "score_before": 2425,
-  "score_after": 2425
- },
- {
   "function": "func_801E2D18",
   "text": "Move-on budget exhausted (best current 4855, historical saved_best 625 with a different header/inputs).\n\nTarget shape (56 insns): 4x lbu/sb header copy using two base pointers ($a0=D_801C5E9C, $v1=D_801F18E4) built once; then i=0 in $a0, five source pointers hoisted into $t1,$t0,$a3,$a2,$a1, loop head .L801E2D78 with `addu $v1,$v1,$a0` (off = i*5 in $v1), per field `addu $v0,$v1,$tN; lbu $v0,($v0)` and store via `lui $at,%hi(D_801C708N); addu $at,$at,$v1; sb $v0,%lo(...)($at)`, tail `addiu $a0,$a0,1; sltiu $v0,$a0,0xC8; bnel $v0,$zero,.L801E2D78; sll $v1,$a0,2`.\n\nConfirmed: dest stores only take the lui/addu$at form when the dest symbols are scalar externs indexed with *(&SYM + off) (attempt with D_801C7080[] array gave a base pointer in a register). That variant (rev b97e95c84ed6a61a7c0c) got the store side right but then gcc strength-reduced the cached source pointers to `lbu $v0,($a3)` + `addiu $a3,$a3,5`, losing the target's `addu $v0,$v1,$tN; lbu $v0,($v0)`. With dest as arrays (saved_best) the loads keep off-based addressing but the stores lose the %hi/%lo form.\n\nAlso confirmed no-effect: s8 dest, s32 i, off declaration order, do{}while(0) scope depth, u8 vs array extern for D_801F18E4.\n\nLeft to try: combine scalar dest externs with load addressing gcc cannot strength-reduce, e.g. *(u8 *)((u32)srcN + off) or a volatile index, to keep `addu $v0,$v1,$tN; lbu $v0,($v0)`.",
   "by": "api-route-llm-code-2",
@@ -12654,14 +12638,6 @@
   "created_at": 1794740762.757992,
   "score_before": 8135,
   "score_after": 8135
- },
- {
-  "function": "func_80161180",
-  "text": "Unmatched, saved best 4766 (77.7%) is the repeated-expression version (`*(u16*)(arg0+2)*0x64` written inline at each table access). Hoisting that index into a local `row` made it worse (9918), so the target does reload arg0+2 per access. Remaining diffs: frame 0x70 with $ra,$s3,$s2,$s1,$s0 saved and an sdc1 $f20 slot that mine doesn't need (target has no f20 use); target does `sll $v0,$v0,2` for the idx/index scaling where mine uses `sll 4`, so the D_8018D730/D_8018D727 index expressions (`idx*0x7C`, `idx*0x7C/4`) need rechecking. Also target has move $s2,$a0 (arg0 kept in $s2 and reloaded through it) where mine keeps it in $s1. Next step: from the saved 4766 source, change the D_8011F30C/D_8011F308 table reads' types to match the 0x64 stride and try arg0 kept in a separate local before the func_800DE41C call.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794740770.151294,
-  "score_before": 2425,
-  "score_after": 2425
  },
  {
   "function": "func_801580F4",
@@ -17560,14 +17536,6 @@
   "score_after": 220
  },
  {
-  "function": "func_80161180",
-  "text": "Best 4766 (77.7%, the draft as given). Target keeps four saved registers (s0-s3 at 0x60-0x6c) plus ra at 0x70 and no $f20 spill; mine saves s0-s2 and an sdc1 $f20 at 0x70, which comes from the `2.0f * ...` float-argument expressions. Target indexes the 0x64-stride tables with `sll ...,2` where mine uses `sll ...,4`, so the index arithmetic (u16 * 0x64) may need to be written as a separate u16 index variable. Target also keeps arg0 in s2 (move $s2,$a0 before the 0x898 test), mine in s1. Untested: a local `u16 slot = *(u16*)(arg0+2);` used for all table indexes, and dropping the `2.0f *` in favour of separate float temporaries.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794757007.513803,
-  "score_before": 2425,
-  "score_after": 2425
- },
- {
   "function": "func_80219B58",
   "text": "Tried this session (current gcc-2.7.2-kmc): clean u8-array / u32* versions score 1360 (u32 idx with pointer stores) and 3365 (u8 arrays with `*(s32*)` stores, D_8011F2F0 byte read first). The char-array saved-best source (885) scores far better; the `char`/s8 declarations produce lb where target has lbu, so the u8 change is worse. Target order: index (x*100) computed, lbu D_8011F2F0 first, then the dl-word stores (0xB6000000/0x2000 then 0xFA000000), then the four-table combine (CA30<<24|CA31<<16|CA32<<8|F2FC). Remaining diff: the byte-read order, and the lbu loads are shared with `temp_a0 = (x>>6)*3`. Not yet tried: keep the saved-best char decls but change only the (u8) cast on the D_8011F2F0 read, and reorder the table loads.",
   "by": "claude-haiku-5-5-21",
@@ -19174,14 +19142,6 @@
   "created_at": 1794759904.9946399,
   "score_before": 820,
   "score_after": 820
- },
- {
-  "function": "func_80161180",
-  "text": "Not matched. Best revision a76005fee0c50f2ce255, score 4461 (79.1%); target 214 insns vs mine 207. Gains already in that revision: byte-offset tables (D_8011F308..D_8011F328 declared `u8[]` and read as `*(f32 *)(D_xxx + idx*0x64)`), and `st` as s32 so the compare is slti. Remaining gap is the prologue: target saves ra,s3,s2,s1,s0 at 0x70..0x60 with frame 0x78 and keeps the full func_8013E364 result in $s3 (r), with arg0 moved into $s2; mine saves only ra,s1,s0 plus a double $f20 at 0x70, so the float constant 15.0f or the 0.3f/40.0f expression is being held across a call. Attempted no-op edit (an extra `(void)0;` after the func_8013E640 call) changed nothing. Next step: find a use of the full `r` after the calls to keep it live in $s3, and check whether 0.3f*arg0[0x774]+40.0f needs to be computed into a local before the guMtxXFMF call.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794760029.660744,
-  "score_before": 2425,
-  "score_after": 2425
  },
  {
   "function": "func_80219B58",
@@ -40780,5 +40740,54 @@
   "score_before": 30360,
   "score_after": 23618,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:69f6c4b3e108c167cbf8705a60cc54d932c731a22b9472f2f800e59511807a23"
+ },
+ {
+  "function": "func_80161180",
+  "text": "Tried a byte-offset rewrite (u8* arg0, &SYM + idx*0x64 cast to f32*) to fix the m2c draft's s32-typed pointer arithmetic (the draft's &D_x + n*0x64 scales by 4, which is wrong; target uses byte offsets). It compiles and scores 10775 (worse than saved 7042). Remaining diff: target keeps arg0 in $s2 (saved s0-s3 plus $ra frame of 0x78), while the rewrite keeps it in $s1 and spills a double ($f20, sdc1/ldc1 at 0x70). The target reloads 0x2($s2) and recomputes idx*0x64 at each use (6x), and uses sll/addu chains rather than a single multiply. Next step if retried: hold arg0 in a register variable that survives the calls (declare it as the first local copy, `u8 *s2 = arg0;` at top), avoid the f32 local spilled as double, and keep idx re-read from memory at each float load instead of hoisting into `off`. Budget 3/3 without improvement exhausted.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794711120.445324,
+  "score_before": 2425,
+  "score_after": 2425
+ },
+ {
+  "function": "func_80161180",
+  "text": "Releasing early: best 5767 (73.0%), not matched. The saved source is the clean rewrite (typed arg0 as u8*, field reads at byte offsets, direct calls). Blocking differences: (1) table indexing: the target computes off = idx*100 as ((x*2+x)*8+x)*4 in bytes; f32-array indexing with *0x64 gives sll 4 and *25 gives the right shifts but wrong element loads (lbu/lui for D_8011F30C, mtc1 for the 0x41700000 constant). Byte-offset reads of the same tables are untested in a clean form and the two tries that touched them scored 10289 and 10460. (2) Frame/register: target keeps arg0 in $s2 and saves ra,s3,s2,s1,s0; mine puts arg0 in $s1 and spills $f20 via sdc1, which the target never does. Next: resolve the element type of D_8011F308..D_8011F328 and D_8011F30C (f32 or s16/u8 stride 100) before any further tuning; the 5767 source is the starting point. Session compile budget for this function is spent.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794727911.138855,
+  "score_before": 2425,
+  "score_after": 2425
+ },
+ {
+  "function": "func_80161180",
+  "text": "Unmatched, saved best 4766 (77.7%) is the repeated-expression version (`*(u16*)(arg0+2)*0x64` written inline at each table access). Hoisting that index into a local `row` made it worse (9918), so the target does reload arg0+2 per access. Remaining diffs: frame 0x70 with $ra,$s3,$s2,$s1,$s0 saved and an sdc1 $f20 slot that mine doesn't need (target has no f20 use); target does `sll $v0,$v0,2` for the idx/index scaling where mine uses `sll 4`, so the D_8018D730/D_8018D727 index expressions (`idx*0x7C`, `idx*0x7C/4`) need rechecking. Also target has move $s2,$a0 (arg0 kept in $s2 and reloaded through it) where mine keeps it in $s1. Next step: from the saved 4766 source, change the D_8011F30C/D_8011F308 table reads' types to match the 0x64 stride and try arg0 kept in a separate local before the func_800DE41C call.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794740770.151294,
+  "score_before": 2425,
+  "score_after": 2425
+ },
+ {
+  "function": "func_80161180",
+  "text": "Best 4766 (77.7%, the draft as given). Target keeps four saved registers (s0-s3 at 0x60-0x6c) plus ra at 0x70 and no $f20 spill; mine saves s0-s2 and an sdc1 $f20 at 0x70, which comes from the `2.0f * ...` float-argument expressions. Target indexes the 0x64-stride tables with `sll ...,2` where mine uses `sll ...,4`, so the index arithmetic (u16 * 0x64) may need to be written as a separate u16 index variable. Target also keeps arg0 in s2 (move $s2,$a0 before the 0x898 test), mine in s1. Untested: a local `u16 slot = *(u16*)(arg0+2);` used for all table indexes, and dropping the `2.0f *` in favour of separate float temporaries.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794757007.513803,
+  "score_before": 2425,
+  "score_after": 2425
+ },
+ {
+  "function": "func_80161180",
+  "text": "Not matched. Best revision a76005fee0c50f2ce255, score 4461 (79.1%); target 214 insns vs mine 207. Gains already in that revision: byte-offset tables (D_8011F308..D_8011F328 declared `u8[]` and read as `*(f32 *)(D_xxx + idx*0x64)`), and `st` as s32 so the compare is slti. Remaining gap is the prologue: target saves ra,s3,s2,s1,s0 at 0x70..0x60 with frame 0x78 and keeps the full func_8013E364 result in $s3 (r), with arg0 moved into $s2; mine saves only ra,s1,s0 plus a double $f20 at 0x70, so the float constant 15.0f or the 0.3f/40.0f expression is being held across a call. Attempted no-op edit (an extra `(void)0;` after the func_8013E640 call) changed nothing. Next step: find a use of the full `r` after the calls to keep it live in $s3, and check whether 0.3f*arg0[0x774]+40.0f needs to be computed into a local before the guMtxXFMF call.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794760029.660744,
+  "score_before": 2425,
+  "score_after": 2425
+ },
+ {
+  "function": "func_80161180",
+  "text": "Profile probe: this saved C scores 3198 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (9 of its 12 nearest matched neighbours were built with it), 3658 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721250.02895,
+  "score_before": 3658,
+  "score_after": 3198,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:cf9c591cfa49a0d2554e998eddd20a8be7ca028e5adcb945b4c5be10f470b67f"
  }
 ]
