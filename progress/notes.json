@@ -2896,14 +2896,6 @@
   "score_after": 7590
  },
  {
-  "function": "func_801429A8",
-  "text": "Deep permuter: score 9816 \u2192 9465; 3 improvements; 93 candidates tested; 135 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935371",
-  "created_at": 1794348417.507581,
-  "score_before": 9816,
-  "score_after": 9465
- },
- {
   "function": "alEnvmixerPull",
   "text": "Deep permuter: score 120 \u2192 120; 0 improvements; 139 candidates tested; 0 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935017",
@@ -6680,14 +6672,6 @@
   "score_after": 400
  },
  {
-  "function": "func_801429A8",
-  "text": "Not attempted: session wrap-up. Machine draft is a loop over var_s2 (0..7) that calls func_8013E364 per slot, func_800DE41C with float args, and fills D_801688xx per-slot arrays with stride 0x5C, then D_8018D6C4/D_8018D730 stride 0x7C. Draft needs fixing: the 'arithmetic on pointer to an incomplete type' errors come from the untyped D_801688xx/D_8018D6C4 externs (declare them as u8 arrays and index by byte offset), and the do{...}while(0) around func_8013E818 is an artifact to remove. Floats 1.0f/-300.0f/50.0f constants need checking against the rodata.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794710435.27525,
-  "score_before": 8251,
-  "score_after": 8251
- },
- {
   "function": "func_801632D0",
   "text": "Best saved score 3969 (historical). The saved-best source text is not visible in my transcript, so restore it with get_candidate(base=\"saved_best\") before any further work. Current candidate ba752f8 scores 5725. Tried and worse: u32 for s0/s1/s3/v0/v0_2 (6091), raw s4 holding v0 (no gain, 5725), and signedness family on s5 (5925). Target frame is 0x88 with ra and s0-s6 saved; arg0 is held in s2 (`move $s2,$a0`), while ours holds it in s1 and the loop uses slti where the target uses sltiu for `((v0_2+2)&0xFFFF)<2` and `(s3&0xFFFF)<2`. Open issue: control flow. The target has 10 branches to the loop tail that our source does not reproduce. Next idea: restructure the loop tail as a separate counter (u16) and try to make arg0 the first-used pointer so the allocator picks s2. Stopped at 4 compiles with no improvement over 3969, so it needs a fresh look at the control-flow shape rather than more register tuning.",
   "by": "claude-haiku-5-5-22",
@@ -9896,14 +9880,6 @@
   "score_after": 5457
  },
  {
-  "function": "func_801429A8",
-  "text": "Clean do/while form (i = s2 counter, loop while i<8). Body: s4=func_8013E364(); s3=s4&0xFFFF; if s3!=0xFFFF { s1=i*0x5C; r=func_800DE41C(0,0x10,2,0, 0x51,0xFF,&D_8016D658,func_80142C6C,0, C4[s1],C8[s1],CC[s1] (f32 via lwc1), 0,0,0, 1.0f,1.0f,1.0f); if ((u16)(r+2)>=2) { s0=r&0xFFFF; rec=&D_8011F2F0+s0*100: rec[0x44]=0 (word), rec[0x40]=(s16)i; D_801688D0[s1]=rec[0x1C] (f32); D_801688D4[s1]=(s16)(i*40+10); i++ (before the 8012913C call); D_801688DC[s1]=(s16)func_8012913C(D_80233EC0,C4,C8,CC); D_801688DE[s1]=0; func_80129C1C(&D_801688D8+s1, C4,C8,CC, 0, -300.0f, 0); D_8016891C[s1]=D_801688E4[s1] (f32); func_8013E818(s3,s0,0,0,0,0,0); D_8018D6C4[s3*0x7C]=&D_8022A770; D_8018D730[s3*0x7C]=50.0f; } else { func_8013E49C(s4&0xFFFF); i++; } } else i++; } while (i<8); D_8011F2FD[(arg0&0xFFFF)*100]=2 (byte). Important: C4/C8/CC are passed to func_8012913C and func_80129C1C as raw bits (lw into a1..a3), but to func_800DE41C as f32 (lwc1). Saved best 8251 (m2c draft) is still the best. Attempts: clean form with separate r local -> 8790 (frame 0x78, extra fp and f20: arg0 kept in fp and 1.0f kept in fs0); same with s0 reused and s3*0x7C written twice -> 9730 (worse, the duplicated multiply breaks the addu chain). Untried: the variant with a v1 local for s3*0x7C (which was closer at 8790), and forcing 1.0f through a single named local so it lives in fs0 like the target's `lui at,0x3F80; mtc1 at,fs0`.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794726128.279201,
-  "score_before": 8251,
-  "score_after": 8251
- },
- {
   "function": "func_80164D00",
   "text": "Best current: revision 1f5d84a0aa1ed52fdeab, score 3510 (80.0%); target 176 insns, mine 170. Shape is right. Key facts that made the score move: re-read *(u16*)(arg0+2) at each use (target does lhu 2($s2) before each table index, not one cached idx); keep the raw func_8013E364() result in s3 and mask it at each use (s3&0xFFFF) instead of a cached s0. Remaining: the target keeps FOUR callee-saved FP values live (frame 0x88, sdc1 f20/f22/f24/f26): k8=8.0f (fs0), k180=180.0f (fs1), k314=3.14f (fs2) and the sin result (fs3) across the cos call. Mine only saves three (frame 0x80), so the sin*8 result is being recomputed or spilled differently. Also the target saves s3,s2,s1,s0 and keeps arg0 in s2 (move $s2,$a0) while mine uses s0 for arg0 and loads 0x898 from it. Next: make arg0 a local `u8 *obj = arg0` used through obj for every field, and hold fs3 in a local that is read only after the cos call.",
   "by": "claude-haiku-5-5-24",
@@ -12918,14 +12894,6 @@
   "created_at": 1794739948.329202,
   "score_before": 2664,
   "score_after": 2664
- },
- {
-  "function": "func_801429A8",
-  "text": "No compiling candidate yet. The m2c draft is for the wrong shape, and my first hand rewrite failed to compile because I redeclared D_801688C4 (it's already in the context header with a different type; use the context's declaration). Shape from the draft: a do/while loop over var_s2 (0..7) that calls func_8013E364() for an index temp_s3 (skip if 0xFFFF), calls func_800DE41C(0,0x10,2,0,0x51,0xFF, &D_8016D658, &func_80142C6C, 0, <3 floats from D_801688C4 + s1 with stride 0x5C>, 0,0,0, 1.0f x3), stores into the 0x64-stride record D_8011F2F0 (+0x44 = 0, +0x40 = var_s2, +0x1C copied to D_801688D0+s1), and on the failure branch calls func_8013E49C(temp_v0 & 0xFFFF). After the loop it sets D_8011F2FD[(arg0&0xFFFF)*0x64] = 2. The draft's failing branch 'goto block_5' skips to var_s2++; check the target before trusting that. Next agent: get_context for the D_801688C4 declaration and redo the loop from the assembly.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794739948.492058,
-  "score_before": 8251,
-  "score_after": 8251
  },
  {
   "function": "func_801632D0",
@@ -17424,14 +17392,6 @@
   "score_after": 15
  },
  {
-  "function": "func_801429A8",
-  "text": "Best 7320 (58.6%), revision 96cd2105c87bbacf9910, not matched. Structure is right: loop over 8 slots, s1=s2*0x5C, table at D_801688C4 (+0x58 is D_8016891C), entry array D_8011F2F0 with stride 0x64, flag byte D_8011F2FD. Remaining diff is register allocation and frame: target frame 0x70 with s0=result, s1=offset, s2=counter, s3=masked id, s4=raw id, s5=arg0. Mine uses a 0x78 frame and moves arg0 to s7. Keep the raw temp (move $s4,$v0) and the if ((u16)(s0+2) >= 2) normal-path-first layout, which gained 7965->7320. Declaration reordering had no effect. Untried: keeping arg0 in one variable across the loop.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794754558.68541,
-  "score_before": 8251,
-  "score_after": 7320
- },
- {
   "function": "func_8003E884",
   "text": "Rechecked struct ThreadLink next-field C returns old head, score10 (two register rows only v1 vs t9). Existing65 attempts tested compilers/flags/types. Complete jr/store boundary; callers in OS thread scheduling and deliberate t9 scratch strongly indicate handwritten scheduler helper. No fresh C-type direction after struct check; preserve best10, avoid repeating pointer casts.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -17478,14 +17438,6 @@
   "created_at": 1794754611.594239,
   "score_before": 400,
   "score_after": 400
- },
- {
-  "function": "func_801429A8",
-  "text": "Not matched. Draft scores 7320 (58.6%), target 177 insns vs 181. Why it can't get closer by small edits: the frame differs (target 0x70, mine 0x78), and mine keeps $s7 and a $f20 double alive, which the target does not. That is a whole-function structure problem (too many long-lived locals: s0,s1,s2,s3,p,arg0), not a register-name or single-statement issue. Next agent should rewrite the loop: drop arg0 after its final use (the tail store *(u8*)(D_8011F2FD + (arg0&0xFFFF)*0x64)=2), keep only the loop counter and one pointer live across the func_800DE41C call, re-derive s1 = s2*0x5C per iteration, and check the D_801688C4 block (stride 0x5C) against get_assembly before choosing the cast pattern.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794754621.077416,
-  "score_before": 7320,
-  "score_after": 7320
  },
  {
   "function": "func_80032108",
@@ -18286,14 +18238,6 @@
   "created_at": 1794756621.8452961,
   "score_before": 3035,
   "score_after": 3035
- },
- {
-  "function": "func_801429A8",
-  "text": "Best 7320 (58.6%, saved rev 96cd2105c87bbacf9910). Target frame 0x70 saves ra + s0-s4 only; ours 0x78 also saves s5-s7 and f20 (sdc1). Tried this session: dropping the `temp` local (scores 7450, worse; the candidate-local extern func_8013E49C conflicts with context.h, so remove any candidate-local redeclaration); `u16 s3` (no change); u16 local copy of arg0 (no change); while-form loop (7485, worse). Gap is structural: the target's s-register usage and the sll/addu index pairs for s2*0x5C indexing differ. Next agent: derive the array strides from the target's sll/addu sequence (possibly separate per-index pointers rather than repeated s1 offsets), and find out why the target keeps only five saved regs.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794756627.889259,
-  "score_before": 7320,
-  "score_after": 7320
  },
  {
   "function": "func_8003DAA0",
@@ -23710,14 +23654,6 @@
   "created_at": 1794767879.2427342,
   "score_before": 8675,
   "score_after": 8675
- },
- {
-  "function": "func_801429A8",
-  "text": "Not matched. Best 7320 (58.6%) = revision 96cd2105c87bbacf9910 (s1 = s2*0x5C offset kept as a variable; `s8 *p = (s8*)&D_8011F2F0 + s0*0x64` pointer). Variants tried and all worse: direct &D_8011F2F0 expressions without p (8210); inlining s2*0x5C per use and dropping s1 (11115, frame 0x98). Target frame 0x70 saves ra,s0-s5,fs0 only; our versions always add s7/fp or extra spill slots, so the register pressure from the loop-carried s2/s1 pair is the gap. Next step if reclaimed: keep s1 but drop s3 (use temp&0xFFFF inline) to free a saved register, and check the trailing `*(void**)(D_8018D6C4+s3*0x7C)` store ordering (target stores D_8022A770 last). Otherwise move on.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794767885.949962,
-  "score_before": 7320,
-  "score_after": 7320
  },
  {
   "function": "func_8013F1D4",
@@ -40614,5 +40550,69 @@
   "created_at": 1794764010.805439,
   "score_before": 14955,
   "score_after": 14955
+ },
+ {
+  "function": "func_801429A8",
+  "text": "Deep permuter: score 9816 \u2192 9465; 3 improvements; 93 candidates tested; 135 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935371",
+  "created_at": 1794348417.507581,
+  "score_before": 9816,
+  "score_after": 9465
+ },
+ {
+  "function": "func_801429A8",
+  "text": "Not attempted: session wrap-up. Machine draft is a loop over var_s2 (0..7) that calls func_8013E364 per slot, func_800DE41C with float args, and fills D_801688xx per-slot arrays with stride 0x5C, then D_8018D6C4/D_8018D730 stride 0x7C. Draft needs fixing: the 'arithmetic on pointer to an incomplete type' errors come from the untyped D_801688xx/D_8018D6C4 externs (declare them as u8 arrays and index by byte offset), and the do{...}while(0) around func_8013E818 is an artifact to remove. Floats 1.0f/-300.0f/50.0f constants need checking against the rodata.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794710435.27525,
+  "score_before": 8251,
+  "score_after": 8251
+ },
+ {
+  "function": "func_801429A8",
+  "text": "Clean do/while form (i = s2 counter, loop while i<8). Body: s4=func_8013E364(); s3=s4&0xFFFF; if s3!=0xFFFF { s1=i*0x5C; r=func_800DE41C(0,0x10,2,0, 0x51,0xFF,&D_8016D658,func_80142C6C,0, C4[s1],C8[s1],CC[s1] (f32 via lwc1), 0,0,0, 1.0f,1.0f,1.0f); if ((u16)(r+2)>=2) { s0=r&0xFFFF; rec=&D_8011F2F0+s0*100: rec[0x44]=0 (word), rec[0x40]=(s16)i; D_801688D0[s1]=rec[0x1C] (f32); D_801688D4[s1]=(s16)(i*40+10); i++ (before the 8012913C call); D_801688DC[s1]=(s16)func_8012913C(D_80233EC0,C4,C8,CC); D_801688DE[s1]=0; func_80129C1C(&D_801688D8+s1, C4,C8,CC, 0, -300.0f, 0); D_8016891C[s1]=D_801688E4[s1] (f32); func_8013E818(s3,s0,0,0,0,0,0); D_8018D6C4[s3*0x7C]=&D_8022A770; D_8018D730[s3*0x7C]=50.0f; } else { func_8013E49C(s4&0xFFFF); i++; } } else i++; } while (i<8); D_8011F2FD[(arg0&0xFFFF)*100]=2 (byte). Important: C4/C8/CC are passed to func_8012913C and func_80129C1C as raw bits (lw into a1..a3), but to func_800DE41C as f32 (lwc1). Saved best 8251 (m2c draft) is still the best. Attempts: clean form with separate r local -> 8790 (frame 0x78, extra fp and f20: arg0 kept in fp and 1.0f kept in fs0); same with s0 reused and s3*0x7C written twice -> 9730 (worse, the duplicated multiply breaks the addu chain). Untried: the variant with a v1 local for s3*0x7C (which was closer at 8790), and forcing 1.0f through a single named local so it lives in fs0 like the target's `lui at,0x3F80; mtc1 at,fs0`.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794726128.279201,
+  "score_before": 8251,
+  "score_after": 8251
+ },
+ {
+  "function": "func_801429A8",
+  "text": "No compiling candidate yet. The m2c draft is for the wrong shape, and my first hand rewrite failed to compile because I redeclared D_801688C4 (it's already in the context header with a different type; use the context's declaration). Shape from the draft: a do/while loop over var_s2 (0..7) that calls func_8013E364() for an index temp_s3 (skip if 0xFFFF), calls func_800DE41C(0,0x10,2,0,0x51,0xFF, &D_8016D658, &func_80142C6C, 0, <3 floats from D_801688C4 + s1 with stride 0x5C>, 0,0,0, 1.0f x3), stores into the 0x64-stride record D_8011F2F0 (+0x44 = 0, +0x40 = var_s2, +0x1C copied to D_801688D0+s1), and on the failure branch calls func_8013E49C(temp_v0 & 0xFFFF). After the loop it sets D_8011F2FD[(arg0&0xFFFF)*0x64] = 2. The draft's failing branch 'goto block_5' skips to var_s2++; check the target before trusting that. Next agent: get_context for the D_801688C4 declaration and redo the loop from the assembly.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794739948.492058,
+  "score_before": 8251,
+  "score_after": 8251
+ },
+ {
+  "function": "func_801429A8",
+  "text": "Best 7320 (58.6%), revision 96cd2105c87bbacf9910, not matched. Structure is right: loop over 8 slots, s1=s2*0x5C, table at D_801688C4 (+0x58 is D_8016891C), entry array D_8011F2F0 with stride 0x64, flag byte D_8011F2FD. Remaining diff is register allocation and frame: target frame 0x70 with s0=result, s1=offset, s2=counter, s3=masked id, s4=raw id, s5=arg0. Mine uses a 0x78 frame and moves arg0 to s7. Keep the raw temp (move $s4,$v0) and the if ((u16)(s0+2) >= 2) normal-path-first layout, which gained 7965->7320. Declaration reordering had no effect. Untried: keeping arg0 in one variable across the loop.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794754558.68541,
+  "score_before": 8251,
+  "score_after": 7320
+ },
+ {
+  "function": "func_801429A8",
+  "text": "Not matched. Draft scores 7320 (58.6%), target 177 insns vs 181. Why it can't get closer by small edits: the frame differs (target 0x70, mine 0x78), and mine keeps $s7 and a $f20 double alive, which the target does not. That is a whole-function structure problem (too many long-lived locals: s0,s1,s2,s3,p,arg0), not a register-name or single-statement issue. Next agent should rewrite the loop: drop arg0 after its final use (the tail store *(u8*)(D_8011F2FD + (arg0&0xFFFF)*0x64)=2), keep only the loop counter and one pointer live across the func_800DE41C call, re-derive s1 = s2*0x5C per iteration, and check the D_801688C4 block (stride 0x5C) against get_assembly before choosing the cast pattern.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794754621.077416,
+  "score_before": 7320,
+  "score_after": 7320
+ },
+ {
+  "function": "func_801429A8",
+  "text": "Best 7320 (58.6%, saved rev 96cd2105c87bbacf9910). Target frame 0x70 saves ra + s0-s4 only; ours 0x78 also saves s5-s7 and f20 (sdc1). Tried this session: dropping the `temp` local (scores 7450, worse; the candidate-local extern func_8013E49C conflicts with context.h, so remove any candidate-local redeclaration); `u16 s3` (no change); u16 local copy of arg0 (no change); while-form loop (7485, worse). Gap is structural: the target's s-register usage and the sll/addu index pairs for s2*0x5C indexing differ. Next agent: derive the array strides from the target's sll/addu sequence (possibly separate per-index pointers rather than repeated s1 offsets), and find out why the target keeps only five saved regs.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794756627.889259,
+  "score_before": 7320,
+  "score_after": 7320
+ },
+ {
+  "function": "func_801429A8",
+  "text": "Not matched. Best 7320 (58.6%) = revision 96cd2105c87bbacf9910 (s1 = s2*0x5C offset kept as a variable; `s8 *p = (s8*)&D_8011F2F0 + s0*0x64` pointer). Variants tried and all worse: direct &D_8011F2F0 expressions without p (8210); inlining s2*0x5C per use and dropping s1 (11115, frame 0x98). Target frame 0x70 saves ra,s0-s5,fs0 only; our versions always add s7/fp or extra spill slots, so the register pressure from the loop-carried s2/s1 pair is the gap. Next step if reclaimed: keep s1 but drop s3 (use temp&0xFFFF inline) to free a saved register, and check the trailing `*(void**)(D_8018D6C4+s3*0x7C)` store ordering (target stores D_8022A770 last). Otherwise move on.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794767885.949962,
+  "score_before": 7320,
+  "score_after": 7320
  }
 ]
