@@ -4440,14 +4440,6 @@
   "score_after": 181
  },
  {
-  "function": "func_801C1424",
-  "text": "Deep permuter: score 11943 \u2192 10033; 2 improvements; 43 candidates tested; 91 cached skips; 0 rejected; 7208s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935625",
-  "created_at": 1794357164.4335139,
-  "score_before": 11943,
-  "score_after": 10033
- },
- {
   "function": "func_8002C330",
   "text": "Deep permuter: score 3 \u2192 2; 1 improvements; 36 candidates tested; 0 cached skips; 0 rejected; 7204s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934865",
@@ -4686,14 +4678,6 @@
   "created_at": 1794705192.7708402,
   "score_before": 60,
   "score_after": 0
- },
- {
-  "function": "func_801C1424",
-  "text": "Best score 7501 (50.3%), from the source with tbl copy as struct, flag u16 at D_8011F32E+off, fixup loop over D_801C6B60, and the sin loop using src/tp pointers. Remaining diff: stack frame 0x58 vs target 0x60 (target saves s0-s6 plus ra and fs0/fs1; s5 = &D_801C6B60, s6 = &D_80167FB8 base pointers, s4 = &tbl, s2 = i<<4 used for the D_80167FBC stores). Compiler folds the D_80167FB8 base into constant offsets (lui/addiu then sh 0x84(s3)), so a pointer held across the __sinf call is needed to keep s6 live. Also the target's 'if (1) {}' and 'do {} while(0)' artifacts from the machine draft are not present in the real code; ignore them. Untried: a pointer local for D_80167FB8 that is used after the call (before the loop) so it survives; a per-iteration reload of tbl via s4.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794705207.463116,
-  "score_before": 10613,
-  "score_after": 7501
  },
  {
   "function": "func_8002D520",
@@ -5760,14 +5744,6 @@
   "score_after": 440
  },
  {
-  "function": "func_801C1424",
-  "text": "Best 7996 (rev e41992485fc12b52b66c). Target frame 0x60 with ra at 0x4c, s6 0x48, s5 0x44, sdc1 f22 0x58, f20 0x50 -> needs one more saved reg (s5/s6) and 8 more frame bytes than current 0x58. Target copies the whole D_801C6AC8 (0x20 bytes) into the stack buffer via lui a1,%hi(D_801C6AC8); addiu; lw loop, i.e. the struct copy happens FIRST before the D_801C6BAC test; my version tested D_801C6BAC first and loaded D_801C6AC8 into t0 as an address. Fix: do `sp10 = D_801C6AC8;` as the very first statement (struct assignment, not memcpy/pointer) so gcc emits the lw/sw copy loop with a1 base, then test D_801C6BAC. Target also has addu $v0,$v0,$v1 x9 and sll $v0,$v0,2 x7 (offset arithmetic for D_8011F32E + idx*100 and the *0x10 strides) and andi $v1,$s0,0xffff x3 \u2014 keep the u32 off = (arg0 & 0xFFFF) * 100 local and index *(u16*)((char*)&D_8011F32E + off). Remaining: register allocation for the sin loop and the two s16 stores.\n\nBest 7611 (rev 40cbad57e2f812821054, current flags -O2). With -O1 the same C scores 4182 (trial 6f12545faac914ed3820) \u2014 much closer; the sin loop and the two s16 stores line up at -O1. Target structure confirmed from assembly: (1) full 0x20-byte struct copy D_801C6AC8 -> sp+0x10 as the very first statement, emitted as lui a1,%hi(D_801C6AC8); addiu a1; three lw/sw batches; (2) if (D_801C6BAC==0) call func_8013AE60(arg0&0xFFFF,&D_801C6AC8), andi v1,$s0,0xffff computed BEFORE the branch and again after the call; (3) off = (arg0&0xFFFF)*100 via sll/addu/sll3/addu/sll2, indexed as *(u16*)((char*)&D_8011F32E+off); (4) state 0 loop writes D_801C6B60[i]=(f32)i*45.0f with s3 as counter and the address incremented by sll $v0,$s3,2 at the loop tail, then D_801C6B80=0, then a SECOND andi v0,$s0,0xffff recomputing the offset for the sh of 1; (5) state 1 loop: c.lt.s then bc1fl to the sub.s path, add.s 4.0f on the fall-through (i.e. `if (x < 360.0f) x += 4.0f; else x -= 360.0f;` written that way round), address via sll $v0,$s3,2 at the tail; (6) sin loop keeps s6=&D_80167FB8, s5=&D_801C6B60, s4=sp+0x10, s2=k*16, s1=(k+8)*16+s6, s0=k*4, and does sh $v0,4($s1) plus sh $v0,%lo(D_80167FBC)(at) with at=D_80167FBC+s2 \u2014 so index the second store as *(s16*)(D_80167FBC + k*0x10) with k*0x10 in a separate s32 local (s2) updated at the loop tail, not a pointer walk. Frame needs 0x60 with s5/s6 saved.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794707138.892258,
-  "score_before": 7501,
-  "score_after": 7501
- },
- {
   "function": "func_80208374",
   "text": "Unmatched; saved best 336 (other attempt); my best 2311 (55%, revision fcfaa8310c7c135863ca or befb63e2f05052a64d02, same score). Semantics: p = &D_8021E19E; *p -= 8; func_80205E04(&D_8021B01C, 43.0f, D_8021B084); func_80205EBC(&D_8021B020, 40.0f, -3.0f, 0.2f, D_8021B084); func_80211C7C(0x14); if (*(s16*)(p+4) == 0 && D_8021B128 != 1) D_8021B080 = func_80205D48(20.0f, 4.0f, D_8021B084); if (D_8021B084 == 0) D_8021B084 = 1. Target has a 0x20 frame (ra, s0 saved), with s0 = &D_8021E19E kept across calls. My draft emits no frame and rematerializes the address, so the callee-saved pointer is not kept. Tried: p plus a separate s16 *sp view taken before the decrement, same 2311. Untried: force the frame by keeping p live across the first call explicitly, and check the order of the float-argument lui loads (0x422C0000 goes to $a1 before the call).",
   "by": "claude-haiku-5-5-21",
@@ -5958,14 +5934,6 @@
   "created_at": 1794707531.633562,
   "score_before": 965,
   "score_after": 770
- },
- {
-  "function": "func_801C1424",
-  "text": "Best stays 7611 (49.5%), 133 vs 151 insns; budget 3/3 exhausted with no improvement.\n\nVerified facts from the target (get_assembly page 52-162):\n- struct copy at entry: lui/addiu into $a1 (base kept in a register), then 3 loads + 3 stores interleaved, offsets 0x0/0x4/0x8, 0xC/0x10/0x14, 0x18/0x1C into sp+0x10..0x2C. Ours keeps the base in $a3 and uses lw off($a3) with a different interleave; score-neutral.\n- after jal func_8013AE60 the target re-does `andi $v1, $s0, 0xffff` (so arg0&0xFFFF is recomputed into a fresh local after the call, not reused).\n- index math: sll/addu/sll3/addu/sll2 (i.e. v*100) is already right.\n- branch shape: `beqz $v1,.L14F0; addiu $v0,zero,1; beq $v1,$v0,.L1564; move $s3,zero; j .L1650` \u2014 the else-if with a shared tail is right in structure; ours currently emits `bnez` inverted plus a `bne` at the end of the first block, i.e. the two-block if/else-if is being merged. Target has no `bne` after the D_801C6B80 store; it jumps unconditionally to the epilogue. Try making the second test an independent `if (...) { }` chain or a switch on the u16 to get the beq/j pair.\n- 45.0f loop: target hoists `lui v1,%hi(D_801C6B60); addiu` before the mtc1 of 0x4234 and re-materialises `sll $v0,$s3,2` in the loop tail (index in $s3, base in $v1, addu inside the loop). Ours uses a pointer bump (addiu $v1,$v1,4) \u2014 replace the pointer-walk form with `D_801C6B60[i]` and keep the base address in a local `f32 *p = D_801C6B60;` used as p[i] so the sll/addu reappears.\n- 360/4 loop: target uses `bc1fl .L15A4; sll $v0,$s3,2` then `j .L15B0; add.s` for the true arm and re-loads lwc1 in the else arm (addu v0,v0,v1; lwc1; sub.s). Ours folds the else arm without the reload. Writing the else arm as `D_801C6B60[i] = D_801C6B60[i] - 360.0f;` on a re-indexed array (not a pointer already in a register) should force the reload.\n- sin loop: target precomputes s6=&D_80167FB8, s5=&D_801C6B60, s4=sp+0x10, s2=k*16 in the tail, s1=(k+8)*16+s6; then lwc1 via addu v0,s0,s5 and `addu $s0,$s0,$s4; lwc1 ($s0)` for the struct element. Ours hoists &D_80167FBC and walks pointers with addiu +0x10. Rewrite the second store as `*(s16 *)(D_80167FBC + k * 0x10) = (s16)temp;` (indexed, not pointer-walk) and the first as `*(s16 *)(D_80167FB8 + (k + 8) * 0x10 + 4)`.\n- stack frame must be 0x60 with ra at 0x4C, s0-s6 at 0x30..0x48, f20/f22 at 0x50/0x58; ours is 0x58 because $s6/$s5/$s1 are not all live. Getting the sin-loop base pointers into s5/s6 (see above) should restore the 0x60 frame.\n\nUntested next step (exact anchor on revision 6da6203c1c8ee7c1d7cb): replace the pointer-walking loops with indexed array forms as described above.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794707535.6117141,
-  "score_before": 7501,
-  "score_after": 7501
  },
  {
   "function": "func_800DE38C",
@@ -9392,14 +9360,6 @@
   "score_after": 885
  },
  {
-  "function": "func_801C1424",
-  "text": "Baseline compiled at 12496 (17.2%), revision 4d5717f2a249c6dac315; far from match, not iterated. Target frame is 0x60 (ours 0x58), saves ra, s0..s6 at 0x4c..0x30, and calls func_8013AE60 and __sinf. The m2c draft's 8-word local copy from D_801C6AC8 is wrong; the target copies D_801C6AC8 to a stack array (addiu a1,sp,0x10) before the call. Next: read the first 60 instructions with get_assembly and rebuild the call/copy sequence before any loop edits; the loops use s16 stores to D_80167FB8 at (j+8)*0x10+4 and D_80167FBC at j*0x10 (check the sign of the sin-to-s16 conversion and the 3.1415927f/180 constant order).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794724871.1215942,
-  "score_before": 6780,
-  "score_after": 6780
- },
- {
   "function": "func_801E1C38",
   "text": "Not compiled yet; the machine draft does not compile (arithmetic on pointers to D_800DA26A with unspecified bounds: declare it as u8 D_800DA26A[] and use byte offsets, e.g. *(u16*)(D_800DA26A + 0xA3E)). Structure from the asm (verified by reading only): prologue calls func_8003DE60(D_801E94EC, D_801E973C, 0) with s0=0; sets D_801E87E3=1, D_801E87E1=D_801E87E0=D_801F18E4; stores D_801F18E5..E C (8 bytes) as u16 into D_800DA26A+0xA3E..0xA4C (stride 2); D_800DA26A[0xBA8 + that u16 at 0xA3E] = D_801F18ED; then a loop over pairs (t1 = D_801F18E0[a1], t0 = D_801F18E1[a1]) starting at a1=0xE, step 2, ending when both bytes are 0xFF (the loop test is t1!=0xFF || t0!=0xFF). Inside: if t1==0xEE && t0==0xEE, n = u16 at D_801F18E0[a1+2] (advance a1 by 2 first), if n != 0 write n pairs (t1,t0) into D_801E9D80/D_801E9D81 at s0 + 2*k, then s0 += 2*n_count(as shifted, see asm: s0 += (n<<1)); else write one pair at s0 and s0 += 2; the a1 += 2 after each. Exit: func_8003DE60(D_801E9500, a1+2, s0+2). Then a copy loop: for a0 from 0 step 2 while D_801E9D80[a0] != 0xFF ... copies pairs back into D_801F18E0/E1 at the same offsets, with the stop test on the byte at D_801E9D80[a0] == 0xFF (the asm compares against a1=0xFF). Remaining work: write it with explicit byte offsets, get the loop shapes right (note the target uses xori-based != tests and 16-bit masks andi 0xFFFF on every index), and compare. Start from scratch; the draft's loop conditions are guesses.",
   "by": "claude-haiku-5-5-20",
@@ -12230,14 +12190,6 @@
   "created_at": 1794739396.216831,
   "score_before": 6255,
   "score_after": 6255
- },
- {
-  "function": "func_801C1424",
-  "text": "Best 12361 (18.1%), not matched. The draft is far off: the target frame is 0x60 bytes with ra/s1-s6 saved and f22 at 0x58, while mine is 0x58, so the locals are wrong. The target also copies 8 floats from D_801C6AC8 into a local array (sp10) with lui/addiu each. The 8-element loop writes D_801C6B60 (f32) and D_80167FB8/FBC as s16 at stride 0x10 with a +4 field. Start by matching the prologue (frame size, saved regs) with a 8-float local array plus an extra f64 slot, then the three loops. Expect several attempts.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794739441.43872,
-  "score_before": 6780,
-  "score_after": 6780
  },
  {
   "function": "func_801FC768",
@@ -17024,14 +16976,6 @@
   "score_after": 0
  },
  {
-  "function": "func_801C1424",
-  "text": "Best 11121 (26.3%, revision f7049850a2c8937b842a): sp10 is a struct copy `F8 sp10 = D_801C6AC8` (struct of f32 f[8]), which moved the score from 12361. Target (151 insns, frame 0x60) saves s0-s6, ra and fs0/fs1 (doubles at 0x50/0x58). The target hoists &D_801C6B60 into $s5 and &D_80167FB8 into $s6 for the second loop, and addresses sp10 from $s4 = sp+0x10; ours saves only s0-s4 with an 0x58 frame. Next test: the sp10 copy's 8 words are loaded from a base in $a1 (lui/addiu of D_801C6AC8) in order 0,4,8,C,10,14,18,1C before the D_801C6BAC check. Second loop stores are sh at 4(s1) with s1 = s6 + (i+8)*16, and sh at D_80167FBC + s2 with s2 = i<<4. Local pointers tab/dst in the loops gave 11261 (worse, reverted). Stopping: the remaining diff is prologue/loop scheduling and missing saved registers, and the variants I tried did not move the frame layout.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794755869.923529,
-  "score_before": 6780,
-  "score_after": 6780
- },
- {
   "function": "normalize_angle_degrees",
   "text": "Deep permuter: score 810 \u2192 810; 0 improvements; 69 candidates tested; 12 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935667",
@@ -17958,14 +17902,6 @@
   "created_at": 1794758052.0824,
   "score_before": 10836,
   "score_after": 10836
- },
- {
-  "function": "func_801C1424",
-  "text": "Best 11121 (26.3%), the original candidate from get_candidate, not the later variants (11255 pointer-temp, 11960 unsigned var_s3). Frame is 0x60 and saves ra, s0-s6, fs0, fs1; mine is 0x58 with no s4-s6 and no fs0/fs1, so the loop-carried values and the float live across __sinf are missing. Target copies D_801C6AC8 (32 bytes) to sp+0x10 via lui/addiu $a1 then lw/sw pairs, and index math is sll $v0,$s3,2 x6 and sll $s2,$s3,4 x3. Next: restructure so var_s3 and two pointers stay live across both loops, and keep the sinf argument in a float temp. Signedness of var_s3 made it worse. Stopping here because structural attempts are not closing the gap (26%).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794758065.8649778,
-  "score_before": 6780,
-  "score_after": 6780
  },
  {
   "function": "func_80211A84",
@@ -22422,14 +22358,6 @@
   "created_at": 1794767310.5091672,
   "score_before": 6255,
   "score_after": 6255
- },
- {
-  "function": "func_801C1424",
-  "text": "Not matched. Best saved 10267 (32.0%), source = last trial (local F8 sp10 copy of D_801C6AC8 + 8-float loops). Frame mismatch: target frame is 0x60 and saves ra,s0-s6 plus f20/f22; mine is 0x78 with s0-s4 only, so the target keeps more live values across the sine loop (likely a local per-channel array or a second pointer into D_801C6AC8). The target loads D_801C6BAC first (lui/lbu), then calls func_8013AE60 only when it is zero. Unresolved: the sine loop's value order and whether the 8-entry arrays are F8 structs. Try guess_struct on D_801C6AC8 and D_801C6B60 before retrying. The s16 writes go to D_80167FB8 at +0x84 offsets and D_80167FBC at stride 0x10.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794767335.951068,
-  "score_before": 6780,
-  "score_after": 6780
  },
  {
   "function": "func_801FC768",
@@ -40762,5 +40690,77 @@
   "score_before": 6185,
   "score_after": 3930,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:40a0508ca0f52a882eeb6f9ca6d5fb51e75199f2e042fced519dc08935ae80ea"
+ },
+ {
+  "function": "func_801C1424",
+  "text": "Deep permuter: score 11943 \u2192 10033; 2 improvements; 43 candidates tested; 91 cached skips; 0 rejected; 7208s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935625",
+  "created_at": 1794357164.4335139,
+  "score_before": 11943,
+  "score_after": 10033
+ },
+ {
+  "function": "func_801C1424",
+  "text": "Best score 7501 (50.3%), from the source with tbl copy as struct, flag u16 at D_8011F32E+off, fixup loop over D_801C6B60, and the sin loop using src/tp pointers. Remaining diff: stack frame 0x58 vs target 0x60 (target saves s0-s6 plus ra and fs0/fs1; s5 = &D_801C6B60, s6 = &D_80167FB8 base pointers, s4 = &tbl, s2 = i<<4 used for the D_80167FBC stores). Compiler folds the D_80167FB8 base into constant offsets (lui/addiu then sh 0x84(s3)), so a pointer held across the __sinf call is needed to keep s6 live. Also the target's 'if (1) {}' and 'do {} while(0)' artifacts from the machine draft are not present in the real code; ignore them. Untried: a pointer local for D_80167FB8 that is used after the call (before the loop) so it survives; a per-iteration reload of tbl via s4.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794705207.463116,
+  "score_before": 10613,
+  "score_after": 7501
+ },
+ {
+  "function": "func_801C1424",
+  "text": "Best 7996 (rev e41992485fc12b52b66c). Target frame 0x60 with ra at 0x4c, s6 0x48, s5 0x44, sdc1 f22 0x58, f20 0x50 -> needs one more saved reg (s5/s6) and 8 more frame bytes than current 0x58. Target copies the whole D_801C6AC8 (0x20 bytes) into the stack buffer via lui a1,%hi(D_801C6AC8); addiu; lw loop, i.e. the struct copy happens FIRST before the D_801C6BAC test; my version tested D_801C6BAC first and loaded D_801C6AC8 into t0 as an address. Fix: do `sp10 = D_801C6AC8;` as the very first statement (struct assignment, not memcpy/pointer) so gcc emits the lw/sw copy loop with a1 base, then test D_801C6BAC. Target also has addu $v0,$v0,$v1 x9 and sll $v0,$v0,2 x7 (offset arithmetic for D_8011F32E + idx*100 and the *0x10 strides) and andi $v1,$s0,0xffff x3 \u2014 keep the u32 off = (arg0 & 0xFFFF) * 100 local and index *(u16*)((char*)&D_8011F32E + off). Remaining: register allocation for the sin loop and the two s16 stores.\n\nBest 7611 (rev 40cbad57e2f812821054, current flags -O2). With -O1 the same C scores 4182 (trial 6f12545faac914ed3820) \u2014 much closer; the sin loop and the two s16 stores line up at -O1. Target structure confirmed from assembly: (1) full 0x20-byte struct copy D_801C6AC8 -> sp+0x10 as the very first statement, emitted as lui a1,%hi(D_801C6AC8); addiu a1; three lw/sw batches; (2) if (D_801C6BAC==0) call func_8013AE60(arg0&0xFFFF,&D_801C6AC8), andi v1,$s0,0xffff computed BEFORE the branch and again after the call; (3) off = (arg0&0xFFFF)*100 via sll/addu/sll3/addu/sll2, indexed as *(u16*)((char*)&D_8011F32E+off); (4) state 0 loop writes D_801C6B60[i]=(f32)i*45.0f with s3 as counter and the address incremented by sll $v0,$s3,2 at the loop tail, then D_801C6B80=0, then a SECOND andi v0,$s0,0xffff recomputing the offset for the sh of 1; (5) state 1 loop: c.lt.s then bc1fl to the sub.s path, add.s 4.0f on the fall-through (i.e. `if (x < 360.0f) x += 4.0f; else x -= 360.0f;` written that way round), address via sll $v0,$s3,2 at the tail; (6) sin loop keeps s6=&D_80167FB8, s5=&D_801C6B60, s4=sp+0x10, s2=k*16, s1=(k+8)*16+s6, s0=k*4, and does sh $v0,4($s1) plus sh $v0,%lo(D_80167FBC)(at) with at=D_80167FBC+s2 \u2014 so index the second store as *(s16*)(D_80167FBC + k*0x10) with k*0x10 in a separate s32 local (s2) updated at the loop tail, not a pointer walk. Frame needs 0x60 with s5/s6 saved.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794707138.892258,
+  "score_before": 7501,
+  "score_after": 7501
+ },
+ {
+  "function": "func_801C1424",
+  "text": "Best stays 7611 (49.5%), 133 vs 151 insns; budget 3/3 exhausted with no improvement.\n\nVerified facts from the target (get_assembly page 52-162):\n- struct copy at entry: lui/addiu into $a1 (base kept in a register), then 3 loads + 3 stores interleaved, offsets 0x0/0x4/0x8, 0xC/0x10/0x14, 0x18/0x1C into sp+0x10..0x2C. Ours keeps the base in $a3 and uses lw off($a3) with a different interleave; score-neutral.\n- after jal func_8013AE60 the target re-does `andi $v1, $s0, 0xffff` (so arg0&0xFFFF is recomputed into a fresh local after the call, not reused).\n- index math: sll/addu/sll3/addu/sll2 (i.e. v*100) is already right.\n- branch shape: `beqz $v1,.L14F0; addiu $v0,zero,1; beq $v1,$v0,.L1564; move $s3,zero; j .L1650` \u2014 the else-if with a shared tail is right in structure; ours currently emits `bnez` inverted plus a `bne` at the end of the first block, i.e. the two-block if/else-if is being merged. Target has no `bne` after the D_801C6B80 store; it jumps unconditionally to the epilogue. Try making the second test an independent `if (...) { }` chain or a switch on the u16 to get the beq/j pair.\n- 45.0f loop: target hoists `lui v1,%hi(D_801C6B60); addiu` before the mtc1 of 0x4234 and re-materialises `sll $v0,$s3,2` in the loop tail (index in $s3, base in $v1, addu inside the loop). Ours uses a pointer bump (addiu $v1,$v1,4) \u2014 replace the pointer-walk form with `D_801C6B60[i]` and keep the base address in a local `f32 *p = D_801C6B60;` used as p[i] so the sll/addu reappears.\n- 360/4 loop: target uses `bc1fl .L15A4; sll $v0,$s3,2` then `j .L15B0; add.s` for the true arm and re-loads lwc1 in the else arm (addu v0,v0,v1; lwc1; sub.s). Ours folds the else arm without the reload. Writing the else arm as `D_801C6B60[i] = D_801C6B60[i] - 360.0f;` on a re-indexed array (not a pointer already in a register) should force the reload.\n- sin loop: target precomputes s6=&D_80167FB8, s5=&D_801C6B60, s4=sp+0x10, s2=k*16 in the tail, s1=(k+8)*16+s6; then lwc1 via addu v0,s0,s5 and `addu $s0,$s0,$s4; lwc1 ($s0)` for the struct element. Ours hoists &D_80167FBC and walks pointers with addiu +0x10. Rewrite the second store as `*(s16 *)(D_80167FBC + k * 0x10) = (s16)temp;` (indexed, not pointer-walk) and the first as `*(s16 *)(D_80167FB8 + (k + 8) * 0x10 + 4)`.\n- stack frame must be 0x60 with ra at 0x4C, s0-s6 at 0x30..0x48, f20/f22 at 0x50/0x58; ours is 0x58 because $s6/$s5/$s1 are not all live. Getting the sin-loop base pointers into s5/s6 (see above) should restore the 0x60 frame.\n\nUntested next step (exact anchor on revision 6da6203c1c8ee7c1d7cb): replace the pointer-walking loops with indexed array forms as described above.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794707535.6117141,
+  "score_before": 7501,
+  "score_after": 7501
+ },
+ {
+  "function": "func_801C1424",
+  "text": "Baseline compiled at 12496 (17.2%), revision 4d5717f2a249c6dac315; far from match, not iterated. Target frame is 0x60 (ours 0x58), saves ra, s0..s6 at 0x4c..0x30, and calls func_8013AE60 and __sinf. The m2c draft's 8-word local copy from D_801C6AC8 is wrong; the target copies D_801C6AC8 to a stack array (addiu a1,sp,0x10) before the call. Next: read the first 60 instructions with get_assembly and rebuild the call/copy sequence before any loop edits; the loops use s16 stores to D_80167FB8 at (j+8)*0x10+4 and D_80167FBC at j*0x10 (check the sign of the sin-to-s16 conversion and the 3.1415927f/180 constant order).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794724871.1215942,
+  "score_before": 6780,
+  "score_after": 6780
+ },
+ {
+  "function": "func_801C1424",
+  "text": "Best 12361 (18.1%), not matched. The draft is far off: the target frame is 0x60 bytes with ra/s1-s6 saved and f22 at 0x58, while mine is 0x58, so the locals are wrong. The target also copies 8 floats from D_801C6AC8 into a local array (sp10) with lui/addiu each. The 8-element loop writes D_801C6B60 (f32) and D_80167FB8/FBC as s16 at stride 0x10 with a +4 field. Start by matching the prologue (frame size, saved regs) with a 8-float local array plus an extra f64 slot, then the three loops. Expect several attempts.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794739441.43872,
+  "score_before": 6780,
+  "score_after": 6780
+ },
+ {
+  "function": "func_801C1424",
+  "text": "Best 11121 (26.3%, revision f7049850a2c8937b842a): sp10 is a struct copy `F8 sp10 = D_801C6AC8` (struct of f32 f[8]), which moved the score from 12361. Target (151 insns, frame 0x60) saves s0-s6, ra and fs0/fs1 (doubles at 0x50/0x58). The target hoists &D_801C6B60 into $s5 and &D_80167FB8 into $s6 for the second loop, and addresses sp10 from $s4 = sp+0x10; ours saves only s0-s4 with an 0x58 frame. Next test: the sp10 copy's 8 words are loaded from a base in $a1 (lui/addiu of D_801C6AC8) in order 0,4,8,C,10,14,18,1C before the D_801C6BAC check. Second loop stores are sh at 4(s1) with s1 = s6 + (i+8)*16, and sh at D_80167FBC + s2 with s2 = i<<4. Local pointers tab/dst in the loops gave 11261 (worse, reverted). Stopping: the remaining diff is prologue/loop scheduling and missing saved registers, and the variants I tried did not move the frame layout.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794755869.923529,
+  "score_before": 6780,
+  "score_after": 6780
+ },
+ {
+  "function": "func_801C1424",
+  "text": "Best 11121 (26.3%), the original candidate from get_candidate, not the later variants (11255 pointer-temp, 11960 unsigned var_s3). Frame is 0x60 and saves ra, s0-s6, fs0, fs1; mine is 0x58 with no s4-s6 and no fs0/fs1, so the loop-carried values and the float live across __sinf are missing. Target copies D_801C6AC8 (32 bytes) to sp+0x10 via lui/addiu $a1 then lw/sw pairs, and index math is sll $v0,$s3,2 x6 and sll $s2,$s3,4 x3. Next: restructure so var_s3 and two pointers stay live across both loops, and keep the sinf argument in a float temp. Signedness of var_s3 made it worse. Stopping here because structural attempts are not closing the gap (26%).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794758065.8649778,
+  "score_before": 6780,
+  "score_after": 6780
+ },
+ {
+  "function": "func_801C1424",
+  "text": "Not matched. Best saved 10267 (32.0%), source = last trial (local F8 sp10 copy of D_801C6AC8 + 8-float loops). Frame mismatch: target frame is 0x60 and saves ra,s0-s6 plus f20/f22; mine is 0x78 with s0-s4 only, so the target keeps more live values across the sine loop (likely a local per-channel array or a second pointer into D_801C6AC8). The target loads D_801C6BAC first (lui/lbu), then calls func_8013AE60 only when it is zero. Unresolved: the sine loop's value order and whether the 8-entry arrays are F8 structs. Try guess_struct on D_801C6AC8 and D_801C6B60 before retrying. The s16 writes go to D_80167FB8 at +0x84 offsets and D_80167FBC at stride 0x10.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794767335.951068,
+  "score_before": 6780,
+  "score_after": 6780
  }
 ]
