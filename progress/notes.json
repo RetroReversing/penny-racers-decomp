@@ -4784,22 +4784,6 @@
   "score_after": 18305
  },
  {
-  "function": "func_80143F68",
-  "text": "Not attempted in C yet. Structure: a state machine on D_80168BB0 (u32 state) with a 0x34-entry jump table at D_80183560 (sltiu 0x34, sll 2, lw via lui/%lo, jr). Each case calls one helper then stores a new state (0x1,0x3,0x13,0x15,0xB,0x1D,0x23,0x27,0x29,0x2B,0x2F,0x31,0x33) into D_80168BB0 or jumps to shared store at .L801441CC; one case stores a halfword to D_8006F9E8 (sh). Blocker: read_data cannot see D_80183560 (not in loaded ROM), so the case-to-target mapping and jump table contents are unknown; the jr table cannot be reproduced from the asm alone. Also the claim tool reported that a stale claim existed for this function, and claim_function(function=...) for func_80027BF0 was blocked by it until released. Next step: get the jump table from a split data region, then write the switch.",
-  "by": "Wwww.claude-haiku-23",
-  "created_at": 1794362272.4876952,
-  "score_before": null,
-  "score_after": null
- },
- {
-  "function": "func_80143F68",
-  "text": "Blocked: jump table D_80183560 not in loaded ROM (read_data says not in a loaded part), so the switch case mapping can't be derived. Not attempted in C.",
-  "by": "Wwww.claude-haiku-23",
-  "created_at": 1794362281.717354,
-  "score_before": null,
-  "score_after": null
- },
- {
   "function": "func_8003C720",
   "text": "Best remains 562 (revision 93a2ad5a64d261fbed68, the recorded attempt). Tried: countdown loop `for (i=a[2]; i>0; i--)` -> 1061, worse (target keeps the up-counting `i<a[2]` loop with slt/bnez, and a beqz a0 pre-check plus addiu a3,sp,0x10). Remaining diffs in the 562 version: target frame is 0x50 with $ra at 0x48, $s0/$s1 at 0x40/0x44; ours uses a 0x4c $ra slot and $s2 for the table pointer (target uses $s1 for lui D_800DD3E0). The sp10 copy is probably not a plain memcpy call (target has an inline copy loop with a3 = sp+0x10). Next: fix frame and register allocation first, then try an inline byte copy in place of memcpy.",
   "by": "Wwww.claude-haiku-low-22",
@@ -6646,14 +6630,6 @@
   "created_at": 1794709973.2715561,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_80143F68",
-  "text": "Not attempted yet. Structure: jal func_80214860; then switch on D_80168BB0 (sltiu 0x34 range check, jump table at D_80183560, jr $v0). Each case sets a new state value into D_80168BB0 and calls a helper, or tail-jumps to the common exit .L801441D4 / .L801441CC. Needs the jump table contents (read_data at 0x80183560, 0x34 entries) before writing a switch; the m2c draft failed because the jump table was unreadable. Start by dumping the table and mapping each case to its helper call.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794710115.3223639,
-  "score_before": null,
-  "score_after": null
  },
  {
   "function": "func_80143250",
@@ -9872,14 +9848,6 @@
   "score_after": 8516
  },
  {
-  "function": "func_80143F68",
-  "text": "Switch on D_80168BB0 (0..0x33, range check sltiu 0x34, no subtract). Best 2130 (86.5%): 146 insns vs target 158. Case-to-state mapping is a guess: read_data cannot load the jump table at D_80183560 (not in loaded ROM), so case values were assigned in code-block order. Diff: target ends each case with an explicit `j epilogue; nop` and the first beqz targets the epilogue at +0x26c (mine +0x23c), i.e. 12 instructions are missing from the case bodies; blocks are reordered (jal func_802144DC and func_80206104/func_80206830 placement). Tried `return` in each case: no compile result (tool errored on synchronization). Next step: get the real jump table entries to fix case values and check whether case bodies with no call (state-only stores: 0xF, 0x15, 0xB, 0x2F-tail) are shared tails.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794725849.503204,
-  "score_before": 2130,
-  "score_after": 2130
- },
- {
   "function": "func_801F9BE8",
   "text": "Untouched queued neighbour: released immediately without any diagnostic build or source change so the sibling func_801F9A20 (score 550, close to matching) could be re-claimed and finished. No experiments tried, no notes to inherit; candidate revision is whatever get_candidate reports.",
   "by": "api-route-llm-code-2",
@@ -12926,14 +12894,6 @@
   "created_at": 1794739750.377084,
   "score_before": null,
   "score_after": null
- },
- {
-  "function": "func_80143F68",
-  "text": "Best 2130 (86.5%). Source: the switch on D_80168BB0 (0..0x33, jump table, default -> end) with func_80214860() first. Structure matches the target except for the function tail. The target has two kinds of case: (a) call, then `D_80168BB0 = X`, then call, then `j end`; (b) store-only cases that set v0=X and jump into a SHARED tail `lui $at; sw $v0,D_80168BB0`. Cases 1,2,8,13,14,19 and 0x33 (which falls into the tail with 0x31) are type (b). Case 10 stores a halfword to D_8006F9E8 in the delay slot of `j end`. Rewriting the type (b) cases with a local `next` and a shared store after the switch gave the same 2130 (the compiler produced identical code), so the merge is not what differs. Remaining gap: the target is 0x30 bytes longer before the end label (beqz at 0x26c vs ours 0x23c), so the target has 12 extra instructions (probably per-case `j end; nop` pairs where I return, and the cases that jump to the tail). Next agent: count the target's `j L441D4; nop` per case against mine, and try `break` for the call-then-store cases instead of `return`.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794739835.919917,
-  "score_before": 2130,
-  "score_after": 2130
  },
  {
   "function": "func_80149CC4",
@@ -17400,14 +17360,6 @@
   "score_after": 8348
  },
  {
-  "function": "func_80143F68",
-  "text": "Not matched. Best 2130 (86.5%) is the saved switch source, reproduced as-is. Diff: target is 158 insns, ours 146, so ~12 instructions missing; the break target is 0x26c in the ROM but 0x23c in ours. In case 0 the target has jal func_802144DC after the sw D_80168BB0 with a nop delay slot, while ours moves that jal earlier and fills its slot. search_flags: -O2 -g scores 530 (much closer, but the project flags are -O2, so -g is probably not the real build flag). Not tried yet: a struct or array layout for the case bodies, or moving the store after the call in case 0 and checking whether delay slots stay unfilled.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794754312.623466,
-  "score_before": 2130,
-  "score_after": 2130
- },
- {
   "function": "func_802306F0",
   "text": "Not matched. Best 9041 at revision 7379013f306427cf63e9 (the one with `sp10[k]` loops; 42%). Structure of the target: frame 0x38 saves ra, s3, s2, s1, s0 with s0 = arg0 saved first. Calls: func_8003DE60(&D_80232CF8, arg0&0xFFFF), then a0 chosen from D_8021E1A6 (0->D232D04, 1->D232D10, 2->D232D1C, 3->D232D28, else no call) and func_8003DE60(a0). Then clear sp10[14] with a counter loop. switch(arg0&0xFFFF): case 1: k=D_800DA260+2, i=1, do { k clamp (k<13?k:0); func_80230BC4(i,k); D_800DA26A[0x1B+i*0x178]=0; i++; k++ } while(i<6). case 2: sp10[D260]=1, sp10[*(u16*)(D260+0x178)]=1; loop A (i=2..3, mark 0) and loop B (i=4..5, mark 1), each with a find-free while (sp10[k] -> k++ clamp). Remaining diffs: frame/register order (my version uses s4/s5 and a 0x40 frame; target only uses s0-s3). Replacing the global with a `u16 *pp` local made it worse (9408), so keep the direct globals. Next: make arg0 the s0 value saved first, and reduce loop variables to s0..s3.",
   "by": "claude-haiku-5-5-24",
@@ -18310,14 +18262,6 @@
   "created_at": 1794756500.856884,
   "score_before": 1330,
   "score_after": 1330
- },
- {
-  "function": "func_80143F68",
-  "text": "Cannot get closer from here in this session. Best 2130 (86.5%) at revision 7cf7530ba6e2e61be832. last_diff shows the only structural gap: in the target, case 0 stores D_80168BB0 = 0x23 once and in a shape my switch cannot reproduce (store of the 0x23 constant is emitted at the shared tail, not inside case 0). Moving the call before the store (c8c88bed95c65ec5d87e, 2330) and the earlier variants did not fix it. The 12-instruction gap and the 0x26c vs 0x23c branch targets follow from that. Next agent: try the switch with case 0 falling into a shared `D_80168BB0 = 0x23` store (goto-based tail or a local temp assigned in all cases then stored once), and check whether cases 1/0x33 share a constant store the same way.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794756501.1897652,
-  "score_before": 2130,
-  "score_after": 2130
  },
  {
   "function": "func_801E435C",
@@ -23230,14 +23174,6 @@
   "created_at": 1794765685.794538,
   "score_before": 4170,
   "score_after": 4170
- },
- {
-  "function": "func_80143F68",
-  "text": "Not matched. Best 2130 (86.5%, 146 vs target 158 insns) at revision 7cf7530ba6e2e61be832, the 51-state-style switch on D_80168BB0 with one call per case. The machine draft failed (no jump table found), so this C is hand-written. Remaining diff: target has jal func_802144DC and func_80206104/func_80206830 placed after the other ops, plus nop delay slots after jal, and target branches to 0x26c where ours go to 0x23c, so the case bodies or the default/exit path are ordered differently. One extra variant (same source) scored no better. Next steps: read the target's jump table (dispatch uses an sll/addu/lw/jr pattern) to confirm the case order and whether the calls are separate statements, then retry the switch with cases in the table's order. Not C-impossible.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794765688.418456,
-  "score_before": 2130,
-  "score_after": 2130
  },
  {
   "function": "pennyReadSequenceByte",
@@ -40589,5 +40525,85 @@
   "score_before": 7290,
   "score_after": 2673,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:8ee6b0c2495f8eef49756141494bbc374040c2266f037c3f1d6de0d686f3b617"
+ },
+ {
+  "function": "func_80143F68",
+  "text": "Not attempted in C yet. Structure: a state machine on D_80168BB0 (u32 state) with a 0x34-entry jump table at D_80183560 (sltiu 0x34, sll 2, lw via lui/%lo, jr). Each case calls one helper then stores a new state (0x1,0x3,0x13,0x15,0xB,0x1D,0x23,0x27,0x29,0x2B,0x2F,0x31,0x33) into D_80168BB0 or jumps to shared store at .L801441CC; one case stores a halfword to D_8006F9E8 (sh). Blocker: read_data cannot see D_80183560 (not in loaded ROM), so the case-to-target mapping and jump table contents are unknown; the jr table cannot be reproduced from the asm alone. Also the claim tool reported that a stale claim existed for this function, and claim_function(function=...) for func_80027BF0 was blocked by it until released. Next step: get the jump table from a split data region, then write the switch.",
+  "by": "Wwww.claude-haiku-23",
+  "created_at": 1794362272.4876952,
+  "score_before": null,
+  "score_after": null
+ },
+ {
+  "function": "func_80143F68",
+  "text": "Blocked: jump table D_80183560 not in loaded ROM (read_data says not in a loaded part), so the switch case mapping can't be derived. Not attempted in C.",
+  "by": "Wwww.claude-haiku-23",
+  "created_at": 1794362281.717354,
+  "score_before": null,
+  "score_after": null
+ },
+ {
+  "function": "func_80143F68",
+  "text": "Not attempted yet. Structure: jal func_80214860; then switch on D_80168BB0 (sltiu 0x34 range check, jump table at D_80183560, jr $v0). Each case sets a new state value into D_80168BB0 and calls a helper, or tail-jumps to the common exit .L801441D4 / .L801441CC. Needs the jump table contents (read_data at 0x80183560, 0x34 entries) before writing a switch; the m2c draft failed because the jump table was unreadable. Start by dumping the table and mapping each case to its helper call.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794710115.3223639,
+  "score_before": null,
+  "score_after": null
+ },
+ {
+  "function": "func_80143F68",
+  "text": "Switch on D_80168BB0 (0..0x33, range check sltiu 0x34, no subtract). Best 2130 (86.5%): 146 insns vs target 158. Case-to-state mapping is a guess: read_data cannot load the jump table at D_80183560 (not in loaded ROM), so case values were assigned in code-block order. Diff: target ends each case with an explicit `j epilogue; nop` and the first beqz targets the epilogue at +0x26c (mine +0x23c), i.e. 12 instructions are missing from the case bodies; blocks are reordered (jal func_802144DC and func_80206104/func_80206830 placement). Tried `return` in each case: no compile result (tool errored on synchronization). Next step: get the real jump table entries to fix case values and check whether case bodies with no call (state-only stores: 0xF, 0x15, 0xB, 0x2F-tail) are shared tails.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794725849.503204,
+  "score_before": 2130,
+  "score_after": 2130
+ },
+ {
+  "function": "func_80143F68",
+  "text": "Best 2130 (86.5%). Source: the switch on D_80168BB0 (0..0x33, jump table, default -> end) with func_80214860() first. Structure matches the target except for the function tail. The target has two kinds of case: (a) call, then `D_80168BB0 = X`, then call, then `j end`; (b) store-only cases that set v0=X and jump into a SHARED tail `lui $at; sw $v0,D_80168BB0`. Cases 1,2,8,13,14,19 and 0x33 (which falls into the tail with 0x31) are type (b). Case 10 stores a halfword to D_8006F9E8 in the delay slot of `j end`. Rewriting the type (b) cases with a local `next` and a shared store after the switch gave the same 2130 (the compiler produced identical code), so the merge is not what differs. Remaining gap: the target is 0x30 bytes longer before the end label (beqz at 0x26c vs ours 0x23c), so the target has 12 extra instructions (probably per-case `j end; nop` pairs where I return, and the cases that jump to the tail). Next agent: count the target's `j L441D4; nop` per case against mine, and try `break` for the call-then-store cases instead of `return`.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794739835.919917,
+  "score_before": 2130,
+  "score_after": 2130
+ },
+ {
+  "function": "func_80143F68",
+  "text": "Not matched. Best 2130 (86.5%) is the saved switch source, reproduced as-is. Diff: target is 158 insns, ours 146, so ~12 instructions missing; the break target is 0x26c in the ROM but 0x23c in ours. In case 0 the target has jal func_802144DC after the sw D_80168BB0 with a nop delay slot, while ours moves that jal earlier and fills its slot. search_flags: -O2 -g scores 530 (much closer, but the project flags are -O2, so -g is probably not the real build flag). Not tried yet: a struct or array layout for the case bodies, or moving the store after the call in case 0 and checking whether delay slots stay unfilled.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794754312.623466,
+  "score_before": 2130,
+  "score_after": 2130
+ },
+ {
+  "function": "func_80143F68",
+  "text": "Cannot get closer from here in this session. Best 2130 (86.5%) at revision 7cf7530ba6e2e61be832. last_diff shows the only structural gap: in the target, case 0 stores D_80168BB0 = 0x23 once and in a shape my switch cannot reproduce (store of the 0x23 constant is emitted at the shared tail, not inside case 0). Moving the call before the store (c8c88bed95c65ec5d87e, 2330) and the earlier variants did not fix it. The 12-instruction gap and the 0x26c vs 0x23c branch targets follow from that. Next agent: try the switch with case 0 falling into a shared `D_80168BB0 = 0x23` store (goto-based tail or a local temp assigned in all cases then stored once), and check whether cases 1/0x33 share a constant store the same way.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794756501.1897652,
+  "score_before": 2130,
+  "score_after": 2130
+ },
+ {
+  "function": "func_80143F68",
+  "text": "Not matched. Best 2130 (86.5%, 146 vs target 158 insns) at revision 7cf7530ba6e2e61be832, the 51-state-style switch on D_80168BB0 with one call per case. The machine draft failed (no jump table found), so this C is hand-written. Remaining diff: target has jal func_802144DC and func_80206104/func_80206830 placed after the other ops, plus nop delay slots after jal, and target branches to 0x26c where ours go to 0x23c, so the case bodies or the default/exit path are ordered differently. One extra variant (same source) scored no better. Next steps: read the target's jump table (dispatch uses an sll/addu/lw/jr pattern) to confirm the case order and whether the calls are separate statements, then retry the switch with cases in the table's order. Not C-impossible.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794765688.418456,
+  "score_before": 2130,
+  "score_after": 2130
+ },
+ {
+  "function": "func_80143F68",
+  "text": "haiku-pr29: not matched; no draft submitted. It is a dispatcher: a 52-case jr through a jump table at D_80183560 (the judge reports the table as unknown: unable to determine jump table for jr at line 14). Each case calls one function (func_80214860 first, then the case calls) and stores a new state into D_80168BB0 (the case value, then a jump to the common end at D_801441D4; some cases store 0x33 or 0x29 through the shared tail at D_801441CC). read_data says D_80183560 is not in a loaded part of the ROM, so the table cannot be read here. Needs the table split (or its case map) before a C switch can be written and judged; saved best 2110 is from 2 attempts.",
+  "by": "manual-f6353e03c8044c64",
+  "created_at": 1795715901.2803571,
+  "score_before": 2110,
+  "score_after": 2110
+ },
+ {
+  "function": "func_80143F68",
+  "text": "[Released without compiling it once; notes not checked by a compile.] jump table at D_80183560 not loaded; see note",
+  "by": "manual-f6353e03c8044c64",
+  "created_at": 1795715903.821729,
+  "score_before": 2110,
+  "score_after": 2110
  }
 ]
