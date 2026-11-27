@@ -7144,14 +7144,6 @@
   "score_after": 4297
  },
  {
-  "function": "func_80214504",
-  "text": "State machine, 568 bytes, switch on D_8011F32E[idx].st with idx = arg0 & 0xFFFF, stride 0x64.\n\nCurrent best is MY candidate 7d8def4fdf9a9e2853f5 at score 2998 (was 5303 for the inherited draft; historical 1723 is stale/unreproducible). Structure that produced the jump: keep `u16 i = arg0;` for the switch dispatch load and re-derive every store index from the raw `s32 arg0` (`D_8011F32E[arg0 & 0xFFFF].st = ...`). That keeps arg0 live in a saved register across the jal and re-emits the sll/addu/sll/addu/sll multiply after each call \u2014 matches target rows 21 and the case-0/case-1/case-3 store sequences.\n\nRemaining differences (53 rows):\n1. Frame: target -0x28 with ra 0x20, s1 0x1c, s0 0x18; mine -0x20 with ra 0x1c. Target saves TWO callee registers; mine one. s1 = arg0 (confirmed). s0 is set by `addu $s0,$zero,$zero` in the bne delay slot of `D_8021E130 == 0x10E` and then read as `andi $v0,$s0,0x10; beqz $v0,.L802146CC` after the call, in BOTH case 1 and case 3 (x2 each). So the source has a local set to 0 before the call and tested as `(fl & 0x10)` after it, in the condition `if (D_8021E130 >= 0x186 || (fl & 0x10))` / `... >= 0x2D0 || (fl & 0x10)`. gcc 2.7.2 folds `(0 & 0x10)` away in every form I tried (`s32 fl = 0;` inside the case, before the switch, `(fl & 0x10) != 0`, and after the call) \u2014 compile_variants confirmed byte-identical output, so the local must be non-constant to the compiler while still being 0 at runtime (e.g. assigned 0 on a path gcc's constant propagation misses, or an argument/parameter copy). Getting this andi/beqz pair also widens the frame to 0x28 and moves ra/s0/s1 to 0x20/0x18/0x1c, which is most of the remaining diff.\n2. Case dispatch branches differ only in target offsets (beq 0xcc vs 0xc8, beql 0x5c vs 0x58, beqz 0x74 vs 0x70) \u2014 they follow from (1).\n3. Case 0 ordering: target emits lui/sw D_8021E130=0 and lui/sb D_8021E189=0 BEFORE the index multiply for the sh; mine emits them after the func_80203DF8 argument setup. Try reordering the two stores ahead of the `st = 1` store in source (they already are) \u2014 the real fix is probably that the sh index must be recomputed from arg0 at that point rather than from `i`.\n4. Tail case 2 matches (jal x3, lhu D_8018BC3C, jal func_801CF468, 0x28 stores).\n\nNext experiment: see the validated anchor proposal.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794710836.224842,
-  "score_before": 1723,
-  "score_after": 1723
- },
- {
   "function": "func_8013F1D4",
   "text": "Not matched (best 6150 rechecked; saved historical 1330 is the same source). Logic matches the target: 7-slot loop, slot==-1 skip, idx*100 via shift/add, dist<thresh && flag==0, 0x560&0x20 test, 0x8F0 stride, ent update, return 1/return 0. The gap is register allocation and frame. Target frame is 0x58: ra@0x24, s0-s4 at 0x10-0x20, fs0-fs5 (f20-f30) doubles at 0x28-0x50. In the target s2=arg1, s3 holds px as an INTEGER (lw into s3, mtc1 each iteration, because all six callee-saved FP regs are taken by dz, dx, pz, py, 0.025 and 1.0), s4=constant 1 (two sb uses), s0=obj, s1=i; dy is a temp. My versions get a 0x60 frame with an extra s5 and arg1 in s4. Tried: saved-best source (6150), `if (slot != -1)` instead of continue (no change), `u32 i` signedness variant (6360, worse). Next step: find a declaration or copy form that makes px live in a GPR (for example a u32 temp copied from the loaded word) and forces arg1 into s2. Only then tune the constant-1 register.",
   "by": "claude-haiku-5-5-20",
@@ -10222,14 +10214,6 @@
   "created_at": 1794725029.082626,
   "score_before": 1215,
   "score_after": 1215
- },
- {
-  "function": "func_80214504",
-  "text": "Not matched. Best saved 1723 (historical). My current best re-scores 5303; its source is the plain form (switch on D_8011F32E[arg0 & 0xFFFF].st, stores via the same index, void return per case). Target facts: frame 0x28 saving ra(0x20), s1(0x1C, = arg0 via `move $s1,$a0`), s0(0x18); the index is (arg0&0xFFFF)*100 (sll/addu chain, stride = sizeof Slot 100). Switch is a compare chain, not a jump table. Case 1 contains `addu $s0,$zero,$zero` before the 0x10E check and then tests `andi $v0,$s0,0x10` in the `D<0x186 || flag&0x10` condition, so a local flag is live; GCC folds a constant-0 local away, so it needs a non-constant source. The 5-arg func_80203DF8 call puts 0xFF at 0x10($sp) (stack arg). Mismatch: my build has frame 0x20 and no s1 save, i.e. arg0 is not kept live across calls. Pointer form (Slot *p) is worse (5928). Parameter-width variants (u16/s16 arg) give the same 5928. Next idea: make arg0 used after a call in a way GCC cannot CSE (e.g. recompute the index from arg0 in the post-call store only) and find a non-constant source for the flag.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794725107.6304939,
-  "score_before": 1723,
-  "score_after": 1723
  },
  {
   "function": "func_802306F0",
@@ -13430,14 +13414,6 @@
   "created_at": 1794739216.984666,
   "score_before": 845,
   "score_after": 845
- },
- {
-  "function": "func_80214504",
-  "text": "Not matched; blocked on an unexplained flag, so further compiles of the current shape will not close the gap. Restore point is saved_best (historical 1723, not reproduced: recompiling its source gives 5303, 62.6%). Two compiles this session, both 5303 (the saved source; and a `u16 idx = arg0` variant, folded back, no change).\n\nAsm read this session (complete, 155 insns):\n- Frame 0x28: ra at 0x20, s1 at 0x1C, s0 at 0x18. `addu s1,a0` at the top. The index is recomputed as `andi v0,s1,0xFFFF` at each use, and *100 is sll1/addu/sll3/addu/sll2 (25*4*idx), so use the raw arg0 & 0xFFFF form, not a local.\n- Case dispatch: `lhu D_8011F32E[idx]` is tested against 1, then 0/2/3; that matches the saved switch order 0,1,3,2.\n- Blocks: case 0 sets D_8021E130=0, D_8021E189=0, st=1 and calls func_80203DF8(1,0x78,0xFF,0xFF,0xFF) (5th arg 0xFF at 0x10($sp)). Case 1 tests E130==0x10E, calls func(2,0x78,0,0,0), then tests E130>=0x186 and sets st=3 after func(1,...). Case 3 mirrors this with 0x24E and 0x2D0, setting st=2. Case 2 calls func_800DE38C, func_800DE2E0, func_80231C5C, func_801CF468(D_8018BC3C,0,0,0), then stores 0x28 to D_8021AFDC and D_80168BB0.\n- UNEXPLAINED: `s0` is set to 0 with `addu s0,zero,zero` in the delay slot of the `bne` (case 1) and in case 3, and is then tested as `andi v0,s0,0x10` before the >=0x186 / >=0x2D0 branches. Because s0 is always 0 there, the source must have a variable that the compiler cannot fold (perhaps a value that is only conditionally assigned), or the test is `(x & 0x10)` on a local from before the switch. Find that source first; it sets the frame and the register pattern.\n\nNext step: write the case 1 and case 3 bodies with a local flag assigned 0 at the top of each case, test `flag & 0x10` where the target does, and check the frame. Then compare the case-2 call order.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794739247.9453719,
-  "score_before": 1723,
-  "score_after": 1723
  },
  {
   "function": "func_80198250",
@@ -18328,14 +18304,6 @@
   "score_after": 8381
  },
  {
-  "function": "func_80214504",
-  "text": "Not matched; releasing. Best saved 1723 (restore via get_candidate base=saved_best). My rewrites here scored 5303 with no improvement. Target layout: frame 0x28 saves ra, s1 (= arg0, used after calls to recompute arg0&0xFFFF for each sh store), and s0. Dispatch: st==1 checked first, st<2 -> case 0, st==2 -> case 2, st==3 -> case 3, else return. Main blocker: s0 is a flag always 0 (`addu s0,zero,zero` sits in the delay slot of the D_8021E130 != 0x10E test, then `andi v0,s0,0x10` gates the >=0x186 branch). gcc -O2 folds a plain `s0 = 0` away, so the source shape that keeps s0 live is still unknown. Next: find a non-folding form for that flag and keep arg0 in s1.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794754126.663685,
-  "score_before": 1723,
-  "score_after": 1723
- },
- {
   "function": "func_801E1C38",
   "text": "Not matched; best saved 8675 (49.8%), unchanged by my attempts. Structure from the target asm (use it for a fresh draft): prologue saves ra and s0 (frame 0x20); s0=0; call func_8003DE60(&D_801E94EC, D_801E973C) with TWO args (the brief/m2c prototype with 3 args breaks it; an unprototyped `void func_8003DE60();` declaration is needed, otherwise undeclared). D_801E87E3=1; D_801E87E1=D_801E87E0=D_801F18E4. Halfword fields at D_800DA26A+0xA3E: u16 = F18E5, then s16 at +0xA40..+0xA4C = F18E6..F18EC. idx=(u16)*(D_800DA26A+0xA3E); D_800DA26A[0xBA8+idx]=F18ED. Then t1=F18EE, t0=F18EF, a1=0xE; while (t1!=FF||t0!=FF): if (t1==EE && t0==EE): n1=E0[(a1+2)&ffff], n0=E1[...]; a1+=4; cnt=*(u16*)(E0+(a1&ffff)); write D9D80/D9D81 at s0+2i for i<cnt; s0+=cnt*2. else write t1,t0 at s0; s0+=2. then a1+=2; reload t1=E0[a1&ffff], t0=E1[a1&ffff]. After loop: write t1,t0 at s0; s0+=2; call func_8003DE60(&D_801E9500, (a1+2)&ffff, s0&ffff) (s0 already incremented). Final copy loop from a0=0 step 2: E0[a0]=D80[a0]; E1[a0]=D81[a0]; v1=D80[a0]; if v1!=FF continue; if D81[a0]!=v1 continue (a0 pre-increment); a0+=2 each path; return. The machine draft's final loop is wrong (it checks D81 after incrementing). Tool problem: after two different full-source compiles the result stayed at score 8675 and the diff showed a prologue-less candidate (no s0 save), so the compile feedback may be stale; verify by get_candidate/last_diff before trusting scores. Budget used 4 of 8 compiles without improvement. share_knowledge not used.",
   "by": "claude-haiku-5-5-21",
@@ -19206,14 +19174,6 @@
   "created_at": 1794756084.566484,
   "score_before": 8381,
   "score_after": 8381
- },
- {
-  "function": "func_80214504",
-  "text": "Best 5153 (revision 97a67c6c09cfb58ce7e5): claimed source with the first func_80203DF8 call wrapped in do { } while (0) (call_one_shot_scope variant), from 5303. Other repairs: switch_layout worse (6407), call_arity worse (5508), width/global-type variants equal. The saved best 1723 has the same source as the claim, so its score is historical only (different headers). Remaining diff: frame. Target frame is 0x28 with ra, s1, s0 saved and move $s1,$a0 done three times; ours is 0x20 with no s1. The target keeps arg0 (or the masked index) live across the calls; try keeping idx = arg0 & 0xFFFF live across func_80203DF8 with an explicit s32 local used after the calls in case 1 and case 3, and check whether the do-while trick should go on the other func_80203DF8 calls too. Budget at release.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794756084.7498748,
-  "score_before": 1723,
-  "score_after": 1723
  },
  {
   "function": "func_802306F0",
@@ -24152,14 +24112,6 @@
   "score_after": 58770
  },
  {
-  "function": "func_80214504",
-  "text": "Unmatched; no closer. Current source scores 5303 (110 vs 142 insns); the saved best 1723 is a historical build of the same source that I could not reproduce. The compile_family signedness trial also left 5303. Prologue mismatch is the blocker: the target keeps the full arg0 in s1 across the calls and saves ra/s0/s1 in a 0x28 frame, while my build has a 0x20 frame with no s1. Also the target tests a flag s0 (always 0 at that point) with andi 0x10 in the case-1 and case-3 decisions; source-level flags were folded away. Next step: find the source form that makes gcc keep arg0 live across the case-0/1/3 calls (for example a re-read of arg0 after the call in the store), then add the s0 flag shape.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794764128.979179,
-  "score_before": 1723,
-  "score_after": 1723
- },
- {
   "function": "func_801AFB94",
   "text": "Unattempted. 3676 bytes, 973 target lines, heavy float (sdc1/swc1 saved $fs0-$fs3, sqrtf call) and a stack-copied 8-byte local from D_801C6A38 via lwl/lwr/swl/swr. The machine draft is not valid C (incomplete types for D_8011... arrays, goto into a block, do{}while(0) wrapper), so the draft cannot be used. Needs struct layouts for arg0 and the D_801C6A38 record before any source attempt. Start by mapping the first branch (beqz on arg1&0xFF at .L801AFD18) and the call sequence in the prologue.",
   "by": "claude-haiku-5-5-20",
@@ -25264,14 +25216,6 @@
   "score_after": 3253
  },
  {
-  "function": "func_80214504",
-  "text": "Range check #2: is this part of the game built by KMC GCC 2.7.2 -G0 -mips3 -mgp32 -mfp32 -O1? An agent's C for a function next to func_80214504 matches with it. Match func_80214504 as usual; then try_compiler(\"func_80214504\", \"gcc-2.7.2-kmc\", \"-G0 -mips3 -mgp32 -mfp32 -O1\"). Matching with KMC GCC 2.7.2 -G0 -mips3 -mgp32 -mfp32 -O1 and not with the project's compiler confirms the range; matching with the project's compiler only shows it was a quirk. Either answer helps.",
-  "by": "autopilot",
-  "created_at": 1794767020.748249,
-  "score_before": 6365,
-  "score_after": 6365
- },
- {
   "function": "func_80198250",
   "text": "Best saved: 775 (90.6%, 83 target insns), revision 2e655a137e9471ef9238. Not matched. Remaining diff is register allocation plus one extra nop: target loads D_801C6BB9 into $a0 and D_801C7068 into $a2; the bne to 0xe8 compares D_801C7062[0] with $a2. Ours puts BB9 in $v1 and 7068 in $a0, so branch targets are 0xec and 0xa8 and an extra nop appears at +0x6C. Tried and not better: (a) local s32 b=BB9 and s32 a2 for both scalars: 1570; (b) a2+1/a2-1 in place of D_801C7068+1/-1: 1040; (c) u32 a2 (signedness family): 1040; (d) reversed operands in 'D_801C7062[1] != BB9': 815. Untried: splitting the D_801C6BB0 index into its own expression, or nesting the neighbour test under the \u00b11 branch differently. Likely needs a different C shape for the final test rather than register tweaks.",
   "by": "claude-haiku-5-5-20",
@@ -25342,14 +25286,6 @@
   "created_at": 1794767465.815788,
   "score_before": 2607,
   "score_after": 2607
- },
- {
-  "function": "func_80214504",
-  "text": "No match. Current rechecked score 5303 (62.6%) with the switch-on-state source. Target facts from asm: frame 0x28 saving ra, s1 (arg0 kept across calls), s0; index arg0&0xFFFF computed as ((i*3)<<3 + i)<<2; the switch lowers to an if-tree on lhu of the stride-100 state; case 1 and case 3 each have a local s0 set to 0 in the delay slot before the 0x10E / 0x24E call, and the later test is (D>=0x186 || (s0&0x10)) / (D>=0x2D0 || (s0&0x10)) -> body. Locals `flag = 0` get folded by the compiler (andi dropped), so the score stays 5303. The frame mismatch (0x20 vs 0x28, missing s0 save) must be fixed first and needs a non-constant flag in the C, which I did not find. Asking to move on: further compiles only tune the register and branch layout behind that frame gap, and I cannot steer it from C without the original flag source.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794767470.50961,
-  "score_before": 1723,
-  "score_after": 1723
  },
  {
   "function": "func_80230960",
@@ -39978,5 +39914,78 @@
   "created_at": 1795711783.575841,
   "score_before": 3480,
   "score_after": 3480
+ },
+ {
+  "function": "func_80214504",
+  "text": "State machine, 568 bytes, switch on D_8011F32E[idx].st with idx = arg0 & 0xFFFF, stride 0x64.\n\nCurrent best is MY candidate 7d8def4fdf9a9e2853f5 at score 2998 (was 5303 for the inherited draft; historical 1723 is stale/unreproducible). Structure that produced the jump: keep `u16 i = arg0;` for the switch dispatch load and re-derive every store index from the raw `s32 arg0` (`D_8011F32E[arg0 & 0xFFFF].st = ...`). That keeps arg0 live in a saved register across the jal and re-emits the sll/addu/sll/addu/sll multiply after each call \u2014 matches target rows 21 and the case-0/case-1/case-3 store sequences.\n\nRemaining differences (53 rows):\n1. Frame: target -0x28 with ra 0x20, s1 0x1c, s0 0x18; mine -0x20 with ra 0x1c. Target saves TWO callee registers; mine one. s1 = arg0 (confirmed). s0 is set by `addu $s0,$zero,$zero` in the bne delay slot of `D_8021E130 == 0x10E` and then read as `andi $v0,$s0,0x10; beqz $v0,.L802146CC` after the call, in BOTH case 1 and case 3 (x2 each). So the source has a local set to 0 before the call and tested as `(fl & 0x10)` after it, in the condition `if (D_8021E130 >= 0x186 || (fl & 0x10))` / `... >= 0x2D0 || (fl & 0x10)`. gcc 2.7.2 folds `(0 & 0x10)` away in every form I tried (`s32 fl = 0;` inside the case, before the switch, `(fl & 0x10) != 0`, and after the call) \u2014 compile_variants confirmed byte-identical output, so the local must be non-constant to the compiler while still being 0 at runtime (e.g. assigned 0 on a path gcc's constant propagation misses, or an argument/parameter copy). Getting this andi/beqz pair also widens the frame to 0x28 and moves ra/s0/s1 to 0x20/0x18/0x1c, which is most of the remaining diff.\n2. Case dispatch branches differ only in target offsets (beq 0xcc vs 0xc8, beql 0x5c vs 0x58, beqz 0x74 vs 0x70) \u2014 they follow from (1).\n3. Case 0 ordering: target emits lui/sw D_8021E130=0 and lui/sb D_8021E189=0 BEFORE the index multiply for the sh; mine emits them after the func_80203DF8 argument setup. Try reordering the two stores ahead of the `st = 1` store in source (they already are) \u2014 the real fix is probably that the sh index must be recomputed from arg0 at that point rather than from `i`.\n4. Tail case 2 matches (jal x3, lhu D_8018BC3C, jal func_801CF468, 0x28 stores).\n\nNext experiment: see the validated anchor proposal.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794710836.224842,
+  "score_before": 1723,
+  "score_after": 1723
+ },
+ {
+  "function": "func_80214504",
+  "text": "Not matched. Best saved 1723 (historical). My current best re-scores 5303; its source is the plain form (switch on D_8011F32E[arg0 & 0xFFFF].st, stores via the same index, void return per case). Target facts: frame 0x28 saving ra(0x20), s1(0x1C, = arg0 via `move $s1,$a0`), s0(0x18); the index is (arg0&0xFFFF)*100 (sll/addu chain, stride = sizeof Slot 100). Switch is a compare chain, not a jump table. Case 1 contains `addu $s0,$zero,$zero` before the 0x10E check and then tests `andi $v0,$s0,0x10` in the `D<0x186 || flag&0x10` condition, so a local flag is live; GCC folds a constant-0 local away, so it needs a non-constant source. The 5-arg func_80203DF8 call puts 0xFF at 0x10($sp) (stack arg). Mismatch: my build has frame 0x20 and no s1 save, i.e. arg0 is not kept live across calls. Pointer form (Slot *p) is worse (5928). Parameter-width variants (u16/s16 arg) give the same 5928. Next idea: make arg0 used after a call in a way GCC cannot CSE (e.g. recompute the index from arg0 in the post-call store only) and find a non-constant source for the flag.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794725107.6304939,
+  "score_before": 1723,
+  "score_after": 1723
+ },
+ {
+  "function": "func_80214504",
+  "text": "Not matched; blocked on an unexplained flag, so further compiles of the current shape will not close the gap. Restore point is saved_best (historical 1723, not reproduced: recompiling its source gives 5303, 62.6%). Two compiles this session, both 5303 (the saved source; and a `u16 idx = arg0` variant, folded back, no change).\n\nAsm read this session (complete, 155 insns):\n- Frame 0x28: ra at 0x20, s1 at 0x1C, s0 at 0x18. `addu s1,a0` at the top. The index is recomputed as `andi v0,s1,0xFFFF` at each use, and *100 is sll1/addu/sll3/addu/sll2 (25*4*idx), so use the raw arg0 & 0xFFFF form, not a local.\n- Case dispatch: `lhu D_8011F32E[idx]` is tested against 1, then 0/2/3; that matches the saved switch order 0,1,3,2.\n- Blocks: case 0 sets D_8021E130=0, D_8021E189=0, st=1 and calls func_80203DF8(1,0x78,0xFF,0xFF,0xFF) (5th arg 0xFF at 0x10($sp)). Case 1 tests E130==0x10E, calls func(2,0x78,0,0,0), then tests E130>=0x186 and sets st=3 after func(1,...). Case 3 mirrors this with 0x24E and 0x2D0, setting st=2. Case 2 calls func_800DE38C, func_800DE2E0, func_80231C5C, func_801CF468(D_8018BC3C,0,0,0), then stores 0x28 to D_8021AFDC and D_80168BB0.\n- UNEXPLAINED: `s0` is set to 0 with `addu s0,zero,zero` in the delay slot of the `bne` (case 1) and in case 3, and is then tested as `andi v0,s0,0x10` before the >=0x186 / >=0x2D0 branches. Because s0 is always 0 there, the source must have a variable that the compiler cannot fold (perhaps a value that is only conditionally assigned), or the test is `(x & 0x10)` on a local from before the switch. Find that source first; it sets the frame and the register pattern.\n\nNext step: write the case 1 and case 3 bodies with a local flag assigned 0 at the top of each case, test `flag & 0x10` where the target does, and check the frame. Then compare the case-2 call order.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794739247.9453719,
+  "score_before": 1723,
+  "score_after": 1723
+ },
+ {
+  "function": "func_80214504",
+  "text": "Not matched; releasing. Best saved 1723 (restore via get_candidate base=saved_best). My rewrites here scored 5303 with no improvement. Target layout: frame 0x28 saves ra, s1 (= arg0, used after calls to recompute arg0&0xFFFF for each sh store), and s0. Dispatch: st==1 checked first, st<2 -> case 0, st==2 -> case 2, st==3 -> case 3, else return. Main blocker: s0 is a flag always 0 (`addu s0,zero,zero` sits in the delay slot of the D_8021E130 != 0x10E test, then `andi v0,s0,0x10` gates the >=0x186 branch). gcc -O2 folds a plain `s0 = 0` away, so the source shape that keeps s0 live is still unknown. Next: find a non-folding form for that flag and keep arg0 in s1.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794754126.663685,
+  "score_before": 1723,
+  "score_after": 1723
+ },
+ {
+  "function": "func_80214504",
+  "text": "Best 5153 (revision 97a67c6c09cfb58ce7e5): claimed source with the first func_80203DF8 call wrapped in do { } while (0) (call_one_shot_scope variant), from 5303. Other repairs: switch_layout worse (6407), call_arity worse (5508), width/global-type variants equal. The saved best 1723 has the same source as the claim, so its score is historical only (different headers). Remaining diff: frame. Target frame is 0x28 with ra, s1, s0 saved and move $s1,$a0 done three times; ours is 0x20 with no s1. The target keeps arg0 (or the masked index) live across the calls; try keeping idx = arg0 & 0xFFFF live across func_80203DF8 with an explicit s32 local used after the calls in case 1 and case 3, and check whether the do-while trick should go on the other func_80203DF8 calls too. Budget at release.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794756084.7498748,
+  "score_before": 1723,
+  "score_after": 1723
+ },
+ {
+  "function": "func_80214504",
+  "text": "Unmatched; no closer. Current source scores 5303 (110 vs 142 insns); the saved best 1723 is a historical build of the same source that I could not reproduce. The compile_family signedness trial also left 5303. Prologue mismatch is the blocker: the target keeps the full arg0 in s1 across the calls and saves ra/s0/s1 in a 0x28 frame, while my build has a 0x20 frame with no s1. Also the target tests a flag s0 (always 0 at that point) with andi 0x10 in the case-1 and case-3 decisions; source-level flags were folded away. Next step: find the source form that makes gcc keep arg0 live across the case-0/1/3 calls (for example a re-read of arg0 after the call in the store), then add the s0 flag shape.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794764128.979179,
+  "score_before": 1723,
+  "score_after": 1723
+ },
+ {
+  "function": "func_80214504",
+  "text": "Range check #2: is this part of the game built by KMC GCC 2.7.2 -G0 -mips3 -mgp32 -mfp32 -O1? An agent's C for a function next to func_80214504 matches with it. Match func_80214504 as usual; then try_compiler(\"func_80214504\", \"gcc-2.7.2-kmc\", \"-G0 -mips3 -mgp32 -mfp32 -O1\"). Matching with KMC GCC 2.7.2 -G0 -mips3 -mgp32 -mfp32 -O1 and not with the project's compiler confirms the range; matching with the project's compiler only shows it was a quirk. Either answer helps.",
+  "by": "autopilot",
+  "created_at": 1794767020.748249,
+  "score_before": 6365,
+  "score_after": 6365
+ },
+ {
+  "function": "func_80214504",
+  "text": "No match. Current rechecked score 5303 (62.6%) with the switch-on-state source. Target facts from asm: frame 0x28 saving ra, s1 (arg0 kept across calls), s0; index arg0&0xFFFF computed as ((i*3)<<3 + i)<<2; the switch lowers to an if-tree on lhu of the stride-100 state; case 1 and case 3 each have a local s0 set to 0 in the delay slot before the 0x10E / 0x24E call, and the later test is (D>=0x186 || (s0&0x10)) / (D>=0x2D0 || (s0&0x10)) -> body. Locals `flag = 0` get folded by the compiler (andi dropped), so the score stays 5303. The frame mismatch (0x20 vs 0x28, missing s0 save) must be fixed first and needs a non-constant flag in the C, which I did not find. Asking to move on: further compiles only tune the register and branch layout behind that frame gap, and I cannot steer it from C without the original flag source.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794767470.50961,
+  "score_before": 1723,
+  "score_after": 1723
+ },
+ {
+  "function": "func_80214504",
+  "text": "Small-model attempt at func_80214504: 12 tries.\n  best 2905 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 3235 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 4165 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 6823 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 8208 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries, best 2905 under gcc-2.7.2-kmc -O1 (saved was 3365). Not matched. Best change: a zero local 's32 flags = 0' kept across calls (target keeps a zero in $s0), s32 prototypes for func_80203DF8 and func_801CF468 (0xFF args were emitted as -1 with s8), dispatch order st==0, st==1, st==3, st==2. Left: arg lives in $s0 instead of $s1 (target move $s1,$a0), the dispatch uses bnez for st==0 first where the target tests st==1 first, and the case 1 and case 3 flag andi was folded or reordered.",
+  "by": "manual-193282814029461d",
+  "created_at": 1795719721.758705,
+  "score_before": 6823,
+  "score_after": 6823,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:b60702310e80ee4255d3c9a72dd2d3469c774f708099ce37fe4c7ad38d7fe3f2"
  }
 ]
