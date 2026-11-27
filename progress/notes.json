@@ -6760,14 +6760,6 @@
   "score_after": 60
  },
  {
-  "function": "func_8015F7F8",
-  "text": "Not compiled by me. The m2c draft (revision 54a57f2f1c1fe7077702) is not usable as-is: the if-condition at the D_8011F2FD store is a comma expression and must be split into separate statements; the f64/f32 mix in the three func_801FA30C() loops needs the target's exact conversion order checked; the guMtxXFMF call takes float literals (0x420C0000, 0xC2480000), which are likely floats passed as u32 bits. Start from the draft with the if-chain rewritten; check the FP constants (0.3f, 0.2f, 8.0f, 0.08f) against the .rodata at D_80183990.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794718078.46544,
-  "score_before": 4840,
-  "score_after": 4840
- },
- {
   "function": "main",
   "text": "Best 260 (89.6%), revision c51088d8f538f588b158. Body is correct: func_80033C20(); osCreateThread(D_8004AAB0,1,func_80026E64,0,D_8004CE10,0xA); osStartThread(D_8004AAB0). Target needs a frame pointer (addu $fp,$sp,$zero; sw/lw $fp; sw $ra at 0x1c, $fp at 0x18, frame 0x20). Plain body gives no fp (score 506). Adding a VLA `s32 n=0; u8 buf[n];` gives fp but adds addiu $sp,-8 and lw $v0,($sp) (260). __builtin_alloca(0) is dropped by the compiler (no fp, 506). Still needed: a source form that forces fp with no extra stack code.",
   "by": "claude-haiku-5-5-24",
@@ -11704,14 +11696,6 @@
   "score_after": 9328
  },
  {
-  "function": "func_8015F7F8",
-  "text": "Not started in C; no compile run. The m2c draft (revision ff9b7717fe871c177b17) is unusable as-is: it uses M2C_FIELD offset expressions everywhere, calls func_8013E49C without a declaration, and has a `return;` in a void function on one path. Known from the draft: the record is 0x64 bytes at D_8011F2F0 + (u16)arg0*0x64; its sub-struct pointers are at +0x50 and +0x60; +0x44 is a float timer; +0x18/+0x1C/+0x20 are float positions; func_800DE41C is called 5 times in a loop with 18 arguments. Next step: get_assembly first page, write the record fields as a struct (guess_struct), then fix the control flow. Expect many float conversions (f64 accumulation via D_80183990 for the sign of a u32).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794741904.7355058,
-  "score_before": 4620,
-  "score_after": 4620
- },
- {
   "function": "func_80231E30",
   "text": "Not matched. Best 18804 (43.3%) at rev bbf204897b285d245fde; the draft C is a straight sequence of nine func_800DE41C calls (18 args: 4 in regs, 14 on stack as sw $zero/constants) plus a 9-case switch on *(u16*)(D_8006FAF0+0x20) after func_80148230(). Target frame is 0x58 and matches the frame size; mine also 0x58.\nMismatch: target fills the stack args (0x10..0x44) for each call BEFORE setting a0..a3 (the reg args come last, a3 in the jal delay slot); mine reorders them, which accounts for most of the 245 reordered rows. Target also keeps 0x7F in $s1 and 0x40/0x80 in $s0 across the calls, and the function-pointer args come from lui/addiu %lo pairs per call.\nInstruction counts: target 332, mine 360. The 28 extra are likely the reg-arg moves being emitted per call instead of once. Untried: write each call's stack args as separate statements (a local struct or temporaries) so GCC keeps the sw order; or try the 0x7F/0x40/0x80 constants as locals.",
   "by": "claude-haiku-5-5-22",
@@ -13166,14 +13150,6 @@
   "created_at": 1794751278.9733682,
   "score_before": 80,
   "score_after": 80
- },
- {
-  "function": "func_8015F7F8",
-  "text": "Best saved 8327 (~74%, 302 vs 323 insns). Target frame is 0x90 with f20/f22/f24/f26 saved; the 8327 attempt used 0x80 with only f20 saved, so the double-precision temporaries are missing. The three random-offset terms are (u32)(func_801FA30C() & 0x10) converted through a signed->double path with a conditional +D_80183990 correction, then ((f32)v - 8.0f) * 0.2f, plus the base field at 0x7C0/0x7C4/0x7C8. Written as f64 locals this scored worse (8877), and a static helper (rnd8) breaks linking. Next: restructure the double expressions inline from the saved best before touching registers. Struct guesses (0x64-byte entries at D_8011F2F0, offsets 0x18-0x20, 0x30/0x34, 0x44-0x4C, 0x50, 0x60, 0x55E, 0x7C0) are unverified.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794751318.936607,
-  "score_before": 4620,
-  "score_after": 4620
  },
  {
   "function": "func_801402B8",
@@ -16512,14 +16488,6 @@
   "score_after": 900
  },
  {
-  "function": "func_8015F7F8",
-  "text": "Best candidate is revision d30ce2ad751e8a70138c, score 5650 (82.5%), instruction count matches (323 vs 323), so the control flow and call sequence are right. It is not matched. What still differs: the prologue. The target saves $ra, $s4, $s3, $s2, $s1, $s0 and f20/f22/f24/f26 (frame 0x6c+), so it keeps more values live across the calls than my source does. My source uses a single `fs0` f64 for the jitter, and the three jitter blocks are copied. Likely fix: the 5-iteration loop body needs to hold s1/s2/s0 and the sp48-50 values in callee-saved registers. Try keeping `o` and the object base pointers as separate long-lived locals, and try computing the three jitter values in one expression to match the f20-f26 saves. Also check the `addiu $v0,$zero,0xff` store (target uses 0xFF unsigned byte store; mine uses -1 as s8). The `lbu $v1,%lo(D_80182E30)` in the else-branch is a u8 read of D_80182E30 indexed by the u16 @0x14 & 0xF, so D_80182E30 is a byte table, not f32 (my extern f32 is wrong). Fix that type first, then the register allocation. Remaining compiles this session: 3 without improvement.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794759559.815713,
-  "score_before": 4620,
-  "score_after": 4620
- },
- {
   "function": "func_8014730C",
   "text": "Best this session 12359 (67.2%), saved best 10869 (earlier source; restore with get_candidate base=saved_best if needed). Source is a clean switch on F16(s0,0x3E) (states 0x00,0x10,0x11,0x12,0x13,0x20,0x30,0x31,0xFF) with the inner switch on D_80189B34, wrapped by the trailing `D_8021E19E -= 8`. Target frame is -0x58 with ra/s1/s0 saved (3 regs); ours is -0x60 with an extra spill of s1 and an extra temp, so drop the unused `t` in case 0x13 and keep the s0/s1 pair only. Target loads D_8021E19E via `addiu $v0,$v0,%lo(D_8021E19E)` once and reuses the register for `sb` stores; ours re-materializes with lui/%lo each time, so use a local `u8 *eb = (u8*)&D_8021E19E;` and write through it. Ruled out: none beyond this shape. Next: the frame fix first (single local for the bits word), then the address reuse.",
   "by": "claude-haiku-5-5-24",
@@ -17974,14 +17942,6 @@
   "created_at": 1794762188.23618,
   "score_before": 6240,
   "score_after": 6240
- },
- {
-  "function": "func_8015F7F8",
-  "text": "Not matched. My one compile was a truncated stub (I cut the body after the first branch), so its score 23304 says nothing about the real function; the saved best 5650 is the reference. Target is 323 insns with a 0x90-byte frame saving ra, s0-s4 and f20 (sdc1 f20 at 0x70), while the draft frame is 0x48, so the draft's locals and calls are wrong. Structure from the draft: s1 = record base at D_8011F2F0 + idx*0x64; a1 = *(s1+0x50); s2 = *(s1+0x60); s0 = parent record found from halfword at *(s2+4)+2. Branch on float at s1+0x44 > 0 (decrement it, set a1+4 from D_80182E30 table index *(s2+0x14)&0xF with stride 0xC into D_80238C24), else set a1+4 = D_80238C24 and write fv0 = (*(s2+0x14)&1)*0.3+1.0 into s1+0x30 and s1+0x34. Then guMtxXFMF on *(s2+4)+0x6D4 with constants 0x420C0000/0xC2480000, adds sp48..50 to parent pos at +0x18..+0x20, decrements the u16 at s2+0x14, and when it reaches 0 calls func_8013E49C and sets D_8011F2FD flag = 2 and, if s1+0x48 > 0 and the *(parent+0x55E) check, loops 5 times calling func_800DE41C and randomising +0x44..+0x4C with func_801FA30C()&0x10 and a u32->f64 conversion (fs0 = D_80183990 used for negative correction). Needs a full rewrite; the draft's stack frame suggests the real function has more locals than the m2c draft shows.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794762188.274208,
-  "score_before": 4620,
-  "score_after": 4620
  },
  {
   "function": "func_8014998C",
@@ -41207,5 +41167,54 @@
   "created_at": 1794761224.396425,
   "score_before": 9180,
   "score_after": 9180
+ },
+ {
+  "function": "func_8015F7F8",
+  "text": "Not compiled by me. The m2c draft (revision 54a57f2f1c1fe7077702) is not usable as-is: the if-condition at the D_8011F2FD store is a comma expression and must be split into separate statements; the f64/f32 mix in the three func_801FA30C() loops needs the target's exact conversion order checked; the guMtxXFMF call takes float literals (0x420C0000, 0xC2480000), which are likely floats passed as u32 bits. Start from the draft with the if-chain rewritten; check the FP constants (0.3f, 0.2f, 8.0f, 0.08f) against the .rodata at D_80183990.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794718078.46544,
+  "score_before": 4840,
+  "score_after": 4840
+ },
+ {
+  "function": "func_8015F7F8",
+  "text": "Not started in C; no compile run. The m2c draft (revision ff9b7717fe871c177b17) is unusable as-is: it uses M2C_FIELD offset expressions everywhere, calls func_8013E49C without a declaration, and has a `return;` in a void function on one path. Known from the draft: the record is 0x64 bytes at D_8011F2F0 + (u16)arg0*0x64; its sub-struct pointers are at +0x50 and +0x60; +0x44 is a float timer; +0x18/+0x1C/+0x20 are float positions; func_800DE41C is called 5 times in a loop with 18 arguments. Next step: get_assembly first page, write the record fields as a struct (guess_struct), then fix the control flow. Expect many float conversions (f64 accumulation via D_80183990 for the sign of a u32).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794741904.7355058,
+  "score_before": 4620,
+  "score_after": 4620
+ },
+ {
+  "function": "func_8015F7F8",
+  "text": "Best saved 8327 (~74%, 302 vs 323 insns). Target frame is 0x90 with f20/f22/f24/f26 saved; the 8327 attempt used 0x80 with only f20 saved, so the double-precision temporaries are missing. The three random-offset terms are (u32)(func_801FA30C() & 0x10) converted through a signed->double path with a conditional +D_80183990 correction, then ((f32)v - 8.0f) * 0.2f, plus the base field at 0x7C0/0x7C4/0x7C8. Written as f64 locals this scored worse (8877), and a static helper (rnd8) breaks linking. Next: restructure the double expressions inline from the saved best before touching registers. Struct guesses (0x64-byte entries at D_8011F2F0, offsets 0x18-0x20, 0x30/0x34, 0x44-0x4C, 0x50, 0x60, 0x55E, 0x7C0) are unverified.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794751318.936607,
+  "score_before": 4620,
+  "score_after": 4620
+ },
+ {
+  "function": "func_8015F7F8",
+  "text": "Best candidate is revision d30ce2ad751e8a70138c, score 5650 (82.5%), instruction count matches (323 vs 323), so the control flow and call sequence are right. It is not matched. What still differs: the prologue. The target saves $ra, $s4, $s3, $s2, $s1, $s0 and f20/f22/f24/f26 (frame 0x6c+), so it keeps more values live across the calls than my source does. My source uses a single `fs0` f64 for the jitter, and the three jitter blocks are copied. Likely fix: the 5-iteration loop body needs to hold s1/s2/s0 and the sp48-50 values in callee-saved registers. Try keeping `o` and the object base pointers as separate long-lived locals, and try computing the three jitter values in one expression to match the f20-f26 saves. Also check the `addiu $v0,$zero,0xff` store (target uses 0xFF unsigned byte store; mine uses -1 as s8). The `lbu $v1,%lo(D_80182E30)` in the else-branch is a u8 read of D_80182E30 indexed by the u16 @0x14 & 0xF, so D_80182E30 is a byte table, not f32 (my extern f32 is wrong). Fix that type first, then the register allocation. Remaining compiles this session: 3 without improvement.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794759559.815713,
+  "score_before": 4620,
+  "score_after": 4620
+ },
+ {
+  "function": "func_8015F7F8",
+  "text": "Not matched. My one compile was a truncated stub (I cut the body after the first branch), so its score 23304 says nothing about the real function; the saved best 5650 is the reference. Target is 323 insns with a 0x90-byte frame saving ra, s0-s4 and f20 (sdc1 f20 at 0x70), while the draft frame is 0x48, so the draft's locals and calls are wrong. Structure from the draft: s1 = record base at D_8011F2F0 + idx*0x64; a1 = *(s1+0x50); s2 = *(s1+0x60); s0 = parent record found from halfword at *(s2+4)+2. Branch on float at s1+0x44 > 0 (decrement it, set a1+4 from D_80182E30 table index *(s2+0x14)&0xF with stride 0xC into D_80238C24), else set a1+4 = D_80238C24 and write fv0 = (*(s2+0x14)&1)*0.3+1.0 into s1+0x30 and s1+0x34. Then guMtxXFMF on *(s2+4)+0x6D4 with constants 0x420C0000/0xC2480000, adds sp48..50 to parent pos at +0x18..+0x20, decrements the u16 at s2+0x14, and when it reaches 0 calls func_8013E49C and sets D_8011F2FD flag = 2 and, if s1+0x48 > 0 and the *(parent+0x55E) check, loops 5 times calling func_800DE41C and randomising +0x44..+0x4C with func_801FA30C()&0x10 and a u32->f64 conversion (fs0 = D_80183990 used for negative correction). Needs a full rewrite; the draft's stack frame suggests the real function has more locals than the m2c draft shows.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794762188.274208,
+  "score_before": 4620,
+  "score_after": 4620
+ },
+ {
+  "function": "func_8015F7F8",
+  "text": "Profile probe: this saved C scores 2685 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (9 of its 12 nearest matched neighbours were built with it), 4100 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721281.250923,
+  "score_before": 4100,
+  "score_after": 2685,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:288f0b8ea084aba58ce64a5e2bfe13b0a3284e66eb8cdbe07f7861ccd3229b97"
  }
 ]
