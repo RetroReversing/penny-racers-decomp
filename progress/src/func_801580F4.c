@@ -1,0 +1,40 @@
+s32 func_800DE41C(s32, s32, s32, s32, s32, s32, s32 *, s32 *, s32 *, f32, f32, f32, s32, s32, s32, f32, f32, f32);
+u32 func_801FA38C(s32);
+typedef struct { u16 f0; u16 f2; u16 f4; u16 f6; u16 f8; u8 pad[0x34]; u16 f3E; u8 pad2[0x24]; } Rec_8011F2F0;
+extern Rec_8011F2F0 D_8011F2F0[];
+extern u16 D_8018D660;
+extern s32 D_802393D4[];
+extern s32 func_80157F6C[];
+extern s32 func_801580AC[];
+
+void func_801580F4(u16 arg0)
+{
+  u16 i;
+  s32 n;
+
+  if (D_8011F2F0[arg0].f3E == 0)
+  {
+    D_8018D660 = 0;
+    D_8011F2F0[arg0].f3E = 1;
+  }
+  D_8018D660++;
+  if (D_8018D660 >= 11)
+  {
+    for (i = 0; i < 2; i++)
+    {
+      n = func_800DE41C(0, 0x1E, 1, 0, 0x5B, 0xFF, D_802393D4, func_80157F6C, func_801580AC, 1800.0f, -260.0f, (f32)(func_801FA38C(0) % 1800) + -1200.0f, 0, 0, 0, 0.2f, 0.2f, 0.2f);
+      if ((u16)(n + 2) < 2)
+      {
+        break;
+      }
+      D_8011F2F0[(u16)n].f2 = D_8011F2F0[(u16)n].f4 = D_8011F2F0[(u16)n].f6 = D_8011F2F0[(u16)n].f8 = 0x40;
+      n = func_800DE41C(0, 0x1E, 1, 0, 0x5B, 0xFF, D_802393D4, func_80157F6C, func_801580AC, 1200.0f, -260.0f, (f32)(func_801FA38C(0) % 1800) + -1200.0f, 0, 0, 0, 0.2f, 0.2f, 0.2f);
+      if ((u16)(n + 2) < 2)
+      {
+        break;
+      }
+      D_8011F2F0[(u16)n].f2 = D_8011F2F0[(u16)n].f4 = D_8011F2F0[(u16)n].f6 = D_8011F2F0[(u16)n].f8 = 0x40;
+    }
+    D_8018D660 = 0;
+  }
+}

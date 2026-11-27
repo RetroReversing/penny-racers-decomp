@@ -6576,14 +6576,6 @@
   "score_after": 170
  },
  {
-  "function": "func_801580F4",
-  "text": "Not matched. Best this session 15894 (22.0%), worse than saved 9387. My clean rewrite (the machine draft used undeclared symbols and does not compile as-is) lost the structure. Target is 204 insns with a 0x90 frame: saves ra, s0-s7 and doubles fs0-fs3 (sdc1 at 0x70..0x88). Facts from the target prologue: arg0 is masked to u16 and used as index*100 (sll 1; addu; sll 3; addu; sll 2 = 100x); the flag at D_8011F32E[idx*100] is set to 1 and D_8018D660 is reset to 0 on first use. D_8018D660 is a u16 counter (lhu/addiu/sh). The loop is gated by `sltiu 0xB` (counter >= 11). The loop body loads a constant 0x91A2B3C5 into s7 (a PRNG/hash constant), calls func_801FA38C(0) % 1800 with float/double conversion (ldc1 D_80183880 for the negative case), and calls func_800DE41C with 18 args (one of them 1800.0f and one 1200.0f, -260.0f). The writes go to D_8011F2F0 + idx*100 with +4/+6/+8 halfword stores of 0x40 and a byte store at +0. The loop repeats while the counter is < 2. Next step: get the full assembly (get_assembly focus=page for lines 52..212) and rebuild the fs-register state first, then the call sequence, before tuning registers. Released at move-on.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794711076.12359,
-  "score_before": 9387,
-  "score_after": 9387
- },
- {
   "function": "func_801FF978",
   "text": "Best 12815 (44.9%), saved best candidate. Structure: 3 loops. Loop1 (16 iters, stride 0x1C over D_802038E8 block) calls C0D0/C090/alCSPGetChlProgram/C0B0/C0F0. Loop2 (16 iters, same stride) does flag-gated calls C2E0/C240/C370/alSeqpSetChlFXMix/C330 else copies E8->F7, E9->F8, EC->FC(s32), F0->900, F1->901. Loop3 (8 iters, stride 0x2C over D_801D7DF0) calls D030(i), n_alSndpGetState, stores at +0xC and -1 at D7DF4 when zero. Target keeps &D_8006FB38 in s3 across loop calls and recomputes the index as (i*8-i)*4 inline; the first if on D_802038E0 uses a pointer in s0 (lui/addiu s0; lw; bnez) which my form does not reproduce; the E4/-0xC stores via a pointer p in s0 are close. Tried: local dev pointer for all calls (13555, worse), ch=i&0xFF local (worse). Remaining diff is codegen of the address/pointer hoisting and register allocation, not the control flow. Try m2c-style index variable (temp_v0 = i*0x1C vs (i*8-i)*4) and a saved pointer to D_802038E0 next.",
   "by": "claude-haiku-5-5-21",
@@ -9456,14 +9448,6 @@
   "score_after": 5220
  },
  {
-  "function": "func_801580F4",
-  "text": "Best so far 6541 (67.9%), revision 7cd5124b0a5625257986. Keep this source: the machine draft with `u32 func_801FA38C(s32)` (target uses unsigned magic-multiply for `% 1800`, multu by 0x91A2B3C5) and D_8011F32E read as `*(u16*)((u8*)D_8011F32E + temp_v1)`. Tried pointer-local variant (temp_v0_3 = D_8011F2F0 + temp_v1_2, D_8011F2F2 separate u8 array): 6597, worse. Remaining diffs: (1) frame: mine saves $fp at 0x68 and $ra at 0x6c; target saves $ra at 0x68, s0-s7 at 0x48-0x64, fs0-fs3 at 0x70-0x88, never uses $fp, so the locals need one fewer live pointer. (2) target puts `andi $a0,$a0,0xffff` and the *100 index before the D_8011F32E load; mine branches earlier. (3) target re-materialises `addiu $s4,%lo(D_802393D4)` before each call; mine folds it. (4) the 0x3E4CCCCD constant is loaded into $fs0 once in the target and mine re-loads lui $at each block. Next step if continued: try hoisting the second-block constant load into a local, and check whether the first block's `if (temp_v0 < 0)` is a float compare on the converted value. Plateau reached at 6541 after 3 non-improving variants; no further cheap edit found.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794727911.038798,
-  "score_before": 9342,
-  "score_after": 6541
- },
- {
   "function": "func_801E2D18",
   "text": "Move-on budget exhausted (best current 4855, historical saved_best 625 with a different header/inputs).\n\nTarget shape (56 insns): 4x lbu/sb header copy using two base pointers ($a0=D_801C5E9C, $v1=D_801F18E4) built once; then i=0 in $a0, five source pointers hoisted into $t1,$t0,$a3,$a2,$a1, loop head .L801E2D78 with `addu $v1,$v1,$a0` (off = i*5 in $v1), per field `addu $v0,$v1,$tN; lbu $v0,($v0)` and store via `lui $at,%hi(D_801C708N); addu $at,$at,$v1; sb $v0,%lo(...)($at)`, tail `addiu $a0,$a0,1; sltiu $v0,$a0,0xC8; bnel $v0,$zero,.L801E2D78; sll $v1,$a0,2`.\n\nConfirmed: dest stores only take the lui/addu$at form when the dest symbols are scalar externs indexed with *(&SYM + off) (attempt with D_801C7080[] array gave a base pointer in a register). That variant (rev b97e95c84ed6a61a7c0c) got the store side right but then gcc strength-reduced the cached source pointers to `lbu $v0,($a3)` + `addiu $a3,$a3,5`, losing the target's `addu $v0,$v1,$tN; lbu $v0,($v0)`. With dest as arrays (saved_best) the loads keep off-based addressing but the stores lose the %hi/%lo form.\n\nAlso confirmed no-effect: s8 dest, s32 i, off declaration order, do{}while(0) scope depth, u8 vs array extern for D_801F18E4.\n\nLeft to try: combine scalar dest externs with load addressing gcc cannot strength-reduce, e.g. *(u8 *)((u32)srcN + off) or a volatile index, to keep `addu $v0,$v1,$tN; lbu $v0,($v0)`.",
   "by": "api-route-llm-code-2",
@@ -12206,14 +12190,6 @@
   "created_at": 1794740762.757992,
   "score_before": 8135,
   "score_after": 8135
- },
- {
-  "function": "func_801580F4",
-  "text": "Best saved 4721 (76.8%, revision cd1ad4cc8f56d40faf1c). Structure is right: index = ((u16)arg0)*0x64 at both sites; rem = (u32)func_801FA38C(0) % 1800U (signed % scored 6520, unsigned 4745); float arg = (f32)x + -1200.0f with x = rem (+1800.0 if rem<0); second call uses 1200.0f; the +2 pad store goes through extern D_8011F2F2 + off2 (gained 24 pts). Pointer local p = D_8011F2F0 + off2 for +4/+6/+8 stores matches the target shape. Remaining diffs: (1) frame: target saves $ra at 0x68 and uses s0-s7 + fs0-fs3; mine saves $fp at 0x68 and $ra at 0x6c, so one callee-saved register is extra; (2) a spurious andi $v0,0xffff after the D_8018D660 reload (target does a plain lhu + sltiu); (3) the index chain (andi/sll/addu/sll/addu/sll) is emitted after the first call in the target's schedule, mine at top; (4) constant loads order (lui s7 magic, ldc1 D_80183880, mtc1 -1200f) differs. Tried and rejected: removing p (4745 with the extern pad store), a while(1)+break shape was same as this do-while. Untried: reorder the two early `if` blocks; declare D_8018D660 as s32 locally with a u16 cast only at the store. Stopping here at the no-improvement budget.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794740772.7210119,
-  "score_before": 6541,
-  "score_after": 4721
  },
  {
   "function": "func_80165830",
@@ -16640,14 +16616,6 @@
   "score_after": 17857
  },
  {
-  "function": "func_801580F4",
-  "text": "Not matched. Best 10095 (50.5%), a clean rewrite using u16 byte-offset record access (idx = (arg0&0xFFFF)*0x64, records of 100 bytes at D_8011F32E, D_8011F2F0/D_8011F2F2 at -0x3E/-0x3C offsets from the same records) and a shared temp for the func_801FA38C(0)%1800 path. Target facts: frame 0x90 with s0-s7 and ra saved (no fp); mine uses 0xa0 and saves fp, so one saved register and one 8-byte slot too many. Target computes *100 with sll/addu chains, and the 1800/0x64 modulus uses multu by s7 (probably the 1800 magic). Float path: target keeps the 0.2f constants and the 1800.0f/1200.0f args in fp registers. func_801FA38C is declared void by m2c but its result is used (% 1800); fix the prototype to s32 first. Next: make the loop index a single s32 kept in s-register (no reload of n), drop the cnt variable in favour of a counter that wraps at 2, and match the sll-chain for *100 exactly before tuning floats.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794756557.238562,
-  "score_before": 4721,
-  "score_after": 4721
- },
- {
   "function": "func_801FCBEC",
   "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: constants / addresses; first differing row 24; 16 differing rows (8 register, 8 reordered; advisory).\nTarget: lui $v0, %hi(D_80126FF6)\nCandidate: lui $v1, %hi(D_80126FF6)\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n  = addiu $v0, $a2, 8\n  = sw $v0, ($a0)\nr T: lui $v0, %hi(D_80126FF6) | C: lui $v1, %hi(D_80126FF6)\nr T: lbu $v0, %lo(D_80126FF6)($v0) | C: lbu $v1, %lo(D_80126FF6)($v1)\nr T: lui $v1, %hi(D_8011F060) | C: lui $a1, %hi(D_8011F060)\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nNew best 280 (rev 122a24ed59a09313bc4a): it's gSPDisplayList + gDPSetTileSize(tile 1). Key: D_8011F060 is a POINTER to a struct with an array at +0x798 of 0x30-byte elems {s32 x; s32 y;...}, indexed by D_80126FF6: D_8011F060->cam[D_80126FF6].x/.y, written with full GBI _SHIFTL macro shape, Gfx* blocks `_g = (*arg0)++`. Remaining: addu operand order (target idx*48 + ptr, ptr loaded into v1 after idx) and 0x79C loads scheduled earlier in ours. Tried: local Cam* c pointer (690 worse), s32 k index local (no change), u32 fields (no change), cam[1] (no change). Next: try idx*0x30 computed differently (e.g. ((Cam*)((u8*)D_8011F060+0x798))[idx]) or s16 index, or different macro version (_SHIFTL without u32 casts).",
   "by": "claude-opus-medium-1",
@@ -17782,14 +17750,6 @@
   "created_at": 1794759029.665421,
   "score_before": 280,
   "score_after": 280
- },
- {
-  "function": "func_801580F4",
-  "text": "Best: 10095 (50.5%), revision 222994ae5bbedefe3095. Releasing now, not closer: the target differs in its frame (0x90 vs our 0xa0), its save set (no $fp, saves s7/s6/s5 at 0x64/0x60/0x5C), and its index multiply (`multu $v0,$s7`, while ours uses sll/addu chains and `mult $v0,$s2`), so the structure is off, not just registers. Two-pass retry loop: pass 1 calls func_801FA38C(0)%1800, converts to f64 and adds D_80183880 when negative, calls func_800DE41C with 1800.0f, then sets four u16 fields to 0x40 at offsets 8/6/4 of D_8011F2F0 entries and offset 0 of D_8011F2F2; pass 2 repeats with 1200.0f; cnt loops twice. Constants: target raw 0x3E4CCCCD is the 0.2f literal. Next: rebuild the index as `multu` by a value held across the loop, fix the save set to match the 0x90 frame, and only then tune registers. Unverified: whether the 1800.0f/1200.0f/-260.0f literals and the D_80183880 load are as drafted.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794759042.1596532,
-  "score_before": 4721,
-  "score_after": 4721
  },
  {
   "function": "func_80032108",
@@ -40968,5 +40928,54 @@
   "created_at": 1795721320.4584699,
   "score_before": 19216,
   "score_after": 9172
+ },
+ {
+  "function": "func_801580F4",
+  "text": "Not matched. Best this session 15894 (22.0%), worse than saved 9387. My clean rewrite (the machine draft used undeclared symbols and does not compile as-is) lost the structure. Target is 204 insns with a 0x90 frame: saves ra, s0-s7 and doubles fs0-fs3 (sdc1 at 0x70..0x88). Facts from the target prologue: arg0 is masked to u16 and used as index*100 (sll 1; addu; sll 3; addu; sll 2 = 100x); the flag at D_8011F32E[idx*100] is set to 1 and D_8018D660 is reset to 0 on first use. D_8018D660 is a u16 counter (lhu/addiu/sh). The loop is gated by `sltiu 0xB` (counter >= 11). The loop body loads a constant 0x91A2B3C5 into s7 (a PRNG/hash constant), calls func_801FA38C(0) % 1800 with float/double conversion (ldc1 D_80183880 for the negative case), and calls func_800DE41C with 18 args (one of them 1800.0f and one 1200.0f, -260.0f). The writes go to D_8011F2F0 + idx*100 with +4/+6/+8 halfword stores of 0x40 and a byte store at +0. The loop repeats while the counter is < 2. Next step: get the full assembly (get_assembly focus=page for lines 52..212) and rebuild the fs-register state first, then the call sequence, before tuning registers. Released at move-on.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794711076.12359,
+  "score_before": 9387,
+  "score_after": 9387
+ },
+ {
+  "function": "func_801580F4",
+  "text": "Best so far 6541 (67.9%), revision 7cd5124b0a5625257986. Keep this source: the machine draft with `u32 func_801FA38C(s32)` (target uses unsigned magic-multiply for `% 1800`, multu by 0x91A2B3C5) and D_8011F32E read as `*(u16*)((u8*)D_8011F32E + temp_v1)`. Tried pointer-local variant (temp_v0_3 = D_8011F2F0 + temp_v1_2, D_8011F2F2 separate u8 array): 6597, worse. Remaining diffs: (1) frame: mine saves $fp at 0x68 and $ra at 0x6c; target saves $ra at 0x68, s0-s7 at 0x48-0x64, fs0-fs3 at 0x70-0x88, never uses $fp, so the locals need one fewer live pointer. (2) target puts `andi $a0,$a0,0xffff` and the *100 index before the D_8011F32E load; mine branches earlier. (3) target re-materialises `addiu $s4,%lo(D_802393D4)` before each call; mine folds it. (4) the 0x3E4CCCCD constant is loaded into $fs0 once in the target and mine re-loads lui $at each block. Next step if continued: try hoisting the second-block constant load into a local, and check whether the first block's `if (temp_v0 < 0)` is a float compare on the converted value. Plateau reached at 6541 after 3 non-improving variants; no further cheap edit found.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794727911.038798,
+  "score_before": 9342,
+  "score_after": 6541
+ },
+ {
+  "function": "func_801580F4",
+  "text": "Best saved 4721 (76.8%, revision cd1ad4cc8f56d40faf1c). Structure is right: index = ((u16)arg0)*0x64 at both sites; rem = (u32)func_801FA38C(0) % 1800U (signed % scored 6520, unsigned 4745); float arg = (f32)x + -1200.0f with x = rem (+1800.0 if rem<0); second call uses 1200.0f; the +2 pad store goes through extern D_8011F2F2 + off2 (gained 24 pts). Pointer local p = D_8011F2F0 + off2 for +4/+6/+8 stores matches the target shape. Remaining diffs: (1) frame: target saves $ra at 0x68 and uses s0-s7 + fs0-fs3; mine saves $fp at 0x68 and $ra at 0x6c, so one callee-saved register is extra; (2) a spurious andi $v0,0xffff after the D_8018D660 reload (target does a plain lhu + sltiu); (3) the index chain (andi/sll/addu/sll/addu/sll) is emitted after the first call in the target's schedule, mine at top; (4) constant loads order (lui s7 magic, ldc1 D_80183880, mtc1 -1200f) differs. Tried and rejected: removing p (4745 with the extern pad store), a while(1)+break shape was same as this do-while. Untried: reorder the two early `if` blocks; declare D_8018D660 as s32 locally with a u16 cast only at the store. Stopping here at the no-improvement budget.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794740772.7210119,
+  "score_before": 6541,
+  "score_after": 4721
+ },
+ {
+  "function": "func_801580F4",
+  "text": "Not matched. Best 10095 (50.5%), a clean rewrite using u16 byte-offset record access (idx = (arg0&0xFFFF)*0x64, records of 100 bytes at D_8011F32E, D_8011F2F0/D_8011F2F2 at -0x3E/-0x3C offsets from the same records) and a shared temp for the func_801FA38C(0)%1800 path. Target facts: frame 0x90 with s0-s7 and ra saved (no fp); mine uses 0xa0 and saves fp, so one saved register and one 8-byte slot too many. Target computes *100 with sll/addu chains, and the 1800/0x64 modulus uses multu by s7 (probably the 1800 magic). Float path: target keeps the 0.2f constants and the 1800.0f/1200.0f args in fp registers. func_801FA38C is declared void by m2c but its result is used (% 1800); fix the prototype to s32 first. Next: make the loop index a single s32 kept in s-register (no reload of n), drop the cnt variable in favour of a counter that wraps at 2, and match the sll-chain for *100 exactly before tuning floats.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794756557.238562,
+  "score_before": 4721,
+  "score_after": 4721
+ },
+ {
+  "function": "func_801580F4",
+  "text": "Best: 10095 (50.5%), revision 222994ae5bbedefe3095. Releasing now, not closer: the target differs in its frame (0x90 vs our 0xa0), its save set (no $fp, saves s7/s6/s5 at 0x64/0x60/0x5C), and its index multiply (`multu $v0,$s7`, while ours uses sll/addu chains and `mult $v0,$s2`), so the structure is off, not just registers. Two-pass retry loop: pass 1 calls func_801FA38C(0)%1800, converts to f64 and adds D_80183880 when negative, calls func_800DE41C with 1800.0f, then sets four u16 fields to 0x40 at offsets 8/6/4 of D_8011F2F0 entries and offset 0 of D_8011F2F2; pass 2 repeats with 1200.0f; cnt loops twice. Constants: target raw 0x3E4CCCCD is the 0.2f literal. Next: rebuild the index as `multu` by a value held across the loop, fix the save set to match the 0x90 frame, and only then tune registers. Unverified: whether the 1800.0f/1200.0f/-260.0f literals and the D_80183880 load are as drafted.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794759042.1596532,
+  "score_before": 4721,
+  "score_after": 4721
+ },
+ {
+  "function": "func_801580F4",
+  "text": "Profile probe: this saved C scores 2201 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (8 of its 12 nearest matched neighbours were built with it), 2796 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721249.9507358,
+  "score_before": 2796,
+  "score_after": 2201,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:2c0352dda3df3336995e6355d8e59187de279d33ab83dad84be5c21b97f0e0ea"
  }
 ]
