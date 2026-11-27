@@ -6472,14 +6472,6 @@
   "score_after": 1795
  },
  {
-  "function": "func_8015D410",
-  "text": "Revision 497a30e6c6ef8349bd9e scores 9798 (target 248 insns, 219 emitted). Target keeps arg1 (f32) in $f20 across the whole body and does NOT save/restore it (no sdc1 $f22), so the source must not force a second float temp; frame is 0x68 not 0x78. Target recomputes `andi $s1,$s0,0xffff` five times (once per use after each func_8013E364 call) and does `move $s4,$a2` x3 (arg2 kept in $s4) plus `ori $v0,$zero,0xffff` x2 for the 0xFFFF compare \u2014 write the compare as `== 0xFFFF` on the freshly-anded value, and keep arg2 in a plain s32 local used three times rather than re-reading the parameter. Target also has `addu $at,$at,$v0` x4 (index scaled then added to base) meaning the 0x64 / 0x7C index expressions should be `base + (arg0 & 0xFFFF) * 0x64` with a u8* base so gcc emits addu into $at. Structure (3 inlined blocks, shared fail label calling func_8013E49C(s1, r)) looks right; remaining work is register allocation and the float temp.\n\nScore stuck at 9798 (target 248 insns, candidate 219), budget 3/3 without improvement exhausted. Structure is right: three inlined blocks, each `s1 = func_8013E364() & 0xFFFF; if (s1 == 0xFFFF) return;` then func_800DE41C(...9 stack args...) then `if ((u32)((r + 2) & 0xFFFF) < 2U) goto fail;` then func_8013E818, then store arg2/arg3 at idx*0x7C, with a shared `fail: func_8013E49C(s1, r);`.\n\nRemaining known diffs and the fixes to try, in order:\n1. FLOAT TEMP. Target frame is 0x68 and saves exactly one FP reg: `sdc1 $fs0, 0x60($sp)` then `mtc1 $a1, $fs0` at entry, and uses `mfc1 $a3, $fs0` at each func_8013E818 call. My candidate instead emits `sdc1 $f22, 0x70($sp)` + `mtc1 $a1, $f22` and a 0x78 frame, i.e. it makes a second float temp because arg1 is read at two call sites. Try `f32 fa = arg1;` as the first statement and pass `fa` to both func_8013E818 calls (and drop the direct arg1 uses); that should give one live FP value in $fs0 held across the whole body. This is the single highest-value change and was not tested.\n2. `ori $v0, $zero, 0xFFFF` x2 then `beq $s1, $v0`: write the guard as `if ((func_8013E364() & 0xFFFF) == 0xFFFF) return;` with the andi result stored once into a local `s1`, comparing against the literal 0xFFFF (not a variable). Already close; check the andi is re-emitted after each call (target does `andi $s1,$s0,0xffff` five times, i.e. it re-ands the same $s0 after each call \u2014 so keep `s1 = s0 & 0xFFFF` immediately after each func_8013E364 call rather than reusing an earlier anded value).\n3. `addu $at, $at, $v0` x4: index expressions must be `base + (arg0 & 0xFFFF) * 0x64` with u8* bases (D_8011F308/30C/310) so gcc folds %lo into the load and adds the scaled index into $at; the current `off` local form already produces this shape, keep it.\n4. `move $s4, $a2` x3: arg2 must be a plain s32 kept in a callee-saved reg and stored three times (no recomputation); arg3 likewise in $s3 as a byte store `sb`.\n5. Stack arg order for func_800DE41C: target stores 0x10=0x5B, 0x14=0xFF, 0x18=ptr, 0x1C=fn, 0x20=fn, then 0x24/0x28/0x2C = the three floats, 0x30/0x34/0x38 = 0, 0x3C/0x40/0x44 = 1.0f (one mtc1 of 0x3F800000 reused three times). The current source already matches this; if the frame size changes, re-check these offsets.\n\nAlso noted on the function itself via add_note. No boundary issue: 992 bytes / 248 insns is consistent with three unrolled blocks.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794711692.238351,
-  "score_before": 11711,
-  "score_after": 9798
- },
- {
   "function": "func_80146A5C",
   "text": "func_80146A5C (1008 bytes, 252 insns). Not matched. Saved best 9125 came from an m2c-style draft with D_8018A43E as an untyped M2C_FIELD block. My struct version (typedef StateBlk {u16 f0; u16 f2; u8 f4; u8 pad5; u16 f6; u16 f8;}, extern D_8018A43E) scored 10720 with direct global access; using a local `StateBlk *s = &D_8018A43E;` brought it to 9840 (revision 48415d9a97774efeecca). Remaining diff: target keeps the state block in $s1 (lui/addiu $s1 in prologue) and the record pointer (idx*0x64 + D_8011F2F0 + 0x3E) in $s0; mine recomputes lui $at %hi(D_8018A440) per field access, so the base is not CSE'd into a saved register. Also the case-2/case-3 tails and the trailing D_80189C98 = D_80190CAC store ordering differ. Next: try a plain `u8 *base` or force `s` into a saved reg via a use before the switch; check the 0x9 case (D_80189CC0[-8]) and the for-loop bound 0x96 against the ROM. Note func_801FA30C is declared s32(s32) by callers but u32(void) in its matched definition.",
   "by": "claude-haiku-5-5-22",
@@ -9064,14 +9056,6 @@
   "score_after": 625
  },
  {
-  "function": "func_8015D410",
-  "text": "Best candidate scores 12392 (50.0%), revision 56233c694f470ec4aa04: three nested blocks calling func_8013E364 (idx) then func_800DE41C (18 args, 3 f32 loads from D_8011F308/30C/310 at (arg0&0xFFFF)*0x64), func_8013E818 and stores to D_8018D6C4 (s32, idx*0x7C) and D_8018D6D6 (s8). Remaining diff: target frame is 0x68, ours 0x88; target recomputes andi/addu per load (lui/addu $at pattern), and keeps fewer callee-saved regs (we save $fp/$s7 and spill arg1/arg2/arg3). Next step: reduce live values across calls (stores use arg1/arg2/arg3 after calls), and try global-array indexing form. Do not declare a local prototype for func_8013E49C (conflicts with context.h). Stopped at low effort, 3/3 budget used without improvement.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794728015.815874,
-  "score_before": 9358,
-  "score_after": 9358
- },
- {
   "function": "func_80146A5C",
   "text": "Not matched. Saved best is 9125 (use get_candidate base=saved_best); my simplified rewrite (revision d7d2ef2406d0dd494a31, score 21241) is worse and should be discarded. Target is a switch on the u16 at D_8011F2F0[idx*0x64+0x3E] (cases 0..3, with nested switch on D_80168C64[b->f0] with cases 0x0..0x9, 0xFF) plus a loop calling func_80148688(2, D_80190CB0) up to 0x96 times, and calls func_8014B854(0x3B/0x3D) and a store of D_80190CAC into D_80189C98. Block at D_8018A43E: u16 f0, u16 f2, u8 f4, u16 f6, u16 f8. The draft's pointer-based field writes and gotos are the likely source of the mismatch; the target keeps the arg0 index (andi 0xFFFF) live in $s1 and saves $ra,$s0-$s2. Next step: rebuild from the saved best's switch structure, not from my simplified version. Low effort session; stopped with 3/3 budget used.",
   "by": "claude-haiku-5-5-23",
@@ -11646,14 +11630,6 @@
   "created_at": 1794740842.752337,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_8015D410",
-  "text": "Not matched. Best: 10771 (revision 7e950e497fa6a5171683): arg0 used via `((u16)arg0)*0x64` in helper calls, s1 = (u16)func_8013E364(), nested if-chain of three func_800DE41C/func_8013E818 blocks with func_8013E49C(s1) fallbacks. Target: frame 0x68, saves ra and s0-s4; arg1 is kept in fs0 (mtc1 $a1,$f20 at entry, mfc1 $a3 at each func_8013E818 call), arg2 in s4, arg3 in s3. Our best saves s5-s7 and fp, frame 0x88 \u2014 the main gap. Tried: arg1 as f32 (11149, worse); inline index in every call with no shared local (12552, worse). Next try: keep arg1 as a bit-copied float so GCC uses mtc1/mfc1 through f20, and reduce live values across calls so only s0-s4 are needed (s1 is the masked return reused in the fallbacks; r is dead after the test). Also check the order of the first func_800DE41C argument block: target stores 0x5B,0xFF, then the three table pointers, then the three float loads (lwc1 via `lui/addu` chain).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794740922.62734,
-  "score_before": 9358,
-  "score_after": 9358
  },
  {
   "function": "func_80135C64",
@@ -15736,14 +15712,6 @@
   "score_after": 1055
  },
  {
-  "function": "func_8015D410",
-  "text": "Best so far is rev 7e950e497fa6a5171683 (10771, 56.5%). Stopping early because the gap is structural, not a small tweak: target frame is 0x68 with saves ra,s4,s3,s2,s1,s0 and fs0; ours is 0x88-0x90 with 7-8 saves. Target entry: `mtc1 $a1,$fs0`, so arg1 is a float passed as bits in a1 (kmc o32 -mfp32 convention). Changing the parameter to f32 (rev 63917c82, 11149) made it worse: it adds an f22 save. Next to try: keep arg1 as s32 and reinterpret it as float via a local union before use; pass the integer bits (not the value) into func_8013E818 arg index 3. Also reduce live values: target reloads `andi s1,s0,0xffff` each time and recomputes &D_8018D6C4 with lui/addu rather than holding it in s-registers. Note the 0x5b/0xff immediates are constant stack args (sw to 0x10/0x14($sp)).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794756840.9771452,
-  "score_before": 9358,
-  "score_after": 9358
- },
- {
   "function": "func_80205D48",
   "text": "Not matched; saved best 740 (permuter) still better. Closest mine: 1010 (78.5%) with the volatile sign check (`*((volatile s32 *)(&D_8021B098)) < 0`) and the existing candidate body. Remaining diffs: (1) the target reads D_8021B098 as a float load: `lui at; lwc1 f4,%lo(D_8021B098)(at); cvt.d.w` for t = (f64)D_8021B098, while the sign check is a separate `lui v0; lw v0,%lo(...)(v0)`; my code uses an integer load for t and the sign check reuses it. (2) Plain `D_8021B098 < 0` (non-volatile) gives 1020 and changes the sign check to `mtc1` reuse; the volatile form is what produces the separate lw. (3) The target puts the `nop` after the bnez in the if-body and computes add.s f20 from f0 before trunc. Next: keep the volatile check, and try getting t's load to be an lwc1 of the same symbol (e.g. read the int via a float-typed pointer only for the conversion).",
   "by": "claude-haiku-5-5-23",
@@ -16518,14 +16486,6 @@
   "created_at": 1794758793.138376,
   "score_before": 280,
   "score_after": 280
- },
- {
-  "function": "func_8015D410",
-  "text": "Best saved 10771 (56.5%), reproduced at candidate 78d26033ff115beda307 (same as saved source). Stuck on structure: target frame 0x68 (saves ~s0..s3 + ra), mine 0x88 (saves s1..s7 + fp). The 4-call sequence (func_800DE41C x3 with D_801684D8/D_802395A8/D_802395DC, func_8013E818 with final arg 3 then 0, func_8013E49C fallthroughs) matches in shape, but the target keeps far fewer values live across calls. Variants tried: inline (u16)arg0*0x64 per use (12552, worse); hoisted off (10771). Untried next: check whether the target re-reads arg2/arg3 from the stack instead of holding them in s-regs, and whether s1 is a u16 reloaded from func_8013E364 each time. Three no-improvement compiles this run; not submitted.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794758793.193863,
-  "score_before": 9358,
-  "score_after": 9358
  },
  {
   "function": "func_801E189C",
@@ -18198,14 +18158,6 @@
   "created_at": 1794761933.826735,
   "score_before": 9235,
   "score_after": 9235
- },
- {
-  "function": "func_8015D410",
-  "text": "Best saved: 56.5% (10771), revision 43814eca8d038e6c6498 (target 248 insns, mine 226). Structure matches: four func_800DE41C calls with the same 0x5B/0xFF args and different data pointers (D_801684D8, D_802395A8, D_802395DC) and callback pairs, each followed by func_8013E818 or func_8013E49C, then stores to D_8018D6C4 / D_8018D6D6 at s1*0x7C.\nRemaining diffs: (1) Frame: target addiu sp,-0x68 with ra@0x5C, s4@0x58, s3@0x54, s2@0x50; mine is -0x88 and saves s1, s6, s7, fp, s3, ra. The target keeps fewer values live across the chain. (2) The float args come from f20 (mtc1 $a1,$f20 / mfc1 $a3,$f20), so the target holds a float across the calls; mine reloads each time. (3) s1 should be andi s1,s0,0xffff throughout (x5 in target), not the u16 temp used now.\nWhy stop here: the fix needs the repeated *(f32*)(D_8011F308+off) loads hoisted into locals in four places, and every anchor repeats. That's a multi-edit rewrite, not a tuning patch. Next agent: rewrite the body with one off and three f32 locals loaded once, then check the frame.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794761943.211964,
-  "score_before": 9358,
-  "score_after": 9358
  },
  {
   "function": "func_80216958",
@@ -41172,5 +41124,53 @@
   "created_at": 1794763058.551473,
   "score_before": 8584,
   "score_after": 8063
+ },
+ {
+  "function": "func_8015D410",
+  "text": "Revision 497a30e6c6ef8349bd9e scores 9798 (target 248 insns, 219 emitted). Target keeps arg1 (f32) in $f20 across the whole body and does NOT save/restore it (no sdc1 $f22), so the source must not force a second float temp; frame is 0x68 not 0x78. Target recomputes `andi $s1,$s0,0xffff` five times (once per use after each func_8013E364 call) and does `move $s4,$a2` x3 (arg2 kept in $s4) plus `ori $v0,$zero,0xffff` x2 for the 0xFFFF compare \u2014 write the compare as `== 0xFFFF` on the freshly-anded value, and keep arg2 in a plain s32 local used three times rather than re-reading the parameter. Target also has `addu $at,$at,$v0` x4 (index scaled then added to base) meaning the 0x64 / 0x7C index expressions should be `base + (arg0 & 0xFFFF) * 0x64` with a u8* base so gcc emits addu into $at. Structure (3 inlined blocks, shared fail label calling func_8013E49C(s1, r)) looks right; remaining work is register allocation and the float temp.\n\nScore stuck at 9798 (target 248 insns, candidate 219), budget 3/3 without improvement exhausted. Structure is right: three inlined blocks, each `s1 = func_8013E364() & 0xFFFF; if (s1 == 0xFFFF) return;` then func_800DE41C(...9 stack args...) then `if ((u32)((r + 2) & 0xFFFF) < 2U) goto fail;` then func_8013E818, then store arg2/arg3 at idx*0x7C, with a shared `fail: func_8013E49C(s1, r);`.\n\nRemaining known diffs and the fixes to try, in order:\n1. FLOAT TEMP. Target frame is 0x68 and saves exactly one FP reg: `sdc1 $fs0, 0x60($sp)` then `mtc1 $a1, $fs0` at entry, and uses `mfc1 $a3, $fs0` at each func_8013E818 call. My candidate instead emits `sdc1 $f22, 0x70($sp)` + `mtc1 $a1, $f22` and a 0x78 frame, i.e. it makes a second float temp because arg1 is read at two call sites. Try `f32 fa = arg1;` as the first statement and pass `fa` to both func_8013E818 calls (and drop the direct arg1 uses); that should give one live FP value in $fs0 held across the whole body. This is the single highest-value change and was not tested.\n2. `ori $v0, $zero, 0xFFFF` x2 then `beq $s1, $v0`: write the guard as `if ((func_8013E364() & 0xFFFF) == 0xFFFF) return;` with the andi result stored once into a local `s1`, comparing against the literal 0xFFFF (not a variable). Already close; check the andi is re-emitted after each call (target does `andi $s1,$s0,0xffff` five times, i.e. it re-ands the same $s0 after each call \u2014 so keep `s1 = s0 & 0xFFFF` immediately after each func_8013E364 call rather than reusing an earlier anded value).\n3. `addu $at, $at, $v0` x4: index expressions must be `base + (arg0 & 0xFFFF) * 0x64` with u8* bases (D_8011F308/30C/310) so gcc folds %lo into the load and adds the scaled index into $at; the current `off` local form already produces this shape, keep it.\n4. `move $s4, $a2` x3: arg2 must be a plain s32 kept in a callee-saved reg and stored three times (no recomputation); arg3 likewise in $s3 as a byte store `sb`.\n5. Stack arg order for func_800DE41C: target stores 0x10=0x5B, 0x14=0xFF, 0x18=ptr, 0x1C=fn, 0x20=fn, then 0x24/0x28/0x2C = the three floats, 0x30/0x34/0x38 = 0, 0x3C/0x40/0x44 = 1.0f (one mtc1 of 0x3F800000 reused three times). The current source already matches this; if the frame size changes, re-check these offsets.\n\nAlso noted on the function itself via add_note. No boundary issue: 992 bytes / 248 insns is consistent with three unrolled blocks.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794711692.238351,
+  "score_before": 11711,
+  "score_after": 9798
+ },
+ {
+  "function": "func_8015D410",
+  "text": "Best candidate scores 12392 (50.0%), revision 56233c694f470ec4aa04: three nested blocks calling func_8013E364 (idx) then func_800DE41C (18 args, 3 f32 loads from D_8011F308/30C/310 at (arg0&0xFFFF)*0x64), func_8013E818 and stores to D_8018D6C4 (s32, idx*0x7C) and D_8018D6D6 (s8). Remaining diff: target frame is 0x68, ours 0x88; target recomputes andi/addu per load (lui/addu $at pattern), and keeps fewer callee-saved regs (we save $fp/$s7 and spill arg1/arg2/arg3). Next step: reduce live values across calls (stores use arg1/arg2/arg3 after calls), and try global-array indexing form. Do not declare a local prototype for func_8013E49C (conflicts with context.h). Stopped at low effort, 3/3 budget used without improvement.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794728015.815874,
+  "score_before": 9358,
+  "score_after": 9358
+ },
+ {
+  "function": "func_8015D410",
+  "text": "Not matched. Best: 10771 (revision 7e950e497fa6a5171683): arg0 used via `((u16)arg0)*0x64` in helper calls, s1 = (u16)func_8013E364(), nested if-chain of three func_800DE41C/func_8013E818 blocks with func_8013E49C(s1) fallbacks. Target: frame 0x68, saves ra and s0-s4; arg1 is kept in fs0 (mtc1 $a1,$f20 at entry, mfc1 $a3 at each func_8013E818 call), arg2 in s4, arg3 in s3. Our best saves s5-s7 and fp, frame 0x88 \u2014 the main gap. Tried: arg1 as f32 (11149, worse); inline index in every call with no shared local (12552, worse). Next try: keep arg1 as a bit-copied float so GCC uses mtc1/mfc1 through f20, and reduce live values across calls so only s0-s4 are needed (s1 is the masked return reused in the fallbacks; r is dead after the test). Also check the order of the first func_800DE41C argument block: target stores 0x5B,0xFF, then the three table pointers, then the three float loads (lwc1 via `lui/addu` chain).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794740922.62734,
+  "score_before": 9358,
+  "score_after": 9358
+ },
+ {
+  "function": "func_8015D410",
+  "text": "Best so far is rev 7e950e497fa6a5171683 (10771, 56.5%). Stopping early because the gap is structural, not a small tweak: target frame is 0x68 with saves ra,s4,s3,s2,s1,s0 and fs0; ours is 0x88-0x90 with 7-8 saves. Target entry: `mtc1 $a1,$fs0`, so arg1 is a float passed as bits in a1 (kmc o32 -mfp32 convention). Changing the parameter to f32 (rev 63917c82, 11149) made it worse: it adds an f22 save. Next to try: keep arg1 as s32 and reinterpret it as float via a local union before use; pass the integer bits (not the value) into func_8013E818 arg index 3. Also reduce live values: target reloads `andi s1,s0,0xffff` each time and recomputes &D_8018D6C4 with lui/addu rather than holding it in s-registers. Note the 0x5b/0xff immediates are constant stack args (sw to 0x10/0x14($sp)).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794756840.9771452,
+  "score_before": 9358,
+  "score_after": 9358
+ },
+ {
+  "function": "func_8015D410",
+  "text": "Best saved 10771 (56.5%), reproduced at candidate 78d26033ff115beda307 (same as saved source). Stuck on structure: target frame 0x68 (saves ~s0..s3 + ra), mine 0x88 (saves s1..s7 + fp). The 4-call sequence (func_800DE41C x3 with D_801684D8/D_802395A8/D_802395DC, func_8013E818 with final arg 3 then 0, func_8013E49C fallthroughs) matches in shape, but the target keeps far fewer values live across calls. Variants tried: inline (u16)arg0*0x64 per use (12552, worse); hoisted off (10771). Untried next: check whether the target re-reads arg2/arg3 from the stack instead of holding them in s-regs, and whether s1 is a u16 reloaded from func_8013E364 each time. Three no-improvement compiles this run; not submitted.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794758793.193863,
+  "score_before": 9358,
+  "score_after": 9358
+ },
+ {
+  "function": "func_8015D410",
+  "text": "Best saved: 56.5% (10771), revision 43814eca8d038e6c6498 (target 248 insns, mine 226). Structure matches: four func_800DE41C calls with the same 0x5B/0xFF args and different data pointers (D_801684D8, D_802395A8, D_802395DC) and callback pairs, each followed by func_8013E818 or func_8013E49C, then stores to D_8018D6C4 / D_8018D6D6 at s1*0x7C.\nRemaining diffs: (1) Frame: target addiu sp,-0x68 with ra@0x5C, s4@0x58, s3@0x54, s2@0x50; mine is -0x88 and saves s1, s6, s7, fp, s3, ra. The target keeps fewer values live across the chain. (2) The float args come from f20 (mtc1 $a1,$f20 / mfc1 $a3,$f20), so the target holds a float across the calls; mine reloads each time. (3) s1 should be andi s1,s0,0xffff throughout (x5 in target), not the u16 temp used now.\nWhy stop here: the fix needs the repeated *(f32*)(D_8011F308+off) loads hoisted into locals in four places, and every anchor repeats. That's a multi-edit rewrite, not a tuning patch. Next agent: rewrite the body with one off and three f32 locals loaded once, then check the frame.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794761943.211964,
+  "score_before": 9358,
+  "score_after": 9358
  }
 ]
