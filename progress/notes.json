@@ -6472,14 +6472,6 @@
   "score_after": 506
  },
  {
-  "function": "func_80165830",
-  "text": "Best 14524 this session (saved best 13956 is historical, from an earlier attempt). Call on the first 20 lines: stack call func_800DE41C with 18 args: regs (0,0,3,0), stack words 0x10=0x20, 0x14=1, 0x18=0, 0x1C=fn (&func_80165BDC if arg1==0 else &func_8016608C), 0x20..0x44 all zero. Frame is 0x70 in target; mine 0x78 because the switch's double literals (0.1, 0.05, 0.1) spill an extra 8-byte slot; target uses swc1 (float) and keeps f20 saved (sdc1 $f20,0x68). Target keeps the arg pointer in s3 (move s3,$a0) before the 0x898 load; mine uses s0. Rodata mismatch: the constants at 0x80166540 differ, so the switch float literals need to be float not double (use 0.1f-style if the ROM data is float; check read_data at 0x80166540 first). Untested: frame layout, the 0x20 store ordering, and the switch body after the call.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794711228.1019578,
-  "score_before": 13956,
-  "score_after": 13956
- },
- {
   "function": "func_8003EA40",
   "text": "func_8003EA40 is osInvalDCache (libultra): the loop bodies are `cache 0x10,0($t0)` (invalidate-data, 0x10) and `cache 0x00,0($t0)` in the >=0x4000 fallback path over 0x80000000..0x80003FE0. Pure C cannot emit the MIPS `cache` opcode, so no C source can be byte-identical; the shell code around them is trivially reproducible (the m2c draft already has it) and the target itself annotates both as handwritten instructions. Keep status open: this one needs to be flagged as assembly, not decompiled.",
   "by": "opencode-deepseek-v4.1-flash-free-5",
@@ -9112,14 +9104,6 @@
   "score_after": 9358
  },
  {
-  "function": "func_80165830",
-  "text": "Not matched. Best saved is 13956 (older source; use get_candidate(base=\"saved_best\")). My rewrites scored 14160 to 14241, worse. Why I stopped: the call shape is the blocker, and I could not derive the 18-arg layout. Findings for the next agent: (1) func_800DE41C is called with 18 args: 4 in regs, 14 on the stack at sp+0x10..0x44. In the first call the stack words are 0x20,1,0,&func (0x10..0x1C) then zeros. The switch case-1 call stores floats (swc1 at 0x24.. in the target), so it needs a float-typed prototype or a cast of the function pointer. (2) Target frame is 0x70: $ra@0x64, s4@0x60, s3@0x5c, s2@0x58, s1@0x54, s0@0x50, $f20 via sdc1 at 0x68. Mine is 0x68 or 0x78 because the stack-arg count differs. (3) Target keeps arg0 in $s3 (`addu $s3,$a0,$zero`) and reads 0x898 through it; the func_8013E364 result is kept in $s1. (4) func_8013E49C is already declared in include/context.h as s32 func(u16); do not redeclare it. Next: derive the stack-arg count and types from the target's sw/swc1 sequence for both calls, then match the frame before tuning the table stores.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794728041.9049559,
-  "score_before": 13956,
-  "score_after": 13956
- },
- {
   "function": "func_80146A5C",
   "text": "Not matched. Saved best is 9125 (use get_candidate base=saved_best); my simplified rewrite (revision d7d2ef2406d0dd494a31, score 21241) is worse and should be discarded. Target is a switch on the u16 at D_8011F2F0[idx*0x64+0x3E] (cases 0..3, with nested switch on D_80168C64[b->f0] with cases 0x0..0x9, 0xFF) plus a loop calling func_80148688(2, D_80190CB0) up to 0x96 times, and calls func_8014B854(0x3B/0x3D) and a store of D_80190CAC into D_80189C98. Block at D_8018A43E: u16 f0, u16 f2, u8 f4, u16 f6, u16 f8. The draft's pointer-based field writes and gotos are the likely source of the mismatch; the target keeps the arg0 index (andi 0xFFFF) live in $s1 and saves $ra,$s0-$s2. Next step: rebuild from the saved best's switch structure, not from my simplified version. Low effort session; stopped with 3/3 budget used.",
   "by": "claude-haiku-5-5-23",
@@ -11694,14 +11678,6 @@
   "created_at": 1794740762.757992,
   "score_before": 8135,
   "score_after": 8135
- },
- {
-  "function": "func_80165830",
-  "text": "Not matched. The saved candidate did not compile: func_8013E49C is already declared in context.h as s32 func_8013E49C(u16), so the local `extern void func_8013E49C(s32);` line must be dropped. With that fixed, compile gives 14241 (39.4%), worse than saved best 13956. Target frame is 0x70 and saves s0-s4 plus $f20 (sdc1 $fs0); our draft uses 0x78 and saves s0-s2 only. Target keeps arg0 in $s3 and arg1 in $s4 across the first call (move $s3,$a0 before lw 0x898; addu $s4,$a1 after bne), but our draft loads 0x898 off $a0 directly. The float constants 0.1f/0.05f/10.0f/270.0f are built inline with lui/ori+mtc1 in the target (not .rodata loads like ours: rodata+0x0 and +0x8 do not exist in the target), so the switch-case-1 call argument setup is wrong. Not tried: a variant with a double local live across the calls (explains the $f20 save), and a rewrite where arg0 is copied to a local before the first call.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794740832.1438541,
-  "score_before": 13956,
-  "score_after": 13956
  },
  {
   "function": "func_8021AF20",
@@ -16408,14 +16384,6 @@
   "score_after": 595
  },
  {
-  "function": "func_80165830",
-  "text": "Not compiled; no match. The machine draft has parse errors (`s3232` undeclared at line 78 from a mangled constant in the switch), plus pointer-arithmetic warnings on the D_8018D6C0 block and an incomplete-type pointer add at lines 65-66. Next step: fix the draft into valid C first (the struct at arg0 +0x898 is s32 state, +0x560 is u16 flags, +0x55E is s16 timer, +0x8D0 is a byte set to 0xF0), then compile. The switch on arg1&0xFFFF has cases 0 and 1 only; case 1 calls func_800DE41C twice with a 17-argument call that the draft shows, which needs the real prototype. Check the func_800DE41C prototype and the 0x7C struct stride for D_8018D6C0 before compiling.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794758333.206377,
-  "score_before": 13956,
-  "score_after": 13956
- },
- {
   "function": "func_801604F0",
   "text": "Unmatched. Keep saved best 11443 (57.9%, revision 19e0edbd2dd806d2bb53, typed Ent/Obj structs, node pool D_8011F2F0 stride 0x64, Obj* at +0x5C via s1->obj). Four structural variants tried this session, none better: byte-offset ENT_P macro (14500, revision b461481d81d3c889c8d5, do not reuse); direct D_8011F2F0[s0->link->idx] indexing in the case 0 branch (12853, revision e6a1e236de1a7aebac35). Why I'm stopping: the target expands idx*0x64 inline as sll/addu chains and reloads the pool base with lui six times, with a 0x58 frame and ra at 0x20(sp); my versions use 0x50-0x68 frames and differ in where the index is cached, and none of the variants moved the score toward a match. Untried: -O1 profile check (pool-region note), and the signedness family (compile_family) on the saved best. Machine draft had __sinf arg-count errors, so fix the declarations before redrafting.",
   "by": "claude-haiku-5-5-22",
@@ -17318,14 +17286,6 @@
   "created_at": 1794760119.9210072,
   "score_before": 7846,
   "score_after": 7846
- },
- {
-  "function": "func_80165830",
-  "text": "Released without a match. Best saved score 13956; current candidate 677881d01ed9 scores 14241 (39.4%), 155 vs 235 instructions. Target has a 0x78-ish frame change (-0x70 target, mine -0x78) and about 20 sw $ra / 18 swc1 spill slots, so the body is partly missing rather than mis-registered. Next step: reconstruct the missing ~80 instructions (likely more inlined calls or a second loop in the case 1 path) before tuning. Tried: signedness of temp_s0 (s32/u32), declaring func_8013E49C, switch shape. None changed the diff.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794760120.0250828,
-  "score_before": 13956,
-  "score_after": 13956
  },
  {
   "function": "func_80129348",
@@ -41163,5 +41123,45 @@
   "created_at": 1794762325.434845,
   "score_before": 13170,
   "score_after": 13170
+ },
+ {
+  "function": "func_80165830",
+  "text": "Best 14524 this session (saved best 13956 is historical, from an earlier attempt). Call on the first 20 lines: stack call func_800DE41C with 18 args: regs (0,0,3,0), stack words 0x10=0x20, 0x14=1, 0x18=0, 0x1C=fn (&func_80165BDC if arg1==0 else &func_8016608C), 0x20..0x44 all zero. Frame is 0x70 in target; mine 0x78 because the switch's double literals (0.1, 0.05, 0.1) spill an extra 8-byte slot; target uses swc1 (float) and keeps f20 saved (sdc1 $f20,0x68). Target keeps the arg pointer in s3 (move s3,$a0) before the 0x898 load; mine uses s0. Rodata mismatch: the constants at 0x80166540 differ, so the switch float literals need to be float not double (use 0.1f-style if the ROM data is float; check read_data at 0x80166540 first). Untested: frame layout, the 0x20 store ordering, and the switch body after the call.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794711228.1019578,
+  "score_before": 13956,
+  "score_after": 13956
+ },
+ {
+  "function": "func_80165830",
+  "text": "Not matched. Best saved is 13956 (older source; use get_candidate(base=\"saved_best\")). My rewrites scored 14160 to 14241, worse. Why I stopped: the call shape is the blocker, and I could not derive the 18-arg layout. Findings for the next agent: (1) func_800DE41C is called with 18 args: 4 in regs, 14 on the stack at sp+0x10..0x44. In the first call the stack words are 0x20,1,0,&func (0x10..0x1C) then zeros. The switch case-1 call stores floats (swc1 at 0x24.. in the target), so it needs a float-typed prototype or a cast of the function pointer. (2) Target frame is 0x70: $ra@0x64, s4@0x60, s3@0x5c, s2@0x58, s1@0x54, s0@0x50, $f20 via sdc1 at 0x68. Mine is 0x68 or 0x78 because the stack-arg count differs. (3) Target keeps arg0 in $s3 (`addu $s3,$a0,$zero`) and reads 0x898 through it; the func_8013E364 result is kept in $s1. (4) func_8013E49C is already declared in include/context.h as s32 func(u16); do not redeclare it. Next: derive the stack-arg count and types from the target's sw/swc1 sequence for both calls, then match the frame before tuning the table stores.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794728041.9049559,
+  "score_before": 13956,
+  "score_after": 13956
+ },
+ {
+  "function": "func_80165830",
+  "text": "Not matched. The saved candidate did not compile: func_8013E49C is already declared in context.h as s32 func_8013E49C(u16), so the local `extern void func_8013E49C(s32);` line must be dropped. With that fixed, compile gives 14241 (39.4%), worse than saved best 13956. Target frame is 0x70 and saves s0-s4 plus $f20 (sdc1 $fs0); our draft uses 0x78 and saves s0-s2 only. Target keeps arg0 in $s3 and arg1 in $s4 across the first call (move $s3,$a0 before lw 0x898; addu $s4,$a1 after bne), but our draft loads 0x898 off $a0 directly. The float constants 0.1f/0.05f/10.0f/270.0f are built inline with lui/ori+mtc1 in the target (not .rodata loads like ours: rodata+0x0 and +0x8 do not exist in the target), so the switch-case-1 call argument setup is wrong. Not tried: a variant with a double local live across the calls (explains the $f20 save), and a rewrite where arg0 is copied to a local before the first call.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794740832.1438541,
+  "score_before": 13956,
+  "score_after": 13956
+ },
+ {
+  "function": "func_80165830",
+  "text": "Not compiled; no match. The machine draft has parse errors (`s3232` undeclared at line 78 from a mangled constant in the switch), plus pointer-arithmetic warnings on the D_8018D6C0 block and an incomplete-type pointer add at lines 65-66. Next step: fix the draft into valid C first (the struct at arg0 +0x898 is s32 state, +0x560 is u16 flags, +0x55E is s16 timer, +0x8D0 is a byte set to 0xF0), then compile. The switch on arg1&0xFFFF has cases 0 and 1 only; case 1 calls func_800DE41C twice with a 17-argument call that the draft shows, which needs the real prototype. Check the func_800DE41C prototype and the 0x7C struct stride for D_8018D6C0 before compiling.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794758333.206377,
+  "score_before": 13956,
+  "score_after": 13956
+ },
+ {
+  "function": "func_80165830",
+  "text": "Released without a match. Best saved score 13956; current candidate 677881d01ed9 scores 14241 (39.4%), 155 vs 235 instructions. Target has a 0x78-ish frame change (-0x70 target, mine -0x78) and about 20 sw $ra / 18 swc1 spill slots, so the body is partly missing rather than mis-registered. Next step: reconstruct the missing ~80 instructions (likely more inlined calls or a second loop in the case 1 path) before tuning. Tried: signedness of temp_s0 (s32/u32), declaring func_8013E49C, switch shape. None changed the diff.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794760120.0250828,
+  "score_before": 13956,
+  "score_after": 13956
  }
 ]
