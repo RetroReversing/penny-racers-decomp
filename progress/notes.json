@@ -7096,14 +7096,6 @@
   "score_after": null
  },
  {
-  "function": "func_8003082C",
-  "text": "Best verified 645 (98.0%, 18 diff rows) at revision c1abf32069a270bf4248 / 715fd2b99eb6e0f08e83. Big win came from writing case 22 as `n_alSynSetVol((u8*)v+4, (s16)__vsVol(v,p), func_80031B94(v,p->unk1C));` (nested calls + explicit s16 cast) and the same nested form in case 10 \u2014 that fixed all branch targets and the whole arg-order chain (1795 -> 675 -> 645).\n\nRemaining differences (18 rows, all regalloc/order):\n1) case 5 and case 6: target keeps the osc pointer in $s1 (`lw $s1,0x10($s0)` then `lbu $v0,0x37($s1)`, `sb $s5,0x34($s1)`, `move $a0,$s1`); ours sinks it into $a1 because it is used only across non-call statements. Target also branches `beqz $v0,0xb4` vs our 0xb8 (same size, different target label). Tried: separate o5/o6 locals, declaring `SeqVoice *v5/v6` first, reordering o->unk24 store after the n_alSynSetVol call (that broke everything: 1770). Not tried: making the osc pointer an argument to a helper-like expression, e.g. `n_alSynSetVol(v6, __vsVol(v6->osc, p), s3)` after `o->unk24 = ...` while keeping o live across the call by reading o->unk30 afterwards; or an extra dummy use of o after the call.\n2) case 23: target `mfc1 $a1,$f2` + `nop` then `jal n_alSynSetPitch` / `addiu $a0,$s1,4` in the delay slot; ours emits `mfc1 $v1,$f2`, `addiu $a0,$s1,4`, `jal`, `move $a1,$v1`. Tried pb.i, *(s32*)&pb.f, separate s32 bits local \u2014 all identical. Likely needs the pitch value to be produced directly as the call argument (e.g. pass the float expression through a cast in the call) so gcc keeps it in $a1.\n3) case 13: target orders `lw $v0,0x3c($s2)` before the 0x48F42400 constant setup and has `nop` in the bne delay slot; ours emits `move $a0,$s2` there.\n\nFlags: search_flags says project flags are optimal (-O2 == -O3 == -fno-strength-reduce at 645).",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794718350.9407501,
-  "score_before": 1570,
-  "score_after": 645
- },
- {
   "function": "func_8020EE18",
   "text": "Best verified 10512 (68.6%) at revision 34b7c84a5d39c1796142 (restore with get_candidate(base=\"saved_best\")). Started at 31889 (no compiling draft: m2c failed on the jump table).\n\nWhat worked, keep it:\n- Switch on `*(u16*)(s3+0x3E)` with cases 0, 0x10, 0x20, 0x30, 0x31, 0x12 plus `default`. The target's bounds check is `sltiu $v0,$v1,0x32` over the raw value, so the case set must span 0..0x31 with no `addiu -0x10` bias: an explicit `case 0: break;` first made gcc emit the raw sltiu 0x32 (10830 -> 10675). Do not subtract 0x10 from the switch value.\n- `p = D_8021EEA4;` as a single u8* base with p[0], p[1], p[2], p[3] reproduces the target's `lui/addiu $a0,D_8021EEA4` + `lbu 0x0($a0)` / `lbu 0x3($a0)` / `sb` pattern (10675 -> 10512).\n- `s4 = &D_80190C9A;` (u16*) reproduces the target's `lui/addiu $s4,%hi(D_80190C9A)` once and `sh $v0,($s4)` x3. Writing `D_80190C9A = ...` directly instead is much worse (11290) because gcc folds %lo into each store.\n- `q = D_8011F350[D_8018BC3C * 0x19]; if (*q) break;` with `extern u8 *D_8011F350[]` gives the right pointer-array load. Index must be *0x19 words (0x64 bytes). A plain `u8*` cast + byte offset was worse (10985/10965).\n- Loop forms `for (i=0;i<8;i++) D_8021EEA4[2] += func_8020FFD0(D_8021EEA7[0], i, D_8021EEA8[i]);` and the 0x30 copy loop with `i*0x22 + p[3]*0x110` are right.\n\nRemaining 229 diff rows are mostly regalloc/scheduling plus these concrete items:\n1) Stack frame: ours 0x38 with an extra $s5 save; target 0x30 with $s4. The extra callee-saved register comes from `&D_80190C9A` living across the switch; target rematerializes `lui/addiu $s4` in each of the three paths that store to it (4x `addiu $s4,$s4,%lo(D_80190C9A)` total). Try `s4` as a `u16*` assigned inside each branch (`s4 = (u16*)&D_80190C9A; *s4 = ...;`) so it is not live across the whole function.\n2) Prologue order: target saves ra,s4,s3,s2,s1,s0 then `andi $a0,$a0,0xFFFF` and the *0x64 index before the call setup; ours sinks the saves after the index computation. Target also computes `s2 = func_8014A870(0x14,7,D_8021EEA7[0])` with `lui/lbu $a2` immediately before jal and `addiu $a1,$zero,7` in the delay slot.\n3) Case 0x10/0x12 pointer chain: target uses `lui $at,%hi(D_8011F350); addu $at,$at,$v0; lw $v0,%lo(D_8011F350)($at)` (symbol folded into the load) while ours emits `lui $v0` + `addu` + `lw 0($v0)`. A `typedef struct { u8 *p; u8 pad[0x60]; } Rec64; extern Rec64 D_8011F350[];` with `D_8011F350[idx].p` should give the %lo-folded load \u2014 I could not test it because the typedef and the two use sites need one cumulative patch (compile_variants patches are independent, so it failed to compile).\n4) Case 0x20: target reads `D_8021EEA7[0]` as a fresh `lui/lbu $a2` for each of the three func_8020FFD0 calls; ours hoists it into $s0.\n\nMove-on budget was not exhausted (1/10); releasing for session capacity.",
   "by": "api-route-llm-code-1",
@@ -9406,14 +9398,6 @@
   "created_at": 1794728530.183852,
   "score_before": 9328,
   "score_after": 9328
- },
- {
-  "function": "func_8003082C",
-  "text": "Best 645 (98.0%), revision 715fd2b99eb6e0f08e83 (the full source; get_candidate(base=\"saved_best\") restores it). Not matched: 17 instructions differ, all register choice and one branch. In case 5 the target keeps the voice in $s0 and the osc in $s1 (`lw $s1,0x10($s0)`, `addu $a1,$s1` into __seqpStopOsc), mine loads the osc straight into $a1. Case 6 has the same shape (`lw $s0,0x3c($s2)`, `lw $s1,0x10($s0)`, then `move $a0,$s1`). Tried: merging v5 into the shared `v` (665, worse), and restoring v5 (back to 645). The last diff is `beqz $v0,0xb4` vs `0xb8`, in the same case-5 block. Next: try a block-local osc per case (`{ SeqOsc *o = v->osc; ... }`), which may change the allocation, then the branch.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794728595.26152,
-  "score_before": 645,
-  "score_after": 645
  },
  {
   "function": "func_8002E120",
@@ -12168,28 +12152,12 @@
   "score_after": 915
  },
  {
-  "function": "func_8003082C",
-  "text": "Hand-written C reaches score 4297 (revision a44aae750701a82c01ac), better than the saved 7814. Structure is right: switch on s16 at 0x38 with cases 0..23, default falls to the alEvtqNextEvent loop. Remaining diff: frame (target 0x50, mine 0x38) and register allocation (target keeps $s5=1, saves $s1-$s5 and $ra, and holds 2^31 in $fs0 for the float-to-int split). The jump table is emitted as ?local instead of jtbl_8004A4C8. Next: widen locals so the saved-register set matches, and check whether the jtbl needs declaring as an extern array.\n\nBest C is revision a44aae750701a82c01ac, score 4297 (86.8%), better than the saved 7814. Structure is right: a do/while around switch(s16 at 0x38) with cases 0..23, and the default path falls to the alEvtqNextEvent loop. Tried: hoisting 2^31 into a local f32 and 1 into a local s32 (revision 133bf5dabd8c29d7afc2) regressed to 4597, so do not repeat that. Remaining diff: target frame is 0x50 (mine 0x38), target saves $s0-$s5, $ra and $fs0 (mine saves fewer, uses $f20). Target has 0x4F000000 loaded into $fs0 at entry, plus $s5=1 hoisted at entry. The jump table is emitted as ?local instead of jtbl_8004A4C8; a jtbl declaration might fix that. Next: try a dispatch that keeps the event pointer in a local so the callee-saved set grows to s0..s5, and check that the jtbl emission matches before tuning locals.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794741809.71571,
-  "score_before": 645,
-  "score_after": 645
- },
- {
   "function": "func_80149A80",
   "text": "Best 395 (91.4%) at revision b9fb36df708aa3f08ec2 (or f7fe7ae4c24470496a04, same score): hoisting `idx = D_8011F2FC[temp_v0];` before the `if` gained 415->395. Remaining diff: target does `lbu; lhu 0x3e; bnez $v0; andi $v1,$v1,0xffff` (andi in the branch delay slot, u16 cast kept), ours elides the andi and tests $v1 instead. Tried: u16 idx, s32 idx=(u16)..., s32 idx = ...&0xFFFF (no effect; compiler elides). Untried: compile_family signedness; a local-permutation search on the andi placement. Move on after the family check.",
   "by": "claude-haiku-5-5-24",
   "created_at": 1794741858.660783,
   "score_before": 395,
   "score_after": 395
- },
- {
-  "function": "func_8003082C",
-  "text": "Claim lapsed after the lease expired (no release). Best trial this session: rev a44aae750701a82c01ac scored 7814 (76.1%), worse than saved 4597. The C is a 24-case jump table (lh 0x38; sltiu 0x18) inside do/while. Frame is 0x50 (target) vs mine 0x40, so the locals are too few. Next step: declare the 0x50 frame with the sp14/sp18/sp1C/sp20 locals and take the saved-register order from the target (s2 = arg0 saved first, then s5/s4/s3/s1/s0).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794741867.8754199,
-  "score_before": 645,
-  "score_after": 645
  },
  {
   "function": "func_801FF37C",
@@ -17184,14 +17152,6 @@
   "score_after": 6240
  },
  {
-  "function": "func_8003082C",
-  "text": "Best saved: score 4880 (85.1%), candidate revision 1fe9b5feef1de146510e. Source: a switch(F_S16(arg0,0x38)) inside do{}while(ret==0), 23 cases, with raw-offset macros (F_S32/F_PTR/F_U8/...). Gains came from: (1) a local struct Msg {s16 type; void *a; s32 b; u8 c;} declared before f32 fval (matches target sp+0x10 message block, fval at sp+0x20); (2) inlining arg0+0x48 as QUEUE(arg0) at each call (no shared q variable); (3) a s16 local `vol` for __vsVol results (target has sll/sra 16 pairs). Remaining differences: frame is -0x48 (target -0x50): target saves s5 (holds constant 1 / the loop value) at 0x3c and ra at 0x40, s4 at 0x38, f20 at 0x48; the target keeps the ret value in s3 and adds it to 0x1C with it at the tail (ours uses s4 for r); case 22 float-to-u32 branch shape (target: lui 0x8000 + or in the else arm, jal func_80031B94 before the msg stores); case 23 and 16 register choices. Untried: a separate s32 for the loop return value 'ret' kept distinct from the case-local r; try_compiler at -O1 (similar KMC region per proposal notes); moving the `(u8 *)arg0 + 0x38` address into a local for the case 2/7 calls. Prototypes worked out: __vsVol returns s16 (arg0 void*, arg1 void*); func_80031B94(void*, s32) -> s32; alEvtqNextEvent(void*,void*) -> s32.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794759326.566832,
-  "score_before": 645,
-  "score_after": 645
- },
- {
   "function": "func_800DE2E0",
   "text": "Byte-exact with KMC gcc-2.7.2 -O1 (suggested). Uses the Obj64 100-byte struct at D_8011F2F0, plus extern u16 D_8011F300[]/D_80126F9C[] for the fixed entry-0/entry-319 stores.",
   "by": "claude-opus-medium-1",
@@ -18688,14 +18648,6 @@
   "score_after": 3404
  },
  {
-  "function": "func_8003082C",
-  "text": "Best score 4880 (85.1%, revision 76f56079a81c71c08e9e) from a first straight-line draft of the 0x38 message-type switch (cases 0-17, 22, 23 plus 1/3/4). Remaining differences: branch targets and a few ordering/register choices in the cases 6/22/23 blocks; the (s8) store at 0x36 and the float conversion at case 22 (fval >= 2.1474836e9f path) are emitted differently (sb $v0 placed early). Also the string literals \"EX\"/\"n_seqplayer.c\" produce .rodata refs the ROM code does not have at this point, so check whether those calls should pass different constants or whether the literals should be pulled from another location. Not tried: restructuring the switch into if-chains, or checking the jump table shape (compile at -O2 gcc-2.7.2-kmc). Expect several compiles to chase the case-by-case layout.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794761911.6886349,
-  "score_before": 645,
-  "score_after": 645
- },
- {
   "function": "func_80149A80",
   "text": "Saved baseline395 exactly matches with -G0 -mips3 -mgp32 -mfp32 -O1; search_flags verified0 and function-specific suggestion submitted/reverified exact. Automatic compiler changes off; apply bundle to save, no C edits needed.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -19286,14 +19238,6 @@
   "created_at": 1794762882.477113,
   "score_before": 1570,
   "score_after": 1570
- },
- {
-  "function": "func_8003082C",
-  "text": "Best 4880 (85.1%), unmatched; the saved best is the same source. Candidate is a switch-based message dispatcher with a do/while over alEvtqNextEvent. Remaining diffs: (1) loop tail: target branches `beqz $v0` to 0x4d0 and reloads `lw $s3,0x40(s2)` for the shared `r`, mine keeps it in s4, so the loop-carried `r`/`ret` register assignment is wrong; (2) case 22: target calls n_alSynSetVol with `addiu $a0,$s2,0x48` twice and uses lui 0x8000/or for the float-to-u32 branch, mine stores F_S8 before the setVol call; (3) float compare path: target mfc1 goes to $v1, mine to $v0. Untried next steps: re-read arg0+0x40 in each case instead of one shared local; write the unsigned conversion as (u32)(fval - 2.1474836e9f) ^ 0x80000000 style. Case 16/17 loops and the u8 msg.c store are not yet checked against the target.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794762900.674939,
-  "score_before": 645,
-  "score_after": 645
  },
  {
   "function": "func_801B36F8",
@@ -41093,5 +41037,61 @@
   "created_at": 1794764223.513054,
   "score_before": 2605,
   "score_after": 2605
+ },
+ {
+  "function": "func_8003082C",
+  "text": "Best verified 645 (98.0%, 18 diff rows) at revision c1abf32069a270bf4248 / 715fd2b99eb6e0f08e83. Big win came from writing case 22 as `n_alSynSetVol((u8*)v+4, (s16)__vsVol(v,p), func_80031B94(v,p->unk1C));` (nested calls + explicit s16 cast) and the same nested form in case 10 \u2014 that fixed all branch targets and the whole arg-order chain (1795 -> 675 -> 645).\n\nRemaining differences (18 rows, all regalloc/order):\n1) case 5 and case 6: target keeps the osc pointer in $s1 (`lw $s1,0x10($s0)` then `lbu $v0,0x37($s1)`, `sb $s5,0x34($s1)`, `move $a0,$s1`); ours sinks it into $a1 because it is used only across non-call statements. Target also branches `beqz $v0,0xb4` vs our 0xb8 (same size, different target label). Tried: separate o5/o6 locals, declaring `SeqVoice *v5/v6` first, reordering o->unk24 store after the n_alSynSetVol call (that broke everything: 1770). Not tried: making the osc pointer an argument to a helper-like expression, e.g. `n_alSynSetVol(v6, __vsVol(v6->osc, p), s3)` after `o->unk24 = ...` while keeping o live across the call by reading o->unk30 afterwards; or an extra dummy use of o after the call.\n2) case 23: target `mfc1 $a1,$f2` + `nop` then `jal n_alSynSetPitch` / `addiu $a0,$s1,4` in the delay slot; ours emits `mfc1 $v1,$f2`, `addiu $a0,$s1,4`, `jal`, `move $a1,$v1`. Tried pb.i, *(s32*)&pb.f, separate s32 bits local \u2014 all identical. Likely needs the pitch value to be produced directly as the call argument (e.g. pass the float expression through a cast in the call) so gcc keeps it in $a1.\n3) case 13: target orders `lw $v0,0x3c($s2)` before the 0x48F42400 constant setup and has `nop` in the bne delay slot; ours emits `move $a0,$s2` there.\n\nFlags: search_flags says project flags are optimal (-O2 == -O3 == -fno-strength-reduce at 645).",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794718350.9407501,
+  "score_before": 1570,
+  "score_after": 645
+ },
+ {
+  "function": "func_8003082C",
+  "text": "Best 645 (98.0%), revision 715fd2b99eb6e0f08e83 (the full source; get_candidate(base=\"saved_best\") restores it). Not matched: 17 instructions differ, all register choice and one branch. In case 5 the target keeps the voice in $s0 and the osc in $s1 (`lw $s1,0x10($s0)`, `addu $a1,$s1` into __seqpStopOsc), mine loads the osc straight into $a1. Case 6 has the same shape (`lw $s0,0x3c($s2)`, `lw $s1,0x10($s0)`, then `move $a0,$s1`). Tried: merging v5 into the shared `v` (665, worse), and restoring v5 (back to 645). The last diff is `beqz $v0,0xb4` vs `0xb8`, in the same case-5 block. Next: try a block-local osc per case (`{ SeqOsc *o = v->osc; ... }`), which may change the allocation, then the branch.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794728595.26152,
+  "score_before": 645,
+  "score_after": 645
+ },
+ {
+  "function": "func_8003082C",
+  "text": "Hand-written C reaches score 4297 (revision a44aae750701a82c01ac), better than the saved 7814. Structure is right: switch on s16 at 0x38 with cases 0..23, default falls to the alEvtqNextEvent loop. Remaining diff: frame (target 0x50, mine 0x38) and register allocation (target keeps $s5=1, saves $s1-$s5 and $ra, and holds 2^31 in $fs0 for the float-to-int split). The jump table is emitted as ?local instead of jtbl_8004A4C8. Next: widen locals so the saved-register set matches, and check whether the jtbl needs declaring as an extern array.\n\nBest C is revision a44aae750701a82c01ac, score 4297 (86.8%), better than the saved 7814. Structure is right: a do/while around switch(s16 at 0x38) with cases 0..23, and the default path falls to the alEvtqNextEvent loop. Tried: hoisting 2^31 into a local f32 and 1 into a local s32 (revision 133bf5dabd8c29d7afc2) regressed to 4597, so do not repeat that. Remaining diff: target frame is 0x50 (mine 0x38), target saves $s0-$s5, $ra and $fs0 (mine saves fewer, uses $f20). Target has 0x4F000000 loaded into $fs0 at entry, plus $s5=1 hoisted at entry. The jump table is emitted as ?local instead of jtbl_8004A4C8; a jtbl declaration might fix that. Next: try a dispatch that keeps the event pointer in a local so the callee-saved set grows to s0..s5, and check that the jtbl emission matches before tuning locals.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794741809.71571,
+  "score_before": 645,
+  "score_after": 645
+ },
+ {
+  "function": "func_8003082C",
+  "text": "Claim lapsed after the lease expired (no release). Best trial this session: rev a44aae750701a82c01ac scored 7814 (76.1%), worse than saved 4597. The C is a 24-case jump table (lh 0x38; sltiu 0x18) inside do/while. Frame is 0x50 (target) vs mine 0x40, so the locals are too few. Next step: declare the 0x50 frame with the sp14/sp18/sp1C/sp20 locals and take the saved-register order from the target (s2 = arg0 saved first, then s5/s4/s3/s1/s0).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794741867.8754199,
+  "score_before": 645,
+  "score_after": 645
+ },
+ {
+  "function": "func_8003082C",
+  "text": "Best saved: score 4880 (85.1%), candidate revision 1fe9b5feef1de146510e. Source: a switch(F_S16(arg0,0x38)) inside do{}while(ret==0), 23 cases, with raw-offset macros (F_S32/F_PTR/F_U8/...). Gains came from: (1) a local struct Msg {s16 type; void *a; s32 b; u8 c;} declared before f32 fval (matches target sp+0x10 message block, fval at sp+0x20); (2) inlining arg0+0x48 as QUEUE(arg0) at each call (no shared q variable); (3) a s16 local `vol` for __vsVol results (target has sll/sra 16 pairs). Remaining differences: frame is -0x48 (target -0x50): target saves s5 (holds constant 1 / the loop value) at 0x3c and ra at 0x40, s4 at 0x38, f20 at 0x48; the target keeps the ret value in s3 and adds it to 0x1C with it at the tail (ours uses s4 for r); case 22 float-to-u32 branch shape (target: lui 0x8000 + or in the else arm, jal func_80031B94 before the msg stores); case 23 and 16 register choices. Untried: a separate s32 for the loop return value 'ret' kept distinct from the case-local r; try_compiler at -O1 (similar KMC region per proposal notes); moving the `(u8 *)arg0 + 0x38` address into a local for the case 2/7 calls. Prototypes worked out: __vsVol returns s16 (arg0 void*, arg1 void*); func_80031B94(void*, s32) -> s32; alEvtqNextEvent(void*,void*) -> s32.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794759326.566832,
+  "score_before": 645,
+  "score_after": 645
+ },
+ {
+  "function": "func_8003082C",
+  "text": "Best score 4880 (85.1%, revision 76f56079a81c71c08e9e) from a first straight-line draft of the 0x38 message-type switch (cases 0-17, 22, 23 plus 1/3/4). Remaining differences: branch targets and a few ordering/register choices in the cases 6/22/23 blocks; the (s8) store at 0x36 and the float conversion at case 22 (fval >= 2.1474836e9f path) are emitted differently (sb $v0 placed early). Also the string literals \"EX\"/\"n_seqplayer.c\" produce .rodata refs the ROM code does not have at this point, so check whether those calls should pass different constants or whether the literals should be pulled from another location. Not tried: restructuring the switch into if-chains, or checking the jump table shape (compile at -O2 gcc-2.7.2-kmc). Expect several compiles to chase the case-by-case layout.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794761911.6886349,
+  "score_before": 645,
+  "score_after": 645
+ },
+ {
+  "function": "func_8003082C",
+  "text": "Best 4880 (85.1%), unmatched; the saved best is the same source. Candidate is a switch-based message dispatcher with a do/while over alEvtqNextEvent. Remaining diffs: (1) loop tail: target branches `beqz $v0` to 0x4d0 and reloads `lw $s3,0x40(s2)` for the shared `r`, mine keeps it in s4, so the loop-carried `r`/`ret` register assignment is wrong; (2) case 22: target calls n_alSynSetVol with `addiu $a0,$s2,0x48` twice and uses lui 0x8000/or for the float-to-u32 branch, mine stores F_S8 before the setVol call; (3) float compare path: target mfc1 goes to $v1, mine to $v0. Untried next steps: re-read arg0+0x40 in each case instead of one shared local; write the unsigned conversion as (u32)(fval - 2.1474836e9f) ^ 0x80000000 style. Case 16/17 loops and the u8 msg.c store are not yet checked against the target.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794762900.674939,
+  "score_before": 645,
+  "score_after": 645
  }
 ]
