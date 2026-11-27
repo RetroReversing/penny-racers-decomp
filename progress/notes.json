@@ -6224,14 +6224,6 @@
   "score_after": 10
  },
  {
-  "function": "func_80143250",
-  "text": "Cleaned m2c draft compiles at 7722 (51.4%), rev c94277521819e40f8107, 159 insns both sides. Target frame 0xA8 (ours 0xA0); target saves f20..f30 range and loads stack args (lwc1 0xB8, lw 0xBC, lhu 0xC2/0xC6, lbu 0xCB) before the body. Untried: explicit float locals for the sin/cos path and signature variants. Claim lapsed during a slow compile, so this was not released.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794710323.2236679,
-  "score_before": 7136,
-  "score_after": 7136
- },
- {
   "function": "func_80148B44",
   "text": "Not matched. Saved historical best 4170 (m2c draft, not rechecked here). Rewrites tried this session: index-based for-loops with continue (8076), do-while with goto into the inner block and pointer t1 (11346, worse; pointer-to-u16 arithmetic from D_8018D140 mis-scales the second table). Target facts: frame is 0x10 (only ra-less leaf, no spills); loop bounds 0x96 (150 entries) for both tables D_8018D140 and D_8018D26C; the 0x3FFF/0x2FFF/0x4FFF constants are held in t6/t5/t4 registers across loops; the inner compare loop stores into the outer element via the index in t1 and compares (u16 & 0xFFF) of D_8018D26C[j] against it; the count loops use D_80189CB8 (unsigned byte load, signed slt) and D_80189CB9/D_80189CC1 bytes; final loop writes w|0x1000 when (w & 0x700)==0 with stride 0x12C per arg0. Next: keep the m2c draft's goto structure (it is closer to the asm), fix the leaf frame (no locals on stack) and retry with pointer t1 typed as u16 *.",
   "by": "claude-haiku-5-5-24",
@@ -6246,14 +6238,6 @@
   "created_at": 1794710343.743721,
   "score_before": 35,
   "score_after": 35
- },
- {
-  "function": "func_80143250",
-  "text": "Best: revision 6a4b47c2c72dbb5e95eb, score 7346 (53.7%). Hand-written; m2c draft is far worse. Key fixes: func_800DE41C MUST have its real prototype (s32 x6, void*x3, f32x3, s32x3, f32x3) \u2014 unprototyped calls promote f32 args to double (cvt.d.s), which broke everything. Args: arg2 a2->f20(fs4), arg3 a3->f22(fs2), arg4 stack 0xB8 f32 (fs5), arg5 stack 0xBC f32, arg6 u16 at 0xC2, arg7 u16 at 0xC6, arg8 u8 at 0xCB, arg9 u8 at 0xCF. k=360.0f/(f32)(arg6&0xFFFF) hoisted (s4); angle=((f32)i*k+arg5)*0.0174f; sin->fs1, cos->fs0; call func_800DE41C(0,0,1,0,0x5B,arg8&0xFF,&D_802390C8,func_801434CC,func_801435A8, sin*arg4+e->0x18, fs3, cos*arg4+e->0x20, 0,0,0, arg3,arg3,arg3). Element store when (u16)(r+2)>=2: s16 +8,+6,+4,+2 = 0x40; f32 +0x44 = sin*arg2; f32 +0x4C = cos*arg2; s32 +0x48 = arg1; u16 +0x40 = arg7. Remaining gap: target frame is 0xA8 with fp,s7..s0,ra and six doubles fs0-fs5 (sdc1); ours is 0xA0, so the stack-arg offsets are 8 low (we load arg4 from 0xB0, target 0xB8). Try adding one more live callee-saved (e.g. keep arg1 in s7 and arg7 in s6 across the calls by using them after the element test) so gcc saves fp,s7 and the frame reaches 0xA8.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794710391.1070101,
-  "score_before": 7136,
-  "score_after": 7136
  },
  {
   "function": "sqrtf",
@@ -8702,14 +8686,6 @@
   "created_at": 1794725875.781461,
   "score_before": 15,
   "score_after": 15
- },
- {
-  "function": "func_80143250",
-  "text": "Signature from asm: a0 arg0 (masked, rec=&D_8011F2F0+idx*100), a1 arg1 (stored at rec+0x48), a2/a3 f32 arg2/arg3 (moved to fs4/fs2 via mtc1), stack 0xB8 f32 arg4 (lwc1), stack 0xBC arg5 is loaded as an INTEGER (lw $fp) and moved with mtc1 later, so it is f32 bits in an int slot: declare s32 and reinterpret. arg6 u16 at 0xC2, arg7 u16 at 0xC6, arg8 u8 at 0xCB, arg9 u8 at 0xCF. Target frame 0xA8 saves ra,fp,s7..s0 and six doubles fs0..fs5; my versions produce 0xA0 with only 5 doubles, so the float live-range set is wrong: arg2, arg3, arg4 and the sin/cos values must all be live across the loop calls. Loop: angle = (i*(360/n) + arg5)*0.0174532925f (constant 0x3C8E8A72); __sinf then __cosf; call func_800DE41C(0,0,1,0,0x5B,arg8&0xFF,&D_802390C8,&func_801434CC,&func_801435A8, s*arg4+rec[0x18], fs3, c*arg4+rec[0x20], 0,0,0, arg3,arg3,arg3); fs3 = rec[0x1C] or D_8016891C[u16 rec[0x40]*0x5C] when arg9 != 0. Store block if (u16)(r+2)>=2 writes rec2 = base + (u16)r*100. Best so far 7532 (7691 with s32 arg5 reinterpret, which is worse). Untried: reproduce the six saved double registers (keep arg2/arg3/arg4 and the sin/cos values in separate locals across the call), and try arg5 as f32 with an explicit mtc1-style cast.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794725897.073503,
-  "score_before": 7136,
-  "score_after": 7136
  },
  {
   "function": "func_80148B44",
@@ -11222,14 +11198,6 @@
   "created_at": 1794739750.377084,
   "score_before": null,
   "score_after": null
- },
- {
-  "function": "func_80143250",
-  "text": "Not matched. Best 7532 (52.6%) from one compile. Release reason: the frame size is the blocker and I have not worked out the stack-argument layout. Target frame is 0xa8 and mine is 0xa0. Target saves $ra at 0x74, $fp at 0x70, $s7 at 0x6c, $s6 at 0x68, $s5 at 0x64, and loads stack args (arg6/arg7 halfwords at 0xba/0xbe, arg8 byte at 0xc3, pointer at 0xb4). Mine lacks these, so the register and save order differs throughout. Next step for whoever picks this up: model the stack args as a prototype with 10+ params (or a struct overlay on the caller frame) and get the frame to 0xa8 before tuning the float or call logic. The sinf/cosf and func_800DE41C call sequence is not yet checked against the target.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794739853.468857,
-  "score_before": 7136,
-  "score_after": 7136
  },
  {
   "function": "func_80148B44",
@@ -14720,14 +14688,6 @@
   "score_after": 4170
  },
  {
-  "function": "func_80143250",
-  "text": "Not matched. One compile of the machine-draft-based candidate scored 7532 (52.6%, 159 insns each side). The target frame is 0xa8, mine 0xa0. The target loads several args from the caller's stack area (lhu 0xba(sp), lhu 0xbe(sp), lbu 0xc3(sp), lw 0xb4(sp), lwc1 0xb0(sp)), so the signature is wrong: arg6..arg9 and possibly extra f32 args are stack args, and the struct/arg layout must be re-derived before the body is worth tuning. The target also saves $ra at 0x74(sp) and $fp/$s5-$s7 in a different order. Next step: fix the prototype first (check guess_struct / find_similar for the same call-site shape), then the frame, then the loop body.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794754367.7888398,
-  "score_before": 7136,
-  "score_after": 7136
- },
- {
   "function": "func_80029890",
   "text": "20 trials no improvement from verified9. Same nine stack offset mismatches as297E8; reversed Msg/mq declarations and explicit struct aggregate produce556 with extra saved register. Local repairs declarations/types/arity/guards exhausted current round without gain. Need message at sp10 queue28 while retaining s0 reuse after m.f20 store.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -15878,14 +15838,6 @@
   "created_at": 1794758153.216976,
   "score_before": 6450,
   "score_after": 6450
- },
- {
-  "function": "func_80143250",
-  "text": "Best 7532 (52.6%, revision 42bd52a4a509). Releasing because the remaining gap is structural and I could not close it in this session: (1) target frame is 0xa8 with ra at 0x74, ours 0xa0 \u2014 the stack-argument list is wrong (target loads lhu 0xb8/0xbc, lbu 0xc3, lw fp 0xb4 from stack args, so there are more or wider parameters than the 10 in the draft); (2) our draft spills f30 (sdc1/lwc1 at 0x98/0xb0) which the target does not, so the float locals/temps differ; (3) the signedness family (rec as s8*) changed nothing. Next: determine the full parameter list from the stack-argument offsets in get_assembly, then rebuild the staging of rec/rec2 and the float temps (ang/s/c) before touching registers.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794758165.9517188,
-  "score_before": 7136,
-  "score_after": 7136
  },
  {
   "function": "func_80211E9C",
@@ -19046,14 +18998,6 @@
   "created_at": 1794764414.299335,
   "score_before": 100,
   "score_after": 100
- },
- {
-  "function": "func_80143250",
-  "text": "Not matched. Best 7532 (52.6%) with the draft as submitted; saved 7532 reproduces. Target frame is 0xa8 with no f30 save, and reads caller-area args at 0xb4 (word into fp), 0xba and 0xbe (halfwords), 0xc3 (byte into s5). My draft has a 0xa0 frame, saves f30, and loads args at different offsets, so the parameter types/order for arg2..arg9 are wrong. Next: rederive the parameter list from those stack loads (arg4/arg5 may not both be f32; check arg8/arg9 types), then retune. Not tried: -O1 or other compilers.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794765695.505374,
-  "score_before": 7136,
-  "score_after": 7136
  },
  {
   "function": "func_8002D520",
@@ -41216,5 +41160,70 @@
   "score_before": 4100,
   "score_after": 2685,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:288f0b8ea084aba58ce64a5e2bfe13b0a3284e66eb8cdbe07f7861ccd3229b97"
+ },
+ {
+  "function": "func_80143250",
+  "text": "Cleaned m2c draft compiles at 7722 (51.4%), rev c94277521819e40f8107, 159 insns both sides. Target frame 0xA8 (ours 0xA0); target saves f20..f30 range and loads stack args (lwc1 0xB8, lw 0xBC, lhu 0xC2/0xC6, lbu 0xCB) before the body. Untried: explicit float locals for the sin/cos path and signature variants. Claim lapsed during a slow compile, so this was not released.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794710323.2236679,
+  "score_before": 7136,
+  "score_after": 7136
+ },
+ {
+  "function": "func_80143250",
+  "text": "Best: revision 6a4b47c2c72dbb5e95eb, score 7346 (53.7%). Hand-written; m2c draft is far worse. Key fixes: func_800DE41C MUST have its real prototype (s32 x6, void*x3, f32x3, s32x3, f32x3) \u2014 unprototyped calls promote f32 args to double (cvt.d.s), which broke everything. Args: arg2 a2->f20(fs4), arg3 a3->f22(fs2), arg4 stack 0xB8 f32 (fs5), arg5 stack 0xBC f32, arg6 u16 at 0xC2, arg7 u16 at 0xC6, arg8 u8 at 0xCB, arg9 u8 at 0xCF. k=360.0f/(f32)(arg6&0xFFFF) hoisted (s4); angle=((f32)i*k+arg5)*0.0174f; sin->fs1, cos->fs0; call func_800DE41C(0,0,1,0,0x5B,arg8&0xFF,&D_802390C8,func_801434CC,func_801435A8, sin*arg4+e->0x18, fs3, cos*arg4+e->0x20, 0,0,0, arg3,arg3,arg3). Element store when (u16)(r+2)>=2: s16 +8,+6,+4,+2 = 0x40; f32 +0x44 = sin*arg2; f32 +0x4C = cos*arg2; s32 +0x48 = arg1; u16 +0x40 = arg7. Remaining gap: target frame is 0xA8 with fp,s7..s0,ra and six doubles fs0-fs5 (sdc1); ours is 0xA0, so the stack-arg offsets are 8 low (we load arg4 from 0xB0, target 0xB8). Try adding one more live callee-saved (e.g. keep arg1 in s7 and arg7 in s6 across the calls by using them after the element test) so gcc saves fp,s7 and the frame reaches 0xA8.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794710391.1070101,
+  "score_before": 7136,
+  "score_after": 7136
+ },
+ {
+  "function": "func_80143250",
+  "text": "Signature from asm: a0 arg0 (masked, rec=&D_8011F2F0+idx*100), a1 arg1 (stored at rec+0x48), a2/a3 f32 arg2/arg3 (moved to fs4/fs2 via mtc1), stack 0xB8 f32 arg4 (lwc1), stack 0xBC arg5 is loaded as an INTEGER (lw $fp) and moved with mtc1 later, so it is f32 bits in an int slot: declare s32 and reinterpret. arg6 u16 at 0xC2, arg7 u16 at 0xC6, arg8 u8 at 0xCB, arg9 u8 at 0xCF. Target frame 0xA8 saves ra,fp,s7..s0 and six doubles fs0..fs5; my versions produce 0xA0 with only 5 doubles, so the float live-range set is wrong: arg2, arg3, arg4 and the sin/cos values must all be live across the loop calls. Loop: angle = (i*(360/n) + arg5)*0.0174532925f (constant 0x3C8E8A72); __sinf then __cosf; call func_800DE41C(0,0,1,0,0x5B,arg8&0xFF,&D_802390C8,&func_801434CC,&func_801435A8, s*arg4+rec[0x18], fs3, c*arg4+rec[0x20], 0,0,0, arg3,arg3,arg3); fs3 = rec[0x1C] or D_8016891C[u16 rec[0x40]*0x5C] when arg9 != 0. Store block if (u16)(r+2)>=2 writes rec2 = base + (u16)r*100. Best so far 7532 (7691 with s32 arg5 reinterpret, which is worse). Untried: reproduce the six saved double registers (keep arg2/arg3/arg4 and the sin/cos values in separate locals across the call), and try arg5 as f32 with an explicit mtc1-style cast.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794725897.073503,
+  "score_before": 7136,
+  "score_after": 7136
+ },
+ {
+  "function": "func_80143250",
+  "text": "Not matched. Best 7532 (52.6%) from one compile. Release reason: the frame size is the blocker and I have not worked out the stack-argument layout. Target frame is 0xa8 and mine is 0xa0. Target saves $ra at 0x74, $fp at 0x70, $s7 at 0x6c, $s6 at 0x68, $s5 at 0x64, and loads stack args (arg6/arg7 halfwords at 0xba/0xbe, arg8 byte at 0xc3, pointer at 0xb4). Mine lacks these, so the register and save order differs throughout. Next step for whoever picks this up: model the stack args as a prototype with 10+ params (or a struct overlay on the caller frame) and get the frame to 0xa8 before tuning the float or call logic. The sinf/cosf and func_800DE41C call sequence is not yet checked against the target.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794739853.468857,
+  "score_before": 7136,
+  "score_after": 7136
+ },
+ {
+  "function": "func_80143250",
+  "text": "Not matched. One compile of the machine-draft-based candidate scored 7532 (52.6%, 159 insns each side). The target frame is 0xa8, mine 0xa0. The target loads several args from the caller's stack area (lhu 0xba(sp), lhu 0xbe(sp), lbu 0xc3(sp), lw 0xb4(sp), lwc1 0xb0(sp)), so the signature is wrong: arg6..arg9 and possibly extra f32 args are stack args, and the struct/arg layout must be re-derived before the body is worth tuning. The target also saves $ra at 0x74(sp) and $fp/$s5-$s7 in a different order. Next step: fix the prototype first (check guess_struct / find_similar for the same call-site shape), then the frame, then the loop body.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794754367.7888398,
+  "score_before": 7136,
+  "score_after": 7136
+ },
+ {
+  "function": "func_80143250",
+  "text": "Best 7532 (52.6%, revision 42bd52a4a509). Releasing because the remaining gap is structural and I could not close it in this session: (1) target frame is 0xa8 with ra at 0x74, ours 0xa0 \u2014 the stack-argument list is wrong (target loads lhu 0xb8/0xbc, lbu 0xc3, lw fp 0xb4 from stack args, so there are more or wider parameters than the 10 in the draft); (2) our draft spills f30 (sdc1/lwc1 at 0x98/0xb0) which the target does not, so the float locals/temps differ; (3) the signedness family (rec as s8*) changed nothing. Next: determine the full parameter list from the stack-argument offsets in get_assembly, then rebuild the staging of rec/rec2 and the float temps (ang/s/c) before touching registers.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794758165.9517188,
+  "score_before": 7136,
+  "score_after": 7136
+ },
+ {
+  "function": "func_80143250",
+  "text": "Not matched. Best 7532 (52.6%) with the draft as submitted; saved 7532 reproduces. Target frame is 0xa8 with no f30 save, and reads caller-area args at 0xb4 (word into fp), 0xba and 0xbe (halfwords), 0xc3 (byte into s5). My draft has a 0xa0 frame, saves f30, and loads args at different offsets, so the parameter types/order for arg2..arg9 are wrong. Next: rederive the parameter list from those stack loads (arg4/arg5 may not both be f32; check arg8/arg9 types), then retune. Not tried: -O1 or other compilers.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794765695.505374,
+  "score_before": 7136,
+  "score_after": 7136
+ },
+ {
+  "function": "func_80143250",
+  "text": "Profile probe: this saved C scores 2111 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (9 of its 12 nearest matched neighbours were built with it), 3836 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721220.625809,
+  "score_before": 3836,
+  "score_after": 2111,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:26ad1b27376b5624e4a03da3e069266902708a20ad1db08bd8cce0f95995e9bb"
  }
 ]
