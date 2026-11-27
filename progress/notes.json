@@ -3016,14 +3016,6 @@
   "score_after": 37040
  },
  {
-  "function": "func_8015C560",
-  "text": "Deep permuter: score 10525 \u2192 9585; 3 improvements; 156 candidates tested; 0 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935526",
-  "created_at": 1794348449.955412,
-  "score_before": 10525,
-  "score_after": 9585
- },
- {
   "function": "func_800DECCC",
   "text": "Deep permuter: score 7543 \u2192 7353; 1 improvements; 71 candidates tested; 44 cached skips; 0 rejected; 7209s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934596",
@@ -6760,14 +6752,6 @@
   "score_after": 265
  },
  {
-  "function": "func_8015C560",
-  "text": "728-byte GBI display-list builder. Best: saved_best be1d990442a96a35967a (m2c draft, historical 9585); my two rewrites (single-if-return form and && form with typed u8*/s32* arrays) both rechecked 12625, so structure is not the blocker.\n\nVerified target facts (get_assembly):\n- entry: `addu $t1, $a0, $zero` then `andi $v0,$a1,0xffff` / sll/addu chain for *0x64; `lhu` on D_8011F32E+off, `beqz -> .L8015C830` (single exit epilogue, no early-return code emitted), then `lui $t5`/`addu $t5,$t5,$a0` + `lbu %lo(D_8011F2F0)($t5)` \u2014 note the low half is folded into the lbu, so the index table is accessed with one lui.\n- float gate: lwc1 D_8022AFD4 + idx*0x8F0 (sll3/addu/sll4/subu/sll4 = *0x8F0), cvt.d.s, ldc1 D_80183968, c.lt.d + bc1f; then lwc1 D_8011F334+off, cvt.d.s, c.eq.d vs zero + bc1t to epilogue.\n- 8 GBI commands emitted through `lw $a0,0($t1); addiu $v0,$a0,8; sw $v0,0($t1)` (arg0 pointer kept in $t1, *not* reloaded from the stack). Words: FA000000/<D_8011F2FC+off byte>, FD900000/D_80182E20, F5900000/07080200, E6000000/0, F3000000/07007400, E7000000/0, F5800400/00080200, F2000000/0007C000.\n- copy loop: ascending $t0 0..3, `slti $v0,$t0,4; bnez` backedge with a `nop` delay slot, src D_80189970+(t5<<6), dst D_80189DC8+D_80046834*0x1C0+(t5<<6), 4 lw + 4 sw per iteration; base addresses hoisted (lui $t4 D_80189DC8, lui $v0 D_80189970, $t3 = t2+$v0).\n- then 0400103F / (D_80189DC8 + D_80046834*0x1C0 + (t5<<6)); tail `mtc1 $zero` + `c.le.s $fv0,$ft0` + bc1f, B1000204/00020604 vs B1000402/00020406.\n\nRemaining: get the arg0 pointer into a single local used for all 9 `*dl` accesses so $t1 is live across the whole function (my `s32 **dl` attempt did not change score, but the register/order diff at row 0 shows $t1 missing), and make the 0x64 index computed once into a register reused by both D_8011F32E and D_8011F2FC loads. try_local_repairs still lists 38+ proposals (signedness, declaration_order, cfg_integer_lifetimes).",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794710542.7538738,
-  "score_before": 9585,
-  "score_after": 9585
- },
- {
   "function": "func_80164D00",
   "text": "Not matched. Best saved revision 9407f45b2fe5e518188f scores 3618 on fresh compile (79.4%); the saved-best 649 is historical. Target frame is 0x88 with saves of ra, s0-s3 and f20/f22/f24/f26; ours is 0x80 with s0-s2 and f20-f24. So the target keeps one more integer value (s3) and one more float (f26) live across calls, which the source does not account for. Tried: (a) idx as a local s32 (7024, worse); (b) hoisting the three D_8011F308/30C/310 float loads into locals before the func_800DE41C call (6447, worse); (c) the saved-best form with arg0 copied to temp_s2 (kept). Not yet tried: a float local for the (-x*8)+sin/cos sums computed before the func_801D7028 call, and a second s32 local for the 0x7C0/0x7C4/0x7C8 values to force an extra saved register. Next step: check get_assembly for where s3 and f26 are first written; that identifies the extra local.",
   "by": "claude-haiku-5-5-23",
@@ -10000,14 +9984,6 @@
   "score_after": 265
  },
  {
-  "function": "func_8015C560",
-  "text": "Display-list emitter with a 4-iteration 16-byte copy loop. Structure from asm: off=(arg1&0xFFFF)*100; if (u16 D_8011F32E[off]==0) return; t5=u8 D_8011F2F0[off]; ft0=f32 D_8022AFD4[t5*0x8F0]; if (!(D_80183968 < (f64)ft0) || (f64)f32 D_8011F334[off] != 0.0) { emit 8 commands (FA000000 with p[1]=u8 D_8011F2FC[off]; FD900000/&D_80182E20; F5900000/07080200; E6000000/0; F3000000/07007400; E7000000/0; F5800400/00080200; F2000000/0007C000); copy 4x16 bytes from D_80189970+(t5<<6) to D_80189DC8+D_80046834*0x1C0+(t5<<6); emit 0400103F with p[1]=D_80046834*0x1C0+(t5<<6)+&D_80189DC8; if (ft0>=0) emit B1000204/20604 else B1000402/20406 }. Each emit is `p=*arg0; *arg0=p+2; p[0]=w0; p[1]=w1` with arg0 kept in t1 (target does `move $t1,$a0` first; it is not a separate helper, so do not factor it into a function, which produced a call). Scores: m2c draft derivative 8635 (saved best, still best); my inline-emit rewrite 10490 (the copy loop and final emit order are close; diffs are register assignment t5/t1 and the store ordering around 0x07080200 and F5800400). Untried: write the t5 variable as a u32 local so the andi 0xFF stays in v1 as in target, and check whether the copy loop should be fully unrolled (target uses a loop with lw/sw pairs per word at offsets 0,4,8,C).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794726163.283932,
-  "score_before": 8635,
-  "score_after": 8635
- },
- {
   "function": "func_8015FEC0",
   "text": "Not matched. Best this session 4424 (revision 0aea37d3bd1513f77a5a; saved best is 2664 from another attempt, so take that as the start if needed). Structure is right: s1=*(s32*)(arg0+0x898); if s1==1 && !(u16 0x560 &0xF) {v=func_8013E364(); s0=v; s2=v&0xFFFF; if s2!=0xFFFF {...}}; s4 = D_8011F2F0 + (u16)arg0[2]*0x64; func_800DE41C with 18 args (floats at stack 0x24..0x2C and 0x3C..0x44; the three last floats are the constant 0.05f, bits 0x3D4CCCCD); return path calls func_8013E49C(s2 or s1, a1) (its context.h prototype takes one u16, so the call is done via a cast of the function pointer to (s32(*)(s32,s32)) to keep the 2-arg call); loop do/while s2<3 with D_8018D6C4[s0*0x7C]=arg0 and D_8018D6D6[s0*0x7C] stored as a byte (sb s2), and func_801D7028(a1,0x32). Remaining diff: frame. Target is 0x70 with ra,s4,s3,s2,s1,s0 and fs0 (0.05f kept in a callee-saved FP reg across the loop, swc1 $fs0 for the last three args). Ours is 0x80 with sdc1 $f20, so the constant is not kept in $fs0 and arg0 is copied to $s3 at entry (move $s3,$a0 is in target too). Try: write the 0.05f constant into a local f32 declared at block start and reuse it in the three stack args so it lives in $fs0; and make s4 a local that is kept across the loop (target keeps s4 across both calls). Note: declarations must come at the start of each block (C89 in this compiler).",
   "by": "claude-haiku-5-5-21",
@@ -13046,14 +13022,6 @@
   "created_at": 1794739995.921291,
   "score_before": 3969,
   "score_after": 3969
- },
- {
-  "function": "func_8015C560",
-  "text": "Not matched this session. Saved best 8635 (30.6% range). My rewrite scored 12625 (worse), and it is a placeholder: the 4-iteration loop body does not emit the 0x10-byte copies from D_80189970 to D_80189DC8 + D_80046834*0x1C0 + (type<<6), so the shape is wrong there. Target indexes 0x64-stride tables with (arg1&0xFFFF)*100 via a sll/addu chain. D_8011F32E/D_8011F2F0/D_8011F2FC/D_8011F334 are per-entry tables; D_8022AFD4 is indexed by type*0x8F0. Display list writes are 2-word Gfx pairs through the *arg0 bump pointer. Next step: restore saved best, implement the loop as a real copy, then fix the register order. Releasing now because the rewrite path is blocked on the loop shape, not on registers.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794740018.736756,
-  "score_before": 8635,
-  "score_after": 8635
  },
  {
   "function": "func_8014A4C8",
@@ -17552,14 +17520,6 @@
   "score_after": 2664
  },
  {
-  "function": "func_8015C560",
-  "text": "func_8015C560 (728 B). Not matched. Saved best 8635 (machine draft/permuter); my best this session 10285. From asm: idx=arg1&0xFFFF, off=idx*100 (sll/addu chain); f=*(f32*)(D_8022AFD4 + u8(D_8011F2F0[off])*0x8F0); early-out if u16 D_8011F32E[off]==0 (target uses lhu). Display-list words written as 8-byte pairs: 0xFA000000,0xFD900000,0xF5900000,0xE6000000,0xF3000000,0xE7000000,0xF5800400,0xF2000000, then a 4-iteration 16-byte copy from D_80189970 to D_80189DC8+D_80046834*0x1C0+(t5<<6), then 0x0400103F, then 0xB1000204/0xB1000402 chosen by f>=0. Remaining diffs: target keeps arg0 in $t1 (move at entry) and computes address chains in $v0/$v1 with $t5 for the loads; my for-loop with d[]/s[] arrays schedules differently and adds a stray cvt.d.s. Next try: restore saved best via get_candidate(base=\"saved_best\") and follow the m2c draft's explicit pointer-advance structure instead of my loop rewrite.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794754459.3502662,
-  "score_before": 8635,
-  "score_after": 8635
- },
- {
   "function": "func_80164D00",
   "text": "No match. Saved best 649 (source in brief) remains the baseline; it fails to compile as-is in the current context because its local prototype `s32 func_8013E49C(s32)` conflicts with context.h `func_8013E49C(u16)`. Removing that prototype gives score 3618 (frame 0x80 vs target 0x88; target saves s0-s3 and f20/f22/f24/f26, we save only f20-f24 and s0-s2). Using `3.14` (double) instead of `3.14f` is much worse (6093): target uses single-precision mul.s/div.s. Target keeps arg0 in s2 via `move $s2,$a0` and loads `lw $s1,0x898($s2)` from it; the one-off `temp_s2` copy did not change the score. Untried: an extra live f32 across the second call, or a shared u16 index local for the D_8011F3xx offset to force the s3 slot.",
   "by": "claude-haiku-5-5-20",
@@ -18086,14 +18046,6 @@
   "created_at": 1794755958.652846,
   "score_before": 649,
   "score_after": 649
- },
- {
-  "function": "func_8015C560",
-  "text": "Triage only, not attempted. Not yet compiled. Shape from m2c draft: N64 display-list builder. Takes void **arg0 (display list pointer, advanced by 8 per command), arg1 masked to u16 with stride 0x64 into D_8011F2F0 (flag at +0x40 read via D_8011F32E[], state at D_8011F2F0[...]). Emits fixed F3/F5/F2/E6/E7 commands, a 4-iteration copy loop (16-byte stride, source D_80189970, dest D_80189DC8 + D_80046834*0x1C0), then a 0x0400103F command and a sign-dependent B1 command. The draft has a leftover `/*__repair_loop_weight*/` artefact and an invalid `do{...}while(0)` around temp_a0, so it must be cleaned before compiling. Next: write the loop with a plain for (i < 4) and check the sign branch against ft0 >= 0.0f.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794755970.366656,
-  "score_before": 8635,
-  "score_after": 8635
  },
  {
   "function": "func_80026D40",
@@ -19478,14 +19430,6 @@
   "created_at": 1794758562.477857,
   "score_before": 15255,
   "score_after": 15255
- },
- {
-  "function": "func_8015C560",
-  "text": "Not matched. Current candidate 10375 (42.9%, target 182 insns, mine 169); the saved historical best 8635 is better, so use get_candidate(base=\"saved_best\") if continuing from that. What is right: a display-list writer that emits 8 gDP-style words (0xFA000000, 0xFD900000, 0xF5900000, 0xE6000000, 0xF3000000, 0xE7000000, 0xF5800400, 0xF2000000), a 4-iteration copy of 16-byte blocks, then 0x0400103F and a 0xB1000204/0xB1000402 choice on temp_ft0 >= 0. Fixes that helped: D_8011F32E is u16 (lhu), not u8; the copy goes from D_80189DC8 + D_80046834*0x1C0 + (t5<<6) into D_80189970 + (t5<<6). Remaining diffs: (1) index math: the target computes idx*100 as ((idx*2+idx)*8+idx)*4-style shifts, and it reuses a single address per access; (2) the immediate words of the gDP commands are emitted in a different order, and the 0x07007400 / 0x07080200 / 0x80200 / 0x7C000 values sit at different row positions than mine, so check the word order around the E6/E7 pairs; (3) the early exit (beqz) is at a different instruction position. Next step: fix index arithmetic, then the gDP order.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794758584.151407,
-  "score_before": 8635,
-  "score_after": 8635
  },
  {
   "function": "func_8015F33C",
@@ -23966,14 +23910,6 @@
   "created_at": 1794767879.2427342,
   "score_before": 8675,
   "score_after": 8675
- },
- {
-  "function": "func_8015C560",
-  "text": "No match. Best 7245 (60.1%), revision 67c2118902c8f485922c. Same structure as before: lhu D_8011F32E[OFF] gate; t5 = D_8011F2F0[OFF] read inside; ft0 = D_8022AFD4 at (t5&0xFF)*0x8F0; body condition !(D_80183968 < (f64)ft0) || (f64)D_8011F334[OFF] != 0.0; eight GW commands; 4-iteration copy of 16-byte blocks from D_80189970+(t5<<6) to D_80189DC8+D_80046834*0x1C0+(t5<<6); 0x0400103F with that dst address; then 0xB1000204/0x20604 if 0<=ft0 else 0xB1000402/0x20406. Remaining diffs: the target's first pointer store register is $t1 (arg0 copy) and t5 lives in $t5 across the GWs, while mine uses $t1 for t5 and $a3 for the masked value; the target writes the 0x0400103F address through $v1 after the loop (one fewer temporary). Next: try the copy loop with src/dst computed before the GWs. Move on.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794767885.861532,
-  "score_before": 8635,
-  "score_after": 7245
  },
  {
   "function": "func_801429A8",
@@ -40546,5 +40482,86 @@
   "created_at": 1794767831.184333,
   "score_before": 2125,
   "score_after": 2125
+ },
+ {
+  "function": "func_8015C560",
+  "text": "Deep permuter: score 10525 \u2192 9585; 3 improvements; 156 candidates tested; 0 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935526",
+  "created_at": 1794348449.955412,
+  "score_before": 10525,
+  "score_after": 9585
+ },
+ {
+  "function": "func_8015C560",
+  "text": "728-byte GBI display-list builder. Best: saved_best be1d990442a96a35967a (m2c draft, historical 9585); my two rewrites (single-if-return form and && form with typed u8*/s32* arrays) both rechecked 12625, so structure is not the blocker.\n\nVerified target facts (get_assembly):\n- entry: `addu $t1, $a0, $zero` then `andi $v0,$a1,0xffff` / sll/addu chain for *0x64; `lhu` on D_8011F32E+off, `beqz -> .L8015C830` (single exit epilogue, no early-return code emitted), then `lui $t5`/`addu $t5,$t5,$a0` + `lbu %lo(D_8011F2F0)($t5)` \u2014 note the low half is folded into the lbu, so the index table is accessed with one lui.\n- float gate: lwc1 D_8022AFD4 + idx*0x8F0 (sll3/addu/sll4/subu/sll4 = *0x8F0), cvt.d.s, ldc1 D_80183968, c.lt.d + bc1f; then lwc1 D_8011F334+off, cvt.d.s, c.eq.d vs zero + bc1t to epilogue.\n- 8 GBI commands emitted through `lw $a0,0($t1); addiu $v0,$a0,8; sw $v0,0($t1)` (arg0 pointer kept in $t1, *not* reloaded from the stack). Words: FA000000/<D_8011F2FC+off byte>, FD900000/D_80182E20, F5900000/07080200, E6000000/0, F3000000/07007400, E7000000/0, F5800400/00080200, F2000000/0007C000.\n- copy loop: ascending $t0 0..3, `slti $v0,$t0,4; bnez` backedge with a `nop` delay slot, src D_80189970+(t5<<6), dst D_80189DC8+D_80046834*0x1C0+(t5<<6), 4 lw + 4 sw per iteration; base addresses hoisted (lui $t4 D_80189DC8, lui $v0 D_80189970, $t3 = t2+$v0).\n- then 0400103F / (D_80189DC8 + D_80046834*0x1C0 + (t5<<6)); tail `mtc1 $zero` + `c.le.s $fv0,$ft0` + bc1f, B1000204/00020604 vs B1000402/00020406.\n\nRemaining: get the arg0 pointer into a single local used for all 9 `*dl` accesses so $t1 is live across the whole function (my `s32 **dl` attempt did not change score, but the register/order diff at row 0 shows $t1 missing), and make the 0x64 index computed once into a register reused by both D_8011F32E and D_8011F2FC loads. try_local_repairs still lists 38+ proposals (signedness, declaration_order, cfg_integer_lifetimes).",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794710542.7538738,
+  "score_before": 9585,
+  "score_after": 9585
+ },
+ {
+  "function": "func_8015C560",
+  "text": "Display-list emitter with a 4-iteration 16-byte copy loop. Structure from asm: off=(arg1&0xFFFF)*100; if (u16 D_8011F32E[off]==0) return; t5=u8 D_8011F2F0[off]; ft0=f32 D_8022AFD4[t5*0x8F0]; if (!(D_80183968 < (f64)ft0) || (f64)f32 D_8011F334[off] != 0.0) { emit 8 commands (FA000000 with p[1]=u8 D_8011F2FC[off]; FD900000/&D_80182E20; F5900000/07080200; E6000000/0; F3000000/07007400; E7000000/0; F5800400/00080200; F2000000/0007C000); copy 4x16 bytes from D_80189970+(t5<<6) to D_80189DC8+D_80046834*0x1C0+(t5<<6); emit 0400103F with p[1]=D_80046834*0x1C0+(t5<<6)+&D_80189DC8; if (ft0>=0) emit B1000204/20604 else B1000402/20406 }. Each emit is `p=*arg0; *arg0=p+2; p[0]=w0; p[1]=w1` with arg0 kept in t1 (target does `move $t1,$a0` first; it is not a separate helper, so do not factor it into a function, which produced a call). Scores: m2c draft derivative 8635 (saved best, still best); my inline-emit rewrite 10490 (the copy loop and final emit order are close; diffs are register assignment t5/t1 and the store ordering around 0x07080200 and F5800400). Untried: write the t5 variable as a u32 local so the andi 0xFF stays in v1 as in target, and check whether the copy loop should be fully unrolled (target uses a loop with lw/sw pairs per word at offsets 0,4,8,C).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794726163.283932,
+  "score_before": 8635,
+  "score_after": 8635
+ },
+ {
+  "function": "func_8015C560",
+  "text": "Not matched this session. Saved best 8635 (30.6% range). My rewrite scored 12625 (worse), and it is a placeholder: the 4-iteration loop body does not emit the 0x10-byte copies from D_80189970 to D_80189DC8 + D_80046834*0x1C0 + (type<<6), so the shape is wrong there. Target indexes 0x64-stride tables with (arg1&0xFFFF)*100 via a sll/addu chain. D_8011F32E/D_8011F2F0/D_8011F2FC/D_8011F334 are per-entry tables; D_8022AFD4 is indexed by type*0x8F0. Display list writes are 2-word Gfx pairs through the *arg0 bump pointer. Next step: restore saved best, implement the loop as a real copy, then fix the register order. Releasing now because the rewrite path is blocked on the loop shape, not on registers.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794740018.736756,
+  "score_before": 8635,
+  "score_after": 8635
+ },
+ {
+  "function": "func_8015C560",
+  "text": "func_8015C560 (728 B). Not matched. Saved best 8635 (machine draft/permuter); my best this session 10285. From asm: idx=arg1&0xFFFF, off=idx*100 (sll/addu chain); f=*(f32*)(D_8022AFD4 + u8(D_8011F2F0[off])*0x8F0); early-out if u16 D_8011F32E[off]==0 (target uses lhu). Display-list words written as 8-byte pairs: 0xFA000000,0xFD900000,0xF5900000,0xE6000000,0xF3000000,0xE7000000,0xF5800400,0xF2000000, then a 4-iteration 16-byte copy from D_80189970 to D_80189DC8+D_80046834*0x1C0+(t5<<6), then 0x0400103F, then 0xB1000204/0xB1000402 chosen by f>=0. Remaining diffs: target keeps arg0 in $t1 (move at entry) and computes address chains in $v0/$v1 with $t5 for the loads; my for-loop with d[]/s[] arrays schedules differently and adds a stray cvt.d.s. Next try: restore saved best via get_candidate(base=\"saved_best\") and follow the m2c draft's explicit pointer-advance structure instead of my loop rewrite.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794754459.3502662,
+  "score_before": 8635,
+  "score_after": 8635
+ },
+ {
+  "function": "func_8015C560",
+  "text": "Triage only, not attempted. Not yet compiled. Shape from m2c draft: N64 display-list builder. Takes void **arg0 (display list pointer, advanced by 8 per command), arg1 masked to u16 with stride 0x64 into D_8011F2F0 (flag at +0x40 read via D_8011F32E[], state at D_8011F2F0[...]). Emits fixed F3/F5/F2/E6/E7 commands, a 4-iteration copy loop (16-byte stride, source D_80189970, dest D_80189DC8 + D_80046834*0x1C0), then a 0x0400103F command and a sign-dependent B1 command. The draft has a leftover `/*__repair_loop_weight*/` artefact and an invalid `do{...}while(0)` around temp_a0, so it must be cleaned before compiling. Next: write the loop with a plain for (i < 4) and check the sign branch against ft0 >= 0.0f.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794755970.366656,
+  "score_before": 8635,
+  "score_after": 8635
+ },
+ {
+  "function": "func_8015C560",
+  "text": "Not matched. Current candidate 10375 (42.9%, target 182 insns, mine 169); the saved historical best 8635 is better, so use get_candidate(base=\"saved_best\") if continuing from that. What is right: a display-list writer that emits 8 gDP-style words (0xFA000000, 0xFD900000, 0xF5900000, 0xE6000000, 0xF3000000, 0xE7000000, 0xF5800400, 0xF2000000), a 4-iteration copy of 16-byte blocks, then 0x0400103F and a 0xB1000204/0xB1000402 choice on temp_ft0 >= 0. Fixes that helped: D_8011F32E is u16 (lhu), not u8; the copy goes from D_80189DC8 + D_80046834*0x1C0 + (t5<<6) into D_80189970 + (t5<<6). Remaining diffs: (1) index math: the target computes idx*100 as ((idx*2+idx)*8+idx)*4-style shifts, and it reuses a single address per access; (2) the immediate words of the gDP commands are emitted in a different order, and the 0x07007400 / 0x07080200 / 0x80200 / 0x7C000 values sit at different row positions than mine, so check the word order around the E6/E7 pairs; (3) the early exit (beqz) is at a different instruction position. Next step: fix index arithmetic, then the gDP order.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794758584.151407,
+  "score_before": 8635,
+  "score_after": 8635
+ },
+ {
+  "function": "func_8015C560",
+  "text": "No match. Best 7245 (60.1%), revision 67c2118902c8f485922c. Same structure as before: lhu D_8011F32E[OFF] gate; t5 = D_8011F2F0[OFF] read inside; ft0 = D_8022AFD4 at (t5&0xFF)*0x8F0; body condition !(D_80183968 < (f64)ft0) || (f64)D_8011F334[OFF] != 0.0; eight GW commands; 4-iteration copy of 16-byte blocks from D_80189970+(t5<<6) to D_80189DC8+D_80046834*0x1C0+(t5<<6); 0x0400103F with that dst address; then 0xB1000204/0x20604 if 0<=ft0 else 0xB1000402/0x20406. Remaining diffs: the target's first pointer store register is $t1 (arg0 copy) and t5 lives in $t5 across the GWs, while mine uses $t1 for t5 and $a3 for the masked value; the target writes the 0x0400103F address through $v1 after the loop (one fewer temporary). Next: try the copy loop with src/dst computed before the GWs. Move on.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794767885.861532,
+  "score_before": 8635,
+  "score_after": 7245
+ },
+ {
+  "function": "func_8015C560",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr16, -O1 profile (not applied): clean rewrites of the display-list writer score 4255 at best (work/func_8015C560_k.c), above the saved best's 2430 under -O1. The eight GW commands are right; the rest is register allocation (move from arg0, off and the tile index), which the rewrites do not reproduce. Handed back at 8 judged attempts.",
+  "by": "manual-209d2dfa17f14ee1",
+  "created_at": 1795713321.9026718,
+  "score_before": 6415,
+  "score_after": 6415
+ },
+ {
+  "function": "func_8015C560",
+  "text": "Profile probe: this saved C scores 2430 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (9 of its 12 nearest matched neighbours were built with it), 6415 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721239.8275,
+  "score_before": 6415,
+  "score_after": 2430,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:4be3960d78414d25c2d393880f116954c259c1eb0428aaebf39b67a73e16b186"
  }
 ]
