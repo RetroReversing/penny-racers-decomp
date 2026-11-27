@@ -2848,14 +2848,6 @@
   "score_after": 345
  },
  {
-  "function": "func_80192E00",
-  "text": "Deep permuter: score 14388 \u2192 13750; 2 improvements; 74 candidates tested; 0 cached skips; 0 rejected; 7206s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935585",
-  "created_at": 1794357132.8434381,
-  "score_before": 14388,
-  "score_after": 13750
- },
- {
   "function": "_allocatePVoice",
   "text": "Deep permuter: score 313 \u2192 313; 0 improvements; 103 candidates tested; 0 cached skips; 0 rejected; 7202s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934921",
@@ -6080,14 +6072,6 @@
   "score_after": 895
  },
  {
-  "function": "func_80192E00",
-  "text": "Saved best remains the m2c-based permuter candidate at 17875 (revision 8799915588c527f97b1d). Hand rewrites scored worse: 18990 (per-arg if/else chain with bytes indexed off D_801C6BB0+2) and 19135 (same with shared a0/a1/a2 pointer locals; the target reloads D_801C7AB0 in each block with its own lw, so a shared a2 local changes register use). Facts from the asm: the first test is `(arg0 & 0xFF) != 0` (bnez), then k==1 is tested first (func&4), then k==2 (&2), then k==3 (&8, else return), and k==0 (&1) is the else branch; all four converge on `D_801C6B25 = arg0; func_8014B854(0x3B)`. Stores: k=0 sets B23=-1 then B22=0; k=1/3 set B22=v then B23=0; k=2 sets B23=1 then B22=0. The W buffer D_801C7062 is written at [0],[1],[2] and BB0 at [2] via a1=D_801C6BB0+2 with reads at a1[-2], a1[-1]. Untested next step: keep the m2c shape but reorder the outer test to `if (arg0 & 0xFF) {...} else {...}` with the k==0 block last, and let each block reload D_801C7AB0 from the global.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794712497.237967,
-  "score_before": 17875,
-  "score_after": 17875
- },
- {
   "function": "func_800268C0",
   "text": "Not compiled; the draft is not usable as written. Structure is a debug dump: a long sequence of calls, each passing a string-table address (D_80049xxx) and 4 to 8 words loaded from arg0 at fixed offsets (0x14, 0x11C, 0x120, 0x118, 0x124, 0x28..0x34, 0x40..0x4C, ... up to 0x1A8). The 8-word groups are stored to the outgoing area (0x10..0x1C) two words at a time. The draft's f64/f32 casts are wrong: the target just loads words (lw) and passes them. Blocker: several calls to func_8003DE60 do not set a1 (for example the call on D_80049F1C); a1 is inherited from the previous call's argument (0x124), so no straightforward C reproduces it. Decide first whether func_8003DE60 is variadic with a dummy second argument, then check the prototype against find_similar. Calls to func_80026D40 pass a string literal name (\"cause\", \"sr\", \"fpcsr\") with a1 set to a D_80049xxx address and a2 set to a D_8004xxxx address.",
   "by": "claude-haiku-5-5-24",
@@ -8030,14 +8014,6 @@
   "created_at": 1794728187.9529002,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_80192E00",
-  "text": "func_80192E00 (864 B, unmatched). Best 10815 (49.9%): clean if/else-if on (arg0&0xFF) 0..3, each branch calling func_8019A31C()&mask, then shared tail D_801C6B25=arg0; func_8014B854(0x3B) (duplicated per branch; the target's tail is shared). Local pointer temp_a1=&D_801C6BB0+2 and p=D_801C7AB0 gave the gain from 13975. Remaining diffs: target reads D_801C7AB0 into $a2 and keeps D_801C6BB2 base in $a1; the D_801C7062 stores go through a base reg with offsets 0/1/2 (I write &D_801C7062 separately, which produces lui/%lo per store); prologue order (sw $ra before $s0, `andi $v0,$s0,0xFF` on the saved arg) differs. Untried: store the arg in a local s32 saved across calls; make the shared tail a single block with a goto-free flag (var set in each branch, tail done once) to match the single func_8014B854 site ordering.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794728205.998347,
-  "score_before": 10695,
-  "score_after": 10695
  },
  {
   "function": "func_80215850",
@@ -10310,14 +10286,6 @@
   "created_at": 1794741108.827522,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_80192E00",
-  "text": "Not matched. Best 12820 (40.6%), revision ee6c8eab7712a82c346a; 216 target insns vs 221 mine. Dispatch on arg0 (u8) 0/1/2/3, each guarded by func_8019A31C() & {1,4,2,8}; sets D_801C7469 = arg0. Each arm reads p = D_801C7AB0 (pointer value; p[1]==5 and p[0]==4 tests), writes a1 = &D_801C6BB0+2, copies D_801C6BB0[0..1] (+/-1) into D_801C7062[0..2], then sets D_801C6B23 / D_801C6B22 and calls func_8014B854(0x3B) with D_801C6B25 = arg0. Remaining diffs: target loads lui a2 / lw a2 %lo(D_801C7AB0) once per arm before computing a1; mine folds p into the a1 register. Fix that load order first. Untried: place the D_801C7AB0 read as its own statement right before the first p[1] test in each arm.\n\nNot matched. Best 12820 (40.6%) revision ee6c8eab7712a82c346a; do not use aec4ade (13382, the direct D_801C7AB0[1] test form, worse). Target frame is 0x18 with only ra and s0 saved (arg0 kept in s0, one call per arm); my versions keep arg0 in s1 and reach a 0x20 frame, so the first fix is to make arg0 die into s0 (e.g. use arg0 only in the final D_801C6B25 store or copy it into a single local). Remaining diffs: target loads lui a2 / lw a2 %lo(D_801C7AB0) per arm before a1 is computed; mine loads it through v0. Each arm also has its own lbu tests on p[1] then p[0] with the 5/4 constants.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794741125.143252,
-  "score_before": 10235,
-  "score_after": 10235
  },
  {
   "function": "func_801B4CF8",
@@ -13568,14 +13536,6 @@
   "score_after": 255
  },
  {
-  "function": "func_80192E00",
-  "text": "Best: rev 1c30a9d0ea5ee123dba1, 11680 (45.9%). Not matched. Kept from this session: D_801C7AB0 is a `u8 *` global re-read at every use (no cached `p`); the `a0 = &D_801C6BB0; a1 = a0 + 2;` split helped slightly (11935 to 11680). Remaining: (1) target does `D_801C7469` store with lui at,%hi before the D_801C7AB0 loads (move the flag store up, before the first D_801C7AB0[1] test). (2) Target's 0x801C6BB2 slot is written as `sb $v1,($a1)` with a1 = &D_801C6BB2 (addiu from lui), and read back as `lbu -2($a1)` / `-1($a1)`, so the writes should be `a1[0]` with a1 = &D_801C6BB2 and the reads `a1[-2]`, `a1[-1]`; the `D_801C7062` stores are then `sb ...,(a0)` style off a0 = &D_801C7062 (not a constant displacement). (3) The goto labels can be replaced by a shared tail as in the draft. Next experiment: revision 1c30a9d0ea5ee123dba1 with change (1) only.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794756996.45909,
-  "score_before": 10235,
-  "score_after": 10235
- },
- {
   "function": "func_80166890",
   "text": "Not matched. Struct model: 0x64-byte entity at D_8011F2F0 with kind u8@0, timer u8@0xC, flag u8@0xD, f32 pos 0x18/0x1C/0x20, f28, f30/f34/f38, state u16@0x3E. Logic is right (kind-indexed copy, +20.0f, timer-=5 with flag=2, state 0/1 switch). At -O2 best is 2040 (73.8%). try_compiler gcc-2.7.2-kmc \"-G0 -mips3 -mgp32 -mfp32 -O1\" gives 220 (97.2%), equal to saved best. Remaining -O1 diffs: the kind-index multiply uses sll 4 where target uses sll 2, and the flag store is sw where target is sb to D_8011F2FD+a2. Next: at -O1, store the flag through a byte pointer (*(u8 *)((u8 *)D_8011F2F0 + idx*100 + 0xD) = 2) and compute the kind index as an explicit kind*100 offset, then re-check.",
   "by": "claude-haiku-5-5-23",
@@ -14166,14 +14126,6 @@
   "created_at": 1794758875.074241,
   "score_before": 1625,
   "score_after": 1625
- },
- {
-  "function": "func_80192E00",
-  "text": "Not matched. Saved best 11680 (45.9%) is revision 1c30a9d0ea5ee123dba1 (220 insns vs target 216). Current working revision 655fc4f207485bcffaa7 is worse (11935): it uses a1=&D_801C6BB0+2 with direct addresses; restore saved_best before continuing. Structure (4-way dispatch on func_8019A31C() bits 1/2/4/8, D_801C7469 store, func_8014B854(0x3B) call) appears right. Open diffs: target keeps a0=&D_801C6BB0 and stores via a0 (sb to 0(a0) and 2(a0)), uses a separate a1=&D_801C6BB2 for the lbu -2/-1 reads, loads D_801C7AB0 with lw right after the D_801C7469 store, and compares with $v0 for bnez/beqz. Direct a1=&D_801C6BB2 scored worse. Untried: explicit a0 base for the stores, and reordering the D_801C7AB0[1]/[0] reads. Reason for release: 3 candidate compiles with no improvement; the remaining diffs are register allocation and load order, which need more trials than this session allows.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794758882.70114,
-  "score_before": 10235,
-  "score_after": 10235
  },
  {
   "function": "func_8020FFD0",
@@ -41670,5 +41622,53 @@
   "score_before": 159708,
   "score_after": 115695,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:14768e69b33252e2f108150a50dcc5047e2a4f2735e44a9467bd557a1d07496f"
+ },
+ {
+  "function": "func_80192E00",
+  "text": "Deep permuter: score 14388 \u2192 13750; 2 improvements; 74 candidates tested; 0 cached skips; 0 rejected; 7206s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935585",
+  "created_at": 1794357132.8434381,
+  "score_before": 14388,
+  "score_after": 13750
+ },
+ {
+  "function": "func_80192E00",
+  "text": "Saved best remains the m2c-based permuter candidate at 17875 (revision 8799915588c527f97b1d). Hand rewrites scored worse: 18990 (per-arg if/else chain with bytes indexed off D_801C6BB0+2) and 19135 (same with shared a0/a1/a2 pointer locals; the target reloads D_801C7AB0 in each block with its own lw, so a shared a2 local changes register use). Facts from the asm: the first test is `(arg0 & 0xFF) != 0` (bnez), then k==1 is tested first (func&4), then k==2 (&2), then k==3 (&8, else return), and k==0 (&1) is the else branch; all four converge on `D_801C6B25 = arg0; func_8014B854(0x3B)`. Stores: k=0 sets B23=-1 then B22=0; k=1/3 set B22=v then B23=0; k=2 sets B23=1 then B22=0. The W buffer D_801C7062 is written at [0],[1],[2] and BB0 at [2] via a1=D_801C6BB0+2 with reads at a1[-2], a1[-1]. Untested next step: keep the m2c shape but reorder the outer test to `if (arg0 & 0xFF) {...} else {...}` with the k==0 block last, and let each block reload D_801C7AB0 from the global.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794712497.237967,
+  "score_before": 17875,
+  "score_after": 17875
+ },
+ {
+  "function": "func_80192E00",
+  "text": "func_80192E00 (864 B, unmatched). Best 10815 (49.9%): clean if/else-if on (arg0&0xFF) 0..3, each branch calling func_8019A31C()&mask, then shared tail D_801C6B25=arg0; func_8014B854(0x3B) (duplicated per branch; the target's tail is shared). Local pointer temp_a1=&D_801C6BB0+2 and p=D_801C7AB0 gave the gain from 13975. Remaining diffs: target reads D_801C7AB0 into $a2 and keeps D_801C6BB2 base in $a1; the D_801C7062 stores go through a base reg with offsets 0/1/2 (I write &D_801C7062 separately, which produces lui/%lo per store); prologue order (sw $ra before $s0, `andi $v0,$s0,0xFF` on the saved arg) differs. Untried: store the arg in a local s32 saved across calls; make the shared tail a single block with a goto-free flag (var set in each branch, tail done once) to match the single func_8014B854 site ordering.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794728205.998347,
+  "score_before": 10695,
+  "score_after": 10695
+ },
+ {
+  "function": "func_80192E00",
+  "text": "Not matched. Best 12820 (40.6%), revision ee6c8eab7712a82c346a; 216 target insns vs 221 mine. Dispatch on arg0 (u8) 0/1/2/3, each guarded by func_8019A31C() & {1,4,2,8}; sets D_801C7469 = arg0. Each arm reads p = D_801C7AB0 (pointer value; p[1]==5 and p[0]==4 tests), writes a1 = &D_801C6BB0+2, copies D_801C6BB0[0..1] (+/-1) into D_801C7062[0..2], then sets D_801C6B23 / D_801C6B22 and calls func_8014B854(0x3B) with D_801C6B25 = arg0. Remaining diffs: target loads lui a2 / lw a2 %lo(D_801C7AB0) once per arm before computing a1; mine folds p into the a1 register. Fix that load order first. Untried: place the D_801C7AB0 read as its own statement right before the first p[1] test in each arm.\n\nNot matched. Best 12820 (40.6%) revision ee6c8eab7712a82c346a; do not use aec4ade (13382, the direct D_801C7AB0[1] test form, worse). Target frame is 0x18 with only ra and s0 saved (arg0 kept in s0, one call per arm); my versions keep arg0 in s1 and reach a 0x20 frame, so the first fix is to make arg0 die into s0 (e.g. use arg0 only in the final D_801C6B25 store or copy it into a single local). Remaining diffs: target loads lui a2 / lw a2 %lo(D_801C7AB0) per arm before a1 is computed; mine loads it through v0. Each arm also has its own lbu tests on p[1] then p[0] with the 5/4 constants.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794741125.143252,
+  "score_before": 10235,
+  "score_after": 10235
+ },
+ {
+  "function": "func_80192E00",
+  "text": "Best: rev 1c30a9d0ea5ee123dba1, 11680 (45.9%). Not matched. Kept from this session: D_801C7AB0 is a `u8 *` global re-read at every use (no cached `p`); the `a0 = &D_801C6BB0; a1 = a0 + 2;` split helped slightly (11935 to 11680). Remaining: (1) target does `D_801C7469` store with lui at,%hi before the D_801C7AB0 loads (move the flag store up, before the first D_801C7AB0[1] test). (2) Target's 0x801C6BB2 slot is written as `sb $v1,($a1)` with a1 = &D_801C6BB2 (addiu from lui), and read back as `lbu -2($a1)` / `-1($a1)`, so the writes should be `a1[0]` with a1 = &D_801C6BB2 and the reads `a1[-2]`, `a1[-1]`; the `D_801C7062` stores are then `sb ...,(a0)` style off a0 = &D_801C7062 (not a constant displacement). (3) The goto labels can be replaced by a shared tail as in the draft. Next experiment: revision 1c30a9d0ea5ee123dba1 with change (1) only.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794756996.45909,
+  "score_before": 10235,
+  "score_after": 10235
+ },
+ {
+  "function": "func_80192E00",
+  "text": "Not matched. Saved best 11680 (45.9%) is revision 1c30a9d0ea5ee123dba1 (220 insns vs target 216). Current working revision 655fc4f207485bcffaa7 is worse (11935): it uses a1=&D_801C6BB0+2 with direct addresses; restore saved_best before continuing. Structure (4-way dispatch on func_8019A31C() bits 1/2/4/8, D_801C7469 store, func_8014B854(0x3B) call) appears right. Open diffs: target keeps a0=&D_801C6BB0 and stores via a0 (sb to 0(a0) and 2(a0)), uses a separate a1=&D_801C6BB2 for the lbu -2/-1 reads, loads D_801C7AB0 with lw right after the D_801C7469 store, and compares with $v0 for bnez/beqz. Direct a1=&D_801C6BB2 scored worse. Untried: explicit a0 base for the stores, and reordering the D_801C7AB0[1]/[0] reads. Reason for release: 3 candidate compiles with no improvement; the remaining diffs are register allocation and load order, which need more trials than this session allows.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794758882.70114,
+  "score_before": 10235,
+  "score_after": 10235
  }
 ]
