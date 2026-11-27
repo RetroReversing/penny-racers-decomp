@@ -4192,14 +4192,6 @@
   "score_after": 12455
  },
  {
-  "function": "func_801976F8",
-  "text": "Deep permuter: score 11100 \u2192 9400; 2 improvements; 71 candidates tested; 125 cached skips; 0 rejected; 7204s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935593",
-  "created_at": 1794356233.673333,
-  "score_before": 11100,
-  "score_after": 9400
- },
- {
   "function": "func_80150E48",
   "text": "Deep permuter: score 1175 \u2192 980; 1 improvements; 114 candidates tested; 50 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935461",
@@ -6846,14 +6838,6 @@
   "created_at": 1794710991.896908,
   "score_before": 12595,
   "score_after": 12595
- },
- {
-  "function": "func_801976F8",
-  "text": "Move-on budget exhausted (3/3 no improvement). Best verified this session: 8460 with byte-array externs (extern u8 D_8011F2FC/308/30C/310/32E[]; index i=(arg0&0xFFFF)*100). Switching those externs to s32 scalars with &SYM+byte-offset indexing scored 11100 (worse) \u2014 do not repeat. Saved historical best 2300 (revision 5a1d71e5ade2875624bb, m2c draft with s32 scalars and *(&SYM + temp) form) is unverified for current headers; recheck it first.\n\nKey remaining structural gap: the target computes the racer byte offset i early (andi/sll/addu/sll/addu/sll chain right after the prologue, kept in $v1) and reuses it for the three float stores; my candidate sinks that address chain to the store sites. Also the target reloads D_801C7074 (lhu) and recomputes D_801C7074*0x64 at every one of the five state tests (lui/lhu/sll/addu/sll/addu/sll chain repeated 5x) \u2014 my C hoisted it into one temp. To match, write the state tests as separate expressions each indexing D_8011F32E[D_801C7074*100] directly (no shared temp) and keep the float stores as *(f32*)(D_8011F308 + i) with i used first. Final block: target loads D_801C6B30 with lbu and stores D_801C7ABD / zero via sb with the same recomputed offset.\n\nUntested idea: declare `s32 i = (arg0 & 0xFFFF) * 100;` and store as `*(f32 *)((u8 *)&D_8011F308 + i)` using s32 scalars (matches the target's lui %hi + addu $at form) while leaving the five state tests fully expanded.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794710999.512866,
-  "score_before": 2300,
-  "score_after": 2300
  },
  {
   "function": "func_80197F78",
@@ -9952,14 +9936,6 @@
   "score_after": 10
  },
  {
-  "function": "func_801976F8",
-  "text": "func_801976F8 (724 B, 181 insns): not matched. Best 7670 (57.6%) at revision 5eb60009ad66ef325c5c: float init of D_8011F308[idx] = (f32)D_801C7068*400*0.5 and D_8011F310[idx] = (f32)(D_801C6BB9-1)*400*0.5, D_8011F30C[idx]=0, idx written inline as (arg0&0xFFFF)*0x64 (not a local; a local computed before the calls gave worse), then a chain of if/else-if calls: st-7<2||st==6 -> func_80198774; st-9<2||st==0xD -> func_80198858; st-0xB<2 -> func_80198250; st-0xF<2 -> func_80198CC4(arg0&0xFFFF); else (st-0x11>=2 && st-0x13>=2 && D_801C6BB9!=0) ? 1 : 0; final D_8011F2FC[idx] = D_801C7ABD or 0. Reloading the state via *(u16*)((u8*)&D_8011F32E + D_801C7074*0x64) in every test helped (8310 -> 7670). Remaining diffs: (1) the target's frame saves ra at 0x14 then s0 at 0x10 and loads the float constants before s0 is copied; mine schedules differently; (2) in the second chain the target recomputes D_801C7074 and the index in v0/v1 and uses lui $at/addu/lhu for the tests after the -9 check; my CSE shares the index (tried a separate t2 local: worse, 8230). Next step: find a shape where the state test after -7 uses a register temp (v1) for the index like the target's sll v1,v0,2 chain, and check the frame order (sw ra first) by making the function's first call happen earlier.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794727200.590244,
-  "score_before": 2300,
-  "score_after": 2300
- },
- {
   "function": "func_80197CA0",
   "text": "Best this session: 7925 (56.4%), revision fc7ffca574365003cf1d; saved best is 2300 from the m2c-style draft, so restore that if continuing from it. What helped: writing every table access inline with the index as u16 idx = arg0 (keeps arg0 in $s0, andi once per use) and recomputing D_801C7074*0x64 at each lhu, matching the target's repeated loads. Target recomputes x*100 inline per access (sll 1/addu/sll 3/addu/sll 2 chain), not CSE'd. Remaining diffs: (1) target starts with lui/lb D_801C7068 and the float chain (cvt.s.w, mul.s by 400 then 0.5) before the prologue saves; (2) target's sw $ra comes after sw $s0 and after the float stores, mine comes before the branch chain; (3) target stores D_8011F30C as sw $zero after the D_8011F308 swc1 with its own lui/addu; mine hoists the 30C address. Next try: move the D_801C6BB9 float store to the end of the first group, or split the D_801C7068 float into a local computed before the first store.",
   "by": "claude-haiku-5-5-21",
@@ -12894,14 +12870,6 @@
   "created_at": 1794740346.457178,
   "score_before": 1999,
   "score_after": 1999
- },
- {
-  "function": "func_801976F8",
-  "text": "Tried 2 fresh C forms, both worse than the saved m2c draft (2300): (a) float stores via `((u8*)&D_8011F308) + idx*0x64` with `u16 st` hoisted (11435); (b) draft control flow with `idx` local and `temp_v1_2 = D_801C7074*0x64` shared between the 0xF/0x9 tests (10725). Remaining diff: target computes `D_801C7074*0x64` once into $v1 and reloads `lhu D_8011F32E` through it for every test; target begins with `lui $v0,%hi(D_801C7068)` / `lb` / `mtc1` / `cvt.s.w` / `mul.s` float chain before the table stores, and saves $ra at 0x14($sp) with $s0 at 0x10. Mine saves $s0 first and branch layout differs (`bnez` vs target `bnez` at the later join). Suggest starting from the saved m2c draft (2300) and fixing the if/else-if chain shape for the 0x9/0xD test (target tests st-9 < 2 with the +0x0D compare as a separate branch) rather than hoisting. Budget at 3 without improvement.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794740365.1018932,
-  "score_before": 2300,
-  "score_after": 2300
  },
  {
   "function": "func_801979CC",
@@ -18072,14 +18040,6 @@
   "score_after": 4322
  },
  {
-  "function": "func_801976F8",
-  "text": "Not matched; releasing early because I cannot get closer at this effort level without a fuller rewrite. Current best from my rewrite is 10040, saved best 2300 (restore it first). Gap: prologue and float-store ordering (target saves ra at 0x14 after the first store group; float constants 400.0f=0x43c8 and 0.5f=0x3f00 loaded in a different order), and the D_8011F32E state index is computed from D_801C7074 via lhu + multiply-by-100 (sll/addu), not a fixed-offset lbu. Start from last_diff rows 0-40 of saved_best.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794756667.402853,
-  "score_before": 2300,
-  "score_after": 2300
- },
- {
   "function": "func_801E2D18",
   "text": "Solved byte-exact under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1. Function-only suggestion submitted and reverified EXACT, but auto compiler changes are off, so pending application. Exact source is current revision 8dfc4cd901eaec789f74 and compiler diagnostic trial 99d75eba0a6f13a0c411. Header bytes first, i=0 then src0..4 initializations, loads *(u8 *)(off+(u32)srcN). O2 recompiles score 4855. Do not retune O2: apply pending function-only profile suggestion to save exact pair. Shared reusable operand-order discovery #339302416470.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -19126,14 +19086,6 @@
   "created_at": 1794758728.179738,
   "score_before": 885,
   "score_after": 885
- },
- {
-  "function": "func_801976F8",
-  "text": "No match. Compiling version: globals as byte arrays (`extern u8 D_8011F308[]` etc., accessed via `*(f32 *)(base + temp)`, `*(u16 *)(D_8011F32E + ...)`), scored 8460 (53%). The m2c draft's `&D_8011F308 + temp` style does not compile (incomplete types), so use byte-array bases. The saved-best 2300 is from a different source and was not reproduced. Remaining differences: (1) target saves `ra` and `s0` (arg0 is kept in s0 across the calls to func_80198774/func_80198858/etc.), ours has no saved s0; (2) the target loads D_801C7068 and does the float chain first (`lui $at,0x43c8; mtc1; lui $at,0x3f00; mtc1; cvt.s.w; mul.s`), i.e. `(f32)D_801C7068 * 400.0f * 0.5f` is evaluated before the index compute; (3) the 0x64 index is recomputed by shifts `((x*2+x)*8+x)*4` after `andi 0xFFFF`, and not CSE'd across the if-chain (same as func_8019961C). Try arg0 used after the calls (so it must survive) and the constant expressions written in the target's order before tuning registers.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794758775.980903,
-  "score_before": 2300,
-  "score_after": 2300
  },
  {
   "function": "func_801FCBEC",
@@ -21182,14 +21134,6 @@
   "created_at": 1794761898.0302389,
   "score_before": 1065,
   "score_after": 1065
- },
- {
-  "function": "func_801976F8",
-  "text": "Not matched. Rechecked baseline 11100 on saved-best source (revision 5a1d71e5ade2875624bb); the historical 2300 does not reproduce with current inputs. Raw-offset rewrite (f5e5712992fa8c0f9262) scored 8970. Best local-repair variant: record_slot_table (Slot_8011F2FC struct for D_8011F2FC[arg0 & 0xFFFF].f0 stores), 11080 on revision 0c6a4a1e7d87a728f002. Seven compiles this session with no improvement beyond that. Why it cannot get closer now: target has frame 0x18 with sw $ra and sw $s0 (arg0 kept live across calls), and computes the float stores first (lui D_801C7068 before anything else). Candidate has no frame, and its top-of-function loads are ordered differently. Next agent: (1) keep arg0 live across the calls so the frame and s0 save appear; (2) order the three D_8011F308/30C/310 stores to match the target before the branch chain; (3) the guard shape: target uses (st-7)<2 || st==6 with lhu; candidate uses lb/sltiu. Callees: func_80198250, func_80198774, func_80198858, func_80198CC4(s32). Globals: D_8011F2FC/308/30C/310 (100-byte stride), D_8011F32E (u16 state per slot), D_801C6B30 (u8 result), D_801C6BB9 (s8), D_801C7068 (s8), D_801C7074 (u16), D_801C7ABD (u8).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794761904.598023,
-  "score_before": 2300,
-  "score_after": 2300
  },
  {
   "function": "func_800389E4",
@@ -23504,28 +23448,12 @@
   "score_after": 12595
  },
  {
-  "function": "func_801976F8",
-  "text": "Released because its agent stopped (stopped by you); its attempts are kept.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794768127.166131,
-  "score_before": 2300,
-  "score_after": 2300
- },
- {
   "function": "func_80216128",
   "text": "Released because its agent stopped (stopped by you); its attempts are kept.",
   "by": "api-route-llm-code-2",
   "created_at": 1794768127.247495,
   "score_before": 65,
   "score_after": 65
- },
- {
-  "function": "func_801976F8",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794769292.417601,
-  "score_before": 2300,
-  "score_after": 2300
  },
  {
   "function": "func_80197CA0",
@@ -40632,5 +40560,77 @@
   "score_before": 2730,
   "score_after": 2218,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:1bb25a120802403b869852a2d24a09a28cf3dd57a2fcc457b96759f4d2e23465"
+ },
+ {
+  "function": "func_801976F8",
+  "text": "Deep permuter: score 11100 \u2192 9400; 2 improvements; 71 candidates tested; 125 cached skips; 0 rejected; 7204s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935593",
+  "created_at": 1794356233.673333,
+  "score_before": 11100,
+  "score_after": 9400
+ },
+ {
+  "function": "func_801976F8",
+  "text": "Move-on budget exhausted (3/3 no improvement). Best verified this session: 8460 with byte-array externs (extern u8 D_8011F2FC/308/30C/310/32E[]; index i=(arg0&0xFFFF)*100). Switching those externs to s32 scalars with &SYM+byte-offset indexing scored 11100 (worse) \u2014 do not repeat. Saved historical best 2300 (revision 5a1d71e5ade2875624bb, m2c draft with s32 scalars and *(&SYM + temp) form) is unverified for current headers; recheck it first.\n\nKey remaining structural gap: the target computes the racer byte offset i early (andi/sll/addu/sll/addu/sll chain right after the prologue, kept in $v1) and reuses it for the three float stores; my candidate sinks that address chain to the store sites. Also the target reloads D_801C7074 (lhu) and recomputes D_801C7074*0x64 at every one of the five state tests (lui/lhu/sll/addu/sll/addu/sll chain repeated 5x) \u2014 my C hoisted it into one temp. To match, write the state tests as separate expressions each indexing D_8011F32E[D_801C7074*100] directly (no shared temp) and keep the float stores as *(f32*)(D_8011F308 + i) with i used first. Final block: target loads D_801C6B30 with lbu and stores D_801C7ABD / zero via sb with the same recomputed offset.\n\nUntested idea: declare `s32 i = (arg0 & 0xFFFF) * 100;` and store as `*(f32 *)((u8 *)&D_8011F308 + i)` using s32 scalars (matches the target's lui %hi + addu $at form) while leaving the five state tests fully expanded.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794710999.512866,
+  "score_before": 2300,
+  "score_after": 2300
+ },
+ {
+  "function": "func_801976F8",
+  "text": "func_801976F8 (724 B, 181 insns): not matched. Best 7670 (57.6%) at revision 5eb60009ad66ef325c5c: float init of D_8011F308[idx] = (f32)D_801C7068*400*0.5 and D_8011F310[idx] = (f32)(D_801C6BB9-1)*400*0.5, D_8011F30C[idx]=0, idx written inline as (arg0&0xFFFF)*0x64 (not a local; a local computed before the calls gave worse), then a chain of if/else-if calls: st-7<2||st==6 -> func_80198774; st-9<2||st==0xD -> func_80198858; st-0xB<2 -> func_80198250; st-0xF<2 -> func_80198CC4(arg0&0xFFFF); else (st-0x11>=2 && st-0x13>=2 && D_801C6BB9!=0) ? 1 : 0; final D_8011F2FC[idx] = D_801C7ABD or 0. Reloading the state via *(u16*)((u8*)&D_8011F32E + D_801C7074*0x64) in every test helped (8310 -> 7670). Remaining diffs: (1) the target's frame saves ra at 0x14 then s0 at 0x10 and loads the float constants before s0 is copied; mine schedules differently; (2) in the second chain the target recomputes D_801C7074 and the index in v0/v1 and uses lui $at/addu/lhu for the tests after the -9 check; my CSE shares the index (tried a separate t2 local: worse, 8230). Next step: find a shape where the state test after -7 uses a register temp (v1) for the index like the target's sll v1,v0,2 chain, and check the frame order (sw ra first) by making the function's first call happen earlier.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794727200.590244,
+  "score_before": 2300,
+  "score_after": 2300
+ },
+ {
+  "function": "func_801976F8",
+  "text": "Tried 2 fresh C forms, both worse than the saved m2c draft (2300): (a) float stores via `((u8*)&D_8011F308) + idx*0x64` with `u16 st` hoisted (11435); (b) draft control flow with `idx` local and `temp_v1_2 = D_801C7074*0x64` shared between the 0xF/0x9 tests (10725). Remaining diff: target computes `D_801C7074*0x64` once into $v1 and reloads `lhu D_8011F32E` through it for every test; target begins with `lui $v0,%hi(D_801C7068)` / `lb` / `mtc1` / `cvt.s.w` / `mul.s` float chain before the table stores, and saves $ra at 0x14($sp) with $s0 at 0x10. Mine saves $s0 first and branch layout differs (`bnez` vs target `bnez` at the later join). Suggest starting from the saved m2c draft (2300) and fixing the if/else-if chain shape for the 0x9/0xD test (target tests st-9 < 2 with the +0x0D compare as a separate branch) rather than hoisting. Budget at 3 without improvement.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794740365.1018932,
+  "score_before": 2300,
+  "score_after": 2300
+ },
+ {
+  "function": "func_801976F8",
+  "text": "Not matched; releasing early because I cannot get closer at this effort level without a fuller rewrite. Current best from my rewrite is 10040, saved best 2300 (restore it first). Gap: prologue and float-store ordering (target saves ra at 0x14 after the first store group; float constants 400.0f=0x43c8 and 0.5f=0x3f00 loaded in a different order), and the D_8011F32E state index is computed from D_801C7074 via lhu + multiply-by-100 (sll/addu), not a fixed-offset lbu. Start from last_diff rows 0-40 of saved_best.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794756667.402853,
+  "score_before": 2300,
+  "score_after": 2300
+ },
+ {
+  "function": "func_801976F8",
+  "text": "No match. Compiling version: globals as byte arrays (`extern u8 D_8011F308[]` etc., accessed via `*(f32 *)(base + temp)`, `*(u16 *)(D_8011F32E + ...)`), scored 8460 (53%). The m2c draft's `&D_8011F308 + temp` style does not compile (incomplete types), so use byte-array bases. The saved-best 2300 is from a different source and was not reproduced. Remaining differences: (1) target saves `ra` and `s0` (arg0 is kept in s0 across the calls to func_80198774/func_80198858/etc.), ours has no saved s0; (2) the target loads D_801C7068 and does the float chain first (`lui $at,0x43c8; mtc1; lui $at,0x3f00; mtc1; cvt.s.w; mul.s`), i.e. `(f32)D_801C7068 * 400.0f * 0.5f` is evaluated before the index compute; (3) the 0x64 index is recomputed by shifts `((x*2+x)*8+x)*4` after `andi 0xFFFF`, and not CSE'd across the if-chain (same as func_8019961C). Try arg0 used after the calls (so it must survive) and the constant expressions written in the target's order before tuning registers.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794758775.980903,
+  "score_before": 2300,
+  "score_after": 2300
+ },
+ {
+  "function": "func_801976F8",
+  "text": "Not matched. Rechecked baseline 11100 on saved-best source (revision 5a1d71e5ade2875624bb); the historical 2300 does not reproduce with current inputs. Raw-offset rewrite (f5e5712992fa8c0f9262) scored 8970. Best local-repair variant: record_slot_table (Slot_8011F2FC struct for D_8011F2FC[arg0 & 0xFFFF].f0 stores), 11080 on revision 0c6a4a1e7d87a728f002. Seven compiles this session with no improvement beyond that. Why it cannot get closer now: target has frame 0x18 with sw $ra and sw $s0 (arg0 kept live across calls), and computes the float stores first (lui D_801C7068 before anything else). Candidate has no frame, and its top-of-function loads are ordered differently. Next agent: (1) keep arg0 live across the calls so the frame and s0 save appear; (2) order the three D_8011F308/30C/310 stores to match the target before the branch chain; (3) the guard shape: target uses (st-7)<2 || st==6 with lhu; candidate uses lb/sltiu. Callees: func_80198250, func_80198774, func_80198858, func_80198CC4(s32). Globals: D_8011F2FC/308/30C/310 (100-byte stride), D_8011F32E (u16 state per slot), D_801C6B30 (u8 result), D_801C6BB9 (s8), D_801C7068 (s8), D_801C7074 (u16), D_801C7ABD (u8).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794761904.598023,
+  "score_before": 2300,
+  "score_after": 2300
+ },
+ {
+  "function": "func_801976F8",
+  "text": "Released because its agent stopped (stopped by you); its attempts are kept.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794768127.166131,
+  "score_before": 2300,
+  "score_after": 2300
+ },
+ {
+  "function": "func_801976F8",
+  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794769292.417601,
+  "score_before": 2300,
+  "score_after": 2300
  }
 ]
