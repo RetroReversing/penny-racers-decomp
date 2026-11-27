@@ -4232,14 +4232,6 @@
   "score_after": 13367
  },
  {
-  "function": "func_80149220",
-  "text": "Deep permuter: score 4993 \u2192 4868; 2 improvements; 114 candidates tested; 148 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935401",
-  "created_at": 1794356207.674222,
-  "score_before": 4993,
-  "score_after": 4868
- },
- {
   "function": "func_8015A728",
   "text": "Deep permuter: score 7675 \u2192 6130; 2 improvements; 44 candidates tested; 73 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935520",
@@ -6574,14 +6566,6 @@
   "created_at": 1794708573.2184,
   "score_before": 7040,
   "score_after": 7040
- },
- {
-  "function": "func_80149220",
-  "text": "Released: two rewrites (6122, 6197) are both well below the inherited saved best 3253, and tweaking local count did not close the gap. Why it can't get closer yet: the target frame is 0x40 with s0..s7 and fp saved (sw s7 at 0x34, s6 at 0x30), so it needs ~7 live locals across the loop and the func_801496B0 call, which my variable list does not reproduce; the m2c draft's structure is roughly right but the register allocation and the 0x2FFF/0x4FFF selection order differ. Next agent: first fix the set of live values (arg2 & 0xFF kept in s5/s6, arg3 kept in s3, arg1 in fp, s4 result, s7 likely the loop index or the (arg3*150) base), then the D_8018A288 indexing at the end, and only then tune the frame size. Notes only; no verified match.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794708703.3965418,
-  "score_before": 3253,
-  "score_after": 3253
  },
  {
   "function": "func_80157E30",
@@ -9888,14 +9872,6 @@
   "score_after": 7040
  },
  {
-  "function": "func_80149220",
-  "text": "Best this session: 4712 (59%, 115 vs 116 insns), revision 44bc915bcafb1259704b. Saved best 3253 is from an older source. Structure matches: s4 init 0x2FFF/0x4FFF by arg3==1; if (u8)arg0==8 scan over tab=(u16*)(&D_8018D140 + 300*arg3) for (v&0x1FFF)==0xD with do-while to (u8)arg2; s2=7 unless D_8018994E!=0 and D_80189B36&0x20; loop calling func_801496B0(arg3,s2,arg2) with s5=(arg3==1), break on D_8018A288!=0xFFFF, then return/index &D_8018A288[ret] by arg1. Remaining diffs: frame is 0x40 with 10 saves (ra,fp,s7..s0); ours is 0x38 with 8. The target keeps 0xFFFF in s7 across the loop (adding a local m=0xFFFF changed nothing) and the arg1/arg3 copies are ordered differently. Next: force s7 live with an explicit extra use of the constant, or try reordering the two scan branches.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794723721.890473,
-  "score_before": 3253,
-  "score_after": 3253
- },
- {
   "function": "func_80026D40",
   "text": "Best 2033/45 insns (rev e3fd88251e4866321b97, unchanged by ~25 variants). Structure is right (two leading func_8003DE60 calls, 12-byte entry loop with mask/val/id, first-flag separator). Remaining: candidate frame 0x28 with 4 saved regs (s0,s1,s2,s3) vs target 0x20 with 3 (s0=p, s1=first, s2=arg0); target loads p[1] into $v1 before the bnel delay slot (`lw $v1,4($s0)` then `bnel $v0,$v1`), candidate loads it in the branch delay slot as `lw $v1,-4($s0)` after pre-biasing the pointer by +8. Tried and rejected: reordering p/first init before the calls (2228), struct Ent with ->mask/->val/->id (equal 2033 or worse), naming the pointer as the parameter (2228), *p instead of p[0], for-loop form, goto join, if(!first) form, s32/u32 arg0, s8* arg1, (m = p[0]) != 0 temp. Next idea: make the loop condition read the mask into a named temp that is live across the compare (so gcc materialises it in $v0 before the branch) while keeping the pointer un-biased, and get the 3-register allocation by having arg0 be a plain parameter used only in the compare (no copy to a local).",
   "by": "api-route-llm-code-2",
@@ -12608,14 +12584,6 @@
   "score_after": 1025
  },
  {
-  "function": "func_80149220",
-  "text": "Not matched. Best this session 6912 (40%), revision 30b55a5b9e252f7f5c76 (saved best 3253 is older and better). Control flow is recovered: s4 = arg3==1 ? 0x4FFF : 0x2FFF; if ((arg0&0xFF)==8) { scan u16 tbl = D_8018D140 + arg3*0x12C for (arg2&0xFF) entries, match (v&0x1FFF)==0xD -> s4=v, flag=1; if flag==0 and (D_8018994E==0 or !(D_80189B36&0x20)) s2=7 }; then if (s2&0xFF)<8: loop up to 8: v1=func_801496B0(arg3&0xFF, s2&0xFF, arg2&0xFF); break with flag if D_8018A288 != 0xFFFF; else break unless (D_8018994E==0 || arg3==1), s2=(s2+1)&7. On flag: if (arg1&0xFF)==0 return D_8018A288; else s4 = ((u16*)&D_8018A288)[v1]. Return s4&0xFFFF. Remaining diff is the frame: target is 0x40 with ra,fp,s7..s0 saved, keeps arg1/arg2/arg3 in fp/s6/s3, s7=0xFFFF held in a register (ori s7 before the loop), s5=(arg3==1) as xori/sltiu. Adding fp/s6/s7/s5 locals made it worse (7795), so the register-pressure shape is what must change: try s7 as a loop-invariant constant read directly and keep arg3 as the original parameter. Note the 'lbu D_8018994E' is re-read inside the loop, not hoisted.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794735116.124929,
-  "score_before": 3253,
-  "score_after": 3253
- },
- {
   "function": "func_8015248C",
   "text": "Best 2115 (72.8%) at revision b2a29c4555b75cd8e8d0, found with extern const f64 constants and call arg written as (arg0 & 0xFFFF). Remaining diffs: target keeps arg0 in $s1 (move $s1,$a0) and computes andi $s0,$s1,0xffff before the first jal; target also has bc1fl with the andi in its delay slot, mine emits bc1f. Frame should be 0x30 (saves ra,s1,s0,f20,f22); mine lacks s1. Next idea: keep arg0 live across the call (a separate variable copy) so GCC saves it in s1, and rewrite the if as bc1fl-shaped. Claim lapsed mid-work, so these notes are the only record.\n\nBest 2115 (72.8%) at revision 486fad8be9aaf35eb98c: extern const f64 constants; call arg written as (arg0 & 0xFFFF); off from ((u16)arg0)*0x64 before the first sinf path. Tried flipping the if into an empty-then/else form (revision 0177705b27d19739938f): no change, worse on compare sense (c.lt.d / bc1t). Remaining diffs: target keeps arg0 in $s1 (move $s1,$a0) and the frame is 0x30 (saves ra,s1,s0,f20,f22); mine never saves s1 and uses bc1f where target has bc1fl with andi in its delay slot. Next idea: keep arg0 live across the first call through a separate local so GCC places it in s1, then rewrite the if so the andi (arg0&0xFFFF) lands in the delay slot.",
   "by": "claude-haiku-5-5-23",
@@ -12750,14 +12718,6 @@
   "created_at": 1794736040.6983821,
   "score_before": 2210,
   "score_after": 2210
- },
- {
-  "function": "func_80149220",
-  "text": "Saved best 3253 stays best. Three rewrites tried: 5237 (clean control flow, 116 vs 115 insns, frame 0x38 vs target 0x40), same with 0xFFFF held in a variable (no change), and a version keeping arg2/arg3 live in locals (5732, worse). Control flow in the asm is recorded in my earlier note: the mismatch is now the save set. Target saves ra, fp, s7..s0 (10 words, 0x18..0x3C) with 0xFFFF in s7, 0x2FFF/0x4FFF in s4, arg3 in s3 and arg1 in fp; my versions save fewer regs and the store order differs. Next: match the store order of the saves (target saves s0 first at 0x18, s7 at 0x34) by making the saved values live across the func_801496B0 call (keep fp=arg1, s6=arg2 and s3=arg3 used after the loop), then fix the branch order at the 0x8 check.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794736176.784096,
-  "score_before": 3253,
-  "score_after": 3253
  },
  {
   "function": "func_800DF094",
@@ -18520,14 +18480,6 @@
   "score_after": 1999
  },
  {
-  "function": "func_80149220",
-  "text": "Not matched. Fresh best 5697 (50.8%) at revision 80de6ec48cdc6d02768e (saved best 3253 is a different source, not reproduced). Structure now right in outline: s4 = arg3==1 ? 0x4FFF : 0x2FFF; if (arg0&0xFF)==8: loop over D_8018D140 (u16 at arg3*0x12C + s0*2) looking for (t&0x1FFF)==0xD setting s4=t, s1=1; then v0 = s2&0xFF, and if !s1 and (D_8018994E==0 || !(D_80189B36&0x20)) set s2=7,v0=7. If v0<8: loop calling func_801496B0(arg3&0xFF, s2&0xFF, arg2&0xFF), break on D_8018A288 != 0xFFFF (s1++), else step s2=(s2+1)&7 while s0<8 under (D_8018994E==0 || s5) with s5=(arg3==1). After: if s1: s4 = arg1&0xFF ? *(u16*)(&D_8018A288 + v1*2) : D_8018A288. Return s4&0xFFFF. Remaining diffs: (1) frame: target is addiu sp,-0x40 saving ra,fp,s7..s0 (9 regs incl. s7 holding 0xFFFF); mine is -0x38, so s7 is not being kept live as a register; try keeping 0xFFFF as a live loop-invariant (e.g. compare against a variable declared before the loop and used in the loop only) or keep s6/s3 as explicit copies; (2) the andi v0,s2,0xFF re-masking appears 4x in target, mine uses it fewer times; (3) the call-site arguments are ordered a0=s3&0xFF before the loop head and only re-set after 'continue'.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794755501.297148,
-  "score_before": 3253,
-  "score_after": 3253
- },
- {
   "function": "func_8003E884",
   "text": "This is libultra __osPopThread from hand-written exceptasm.s (lw v0,0(a0); lw t9,0(v0); jr ra; sw t9,0(a0)). Correct C (n=*q; *q=n->next; return n) gives score 10 with v1 instead of t9; GCC never picks t9 for a leaf temp. Neighbour func_8003E83C (__osEnqueueThread) is from the same asm file.",
   "by": "claude-opus-medium-1",
@@ -24088,14 +24040,6 @@
   "score_after": 169542
  },
  {
-  "function": "func_80149220",
-  "text": "Not matched. Best of mine: 5582 (51.8%, revision 455836e43b6fb9d3341d); saved historical best 3253 is better. Adding an s7 (0xFFFF) local made it 6332, so the 455836 version is the base. Why I'm stopping here: the target keeps arg1 in fp and arg2 in s6 across the calls, saves 10 registers in a 0x40 frame, and the draft's save set (no s7, no fp) is wrong at the root. Fixing that means choosing a variable set that the compiler allocates to these exact registers, which the two variants did not do. Full control-flow decode is in the notes of the previous release (structure is: s4 default 0x2FFF/0x4FFF; the arg0==8 block with a do-while over D_8018D140 + 0x12C*arg3; the `!(s1&0xFF)` s2=7 rule; the `v<8` loop calling func_801496B0(arg3&0xFF, s2&0xFF, arg2&0xFF) with s2=(s2+1)&7; then ((u16*)&D_8018A288)[v1] or D_8018A288 when arg1&0xFF==0). Next agent: start from 455836 and try declaring arg1/arg2 as u8 locals (fp, s6) so the saves follow the target.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794764960.518946,
-  "score_before": 3253,
-  "score_after": 3253
- },
- {
   "function": "func_801C19A8",
   "text": "Not matched; best 7356 (51.2%, revision 5f785465997c25d334ee). Target is 151 insns, frame 0x60, saves ra, s0-s6 and fs0/fs1. Ours has frame 0x58 and saves only s1-s4 + ra, so the callee-saved set is the main gap: target keeps idx in s0 across the calls (re-masks with andi $v1,$s0,0xffff each use), s5=&D_801C6B88, s6=&D_80167FB8 and s4=sp+0x10 live across __sinf, and i*16 in s2. Tried without success: pointer locals for the sin loop (no change), idx as s32 (7601, worse), (u16)arg0 at each use (7501). Next: find a formulation where s0/s5/s6 are live across the __sinf call (e.g. keep both table pointers and the index as locals used after the call), and check the sdc1/fs0-fs1 constant setup (0x40490FDB, 0x43340000 loaded once before the loop). Start from saved_best.",
   "by": "claude-haiku-5-5-21",
@@ -24726,14 +24670,6 @@
   "created_at": 1794766879.466283,
   "score_before": 7040,
   "score_after": 7040
- },
- {
-  "function": "func_80149220",
-  "text": "Not matched. search_flags: -O1 scores 3253 (the saved best), -O2 (project) scores 4993 with the same source. So this is probably an -O1 function. Start the next session from the -O1 profile, not the m2c draft.\n\nThe draft is m2c at -O2 and has `__repair_literal` artifacts; remove them. Shape of the target: frame 0x40, s0..s4 + ra saved. A loop over 8 entries calls func_801496B0(arg3&0xFF, s2&0xFF, arg2&0xFF) and breaks when D_8018A288 != 0xFFFF. Before that, when (s2&0xFF)==8, a loop over arg2 entries of D_8018D140 (u16, stride 0x12C per arg3, test (t & 0x1FFF) == 0xD) sets s4/s1. My rewrite (42%) has the wrong stack layout and loop order.\n\nNext: write the -O1 version from the assembly, check the frame size first, then the loop structure.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794766920.774524,
-  "score_before": 3253,
-  "score_after": 3253
  },
  {
   "function": "func_80198250",
@@ -40155,5 +40091,87 @@
   "score_before": 14400,
   "score_after": 5220,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:d02e5dec6963814561cbfc703ab577da7a549359ed5f5d1fd10e29e2287525bd"
+ },
+ {
+  "function": "func_80149220",
+  "text": "Deep permuter: score 4993 \u2192 4868; 2 improvements; 114 candidates tested; 148 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935401",
+  "created_at": 1794356207.674222,
+  "score_before": 4993,
+  "score_after": 4868
+ },
+ {
+  "function": "func_80149220",
+  "text": "Released: two rewrites (6122, 6197) are both well below the inherited saved best 3253, and tweaking local count did not close the gap. Why it can't get closer yet: the target frame is 0x40 with s0..s7 and fp saved (sw s7 at 0x34, s6 at 0x30), so it needs ~7 live locals across the loop and the func_801496B0 call, which my variable list does not reproduce; the m2c draft's structure is roughly right but the register allocation and the 0x2FFF/0x4FFF selection order differ. Next agent: first fix the set of live values (arg2 & 0xFF kept in s5/s6, arg3 kept in s3, arg1 in fp, s4 result, s7 likely the loop index or the (arg3*150) base), then the D_8018A288 indexing at the end, and only then tune the frame size. Notes only; no verified match.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794708703.3965418,
+  "score_before": 3253,
+  "score_after": 3253
+ },
+ {
+  "function": "func_80149220",
+  "text": "Best this session: 4712 (59%, 115 vs 116 insns), revision 44bc915bcafb1259704b. Saved best 3253 is from an older source. Structure matches: s4 init 0x2FFF/0x4FFF by arg3==1; if (u8)arg0==8 scan over tab=(u16*)(&D_8018D140 + 300*arg3) for (v&0x1FFF)==0xD with do-while to (u8)arg2; s2=7 unless D_8018994E!=0 and D_80189B36&0x20; loop calling func_801496B0(arg3,s2,arg2) with s5=(arg3==1), break on D_8018A288!=0xFFFF, then return/index &D_8018A288[ret] by arg1. Remaining diffs: frame is 0x40 with 10 saves (ra,fp,s7..s0); ours is 0x38 with 8. The target keeps 0xFFFF in s7 across the loop (adding a local m=0xFFFF changed nothing) and the arg1/arg3 copies are ordered differently. Next: force s7 live with an explicit extra use of the constant, or try reordering the two scan branches.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794723721.890473,
+  "score_before": 3253,
+  "score_after": 3253
+ },
+ {
+  "function": "func_80149220",
+  "text": "Not matched. Best this session 6912 (40%), revision 30b55a5b9e252f7f5c76 (saved best 3253 is older and better). Control flow is recovered: s4 = arg3==1 ? 0x4FFF : 0x2FFF; if ((arg0&0xFF)==8) { scan u16 tbl = D_8018D140 + arg3*0x12C for (arg2&0xFF) entries, match (v&0x1FFF)==0xD -> s4=v, flag=1; if flag==0 and (D_8018994E==0 or !(D_80189B36&0x20)) s2=7 }; then if (s2&0xFF)<8: loop up to 8: v1=func_801496B0(arg3&0xFF, s2&0xFF, arg2&0xFF); break with flag if D_8018A288 != 0xFFFF; else break unless (D_8018994E==0 || arg3==1), s2=(s2+1)&7. On flag: if (arg1&0xFF)==0 return D_8018A288; else s4 = ((u16*)&D_8018A288)[v1]. Return s4&0xFFFF. Remaining diff is the frame: target is 0x40 with ra,fp,s7..s0 saved, keeps arg1/arg2/arg3 in fp/s6/s3, s7=0xFFFF held in a register (ori s7 before the loop), s5=(arg3==1) as xori/sltiu. Adding fp/s6/s7/s5 locals made it worse (7795), so the register-pressure shape is what must change: try s7 as a loop-invariant constant read directly and keep arg3 as the original parameter. Note the 'lbu D_8018994E' is re-read inside the loop, not hoisted.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794735116.124929,
+  "score_before": 3253,
+  "score_after": 3253
+ },
+ {
+  "function": "func_80149220",
+  "text": "Saved best 3253 stays best. Three rewrites tried: 5237 (clean control flow, 116 vs 115 insns, frame 0x38 vs target 0x40), same with 0xFFFF held in a variable (no change), and a version keeping arg2/arg3 live in locals (5732, worse). Control flow in the asm is recorded in my earlier note: the mismatch is now the save set. Target saves ra, fp, s7..s0 (10 words, 0x18..0x3C) with 0xFFFF in s7, 0x2FFF/0x4FFF in s4, arg3 in s3 and arg1 in fp; my versions save fewer regs and the store order differs. Next: match the store order of the saves (target saves s0 first at 0x18, s7 at 0x34) by making the saved values live across the func_801496B0 call (keep fp=arg1, s6=arg2 and s3=arg3 used after the loop), then fix the branch order at the 0x8 check.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794736176.784096,
+  "score_before": 3253,
+  "score_after": 3253
+ },
+ {
+  "function": "func_80149220",
+  "text": "Not matched. Fresh best 5697 (50.8%) at revision 80de6ec48cdc6d02768e (saved best 3253 is a different source, not reproduced). Structure now right in outline: s4 = arg3==1 ? 0x4FFF : 0x2FFF; if (arg0&0xFF)==8: loop over D_8018D140 (u16 at arg3*0x12C + s0*2) looking for (t&0x1FFF)==0xD setting s4=t, s1=1; then v0 = s2&0xFF, and if !s1 and (D_8018994E==0 || !(D_80189B36&0x20)) set s2=7,v0=7. If v0<8: loop calling func_801496B0(arg3&0xFF, s2&0xFF, arg2&0xFF), break on D_8018A288 != 0xFFFF (s1++), else step s2=(s2+1)&7 while s0<8 under (D_8018994E==0 || s5) with s5=(arg3==1). After: if s1: s4 = arg1&0xFF ? *(u16*)(&D_8018A288 + v1*2) : D_8018A288. Return s4&0xFFFF. Remaining diffs: (1) frame: target is addiu sp,-0x40 saving ra,fp,s7..s0 (9 regs incl. s7 holding 0xFFFF); mine is -0x38, so s7 is not being kept live as a register; try keeping 0xFFFF as a live loop-invariant (e.g. compare against a variable declared before the loop and used in the loop only) or keep s6/s3 as explicit copies; (2) the andi v0,s2,0xFF re-masking appears 4x in target, mine uses it fewer times; (3) the call-site arguments are ordered a0=s3&0xFF before the loop head and only re-set after 'continue'.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794755501.297148,
+  "score_before": 3253,
+  "score_after": 3253
+ },
+ {
+  "function": "func_80149220",
+  "text": "Not matched. Best of mine: 5582 (51.8%, revision 455836e43b6fb9d3341d); saved historical best 3253 is better. Adding an s7 (0xFFFF) local made it 6332, so the 455836 version is the base. Why I'm stopping here: the target keeps arg1 in fp and arg2 in s6 across the calls, saves 10 registers in a 0x40 frame, and the draft's save set (no s7, no fp) is wrong at the root. Fixing that means choosing a variable set that the compiler allocates to these exact registers, which the two variants did not do. Full control-flow decode is in the notes of the previous release (structure is: s4 default 0x2FFF/0x4FFF; the arg0==8 block with a do-while over D_8018D140 + 0x12C*arg3; the `!(s1&0xFF)` s2=7 rule; the `v<8` loop calling func_801496B0(arg3&0xFF, s2&0xFF, arg2&0xFF) with s2=(s2+1)&7; then ((u16*)&D_8018A288)[v1] or D_8018A288 when arg1&0xFF==0). Next agent: start from 455836 and try declaring arg1/arg2 as u8 locals (fp, s6) so the saves follow the target.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794764960.518946,
+  "score_before": 3253,
+  "score_after": 3253
+ },
+ {
+  "function": "func_80149220",
+  "text": "Not matched. search_flags: -O1 scores 3253 (the saved best), -O2 (project) scores 4993 with the same source. So this is probably an -O1 function. Start the next session from the -O1 profile, not the m2c draft.\n\nThe draft is m2c at -O2 and has `__repair_literal` artifacts; remove them. Shape of the target: frame 0x40, s0..s4 + ra saved. A loop over 8 entries calls func_801496B0(arg3&0xFF, s2&0xFF, arg2&0xFF) and breaks when D_8018A288 != 0xFFFF. Before that, when (s2&0xFF)==8, a loop over arg2 entries of D_8018D140 (u16, stride 0x12C per arg3, test (t & 0x1FFF) == 0xD) sets s4/s1. My rewrite (42%) has the wrong stack layout and loop order.\n\nNext: write the -O1 version from the assembly, check the frame size first, then the loop structure.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794766920.774524,
+  "score_before": 3253,
+  "score_after": 3253
+ },
+ {
+  "function": "func_80149220",
+  "text": "Small-model attempt at func_80149220: 12 tries.\n  best 107 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 421 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 3557 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 5112 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 5892 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries. Best 107 under -O1 (own profile 5112). Remaining: stack frame is 0x38 vs target 0x40 (target seems to keep 8 more bytes of locals, not reproduced), s1 reset placed after the blez, and register order of the four argument moves.",
+  "by": "manual-2bc6a581e22a453b",
+  "created_at": 1795718297.160977,
+  "score_before": 4993,
+  "score_after": 4993,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:aa5dd99bbe12907b543d986c09d8557f14209dae6e17fa40d568121ff2ab4133"
+ },
+ {
+  "function": "func_80149220",
+  "text": "Profile probe: this saved C scores 107 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (10 of its 12 nearest matched neighbours were built with it), 5112 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721212.546699,
+  "score_before": 5112,
+  "score_after": 107,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:aa5dd99bbe12907b543d986c09d8557f14209dae6e17fa40d568121ff2ab4133"
  }
 ]
