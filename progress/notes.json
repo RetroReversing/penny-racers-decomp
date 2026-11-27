@@ -6448,14 +6448,6 @@
   "score_after": 14855
  },
  {
-  "function": "func_8022E748",
-  "text": "Not matched. Best saved score 23460 (permuter draft). My clean recompile of the candidate (dropped the dead do/while block and the unused j/p/d locals; declared D_801E99A0 and D_801E9A10 as s32[] and D_8022B64C as u8[] locally, since the context does not declare them) compiles and scores 25604 (58%) at revision 8eab02de7a6bc4bba5b2. Remaining mismatch: target frame is 0x60 and saves only s0-s3 + ra; mine is 0x70 and saves s0-s5 + ra, so my loop/index variables are live across calls where the target has fewer. Also the target calls func_80231A0C, func_80231E30 with s1 zeroed first, and has ~28 `sw $ra` / 8 `andi $a2,$s0,0xff` patterns, suggesting the switch arms share the func_80148230() result in s0 and the inner loops use fewer registers. Next step: reconstruct the target's case 1 / case 2 loops from get_assembly (the 0x8F0 stride loop and the 4-float store block are the first things to check) and try to keep the func_80148230 result in one local.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794719591.5548108,
-  "score_before": 23460,
-  "score_after": 23460
- },
- {
   "function": "func_801FE954",
   "text": "Not matched (best 59701, 8.1%). Target is 650 insns; the current C skeleton emits 135. Missing pieces: (1) a 5-case switch on D_80203AAD (lbu; sltiu 5; jump table at 0x80203870, 4-byte entries, `jr`) at ~target line 325. The machine draft fails on this jump table, so the case bodies need writing by hand; read_data(0x80203870) gives the targets. (2) Lots of extra code after the switch (reads/writes of D_801E9988, D_80203AB4, D_802038F3/F4/F8, D_801E999C, ...) that the skeleton omits. (3) Loop body: 16 iterations of per-array stores with a stride of 28 (i*28 = ((i<<3)-i)<<2). gcc emits a separate `lui $at,%hi(X)` + `addu $at,$at,$v0` + `sb/sw ...%lo(X)($at)` for each array, not a shared base. Suggest this is caused by how the arrays are declared (plain arrays with a byte index); the hoisted-base shape in my candidate does not match. Next step: write the switch with its case bodies from the asm, then compare the loop shape.",
   "by": "claude-haiku-5-5-23",
@@ -10448,14 +10440,6 @@
   "score_after": 23601
  },
  {
-  "function": "func_8022E748",
-  "text": "Not compiled. The supplied candidate does not compile: conflicting types for D_801E99A0, D_801E9A10 and D_8022B64C (declared as s32[]/u8[] in the candidate vs. the context header), and D_8022B64C has an incomplete type at its use. The candidate also contains a dead do{...}while(0) with an empty for loop and a store through D_8022B64C - 0x4C, which look like m2c artifacts rather than real source. Next step: fix the extern declarations to match context.h, delete the dead loop, and check the switch(func_80232820) arms (cases 1-4 with 1..5 loop bounds and the 0x8F0 stride) against the assembly before scoring. Not attempted further this session.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794742547.758435,
-  "score_before": 23460,
-  "score_after": 23460
- },
- {
   "function": "func_8020AAB0",
   "text": "Not attempted by compile: 2332 bytes, too large for this session. The m2c draft has a switch on D_8011F32E (state 0/1/2), a case-1 branch that uses D_8021B069 bit tests (0x10, 0x20, 8, 4), block_26/35/44/45/46/47/48/49 goto labels, and an 8-iteration loop calling func_801FD530 and func_80149F40. The draft uses incorrect pointer arithmetic on D_8011F2F0 (0x64 stride) and D_8021E20B (stride 9); these need struct or array types first. Start by declaring the 0x64-stride per-slot struct and restructuring the gotos into the three switch cases.",
   "by": "claude-haiku-5-5-20",
@@ -11638,14 +11622,6 @@
   "created_at": 1794752294.3330739,
   "score_before": 34051,
   "score_after": 34051
- },
- {
-  "function": "func_8022E748",
-  "text": "Released early, not at budget. 2448-byte function, 612 target insns. Best saved score 23460 (historical). My cleaned rewrite (revision 6b70b1a9396798117ca3) scored 25604 and was not better, so it is not kept. Reason it cannot get closer in this session: the structure is wrong at the top (target frame 0x60 with saved s0-s3 and ra, mine 0x70 with s0-s5; target calls func_80231A0C then func_80231E30 with different arg setup), and the switch bodies and the many 18-arg func_800DE41C calls are unverified. Fixing that needs the full assembly read and a stack-slot-by-slot redraft, not a few compiles. Next agent: start from get_assembly, match the prologue and the first 40 insns, then the switch. Do not reuse my draft verbatim.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794752343.696095,
-  "score_before": 23460,
-  "score_after": 23460
  },
  {
   "function": "func_801FE954",
@@ -14664,14 +14640,6 @@
   "score_after": 10
  },
  {
-  "function": "func_8022E748",
-  "text": "Not matched. Saved best 23460 (61.6%, 538 vs 612 insns). Why I'm releasing now: the draft's control flow is far from the target. My C has 538 insns vs 612, the stack frame is 0x68-0x70 vs 0x60, and the two obvious edits (removing dead locals p/d/j and the empty loop) made it worse (25544). Each edit shifts the frame and branch offsets without fixing the case bodies. Next steps for whoever picks this up: (1) restore saved_best; (2) rebuild the case-1 and case-2 bodies against the target's branch targets (beq offsets at 0x3d4/0x4b4/0x540 point to block ends that my draft doesn't have), so the instruction count goes up toward 612 first; (3) D_8022B64C is indexed with negative offsets (-0x40..-0x4C) and needs a struct base, not u8[]. Fix structure before register allocation.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794761428.047401,
-  "score_before": 23460,
-  "score_after": 23460
- },
- {
   "function": "func_801E0F10",
   "text": "Released with the reason stated: 2300-byte function, 575 insns, and the 137-insn stripped version (48850, 15%) covers only the state switch. The rest (case 2's flag-byte build from four D_8022B00x tests, the D_801F1880 pointer bumps, and the 0x178-stride 16-byte-block copy loop) must be rebuilt from the assembly; tuning the current version cannot close a 438-insn gap. The machine draft is unusable as is (void* arithmetic, M2C_FIELD casts). Next step: rebuild case 2 and the copy loop with a u8 table view for the strided fields, then restore the arg0*0x64 indexing the target uses.",
   "by": "claude-haiku-5-5-20",
@@ -15664,28 +15632,12 @@
   "score_after": 400
  },
  {
-  "function": "func_8022E748",
-  "text": "Claimed but not yet compiled; stopping this session for budget. Target 2448 bytes. The saved m2c draft does not compile: conflicting declarations for D_801E99A0, D_801E9A10 and D_8022B64C (declare them once, consistently), and D_8022B64C has an incomplete type. Structure visible from the draft: a switch on func_80232820 (cases 1-4) with calls to func_8022FE50, func_80148230 and func_800DE41C, plus tail calls to func_8013ADA8, func_801DDA5C and two func_800DE41C calls. The draft's do-while(0) with an empty inner loop is unreliable. Start by fixing the declarations and compiling the first switch alone.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794764603.638449,
-  "score_before": 23460,
-  "score_after": 23460
- },
- {
   "function": "func_80127AB0",
   "text": "Not attempted in this session: 884 insns, 3536 bytes, best saved is a stub (88260). Only the 10-arg signature (2 pointers, 7 floats, u8 arg9) and sqrtf are known; the 10-arg float-trailing convention seen on func_800DE41C may apply to nearby calls. Start by reading the full assembly prologue and call sites, then build the signature before the body.",
   "by": "claude-haiku-5-5-21",
   "created_at": 1794764662.237893,
   "score_before": 58449,
   "score_after": 58449
- },
- {
-  "function": "func_8022E748",
-  "text": "Unmatched. Best saved score 23460 (rev 8d30573d6ee1a30b570b). I compiled a cleaned rewrite of the saved draft (same structure, duplicate declarations kept, do/while block flattened): it scored 25544, worse, so the saved best is still the base. Its frame is 0x70 against the target's 0x60, and it saves five more callee-saved regs than the target. Target saves s0-s3 plus ra, so the locals (var_s1, i, j, p, d) must be fewer or reuse the same slots; drop the unused j/p/d and avoid the second loop variable. Target is 612 insns, mine 539. Next: fix the frame size and saved-register set first (first differing rows are prologue and the func_80231A0C/func_80231E30 call order), then the var_s1 condition chain (target loads D_801E9A10 word [0],[2],[3],[7] with the halfword at D_800DA26A+0x17C check) and the switch cases. Ruled out: the do/while form with empty for loop, and the 0x8F0 stride written as direct struct indexing (it changed the reg pattern but not the frame).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794764662.469443,
-  "score_before": 23460,
-  "score_after": 23460
  },
  {
   "function": "func_8013BB54",
@@ -41730,5 +41682,62 @@
   "created_at": 1794761143.7074718,
   "score_before": 18946,
   "score_after": 18946
+ },
+ {
+  "function": "func_8022E748",
+  "text": "Not matched. Best saved score 23460 (permuter draft). My clean recompile of the candidate (dropped the dead do/while block and the unused j/p/d locals; declared D_801E99A0 and D_801E9A10 as s32[] and D_8022B64C as u8[] locally, since the context does not declare them) compiles and scores 25604 (58%) at revision 8eab02de7a6bc4bba5b2. Remaining mismatch: target frame is 0x60 and saves only s0-s3 + ra; mine is 0x70 and saves s0-s5 + ra, so my loop/index variables are live across calls where the target has fewer. Also the target calls func_80231A0C, func_80231E30 with s1 zeroed first, and has ~28 `sw $ra` / 8 `andi $a2,$s0,0xff` patterns, suggesting the switch arms share the func_80148230() result in s0 and the inner loops use fewer registers. Next step: reconstruct the target's case 1 / case 2 loops from get_assembly (the 0x8F0 stride loop and the 4-float store block are the first things to check) and try to keep the func_80148230 result in one local.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794719591.5548108,
+  "score_before": 23460,
+  "score_after": 23460
+ },
+ {
+  "function": "func_8022E748",
+  "text": "Not compiled. The supplied candidate does not compile: conflicting types for D_801E99A0, D_801E9A10 and D_8022B64C (declared as s32[]/u8[] in the candidate vs. the context header), and D_8022B64C has an incomplete type at its use. The candidate also contains a dead do{...}while(0) with an empty for loop and a store through D_8022B64C - 0x4C, which look like m2c artifacts rather than real source. Next step: fix the extern declarations to match context.h, delete the dead loop, and check the switch(func_80232820) arms (cases 1-4 with 1..5 loop bounds and the 0x8F0 stride) against the assembly before scoring. Not attempted further this session.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794742547.758435,
+  "score_before": 23460,
+  "score_after": 23460
+ },
+ {
+  "function": "func_8022E748",
+  "text": "Released early, not at budget. 2448-byte function, 612 target insns. Best saved score 23460 (historical). My cleaned rewrite (revision 6b70b1a9396798117ca3) scored 25604 and was not better, so it is not kept. Reason it cannot get closer in this session: the structure is wrong at the top (target frame 0x60 with saved s0-s3 and ra, mine 0x70 with s0-s5; target calls func_80231A0C then func_80231E30 with different arg setup), and the switch bodies and the many 18-arg func_800DE41C calls are unverified. Fixing that needs the full assembly read and a stack-slot-by-slot redraft, not a few compiles. Next agent: start from get_assembly, match the prologue and the first 40 insns, then the switch. Do not reuse my draft verbatim.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794752343.696095,
+  "score_before": 23460,
+  "score_after": 23460
+ },
+ {
+  "function": "func_8022E748",
+  "text": "Not matched. Saved best 23460 (61.6%, 538 vs 612 insns). Why I'm releasing now: the draft's control flow is far from the target. My C has 538 insns vs 612, the stack frame is 0x68-0x70 vs 0x60, and the two obvious edits (removing dead locals p/d/j and the empty loop) made it worse (25544). Each edit shifts the frame and branch offsets without fixing the case bodies. Next steps for whoever picks this up: (1) restore saved_best; (2) rebuild the case-1 and case-2 bodies against the target's branch targets (beq offsets at 0x3d4/0x4b4/0x540 point to block ends that my draft doesn't have), so the instruction count goes up toward 612 first; (3) D_8022B64C is indexed with negative offsets (-0x40..-0x4C) and needs a struct base, not u8[]. Fix structure before register allocation.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794761428.047401,
+  "score_before": 23460,
+  "score_after": 23460
+ },
+ {
+  "function": "func_8022E748",
+  "text": "Claimed but not yet compiled; stopping this session for budget. Target 2448 bytes. The saved m2c draft does not compile: conflicting declarations for D_801E99A0, D_801E9A10 and D_8022B64C (declare them once, consistently), and D_8022B64C has an incomplete type. Structure visible from the draft: a switch on func_80232820 (cases 1-4) with calls to func_8022FE50, func_80148230 and func_800DE41C, plus tail calls to func_8013ADA8, func_801DDA5C and two func_800DE41C calls. The draft's do-while(0) with an empty inner loop is unreliable. Start by fixing the declarations and compiling the first switch alone.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794764603.638449,
+  "score_before": 23460,
+  "score_after": 23460
+ },
+ {
+  "function": "func_8022E748",
+  "text": "Unmatched. Best saved score 23460 (rev 8d30573d6ee1a30b570b). I compiled a cleaned rewrite of the saved draft (same structure, duplicate declarations kept, do/while block flattened): it scored 25544, worse, so the saved best is still the base. Its frame is 0x70 against the target's 0x60, and it saves five more callee-saved regs than the target. Target saves s0-s3 plus ra, so the locals (var_s1, i, j, p, d) must be fewer or reuse the same slots; drop the unused j/p/d and avoid the second loop variable. Target is 612 insns, mine 539. Next: fix the frame size and saved-register set first (first differing rows are prologue and the func_80231A0C/func_80231E30 call order), then the var_s1 condition chain (target loads D_801E9A10 word [0],[2],[3],[7] with the halfword at D_800DA26A+0x17C check) and the switch cases. Ruled out: the do/while form with empty for loop, and the 0x8F0 stride written as direct struct indexing (it changed the reg pattern but not the frame).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794764662.469443,
+  "score_before": 23460,
+  "score_after": 23460
+ },
+ {
+  "function": "func_8022E748",
+  "text": "Profile probe: this saved C scores 15152 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (8 of its 12 nearest matched neighbours were built with it), 20653 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721342.640227,
+  "score_before": 20653,
+  "score_after": 15152,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:ebeae665a9ca2acf8182d62e10deae0b566dadfbb013b97de33496cc3704c1f7"
  }
 ]
