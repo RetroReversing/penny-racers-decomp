@@ -6312,14 +6312,6 @@
   "score_after": 400
  },
  {
-  "function": "func_80164D00",
-  "text": "Not matched. Best saved revision 9407f45b2fe5e518188f scores 3618 on fresh compile (79.4%); the saved-best 649 is historical. Target frame is 0x88 with saves of ra, s0-s3 and f20/f22/f24/f26; ours is 0x80 with s0-s2 and f20-f24. So the target keeps one more integer value (s3) and one more float (f26) live across calls, which the source does not account for. Tried: (a) idx as a local s32 (7024, worse); (b) hoisting the three D_8011F308/30C/310 float loads into locals before the func_800DE41C call (6447, worse); (c) the saved-best form with arg0 copied to temp_s2 (kept). Not yet tried: a float local for the (-x*8)+sin/cos sums computed before the func_801D7028 call, and a second s32 local for the 0x7C0/0x7C4/0x7C8 values to force an extra saved register. Next step: check get_assembly for where s3 and f26 are first written; that identifies the extra local.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794710544.56388,
-  "score_before": 649,
-  "score_after": 649
- },
- {
   "function": "func_80219E28",
   "text": "Best rechecked: revision 9d3c926beae2aa0aad4a, score 1385 (89.9%) \u2014 switch(*(u16*)(s0+0x3E)) form. Hand-written from target asm. Structure: s0 = D_8011F2F0 + (arg0&0xFFFF)*100; *(u8*)s0 += 1; case 0: s0+0x18 = D_8021CA4C[func_801FA30C()&7] (f32), s0+0x4C = (f32)D_8021CA44[func_801FA30C()&7] (u8 table), state=1, return. case 1: fv1=s0+0x1C; if (fv1 > -7.0f && D_80190CB0==0) { s0+0x1C = fv1-0.04f; if (!(s0[0]&7)) (func_801FA30C()&1 ? 0.01f : -0.01f) -> s0+0x48; if (s0+0x44 > 0.1f) s0+0x48=-0.01f; if (s0+0x44 < -0.1f) s0+0x48=0.01f; fa0 = s0+0x44 + s0+0x48; s0+0x44=fa0; s0+0x18 = __sinf(fa0)+s0+0x18; fv0=s0+0x28+4.0f; s0+0x28=fv0; if (fv0>360.0f) s0+0x28=fv0-360.0f; } else s0[0xD]=2. Remaining diffs: the target dispatches with beqz/beq chain (not a jump table) and the 0x3E test; an if-chain form scored worse (1975), and the saved draft historically scored 1295 (not reproduced). Also register/ordering differences in the case-1 block (target stores 0x44 before reloading for the >0.1 test). Next: keep switch, try a single load of s0+0x44 into a local for the two clamps.",
   "by": "claude-haiku-5-5-21",
@@ -8910,14 +8902,6 @@
   "created_at": 1794725919.056947,
   "score_before": 320,
   "score_after": 200
- },
- {
-  "function": "func_80164D00",
-  "text": "Best current: revision 1f5d84a0aa1ed52fdeab, score 3510 (80.0%); target 176 insns, mine 170. Shape is right. Key facts that made the score move: re-read *(u16*)(arg0+2) at each use (target does lhu 2($s2) before each table index, not one cached idx); keep the raw func_8013E364() result in s3 and mask it at each use (s3&0xFFFF) instead of a cached s0. Remaining: the target keeps FOUR callee-saved FP values live (frame 0x88, sdc1 f20/f22/f24/f26): k8=8.0f (fs0), k180=180.0f (fs1), k314=3.14f (fs2) and the sin result (fs3) across the cos call. Mine only saves three (frame 0x80), so the sin*8 result is being recomputed or spilled differently. Also the target saves s3,s2,s1,s0 and keeps arg0 in s2 (move $s2,$a0) while mine uses s0 for arg0 and loads 0x898 from it. Next: make arg0 a local `u8 *obj = arg0` used through obj for every field, and hold fs3 in a local that is read only after the cos call.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794726129.8602712,
-  "score_before": 649,
-  "score_after": 649
  },
  {
   "function": "func_801FA240",
@@ -11526,14 +11510,6 @@
   "created_at": 1794740039.6842601,
   "score_before": 58770,
   "score_after": 58770
- },
- {
-  "function": "func_80164D00",
-  "text": "Not matched. Best kept: revision ff6055bcd8586fba2e91 (score 3621, 79.4%; the later ad9b9276 with two unused locals scores the same, so use ff60\u2026). Fixes that helped (keep): drop local func_8013E49C prototype (context.h has u16 version); `extern u8 D_8011F308[]`, `extern u8 D_8011F318[]`, `extern u8 D_8018D6C4[]`, `extern u8 func_80164FC0[]`; the angle reads use the separate symbol `(s8*)D_8011F318 + idx*0x64` directly (NOT D_8011F308+0xC or +0x10: the target loads it via `lui at,%hi(D_8011F318)` + lwc1 %lo, and the two sin/cos reads both use it); the x/y/z floats use D_8011F308 at +0, +4, +8 (target: `D_8011F308` at +0, `D_8011F30C`, `D_8011F310`). Also removed the `temp_s2` alias. Remaining diffs: (1) FRAME: target is addiu sp,-0x88 with ra@0x60, s3@0x5c, s2@0x58, s1@0x54, s0@0x50 and four doubles f20/f22/f24/f26 at 0x68..0x80; mine is -0x90 with ra@0x74, s0..s2 and three doubles (f20/f22/f24). The target has one more callee-saved GPR (s3) and one more FP pair (f26): s3 is probably a second loop/index copy of (lhu arg0+2) used for the second table lookup, and f26 holds a float that lives across the calls (the -arg0->0x7C0*8 term). Try an explicit `s32 idx = *(u16*)(arg0+2);` used in every table index (the target recomputes idx*0x64 once and keeps it in s3), and a float local for the -0x7C0*8 term used by both func_8013E818 operands. (2) Target keeps arg0 in s2 (move $s2,$a0 first); mine puts it in s0. Registers last. Stopping here: 3 no-improvement compiles left on the budget, the remaining gap is the frame.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794740091.48464,
-  "score_before": 649,
-  "score_after": 649
  },
  {
   "function": "func_8020FFD0",
@@ -15168,14 +15144,6 @@
   "score_after": 9
  },
  {
-  "function": "func_80164D00",
-  "text": "No match. Saved best 649 (source in brief) remains the baseline; it fails to compile as-is in the current context because its local prototype `s32 func_8013E49C(s32)` conflicts with context.h `func_8013E49C(u16)`. Removing that prototype gives score 3618 (frame 0x80 vs target 0x88; target saves s0-s3 and f20/f22/f24/f26, we save only f20-f24 and s0-s2). Using `3.14` (double) instead of `3.14f` is much worse (6093): target uses single-precision mul.s/div.s. Target keeps arg0 in s2 via `move $s2,$a0` and loads `lw $s1,0x898($s2)` from it; the one-off `temp_s2` copy did not change the score. Untried: an extra live f32 across the second call, or a shared u16 index local for the D_8011F3xx offset to force the s3 slot.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794754468.277774,
-  "score_before": 649,
-  "score_after": 649
- },
- {
   "function": "func_80211E9C",
   "text": "func_80211E9C (120 B). Not matched; saved best 1380 still stands (I did not beat it). Semantics confirmed from asm: for i in 0..13, src = table[i] where table D_802030CC is an array of pointers (lw from D_802030CC + i*4), dst row = D_8021F270 + arg0*0xE0 + i*16 bytes (target computes arg0*224 as (a0<<3)-a0 then <<5, hoisted out of the loop), inner loop copies 8 halfwords with lhu/sh (volatile short dst). Tried: (1) char-cast table + per-row dst (2320); (2) same with dst base expressed as (char*)D_8021F270 + arg0*0xE0 + i*0x10 (2320); (3) typed table short*D_802030CC[i] with dst base recomputed (2260); (4) base hoisted, src = D_802030CC[i] (2580, worse). Remaining diffs: target hoists lui/addiu of both globals and the dst base out of the loops and computes i*4 for the table load inside the outer loop (sll $v0,$a1,2; addu with table base in $t1), with the inner-loop pointer advancing via $a3/$a2; my versions reload the lui/addiu pairs inside the outer loop. Next try: keep the table base as a hoisted pointer variable (char *tbl = D_802030CC) and index it with i*4 inside the outer loop, and make the inner counter the pointer-advance form.",
   "by": "claude-haiku-5-5-24",
@@ -15606,14 +15574,6 @@
   "created_at": 1794755948.8173041,
   "score_before": 65,
   "score_after": 65
- },
- {
-  "function": "func_80164D00",
-  "text": "Not matched. My hand C (revision 7587d63427a3b59309a0) scores 5278 (70%), worse than the saved best 649 from the earlier draft; start from saved_best. Compile note: the draft's undeclared D_8011F308/D_8011F30C/D_8011F310/D_8011F318/D_8018D6C4 and func_80164FC0 need extern declarations; func_8013E49C is already in context.h (do not redeclare it). Remaining differences in my version: target frame 0x88 (mine 0x98); target saves s0-s3, ra, f20-f26; target uses direct symbol loads `lwc1 $f12, %lo(D_8011F318)` for the sin/cos input rather than base+index*0x64 (so index base and offset should be split); target has `move $s2, $a0` as the saved arg and `andi $s0,$v0,0xffff` after func_8013E364. Next: use s2 = arg0 saved, s0 = masked return, and the direct-symbol form for D_8011F318 and D_8011F308 to reduce the extra frame words.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794755958.652846,
-  "score_before": 649,
-  "score_after": 649
  },
  {
   "function": "func_80026D40",
@@ -20102,14 +20062,6 @@
   "created_at": 1794767550.1454499,
   "score_before": 8675,
   "score_after": 8675
- },
- {
-  "function": "func_80164D00",
-  "text": "Not matched. Best 3618 (79.4%), revision da5f1c133610ae0e4da8 (the untyped-float version of the m2c draft; func_8013E49C is in context as s32(u16), so do not redeclare it). Target frame is 0x88: ra at 0x60, s3 at 0x5c, s2 at 0x58, s1 at 0x54, s0 at 0x50, doubles f20/f22/f24/f26 at 0x68-0x80. Ours is 0x80 with s0-s2 only and f20-f24. So the target keeps one more integer value and one more double live across the calls: likely the 3.14f/180.0f sin/cos argument or the 0.5-scaled/negated 0x7C0/0x7C8 terms are held in a double. Tried: u8* for temp_s2 (no change). Next: hold (-x*8.0f) and the sin/cos results in f32 locals across the func_8013E818 argument list, and try a separate local for the second arg0 read (0x898) to force s3.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794767848.639817,
-  "score_before": 649,
-  "score_after": 649
  },
  {
   "function": "alFxNew",
@@ -41146,5 +41098,70 @@
   "score_before": 6541,
   "score_after": 2795,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:c491154030b08dcc89ea03363aa2d27272740c396ed15984a0417e40a5bb094a"
+ },
+ {
+  "function": "func_80164D00",
+  "text": "Not matched. Best saved revision 9407f45b2fe5e518188f scores 3618 on fresh compile (79.4%); the saved-best 649 is historical. Target frame is 0x88 with saves of ra, s0-s3 and f20/f22/f24/f26; ours is 0x80 with s0-s2 and f20-f24. So the target keeps one more integer value (s3) and one more float (f26) live across calls, which the source does not account for. Tried: (a) idx as a local s32 (7024, worse); (b) hoisting the three D_8011F308/30C/310 float loads into locals before the func_800DE41C call (6447, worse); (c) the saved-best form with arg0 copied to temp_s2 (kept). Not yet tried: a float local for the (-x*8)+sin/cos sums computed before the func_801D7028 call, and a second s32 local for the 0x7C0/0x7C4/0x7C8 values to force an extra saved register. Next step: check get_assembly for where s3 and f26 are first written; that identifies the extra local.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794710544.56388,
+  "score_before": 649,
+  "score_after": 649
+ },
+ {
+  "function": "func_80164D00",
+  "text": "Best current: revision 1f5d84a0aa1ed52fdeab, score 3510 (80.0%); target 176 insns, mine 170. Shape is right. Key facts that made the score move: re-read *(u16*)(arg0+2) at each use (target does lhu 2($s2) before each table index, not one cached idx); keep the raw func_8013E364() result in s3 and mask it at each use (s3&0xFFFF) instead of a cached s0. Remaining: the target keeps FOUR callee-saved FP values live (frame 0x88, sdc1 f20/f22/f24/f26): k8=8.0f (fs0), k180=180.0f (fs1), k314=3.14f (fs2) and the sin result (fs3) across the cos call. Mine only saves three (frame 0x80), so the sin*8 result is being recomputed or spilled differently. Also the target saves s3,s2,s1,s0 and keeps arg0 in s2 (move $s2,$a0) while mine uses s0 for arg0 and loads 0x898 from it. Next: make arg0 a local `u8 *obj = arg0` used through obj for every field, and hold fs3 in a local that is read only after the cos call.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794726129.8602712,
+  "score_before": 649,
+  "score_after": 649
+ },
+ {
+  "function": "func_80164D00",
+  "text": "Not matched. Best kept: revision ff6055bcd8586fba2e91 (score 3621, 79.4%; the later ad9b9276 with two unused locals scores the same, so use ff60\u2026). Fixes that helped (keep): drop local func_8013E49C prototype (context.h has u16 version); `extern u8 D_8011F308[]`, `extern u8 D_8011F318[]`, `extern u8 D_8018D6C4[]`, `extern u8 func_80164FC0[]`; the angle reads use the separate symbol `(s8*)D_8011F318 + idx*0x64` directly (NOT D_8011F308+0xC or +0x10: the target loads it via `lui at,%hi(D_8011F318)` + lwc1 %lo, and the two sin/cos reads both use it); the x/y/z floats use D_8011F308 at +0, +4, +8 (target: `D_8011F308` at +0, `D_8011F30C`, `D_8011F310`). Also removed the `temp_s2` alias. Remaining diffs: (1) FRAME: target is addiu sp,-0x88 with ra@0x60, s3@0x5c, s2@0x58, s1@0x54, s0@0x50 and four doubles f20/f22/f24/f26 at 0x68..0x80; mine is -0x90 with ra@0x74, s0..s2 and three doubles (f20/f22/f24). The target has one more callee-saved GPR (s3) and one more FP pair (f26): s3 is probably a second loop/index copy of (lhu arg0+2) used for the second table lookup, and f26 holds a float that lives across the calls (the -arg0->0x7C0*8 term). Try an explicit `s32 idx = *(u16*)(arg0+2);` used in every table index (the target recomputes idx*0x64 once and keeps it in s3), and a float local for the -0x7C0*8 term used by both func_8013E818 operands. (2) Target keeps arg0 in s2 (move $s2,$a0 first); mine puts it in s0. Registers last. Stopping here: 3 no-improvement compiles left on the budget, the remaining gap is the frame.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794740091.48464,
+  "score_before": 649,
+  "score_after": 649
+ },
+ {
+  "function": "func_80164D00",
+  "text": "No match. Saved best 649 (source in brief) remains the baseline; it fails to compile as-is in the current context because its local prototype `s32 func_8013E49C(s32)` conflicts with context.h `func_8013E49C(u16)`. Removing that prototype gives score 3618 (frame 0x80 vs target 0x88; target saves s0-s3 and f20/f22/f24/f26, we save only f20-f24 and s0-s2). Using `3.14` (double) instead of `3.14f` is much worse (6093): target uses single-precision mul.s/div.s. Target keeps arg0 in s2 via `move $s2,$a0` and loads `lw $s1,0x898($s2)` from it; the one-off `temp_s2` copy did not change the score. Untried: an extra live f32 across the second call, or a shared u16 index local for the D_8011F3xx offset to force the s3 slot.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794754468.277774,
+  "score_before": 649,
+  "score_after": 649
+ },
+ {
+  "function": "func_80164D00",
+  "text": "Not matched. My hand C (revision 7587d63427a3b59309a0) scores 5278 (70%), worse than the saved best 649 from the earlier draft; start from saved_best. Compile note: the draft's undeclared D_8011F308/D_8011F30C/D_8011F310/D_8011F318/D_8018D6C4 and func_80164FC0 need extern declarations; func_8013E49C is already in context.h (do not redeclare it). Remaining differences in my version: target frame 0x88 (mine 0x98); target saves s0-s3, ra, f20-f26; target uses direct symbol loads `lwc1 $f12, %lo(D_8011F318)` for the sin/cos input rather than base+index*0x64 (so index base and offset should be split); target has `move $s2, $a0` as the saved arg and `andi $s0,$v0,0xffff` after func_8013E364. Next: use s2 = arg0 saved, s0 = masked return, and the direct-symbol form for D_8011F318 and D_8011F308 to reduce the extra frame words.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794755958.652846,
+  "score_before": 649,
+  "score_after": 649
+ },
+ {
+  "function": "func_80164D00",
+  "text": "Not matched. Best 3618 (79.4%), revision da5f1c133610ae0e4da8 (the untyped-float version of the m2c draft; func_8013E49C is in context as s32(u16), so do not redeclare it). Target frame is 0x88: ra at 0x60, s3 at 0x5c, s2 at 0x58, s1 at 0x54, s0 at 0x50, doubles f20/f22/f24/f26 at 0x68-0x80. Ours is 0x80 with s0-s2 only and f20-f24. So the target keeps one more integer value and one more double live across the calls: likely the 3.14f/180.0f sin/cos argument or the 0.5-scaled/negated 0x7C0/0x7C8 terms are held in a double. Tried: u8* for temp_s2 (no change). Next: hold (-x*8.0f) and the sin/cos results in f32 locals across the func_8013E818 argument list, and try a separate local for the second arg0 read (0x898) to force s3.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794767848.639817,
+  "score_before": 649,
+  "score_after": 649
+ },
+ {
+  "function": "func_80164D00",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 1655 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (9 of its 12 nearest matched neighbours were built with it), the saved C scores 3062 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721230.0078459,
+  "score_before": 3062,
+  "score_after": 1655,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:fddc38b5ee2ed3b7d088361608c48709666ff2951cc26ab6f253f46b58dcd918"
+ },
+ {
+  "function": "func_80164D00",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Only claimed during a sibling sweep, not attempted by hand; working on a family of look-alikes first. No finding to hand off.",
+  "by": "manual-5191f0b0f2be40b5",
+  "created_at": 1795747109.376927,
+  "score_before": 3062,
+  "score_after": 3062
  }
 ]
