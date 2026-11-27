@@ -6704,14 +6704,6 @@
   "score_after": 13448
  },
  {
-  "function": "func_8015E530",
-  "text": "Not matched. Saved best 12148 (from an earlier attempt) is still the baseline; my byte-offset rewrite (u8 *arg0, &SYM + off casts, the same style that got func_8015E8E4 to 5694) scored 13588 and was discarded. Target frame is 0x68 with ra,s0,s1,s2,s3 saved; the rewrite gets 0x70 with an sdc1 $f20 spill, meaning it has one more live float than the target. The target reads the first guard as `lw $s0,0x898($s1)` and compares to 1 directly (so the 0x898 value is kept live in s0 across the call), and reloads lhu 0x560 at each use. The rewrite also puts the func_8013E364 result in an extra temp, and the second `if (*(u8*)(arg0+0x74C) < 5)` block is not a fall-through after the first call's stores in the target. Next: write the first block's stores before the second block without the float spill (f32 constants inline, no f20 live value), and keep the masked index in s1 with 0xFFFF in s3 for the compare.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794711201.439177,
-  "score_before": 12148,
-  "score_after": 12148
- },
- {
   "function": "main",
   "text": "Asking to release now: nothing in C can get closer, the gap is the frame pointer flag. Source (revision 7aa6832693c842060ec6): typedef struct T T; extern T D_8004AAB0; extern u8 D_8004CE10[]; void func_80033C20(void); void func_80026E64(void *); void osCreateThread(T *t, s32 id, void (*entry)(void *), void *arg, void *sp, s32 prio); void osStartThread(T *t); void main(void) { func_80033C20(); osCreateThread(&D_8004AAB0, 1, func_80026E64, NULL, D_8004CE10, 10); osStartThread(&D_8004AAB0); }\nWith the range profile -G0 -mips3 -mgp32 -mfp32 -O1 that gives 22 insns, score 506: every instruction matches except the frame pointer bookkeeping (target: sw $fp,0x18(sp), addu $fp,$sp in the jal delay slot, addu $sp,$fp and lw $fp in the epilogue, $ra at 0x1C). With -fno-omit-frame-pointer added the same C matches byte-for-byte (verified with try_compiler). Filed suggest(compiler=\"gcc-2.7.2-kmc\", flags=\"-G0 -mips3 -mgp32 -mfp32 -O1 -fno-omit-frame-pointer\", function=\"main\"); automatic compiler changes are off, so the user must apply it and recompile this C.",
   "by": "opencode-deepseek-v4.1-flash-free-5",
@@ -9656,14 +9648,6 @@
   "score_after": 625
  },
  {
-  "function": "func_8015E530",
-  "text": "Not matched. Current candidate compiles (revision 3d7ba9458a7eb448f5f8) at 12248 (48.3%); saved best 12148 is from an earlier source. The draft had repair artifacts and wrong types; fixed: removed __repair_phase var, func_8013E49C takes one u16 (context declaration), two-arg calls changed to one arg. Remaining: the target frame is 0x68 with s0..s3 saved and no $f20 spill; mine is 0x70 with sdc1 $f20 and extra s-register saves, and the target's first branch compares s0 against a value from func_8013E364 with an early `nop` before the `andi`/`move $s3` pair. The 0x7C table at D_8018D6C0/D_8018D6C8 is addressed as `lui $at,%hi(D_8018D6C8)` nine times in the target, so write it as one base expression, not casts of 0x8018d6c0. Restart from the assembly with a clean rewrite (the state-1 test on *(s32*)(arg0+0x898), flags at 0x560 mask 0x18, the 0x7C-stride writes, and the 0x64-stride float writes to D_8011F334/D_8011F338).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794727963.9857159,
-  "score_before": 12148,
-  "score_after": 12148
- },
- {
   "function": "func_8015CB40",
   "text": "Best 12170 (51.5%, 239 vs 251 insns) at revision 6dac0142dcdcff426539, a machine-draft-based C with the declarations filled in. Not close. The target keeps the loop index as u16 (`andi $s0,$s1,0xffff` x4) and carries the frame's f32 temporaries in $f24 and $f26, while mine uses f64 locals (`cvt.s.w` x6, `sdc1` to 0x80). Shape to try next: rewrite the three random-offset computations as u16 with an explicit f32 cast, and drop the f64 temps. Callees: func_800DE41C (18 args), func_8013E364, func_8013E818, func_801FA30C, func_8013E49C (s32 in context). Released after 1 compile because the structure is wrong, not just registers.",
   "by": "claude-haiku-5-5-24",
@@ -12486,14 +12470,6 @@
   "created_at": 1794740922.62734,
   "score_before": 9358,
   "score_after": 9358
- },
- {
-  "function": "func_8015E530",
-  "text": "Best 5453 (76.9%) at revision 127d217f4d4064e38e9a. Wins: the second func_800DE41C call takes f32 args for slots 0x24..0x44 (prototype with f32 at arg9-11 and arg15-17), and D_8011F3xx values are read inline as f32 each time (no shared idx local, no *2.0f temp that spills $f20). Remaining: target frame is 0x68 with s0..s3 + ra, arg0 kept in $s1 (move $s1,$a0 before lw 0x898); ours uses 0x70 and an sdc1 $f20. Next: make the first lw/bne follow the target register assignment, and check the first call's 0.0f args (target stores zeros with sw).\n\nBest 5453 (76.9%), revision 127d217f4d4064e38e9a. Not matched. What worked: second func_800DE41C call with prototype (s32 x6, void* x3, f32 x3, s32 x3, f32 x3); D_8011F3xx values read inline as f32 each time (idx = *(u16*)(arg0+2)*0x64 recomputed per access); constants 16.0f/1.0f/45.0f stored directly. Still wrong: the target frame is 0x68 saving ra,s0..s3 with arg0 kept in $s1 (move $s1,$a0 before lw 0x898); ours is 0x70 with an sdc1 $f20 spill that the target does not have. Replacing *2.0f by x+x and passing 0.0f vs 0 changed nothing. Untried: rewrite the leading lw/bne so arg0 is copied to a local before the first call, and find what causes the f20 spill (possibly the 0.0f args kept live across the call).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794740934.859282,
-  "score_before": 12148,
-  "score_after": 5453
  },
  {
   "function": "func_80135C64",
@@ -17544,14 +17520,6 @@
   "score_after": 820
  },
  {
-  "function": "func_8015E530",
-  "text": "Best 5313 (77.5%) using a separate `s32 idx` for the second func_8013E364() result (instead of reusing temp_s0). Remaining: (1) frame is 0x68 in target (ra 0x60, s0-s3 at 0x50-0x5c) while mine is 0x70 with an `sdc1 $f20` spill, so one of the `* 2.0f` / float-argument expressions is being widened to double somewhere; try writing the three `* 2.0f` terms as `2.0f * (f32)` on the already loaded values or check that D_8011F320..328 are f32 (not double) in the header. (2) Target keeps arg0 in s1 and the masked index in s0/s2 (`move $s1,$a0` at entry, `andi $s2,$v0,0xffff` after the call), mine keeps arg0 in s0 and reuses s2 for the index: restructure so the first-block index is a separate local (`u16 slot = (u16)func_8013E364()`), matching the second block. (3) The `*(void**)(... D_8018D6C0 ...)` double store after the `1.0f` store is probably real (both kept in the draft), leave it.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794758076.559407,
-  "score_before": 5453,
-  "score_after": 5313
- },
- {
   "function": "func_800DE2E0",
   "text": "MATCHES byte-for-byte at KMC -O1 (checked with try_compiler; suggestion with exact C submitted). It uses a Struct800DEFF8[] D_8011F2F0 with 0x64-byte entries (u8 unk1 @1, u16 prev @0x10, u16 next @0x12). Loop i=1..0x13E sets prev=i-1, next=i+1, unk1=0; entries 0 and 0x13F are set explicitly. Waiting for the user to apply the -O1 profile.",
   "by": "claude-opus-medium-1",
@@ -18894,14 +18862,6 @@
   "created_at": 1794760165.041773,
   "score_before": 480,
   "score_after": 480
- },
- {
-  "function": "func_8015E530",
-  "text": "Best saved 5313 (77.5%, 235 vs 237 insns). Tried 4 compiles: idx/temp_s0_3 merge (no change), hoisting the second func_800DE41C float args into fa/fb/fc locals (worse, 11725; target computes each float load inline after the 0x7C index and the 0x74C check, so pre-loading them adds f20 pressure). Remaining gap: target frame -0x68 with ra,s3,s2,s1,s0 and no double spill; mine -0x70 with extra s4 and sdc1 $f20. Target keeps arg0 in s1 (move $s1,$a0 after prologue), temp_s0 in s0; mine swaps these. Next: check whether the second call's arguments should be inline expressions with the *2.0f on the stack-pass args, and whether `temp_v0_2` vs a fresh s32 for the second call return matters (target keeps andi $s2,$v0,0xffff which is idx masked, not a separate temp).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794760173.006402,
-  "score_before": 5313,
-  "score_after": 5313
  },
  {
   "function": "func_80143600",
@@ -40876,5 +40836,54 @@
   "created_at": 1795745710.5226638,
   "score_before": 32608,
   "score_after": 0
+ },
+ {
+  "function": "func_8015E530",
+  "text": "Not matched. Saved best 12148 (from an earlier attempt) is still the baseline; my byte-offset rewrite (u8 *arg0, &SYM + off casts, the same style that got func_8015E8E4 to 5694) scored 13588 and was discarded. Target frame is 0x68 with ra,s0,s1,s2,s3 saved; the rewrite gets 0x70 with an sdc1 $f20 spill, meaning it has one more live float than the target. The target reads the first guard as `lw $s0,0x898($s1)` and compares to 1 directly (so the 0x898 value is kept live in s0 across the call), and reloads lhu 0x560 at each use. The rewrite also puts the func_8013E364 result in an extra temp, and the second `if (*(u8*)(arg0+0x74C) < 5)` block is not a fall-through after the first call's stores in the target. Next: write the first block's stores before the second block without the float spill (f32 constants inline, no f20 live value), and keep the masked index in s1 with 0xFFFF in s3 for the compare.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794711201.439177,
+  "score_before": 12148,
+  "score_after": 12148
+ },
+ {
+  "function": "func_8015E530",
+  "text": "Not matched. Current candidate compiles (revision 3d7ba9458a7eb448f5f8) at 12248 (48.3%); saved best 12148 is from an earlier source. The draft had repair artifacts and wrong types; fixed: removed __repair_phase var, func_8013E49C takes one u16 (context declaration), two-arg calls changed to one arg. Remaining: the target frame is 0x68 with s0..s3 saved and no $f20 spill; mine is 0x70 with sdc1 $f20 and extra s-register saves, and the target's first branch compares s0 against a value from func_8013E364 with an early `nop` before the `andi`/`move $s3` pair. The 0x7C table at D_8018D6C0/D_8018D6C8 is addressed as `lui $at,%hi(D_8018D6C8)` nine times in the target, so write it as one base expression, not casts of 0x8018d6c0. Restart from the assembly with a clean rewrite (the state-1 test on *(s32*)(arg0+0x898), flags at 0x560 mask 0x18, the 0x7C-stride writes, and the 0x64-stride float writes to D_8011F334/D_8011F338).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794727963.9857159,
+  "score_before": 12148,
+  "score_after": 12148
+ },
+ {
+  "function": "func_8015E530",
+  "text": "Best 5453 (76.9%) at revision 127d217f4d4064e38e9a. Wins: the second func_800DE41C call takes f32 args for slots 0x24..0x44 (prototype with f32 at arg9-11 and arg15-17), and D_8011F3xx values are read inline as f32 each time (no shared idx local, no *2.0f temp that spills $f20). Remaining: target frame is 0x68 with s0..s3 + ra, arg0 kept in $s1 (move $s1,$a0 before lw 0x898); ours uses 0x70 and an sdc1 $f20. Next: make the first lw/bne follow the target register assignment, and check the first call's 0.0f args (target stores zeros with sw).\n\nBest 5453 (76.9%), revision 127d217f4d4064e38e9a. Not matched. What worked: second func_800DE41C call with prototype (s32 x6, void* x3, f32 x3, s32 x3, f32 x3); D_8011F3xx values read inline as f32 each time (idx = *(u16*)(arg0+2)*0x64 recomputed per access); constants 16.0f/1.0f/45.0f stored directly. Still wrong: the target frame is 0x68 saving ra,s0..s3 with arg0 kept in $s1 (move $s1,$a0 before lw 0x898); ours is 0x70 with an sdc1 $f20 spill that the target does not have. Replacing *2.0f by x+x and passing 0.0f vs 0 changed nothing. Untried: rewrite the leading lw/bne so arg0 is copied to a local before the first call, and find what causes the f20 spill (possibly the 0.0f args kept live across the call).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794740934.859282,
+  "score_before": 12148,
+  "score_after": 5453
+ },
+ {
+  "function": "func_8015E530",
+  "text": "Best 5313 (77.5%) using a separate `s32 idx` for the second func_8013E364() result (instead of reusing temp_s0). Remaining: (1) frame is 0x68 in target (ra 0x60, s0-s3 at 0x50-0x5c) while mine is 0x70 with an `sdc1 $f20` spill, so one of the `* 2.0f` / float-argument expressions is being widened to double somewhere; try writing the three `* 2.0f` terms as `2.0f * (f32)` on the already loaded values or check that D_8011F320..328 are f32 (not double) in the header. (2) Target keeps arg0 in s1 and the masked index in s0/s2 (`move $s1,$a0` at entry, `andi $s2,$v0,0xffff` after the call), mine keeps arg0 in s0 and reuses s2 for the index: restructure so the first-block index is a separate local (`u16 slot = (u16)func_8013E364()`), matching the second block. (3) The `*(void**)(... D_8018D6C0 ...)` double store after the `1.0f` store is probably real (both kept in the draft), leave it.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794758076.559407,
+  "score_before": 5453,
+  "score_after": 5313
+ },
+ {
+  "function": "func_8015E530",
+  "text": "Best saved 5313 (77.5%, 235 vs 237 insns). Tried 4 compiles: idx/temp_s0_3 merge (no change), hoisting the second func_800DE41C float args into fa/fb/fc locals (worse, 11725; target computes each float load inline after the 0x7C index and the 0x74C check, so pre-loading them adds f20 pressure). Remaining gap: target frame -0x68 with ra,s3,s2,s1,s0 and no double spill; mine -0x70 with extra s4 and sdc1 $f20. Target keeps arg0 in s1 (move $s1,$a0 after prologue), temp_s0 in s0; mine swaps these. Next: check whether the second call's arguments should be inline expressions with the *2.0f on the stack-pass args, and whether `temp_v0_2` vs a fresh s32 for the second call return matters (target keeps andi $s2,$v0,0xffff which is idx masked, not a separate temp).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794760173.006402,
+  "score_before": 5313,
+  "score_after": 5313
+ },
+ {
+  "function": "func_8015E530",
+  "text": "Profile probe: this saved C scores 3379 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (8 of its 12 nearest matched neighbours were built with it), 3764 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721264.995968,
+  "score_before": 3764,
+  "score_after": 3379,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:94bd332c17aabde4a76ed5a2449e108bf4732c1cec36154b443e898cd371cec1"
  }
 ]
