@@ -6640,14 +6640,6 @@
   "score_after": 8516
  },
  {
-  "function": "func_802114C8",
-  "text": "Best 13233 (28.4%), not matched; restore saved best (the revision with var_a3 scored 13253, worse). Decoded target: frame 0x40, saves ra/s0/s1; arg0 in s1; s0 = &D_8021EEC0 (lui/addiu once, kept across calls, reused for lbu [0] and lw 0xE0). Ptr bump at D_800DE080+0x64 with words 0xED000000 and 0x5003C0. func_801CABF4 first call: stack args D_802D92A0, D_80187BF0+D_8021E231[D_8021E15F*0x110+D_8021EEC0[0]]*0x12, 0, D_802D6898, 0xE, 0x10, 0xE0, 0x60 (constants stored one at a time via addiu v0 / sw, so they are rematerialised, not kept in registers). Tail args: goto-path sets (a1,a2,5th) = (0x9D,0x21,0x28); else-path sets (var, 0x3C, 0x2B) after the 0x22 call on D_8021EEC6; the 0x9D path and else path share the final func_8014A4C8(arg0,a1,a2,0xB,x). Main problem: GCC hoists the constants 0xE/0x10/0xE0/0x60 and the addresses D_802D92A0/D_802D6898 into s2..s6, giving frame 0x50 and extra saved regs; the target does not. Untried ideas: different argument types for the stack args (void* vs s32 for D_802D92A0/D_802D6898), splitting the first call's args through a temporary, or declaring func_801CABF4 with fewer params. Note: the 0x4000/bit11 test reuses one lw of 0xE0; the else-path D_8021EEC1 table code (0x5A check, 6-byte D_8021B633 entries, shift-16 sign extension) is probably right as in the candidate.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794710747.395712,
-  "score_before": 13373,
-  "score_after": 13233
- },
- {
   "function": "func_80135108",
   "text": "Not attempted (no compiles). The m2c draft is built around float-to-unsigned conversions (the 2.1474836e9f >= test with | 0x80000000 and & 0xFFFF) which gcc-2.7.2 emits as a branch on the 2^31 threshold; get the exact cvt sequence from the target assembly before writing the C. Structure visible: entry off = (u16)a0*100; if (*(u8*)(D_8022A776 + D_8011F2F0[off]*0x8F0) & 2): update D_8011F334[off] (float, +1 with wrap via the threshold), then if the u16 value < 0x10 zero D_8011F2FC[idx] and return; else if >= 0x21 zero D_8011F334[idx]; set D_8011F2FC[idx]=1. Else branch zeroes D_8011F2FC[off] and D_8011F334[off].",
   "by": "claude-haiku-5-5-20",
@@ -9462,14 +9454,6 @@
   "created_at": 1794725198.7668211,
   "score_before": 8516,
   "score_after": 8516
- },
- {
-  "function": "func_802114C8",
-  "text": "Not matched. Best 12823 (30.6%), from a hand-cleaned version of the m2c draft (the m2c draft itself did not compile). Structure is right: func_801CA140(); display-list append (dl = *(D_800DE080+0x64); store 0xED000000 and 0x5003C0 at dl[0..1]; advance by 8); func_801CABF4 with 12 args (8 on stack at 0x10..0x2C: D_802D92A0, D_80187BF0 + (s8)D_8021E231[(s8)D_8021E15F*0x110 + D_8021EEC0[0]]*0x12, 0, D_802D6898, 0xE, 0x10, 0xE0, 0x60); the 0x4000 bit test on the word at D_8021EEC0+0xE0 selects the two branches; the else branch loads D_8021F260[0..3] into func_801CA494 args; D_8021EEC1 byte 0 < 0x55 selects func_801CABF4 with D_80203080 indexed by (byte + u16 at +3)*4; 0x5A check; D_8021B633 table stride 6. Remaining diffs: my frame is 0x50, target 0x40 (args 0x10..0x2C plus saves of ra, s0, s1, s2). The target reloads the D_8021EEC0 address via addiu for each use, so the source uses the global's address in each expression; mine reloads the D_800DE080+0x64 address seven times while the target caches dl once. Adding an unused local changed nothing. Next: fix the frame size first, then the reload pattern.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794725246.117662,
-  "score_before": 12453,
-  "score_after": 12453
  },
  {
   "function": "func_8015A728",
@@ -12336,14 +12320,6 @@
   "score_after": 290
  },
  {
-  "function": "func_802114C8",
-  "text": "Claim ended after one compile (score 13942, 24.6%); not matched. Asm read (185 insns, frame -0x40, saves ra, s1, s0): func_801CA140() first, then the D_800DE080+0x64 display-list write (two u32 stores, cursor advances by 8), then func_801CABF4 with idx = D_8021E15F*0x110 + D_8021EEC0[0] and D_80187BF0 + D_8021E231[idx]*0x12. Then branch on (*(u32*)(D_8021EEC0+0xE0) & 0x4000). Branch 0 handles bits 11 of that word and D_8021EFA0 bit 2 (0x9D/0x21/0x28 call). Branch 1 calls func_801CA494 with D_8021F260[0..3], then picks between D_80203080 index (EEC1[0] < 0x55), 8014A4C8 with the D_8021B633/4/5 table (EEC1[0] != 0x5A), then func_801CA468(0xFF), 8014A4C8(EEC6[0], EEC6[1], 0xB, 0x22), and a final 8014A4C8 with 14*t+0x9E, 0x3C, 0xB, 0x2B where t = u8 at EEC6-4. The target keeps D_8021EEC0 in $s0 across calls (five addiu $s0,D_8021EEC0 in the target, but ours rebuilds lui per use). Next: re-derive the D_8021EEC0 base once and keep it in a pointer local, then check the save set (ra/s1/s0, frame -0x40).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794739589.830106,
-  "score_before": 8348,
-  "score_after": 8348
- },
- {
   "function": "func_8021AC64",
   "text": "Best 8516 (51.3%) at revision ab5b2ebadbcd854a7106 (arg0..arg3 as s32, arg4 as s32; the current 036e76a8 with u8 arg4 scored 8565, so keep the s32 version). Layout from target: frame 0x60 (saves ra@0x5c, s4@0x58, s3@0x54, s2@0x50, s1@0x4c, s0@0x48); arg0..arg3 move into s1..s4 at entry (needed after the call); s0 = &D_80190CB4 (p). Call func_800DE41C(0,0,3,0, arg4 @0x10, 0xFF @0x14, 0 @0x18, D_801CE928 @0x1c, D_801CEC2C @0x20, nine zero words @0x24..0x44). Arg4 is read as a byte at 0x73($sp), meaning incoming stack arg 4. Ours gets frame 0x70 (extra 0x10 bytes) and the ENT macro's reloads of *p do not match the target chain. Untried: write the call's stack args with the exact types the target uses (byte store of arg4 at 0x10), and remove the ENT macro for a single pointer local computed once after the call.",
   "by": "claude-haiku-5-5-24",
@@ -12358,14 +12334,6 @@
   "created_at": 1794739611.970169,
   "score_before": 2310,
   "score_after": 2310
- },
- {
-  "function": "func_802114C8",
-  "text": "Stuck at 13942 (24.6%) after 2 compiles. Structural gap, not a register issue: target frame is -0x40 (saves ra, s1, s0; s0 = &D_8021EEC0 kept live and reloaded via lbu/lhu off s0), while every candidate gets -0x50 with extra spills and reloads `lui %hi(D_800DE080+0x64)` x7. Casting D_802D6898 to void* in the func_801CABF4 call (the warning \"arg 6 makes integer from pointer\") changed nothing. Next attempt should restructure the local set so only one pointer lives across the calls (e.g. `u8 *base = D_8021EEC0;` used for all reads), and check whether the 0x10/0x14 stack args use separate temporaries. Not yet tried: compile_family(signedness), search_flags, or a variant set. Released in this session because the next steps need a rewrite, not a tweak.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794739650.159133,
-  "score_before": 8348,
-  "score_after": 8348
  },
  {
   "function": "func_80027DF0",
@@ -16616,14 +16584,6 @@
   "score_after": 4960
  },
  {
-  "function": "func_802114C8",
-  "text": "Stopping early at 4 compiles (not the 8-compile budget): the score is stuck at 13742 across four different edits, so the next agent should start from the notes rather than from this C. Not a verdict that the function can't match. Target facts: frame 0x40, saves only s0 (=&D_8021EEC0) and s1 (=arg0), no s2. Second call's 6th arg is an integer value D_80203080[EEC1[0] + u16(EEC1+3)], while the first call's 6th arg is pointer D_80187BF0 + D_8021E231[idx]*18, so func_801CABF4's prototype needs an integer at that index and the first call needs a cast. Current C has an extra saved register (s2) and a 0x50 frame; suspect a local (t or cur) live across a call. Stack args 0x10..0x2C: D_802D92A0, ptr, 0, D_802D6898, 0xE, 0x10, 0xE0, 0x60. idx = D_8021E15F*0x110 + D_8021EEC0[0] (lb). Next: remove locals that cross calls, fix the prototype, then compare branch order.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794754282.113843,
-  "score_before": 8348,
-  "score_after": 8348
- },
- {
   "function": "func_802306F0",
   "text": "Not matched. Best 9041 at revision 7379013f306427cf63e9 (the one with `sp10[k]` loops; 42%). Structure of the target: frame 0x38 saves ra, s3, s2, s1, s0 with s0 = arg0 saved first. Calls: func_8003DE60(&D_80232CF8, arg0&0xFFFF), then a0 chosen from D_8021E1A6 (0->D232D04, 1->D232D10, 2->D232D1C, 3->D232D28, else no call) and func_8003DE60(a0). Then clear sp10[14] with a counter loop. switch(arg0&0xFFFF): case 1: k=D_800DA260+2, i=1, do { k clamp (k<13?k:0); func_80230BC4(i,k); D_800DA26A[0x1B+i*0x178]=0; i++; k++ } while(i<6). case 2: sp10[D260]=1, sp10[*(u16*)(D260+0x178)]=1; loop A (i=2..3, mark 0) and loop B (i=4..5, mark 1), each with a find-free while (sp10[k] -> k++ clamp). Remaining diffs: frame/register order (my version uses s4/s5 and a 0x40 frame; target only uses s0-s3). Replacing the global with a `u16 *pp` local made it worse (9408), so keep the direct globals. Next: make arg0 the s0 value saved first, and reduce loop variables to s0..s3.",
   "by": "claude-haiku-5-5-24",
@@ -17230,14 +17190,6 @@
   "created_at": 1794756181.542881,
   "score_before": 2607,
   "score_after": 2607
- },
- {
-  "function": "func_802114C8",
-  "text": "Best saved 13082 (29.2%), from revision 9ffdf2c883d77f8477f5. Changes that helped vs the inherited 13742: (1) prototype arg 6 of func_801CABF4 as s32 and cast the D_80187BF0 pointer with (s32)(...); (2) inline the (EEC1[0]-0x55)*6 index expressions into the three array reads (removes a spilled temp). Remaining diffs: target keeps s1=arg0 (move via addu s1,a0,zero), s0=&D_8021EEC0 reused for lbu/lw 0xE0 and later &D_8021EEC6; ours uses s0 for arg0 and gets an extra saved reg (frame 0x50 vs target 0x40, target saves only ra,s1,s0). Target folds the index as t=(v-0x55) (addiu v1,v1,-0x55) then sll/addu/sll giving *6 computed once and reused across the three arrays; attempts to hoist the index into a named local (k, t) regressed to 13322 because the compiler then folds -0x55 into the array address offsets (D_8021B435 relocs). Tried: local p=D_8021EEC0 (no effect). Next experiments: force arg0 into s1 (e.g. a local copy of arg0 taken after func_801CA140), and a single t=(EEC1[0]-0x55)*6 variable where the array index is t only (v1 base kept as D_8021EEC1 pointer).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794756187.0182002,
-  "score_before": 8348,
-  "score_after": 8348
  },
  {
   "function": "func_80026D40",
@@ -21966,14 +21918,6 @@
   "created_at": 1794765412.249155,
   "score_before": 14608,
   "score_after": 12568
- },
- {
-  "function": "func_802114C8",
-  "text": "Not matched. Best 13082 (29.2%, rev 9ffdf2c883d77f8477f5; 193 vs 185 insns). Releasing now because tuning cannot get closer until the data model is fixed: the target keeps one base pointer s0 = &D_8021EEC0 (lui/addiu reloaded 5 times) and reads fields by offset (lbu at +0, lhu at +5 and +7 via a loaded pointer, word test at +0xE0), while the candidate indexes raw byte arrays and reloads each global. Next step: model D_8021EEC0 as a struct (type byte at +0, flags word at +0xE0, D_8021EEC1 record with u16 at +3/+5/+7) and check D_8021EEC6 and D_8021F260 with guess_struct, then compile again. Prologue is a 0x50 frame saving s0-s2 and ra. Local repairs not run.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794765487.878759,
-  "score_before": 8348,
-  "score_after": 8348
  },
  {
   "function": "func_80216128",
@@ -40753,5 +40697,70 @@
   "created_at": 1794762489.632917,
   "score_before": 39262,
   "score_after": 39262
+ },
+ {
+  "function": "func_802114C8",
+  "text": "Best 13233 (28.4%), not matched; restore saved best (the revision with var_a3 scored 13253, worse). Decoded target: frame 0x40, saves ra/s0/s1; arg0 in s1; s0 = &D_8021EEC0 (lui/addiu once, kept across calls, reused for lbu [0] and lw 0xE0). Ptr bump at D_800DE080+0x64 with words 0xED000000 and 0x5003C0. func_801CABF4 first call: stack args D_802D92A0, D_80187BF0+D_8021E231[D_8021E15F*0x110+D_8021EEC0[0]]*0x12, 0, D_802D6898, 0xE, 0x10, 0xE0, 0x60 (constants stored one at a time via addiu v0 / sw, so they are rematerialised, not kept in registers). Tail args: goto-path sets (a1,a2,5th) = (0x9D,0x21,0x28); else-path sets (var, 0x3C, 0x2B) after the 0x22 call on D_8021EEC6; the 0x9D path and else path share the final func_8014A4C8(arg0,a1,a2,0xB,x). Main problem: GCC hoists the constants 0xE/0x10/0xE0/0x60 and the addresses D_802D92A0/D_802D6898 into s2..s6, giving frame 0x50 and extra saved regs; the target does not. Untried ideas: different argument types for the stack args (void* vs s32 for D_802D92A0/D_802D6898), splitting the first call's args through a temporary, or declaring func_801CABF4 with fewer params. Note: the 0x4000/bit11 test reuses one lw of 0xE0; the else-path D_8021EEC1 table code (0x5A check, 6-byte D_8021B633 entries, shift-16 sign extension) is probably right as in the candidate.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794710747.395712,
+  "score_before": 13373,
+  "score_after": 13233
+ },
+ {
+  "function": "func_802114C8",
+  "text": "Not matched. Best 12823 (30.6%), from a hand-cleaned version of the m2c draft (the m2c draft itself did not compile). Structure is right: func_801CA140(); display-list append (dl = *(D_800DE080+0x64); store 0xED000000 and 0x5003C0 at dl[0..1]; advance by 8); func_801CABF4 with 12 args (8 on stack at 0x10..0x2C: D_802D92A0, D_80187BF0 + (s8)D_8021E231[(s8)D_8021E15F*0x110 + D_8021EEC0[0]]*0x12, 0, D_802D6898, 0xE, 0x10, 0xE0, 0x60); the 0x4000 bit test on the word at D_8021EEC0+0xE0 selects the two branches; the else branch loads D_8021F260[0..3] into func_801CA494 args; D_8021EEC1 byte 0 < 0x55 selects func_801CABF4 with D_80203080 indexed by (byte + u16 at +3)*4; 0x5A check; D_8021B633 table stride 6. Remaining diffs: my frame is 0x50, target 0x40 (args 0x10..0x2C plus saves of ra, s0, s1, s2). The target reloads the D_8021EEC0 address via addiu for each use, so the source uses the global's address in each expression; mine reloads the D_800DE080+0x64 address seven times while the target caches dl once. Adding an unused local changed nothing. Next: fix the frame size first, then the reload pattern.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794725246.117662,
+  "score_before": 12453,
+  "score_after": 12453
+ },
+ {
+  "function": "func_802114C8",
+  "text": "Claim ended after one compile (score 13942, 24.6%); not matched. Asm read (185 insns, frame -0x40, saves ra, s1, s0): func_801CA140() first, then the D_800DE080+0x64 display-list write (two u32 stores, cursor advances by 8), then func_801CABF4 with idx = D_8021E15F*0x110 + D_8021EEC0[0] and D_80187BF0 + D_8021E231[idx]*0x12. Then branch on (*(u32*)(D_8021EEC0+0xE0) & 0x4000). Branch 0 handles bits 11 of that word and D_8021EFA0 bit 2 (0x9D/0x21/0x28 call). Branch 1 calls func_801CA494 with D_8021F260[0..3], then picks between D_80203080 index (EEC1[0] < 0x55), 8014A4C8 with the D_8021B633/4/5 table (EEC1[0] != 0x5A), then func_801CA468(0xFF), 8014A4C8(EEC6[0], EEC6[1], 0xB, 0x22), and a final 8014A4C8 with 14*t+0x9E, 0x3C, 0xB, 0x2B where t = u8 at EEC6-4. The target keeps D_8021EEC0 in $s0 across calls (five addiu $s0,D_8021EEC0 in the target, but ours rebuilds lui per use). Next: re-derive the D_8021EEC0 base once and keep it in a pointer local, then check the save set (ra/s1/s0, frame -0x40).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794739589.830106,
+  "score_before": 8348,
+  "score_after": 8348
+ },
+ {
+  "function": "func_802114C8",
+  "text": "Stuck at 13942 (24.6%) after 2 compiles. Structural gap, not a register issue: target frame is -0x40 (saves ra, s1, s0; s0 = &D_8021EEC0 kept live and reloaded via lbu/lhu off s0), while every candidate gets -0x50 with extra spills and reloads `lui %hi(D_800DE080+0x64)` x7. Casting D_802D6898 to void* in the func_801CABF4 call (the warning \"arg 6 makes integer from pointer\") changed nothing. Next attempt should restructure the local set so only one pointer lives across the calls (e.g. `u8 *base = D_8021EEC0;` used for all reads), and check whether the 0x10/0x14 stack args use separate temporaries. Not yet tried: compile_family(signedness), search_flags, or a variant set. Released in this session because the next steps need a rewrite, not a tweak.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794739650.159133,
+  "score_before": 8348,
+  "score_after": 8348
+ },
+ {
+  "function": "func_802114C8",
+  "text": "Stopping early at 4 compiles (not the 8-compile budget): the score is stuck at 13742 across four different edits, so the next agent should start from the notes rather than from this C. Not a verdict that the function can't match. Target facts: frame 0x40, saves only s0 (=&D_8021EEC0) and s1 (=arg0), no s2. Second call's 6th arg is an integer value D_80203080[EEC1[0] + u16(EEC1+3)], while the first call's 6th arg is pointer D_80187BF0 + D_8021E231[idx]*18, so func_801CABF4's prototype needs an integer at that index and the first call needs a cast. Current C has an extra saved register (s2) and a 0x50 frame; suspect a local (t or cur) live across a call. Stack args 0x10..0x2C: D_802D92A0, ptr, 0, D_802D6898, 0xE, 0x10, 0xE0, 0x60. idx = D_8021E15F*0x110 + D_8021EEC0[0] (lb). Next: remove locals that cross calls, fix the prototype, then compare branch order.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794754282.113843,
+  "score_before": 8348,
+  "score_after": 8348
+ },
+ {
+  "function": "func_802114C8",
+  "text": "Best saved 13082 (29.2%), from revision 9ffdf2c883d77f8477f5. Changes that helped vs the inherited 13742: (1) prototype arg 6 of func_801CABF4 as s32 and cast the D_80187BF0 pointer with (s32)(...); (2) inline the (EEC1[0]-0x55)*6 index expressions into the three array reads (removes a spilled temp). Remaining diffs: target keeps s1=arg0 (move via addu s1,a0,zero), s0=&D_8021EEC0 reused for lbu/lw 0xE0 and later &D_8021EEC6; ours uses s0 for arg0 and gets an extra saved reg (frame 0x50 vs target 0x40, target saves only ra,s1,s0). Target folds the index as t=(v-0x55) (addiu v1,v1,-0x55) then sll/addu/sll giving *6 computed once and reused across the three arrays; attempts to hoist the index into a named local (k, t) regressed to 13322 because the compiler then folds -0x55 into the array address offsets (D_8021B435 relocs). Tried: local p=D_8021EEC0 (no effect). Next experiments: force arg0 into s1 (e.g. a local copy of arg0 taken after func_801CA140), and a single t=(EEC1[0]-0x55)*6 variable where the array index is t only (v1 base kept as D_8021EEC1 pointer).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794756187.0182002,
+  "score_before": 8348,
+  "score_after": 8348
+ },
+ {
+  "function": "func_802114C8",
+  "text": "Not matched. Best 13082 (29.2%, rev 9ffdf2c883d77f8477f5; 193 vs 185 insns). Releasing now because tuning cannot get closer until the data model is fixed: the target keeps one base pointer s0 = &D_8021EEC0 (lui/addiu reloaded 5 times) and reads fields by offset (lbu at +0, lhu at +5 and +7 via a loaded pointer, word test at +0xE0), while the candidate indexes raw byte arrays and reloads each global. Next step: model D_8021EEC0 as a struct (type byte at +0, flags word at +0xE0, D_8021EEC1 record with u16 at +3/+5/+7) and check D_8021EEC6 and D_8021F260 with guess_struct, then compile again. Prologue is a 0x50 frame saving s0-s2 and ra. Local repairs not run.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794765487.878759,
+  "score_before": 8348,
+  "score_after": 8348
+ },
+ {
+  "function": "func_802114C8",
+  "text": "Profile probe: this saved C scores 3930 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (10 of its 12 nearest matched neighbours were built with it), 6185 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721239.8122659,
+  "score_before": 6185,
+  "score_after": 3930,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:40a0508ca0f52a882eeb6f9ca6d5fb51e75199f2e042fced519dc08935ae80ea"
  }
 ]
