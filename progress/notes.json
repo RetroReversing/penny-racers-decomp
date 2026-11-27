@@ -7072,14 +7072,6 @@
   "score_after": null
  },
  {
-  "function": "func_8002E120",
-  "text": "Baseline 790 (39 differing rows). Target prologue order: sw $s3,0x2c($sp) then sw $s0,0x20($sp) then sw $s7,0x3c($sp); candidate emits sw $s0,0x20 first and move $s0,$a0 instead of move $s3,$a2. This is a register-allocation/ordering difference in the prologue: target keeps arg2 in $s3 and arg0 in $s0, so the argument-to-saved-register assignment order differs. Untested idea: make the first use of arg0 later than the first use of arg2 (e.g. compute `rem = 0xB8` and the arg1 rounding before touching arg0), or declare arg2 before arg0's uses so gcc assigns $s3 to arg2 first. Also try search_flags: the diff is prologue-save interleaving only (proposal #339302416414) - -O1 may match byte-for-byte.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794718261.829608,
-  "score_before": 3640,
-  "score_after": 220
- },
- {
   "function": "func_801402B8",
   "text": "Not matched. Best saved score 13620 (60.5%, 320 vs 345 insns) at revision 412684a1cee8f9b13e98; the saved-best row later shows 13830 for an equivalent source. Structure is correct: 7-iteration loop over 2288-byte stride table (off = ((i*8+i)*16 - i)*16) with D_8022A772 != 0xFFFF test and sqrtf(dx*dx+dy*dy+dz*dz) < 1400.0f flag; byte +0xC incremented; func_8013E364 gated by 0xFFFF; two unsigned conversions of func_801FA30C()&0x7F (f32)(f64)t; func_800DE41C(0,0,1,0,0x51,0xC8,...,fs2,240.0f,fs1,0,0,0,2,2,2); r2 in 0x1F/0xF branch; func_8013E818(r&0xFFFF, r2&0xFFFF, 0x40, ((fs3-fs2)*0.008f)*ts0, fv, ((fs4-fs1)*0.008f)*ts0, 0xC8); D_8011F338 s32 zero store; D_8018D730 25.0f; second func_800DE41C(0,0,1,0,0x52,0x9B,...,0.2f x3); D_8011F334 stores of (f32)(r2&0xFFFF) and (f32)(r3&0xFFFF); else func_8013E49C(r&0xFFFF). Remaining diffs are not logic: (a) frame 0x98 vs target 0x90, i.e. we have one extra 8-byte stack slot while the target has no stack locals; (b) callee-saved register assignment differs (target s0 = loop/flag, s1 = row/ptr, s2 = flag, s4 = &D_8022A770, s5 = 0xFFFF constant; ours shuffles them); (c) loop shape: target does `sll v0,s0,3` before the label and inverted branch to s5; ours uses beql; (d) the 0x1F/0xF float chain in target is in f2/f0, ours in f4/f6/f8. Tried and worse: removing the f64 local (13830), inverted-continue loop (13944). Next steps: try compile_family(family=\"signedness\") as the tool suggests (unsigned vs signed loop/ off variables), try declaring the table pointers as locals (u8 *tbl = D_8022A770) to force s4 usage, and try collapsing the two conversions into one helper-free expression so the stack slot disappears.",
   "by": "claude-haiku-5-5-23",
@@ -7134,14 +7126,6 @@
   "created_at": 1794719120.514981,
   "score_before": 10325,
   "score_after": 10325
- },
- {
-  "function": "func_8002E120",
-  "text": "Score stuck at 205 (369/369 insns, 21 differing rows, all regalloc/order). Instruction multiset is identical; only the callee-saved prologue order and two reload registers differ.\n\nExact remaining diffs:\n1) Prologue order: target `sw $s3,0x2c; move $s3,$a2` then `sw $s0,0x20; move $s0,$a0`, then ra/fp/s7..s1 saves, then after `lw $v0,0x7c($s0)` comes `move $s7,$a1`. Candidate emits s0 first, s7 second, and `move $s3,$a2` only later near the loop. Final register assignment is already correct (arg0=$s0, arg1=$s7, res=$s3, rem=$s6, tbl=$s5, 1=$s4, magic=$fp), so only the copy/store ORDER differs \u2014 i.e. the order gcc first needs each parameter.\n2) case 13/14/0: target uses $s1 only in case 13 (`lw $s1,0x7c($s0)`) and reloads `$v1 = 0x7c($s0)` in case 14 and case 0; candidate keeps one shared `note` local in $s1 for all three.\n\nTried and rejected (all scored worse or identical): moving `tbl = D_80046F90` out of the loop / after `old = arg1` (205); `res = arg2` after rem (265); case 14 and case 0 written directly off `arg0->p7C` without the local (450 / 445); `while (arg0->p7C)` instead of `!= NULL` (205); sp18/sp1A init order swap (207); extra unused Note* locals n14/n0/n5 (205, no codegen effect). search_flags: O2/O3/G8/-fno-strength-reduce all 205, O1 9985, -g variants much worse. try_compiler O1 9985.\n\nUntested ideas for the next agent: give case 13 and case 14 separate locals (n13, n14) so case 14's copy is not coalesced into the shared $s1; or make the first statement of the function touch arg2 in a way that forces its saved-reg copy first (e.g. `res = arg2; if (res ...)`), since target allocates $s3 (lowest) to the first-needed parameter.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794719128.437205,
-  "score_before": 205,
-  "score_after": 205
  },
  {
   "function": "func_801B36F8",
@@ -9398,14 +9382,6 @@
   "created_at": 1794728530.183852,
   "score_before": 9328,
   "score_after": 9328
- },
- {
-  "function": "func_8002E120",
-  "text": "Best candidate: revision bce5f81565b9c9f50e9c, score 205 (99.4%), 369 insns, all instructions present; the diff is register and save-order only. Target saves $s3 at 0x2c and holds arg2 in $s3 (move $s3,$a2 first), arg0 in $s0, arg1 in $s7 (move $s7,$a1). Target also loads 0xB21642C9 into $fp (lui/ori) early, probably a magic-number division constant for /184 that GCC keeps live; my version rematerializes D_80046F90 in $s5 at that point. Tried: all local repair families (call_forwarded_arguments, call_one_shot_scope, store_value_lifetime, last_shift_reuse, signedness, declaration_order): none improved; one variant gave a compile error and one 2445. Hoisting tbl = D_80046F90 out of the while loop gave 790 and changes the frame, so do not hoist it. Next: try computing the (time+0x5C)/184 expressions through one shared local so the magic constant lives in $fp across the loop, and try the arg2 copy into res after rem. Why I'm stopping: 9 compiles without improvement; the remaining gap is allocation, and the local repairs have been exhausted.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794728624.96841,
-  "score_before": 205,
-  "score_after": 205
  },
  {
   "function": "func_80038010",
@@ -12134,14 +12110,6 @@
   "created_at": 1794741802.079243,
   "score_before": 10031,
   "score_after": 10031
- },
- {
-  "function": "func_8002E120",
-  "text": "Not matched. Best: score 205 (99.4%, 369 insns each) at revision bce5f81565b9c9f50e9c. All instructions match; what's left is prologue/register order only: target saves $s3 (arg2 = res) first at 0x2c, then $s0 (arg0) at 0x20, $s7 (arg1) at 0x3c; mine saves $s0 first, $s7 and $s3 later. Target also loads `lui $fp,0xb216; ori $fp,0x42c9` before the tbl `lui $s5` load; mine loads tbl first.\nTried: moving `tbl = (s16*)D_80046F90;` above the loop: 790 (worse, reverted). Not yet tried: declaration order of res/arg usage to change GCC's live-range register order; a constant local holding 0xB21642C9.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794741806.790095,
-  "score_before": 205,
-  "score_after": 205
  },
  {
   "function": "func_8014B048",
@@ -17608,14 +17576,6 @@
   "score_after": 32150
  },
  {
-  "function": "func_8002E120",
-  "text": "Best 205 (99.4%, 369 insns) is the candidate from the first compile in this claim (the full C in the recorded attempt; use get_candidate base=saved_best). Remaining diff is register and order only: target prologue stores $s3 (arg2/res) first, then $s0 (arg0), and keeps arg1 in $s7 with arg2 in $s3; mine copies arg2 into $s0/$s3 differently. Moving `rem = 0xB8;` before `res = arg2;` made it worse (265). Target also loads the constant 0xB21642C9 into $fp (lui/ori) before the tbl (D_80046F90) address and before `addiu $s4,$zero,1`; mine loads tbl first. Untried: moving the tbl assignment out of the loop head, or declaring tbl after `old`/`delta`, to change the order of those loads. Also untried: switching `sp18`/`sp1A` declaration order.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794760049.462131,
-  "score_before": 205,
-  "score_after": 205
- },
- {
   "function": "func_8012A384",
   "text": "Not attempted to compile; the claim's candidate (cccdb2e6c59942644fdc) fails to compile: 'D_8012AB4C has an incomplete type' (Vec3 externs clash with the header types) and warnings on incompatible pointer assignments for the Group/Mesh pointer chain. Target is 386 insns, 1484 B. Structure: arg0 -> +0x50 -> +4 -> +4 gives Group** gp; outer loop over Group array until meshes==NULL; inner loop over Mesh (fields: n at +0, tris at +4, verts at +8, nverts at +0xC, base at +0xD); vertex loop writes D_8012AB98[base+v] with offsets from arg0+0x18/0x1C/0x20 added to the vertex; triangle loop compares three vertices and calls debug printf func_8003DE60 with strings D_8012AA48..D_8012AB20. The first lines of the target load D_8012AB64/AB4C/AB7C into s2/s1/s0. Next step: fix the declarations first (use the header's Vec3 if present, or give the globals a plain struct type), then compare against the assembly with the nested-loop shape.",
   "by": "claude-haiku-5-5-22",
@@ -19016,14 +18976,6 @@
   "score_after": 10
  },
  {
-  "function": "func_8002E120",
-  "text": "Stopping at low effort. Best is f6126041eb1ed9a51073 (saved 205, 99.4% byte-diff, 369 insns each, not matched). Tried: unsigned cast on the /184 time divide (afd164048efb359cf4fb) scored 2445, worse; the target's divide is signed (sra 7 + sra 31 + subu), so keep signed arithmetic. Remaining gaps: register allocation (target: arg2 in $s3, arg1 in $s7, arg0 in $s0), the 0xB21642C9 reciprocal-multiply constant placement, and D_80046F90 hoisting (target uses lui/addiu into $s5 before the loop, ours does not). Next step: compute the reciprocal once before the switch, and reorder declarations to shift the saved-register assignment.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794762563.234299,
-  "score_before": 205,
-  "score_after": 205
- },
- {
   "function": "func_802178B4",
   "text": "Not matched; 420 insns, only a 53-insn partial draft (score 38405). Released unfinished.\n\nFindings for the next agent:\n- Indexing: idx = a0 & 0xFFFF, kept in $s0 across calls, so the prologue needs sw $ra/sw $s0 and frame 0x20. Keep idx live past a jal (e.g. use it after func_80203DF8) or the prologue will not match.\n- Entity stride is 100 bytes (idx*100 built as (x*3)*8 + x)*4). Use the struct-array form from proposal #339302416501. Layout: u16 +0x02, u8 +0x0D, u16 +0x10, u16 state +0x3E (D_8011F32E; switch on it, <6, jump table at D_8021DED0 with 6 entries, not yet read), float +0x44 (D_8011F334), word +0x48 (D_8011F338, also stored as float after unsigned-float conversion), float +0x4C (D_8011F33C), void* +0x60 (D_8011F350).\n- Globals: D_8018BC3C u16 (a current index), D_8021C114 u16 and D_8021C116 u16 (counter pair), D_8021C110 u8, D_801E99C0 s32, D_800E1850 u16, D_8006FB38 is a seq player (alSeqpStop call).\n- Case 0 (from the first block after jr): C114=0; C116++; ((PRSlot*)E[D_8018BC3C].f60)->u16 +4 = 0; if (C116 >= 0x14) { state=5; C116=0; func_80203DF8(1,0x3C,0xFF,0xFF,0xFF) }. The partial draft covers only this case.\n- Float-to-u16 pattern: 0x4F000000 (2^31) compare, with sub and the 0x80000000 OR trick (the usual unsigned float to int path). Use a helper with the same branch shape.\n- Other cases: calls func_80211C7C(0x14), func_802319E8, func_80231C5C, func_801CF468, func_8021F5F0, func_801D63F4, alSeqpStop, and a nested loop over 4x 0x14-byte-stride rows in D_8022A772 / D_8022AD64 (u16 field at stride 0x... with xori/sltu boolean). Cases 1..5 are not written yet.\nNext step: read D_8021DED0 for case addresses, then write cases 1 to 5 in order and get the epilogue right.",
   "by": "claude-haiku-5-5-20",
@@ -19478,14 +19430,6 @@
   "created_at": 1794764140.589654,
   "score_before": 0,
   "score_after": 0
- },
- {
-  "function": "func_8002E120",
-  "text": "1476-byte (369-insn) note-sequencer function, not matched. Best 205 (99.4%) = the current candidate (revision e5521c720747b945028e): full struct layouts for Note and Voice, switch on arg0->p7C->type with cases 13/11/12/16/14/15/0/7/8/5/default, `tbl=(s16*)D_80046F90` at top of loop, and the /184 magic divides. Only register allocation and constant placement differ. Target: `sw s3,0x2c` is the first save (so arg2 lives in s3 from the start and is saved first); `lui $fp,0xb216; ori $fp,0x42c9` (the /184 magic) is hoisted before `addiu $s4,$zero,1` and `lui $s5,%hi(D_80046F90)`; ours does lui s5/addiu s5 first, then fp, then s4. Tried: adding a NULL guard on tbl (1375, worse, reverted). Next steps: (1) move `tbl` out of the loop into a declaration with init (`s16 *tbl = (s16 *)D_80046F90;` at function entry) so its lui/addiu is hoisted before the magic; (2) declare the loop-local `s32 k = 1` before the while so `addiu $s4,$zero,1` lands before the lui; (3) if still swapped, swap the order of `arg1` vs `arg2` use in the initial assignments (`res = arg2` vs `rem = 0xB8`).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794764141.6371992,
-  "score_before": 205,
-  "score_after": 205
  },
  {
   "function": "func_802055F8",
@@ -41093,5 +41037,61 @@
   "created_at": 1794762900.674939,
   "score_before": 645,
   "score_after": 645
+ },
+ {
+  "function": "func_8002E120",
+  "text": "Baseline 790 (39 differing rows). Target prologue order: sw $s3,0x2c($sp) then sw $s0,0x20($sp) then sw $s7,0x3c($sp); candidate emits sw $s0,0x20 first and move $s0,$a0 instead of move $s3,$a2. This is a register-allocation/ordering difference in the prologue: target keeps arg2 in $s3 and arg0 in $s0, so the argument-to-saved-register assignment order differs. Untested idea: make the first use of arg0 later than the first use of arg2 (e.g. compute `rem = 0xB8` and the arg1 rounding before touching arg0), or declare arg2 before arg0's uses so gcc assigns $s3 to arg2 first. Also try search_flags: the diff is prologue-save interleaving only (proposal #339302416414) - -O1 may match byte-for-byte.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794718261.829608,
+  "score_before": 3640,
+  "score_after": 220
+ },
+ {
+  "function": "func_8002E120",
+  "text": "Score stuck at 205 (369/369 insns, 21 differing rows, all regalloc/order). Instruction multiset is identical; only the callee-saved prologue order and two reload registers differ.\n\nExact remaining diffs:\n1) Prologue order: target `sw $s3,0x2c; move $s3,$a2` then `sw $s0,0x20; move $s0,$a0`, then ra/fp/s7..s1 saves, then after `lw $v0,0x7c($s0)` comes `move $s7,$a1`. Candidate emits s0 first, s7 second, and `move $s3,$a2` only later near the loop. Final register assignment is already correct (arg0=$s0, arg1=$s7, res=$s3, rem=$s6, tbl=$s5, 1=$s4, magic=$fp), so only the copy/store ORDER differs \u2014 i.e. the order gcc first needs each parameter.\n2) case 13/14/0: target uses $s1 only in case 13 (`lw $s1,0x7c($s0)`) and reloads `$v1 = 0x7c($s0)` in case 14 and case 0; candidate keeps one shared `note` local in $s1 for all three.\n\nTried and rejected (all scored worse or identical): moving `tbl = D_80046F90` out of the loop / after `old = arg1` (205); `res = arg2` after rem (265); case 14 and case 0 written directly off `arg0->p7C` without the local (450 / 445); `while (arg0->p7C)` instead of `!= NULL` (205); sp18/sp1A init order swap (207); extra unused Note* locals n14/n0/n5 (205, no codegen effect). search_flags: O2/O3/G8/-fno-strength-reduce all 205, O1 9985, -g variants much worse. try_compiler O1 9985.\n\nUntested ideas for the next agent: give case 13 and case 14 separate locals (n13, n14) so case 14's copy is not coalesced into the shared $s1; or make the first statement of the function touch arg2 in a way that forces its saved-reg copy first (e.g. `res = arg2; if (res ...)`), since target allocates $s3 (lowest) to the first-needed parameter.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794719128.437205,
+  "score_before": 205,
+  "score_after": 205
+ },
+ {
+  "function": "func_8002E120",
+  "text": "Best candidate: revision bce5f81565b9c9f50e9c, score 205 (99.4%), 369 insns, all instructions present; the diff is register and save-order only. Target saves $s3 at 0x2c and holds arg2 in $s3 (move $s3,$a2 first), arg0 in $s0, arg1 in $s7 (move $s7,$a1). Target also loads 0xB21642C9 into $fp (lui/ori) early, probably a magic-number division constant for /184 that GCC keeps live; my version rematerializes D_80046F90 in $s5 at that point. Tried: all local repair families (call_forwarded_arguments, call_one_shot_scope, store_value_lifetime, last_shift_reuse, signedness, declaration_order): none improved; one variant gave a compile error and one 2445. Hoisting tbl = D_80046F90 out of the while loop gave 790 and changes the frame, so do not hoist it. Next: try computing the (time+0x5C)/184 expressions through one shared local so the magic constant lives in $fp across the loop, and try the arg2 copy into res after rem. Why I'm stopping: 9 compiles without improvement; the remaining gap is allocation, and the local repairs have been exhausted.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794728624.96841,
+  "score_before": 205,
+  "score_after": 205
+ },
+ {
+  "function": "func_8002E120",
+  "text": "Not matched. Best: score 205 (99.4%, 369 insns each) at revision bce5f81565b9c9f50e9c. All instructions match; what's left is prologue/register order only: target saves $s3 (arg2 = res) first at 0x2c, then $s0 (arg0) at 0x20, $s7 (arg1) at 0x3c; mine saves $s0 first, $s7 and $s3 later. Target also loads `lui $fp,0xb216; ori $fp,0x42c9` before the tbl `lui $s5` load; mine loads tbl first.\nTried: moving `tbl = (s16*)D_80046F90;` above the loop: 790 (worse, reverted). Not yet tried: declaration order of res/arg usage to change GCC's live-range register order; a constant local holding 0xB21642C9.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794741806.790095,
+  "score_before": 205,
+  "score_after": 205
+ },
+ {
+  "function": "func_8002E120",
+  "text": "Best 205 (99.4%, 369 insns) is the candidate from the first compile in this claim (the full C in the recorded attempt; use get_candidate base=saved_best). Remaining diff is register and order only: target prologue stores $s3 (arg2/res) first, then $s0 (arg0), and keeps arg1 in $s7 with arg2 in $s3; mine copies arg2 into $s0/$s3 differently. Moving `rem = 0xB8;` before `res = arg2;` made it worse (265). Target also loads the constant 0xB21642C9 into $fp (lui/ori) before the tbl (D_80046F90) address and before `addiu $s4,$zero,1`; mine loads tbl first. Untried: moving the tbl assignment out of the loop head, or declaring tbl after `old`/`delta`, to change the order of those loads. Also untried: switching `sp18`/`sp1A` declaration order.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794760049.462131,
+  "score_before": 205,
+  "score_after": 205
+ },
+ {
+  "function": "func_8002E120",
+  "text": "Stopping at low effort. Best is f6126041eb1ed9a51073 (saved 205, 99.4% byte-diff, 369 insns each, not matched). Tried: unsigned cast on the /184 time divide (afd164048efb359cf4fb) scored 2445, worse; the target's divide is signed (sra 7 + sra 31 + subu), so keep signed arithmetic. Remaining gaps: register allocation (target: arg2 in $s3, arg1 in $s7, arg0 in $s0), the 0xB21642C9 reciprocal-multiply constant placement, and D_80046F90 hoisting (target uses lui/addiu into $s5 before the loop, ours does not). Next step: compute the reciprocal once before the switch, and reorder declarations to shift the saved-register assignment.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794762563.234299,
+  "score_before": 205,
+  "score_after": 205
+ },
+ {
+  "function": "func_8002E120",
+  "text": "1476-byte (369-insn) note-sequencer function, not matched. Best 205 (99.4%) = the current candidate (revision e5521c720747b945028e): full struct layouts for Note and Voice, switch on arg0->p7C->type with cases 13/11/12/16/14/15/0/7/8/5/default, `tbl=(s16*)D_80046F90` at top of loop, and the /184 magic divides. Only register allocation and constant placement differ. Target: `sw s3,0x2c` is the first save (so arg2 lives in s3 from the start and is saved first); `lui $fp,0xb216; ori $fp,0x42c9` (the /184 magic) is hoisted before `addiu $s4,$zero,1` and `lui $s5,%hi(D_80046F90)`; ours does lui s5/addiu s5 first, then fp, then s4. Tried: adding a NULL guard on tbl (1375, worse, reverted). Next steps: (1) move `tbl` out of the loop into a declaration with init (`s16 *tbl = (s16 *)D_80046F90;` at function entry) so its lui/addiu is hoisted before the magic; (2) declare the loop-local `s32 k = 1` before the while so `addiu $s4,$zero,1` lands before the lui; (3) if still swapped, swap the order of `arg1` vs `arg2` use in the initial assignments (`res = arg2` vs `rem = 0xB8`).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794764141.6371992,
+  "score_before": 205,
+  "score_after": 205
  }
 ]

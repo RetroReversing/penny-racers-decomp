@@ -47,7 +47,8 @@ extern u16 D_80046F90[];
 extern char D_8004A3E0[];
 extern char D_8004A3E4[];
 
-s32 func_8002E120(Voice *arg0, s32 arg1_in, s32 arg2) {
+s32 func_8002E120(Voice *filter, s32 arg1_in, s32 arg2) {
+    Voice *arg0;
   s32 arg1;
     s16 sp18;
     u16 sp1A;
@@ -58,9 +59,9 @@ s32 func_8002E120(Voice *arg0, s32 arg1_in, s32 arg2) {
     s32 delta;
     s32 old;
     s32 rem;
-    s16 *tbl;
 
     res = arg2;
+    arg0 = filter;
   arg1 = arg1_in;
     rem = 0xB8;
     sp1A = 0;
@@ -68,7 +69,6 @@ s32 func_8002E120(Voice *arg0, s32 arg1_in, s32 arg2) {
     while (arg0->p7C != NULL) {
         old = arg1;
         arg1 = ((arg0->p7C->time + 0x5C) / 184) * 0xB8;
-        tbl = (s16 *) D_80046F90;
         delta = arg1 - old;
         if (rem < delta) {
             break;
@@ -80,8 +80,8 @@ s32 func_8002E120(Voice *arg0, s32 arg1_in, s32 arg2) {
             func_800346B0(D_8004A3E0, D_8004A3E4, 0x87);
         }
         switch (arg0->p7C->type) {
-        case 13:
-            note = arg0->p7C;
+        case 13: {
+            Note *note = arg0->p7C;
             if (note->unkA != 0) {
                 arg0->i48 = 1;
             }
@@ -92,24 +92,25 @@ s32 func_8002E120(Voice *arg0, s32 arg1_in, s32 arg2) {
             arg0->i74 = ((note->i14 + 0x5C) / 184) * 0xB8;
             arg0->s5A = (s16) ((note->f10 * note->f10) >> 15);
             arg0->s58 = (s16) note->u12;
-            arg0->u60 = ((u16 *) tbl)[note->u13];
-            arg0->u62 = ((u16 *) tbl)[0x7F - note->u13];
+            arg0->u60 = D_80046F90[note->u13];
+            arg0->u62 = D_80046F90[0x7F - note->u13];
             if (note->i14 != 0) {
                 arg0->s5C = 1;
                 arg0->s5E = 1;
             } else {
-                arg0->s5C = (s16) ((arg0->s5A * tbl[arg0->s58]) >> 15);
-                arg0->s5E = (s16) ((arg0->s5A * tbl[0x7F - arg0->s58]) >> 15);
+                arg0->s5C = (s16) ((arg0->s5A * ((s16 *) D_80046F90)[arg0->s58]) >> 15);
+                arg0->s5E = (s16) ((arg0->s5A * ((s16 *) D_80046F90)[0x7F - arg0->s58]) >> 15);
             }
             arg0->f44 = *(f32 *) &note->valC;
             break;
+        }
         case 11:
         case 12:
         case 16:
             res = func_8002E784(arg0, &sp18, &sp1A, delta, res);
             if ((arg0->i70 >= arg0->i74) || (delta == 0)) {
-                arg0->u68 = (u16) ((arg0->s5A * tbl[arg0->s58]) >> 15);
-                arg0->u6E = (u16) ((arg0->s5A * tbl[0x7F - arg0->s58]) >> 15);
+                arg0->u68 = (u16) ((arg0->s5A * ((s16 *) D_80046F90)[arg0->s58]) >> 15);
+                arg0->u6E = (u16) ((arg0->s5A * ((s16 *) D_80046F90)[0x7F - arg0->s58]) >> 15);
                 arg0->i70 = arg0->i74;
                 arg0->s5C = arg0->u68;
                 arg0->s5E = arg0->u6E;
@@ -132,28 +133,30 @@ s32 func_8002E120(Voice *arg0, s32 arg1_in, s32 arg2) {
                 arg0->i74 = ((*(s32 *) ((u8 *) arg0->p7C + 0x10) + 0x5C) / 184) * 0xB8;
             }
             if (arg0->p7C->type == 0x10) {
-                arg0->u60 = ((u16 *) tbl)[arg0->p7C->valC];
-                arg0->u62 = ((u16 *) tbl)[0x7F - arg0->p7C->valC];
+                arg0->u60 = D_80046F90[arg0->p7C->valC];
+                arg0->u62 = D_80046F90[0x7F - arg0->p7C->valC];
             }
             arg0->i78 = 1;
             break;
-        case 14:
-            note = arg0->p7C;
+        case 14: {
+            Note *note = arg0->p7C;
             if (note->unkA != 0) {
                 arg0->i48 = 1;
             }
             n_alLoadParam(arg0, 5, note->valC);
             arg0->i84 = 1;
             break;
+        }
         case 15:
             res = func_8002E784(arg0, &sp18, &sp1A, delta, res);
             func_8002E6E4(arg0, 4, 0);
             break;
-        case 0:
-            note = arg0->p7C;
+        case 0: {
+            Note *note = arg0->p7C;
             *(s32 *) ((u8 *) note->valC + 0x88) = 0;
             _n_freePVoice(note->valC);
             break;
+        }
         case 7:
             res = func_8002E784(arg0, &sp18, &sp1A, delta, res);
             arg0->f44 = *(f32 *) &arg0->p7C->valC;
