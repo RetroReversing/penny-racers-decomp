@@ -6784,14 +6784,6 @@
   "score_after": 2125
  },
  {
-  "function": "func_8014C4D0",
-  "text": "Not matched. This is an RDP display-list builder: each command is `p = *arg0; *arg0 = p + 2; p[0]=cmd_hi; p[1]=cmd_lo`. Saved C (historical score 575, rechecked now at 5855 under current header) and the current source are the same. Current diffs: target keeps arg0 pointer-to-pointer in $a0 (lw $v1,($a0); addiu $v0,$v1,8; sw $v0,($a0)) while ours copies it to $a3 first (move $a3,$a0), which shifts all later registers; also target computes lui 0x4f00 / mtc1 float conversion before the andi 0xFFFF, i.e. the float-to-int of D_8011F338[arg1&0xFFFF] (stride 0x64) is hoisted earlier, and the constants 0x000FC0FC / 0x00098260 are in the final two words where we differ at row 186 (target 0x000FC0FC, ours 0x00098260: the last command's p[1] literal needs to be 0xFC0FC with the 0x98260 word handled separately). try_local_repairs (6 families: byte/short signedness, index width, address temp, record slot struct, split lifetime) all scored 5855, no gain. Next: write arg0 as a local register copy (u32 *ptr = *arg0 once, then writes through ptr), and check the 0x4F000000 float constant (lui 0x4f00, mtc1) from a u32->f32 conversion of arg1&0xFFFF.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794710418.7887192,
-  "score_before": 575,
-  "score_after": 575
- },
- {
   "function": "sqrtf",
   "text": "Asking to release now: no C can get closer under the current profile. Target is exactly `jr $ra` + `sqrt.s $fv0,$fa0` (2 insns). Exact C: `f32 sqrtf(f32 x) { return __builtin_sqrtf(x); }`. With the project profile (-G0 -mips3 -mgp32 -mfp32 -O2) GCC 2.7.2 emits a NaN check (c.eq.s/bc1t) and a recursive `jal sqrtf` (11 insns, score 960); no source form avoids that without fast-math. With -ffast-math added the same C MATCHES byte-for-byte (verified with try_compiler), and a function-only suggestion was filed: suggest(compiler=\"gcc-2.7.2-kmc\", flags=\"-G0 -mips3 -mgp32 -mfp32 -O2 -ffast-math\", function=\"sqrtf\"). Automatic compiler changes are off, so the user must apply it, then recompile the C above.",
   "by": "opencode-deepseek-v4.1-flash-free-5",
@@ -10104,14 +10096,6 @@
   "score_after": 2125
  },
  {
-  "function": "func_8014C4D0",
-  "text": "Display-list builder: each command is `p = *arg0; *arg0 = p + 2; p[0]=w0; p[1]=w1;` (8 bytes). Commands: B6000000/2000, FD100000 with p[1]=D_8016B774[D_8016B788[i]], E8000000, F5000100/07000000, E6000000, F0000000/073FC000, E7000000, FD500000 with p[1]=D_8016B760[D_8016B788[i]], F5500000/07098260, E6000000, F3000000/073FF200, E7000000, F5400800/98260, F2000000/FC0FC. i = (u32)(f32 of D_8011F338 + (arg1&0xFFFF)*0x64) & 0xFFFF, computed with the same float-to-u16 branch shape as the sibling funcs (bc1tl around sub.s). Saved best 575 is stale: the same text recompiles at 5855 (65.7%). The remaining diff is register/copy: the target keeps arg0 in a0 and loads `lw v1,(a0)` directly, then reuses the first command pointer as `move $a3,$v1` for the later p[1] write (the first FD100000 p). My versions copy `move $a3,$a0` at entry. Tried: plain p locals (5855), p reassigned per-statement (5855, no change). Untried: keep the FD100000 pointer in its own local q (q=p) so it lives across the float-conversion call-free path, and try u32* as the parameter of the table write.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794725950.993598,
-  "score_before": 575,
-  "score_after": 575
- },
- {
   "function": "func_80149CC4",
   "text": "Not matched. Best this session 5595 (saved best 4245 by an earlier permuter is still better). The C structure is now right: three u8 do-while loops (init row[t0][1..0x21]=0 for row stride 0x22 at base D_8021E22F+arg0*0x110; bit-scan over u32 D_8018D3A0[arg0*8+t0] with t1<<=1 for a2<0x1F, storing a2 at base[t0*0x22 + a3 + s] where s = (t0>=5)?3:2; then per-row summary: a3==0 -> D230=1, D231=0x5A; t0>=5 -> D230=a3+1, D231=0x5A; else D230=a3); then if ((u8)arg1==0) clamp D_8021E1A7 to <=2 into D_8021E251 and zero the other 7 byte arrays at arg0*0x110. Remaining diffs: target copies args into $t2/$t7 at entry, computes base = 272*arg0 + D_8021E22F once into $a0 and reuses it for the summary stores, and the bit-scan loop order/branch layout differs (target does `move $t0,$zero` before the lui of D22F). Using a base pointer (u8 *base) and a u32 *wp (D_8018D3A0+arg0*8) helped (6410 -> 5595). Next idea: keep base in a variable used by the summary stores too, and try a `for`-with-continue or goto-free layout for the `a3==0` branch so the delay-slot t0++ lands the same way.",
   "by": "claude-haiku-5-5-21",
@@ -13246,14 +13230,6 @@
   "created_at": 1794739857.487521,
   "score_before": 4170,
   "score_after": 4170
- },
- {
-  "function": "func_8014C4D0",
-  "text": "Best saved 575 (historical, 'different source'; I could not reproduce it). The source I compiled, which is the saved text, scores 5855 (65.7%). It is a display-list builder: each command is `p = *arg0; *arg0 = p + 2; p[0]=hi; p[1]=lo;`. The target keeps arg0 in $a0 and reloads `lw $v1,($a0)` on every command; mine copies arg0 to $a3 (`move $a3,$a0`) and reads from $a2, which is the largest diff (71 register rows). Also the last word: target writes `0xFC0FC` after `0xF2000000` (the diff row shows 0x000FC0FC) while mine writes 0x00098260 at the same place, so one of the last two lines is a different expression. The `i` value needs `(u32)*(f32*)(...)` in the target's order. Next agent: try writing the commands with `*arg0` directly (no `p` local for the first command) and check which lo word goes with 0xF5400800 vs 0xF2000000.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794739866.6566641,
-  "score_before": 575,
-  "score_after": 575
  },
  {
   "function": "func_80135C64",
@@ -17910,14 +17886,6 @@
   "created_at": 1794754427.2518919,
   "score_before": 3969,
   "score_after": 3969
- },
- {
-  "function": "func_8014C4D0",
-  "text": "Best 4435 (74.0%), revision d3b8b384457650a7f7c2. The draft-based u32 writer (5855) and the saved 575 do not reproduce. The win came from writing each command through (*arg0) directly with *arg0 += 2 (CMD macro), not copying *arg0 into a temp p. Remaining mismatch: the target reads *arg0 into $v1 for the first command and then reuses the stored pointer for the next: lw $v1,(a0); addiu $v0,$v1,8; sw $v0,(a0); sw $v0,(v1) (the first command's w0 is stored after the pointer bump, and the first word is the B6000000 pair). Also the target keeps arg0 in $a0 and does not copy it to $a2/$a3. The f32 index conversion (lui 0x4f00 / mtc1 / cvt) appears after the first pair. Next: reorder the first pair to store the pointer bump before writing w0, and check whether the second f32 read reuses the arg1 product. Untried: u16 arg1 parameter form.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794754439.474976,
-  "score_before": 575,
-  "score_after": 575
  },
  {
   "function": "func_8015FEC0",
@@ -23352,14 +23320,6 @@
   "score_after": 205
  },
  {
-  "function": "func_8014C4D0",
-  "text": "Not matched. Key finding: the project's -O2 gives 5855-5945; -O1 is the right profile (search_flags: -O1 scores 575, and -O1 with the source below scores 445). Best -O1 source (try_compiler, gcc-2.7.2-kmc, flags -G0 -mips3 -mgp32 -mfp32 -O1, score 445, 97.4%): first block p=*arg0; *arg0=p+2; p[0]=0xB6000000; p[1]=0x2000; then q=*arg0; *arg0=q+2; p=q; p[0]=0xFD100000; then i=(u32)*(f32*)(D_8011F338+(arg1&0xFFFF)*0x64)&0xFFFF; p[1]=D_8016B774[D_8016B788[i]]; the remaining 20-odd blocks written with p=*arg0 each time; second conversion for D_8016B760 same shape. Remaining diff: target has a `move $a2,$v1` that our -O1 build lacks, plus register permutations (target keeps the working pointer in v1, ours in a3). Tried and worse at -O1: writing block 1 through q with p loaded later (555); p=q placed after the 0xFD10 block (575); if/else conversion (duplicated masks, +5000 cost at -O2). Next: find where the target's `move a2,v1` lives (the sequence after the second lw $v1 block, before the 0xFD10 store), try a third pointer, or try the mask as u16 index at join. Use try_compiler with -O1, not compile_and_diff, for all experiments.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794764161.396657,
-  "score_before": 575,
-  "score_after": 575
- },
- {
   "function": "func_802055F8",
   "text": "1544-byte / 386-insn float state function, no match. Best this session 35223 (8.7%) with the pointer-local version (a=D_8021B024, b=D_8021B038, c=D_8021B04C, d=D_8021B028 as f32* locals). The direct-global rewrite scored 40012 and is worse, do not use it. Facts from the target: (1) D_8021B07E and D_8021B019 are u8 (lbu, not lb); (2) frame is 0x18 with only ra and s0 saved, so the pointer locals are not kept live across the sqrtf calls; the target rematerialises `addiu $a0,$a0,%lo(D_8021B024)` 17 times, which suggests the arrays are indexed by constant offset from a single base in a register; (3) D_8021AFFC is read at insn ~171 with the byte D_8021B06A loaded between; (4) the first block tests D_8021B07E==2 with a bne before any float. Next step: write the first block with `u32 *base` style pointer reuse, make D_8021B07E/D_8021B019 u8, and keep the sqrtf calls inside the switch case 1/case 2 bodies. The wrong-value tests (D_8021B02C vs D_8021B040 etc.) are fine as written.",
   "by": "claude-haiku-5-5-23",
@@ -24432,14 +24392,6 @@
   "score_after": 3275
  },
  {
-  "function": "func_8014C4D0",
-  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794767550.137821,
-  "score_before": 575,
-  "score_after": 575
- },
- {
   "function": "func_8015C8A4",
   "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
   "by": "claude-haiku-5-5-20",
@@ -24494,14 +24446,6 @@
   "created_at": 1794767800.305163,
   "score_before": 5027,
   "score_after": 5027
- },
- {
-  "function": "func_8014C4D0",
-  "text": "Display-list emitter (42 Gfx words via u32 **arg0). Best 5065 (70.3%) with a GW(a,b) macro block `{ u32 *q = *arg0; *arg0 = q+2; q[0]=a; q[1]=b; }` (rev 5935fdb1e80e7a1aa39a). Plain per-statement p=*arg0 blocks score 5855. Float->u32 conversion (c.le.s/sub.s/trunc/or 0x80000000) and index (arg1&0xFFFF)*100 already match. Remaining diff: compiler copies arg0 to a2/a3 at entry (`move $a2,$a0`) and uses that copy as base for all stores; target uses $a0 directly as base for the first two blocks, then keeps the pointer in $a3 from block 2 on. Signedness of i (s32) makes no difference. Next idea: find a source form where the pointer is only copied after the first block; otherwise move on.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794767803.466908,
-  "score_before": 575,
-  "score_after": 575
  },
  {
   "function": "func_801632D0",
@@ -40410,5 +40354,86 @@
   "created_at": 1795646182.346313,
   "score_before": 275,
   "score_after": 215
+ },
+ {
+  "function": "func_8014C4D0",
+  "text": "Not matched. This is an RDP display-list builder: each command is `p = *arg0; *arg0 = p + 2; p[0]=cmd_hi; p[1]=cmd_lo`. Saved C (historical score 575, rechecked now at 5855 under current header) and the current source are the same. Current diffs: target keeps arg0 pointer-to-pointer in $a0 (lw $v1,($a0); addiu $v0,$v1,8; sw $v0,($a0)) while ours copies it to $a3 first (move $a3,$a0), which shifts all later registers; also target computes lui 0x4f00 / mtc1 float conversion before the andi 0xFFFF, i.e. the float-to-int of D_8011F338[arg1&0xFFFF] (stride 0x64) is hoisted earlier, and the constants 0x000FC0FC / 0x00098260 are in the final two words where we differ at row 186 (target 0x000FC0FC, ours 0x00098260: the last command's p[1] literal needs to be 0xFC0FC with the 0x98260 word handled separately). try_local_repairs (6 families: byte/short signedness, index width, address temp, record slot struct, split lifetime) all scored 5855, no gain. Next: write arg0 as a local register copy (u32 *ptr = *arg0 once, then writes through ptr), and check the 0x4F000000 float constant (lui 0x4f00, mtc1) from a u32->f32 conversion of arg1&0xFFFF.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794710418.7887192,
+  "score_before": 575,
+  "score_after": 575
+ },
+ {
+  "function": "func_8014C4D0",
+  "text": "Display-list builder: each command is `p = *arg0; *arg0 = p + 2; p[0]=w0; p[1]=w1;` (8 bytes). Commands: B6000000/2000, FD100000 with p[1]=D_8016B774[D_8016B788[i]], E8000000, F5000100/07000000, E6000000, F0000000/073FC000, E7000000, FD500000 with p[1]=D_8016B760[D_8016B788[i]], F5500000/07098260, E6000000, F3000000/073FF200, E7000000, F5400800/98260, F2000000/FC0FC. i = (u32)(f32 of D_8011F338 + (arg1&0xFFFF)*0x64) & 0xFFFF, computed with the same float-to-u16 branch shape as the sibling funcs (bc1tl around sub.s). Saved best 575 is stale: the same text recompiles at 5855 (65.7%). The remaining diff is register/copy: the target keeps arg0 in a0 and loads `lw v1,(a0)` directly, then reuses the first command pointer as `move $a3,$v1` for the later p[1] write (the first FD100000 p). My versions copy `move $a3,$a0` at entry. Tried: plain p locals (5855), p reassigned per-statement (5855, no change). Untried: keep the FD100000 pointer in its own local q (q=p) so it lives across the float-conversion call-free path, and try u32* as the parameter of the table write.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794725950.993598,
+  "score_before": 575,
+  "score_after": 575
+ },
+ {
+  "function": "func_8014C4D0",
+  "text": "Best saved 575 (historical, 'different source'; I could not reproduce it). The source I compiled, which is the saved text, scores 5855 (65.7%). It is a display-list builder: each command is `p = *arg0; *arg0 = p + 2; p[0]=hi; p[1]=lo;`. The target keeps arg0 in $a0 and reloads `lw $v1,($a0)` on every command; mine copies arg0 to $a3 (`move $a3,$a0`) and reads from $a2, which is the largest diff (71 register rows). Also the last word: target writes `0xFC0FC` after `0xF2000000` (the diff row shows 0x000FC0FC) while mine writes 0x00098260 at the same place, so one of the last two lines is a different expression. The `i` value needs `(u32)*(f32*)(...)` in the target's order. Next agent: try writing the commands with `*arg0` directly (no `p` local for the first command) and check which lo word goes with 0xF5400800 vs 0xF2000000.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794739866.6566641,
+  "score_before": 575,
+  "score_after": 575
+ },
+ {
+  "function": "func_8014C4D0",
+  "text": "Best 4435 (74.0%), revision d3b8b384457650a7f7c2. The draft-based u32 writer (5855) and the saved 575 do not reproduce. The win came from writing each command through (*arg0) directly with *arg0 += 2 (CMD macro), not copying *arg0 into a temp p. Remaining mismatch: the target reads *arg0 into $v1 for the first command and then reuses the stored pointer for the next: lw $v1,(a0); addiu $v0,$v1,8; sw $v0,(a0); sw $v0,(v1) (the first command's w0 is stored after the pointer bump, and the first word is the B6000000 pair). Also the target keeps arg0 in $a0 and does not copy it to $a2/$a3. The f32 index conversion (lui 0x4f00 / mtc1 / cvt) appears after the first pair. Next: reorder the first pair to store the pointer bump before writing w0, and check whether the second f32 read reuses the arg1 product. Untried: u16 arg1 parameter form.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794754439.474976,
+  "score_before": 575,
+  "score_after": 575
+ },
+ {
+  "function": "func_8014C4D0",
+  "text": "Not matched. Key finding: the project's -O2 gives 5855-5945; -O1 is the right profile (search_flags: -O1 scores 575, and -O1 with the source below scores 445). Best -O1 source (try_compiler, gcc-2.7.2-kmc, flags -G0 -mips3 -mgp32 -mfp32 -O1, score 445, 97.4%): first block p=*arg0; *arg0=p+2; p[0]=0xB6000000; p[1]=0x2000; then q=*arg0; *arg0=q+2; p=q; p[0]=0xFD100000; then i=(u32)*(f32*)(D_8011F338+(arg1&0xFFFF)*0x64)&0xFFFF; p[1]=D_8016B774[D_8016B788[i]]; the remaining 20-odd blocks written with p=*arg0 each time; second conversion for D_8016B760 same shape. Remaining diff: target has a `move $a2,$v1` that our -O1 build lacks, plus register permutations (target keeps the working pointer in v1, ours in a3). Tried and worse at -O1: writing block 1 through q with p loaded later (555); p=q placed after the 0xFD10 block (575); if/else conversion (duplicated masks, +5000 cost at -O2). Next: find where the target's `move a2,v1` lives (the sequence after the second lw $v1 block, before the 0xFD10 store), try a third pointer, or try the mask as u16 index at join. Use try_compiler with -O1, not compile_and_diff, for all experiments.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794764161.396657,
+  "score_before": 575,
+  "score_after": 575
+ },
+ {
+  "function": "func_8014C4D0",
+  "text": "Released because its agent stopped (decompdecomp closed); its attempts are kept.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794767550.137821,
+  "score_before": 575,
+  "score_after": 575
+ },
+ {
+  "function": "func_8014C4D0",
+  "text": "Display-list emitter (42 Gfx words via u32 **arg0). Best 5065 (70.3%) with a GW(a,b) macro block `{ u32 *q = *arg0; *arg0 = q+2; q[0]=a; q[1]=b; }` (rev 5935fdb1e80e7a1aa39a). Plain per-statement p=*arg0 blocks score 5855. Float->u32 conversion (c.le.s/sub.s/trunc/or 0x80000000) and index (arg1&0xFFFF)*100 already match. Remaining diff: compiler copies arg0 to a2/a3 at entry (`move $a2,$a0`) and uses that copy as base for all stores; target uses $a0 directly as base for the first two blocks, then keeps the pointer in $a3 from block 2 on. Signedness of i (s32) makes no difference. Next idea: find a source form where the pointer is only copied after the first block; otherwise move on.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794767803.466908,
+  "score_before": 575,
+  "score_after": 575
+ },
+ {
+  "function": "func_8014C4D0",
+  "text": "Not matched (about 2 judged; session ended). The saved best is a display-list builder written with __fence_p and __repair_phase_p scaffolding: under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 it scores 375; stripping the fences (plain p[i] stores, do-while wrappers removed) scores 615, so the fences carry the store order the target has. Next: rebuild the list as plain stores, keep the wrappers the scheduler needs, and try gcc-2.8.1-pm-sn-as -O1 and -fschedule-insns2 as the lead asked.",
+  "by": "manual-13d7053acf374055",
+  "created_at": 1795712459.09342,
+  "score_before": 755,
+  "score_after": 755
+ },
+ {
+  "function": "func_8014C4D0",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Stopped after about 2 judged attempts; see the note.",
+  "by": "manual-13d7053acf374055",
+  "created_at": 1795712481.726917,
+  "score_before": 755,
+  "score_after": 755
+ },
+ {
+  "function": "func_8014C4D0",
+  "text": "Profile probe: this saved C scores 375 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (12 of its 12 nearest matched neighbours were built with it), 755 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721220.562305,
+  "score_before": 755,
+  "score_after": 375,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:d2a5ade5ae63eb34ab8b9a85dc9e4c804be98f1729aae2a4a370d2ca98065175"
  }
 ]
