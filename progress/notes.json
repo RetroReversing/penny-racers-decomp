@@ -6944,14 +6944,6 @@
   "score_after": null
  },
  {
-  "function": "func_80167510",
-  "text": "Draft baseline scores 23232 (saved, same source), far from a match: 411 mismatch rows, target frame 0x70 vs draft 0x78, target saves ra at 0x58 where the draft saves s4. The draft is mangled m2c output: a `__repair_rows` label with a goto loop, a stray `default:` label inside the switch, and a `{ func_8013AE60(...);return;}` tail, plus undeclared externs and float-to-pointer assignments (warning at line 78). Structure visible in it: a switch on the u16 at +0x3E of the record at D_8011F2F0 + (arg0&0xFFFF)*0x64, with cases 0/1/2 writing fields +0x18/+0x1C/+0x20 and +0x44/+0x48/+0x4C, D_8018D730 / D_8018D6C4 stores with a 0x7C stride, a 0x8F0 stride into D_8022A770, and calls to func_800DE41C, func_8013F050/1D4, func_8012913C. Tried: signedness of temp_s0 (no change). Next agent: rewrite from the assembly rather than tuning the draft. Start with the case-0 block and the func_8013AE60 tail, and fix the frame size first.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794719475.91503,
-  "score_before": 23232,
-  "score_after": 23232
- },
- {
   "function": "func_800DE41C",
   "text": "Not attempted in C yet. 2224 bytes, 556 instructions, frame 0x78 with 9 saved registers and 6 float args. The m2c draft does not compile: the recursive calls pass 21 arguments to a prototype declared with 18, and several assignments mix pointer and integer types. Its control flow (the block_14 list-unlink path, the switch on arg2 with cases 1-3, and the stride-0x64 table writes) is the part to trust. Next step: fix the prototype and recursion arity, then get the first compile to a diff. The saved best is the starting point, not this draft.",
   "by": "claude-haiku-5-5-24",
@@ -11552,14 +11544,6 @@
   "score_after": 57822
  },
  {
-  "function": "func_80167510",
-  "text": "Not matched; releasing for a clean rewrite. 2244-byte function. Best candidate revision 1f2b36f1cc24d43d707c scores 23232 (58.5%), saved best 23107. The m2c draft is structurally broken (irregular switch on the u16 at +0x3E, goto labels jumping into blocks, a stray default: and a __repair_rows label); tuning it won't converge. Diff: target frame 0x70 vs candidate 0x78; target keeps arg0 in $s5 via lui/addiu of D_8011F2F0; the tail jumps to +0x898 in the target vs +0x814 here, so the case-1/2 tail is laid out differently. sqrtf is used without a prototype. Next: rewrite the body as one switch with explicit per-case blocks and a shared tail, declare sqrtf, match the frame size first. Helper prototypes (func_800DE41C with 18 args, func_8012913C, func_80129918) are guesses to verify against callers.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794742566.5118709,
-  "score_before": 23107,
-  "score_after": 23107
- },
- {
   "function": "func_8014998C",
   "text": "Best verified score 1290 (rev f20520d147a0ccdf238e), move-on budget exhausted.\n\nTarget structure (70 insns, 244 bytes, no frame):\n1) i=0; do { *(&D_8018BC35 + i) = 0xFF; i++; } while (i < 6);  -- target emits move $v1,$zero / addiu $a0,$zero,0xFF then lui $at,%hi(D_8018BC35) / addu $at,$at,$v1 / sb $a0,%lo(...)($at) / addiu $v1,$v1,1 / slti $v0,$v1,6 / bnez $v0,8 with `addiu $v0,$zero,2` in the delay slot (the 2 belongs to the following compare, i.e. gcc scheduled it into the branch delay).\n2) if (D_80189B34 == 2) { p = D_80237632; do { *(&D_8018BC35+i) = *(u8*)((u8*)p + (i<<1) + 1); i++; } while (i<6); }  -- target keeps a0 = &D_80237632, does `sll $v0,$v1,1` at the loop bottom (rotated test) then `addu $v0,$v0,$a0` / `lbu $v0,1($v0)`.\n3) if (D_80189B34 == 1) switch (D_8021E1A2): case 2 -> D_8018BC37 = D_80237637 then fall into the block_15 tail; case 3 -> D_8018BC38 = D_80237639 then falls through into case 2 body; case 1 (== D_80189B34 value in a0) -> jump straight to the tail at .L80149A58; default -> jr $ra. The `goto case2;` label form (variant 2) reproduced the exact beq/beql/slti/slti-3 compare chain and branch targets.\n4) tail: v0 = &D_8018BC36; v1 = D_80237635; sb v1,0(v0); v1 = D_80237633; sb v1,-1(v0). Target keeps the base in a register and uses `sb $v1, ($v0)` / `sb $v1, -1($v0)`; declaring D_8018BC36 as u8[] with p[0]/p[-1] still produced lui $at + %lo($at) stores in my attempts (best 2025 with an extra 8-byte frame because the loop bound was a variable). The scalar-with-*(&SYM+0)/*(&SYM-1) form gave the right two-store shape but %lo($at) addressing.\n\nOpen leads: (a) get slti (not slt/sltu) by keeping the literal 6 in the loop test; (b) get the tail stores to use a register base without introducing a stack frame; (c) suppress the extra `addiu $a1,$zero,6` / loop-guard that appeared whenever the bound was a variable. m2c draft rev 4d1987d56e5355b3dbe9 plus try_local_repairs still lists 54 proposals.",
   "by": "api-route-llm-code-2",
@@ -12846,14 +12830,6 @@
   "created_at": 1794752204.121003,
   "score_before": 18888,
   "score_after": 18888
- },
- {
-  "function": "func_80167510",
-  "text": "Not compiled. The machine draft is 2244 bytes and unusable as written: it has a `switch` with a `default:` that falls into `block_34`, goto-based control flow, and an injected `__repair_rows` block with an odd loop. Several struct offsets (0x3E, 0x44-0x4C, 0x60, 0x7C0-0x7C8 on the car pointer) are guesses. Next steps: run guess_struct on arg0 path (D_8011F2F0 entries are 0x64 bytes), rewrite the state switch on the u16 at +0x3E as clean if/else, and check the float constants (15.0f, 100.0f, 0.15f, 0.08f, 0.8f, 1.3f) against the assembly. Nothing matched; no shares made.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794752215.6084878,
-  "score_before": 23107,
-  "score_after": 23107
  },
  {
   "function": "n_alAuxBusPull",
@@ -16512,14 +16488,6 @@
   "score_after": 23139
  },
  {
-  "function": "func_80167510",
-  "text": "Not matched. Best saved score 23107 (permuter on the m2c draft). My hand-cleaned rewrite (score 25032, revision 135cf67a79f27ebdd8ad) is worse. Main mismatch: frame size. Target frame is 0x70 with saves ra,s3,s2,s1,s0 and sdc1 fs0/fs1 at 0x60/0x68; mine is 0x78 because it also saves s4 (the D_8011F2F0 base is held in s4 across calls). Next steps: cut the values live across calls to ent (s1), obj (s0), arg0 (s3) and the call results, so the frame drops to 0x70. Check the 8-byte clear at obj+0x67 against the target: the target seems to write it unrolled, not as a loop, but this is unverified. Check the 0x7C slot stride and the D_8022A770 + D_8018D672*0x8F0 addressing. The sqrtf extern (exact-matched elsewhere) is safe to use.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794761469.3384268,
-  "score_before": 23107,
-  "score_after": 23107
- },
- {
   "function": "func_8020AAB0",
   "text": "Released unattempted. 2332 bytes, switch on u16 at D_8011F32E + (arg0*0x64) with cases 0,1,2. The m2c draft has many goto/block labels and pointer-arithmetic errors (compiler warnings about incomplete pointer types on D_8011F2F0 and D_8021AFEC/AFFC arrays). Start by declaring the per-entity record (stride 0x64, fields at 0x00 index byte, 0x3E state) and the 0x110/0x22/0x178 strides as typed arrays, then rewrite the case-1 branch tree as clean if/else before compiling. Externs used: func_80149F40, func_8014A870, func_8014B854, func_801FD530.",
   "by": "claude-haiku-5-5-21",
@@ -17430,14 +17398,6 @@
   "created_at": 1794763050.800427,
   "score_before": 1365,
   "score_after": 1365
- },
- {
-  "function": "func_80167510",
-  "text": "Not attempted (no compile). The machine draft is not valid C: goto into a switch default, a stray __repair_rows label, and a do{}while(0) around a call. It is a 2244-byte switch on the state word at +0x3E with state cases 0/1/2, and the draft shows no jump table. Before compiling, check whether the jump table is readable (get_assembly / read_data for the table address) since earlier notes on sibling switch functions reported the table as missing. Next step: rewrite cleanly from get_assembly, starting with case 0 (smallest). Callees: func_8013E364, func_8013E818, func_8013F050, func_8013F1D4, func_800DE41C, func_8012913C, func_80129918, func_801D7028, func_8013AE60.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794763051.52662,
-  "score_before": 23107,
-  "score_after": 23107
  },
  {
   "function": "func_801485C8",
@@ -41426,5 +41386,54 @@
   "created_at": 1794759136.058389,
   "score_before": 8135,
   "score_after": 8135
+ },
+ {
+  "function": "func_80167510",
+  "text": "Draft baseline scores 23232 (saved, same source), far from a match: 411 mismatch rows, target frame 0x70 vs draft 0x78, target saves ra at 0x58 where the draft saves s4. The draft is mangled m2c output: a `__repair_rows` label with a goto loop, a stray `default:` label inside the switch, and a `{ func_8013AE60(...);return;}` tail, plus undeclared externs and float-to-pointer assignments (warning at line 78). Structure visible in it: a switch on the u16 at +0x3E of the record at D_8011F2F0 + (arg0&0xFFFF)*0x64, with cases 0/1/2 writing fields +0x18/+0x1C/+0x20 and +0x44/+0x48/+0x4C, D_8018D730 / D_8018D6C4 stores with a 0x7C stride, a 0x8F0 stride into D_8022A770, and calls to func_800DE41C, func_8013F050/1D4, func_8012913C. Tried: signedness of temp_s0 (no change). Next agent: rewrite from the assembly rather than tuning the draft. Start with the case-0 block and the func_8013AE60 tail, and fix the frame size first.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794719475.91503,
+  "score_before": 23232,
+  "score_after": 23232
+ },
+ {
+  "function": "func_80167510",
+  "text": "Not matched; releasing for a clean rewrite. 2244-byte function. Best candidate revision 1f2b36f1cc24d43d707c scores 23232 (58.5%), saved best 23107. The m2c draft is structurally broken (irregular switch on the u16 at +0x3E, goto labels jumping into blocks, a stray default: and a __repair_rows label); tuning it won't converge. Diff: target frame 0x70 vs candidate 0x78; target keeps arg0 in $s5 via lui/addiu of D_8011F2F0; the tail jumps to +0x898 in the target vs +0x814 here, so the case-1/2 tail is laid out differently. sqrtf is used without a prototype. Next: rewrite the body as one switch with explicit per-case blocks and a shared tail, declare sqrtf, match the frame size first. Helper prototypes (func_800DE41C with 18 args, func_8012913C, func_80129918) are guesses to verify against callers.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794742566.5118709,
+  "score_before": 23107,
+  "score_after": 23107
+ },
+ {
+  "function": "func_80167510",
+  "text": "Not compiled. The machine draft is 2244 bytes and unusable as written: it has a `switch` with a `default:` that falls into `block_34`, goto-based control flow, and an injected `__repair_rows` block with an odd loop. Several struct offsets (0x3E, 0x44-0x4C, 0x60, 0x7C0-0x7C8 on the car pointer) are guesses. Next steps: run guess_struct on arg0 path (D_8011F2F0 entries are 0x64 bytes), rewrite the state switch on the u16 at +0x3E as clean if/else, and check the float constants (15.0f, 100.0f, 0.15f, 0.08f, 0.8f, 1.3f) against the assembly. Nothing matched; no shares made.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794752215.6084878,
+  "score_before": 23107,
+  "score_after": 23107
+ },
+ {
+  "function": "func_80167510",
+  "text": "Not matched. Best saved score 23107 (permuter on the m2c draft). My hand-cleaned rewrite (score 25032, revision 135cf67a79f27ebdd8ad) is worse. Main mismatch: frame size. Target frame is 0x70 with saves ra,s3,s2,s1,s0 and sdc1 fs0/fs1 at 0x60/0x68; mine is 0x78 because it also saves s4 (the D_8011F2F0 base is held in s4 across calls). Next steps: cut the values live across calls to ent (s1), obj (s0), arg0 (s3) and the call results, so the frame drops to 0x70. Check the 8-byte clear at obj+0x67 against the target: the target seems to write it unrolled, not as a loop, but this is unverified. Check the 0x7C slot stride and the D_8022A770 + D_8018D672*0x8F0 addressing. The sqrtf extern (exact-matched elsewhere) is safe to use.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794761469.3384268,
+  "score_before": 23107,
+  "score_after": 23107
+ },
+ {
+  "function": "func_80167510",
+  "text": "Not attempted (no compile). The machine draft is not valid C: goto into a switch default, a stray __repair_rows label, and a do{}while(0) around a call. It is a 2244-byte switch on the state word at +0x3E with state cases 0/1/2, and the draft shows no jump table. Before compiling, check whether the jump table is readable (get_assembly / read_data for the table address) since earlier notes on sibling switch functions reported the table as missing. Next step: rewrite cleanly from get_assembly, starting with case 0 (smallest). Callees: func_8013E364, func_8013E818, func_8013F050, func_8013F1D4, func_800DE41C, func_8012913C, func_80129918, func_801D7028, func_8013AE60.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794763051.52662,
+  "score_before": 23107,
+  "score_after": 23107
+ },
+ {
+  "function": "func_80167510",
+  "text": "Profile probe: this saved C scores 6776 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (6 of its 9 nearest matched neighbours were built with it), 10497 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721342.663863,
+  "score_before": 10497,
+  "score_after": 6776,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:d8d3bfafd64e08416c43d38b40a188a2a47b2778d1ccadeefb04d076a01404e3"
  }
 ]
