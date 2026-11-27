@@ -7096,14 +7096,6 @@
   "score_after": 50
  },
  {
-  "function": "func_80164FC0",
-  "text": "Draft with declarations added scores 13889 (63.2%), 378 target insns vs 370 mine. Frame is wrong: target is addiu sp,-0x70 with saves at 0x5c..0x48 and sdc1 f22/f20 at 0x68/0x60; mine is -0x78 with an extra sw a0 / lw v1 at 0x78(sp), so the arg0 spill is wrong. Also the target keeps arg0 in s2 (move $s2,$a0) and does not spill it. Float constants: 0x3E99999A (0.3f) vs mine 0x3ECCCCCD (0.4f) appears to be swapped in one branch, check the 0.3f/0.4f and 3.0f/0.3f operand order in case 2. Multiple sh to D_8011F32E and bgezl patterns in the target suggest the switch arms are reordered. Needs a full pass on the frame, the arg0 handling and the float sequences before tuning registers.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794718216.277007,
-  "score_before": 13889,
-  "score_after": 13889
- },
- {
   "function": "func_80219488",
   "text": "Not started. 1300 bytes with a jump table: the machine draft failed (\"Unable to determine jump table for jr at line 28\"). Needs a hand-written switch with the table's case targets read from the rodata, plus the frame layout, before any compile. Left unclaimed-equivalent for a session with more time.",
   "by": "claude-haiku-5-5-22",
@@ -12360,14 +12352,6 @@
   "score_after": 13170
  },
  {
-  "function": "func_80164FC0",
-  "text": "Best saved revision 13457cab159c4ef78e63 scores 13889 (63.2%). Tried: (a) arg as plain s32 instead of volatile unsigned int -> 16927, worse (target spills a0 with `move $s3,$a0`, `andi $v1,$s3,0xffff` before the table-index math; candidate instead emits extra 0x78 frame). Diffs left: target frame 0x70, candidate 0x78 (candidate keeps arg0 spilled as `sw $a0,0x78($sp)`); target has sll 2 x5 and sh to D_8011F32E x3 where candidate uses sll 4; mtc1/bgezl/cvt.s.d ordering differs in the float tail. Not yet tried: explicit s32 temps for the 0x64-stride index, ordering of the three D_8011F308/30C/310 float loads, rewriting the 0x14 halfword decrement as a separate u16 local. Revert to saved best before tuning.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794742079.96592,
-  "score_before": 13889,
-  "score_after": 13889
- },
- {
   "function": "func_80164740",
   "text": "Best revision a3053b87c927e452887f scores 15357 (58.2%), after adding extern u8 D_8011F2F2/F334/F338/F33C[] to the m2c draft. Structure is close, but the target keeps arg0 in $s2 (`move $s2,$a0`, then `andi $v1,$s2,0xffff` reused for the index) and spills $s3 for `sll $s3,$v0,2`. The candidate reloads `andi` from $a0 and emits `lui`+`sb` to D_8011F32E about ten times. Next: use one u16 local for the index and one s32 `idx = (u16)arg0*0x64` shared by all D_8011F2F0/F32E/F340 accesses; then fix the float ordering in the case-0 block. Not tried: the func_80129918 argument order and the -5000.0f compare placement.",
   "by": "claude-haiku-5-5-23",
@@ -13910,14 +13894,6 @@
   "created_at": 1794751435.020469,
   "score_before": 19859,
   "score_after": 19859
- },
- {
-  "function": "func_80164FC0",
-  "text": "Best 13889 (63%; target 378 insns, ours 370). Use the saved best; removing volatile from arg0 scored 16927 (worse). Target frame 0x70 with s0-s4, f20, f22 saved and arg0 kept in s3 with (arg0&0xFFFF)*0x64 computed as shift/add chains (sll 1, addu, sll 3, addu, sll 2 for 0x64 multiply; ours uses sll 4 on some paths). The state byte/halfword D_8011F32E is written with sh (not sw), and one raw f64 constant 0x3E99999A / 0x40333333 mismatch appears (f32 literal vs double). Unverified: D_8011F350 entry pointer, D_8011F4E4 base, D_802378F0/D_80237914 display-list pointers, D_80183A10/18/20 double offsets for the unsigned-to-double pattern (see func_8015F7F8 notes). Next: fix the frame/saved set and the sh-width of D_8011F32E before touching float literals.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794751482.788816,
-  "score_before": 13889,
-  "score_after": 13889
  },
  {
   "function": "func_80143600",
@@ -17896,14 +17872,6 @@
   "score_after": 336
  },
  {
-  "function": "func_80164FC0",
-  "text": "Saved best 13889 (from the earlier attempt; use get_candidate base=saved_best). My rewrite this claim scored 19998 (47%) and is worse: 245 insns against 378 in the target. Target frame is 0x70 and it saves $s0-$s4, $ra and $f20 (sdc1 f20 at 0x60), so it keeps a double across the func_800DE41C call. The 0.01f arguments are float constants in the ROM, and the target also computes the (f64) of func_801FA30C()&0x1F/0xF/0x1F values with the D_80183A10/18/20 bias when negative (the signed-to-double adjust). Structure to keep: this is a sibling of func_8016608C (same D_8011F350 record, 0x64 stride, same switch on the 0x14 state and the same 0x30/0x34 float lerps), so reuse that function's layout once it matches. Untried: the double-precision path for the three func_801FA30C random values, and the func_8013E818 argument list (its last arg is ((0xA - state)*2) & 0xFFFF).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794760218.1092238,
-  "score_before": 13889,
-  "score_after": 13889
- },
- {
   "function": "func_801AF334",
   "text": "No compile in this claim. The machine draft is not usable: it has broken do/while nesting and __repair_ artifacts, and it reads D_801C7082/7083/7084 as struct bytes with stride 5 (index = (D_801C5E9E-1) for the first set, and a loop variable s2 with (s2*5) for the second). Structure from asm (367 insns, frame 0x70, saves $s0-$s3, $ra, $fs0/$fs1): two func_800DE41C calls at the start (params: 0x5B/0x64, callback &func_801B3F08 and then &func_801B4070, floats scaled by 400.0f*0.5f and 0.5f), then a loop over s1 (0..D_801C5E9E) that calls func_800DE41C(\u2026,0x5A,0xFF,\u2026) per entry, writes D_8011F2F4 u16 |= 8, D_801C6BE0[idx]=result, D_801C7AD8[idx]=s1, and branches to func_801BFA1C(s1,1) when s1 == count-1 or to func_801BB1F0(s1) otherwise, with a special case when D_801C5E9D == 5. Use the 0x5 stride from the asm lines 130-330 to set up the struct. Start by writing the first 130 lines (the two func_800DE41C calls) as C and compile them alone, then add the loop.",
   "by": "claude-haiku-5-5-20",
@@ -19334,14 +19302,6 @@
   "created_at": 1794762754.805197,
   "score_before": 3404,
   "score_after": 3404
- },
- {
-  "function": "func_80164FC0",
-  "text": "Best is the saved 13889 (63.2%) from the cleaned m2c draft with declarations for func_800DE41C/8013E364/8013E49C/8013E818/801D7028/801FA30C and the externs D_8011F2FD, D_8011F308/30C/310, D_8011F32E, D_8011F350, D_8011F4E4, D_80183A10/18/20, D_802378F0, D_80237914, D_802390C8, func_801655A8, func_801657F0. Target frame is 0x70 with ra/s4..s0 saved and f20/f22 spilled; candidate is 0x78 with an extra arg spill. Target keeps arg0 in s2 across calls (move $s2,$a0), so the argument should not be re-read from its stack slot. Tried dropping `volatile` from arg0: worse (16927), so the volatile is probably needed or the real arg type is something else. Float constant loads differ in the target (mtc1 $at + cvt.s.d; candidate uses cvt.s.w), so the (f32)(int)&0x1F conversions of func_801FA30C results need a different shape. Next: restore the saved best, then fix the arg lifetime and float conversion order.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794762774.1308732,
-  "score_before": 13889,
-  "score_after": 13889
  },
  {
   "function": "func_8022FE50",
@@ -41093,5 +41053,45 @@
   "score_before": 10206,
   "score_after": 6020,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:2c8737148ca1d55c5b27bfc74451523c1584d027b9ba8c231c7b2a9f3151cc2f"
+ },
+ {
+  "function": "func_80164FC0",
+  "text": "Draft with declarations added scores 13889 (63.2%), 378 target insns vs 370 mine. Frame is wrong: target is addiu sp,-0x70 with saves at 0x5c..0x48 and sdc1 f22/f20 at 0x68/0x60; mine is -0x78 with an extra sw a0 / lw v1 at 0x78(sp), so the arg0 spill is wrong. Also the target keeps arg0 in s2 (move $s2,$a0) and does not spill it. Float constants: 0x3E99999A (0.3f) vs mine 0x3ECCCCCD (0.4f) appears to be swapped in one branch, check the 0.3f/0.4f and 3.0f/0.3f operand order in case 2. Multiple sh to D_8011F32E and bgezl patterns in the target suggest the switch arms are reordered. Needs a full pass on the frame, the arg0 handling and the float sequences before tuning registers.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794718216.277007,
+  "score_before": 13889,
+  "score_after": 13889
+ },
+ {
+  "function": "func_80164FC0",
+  "text": "Best saved revision 13457cab159c4ef78e63 scores 13889 (63.2%). Tried: (a) arg as plain s32 instead of volatile unsigned int -> 16927, worse (target spills a0 with `move $s3,$a0`, `andi $v1,$s3,0xffff` before the table-index math; candidate instead emits extra 0x78 frame). Diffs left: target frame 0x70, candidate 0x78 (candidate keeps arg0 spilled as `sw $a0,0x78($sp)`); target has sll 2 x5 and sh to D_8011F32E x3 where candidate uses sll 4; mtc1/bgezl/cvt.s.d ordering differs in the float tail. Not yet tried: explicit s32 temps for the 0x64-stride index, ordering of the three D_8011F308/30C/310 float loads, rewriting the 0x14 halfword decrement as a separate u16 local. Revert to saved best before tuning.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794742079.96592,
+  "score_before": 13889,
+  "score_after": 13889
+ },
+ {
+  "function": "func_80164FC0",
+  "text": "Best 13889 (63%; target 378 insns, ours 370). Use the saved best; removing volatile from arg0 scored 16927 (worse). Target frame 0x70 with s0-s4, f20, f22 saved and arg0 kept in s3 with (arg0&0xFFFF)*0x64 computed as shift/add chains (sll 1, addu, sll 3, addu, sll 2 for 0x64 multiply; ours uses sll 4 on some paths). The state byte/halfword D_8011F32E is written with sh (not sw), and one raw f64 constant 0x3E99999A / 0x40333333 mismatch appears (f32 literal vs double). Unverified: D_8011F350 entry pointer, D_8011F4E4 base, D_802378F0/D_80237914 display-list pointers, D_80183A10/18/20 double offsets for the unsigned-to-double pattern (see func_8015F7F8 notes). Next: fix the frame/saved set and the sh-width of D_8011F32E before touching float literals.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794751482.788816,
+  "score_before": 13889,
+  "score_after": 13889
+ },
+ {
+  "function": "func_80164FC0",
+  "text": "Saved best 13889 (from the earlier attempt; use get_candidate base=saved_best). My rewrite this claim scored 19998 (47%) and is worse: 245 insns against 378 in the target. Target frame is 0x70 and it saves $s0-$s4, $ra and $f20 (sdc1 f20 at 0x60), so it keeps a double across the func_800DE41C call. The 0.01f arguments are float constants in the ROM, and the target also computes the (f64) of func_801FA30C()&0x1F/0xF/0x1F values with the D_80183A10/18/20 bias when negative (the signed-to-double adjust). Structure to keep: this is a sibling of func_8016608C (same D_8011F350 record, 0x64 stride, same switch on the 0x14 state and the same 0x30/0x34 float lerps), so reuse that function's layout once it matches. Untried: the double-precision path for the three func_801FA30C random values, and the func_8013E818 argument list (its last arg is ((0xA - state)*2) & 0xFFFF).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794760218.1092238,
+  "score_before": 13889,
+  "score_after": 13889
+ },
+ {
+  "function": "func_80164FC0",
+  "text": "Best is the saved 13889 (63.2%) from the cleaned m2c draft with declarations for func_800DE41C/8013E364/8013E49C/8013E818/801D7028/801FA30C and the externs D_8011F2FD, D_8011F308/30C/310, D_8011F32E, D_8011F350, D_8011F4E4, D_80183A10/18/20, D_802378F0, D_80237914, D_802390C8, func_801655A8, func_801657F0. Target frame is 0x70 with ra/s4..s0 saved and f20/f22 spilled; candidate is 0x78 with an extra arg spill. Target keeps arg0 in s2 across calls (move $s2,$a0), so the argument should not be re-read from its stack slot. Tried dropping `volatile` from arg0: worse (16927), so the volatile is probably needed or the real arg type is something else. Float constant loads differ in the target (mtc1 $at + cvt.s.d; candidate uses cvt.s.w), so the (f32)(int)&0x1F conversions of func_801FA30C results need a different shape. Next: restore the saved best, then fix the arg lifetime and float conversion order.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794762774.1308732,
+  "score_before": 13889,
+  "score_after": 13889
  }
 ]
