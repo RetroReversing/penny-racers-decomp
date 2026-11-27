@@ -7120,14 +7120,6 @@
   "score_after": 1485
  },
  {
-  "function": "func_8013CF4C",
-  "text": "Not matched. Saved best is 4403 (saved_best). My tries: 6753 (struct copy, extern f64 constants, direct arrays) is the closest of mine; 8115 with pointer locals bp/op (revision 4b65aa2276f7c7708df8); 7575 and 9453 were worse.\nVerified structure: copy D_80183308 (8 floats) to local at 0x10 before func_8013AE60(arg0, &D_80183308); state at D_8011F32E + id*100 (u16): 0 -> D_80183B80[i]=(f32)(45*i), D_80183BA0=0, state=1; !=1 -> return; state 1 -> wrap-at-360 loop (f64 add with D_80183328 / f32 sub 360.0f); then sin loop: t=(s32)(__sinf((f32)((f64)v*D_80183330/D_80183338))*sp[i]), s16 stores at D_80167FB8 index (i+8)*8+2 and i*8+2.\nMismatch: target frame is 0x60 with ra, s0..s6, fs0/fs1 saved. The struct copy and pointers must stay live across the sin calls, which needs more saved registers. Ours is 0x48 with fewer saved regs. The next agent should try keeping the array bases in s-registers via more live locals across the __sinf calls (e.g. a loop-carried `s32 k` and the copy base `f32 *sp4 = sp.v`), or check whether the copy is a per-word struct assign (target uses lw/sw triplets).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794710804.706558,
-  "score_before": 4403,
-  "score_after": 4403
- },
- {
   "function": "func_801271A0",
   "text": "Cannot get closer with source edits alone: saved best 4297 (restore with get_candidate(base=\"saved_best\")). Current candidate 7aef2c6 scores 10691 (38.9%). The target re-materializes each global address (`lui $a1,%hi(D_8012AB4C)` before every call, about 11 times) while our source keeps them CSE'd in $s6, and the frame is 0xB8 (ra, s0-s3) against our 0xC0 (s5, s6 also saved). Two compiles changed nothing on the register side. The call order and argument layout (func_80127148 pairs, func_80127030 with 7 args, func_801270B0 s8 compared with -1 and 1) look right. Next agent should try per-call global references, possibly via separate helper or volatile-free re-taking of the address, and check the s3 `0 & 0xFF` pattern.",
   "by": "claude-haiku-5-5-22",
@@ -10504,14 +10496,6 @@
   "score_after": 4625
  },
  {
-  "function": "func_8013CF4C",
-  "text": "Not matched. Best this session 6753 (54.9%), revision c26db0ec0914292e153d; saved best 4403 is from an earlier attempt. Verified by compiles: (1) float literal suffixes (360.0f in the compare is correct; 1.0 and 3.14159/180.0 as doubles match the ldc1 constants, but using f on 3.14159/180.0 scored 8613); (2) a pointer walk over D_80183B80 with separate u16/f32 pointers scored 7813 (worse). Target frame is 0x60 and saves ra plus s1..s6, and mine is 0x58 with fewer saved regs, so the target has more live values across the func_8013AE60 and __sinf calls (likely the sinf argument and the sp copy kept in callee-saved regs). Next: find which local (probably sp copy or a loop pointer) needs a second callee-saved slot; try declaring the sp V8 copy as a pointer to D_80183308 instead of a value copy, and check the frame size. Moving on after that.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794726690.864845,
-  "score_before": 4403,
-  "score_after": 4403
- },
- {
   "function": "func_80135108",
   "text": "Best saved is 4140 (the m2c-style draft with s32 externs and &D_sym arithmetic scored 5620 in my attempt; a u8/u16/f32 typed rewrite scored 10460, worse). Target facts: the table stride is 100 bytes per entry, computed as ((idx*3)<<3 + idx)*4 = 25*idx<<2 (sll 1/addu/sll 3/addu/sll 2). D_8011F2F0 is read as a byte (lbu), indexed by idx*100. D_8022A776 is a halfword table indexed by byte*0x8F0 with &2 test. Float to u16 conversion goes through the `>= 2^31` branch with bc1tl, then trunc.w.s/mfc1 and andi 0xFFFF. Unresolved: the compiler emits the 25*idx multiply as a shift/add chain only when the index is first masked to u16 into a separate local; my attempts kept index*0x64 as one multiply. Not tried: an explicit `(idx*25)<<2` form with the u16 mask kept as its own local, and splitting the float conversions into helper-free inline blocks that mirror the two bc1tl paths.",
   "by": "claude-haiku-5-5-24",
@@ -13814,14 +13798,6 @@
   "created_at": 1794740105.4039192,
   "score_before": 4605,
   "score_after": 4605
- },
- {
-  "function": "func_8013CF4C",
-  "text": "Unmatched. Best clean rewrite scores 6753 (rev 10fbcad06bbc), below saved 4403 which has a messy __repair_literal hack. Structure is right: local V8 copy of D_80183308 and func_8013AE60(arg0,&D_80183308); index arg0*0x64 into D_8011F32E; case 0 sets D_80183B80[i]=i*45, D_80183BA0=0, flag=1; case 1 wraps angles (+1.0 via extern f64 D_80183328, or -360.0f), then __sinf((x*D_80183330)/D_80183338)*sp.v[i] truncated to s16 at D_80167FB8[(i+8)*8+2] and D_80167FB8[i*8+2]. Use extern f64 for the three double constants. Remaining diff: target frame 0x60 keeps s6=&D_80167FB8 and s5=&D_80183B80 live across __sinf, plus double spills f20/f22 at 0x50/0x58; mine uses a 0x48 frame and drops s5/s6. Pointer-local rewrite (rev 91e163cfd1cd) scored 8115 and is worse. Next: hoist both base pointers into locals used across the call and make the double constants be loaded before the second loop.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794740156.098699,
-  "score_before": 4403,
-  "score_after": 4403
  },
  {
   "function": "func_8020FFD0",
@@ -19248,14 +19224,6 @@
   "score_after": 1770
  },
  {
-  "function": "func_8013CF4C",
-  "text": "Not matched. Best rechecked score 7813 (b3b3a98449af71a2e8f2), worse than saved best 4403 (from the earlier recorded attempt, which I did not rebuild). Target is 150 insns with a 0x60 frame that saves f20/f22 (sdc1), copies the 0x20-byte struct D_80183308 through integer regs into the stack before the call to func_8013AE60, and loads 360.0 as an f32 (lui 0x43b4) but the 3.14159/180.0 and the per-element loop use doubles (ldc1 from D_80183328). Mine has a 0x58 frame, so the locals or the sp-copy are typed wrong. Next experiments: declare the local V8 copy as a plain f32 array with separate scalars, make the 360 and +1 constants f32 while keeping the sin argument double, and check whether the store to D_80167FB8 uses a u16 cast (sh) rather than s16 index math. Initial-zero branch (D_80183B80[i] = i*45, D_80183BA0=0, store 1 to D_8011F32E[arg0*0x64]) appears to be in the target; ordering not yet checked.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794756298.412997,
-  "score_before": 4403,
-  "score_after": 4403
- },
- {
   "function": "fixed60ToF64",
   "text": "This is a hand-written KMC libgcc 64-bit-int to double conversion (__floatdidf-style), from the same asm family as func_800422C4/func_800423F4/func_80042630. Signs: a mid-function `addiu sp,-8` frame only on the zero path, `xor reg,reg,reg` zeroing, $t9 scratch, negation done as xor -1 plus sltiu carry, and nop-filled delay slots. GCC wouldn't allocate a stack frame inside one branch.",
   "by": "claude-opus-medium-1",
@@ -20638,14 +20606,6 @@
   "created_at": 1794758584.6710851,
   "score_before": 2995,
   "score_after": 2995
- },
- {
-  "function": "func_8013CF4C",
-  "text": "Not attempted in this session. The machine draft does not compile (undeclared D_80183308, D_8011F32E, D_80183B80, D_80167FB8, D_80183BA0 in func.c), and its loop body is a guess. Start from the assembly: it is 600 bytes in code_8013CBBC, with an 8-element f32 table at D_80183B80 (increment by 1.0 and wrap at 360.0f, a __sinf call per entry), a 16-byte struct copy from D_80183308 into a local, a func_8013AE60 call, and a state word at D_8011F32E + idx*0x64 (state 0 initialises the table with i*45 and sets state 1). Declare the globals with the right types before compiling.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794758596.351486,
-  "score_before": 4403,
-  "score_after": 4403
  },
  {
   "function": "func_80217F44",
@@ -25462,14 +25422,6 @@
   "created_at": 1794767885.949962,
   "score_before": 7320,
   "score_after": 7320
- },
- {
-  "function": "func_8013CF4C",
-  "text": "Not matched. Best saved 4403 (other source); this session's rewrite scores 7920 (47.1%), revision ccac30d5e8bcc5f78f9c. Target structure (from get_assembly): frame 0x60, saves ra/s0-s6 and fs0/fs1 doubles; copies the 32-byte D_80183308 V8 into a local at 0x10-0x2C; calls func_8013AE60(arg0 & 0xFFFF, &D_80183308); if D_8011F32E record (stride 0x64) u16 == 0: D_80183B80[i] = (f32)(45*i) for i<8, D_80183BA0 = 0, set u16 = 1, return; if != 1 return. Else loop 8: if f32 < 360.0f then add the double D_80183328 (cvt.d.s/add.d/cvt.s.d) else subtract 360.0f. Second loop: angle = (double)f32 * D_80183330 / D_80183338, __sinf (cvt.s.d arg), times sp.v[i] as f32, truncated to s16, stored at D_80167FB8 halfword (i+8)*8+2 and i*8+2. Ours lacks the held s5/s6 base pointers and the fs0/fs1 doubles across the __sinf calls, which is why the frame is 0x48. Next: hoist D_80167FB8/D_80183B80 bases into locals, and keep the two double constants live in the second loop.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794767913.467851,
-  "score_before": 4403,
-  "score_after": 4403
  },
  {
   "function": "func_8013F1D4",
@@ -40014,5 +39966,61 @@
   "score_before": 4540,
   "score_after": 4540,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:15ec6a8afd83a7ac7ac06329c4483c698c44d2c9f03e311af662e6df3f132b8f"
+ },
+ {
+  "function": "func_8013CF4C",
+  "text": "Not matched. Saved best is 4403 (saved_best). My tries: 6753 (struct copy, extern f64 constants, direct arrays) is the closest of mine; 8115 with pointer locals bp/op (revision 4b65aa2276f7c7708df8); 7575 and 9453 were worse.\nVerified structure: copy D_80183308 (8 floats) to local at 0x10 before func_8013AE60(arg0, &D_80183308); state at D_8011F32E + id*100 (u16): 0 -> D_80183B80[i]=(f32)(45*i), D_80183BA0=0, state=1; !=1 -> return; state 1 -> wrap-at-360 loop (f64 add with D_80183328 / f32 sub 360.0f); then sin loop: t=(s32)(__sinf((f32)((f64)v*D_80183330/D_80183338))*sp[i]), s16 stores at D_80167FB8 index (i+8)*8+2 and i*8+2.\nMismatch: target frame is 0x60 with ra, s0..s6, fs0/fs1 saved. The struct copy and pointers must stay live across the sin calls, which needs more saved registers. Ours is 0x48 with fewer saved regs. The next agent should try keeping the array bases in s-registers via more live locals across the __sinf calls (e.g. a loop-carried `s32 k` and the copy base `f32 *sp4 = sp.v`), or check whether the copy is a per-word struct assign (target uses lw/sw triplets).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794710804.706558,
+  "score_before": 4403,
+  "score_after": 4403
+ },
+ {
+  "function": "func_8013CF4C",
+  "text": "Not matched. Best this session 6753 (54.9%), revision c26db0ec0914292e153d; saved best 4403 is from an earlier attempt. Verified by compiles: (1) float literal suffixes (360.0f in the compare is correct; 1.0 and 3.14159/180.0 as doubles match the ldc1 constants, but using f on 3.14159/180.0 scored 8613); (2) a pointer walk over D_80183B80 with separate u16/f32 pointers scored 7813 (worse). Target frame is 0x60 and saves ra plus s1..s6, and mine is 0x58 with fewer saved regs, so the target has more live values across the func_8013AE60 and __sinf calls (likely the sinf argument and the sp copy kept in callee-saved regs). Next: find which local (probably sp copy or a loop pointer) needs a second callee-saved slot; try declaring the sp V8 copy as a pointer to D_80183308 instead of a value copy, and check the frame size. Moving on after that.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794726690.864845,
+  "score_before": 4403,
+  "score_after": 4403
+ },
+ {
+  "function": "func_8013CF4C",
+  "text": "Unmatched. Best clean rewrite scores 6753 (rev 10fbcad06bbc), below saved 4403 which has a messy __repair_literal hack. Structure is right: local V8 copy of D_80183308 and func_8013AE60(arg0,&D_80183308); index arg0*0x64 into D_8011F32E; case 0 sets D_80183B80[i]=i*45, D_80183BA0=0, flag=1; case 1 wraps angles (+1.0 via extern f64 D_80183328, or -360.0f), then __sinf((x*D_80183330)/D_80183338)*sp.v[i] truncated to s16 at D_80167FB8[(i+8)*8+2] and D_80167FB8[i*8+2]. Use extern f64 for the three double constants. Remaining diff: target frame 0x60 keeps s6=&D_80167FB8 and s5=&D_80183B80 live across __sinf, plus double spills f20/f22 at 0x50/0x58; mine uses a 0x48 frame and drops s5/s6. Pointer-local rewrite (rev 91e163cfd1cd) scored 8115 and is worse. Next: hoist both base pointers into locals used across the call and make the double constants be loaded before the second loop.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794740156.098699,
+  "score_before": 4403,
+  "score_after": 4403
+ },
+ {
+  "function": "func_8013CF4C",
+  "text": "Not matched. Best rechecked score 7813 (b3b3a98449af71a2e8f2), worse than saved best 4403 (from the earlier recorded attempt, which I did not rebuild). Target is 150 insns with a 0x60 frame that saves f20/f22 (sdc1), copies the 0x20-byte struct D_80183308 through integer regs into the stack before the call to func_8013AE60, and loads 360.0 as an f32 (lui 0x43b4) but the 3.14159/180.0 and the per-element loop use doubles (ldc1 from D_80183328). Mine has a 0x58 frame, so the locals or the sp-copy are typed wrong. Next experiments: declare the local V8 copy as a plain f32 array with separate scalars, make the 360 and +1 constants f32 while keeping the sin argument double, and check whether the store to D_80167FB8 uses a u16 cast (sh) rather than s16 index math. Initial-zero branch (D_80183B80[i] = i*45, D_80183BA0=0, store 1 to D_8011F32E[arg0*0x64]) appears to be in the target; ordering not yet checked.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794756298.412997,
+  "score_before": 4403,
+  "score_after": 4403
+ },
+ {
+  "function": "func_8013CF4C",
+  "text": "Not attempted in this session. The machine draft does not compile (undeclared D_80183308, D_8011F32E, D_80183B80, D_80167FB8, D_80183BA0 in func.c), and its loop body is a guess. Start from the assembly: it is 600 bytes in code_8013CBBC, with an 8-element f32 table at D_80183B80 (increment by 1.0 and wrap at 360.0f, a __sinf call per entry), a 16-byte struct copy from D_80183308 into a local, a func_8013AE60 call, and a state word at D_8011F32E + idx*0x64 (state 0 initialises the table with i*45 and sets state 1). Declare the globals with the right types before compiling.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794758596.351486,
+  "score_before": 4403,
+  "score_after": 4403
+ },
+ {
+  "function": "func_8013CF4C",
+  "text": "Not matched. Best saved 4403 (other source); this session's rewrite scores 7920 (47.1%), revision ccac30d5e8bcc5f78f9c. Target structure (from get_assembly): frame 0x60, saves ra/s0-s6 and fs0/fs1 doubles; copies the 32-byte D_80183308 V8 into a local at 0x10-0x2C; calls func_8013AE60(arg0 & 0xFFFF, &D_80183308); if D_8011F32E record (stride 0x64) u16 == 0: D_80183B80[i] = (f32)(45*i) for i<8, D_80183BA0 = 0, set u16 = 1, return; if != 1 return. Else loop 8: if f32 < 360.0f then add the double D_80183328 (cvt.d.s/add.d/cvt.s.d) else subtract 360.0f. Second loop: angle = (double)f32 * D_80183330 / D_80183338, __sinf (cvt.s.d arg), times sp.v[i] as f32, truncated to s16, stored at D_80167FB8 halfword (i+8)*8+2 and i*8+2. Ours lacks the held s5/s6 base pointers and the fs0/fs1 doubles across the __sinf calls, which is why the frame is 0x48. Next: hoist D_80167FB8/D_80183B80 bases into locals, and keep the two double constants live in the second loop.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794767913.467851,
+  "score_before": 4403,
+  "score_after": 4403
+ },
+ {
+  "function": "func_8013CF4C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr22: 150 insns with a struct copy from D_80183308 to the stack, double-precision saves and calls; not attempted in this session (a multi-call camera/object setup); needs the struct layout first (guess_struct on arg0).",
+  "by": "manual-4ca4d81790724b45",
+  "created_at": 1795714660.192163,
+  "score_before": 4000,
+  "score_after": 4000
  }
 ]
