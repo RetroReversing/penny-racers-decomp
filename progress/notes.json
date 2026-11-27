@@ -6600,14 +6600,6 @@
   "score_after": 960
  },
  {
-  "function": "func_8014B410",
-  "text": "Target structure (decoded): i=s0 in 0..3, j in 0..7. Phase 1: sp10[j] = base[idx + (s8)base[idx] + 2] with idx=0x110*i+34*j (base=D_8021E22F, lb for the first load, lbu for the second). Then func_80149CC4(i,1,8,base+0x110*i). Phase 2 per j: base[idx]=0; k=0; while (k < (s8)D_8021E230[idx]) { if ((s8)base[idx+k+2]==sp10[j]) {base[idx]=k; break;} k++; }. The control flow is right; the problem is registers and frame. The target saves ra,s0,s1,s2 in a 0x30 frame and keeps base in s2 and sp10 in s1, with no s3/s4. Best: 6232 (base-pointer version, 'u8 *base = D_8021E22F'). Variants that failed: separate sp10 array indexing (6372, frame 0x38 with s3); per-row pointer row=base+0x110*i (8142); sp pointer alias (6297, extra s3). Untried: writing the loop with pointer increments, or a single idx pointer 'p = base + idx' to shrink live registers.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794708549.024362,
-  "score_before": 8431,
-  "score_after": 6232
- },
- {
   "function": "func_8014B590",
   "text": "Target structure decoded (no exact match yet). buf = (u8*)&D_80189B38, kept in t0 for the whole function; idx = arg0&0xFF kept in t1. If idx < 4: s0=0, else s0=0xFF (0xFF set in beqz delay slot). Body: (1) for i in 0..13: buf[4+i] = D_8021F048[14*idx+i]; for k in 0..7: *(u16*)(buf+0x1C+16*i+2k) = *(u16*)(D_8021F270+224*idx+16*i+2k). (2) for i in 0..7: *(s32*)(buf+0x11C+4i) = ((s32*)(D_8018D3A0+32*idx))[i]; buf[0x14+i] = D_8021E22F[272*idx+34*i]. (3) for i in 0..3: buf[0x13C+i]=0. (4) sum = unsigned byte sum of buf[4..0x13F] (lbu, not s32 words as in the draft); *(s32*)buf = sum; func_8003DE60(D_80183750, sum, 0x140, buf+0x140). Return s0&0xFF. Best this session: 8920 (8%) with the above C (idx variable, u8* buf). Diffs: target saves ra at 0x14 and s0 at 0x10 with ra first and copies arg0 to t1 first; mine hoists lui/addiu of D_80189B38 into a3 and schedules differently. Untried: keep buf pointer declared at the top and recompute idx per loop; reorder the zeroing loop after the sum loop (I tried one ordering only in a variant that was not run).",
   "by": "claude-haiku-5-5-21",
@@ -10024,14 +10016,6 @@
   "score_after": 7040
  },
  {
-  "function": "func_8014B410",
-  "text": "Not matched. Logic is confirmed from the asm; the structure was the problem. Record layout in D_8021E22F: 34-byte records, index row i = i*0x110 (8 records per row), record j at i*0x110 + j*34; byte0 = result index, byte1 = count (D_8021E230 is base+1), data at +2. Pass 1: sp[j] = base[rec + (s8)base[rec] + 2] for j<8; then func_80149CC4(i, 1, 8, base + i*0x110). Pass 2 per j: base[rec]=0; k=0; while (k < count) { if ((s8)base[rec+2+k] == sp[j]) { base[rec]=k; break; } k++; } Best: 6142 saved best (not from me); my best this session 6297 (base pointer + sp pointer + idx variable, D_8021E230 read via separate extern). Every variant gets a 0x38/0x40 frame with 4-5 callee-saved regs; the target uses only s0 (i), s1 (sp array at sp+0x10), s2 (base) and ra. Next try: avoid idx and sp pointer variables; use an s32 row-pointer local and a u8 *rec pointer set once per j, so only 3 values are live across the call.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794723534.274973,
-  "score_before": 6142,
-  "score_after": 6142
- },
- {
   "function": "func_8014843C",
   "text": "Not matched; releasing because repeated loop-direction experiments have not moved the score. Best score 9270 (6.3%, 80 vs 99 insns) at revision fcbf98021aebd6ce6295 (base pointer u8 *base = &D_8018A276 declared before the fill loop; scalar externs; reads via *(&SYM + n)). Current candidate 82ea2229c8d3cdd78a2e scores 9540; signedness family (u8->s8 base) gives no change. Structure is right: 6-byte 0xFF fill, D_80189B34==2 block, D_80189B34==1 switch on s16 D_8021E1A2 with cases 2/3 and a default. The blocker is that gcc emits the fill loop as a countdown (addiu v1,zero,5; addiu v1,v1,-1; bgez) with base D_8018A27B, whereas the target counts up with lui at/addu at,at,v1/sb a0,%lo(D_8018A276)(at). Untried: a separate counter type or a loop body that is not a plain store (e.g. store into a local then copy), and reordering the switch to test case 2 before the slti ladder.",
   "by": "claude-haiku-5-5-20",
@@ -12880,14 +12864,6 @@
   "score_after": 1845
  },
  {
-  "function": "func_8014B410",
-  "text": "Best saved 6142 (36.0%), revision abf4291909544cc3749d (base/sp pointers, k and idx locals). Target frame 0x30 saves only ra,s0,s1,s2: i=s0, sp10 pointer=s1, base=s2 (lui/addiu hoisted once). Every variant I tried allocates an extra saved reg (frame 0x38/0x40): global-direct indexing 6372, for-loop k 6297, inline index expressions with no idx local 8222 (worst; gcc then re-computes the lui of D_8021E230 as s5). Next step if retried: keep the 6142 source, and attack the first loop body first (target: sll v0,s0,4; addu v0,v0,s0; sll v0,v0,1 then j-term), since the diffs start at the prologue and the register assignment cascades from there. Not closeable at my effort level this session.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794735403.76416,
-  "score_before": 6142,
-  "score_after": 6142
- },
- {
   "function": "func_80219CF0",
   "text": "Re-checked the saved candidate (revision e5fb5ee661c2d4ac5530): 1596 (79.5%), no change from the recorded attempt. Remaining diffs are stack layout (target frame 0x50 with ra at 0x4c and s0 at 0x48; ours has no saved s0) and reordering. Previous agent's volatile u8* flag trick reproduces the byte reloads but not the saved-register layout. Untested next: keep p in a callee-saved register across the func_801FA30C call (e.g. read *((u16*)(p+0x3E)) into a local before the switch) and try compile_family(signedness) as the tool suggested.",
   "by": "claude-haiku-5-5-23",
@@ -13030,14 +13006,6 @@
   "created_at": 1794736357.199463,
   "score_before": 2115,
   "score_after": 2115
- },
- {
-  "function": "func_8014B410",
-  "text": "Best 6142 (36%): the draft with base=D_8021E22F as local u8*, idx=0x110*i+34*j, sp10[8] (target stack slot 0x10), loops i<4, j<8, call func_80149CC4(i,1,8,base+0x110*i) between the two j loops. Target frame is 0x30 with ra,s2,s1,s0 saved and only three callee-saved regs (s0=i, s1=sp10, s2=base); my draft spills to s3..s6 and 0x38/0x40 frames. Tried: inlined indexes without idx local (8587, worse, frame 0x40). Structure is right per the asm; remaining work is making gcc keep base in s2 and sp10 in s1 with no extra locals (try a single pointer walk, or declare i/j/k as the only locals and compute base once).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794736435.204705,
-  "score_before": 6142,
-  "score_after": 6142
  },
  {
   "function": "func_8014843C",
@@ -18670,14 +18638,6 @@
   "created_at": 1794754621.377276,
   "score_before": 75,
   "score_after": 75
- },
- {
-  "function": "func_8014B410",
-  "text": "No match. Saved best 6142 (pointer `base` form, in brief) is still the baseline. Direct global indexing (`D_8021E22F[idx]`, `D_8021E230[idx]`) scored 6272 and made the frame 0x38 (target 0x30) and produced a stray `addiu ...,%lo(D_8021E231)` because GCC folds the D_8021E230 index into D_8021E22F+1. Facts from target: (1) call is `func_80149CC4(i, 1, j, base+0x110*i)` where the 3rd arg is the loop counter j left at 8 after the first j-loop (so write j, not literal 8); (2) index idx = 0x110*i + 34*j; the 2nd loop's `k` is kept in $a1 and the count is read as signed lb at D_8021E230+idx (that is base+idx+1); (3) target keeps `&D_8021E22F` in $s2 (lui+addiu) for the whole function and never re-derives it; frame saves ra,s2,s1,s0 only (0x30). Next: use a single `u8 *base = D_8021E22F;` and `s8 *cnt = (s8 *)base + 1;` so the count stays a base+1 offset from one register, and drop the extra s3 local.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794754638.566664,
-  "score_before": 6142,
-  "score_after": 6142
  },
  {
   "function": "func_801616C0",
@@ -24560,14 +24520,6 @@
   "score_after": 49794
  },
  {
-  "function": "func_8014B410",
-  "text": "Not matched. Saved best 6142 (36%): the original candidate with `base` pointer and `sp` pointer. Four variants this session, none better: globals-only with `&D_8021E22F[0x110*i]` as call arg (6372, wrong symbol offset); `base` pointer without `sp` pointer var (6232); `row = base + 0x110*i` with a `34*j` index and the full `0x110*i` in global subscripts (8067, worse). Every variant allocates s3-s5 and a 0x38-0x40 frame, while the target has frame 0x30, saves only ra/s0/s1/s2, puts sp10 at sp+0x10 (s1), keeps s2 = &D_8021E22F live, and computes a3 = s2 + 0x110*i for the call argument and for the inner-loop read base. Loop-2 break path: bnel delay slot does k++ only on mismatch, and the matched path jumps to the j++ site. Next attempt should write the inner loops against one live row pointer with no other pointer temporaries, and keep sp10 as a local array so the frame stays 0x30.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794764733.473755,
-  "score_before": 6142,
-  "score_after": 6142
- },
- {
   "function": "func_8013BB54",
   "text": "Best candidate revision 14eb22cc1da1af71df39, score 23132 (77.9%), 1012 vs 1050 insns. Structure (switch on p->unk7CC: cases 10/11/12, 20, 30, 45; early return for 31/33/35/37/39/44; two D_8006FAF0[16] branches with 5-iteration and 4-iteration loops calling func_800DE41C) is right, but the target has 38 more instructions. Known diffs: (1) target does `move $s3,$a0` and computes arg0*100 (sll 1/addu/sll 3/addu/sll 2) early, saves regs ra/fp/s7/s6/s5/s4/s3, while ours copies arg0 to $s4 and saves one fewer reg; (2) target loads p->unk770 (lwc1 0x770) before the 20.0f lui, ours after; (3) target has cvt.d.s after lwc1 0x864 for the `p->unk864 < 0.5` double compare; ours lacks it. Tried (double)p->unk864 < 0.5: no score change (f615fda2a2da914dc6f8). Tried s16 unk2 (signedness family): worse, 24932. Untried: caching &D_8011F2F0[arg0] in a local for the loops, to see if the 38 extra insns are from recomputed indexing; and -O1. Next session should start with the arg0 indexing/caching, since that accounts for the early sll chains and the register order.",
   "by": "claude-haiku-5-5-21",
@@ -25278,14 +25230,6 @@
   "created_at": 1794766738.22766,
   "score_before": 60,
   "score_after": 60
- },
- {
-  "function": "func_8014B410",
-  "text": "Best 6142 (36%) is the first candidate with the do{...}while(0) around func_80149CC4 (removing it gives 6297, so keep it). Gap is the frame: target is `addiu $sp,-0x30` with ra at 0x2c, s2 at 0x28, s1 at 0x24, s0 at 0x20, and sp10 at 0x10 (s1 = sp+0x10, the array). Candidate has -0x38 and an extra s3/s4 pair kept live across the call, so it needs fewer live locals (fold idx into the expressions, or use base as the only loop pointer) before register tuning. Index arithmetic matters: target uses sll $v0,$s0,4 (x12), sll 1 (x4), addu chains with base. Tried this session without gain: removing the do-while (worse). Budget exhausted for this pass; the next agent should start with the frame-size fix.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794766794.347399,
-  "score_before": 6142,
-  "score_after": 6142
  },
  {
   "function": "func_80214860",
@@ -39970,5 +39914,69 @@
   "score_before": 4036,
   "score_after": 4036,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:387bc904bb122bf75b0b4b7865601366b2bb267f182d2d44a8f10d12158a969a"
+ },
+ {
+  "function": "func_8014B410",
+  "text": "Target structure (decoded): i=s0 in 0..3, j in 0..7. Phase 1: sp10[j] = base[idx + (s8)base[idx] + 2] with idx=0x110*i+34*j (base=D_8021E22F, lb for the first load, lbu for the second). Then func_80149CC4(i,1,8,base+0x110*i). Phase 2 per j: base[idx]=0; k=0; while (k < (s8)D_8021E230[idx]) { if ((s8)base[idx+k+2]==sp10[j]) {base[idx]=k; break;} k++; }. The control flow is right; the problem is registers and frame. The target saves ra,s0,s1,s2 in a 0x30 frame and keeps base in s2 and sp10 in s1, with no s3/s4. Best: 6232 (base-pointer version, 'u8 *base = D_8021E22F'). Variants that failed: separate sp10 array indexing (6372, frame 0x38 with s3); per-row pointer row=base+0x110*i (8142); sp pointer alias (6297, extra s3). Untried: writing the loop with pointer increments, or a single idx pointer 'p = base + idx' to shrink live registers.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794708549.024362,
+  "score_before": 8431,
+  "score_after": 6232
+ },
+ {
+  "function": "func_8014B410",
+  "text": "Not matched. Logic is confirmed from the asm; the structure was the problem. Record layout in D_8021E22F: 34-byte records, index row i = i*0x110 (8 records per row), record j at i*0x110 + j*34; byte0 = result index, byte1 = count (D_8021E230 is base+1), data at +2. Pass 1: sp[j] = base[rec + (s8)base[rec] + 2] for j<8; then func_80149CC4(i, 1, 8, base + i*0x110). Pass 2 per j: base[rec]=0; k=0; while (k < count) { if ((s8)base[rec+2+k] == sp[j]) { base[rec]=k; break; } k++; } Best: 6142 saved best (not from me); my best this session 6297 (base pointer + sp pointer + idx variable, D_8021E230 read via separate extern). Every variant gets a 0x38/0x40 frame with 4-5 callee-saved regs; the target uses only s0 (i), s1 (sp array at sp+0x10), s2 (base) and ra. Next try: avoid idx and sp pointer variables; use an s32 row-pointer local and a u8 *rec pointer set once per j, so only 3 values are live across the call.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794723534.274973,
+  "score_before": 6142,
+  "score_after": 6142
+ },
+ {
+  "function": "func_8014B410",
+  "text": "Best saved 6142 (36.0%), revision abf4291909544cc3749d (base/sp pointers, k and idx locals). Target frame 0x30 saves only ra,s0,s1,s2: i=s0, sp10 pointer=s1, base=s2 (lui/addiu hoisted once). Every variant I tried allocates an extra saved reg (frame 0x38/0x40): global-direct indexing 6372, for-loop k 6297, inline index expressions with no idx local 8222 (worst; gcc then re-computes the lui of D_8021E230 as s5). Next step if retried: keep the 6142 source, and attack the first loop body first (target: sll v0,s0,4; addu v0,v0,s0; sll v0,v0,1 then j-term), since the diffs start at the prologue and the register assignment cascades from there. Not closeable at my effort level this session.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794735403.76416,
+  "score_before": 6142,
+  "score_after": 6142
+ },
+ {
+  "function": "func_8014B410",
+  "text": "Best 6142 (36%): the draft with base=D_8021E22F as local u8*, idx=0x110*i+34*j, sp10[8] (target stack slot 0x10), loops i<4, j<8, call func_80149CC4(i,1,8,base+0x110*i) between the two j loops. Target frame is 0x30 with ra,s2,s1,s0 saved and only three callee-saved regs (s0=i, s1=sp10, s2=base); my draft spills to s3..s6 and 0x38/0x40 frames. Tried: inlined indexes without idx local (8587, worse, frame 0x40). Structure is right per the asm; remaining work is making gcc keep base in s2 and sp10 in s1 with no extra locals (try a single pointer walk, or declare i/j/k as the only locals and compute base once).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794736435.204705,
+  "score_before": 6142,
+  "score_after": 6142
+ },
+ {
+  "function": "func_8014B410",
+  "text": "No match. Saved best 6142 (pointer `base` form, in brief) is still the baseline. Direct global indexing (`D_8021E22F[idx]`, `D_8021E230[idx]`) scored 6272 and made the frame 0x38 (target 0x30) and produced a stray `addiu ...,%lo(D_8021E231)` because GCC folds the D_8021E230 index into D_8021E22F+1. Facts from target: (1) call is `func_80149CC4(i, 1, j, base+0x110*i)` where the 3rd arg is the loop counter j left at 8 after the first j-loop (so write j, not literal 8); (2) index idx = 0x110*i + 34*j; the 2nd loop's `k` is kept in $a1 and the count is read as signed lb at D_8021E230+idx (that is base+idx+1); (3) target keeps `&D_8021E22F` in $s2 (lui+addiu) for the whole function and never re-derives it; frame saves ra,s2,s1,s0 only (0x30). Next: use a single `u8 *base = D_8021E22F;` and `s8 *cnt = (s8 *)base + 1;` so the count stays a base+1 offset from one register, and drop the extra s3 local.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794754638.566664,
+  "score_before": 6142,
+  "score_after": 6142
+ },
+ {
+  "function": "func_8014B410",
+  "text": "Not matched. Saved best 6142 (36%): the original candidate with `base` pointer and `sp` pointer. Four variants this session, none better: globals-only with `&D_8021E22F[0x110*i]` as call arg (6372, wrong symbol offset); `base` pointer without `sp` pointer var (6232); `row = base + 0x110*i` with a `34*j` index and the full `0x110*i` in global subscripts (8067, worse). Every variant allocates s3-s5 and a 0x38-0x40 frame, while the target has frame 0x30, saves only ra/s0/s1/s2, puts sp10 at sp+0x10 (s1), keeps s2 = &D_8021E22F live, and computes a3 = s2 + 0x110*i for the call argument and for the inner-loop read base. Loop-2 break path: bnel delay slot does k++ only on mismatch, and the matched path jumps to the j++ site. Next attempt should write the inner loops against one live row pointer with no other pointer temporaries, and keep sp10 as a local array so the frame stays 0x30.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794764733.473755,
+  "score_before": 6142,
+  "score_after": 6142
+ },
+ {
+  "function": "func_8014B410",
+  "text": "Best 6142 (36%) is the first candidate with the do{...}while(0) around func_80149CC4 (removing it gives 6297, so keep it). Gap is the frame: target is `addiu $sp,-0x30` with ra at 0x2c, s2 at 0x28, s1 at 0x24, s0 at 0x20, and sp10 at 0x10 (s1 = sp+0x10, the array). Candidate has -0x38 and an extra s3/s4 pair kept live across the call, so it needs fewer live locals (fold idx into the expressions, or use base as the only loop pointer) before register tuning. Index arithmetic matters: target uses sll $v0,$s0,4 (x12), sll 1 (x4), addu chains with base. Tried this session without gain: removing the do-while (worse). Budget exhausted for this pass; the next agent should start with the frame-size fix.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794766794.347399,
+  "score_before": 6142,
+  "score_after": 6142
+ },
+ {
+  "function": "func_8014B410",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Judged the saved best under default (4430) and -O1 (4785); a 96-instruction nested 2-D table builder. Not attempted by hand: too large for the attempt budget this pass. Moving on.",
+  "by": "manual-a0a36fbd92524389",
+  "created_at": 1795711783.575841,
+  "score_before": 3480,
+  "score_after": 3480
  }
 ]
