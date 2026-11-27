@@ -6264,14 +6264,6 @@
   "score_after": 4140
  },
  {
-  "function": "func_80129918",
-  "text": "Not matched. Compiled a clean rewrite (revision d2df19264dcf02ddb87e) scoring 12538 (24.0%); the saved best 1485 is historical from another source. The rewrite is far off: the target keeps arg0 in s0 across calls (move $s0,$a0 x9), has many more float locals (f26, f30 used as call args via mfc1), and a frame of 0x70 with ra saved; ours loses those, so the loop body is probably not one loop. The m2c draft had goto-based control flow with a loop_3 label, which the rewrite replaced with for(;;) and that is likely wrong. Next: get_assembly on the loop head (around the first func_80127AB0 call) and rebuild the structure from the call sites, keeping arg0 in a local pointer.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794710797.081968,
-  "score_before": 1485,
-  "score_after": 1485
- },
- {
   "function": "func_801271A0",
   "text": "Cannot get closer with source edits alone: saved best 4297 (restore with get_candidate(base=\"saved_best\")). Current candidate 7aef2c6 scores 10691 (38.9%). The target re-materializes each global address (`lui $a1,%hi(D_8012AB4C)` before every call, about 11 times) while our source keeps them CSE'd in $s6, and the frame is 0xB8 (ra, s0-s3) against our 0xC0 (s5, s6 also saved). Two compiles changed nothing on the register side. The call order and argument layout (func_80127148 pairs, func_80127030 with 7 args, func_801270B0 s8 compared with -1 and 1) look right. Next agent should try per-call global references, possibly via separate helper or volatile-free re-taking of the address, and check the s3 `0 & 0xFF` pattern.",
   "by": "claude-haiku-5-5-22",
@@ -8614,14 +8606,6 @@
   "created_at": 1794726787.846239,
   "score_before": 1615,
   "score_after": 1615
- },
- {
-  "function": "func_80129918",
-  "text": "Not matched. My one attempt was a truncated stub (no swc1/sdc1 spills, no loop, no second call to func_80127AB0), so it scored 14403, worse than the saved 1485. Target: a 0x80-byte frame saving $ra,$fp,$s0-$s7 and $f20-$f30; arguments arrive as a0 plus 6 floats (a1-a3 and the stack slots 0x90/0x94/0x98); it calls func_80129348(arg0+4, arg0+6, a1,a2,a3) first, then if the result is 0 or 2 adds the three stack floats into arg0+8/+C/+10 and clears bytes 1 and 2. Otherwise it loops calling func_80127AB0(arg0, D_8011F2F0 + u16(arg0[4])*100, 0x41400000, ...) and re-calls func_80129348 until the result differs. The machine draft has an invalid __repair_var line and a wrong loop structure; rebuild the loop from the asm.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794726794.701142,
-  "score_before": 1485,
-  "score_after": 1485
  },
  {
   "function": "func_801FCBEC",
@@ -11094,14 +11078,6 @@
   "created_at": 1794740206.7919118,
   "score_before": 4140,
   "score_after": 4140
- },
- {
-  "function": "func_80129918",
-  "text": "Release reason: the saved m2c draft (1485) is the only candidate with the full loop; my one shortened rewrite (15268) was invalid, and the function needs a full loop rewrite from the assembly before compiles can say anything useful. Not closable in this pass. Notes: target 660 bytes, frame -0x40 with f20..f26 saved; loop calls func_80129348(arg0+4, arg0+6, arg1, arg2, arg3) (returns u8 status) and func_80127AB0(arg0, arg0->u16@4*100 + &D_8011F2F0, 0x41400000, arg1, arg2, arg3, fs0, fs1, fs2, 1); arg0+8/0xC/0x10 are f32 values, +1/+2/+3 are u8 counters. Next step: read the full assembly, write the loop as the target's goto structure, then tune registers.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794740214.4389381,
-  "score_before": 1485,
-  "score_after": 1485
  },
  {
   "function": "func_801271A0",
@@ -14936,14 +14912,6 @@
   "score_after": 5810
  },
  {
-  "function": "func_80129918",
-  "text": "Not matched. One clean rewrite scored 12248 (8d942c7efb9d4ab615c0), far worse than saved best 1485; the machine draft is also badly tangled. Target is 165 insns with a 0x70 frame that saves f20-f30 (fs0..fs5 via sdc1/swc1) and keeps the float args arg4..arg6 live across two calls to func_80129348 and func_80127AB0 (called with 0x41400000 as the third arg, the D_8011F2F0 table with stride 0x64 indexed by u16 at +4). Target loop: call func_80127AB0, then recompute fs0..fs2 as (pos - arg1..3) from offsets +8/+0xC/+0x10, OR the byte at +1 into an accumulator and add byte +2 into another, then branch on byte +2 == 1 and on byte +3; my version does not hold the float deltas in callee-saved fp regs, so the frame and register allocation are off. Next experiments: keep the three deltas in local f32 variables declared before the loop, and use goto-based loop shape to match the early-exit (beqz on the r==0|r==2 test, then `j` to the loop bottom). Do not trust the m2c draft's fs/fv naming.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794756326.6635158,
-  "score_before": 1485,
-  "score_after": 1485
- },
- {
   "function": "func_80211FD0",
   "text": "Not matched. Best 10073 (55%), saved_best: a do-while over s2 (outer, 0..LH(D_8021E1A2)); each iteration sets s1=((s1+s2)*16-s2)*8, s0=s2*0x110, then 8 calls func_80149F40(u16 slot at D_800DA260+s1, k, byte) with the byte at D_8021E231+s0+byte(D_8021E22F/251/273/295/2B7/2D9/2FB+s0) (+0x22 per k), slot 7 uses D_8021E31F+s0+byte(D_8021E31D+s0); then 4 times: copy 14 bytes from D_8021F048+i*14 to D_800DA26A+0x160+i*0x178 and call func_80211F14(i,src,dst). Mapping of stores is 260,262,266,26A,264,268,26C,26E for k=0..7. Frame in target is 0x38 with s0..s6 saved (s3=D_8021E231, s6=D_8021E31F, s5, s4 are hoisted addresses). Mine saves fp/s7 (0x40 frame): the hoisted pointer locals made it worse (10568), so do not repeat. Next: write the inner byte copy loop as the target does (14 bytes, sltiu bound) and hoist only s3/s6 as the target does, with the two D_8021E1A2 loads kept separate.",
   "by": "claude-haiku-5-5-22",
@@ -15766,14 +15734,6 @@
   "created_at": 1794758597.405165,
   "score_before": 260,
   "score_after": 260
- },
- {
-  "function": "func_80129918",
-  "text": "Not attempted in this session. The machine draft is a goto-based loop (loop_3) with calls to func_80127AB0 and func_80129348 and a sequence of float subtractions on fields at arg0+8/+0xC/+0x10. Its control flow is unreliable. Rewrite it as a do/while with a single exit. Start from the assembly and check the stack frame and the float saves (fs0-fs2) first, since the draft shows three float locals across calls.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794758611.645139,
-  "score_before": 1485,
-  "score_after": 1485
  },
  {
   "function": "func_80232480",
@@ -18982,14 +18942,6 @@
   "created_at": 1794767924.006641,
   "score_before": 1990,
   "score_after": 1990
- },
- {
-  "function": "func_80129918",
-  "text": "No match. My rewrite (for(;;) loop over the state at arg0 with u8 s1/s2 accumulators, f32 fs0..fs2 carried into func_80127AB0) scored 12118 (26.5%), worse than the saved best 1485 (historical, another source; check it first). Target: 165 insns, frame 0x78 with f20..f26 saved (sdc1) and s0..s3 + ra. Target keeps arg0 in $s0 for the whole body (move $s0,$a0 nine times) and passes the float values through f20..f26 across calls, which my version does not reproduce. Asking to move on: the right next step is to start from the machine draft, remove the repair junk (__repair_var_fs2_1, goto loop_3), and make the three float locals callee-saved; that is a rewrite, not a few compiles.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794767938.304984,
-  "score_before": 1485,
-  "score_after": 1485
  },
  {
   "function": "func_801271A0",
@@ -41339,5 +41291,70 @@
   "score_before": 7249,
   "score_after": 4972,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:57b7cebb5d5f9e0592523846dd0a3a0c3a70da5a34e3816fb5ae1ed4ec222830"
+ },
+ {
+  "function": "func_80129918",
+  "text": "Not matched. Compiled a clean rewrite (revision d2df19264dcf02ddb87e) scoring 12538 (24.0%); the saved best 1485 is historical from another source. The rewrite is far off: the target keeps arg0 in s0 across calls (move $s0,$a0 x9), has many more float locals (f26, f30 used as call args via mfc1), and a frame of 0x70 with ra saved; ours loses those, so the loop body is probably not one loop. The m2c draft had goto-based control flow with a loop_3 label, which the rewrite replaced with for(;;) and that is likely wrong. Next: get_assembly on the loop head (around the first func_80127AB0 call) and rebuild the structure from the call sites, keeping arg0 in a local pointer.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794710797.081968,
+  "score_before": 1485,
+  "score_after": 1485
+ },
+ {
+  "function": "func_80129918",
+  "text": "Not matched. My one attempt was a truncated stub (no swc1/sdc1 spills, no loop, no second call to func_80127AB0), so it scored 14403, worse than the saved 1485. Target: a 0x80-byte frame saving $ra,$fp,$s0-$s7 and $f20-$f30; arguments arrive as a0 plus 6 floats (a1-a3 and the stack slots 0x90/0x94/0x98); it calls func_80129348(arg0+4, arg0+6, a1,a2,a3) first, then if the result is 0 or 2 adds the three stack floats into arg0+8/+C/+10 and clears bytes 1 and 2. Otherwise it loops calling func_80127AB0(arg0, D_8011F2F0 + u16(arg0[4])*100, 0x41400000, ...) and re-calls func_80129348 until the result differs. The machine draft has an invalid __repair_var line and a wrong loop structure; rebuild the loop from the asm.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794726794.701142,
+  "score_before": 1485,
+  "score_after": 1485
+ },
+ {
+  "function": "func_80129918",
+  "text": "Release reason: the saved m2c draft (1485) is the only candidate with the full loop; my one shortened rewrite (15268) was invalid, and the function needs a full loop rewrite from the assembly before compiles can say anything useful. Not closable in this pass. Notes: target 660 bytes, frame -0x40 with f20..f26 saved; loop calls func_80129348(arg0+4, arg0+6, arg1, arg2, arg3) (returns u8 status) and func_80127AB0(arg0, arg0->u16@4*100 + &D_8011F2F0, 0x41400000, arg1, arg2, arg3, fs0, fs1, fs2, 1); arg0+8/0xC/0x10 are f32 values, +1/+2/+3 are u8 counters. Next step: read the full assembly, write the loop as the target's goto structure, then tune registers.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794740214.4389381,
+  "score_before": 1485,
+  "score_after": 1485
+ },
+ {
+  "function": "func_80129918",
+  "text": "Not matched. One clean rewrite scored 12248 (8d942c7efb9d4ab615c0), far worse than saved best 1485; the machine draft is also badly tangled. Target is 165 insns with a 0x70 frame that saves f20-f30 (fs0..fs5 via sdc1/swc1) and keeps the float args arg4..arg6 live across two calls to func_80129348 and func_80127AB0 (called with 0x41400000 as the third arg, the D_8011F2F0 table with stride 0x64 indexed by u16 at +4). Target loop: call func_80127AB0, then recompute fs0..fs2 as (pos - arg1..3) from offsets +8/+0xC/+0x10, OR the byte at +1 into an accumulator and add byte +2 into another, then branch on byte +2 == 1 and on byte +3; my version does not hold the float deltas in callee-saved fp regs, so the frame and register allocation are off. Next experiments: keep the three deltas in local f32 variables declared before the loop, and use goto-based loop shape to match the early-exit (beqz on the r==0|r==2 test, then `j` to the loop bottom). Do not trust the m2c draft's fs/fv naming.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794756326.6635158,
+  "score_before": 1485,
+  "score_after": 1485
+ },
+ {
+  "function": "func_80129918",
+  "text": "Not attempted in this session. The machine draft is a goto-based loop (loop_3) with calls to func_80127AB0 and func_80129348 and a sequence of float subtractions on fields at arg0+8/+0xC/+0x10. Its control flow is unreliable. Rewrite it as a do/while with a single exit. Start from the assembly and check the stack frame and the float saves (fs0-fs2) first, since the draft shows three float locals across calls.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794758611.645139,
+  "score_before": 1485,
+  "score_after": 1485
+ },
+ {
+  "function": "func_80129918",
+  "text": "No match. My rewrite (for(;;) loop over the state at arg0 with u8 s1/s2 accumulators, f32 fs0..fs2 carried into func_80127AB0) scored 12118 (26.5%), worse than the saved best 1485 (historical, another source; check it first). Target: 165 insns, frame 0x78 with f20..f26 saved (sdc1) and s0..s3 + ra. Target keeps arg0 in $s0 for the whole body (move $s0,$a0 nine times) and passes the float values through f20..f26 across calls, which my version does not reproduce. Asking to move on: the right next step is to start from the machine draft, remove the repair junk (__repair_var_fs2_1, goto loop_3), and make the three float locals callee-saved; that is a rewrite, not a few compiles.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794767938.304984,
+  "score_before": 1485,
+  "score_after": 1485
+ },
+ {
+  "function": "func_80129918",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr16, -O1 profile (not applied): my clean rewrites (loop-carried deltas, struct record) score 8521 and up, far worse than the saved best (3437). The prologue saves six FP registers the rewrite does not keep live, so the float arguments are held in the wrong registers; the record field offsets are right (f4 at 4, b1/b2/b3 at 1..3, f8/fC/f10). Handed back at 8 judged attempts (work/func_80129918_v2.c).",
+  "by": "manual-209d2dfa17f14ee1",
+  "created_at": 1795713272.1185122,
+  "score_before": 5040,
+  "score_after": 5040
+ },
+ {
+  "function": "func_80129918",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 2020 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (7 of its 8 nearest matched neighbours were built with it), the saved C scores 5040 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721229.8285599,
+  "score_before": 5040,
+  "score_after": 2020,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:1f1d5669831748f1635d9aa0ad35ff79b6241a12f118b2c9846f40dd85525ae9"
  }
 ]
