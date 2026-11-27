@@ -3416,14 +3416,6 @@
   "score_after": 260
  },
  {
-  "function": "func_800E0274",
-  "text": "Deep permuter: score 25322 \u2192 25232; 1 improvements; 96 candidates tested; 36 cached skips; 0 rejected; 7221s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589934607",
-  "created_at": 1794357210.480227,
-  "score_before": 25322,
-  "score_after": 25232
- },
- {
   "function": "func_80197F78",
   "text": "Deep permuter: score 9555 \u2192 8315; 3 improvements; 86 candidates tested; 142 cached skips; 0 rejected; 7208s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935596",
@@ -7528,14 +7520,6 @@
   "score_after": 6401
  },
  {
-  "function": "func_800E0274",
-  "text": "Score 6625 (best so far) with `s0 = arg2;` hoisted inside the outer `if`. Target computes the D_80126FF6 index as `sll $v0,$v1,1; addu $v0,$v0,$v1` (i.e. 3*idx) added to $s2, and materializes D_800E2660 with lui/addiu+addu (not folded into the load) \u2014 so D_800E2660 must be reached through a pointer local, per share #339302416412. Also the target's `bne $v1,$v0,0x21c` / `lbu $v0,0xb($s2)` shows the switch/default path compares D_80126FF7 against the loaded s2[0xB] value, not an inlined copy. Remaining work: reorder the s4 base computation before the flag test, then the jump-table region.\n\nBest verified 6485 (rev 1d6fba7867c82814088f, source kept). Structure is right: all 258 target instructions are present with the same semantics; the remaining 159 rows are prologue save order + register allocation + statement order.\n\nKey facts established:\n- s0 = arg2 must be a single copy placed so gcc puts `move $s0,$a2` in the bnez delay slot of the 0x20 flag test (hoisting `s0 = arg2;` above the `if` gave 6485; putting it inside the if gave 6625). Target prologue order is ra,fp,s7,s6,s5,s4,s3,s2,s1,s0 \u2014 ours emits s3/s2 first, so gcc's save ordering differs because our s3/s5/s7 usage pattern differs.\n- D_800E2660 must be materialized as lui/addiu+addu (target rows 40-42), i.e. via a pointer local, not folded into the load. Tried a `u8 *base = D_800E2660;` block: no instruction change (gcc still folds). Per share #339302416412 the pointer-local form should work; maybe it needs to be a function-scope local declared before use and referenced in the s4 expression directly.\n- Target also keeps D_80126FF6 index chain (sll/addu/lhu 0x2) and 0x80000000 in $s5 across the whole body (`lui $s5,0x80000000` once, subu twice + third use). Ours recomputes `subu ..., $s4` style with different regs; declaring `u32 hi = 0x80000000;` as a function-scope local before the first use may be needed.\n- 0x1000040 / 0x1020040 / 0x6000000 / 0xFA000000 are lui+ori in the target; ours emits them fine.\n- Jump table: D_800E1E48, 10 entries for (s2[0xB]-1)<10, mapping 0->0x4b8,1->0x4f4,2->0x530,3->0x530,4->0x5a8,5->0x56c,6->0x56c,7->0x5a8,8->0x4b8,9->0x4f4; default (case 5,8) falls to 0x5a8 comparing D_80126FF7 with s2[0xB]. Current switch reproduces this.\n- The float constant is a f64 at D_800E1E40 = 1.875 (0x3FF00000...); compare uses cvt.d.s + c.eq.d, so the C must compare f32 to an f64 extern (D_800E1E40 as f64) \u2014 already done.\n- -O1 scores 3380, -O2 -fno-schedule-insns 5045; project -O2 is the best profile. Do not switch compiler.\nRemaining: get the prologue save order and the s3/s5/s7 allocation right; try moving `hi = 0x80000000` and the D_800E2660 base pointer to function-scope locals declared early, and check whether arg0 should be used directly (no `s3` copy local) so gcc saves s3 last.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794716183.7884412,
-  "score_before": 8060,
-  "score_after": 6485
- },
- {
   "function": "func_80192680",
   "text": "Moved on after 8 trials returning previously seen scored instruction diffs. Best source retained.",
   "by": "api-route-llm-code-2",
@@ -10502,14 +10486,6 @@
   "created_at": 1794728431.176994,
   "score_before": 2605,
   "score_after": 2605
- },
- {
-  "function": "func_800E0274",
-  "text": "Best current candidate: revision d06907086196fa706c56, score 6250 (75.7%). The saved historical best is 5760 (other source). The source is the m2c draft with the jump-table failure removed: the s2[0xB] switch is a plain switch with fallthrough (1/9, 2/10, 3/4, 6/7, and 5/8/default), and it compiles. Three float compares must be double: (f64)(*(f32*)(s2+off)) == D_800E1E40; writing 0.0f gives 6710 and a .rodata reference, so do not use it. Remaining diffs: (1) prologue/save set: target saves $ra,$fp,$s7..$s0 with s3 = arg0 (move $s3,$a0 at entry) and fp = arg1 & 0xFFFF; mine saves a smaller set; (2) the lbu 0xb test is bne in the target and bnel in mine; (3) flag register: target uses s6 for the mask flag, mine uses s7. Tried and rejected: dropping the s1 temp (7525); changing s1 use at the dl[1] store. Stopped here because the remaining diff is the save set and live ranges, which need the variable layout changed; four variants moved the score the wrong way, so further guesses are unlikely to pay off without a deliberate register-layout plan (try declaring arg0 and arg1 as locals copied at entry so GCC keeps them in s3/fp).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794728445.520355,
-  "score_before": 5760,
-  "score_after": 5760
  },
  {
   "function": "func_80192680",
@@ -13622,14 +13598,6 @@
   "created_at": 1794741642.591369,
   "score_before": 8584,
   "score_after": 8584
- },
- {
-  "function": "func_800E0274",
-  "text": "Not matched; best is the saved 5760 candidate (77.6%, 258 target insns vs 256) at revision ece85b0576402a314cc2. Main gap, in order: the target's frame is -0x38 and saves ra, $fp (s8), s7..s0, so about nine values stay live across the guScale/guTranslate/func_801FA678 calls. The candidate saves only s0..s3 and s-regs for s2/s4/s1/dl. The fix is probably more pointer locals that live across the calls (for example separate base pointers for the 0x288 and 0x88 offsets, and a separate `s1` for the second translate) so GCC allocates $fp and s4..s7. Tried, no gain: an if-chain instead of the switch (11880, worse; the switch must stay); s8 signedness change (8998, worse). Also the link warning \"your code refers to .rodata+0x0\" is present with the switch, so check whether the ROM uses a jump table at this site. Next: add the missing pointer locals first, then compare the bnel vs bne at the first D_80126FF7 compare.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794741652.834759,
-  "score_before": 5760,
-  "score_after": 5760
  },
  {
   "function": "func_8013FE18",
@@ -18760,14 +18728,6 @@
   "score_after": 5313
  },
  {
-  "function": "func_800E0274",
-  "text": "Best 5395 (79.0%), saved with this source (revision dc0c49691e2b8655eb56). Structure: s2=D_8011F2F0+(arg1&0xFFFF)*0x64, s4=D_800E2660+u16(s2+0x3C)*0x308, display-list emitter with a switch on s2[0xB] and optional fn pointer at s2+0x58. Using a separate `u8 *p` for the second pointer (instead of reusing s0) fixed the warning and improved 5760->5395. Remaining diffs: (1) target saves s0..s7 + ra (frame 0x34), mine fewer saved regs; target uses plain `bne` for `if (D_80126FF7 != s2[0xB])` where mine emits `bnel`. (2) guScale branch block: target's s6 flag register and mine s7 are swapped; target computes s1 from s7=s0<<6 after the sll of s0 in a different order. Untried: keep s0 as a u8 index variable with explicit `(u8)` cast throughout; try the switch as if/else chain for the 0xB cases; try moving the guScale call into a block with the `s6=1` assignment before it.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794758076.966861,
-  "score_before": 5760,
-  "score_after": 5395
- },
- {
   "function": "func_800DE2E0",
   "text": "MATCHES byte-for-byte at KMC -O1 (checked with try_compiler; suggestion with exact C submitted). It uses a Struct800DEFF8[] D_8011F2F0 with 0x64-byte entries (u8 unk1 @1, u16 prev @0x10, u16 next @0x12). Loop i=1..0x13E sets prev=i-1, next=i+1, unk1=0; entries 0 and 0x13F are set explicitly. Waiting for the user to apply the -O1 profile.",
   "by": "claude-opus-medium-1",
@@ -20216,14 +20176,6 @@
   "score_after": 885
  },
  {
-  "function": "func_800E0274",
-  "text": "Not matched. Best 5395 (79.0%), revision a69b8e3097b21e2b0f60, the m2c draft with goto labels (mask/L398) and u8* pointer arithmetic. Matches the control flow and most of the arithmetic. Remaining differences: (1) frame and saves: target saves ra at 0x34 and s7..s0 (0x2C..0x10), so the C needs more live values across the calls (dl, s1, p, s0, s6, s7, s4, s2); my version saves only s3..s0 and spills at 0x1C. (2) Target keeps arg0 in s3 via `move $s3,$a0` at the top, and `andi $v1,$fp,0xFFFF` on arg1 is reused for the index. (3) A branch in the s2[0xB] switch uses `bne` where mine has `bnel` (branch-likely), which suggests the switch/default ordering differs. (4) Jump table: the draft has no jump table recovered; the switch on s2[0xB] (cases 1..10) must be checked against the assembly's jr section, which may need separate case order. Next: fix the frame first (add locals so the compiler keeps dl/p/s1 live across the calls), then re-check the bnel vs bne.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794760046.60874,
-  "score_before": 5395,
-  "score_after": 5395
- },
- {
   "function": "func_8013B1BC",
   "text": "Not matched. Target: 338 insns, 1352 B. Layout: records of 100 bytes indexed by u16 a0 (off = a0*100, computed as 3*a0 <<3 ... ) . Fields at record base 0x8011F2FC: u8 +0 (F2FC), u8 +1 (F2FD), u16 +2 (F2FE), u16 +0x30 (F32E), floats at +0xC,+0x10,+0x14,+0x24,+0x28,+0x2C,+0x38,+0x3C,+0x40 (F308/F30C/F310/F320/F324/F328/F334/F338/F33C), and pointer array at F350 indexed by 100*u16(F2FE) with float at ptr+0x770. Prologue: if (u8 F2FC[off] < 0x33) { F2FD[off]=2; return; } else switch (u16 F32E[off]-0xB), range 0..0x22, default to a float block at .L8013B538. Switch uses jump table at 0x80183108, which read_data reports as not in a loaded ROM part, so case targets cannot be decoded; this blocks exact matching. Best candidate scored 4.8% (17 insns, 32150) with a skeleton only. Next step: find the jump table in rodata (report_data_region or find the segment) and decode the 35 cases before drafting the bodies. The float constants used: 0x399D4952, 0x3CF5C28F, 0x3BC49BA6, 0x3D4CCCCD, 0x3BA3D70A, 0x3951B717, 0x3C23D70A, 0x3F733333, 0x3F19999A.",
   "by": "claude-haiku-5-5-22",
@@ -21582,14 +21534,6 @@
   "created_at": 1794762096.220854,
   "score_before": 19054,
   "score_after": 19054
- },
- {
-  "function": "func_800E0274",
-  "text": "Not matched. Best 5395 (79.0%), revision dc0c49691e2b8655eb56 (the first candidate, with goto-based mask/L398 labels). Target 258 insns vs 256. Why it cannot get closer now: the target's frame saves ra at 0x34 and s0..s7 (s7 at 0x2c down to s0 at 0x10), with s3 holding arg0 and s2 holding the state base, so arg0 must survive the guScale/guTranslate/func_801FA678 calls. The candidate saves only s0..s3. Closest single mismatch: the target uses bne $v1,$v0,0x21c where the candidate emits bnel at the sound-kind compare. Tried: a cached local kind = s2[0xB] (9345, worse; base register moved to s3/s2 and loads changed to $a0). Next: keep the s2[0xB] reads as they are and try the switch as an if-chain to get a plain bne rather than bnel. The target has no jump table for this switch, so check its branch chain against the candidate. Callees: guScale(void*,f32,f32,f32), guTranslate(void*,s32,s32,s32), func_801FA678(void*,s32,s32,s32). Data: D_8011F2F0 (stride 0x64 state record), D_800E2660 (stride 0x308), D_80126FF6 (u8 index), D_80126FF7 (u8 last state), D_800E1860 (u32 table), D_800E1874/1880/188C/1890 (u32), D_800E1E40 (f64 zero constant).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794762120.592939,
-  "score_before": 5395,
-  "score_after": 5395
  },
  {
   "function": "func_80146E4C",
@@ -40623,5 +40567,61 @@
   "score_before": 1915,
   "score_after": 1515,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:f8ee70ef97bd02c89c2a11785b2e15744c114302d3bd408b42a9d89e9445bc54"
+ },
+ {
+  "function": "func_800E0274",
+  "text": "Deep permuter: score 25322 \u2192 25232; 1 improvements; 96 candidates tested; 36 cached skips; 0 rejected; 7221s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589934607",
+  "created_at": 1794357210.480227,
+  "score_before": 25322,
+  "score_after": 25232
+ },
+ {
+  "function": "func_800E0274",
+  "text": "Score 6625 (best so far) with `s0 = arg2;` hoisted inside the outer `if`. Target computes the D_80126FF6 index as `sll $v0,$v1,1; addu $v0,$v0,$v1` (i.e. 3*idx) added to $s2, and materializes D_800E2660 with lui/addiu+addu (not folded into the load) \u2014 so D_800E2660 must be reached through a pointer local, per share #339302416412. Also the target's `bne $v1,$v0,0x21c` / `lbu $v0,0xb($s2)` shows the switch/default path compares D_80126FF7 against the loaded s2[0xB] value, not an inlined copy. Remaining work: reorder the s4 base computation before the flag test, then the jump-table region.\n\nBest verified 6485 (rev 1d6fba7867c82814088f, source kept). Structure is right: all 258 target instructions are present with the same semantics; the remaining 159 rows are prologue save order + register allocation + statement order.\n\nKey facts established:\n- s0 = arg2 must be a single copy placed so gcc puts `move $s0,$a2` in the bnez delay slot of the 0x20 flag test (hoisting `s0 = arg2;` above the `if` gave 6485; putting it inside the if gave 6625). Target prologue order is ra,fp,s7,s6,s5,s4,s3,s2,s1,s0 \u2014 ours emits s3/s2 first, so gcc's save ordering differs because our s3/s5/s7 usage pattern differs.\n- D_800E2660 must be materialized as lui/addiu+addu (target rows 40-42), i.e. via a pointer local, not folded into the load. Tried a `u8 *base = D_800E2660;` block: no instruction change (gcc still folds). Per share #339302416412 the pointer-local form should work; maybe it needs to be a function-scope local declared before use and referenced in the s4 expression directly.\n- Target also keeps D_80126FF6 index chain (sll/addu/lhu 0x2) and 0x80000000 in $s5 across the whole body (`lui $s5,0x80000000` once, subu twice + third use). Ours recomputes `subu ..., $s4` style with different regs; declaring `u32 hi = 0x80000000;` as a function-scope local before the first use may be needed.\n- 0x1000040 / 0x1020040 / 0x6000000 / 0xFA000000 are lui+ori in the target; ours emits them fine.\n- Jump table: D_800E1E48, 10 entries for (s2[0xB]-1)<10, mapping 0->0x4b8,1->0x4f4,2->0x530,3->0x530,4->0x5a8,5->0x56c,6->0x56c,7->0x5a8,8->0x4b8,9->0x4f4; default (case 5,8) falls to 0x5a8 comparing D_80126FF7 with s2[0xB]. Current switch reproduces this.\n- The float constant is a f64 at D_800E1E40 = 1.875 (0x3FF00000...); compare uses cvt.d.s + c.eq.d, so the C must compare f32 to an f64 extern (D_800E1E40 as f64) \u2014 already done.\n- -O1 scores 3380, -O2 -fno-schedule-insns 5045; project -O2 is the best profile. Do not switch compiler.\nRemaining: get the prologue save order and the s3/s5/s7 allocation right; try moving `hi = 0x80000000` and the D_800E2660 base pointer to function-scope locals declared early, and check whether arg0 should be used directly (no `s3` copy local) so gcc saves s3 last.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794716183.7884412,
+  "score_before": 8060,
+  "score_after": 6485
+ },
+ {
+  "function": "func_800E0274",
+  "text": "Best current candidate: revision d06907086196fa706c56, score 6250 (75.7%). The saved historical best is 5760 (other source). The source is the m2c draft with the jump-table failure removed: the s2[0xB] switch is a plain switch with fallthrough (1/9, 2/10, 3/4, 6/7, and 5/8/default), and it compiles. Three float compares must be double: (f64)(*(f32*)(s2+off)) == D_800E1E40; writing 0.0f gives 6710 and a .rodata reference, so do not use it. Remaining diffs: (1) prologue/save set: target saves $ra,$fp,$s7..$s0 with s3 = arg0 (move $s3,$a0 at entry) and fp = arg1 & 0xFFFF; mine saves a smaller set; (2) the lbu 0xb test is bne in the target and bnel in mine; (3) flag register: target uses s6 for the mask flag, mine uses s7. Tried and rejected: dropping the s1 temp (7525); changing s1 use at the dl[1] store. Stopped here because the remaining diff is the save set and live ranges, which need the variable layout changed; four variants moved the score the wrong way, so further guesses are unlikely to pay off without a deliberate register-layout plan (try declaring arg0 and arg1 as locals copied at entry so GCC keeps them in s3/fp).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794728445.520355,
+  "score_before": 5760,
+  "score_after": 5760
+ },
+ {
+  "function": "func_800E0274",
+  "text": "Not matched; best is the saved 5760 candidate (77.6%, 258 target insns vs 256) at revision ece85b0576402a314cc2. Main gap, in order: the target's frame is -0x38 and saves ra, $fp (s8), s7..s0, so about nine values stay live across the guScale/guTranslate/func_801FA678 calls. The candidate saves only s0..s3 and s-regs for s2/s4/s1/dl. The fix is probably more pointer locals that live across the calls (for example separate base pointers for the 0x288 and 0x88 offsets, and a separate `s1` for the second translate) so GCC allocates $fp and s4..s7. Tried, no gain: an if-chain instead of the switch (11880, worse; the switch must stay); s8 signedness change (8998, worse). Also the link warning \"your code refers to .rodata+0x0\" is present with the switch, so check whether the ROM uses a jump table at this site. Next: add the missing pointer locals first, then compare the bnel vs bne at the first D_80126FF7 compare.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794741652.834759,
+  "score_before": 5760,
+  "score_after": 5760
+ },
+ {
+  "function": "func_800E0274",
+  "text": "Best 5395 (79.0%), saved with this source (revision dc0c49691e2b8655eb56). Structure: s2=D_8011F2F0+(arg1&0xFFFF)*0x64, s4=D_800E2660+u16(s2+0x3C)*0x308, display-list emitter with a switch on s2[0xB] and optional fn pointer at s2+0x58. Using a separate `u8 *p` for the second pointer (instead of reusing s0) fixed the warning and improved 5760->5395. Remaining diffs: (1) target saves s0..s7 + ra (frame 0x34), mine fewer saved regs; target uses plain `bne` for `if (D_80126FF7 != s2[0xB])` where mine emits `bnel`. (2) guScale branch block: target's s6 flag register and mine s7 are swapped; target computes s1 from s7=s0<<6 after the sll of s0 in a different order. Untried: keep s0 as a u8 index variable with explicit `(u8)` cast throughout; try the switch as if/else chain for the 0xB cases; try moving the guScale call into a block with the `s6=1` assignment before it.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794758076.966861,
+  "score_before": 5760,
+  "score_after": 5395
+ },
+ {
+  "function": "func_800E0274",
+  "text": "Not matched. Best 5395 (79.0%), revision a69b8e3097b21e2b0f60, the m2c draft with goto labels (mask/L398) and u8* pointer arithmetic. Matches the control flow and most of the arithmetic. Remaining differences: (1) frame and saves: target saves ra at 0x34 and s7..s0 (0x2C..0x10), so the C needs more live values across the calls (dl, s1, p, s0, s6, s7, s4, s2); my version saves only s3..s0 and spills at 0x1C. (2) Target keeps arg0 in s3 via `move $s3,$a0` at the top, and `andi $v1,$fp,0xFFFF` on arg1 is reused for the index. (3) A branch in the s2[0xB] switch uses `bne` where mine has `bnel` (branch-likely), which suggests the switch/default ordering differs. (4) Jump table: the draft has no jump table recovered; the switch on s2[0xB] (cases 1..10) must be checked against the assembly's jr section, which may need separate case order. Next: fix the frame first (add locals so the compiler keeps dl/p/s1 live across the calls), then re-check the bnel vs bne.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794760046.60874,
+  "score_before": 5395,
+  "score_after": 5395
+ },
+ {
+  "function": "func_800E0274",
+  "text": "Not matched. Best 5395 (79.0%), revision dc0c49691e2b8655eb56 (the first candidate, with goto-based mask/L398 labels). Target 258 insns vs 256. Why it cannot get closer now: the target's frame saves ra at 0x34 and s0..s7 (s7 at 0x2c down to s0 at 0x10), with s3 holding arg0 and s2 holding the state base, so arg0 must survive the guScale/guTranslate/func_801FA678 calls. The candidate saves only s0..s3. Closest single mismatch: the target uses bne $v1,$v0,0x21c where the candidate emits bnel at the sound-kind compare. Tried: a cached local kind = s2[0xB] (9345, worse; base register moved to s3/s2 and loads changed to $a0). Next: keep the s2[0xB] reads as they are and try the switch as an if-chain to get a plain bne rather than bnel. The target has no jump table for this switch, so check its branch chain against the candidate. Callees: guScale(void*,f32,f32,f32), guTranslate(void*,s32,s32,s32), func_801FA678(void*,s32,s32,s32). Data: D_8011F2F0 (stride 0x64 state record), D_800E2660 (stride 0x308), D_80126FF6 (u8 index), D_80126FF7 (u8 last state), D_800E1860 (u32 table), D_800E1874/1880/188C/1890 (u32), D_800E1E40 (f64 zero constant).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794762120.592939,
+  "score_before": 5395,
+  "score_after": 5395
  }
 ]
