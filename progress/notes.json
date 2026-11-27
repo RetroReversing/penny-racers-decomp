@@ -3984,14 +3984,6 @@
   "score_after": 270
  },
  {
-  "function": "func_801B312C",
-  "text": "Deep permuter: score 23825 \u2192 22375; 2 improvements; 80 candidates tested; 6 cached skips; 0 rejected; 7207s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935611",
-  "created_at": 1794357264.1076689,
-  "score_before": 23825,
-  "score_after": 22375
- },
- {
   "function": "__CSPPostNextSeqEvent",
   "text": "Deep permuter: score 2 \u2192 2; 0 improvements; 185 candidates tested; 128 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934851",
@@ -6190,14 +6182,6 @@
   "created_at": 1794719120.514981,
   "score_before": 10325,
   "score_after": 10325
- },
- {
-  "function": "func_801B312C",
-  "text": "Best score 24425 (34%, 383 vs target 371 insns) using the m2c draft with the M2C_DEFINES preamble and extern D_801C7AB0 (candidate rev de7402a9c63efcb5c96e). Compile errors came from omitting the preamble and misdeclared temps, now fixed. Remaining diff: target keeps the lwc1 of arg4 (0x10($sp)) and the mtc1 of arg3 earlier; the switch arms are compiled as jump-table-free compare chains (target has bne $a3 chains x13) rather than a switch; my version uses j to shared blocks. Next ideas: rewrite the 4 switch(temp_a3) blocks as if/else chains on temp_a3 (==1,==2,==3,==4) so GCC emits bne chains; keep the single loop with arg2&0xFF bound; try var names matching target register use. Not tried: search_flags, struct for the 0x10-byte records (arg1 is written at +0,+4,+8,+0xC as f32/u8).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794719183.7277381,
-  "score_before": 22375,
-  "score_after": 22375
  },
  {
   "function": "func_80193A50",
@@ -9944,14 +9928,6 @@
   "score_after": 24501
  },
  {
-  "function": "func_801B312C",
-  "text": "Not attempted; no compile. The m2c draft is not usable as is: it has switch fall-through artifacts (case 2 jumps into case 4 blocks via goto labels block_11/29/41/59), a broken D_801C7AB0 declaration (undeclared when compiled; it is a pointer to a 5-byte-stride record table, used as u8 at +1 and +2), and mixed s8/u8 for fields 2,3 of arg0 (records of 5 bytes: byte0 type, byte1 unsigned, bytes2/3 signed scaled by 400.0f). Rewrite as a loop over arg2 entries of 0x10 bytes writing four floats per type branch (types 0,1,2,3 with switch on arg2 counts 1..4), then fix the constant 0x43340000 / 0x43870000 / 0x42B40000 / 0 stores in word 3. Also verify the 75.0f/170.0f/180.0f offsets against target order.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794742202.317334,
-  "score_before": 22375,
-  "score_after": 22375
- },
- {
   "function": "func_80193A50",
   "text": "Not matched. Machine draft (f3eeeef38b6af66b27b1) scores 26481 (29%): it compiles to 161 insns vs target 373, frame 0xB0 vs draft 0x60. The draft's global-access model is wrong: the target loads D_801C7074 via lui/lhu at many points and indexes arrays with *0x64 and *0x1C strides; the draft's branch structure is far too short, so the target has many more paths (likely a large switch or several inlined helpers) that the draft omits. Next step: read the full assembly (get_assembly pages of ~200 lines) and map each global before writing C; the draft's D_801C7D30 indexing (0x10 stride) and D_801C6BB4 usage need checking against the target's raw addresses (the diff reported target D_801C6BB4 and D_801C7469 at the start of the second block).",
   "by": "claude-haiku-5-5-21",
@@ -11040,28 +11016,12 @@
   "score_after": 60
  },
  {
-  "function": "func_801B312C",
-  "text": "Best revision e4a2bb5b944875feb003 = 21665 (41.6%), from 22935 for the m2c draft. Helpful change: copy the global pointer once into a local `tbl = D_801C7AB0` before the loop and use `tbl` in every M2C_FIELD(tbl, ...) access; the draft reloaded the global each time because the float stores may alias it. Loop shape is right: `if (n) do { ... } while ((u8)(++i) < n)` with n = arg2 & 0xFF, and the outer switch is on n (temp_a3 = n), not on the record type. Arithmetic checked: (a*400+75)+(arg3-75). Remaining differences are register and order: the target hoists the float constants (75, 400, 50, 180, 170) into f-registers before the loop and loads arg4 from 0x10($sp) after `mtc1 $a3`; our compiler reloads constants and keeps the loop counter in a different register (t1 vs t0). Next: hoist constants into locals (f32 k400 = 400.0f etc.), and try compile_family signedness on temp_v0/var_v1.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794752023.4560251,
-  "score_before": 22375,
-  "score_after": 21665
- },
- {
   "function": "func_80129348",
   "text": "Not matched; releasing early. Saved best is 10325 (earlier attempt). My best this session was 14675 (rev 2cbc118bc3f4c00edbb5, 330 insns vs 372 target). A variant with a helper function (rev a04ee60f1224283f5ea6, 25355) was worse and referenced a non-symbol helper blk_box, so the helper must be a macro, not a function. Semantics recovered from asm (valid, use them):\n- REC(i)=D_8011F2F0+i*0x64; fx=REC+0x18, fy=REC+0x20 (floats). Box = ((((REC+0x50)->+4)->+4)->+4); box s16 fields: 0x40 lo_x, 0x50 hi_x, 0x44 lo_y, 0x54 hi_y.\n- arg2 = x (float in $a2), arg4 = y (float, stack 0x10). arg1 = u16* flag.\n- (1) strict inside test on REC(*arg0) (no margin) -> return 1.\n- (2) block1: selector a from u16 fields @0xA/@0xE of REC(*arg0)->0x50 ptr; if *arg1==0 use 0xA unless 0xFFFF (then 0xE, *arg1=1); else use 0xE unless 0xFFFF (then 0xA, *arg1=0). Margin test (+/-0x1E on four box fields, using REC(a)) fails -> block2. Passing margin: A lo_x+fx>=arg2 else {*arg0=a; ret 2}; B hi_x+fx<=arg2 else {store; ret 2}; C arg4<=lo_y+fy else {store; ret 2}; D hi_y+fy<=arg4 ? ret 1 : ret 2 (no store).\n- (3) block2: same with fields 0x8/0xC; margin fail -> return 0; then the same A-D checks.\nStructural gap: target computes 100*idx once and keeps the base pointer chain in registers; repeated lui/addu/lw chains in mine. Next attempt: a macro (not a function) for the box lookup, keep one REC pointer per block, fx/fy in FP locals; fix frame (target 0x38-0x40 with fs regs) and arg4 stack load last.",
   "by": "claude-haiku-5-5-20",
   "created_at": 1794752025.6037881,
   "score_before": 10325,
   "score_after": 10325
- },
- {
-  "function": "func_801B312C",
-  "text": "First candidate (m2c draft, extern void *D_801C7AB0, switch on arg2&0xFF) scores 21665, 41.6% match, 368 vs 371 insns. Main mismatch is control flow: target hoists `andi a2,0xff` and `beqz` before the loop, and uses `bne $a3,$t6` compare chains where the draft has a switch. Next: rewrite the 4-way switch on temp_a3 as if/else in target order, fix the loop head, then registers.\n\nBest 21665 (41.6%, 368/371 insns), revision e4a2bb5b944875feb003. The signedness family (temp_a3 as u32) gave no change. Structure is off: target hoists `andi a2,0xff` and beqz before the loop, uses bne-on-a3 compare chains instead of a jump-table switch, and loads the 0x10($sp) float arg early. Next: (1) express the temp_a3 switch as if/else chains in target order; (2) move the count test before the table load; (3) fix the loop head; (4) registers last.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794752054.226906,
-  "score_before": 21665,
-  "score_after": 21665
  },
  {
   "function": "alBnkfNew",
@@ -13824,14 +13784,6 @@
   "score_after": 14679
  },
  {
-  "function": "func_801B312C",
-  "text": "Compiled the recorded best candidate (rev e4a2bb5b944875feb003) once unchanged: score 21665 (41.6%), no improvement. The diff shows the top-level structure differs: the target tests arg2&0xFF before the loop and uses a chain of `bne $a3` compares on the type switch, while the candidate uses switch(temp_a3) with goto-based shared blocks and hoists the D_801C7AB0 table load. Suggested next step: replace the switch(temp_a3) dispatch with an if-chain and re-diff, then check the tbl[1]==5 / tbl[2]*5 indexing against the assembly. Not tried: -O1 variants, signedness families. Stopped early on this claim because of low effort budget; the function is a 371-instruction loop with four type branches and is not close to matching.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794761159.712097,
-  "score_before": 21665,
-  "score_after": 21665
- },
- {
   "function": "func_80211F14",
   "text": "Exact score0 verified via search_flags for clean GridEnt{pad[0x64];u16 grid[14][9];tail[0x18]} C, revision d079c82c3752ac26211a, -O1. Submitted checked function-only bundle. Cannot improve exact result: O2 uses strength reduction absent in target. Pending profile application; best O2 480 retained independently.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -14278,14 +14230,6 @@
   "created_at": 1794762450.088116,
   "score_before": 7727,
   "score_after": 7727
- },
- {
-  "function": "func_801B312C",
-  "text": "Released early on purpose: the only candidate I compiled is a loop stub that scores 36835, worse than the saved best 21665, so the stub cannot get closer. The machine draft does not compile as given: D_801C7AB0 is undeclared. The function is 1484 B (371 asm lines): a loop over arg2&0xFF records with a 16-byte stride on arg1. Each record branches on arg0 byte 0 (0, 1, or 2/3), then on a switch over arg2&0xFF with cases 1-4. The cases fill float fields at arg1+0/+4/+8 with s8 field*400.0f plus 75/170/180 offsets, plus t0*50 or t0*75 terms. Stored constants at +0xC: 0x43340000, 0x43870000, 0x42B40000, and 0. Next step: start from the machine draft (declare D_801C7AB0 as a pointer table), fix the switch and branch structure first, then registers. Not matched.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794762456.411479,
-  "score_before": 21665,
-  "score_after": 21665
  },
  {
   "function": "func_80208374",
@@ -41934,5 +41878,61 @@
   "created_at": 1795721454.921315,
   "score_before": 141241,
   "score_after": 39921
+ },
+ {
+  "function": "func_801B312C",
+  "text": "Deep permuter: score 23825 \u2192 22375; 2 improvements; 80 candidates tested; 6 cached skips; 0 rejected; 7207s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935611",
+  "created_at": 1794357264.1076689,
+  "score_before": 23825,
+  "score_after": 22375
+ },
+ {
+  "function": "func_801B312C",
+  "text": "Best score 24425 (34%, 383 vs target 371 insns) using the m2c draft with the M2C_DEFINES preamble and extern D_801C7AB0 (candidate rev de7402a9c63efcb5c96e). Compile errors came from omitting the preamble and misdeclared temps, now fixed. Remaining diff: target keeps the lwc1 of arg4 (0x10($sp)) and the mtc1 of arg3 earlier; the switch arms are compiled as jump-table-free compare chains (target has bne $a3 chains x13) rather than a switch; my version uses j to shared blocks. Next ideas: rewrite the 4 switch(temp_a3) blocks as if/else chains on temp_a3 (==1,==2,==3,==4) so GCC emits bne chains; keep the single loop with arg2&0xFF bound; try var names matching target register use. Not tried: search_flags, struct for the 0x10-byte records (arg1 is written at +0,+4,+8,+0xC as f32/u8).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794719183.7277381,
+  "score_before": 22375,
+  "score_after": 22375
+ },
+ {
+  "function": "func_801B312C",
+  "text": "Not attempted; no compile. The m2c draft is not usable as is: it has switch fall-through artifacts (case 2 jumps into case 4 blocks via goto labels block_11/29/41/59), a broken D_801C7AB0 declaration (undeclared when compiled; it is a pointer to a 5-byte-stride record table, used as u8 at +1 and +2), and mixed s8/u8 for fields 2,3 of arg0 (records of 5 bytes: byte0 type, byte1 unsigned, bytes2/3 signed scaled by 400.0f). Rewrite as a loop over arg2 entries of 0x10 bytes writing four floats per type branch (types 0,1,2,3 with switch on arg2 counts 1..4), then fix the constant 0x43340000 / 0x43870000 / 0x42B40000 / 0 stores in word 3. Also verify the 75.0f/170.0f/180.0f offsets against target order.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794742202.317334,
+  "score_before": 22375,
+  "score_after": 22375
+ },
+ {
+  "function": "func_801B312C",
+  "text": "Best revision e4a2bb5b944875feb003 = 21665 (41.6%), from 22935 for the m2c draft. Helpful change: copy the global pointer once into a local `tbl = D_801C7AB0` before the loop and use `tbl` in every M2C_FIELD(tbl, ...) access; the draft reloaded the global each time because the float stores may alias it. Loop shape is right: `if (n) do { ... } while ((u8)(++i) < n)` with n = arg2 & 0xFF, and the outer switch is on n (temp_a3 = n), not on the record type. Arithmetic checked: (a*400+75)+(arg3-75). Remaining differences are register and order: the target hoists the float constants (75, 400, 50, 180, 170) into f-registers before the loop and loads arg4 from 0x10($sp) after `mtc1 $a3`; our compiler reloads constants and keeps the loop counter in a different register (t1 vs t0). Next: hoist constants into locals (f32 k400 = 400.0f etc.), and try compile_family signedness on temp_v0/var_v1.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794752023.4560251,
+  "score_before": 22375,
+  "score_after": 21665
+ },
+ {
+  "function": "func_801B312C",
+  "text": "First candidate (m2c draft, extern void *D_801C7AB0, switch on arg2&0xFF) scores 21665, 41.6% match, 368 vs 371 insns. Main mismatch is control flow: target hoists `andi a2,0xff` and `beqz` before the loop, and uses `bne $a3,$t6` compare chains where the draft has a switch. Next: rewrite the 4-way switch on temp_a3 as if/else in target order, fix the loop head, then registers.\n\nBest 21665 (41.6%, 368/371 insns), revision e4a2bb5b944875feb003. The signedness family (temp_a3 as u32) gave no change. Structure is off: target hoists `andi a2,0xff` and beqz before the loop, uses bne-on-a3 compare chains instead of a jump-table switch, and loads the 0x10($sp) float arg early. Next: (1) express the temp_a3 switch as if/else chains in target order; (2) move the count test before the table load; (3) fix the loop head; (4) registers last.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794752054.226906,
+  "score_before": 21665,
+  "score_after": 21665
+ },
+ {
+  "function": "func_801B312C",
+  "text": "Compiled the recorded best candidate (rev e4a2bb5b944875feb003) once unchanged: score 21665 (41.6%), no improvement. The diff shows the top-level structure differs: the target tests arg2&0xFF before the loop and uses a chain of `bne $a3` compares on the type switch, while the candidate uses switch(temp_a3) with goto-based shared blocks and hoists the D_801C7AB0 table load. Suggested next step: replace the switch(temp_a3) dispatch with an if-chain and re-diff, then check the tbl[1]==5 / tbl[2]*5 indexing against the assembly. Not tried: -O1 variants, signedness families. Stopped early on this claim because of low effort budget; the function is a 371-instruction loop with four type branches and is not close to matching.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794761159.712097,
+  "score_before": 21665,
+  "score_after": 21665
+ },
+ {
+  "function": "func_801B312C",
+  "text": "Released early on purpose: the only candidate I compiled is a loop stub that scores 36835, worse than the saved best 21665, so the stub cannot get closer. The machine draft does not compile as given: D_801C7AB0 is undeclared. The function is 1484 B (371 asm lines): a loop over arg2&0xFF records with a 16-byte stride on arg1. Each record branches on arg0 byte 0 (0, 1, or 2/3), then on a switch over arg2&0xFF with cases 1-4. The cases fill float fields at arg1+0/+4/+8 with s8 field*400.0f plus 75/170/180 offsets, plus t0*50 or t0*75 terms. Stored constants at +0xC: 0x43340000, 0x43870000, 0x42B40000, and 0. Next step: start from the machine draft (declare D_801C7AB0 as a pointer table), fix the switch and branch structure first, then registers. Not matched.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794762456.411479,
+  "score_before": 21665,
+  "score_after": 21665
  }
 ]
