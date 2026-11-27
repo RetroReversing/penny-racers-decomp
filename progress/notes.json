@@ -8592,14 +8592,6 @@
   "score_after": 10
  },
  {
-  "function": "func_80214B8C",
-  "text": "Not attempted by the claiming agent (session stopped for budget). The machine draft fails to compile: `*(s32 *)*(D_8011F350 + ...)` and `(&D_8021F028)[...]` are invalid. The function is a switch on a u16 state at struct offset 0x3E of the 0x64-byte record at D_8011F2F0 (cases 0, 0x10, 0x20). Case 0x10 is the bulk of it, with calls to func_8014A870, func_8014B854 (sound-effect/volume helper) and alSeqpSetVol. Use get_assembly to find the switch dispatch first (jump table vs compare chain), then write the cases in order.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794728193.666463,
-  "score_before": 6665,
-  "score_after": 6665
- },
- {
   "function": "func_80192E00",
   "text": "func_80192E00 (864 B, unmatched). Best 10815 (49.9%): clean if/else-if on (arg0&0xFF) 0..3, each branch calling func_8019A31C()&mask, then shared tail D_801C6B25=arg0; func_8014B854(0x3B) (duplicated per branch; the target's tail is shared). Local pointer temp_a1=&D_801C6BB0+2 and p=D_801C7AB0 gave the gain from 13975. Remaining diffs: target reads D_801C7AB0 into $a2 and keeps D_801C6BB2 base in $a1; the D_801C7062 stores go through a base reg with offsets 0/1/2 (I write &D_801C7062 separately, which produces lui/%lo per store); prologue order (sw $ra before $s0, `andi $v0,$s0,0xFF` on the saved arg) differs. Untried: store the arg in a local s32 saved across calls; make the shared tail a single block with a goto-free flag (var set in each branch, tail done once) to match the single func_8014B854 site ordering.",
   "by": "claude-haiku-5-5-21",
@@ -11070,14 +11062,6 @@
   "created_at": 1794741256.229104,
   "score_before": 14870,
   "score_after": 14870
- },
- {
-  "function": "func_80214B8C",
-  "text": "Not attempted beyond reading the m2c draft. The draft does not compile: `*(s32 *)*(D_8011F350 + ...)` and `M2C_FIELD(temp_s2, u16 *, 0x3E)` use incomplete types, and `(&D_8021F028)[D_80190C98]` / `&D_80190C9A` offset arithmetic assumes adjacent globals. Before compiling, declare D_8011F2F0 and D_8011F350 as u8 arrays and express the per-slot state as *(u16 *)(D_8011F2F0 + slot*0x64 + 0x3E). Also check that D_8021F028/D_8021F02A/D_80190C98 are really adjacent in the link map before relying on the (&D_8021F028)[i] indexing. The case 16 volume/sound branch is large; start with case 0 and case 32, which are short, to confirm the layout.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794741276.439188,
-  "score_before": 6450,
-  "score_after": 6450
  },
  {
   "function": "func_80218288",
@@ -15072,14 +15056,6 @@
   "score_after": 18946
  },
  {
-  "function": "func_80214B8C",
-  "text": "Not matched. Best saved score 6450 (m2c draft, permuter attempt). My hand rewrite with separate globals (D_8021F028 as u8[], D_80190C98/C9A as u8, idx*0x64 node pointer, u16 state at +0x3E) scored 8241, worse. Findings: (1) the target's lbu $v1,($a0) x9 plus addiu %lo(D_80190C9A) x6 suggest D_80190C98, D_80190C9A, D_80190C9C, D_8021F028 and D_8021F02A are fields of one struct reached through a base pointer (or &D_80190C9A is used as base with offset -2 for C98), not separate globals; try a struct with those fields before tuning registers. (2) D_8011F350 is a byte array; the load is *(u8*)*(u32*)(D_8011F350 + (D_8018BC3C*0x64)), i.e. a pointer stored at a 0x64-stride table. (3) Target keeps s0 across calls and the node pointer in s2; mine put it in s1, and the stack frame is 0x28 with ra/s0/s1/s2 saved. (4) Compiler looks like gcc-2.7.2-kmc -O2 as set; no flag check done.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794758153.216976,
-  "score_before": 6450,
-  "score_after": 6450
- },
- {
   "function": "func_80211E9C",
   "text": "MATCHES at KMC -O1 (suggestion submitted with exact C): src=D_802030CC[i] in the outer loop; inner D_8021F270[arg0][i][j]=src[j], with D_8021F270 as u16[][14][8]. Hoisting a base pointer outside the loop reorders it (score 360). Waiting for the -O1 profile.",
   "by": "claude-opus-medium-1",
@@ -15534,14 +15510,6 @@
   "created_at": 1794759179.868384,
   "score_before": 625,
   "score_after": 625
- },
- {
-  "function": "func_80214B8C",
-  "text": "Best 6240 (77.3%, rev fdea8325e00d6fce5cd2, same score as 4ec02476712fffed0a13). Not matched. Why it stalls: the switch structure, the state-0x20 double run, the 0x15/0x43E volume logic and the D_8021F02A checks all line up; what is left is register allocation and ordering around the D_80190C9A/D_80190C98 pointer (target keeps &D_80190C9A in v1 and reads -2(v1), and stores through it). Source-level pointer forms gave one gain (6625 to 6240) and nothing more; s8 vs u8 for s2 no effect. Prologue order (ra,s2,s1,s0 at 0x24..0x18, frame 0x28) differs in mine. Next: try a separate local u8 *p9 = &D_80190C9A declared at function top and used for the store and the -2 reads together, and try moving the s2 computation after the first if.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794759268.9961689,
-  "score_before": 6450,
-  "score_after": 6240
  },
  {
   "function": "func_800DE2E0",
@@ -16990,14 +16958,6 @@
   "created_at": 1794762172.7039318,
   "score_before": 915,
   "score_after": 915
- },
- {
-  "function": "func_80214B8C",
-  "text": "Not matched. Best reproduced: 6240 (77.3%), target 275 insns vs 263, revision 7f98134afbca6504d45b. Why it cannot get closer in this session: the jump targets are about 0x30 bytes early (j +0x404 vs target +0x434; beq +0x384 vs +0x3b4), so the case 0x10 block is about 0x30 bytes shorter than the target's. The target computes the D_80190C9A store and the -2 decrement with separate address computations (addiu %lo(D_80190C9A) then sb, lbu -2($v1)), while the candidate reuses one lui for D_8021F028 and folds the stores. The frame save order (ra 0x24, s2 0x20, s1 0x1c, s0 0x18) also differs. Next agent: split the D_80190C9A block so the store and the -2 decrement reload the address each time, then compare the jump offsets, then the save order. Callees: func_8014A870(s32,s32,s32) returns s32, func_8014B854(s32), func_801D65BC(s32), func_80203DF8(s32 x5), func_801E1EEC(s32,s32), alSeqpSetVol(void*,s16), func_800DE38C(void), func_800DE2E0(void), func_80231C5C(void), func_801CF468(s32 x4). Data: D_8011F2F0 (stride 0x64, u16 state at +0x3E), D_8011F350 (pointer table, stride 0x64), D_8018BC3C (u16 index), D_80190C98 (u8 counter), D_80190C9A (u8), D_80190C9C (u8), D_8021F028 (u8 array), D_8021F02A (u8), D_8021AFDC/AFE0, D_80168BB0, D_8006FB38.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794762188.23618,
-  "score_before": 6240,
-  "score_after": 6240
  },
  {
   "function": "func_8014998C",
@@ -41435,5 +41395,45 @@
   "score_before": 10497,
   "score_after": 6776,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:d8d3bfafd64e08416c43d38b40a188a2a47b2778d1ccadeefb04d076a01404e3"
+ },
+ {
+  "function": "func_80214B8C",
+  "text": "Not attempted by the claiming agent (session stopped for budget). The machine draft fails to compile: `*(s32 *)*(D_8011F350 + ...)` and `(&D_8021F028)[...]` are invalid. The function is a switch on a u16 state at struct offset 0x3E of the 0x64-byte record at D_8011F2F0 (cases 0, 0x10, 0x20). Case 0x10 is the bulk of it, with calls to func_8014A870, func_8014B854 (sound-effect/volume helper) and alSeqpSetVol. Use get_assembly to find the switch dispatch first (jump table vs compare chain), then write the cases in order.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794728193.666463,
+  "score_before": 6665,
+  "score_after": 6665
+ },
+ {
+  "function": "func_80214B8C",
+  "text": "Not attempted beyond reading the m2c draft. The draft does not compile: `*(s32 *)*(D_8011F350 + ...)` and `M2C_FIELD(temp_s2, u16 *, 0x3E)` use incomplete types, and `(&D_8021F028)[D_80190C98]` / `&D_80190C9A` offset arithmetic assumes adjacent globals. Before compiling, declare D_8011F2F0 and D_8011F350 as u8 arrays and express the per-slot state as *(u16 *)(D_8011F2F0 + slot*0x64 + 0x3E). Also check that D_8021F028/D_8021F02A/D_80190C98 are really adjacent in the link map before relying on the (&D_8021F028)[i] indexing. The case 16 volume/sound branch is large; start with case 0 and case 32, which are short, to confirm the layout.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794741276.439188,
+  "score_before": 6450,
+  "score_after": 6450
+ },
+ {
+  "function": "func_80214B8C",
+  "text": "Not matched. Best saved score 6450 (m2c draft, permuter attempt). My hand rewrite with separate globals (D_8021F028 as u8[], D_80190C98/C9A as u8, idx*0x64 node pointer, u16 state at +0x3E) scored 8241, worse. Findings: (1) the target's lbu $v1,($a0) x9 plus addiu %lo(D_80190C9A) x6 suggest D_80190C98, D_80190C9A, D_80190C9C, D_8021F028 and D_8021F02A are fields of one struct reached through a base pointer (or &D_80190C9A is used as base with offset -2 for C98), not separate globals; try a struct with those fields before tuning registers. (2) D_8011F350 is a byte array; the load is *(u8*)*(u32*)(D_8011F350 + (D_8018BC3C*0x64)), i.e. a pointer stored at a 0x64-stride table. (3) Target keeps s0 across calls and the node pointer in s2; mine put it in s1, and the stack frame is 0x28 with ra/s0/s1/s2 saved. (4) Compiler looks like gcc-2.7.2-kmc -O2 as set; no flag check done.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794758153.216976,
+  "score_before": 6450,
+  "score_after": 6450
+ },
+ {
+  "function": "func_80214B8C",
+  "text": "Best 6240 (77.3%, rev fdea8325e00d6fce5cd2, same score as 4ec02476712fffed0a13). Not matched. Why it stalls: the switch structure, the state-0x20 double run, the 0x15/0x43E volume logic and the D_8021F02A checks all line up; what is left is register allocation and ordering around the D_80190C9A/D_80190C98 pointer (target keeps &D_80190C9A in v1 and reads -2(v1), and stores through it). Source-level pointer forms gave one gain (6625 to 6240) and nothing more; s8 vs u8 for s2 no effect. Prologue order (ra,s2,s1,s0 at 0x24..0x18, frame 0x28) differs in mine. Next: try a separate local u8 *p9 = &D_80190C9A declared at function top and used for the store and the -2 reads together, and try moving the s2 computation after the first if.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794759268.9961689,
+  "score_before": 6450,
+  "score_after": 6240
+ },
+ {
+  "function": "func_80214B8C",
+  "text": "Not matched. Best reproduced: 6240 (77.3%), target 275 insns vs 263, revision 7f98134afbca6504d45b. Why it cannot get closer in this session: the jump targets are about 0x30 bytes early (j +0x404 vs target +0x434; beq +0x384 vs +0x3b4), so the case 0x10 block is about 0x30 bytes shorter than the target's. The target computes the D_80190C9A store and the -2 decrement with separate address computations (addiu %lo(D_80190C9A) then sb, lbu -2($v1)), while the candidate reuses one lui for D_8021F028 and folds the stores. The frame save order (ra 0x24, s2 0x20, s1 0x1c, s0 0x18) also differs. Next agent: split the D_80190C9A block so the store and the -2 decrement reload the address each time, then compare the jump offsets, then the save order. Callees: func_8014A870(s32,s32,s32) returns s32, func_8014B854(s32), func_801D65BC(s32), func_80203DF8(s32 x5), func_801E1EEC(s32,s32), alSeqpSetVol(void*,s16), func_800DE38C(void), func_800DE2E0(void), func_80231C5C(void), func_801CF468(s32 x4). Data: D_8011F2F0 (stride 0x64, u16 state at +0x3E), D_8011F350 (pointer table, stride 0x64), D_8018BC3C (u16 index), D_80190C98 (u8 counter), D_80190C9A (u8), D_80190C9C (u8), D_8021F028 (u8 array), D_8021F02A (u8), D_8021AFDC/AFE0, D_80168BB0, D_8006FB38.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794762188.23618,
+  "score_before": 6240,
+  "score_after": 6240
  }
 ]
