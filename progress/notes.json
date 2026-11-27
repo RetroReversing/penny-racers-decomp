@@ -9768,14 +9768,6 @@
   "score_after": 660
  },
  {
-  "function": "func_801FF37C",
-  "text": "Unmatched. Saved best 7747 (12 earlier attempts; its source has an uninitialised __repair_var_fs1_1, so don't reuse it as-is). My cleaned rewrite (revision ecd50dd965b406f765df, score 9027) uses plain fs0/fs1/fv0/fv1 locals, the else-if float branches, and duplicates the pan/pan-store conversion. Remaining diffs: the target saves f20 and f22 with frame 0x28 and materialises 10.0f/64.0f via lui $at,0x4120 + mtc1, while mine uses only one float save and frame 0x20. Target also reloads D_80203AB8 via separate lui/lw per use. Untried: keep the float locals live across the n_alSndpSetPitch calls so the compiler saves two FP registers; write the pan-value conversion once as a shared local (the target seems to reuse the pan result, not recompute it); and take the D_801E995B/D_801E995A branches in the original order.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794718068.641527,
-  "score_before": 7747,
-  "score_after": 7747
- },
- {
   "function": "func_8003E884",
   "text": "Score 10: the logic matches exactly (lw v0,0(a0); lw ?,0(v0); sw ?,0(a0); jr ra), with a 4-insn body. The only difference is the loaded value's register: target $t9, mine $v1. Tried: void* and s32 types, temp_t9 declared before and after temp_v0, a store of the loaded value directly. Flags searched (-O1/-O2/-O3/-G8/-g): all score 10. Suggested next: a different callee-side hint for $t9 (for example a call later in the function does not exist here), or accept as near-match. Possibly this unit's register allocator prefers t9 when the value is used only as a store source; not solved yet.",
   "by": "claude-haiku-5-5-20",
@@ -19704,14 +19696,6 @@
   "score_after": 645
  },
  {
-  "function": "func_801FF37C",
-  "text": "Not matched. Saved best 7727 is the starting point; my rewrite (revision 807574f1620beb00881e, score 17337) is worse, so do not start from it. Target is 383 insns, 0x28 frame, saves $ra, $s0, $f20, $f22. The draft's pan/offset logic is wrong: the target converts a float to u32 with the usual (x >= 2^31 ? (s32)(x-2^31)|0x80000000 : (s32)x) pattern (see trunc.w.s/mfc1 blocks), on both the +10 and -10 branches, and writes the result to D_801D7E08 + idx*0x2C. The pitch path computes (d/50.0f)*table+1.0f with the table at D_802025F0 (positive case) or D_802025EC (negative), and stores d to D_801D7E00 + idx*0x2C. The counter updates (D_801E99A0/99A4/99A8/99AC for D_80203AB8 and D_80203ABC, with wrap at 0x43 and clamp at 7) and the D_80203ACA 0..4 cycle look right in the draft. Next step: get_assembly from the top and check the float-to-int block first; the frame needs $f20/$f22 saves that the C must force with a float local live across calls.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794741877.086535,
-  "score_before": 7727,
-  "score_after": 7727
- },
- {
   "function": "func_80027D00",
   "text": "Budget exhausted (6/4). Baseline 350 is semantically WRONG: `seqp = &D_8006FB38[i]` with `s32 D_8006FB38[]` scales i by 4, giving byte offset 0x610*arg0, but the target's byte offset is s1 = 0x184*arg0 (gcc builds it as (a0*97)<<2: sll/addu/sll5/addu then sll $s1,$v0,2). Fixing the type to `extern u8 D_8006FB38[]` with `seqp = D_8006FB38 + i` (variant 1, score 795) fixed the offset and the FCB4 store shape but regressed register allocation/order; keeping s32 FCAC/FCB4 arrays (variant 2) reproduced baseline 350 exactly. Untested combination: u8 FB38 byte-offset base + scalar-extern FCB4 byte store. Also worth trying: `seq = seqp + 0x7C;` (target does addiu $s0,$s0,0x7C in the delay slot then addu $s0,$s1,$s0) and separate `u8 *p` for the FCAC load to get addu $a1,$a1,$s1. Remaining mismatch is regalloc/order only (9 rows): target keeps seqp in $s2 and offset in $s1; candidate has them swapped.",
   "by": "api-route-llm-code-2",
@@ -21654,14 +21638,6 @@
   "created_at": 1794751325.024089,
   "score_before": 13677,
   "score_after": 13677
- },
- {
-  "function": "func_801FF37C",
-  "text": "Not matched. Saved historical best is 7727 (an agent candidate with an uninitialised __repair_var_fs1_1 in the pan<-10 branch; do not reuse that). My best this session is revision 7991d238dfdb23be589f, score 9222 (75.9%). It uses f32 var_fs0/var_fs1 loaded from D_801E995B/D_801E995A, s16 temp_v0 for func_80027EE0, and the pan store as (s8)(u32)(tmp+64.0f) computed after n_alSndpSetPan((u32)(tmp+64.0f)&0xFF). The (u32) cast matches the target's unsigned-style 2.1474836e9 correction. Remaining gap: the target frame is 0x28 (sdc1 $f22 at 0x20, sdc1 $f20 at 0x18, $ra at 0x10, no $s0), but mine is 0x20 with $s0 saved. Next steps: find which float is live across the pan call, so that the target's $f22 and $f20 save pattern appears; the in-place var_fs1 -= 10 variant (34299e84e62a0fee98cd) scored worse (9307), so keep the separate tmp. Registers and ordering around the s8 stores at D_801D7E08 + idx*0x2C (addiu/sb) are also off.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794751360.143379,
-  "score_before": 7727,
-  "score_after": 7727
  },
  {
   "function": "createStageObjects",
@@ -27776,14 +27752,6 @@
   "score_after": 1425
  },
  {
-  "function": "func_801FF37C",
-  "text": "Released by a1 with the move-on reason: this is a 1532-byte function, and the clean rewrite (rev 1f1636ab534680a7a6d1, 12622) is structurally far from the 383-instruction target (frame -0x28 with $f22 saved; rewrite has -0x20 and no $f22; target has ~10 mtc1/trunc/mfc1 float-to-int sequences in the pan block that the rewrite lacks). Fixing it needs a full read of get_assembly for the pan/pitch blocks, which I did not complete. Saved best remains 7727 (rev 246fbedbaa69eebf1754) with bad repair code; do not reuse its __repair_var_fs1_1 and goto block structure. Next agent: start from the clean rewrite, rebuild the pan block with explicit range-checked float-to-int conversions, and let the frame size guide the saved-float count.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794759394.237538,
-  "score_before": 7727,
-  "score_after": 7727
- },
- {
   "function": "updateSaveCheckState",
   "text": "No C written yet; not attempted. The m2c run failed: \"Unable to determine jump table\" at the jr after the lhu of D_8011F32E[idx*100] with sltiu 0xB and a jump table at D_801E9620 (lw at D_801E9620 + state*4). A switch on the u16 state (cases 0..10) in C should let gcc emit the table, but the case bodies are large (230 insns total, several func_80029790/func_80029938/func_800297E8/func_80029890 calls, D_801F1890/D_801F1895/D_8021F028/D_801E9015 copies, D_801E9010 scans). Start by reading the jump table entries at D_801E9620 to get case targets, then write the switch with one case per target. The same D_8011F32E[idx*100] state field is used as in func_801E3AE4's siblings.",
   "by": "claude-haiku-5-5-23",
@@ -30222,14 +30190,6 @@
   "created_at": 1794762420.286612,
   "score_before": 3855,
   "score_after": 3855
- },
- {
-  "function": "func_801FF37C",
-  "text": "Best stays the saved candidate 246fbedbaa69eebf1754 (7727, rechecked). Clean rewrites are worse: 98a0d317c49afb49d7a8 = 12622; 905a006bffff1e554b65 = 11302, which restores the float->u32 conversion for the +10 pan branch (`>= 2.1474836e9f` subtract, OR 0x80000000). Still open: (1) the -10 pan branch and the pitch branch need the same u32 conversion; (2) the target prologue is a 0x28 frame saving ra, $f20 and $f22, so a second float (the pitch/pan value) is live across the calls; ours is 0x20 with s0; (3) the target uses `lui %hi(D_80203AB8)` four times, so the global reads are not hoisted. Next: add the u32 conversion to the -10 pan branch, keep both float values in locals across calls to force the $f22 save, then fix the frame. Do not ship the `__repair_var_fs1_1` variant as a match candidate: it reads an uninitialised variable.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794762450.088116,
-  "score_before": 7727,
-  "score_after": 7727
  },
  {
   "function": "placeEdgeObjects",
@@ -42077,22 +42037,6 @@
   "score_after": 34406
  },
  {
-  "function": "func_801FF37C",
-  "text": "NOT matched, but nearly: this is -O1 (gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1), not -O2 (the app profile; saved best 3877 is -O2 scaffolding, ignore it). Isolated -O1 scores: plain C 317, 272 with a pitch product local, 25 (library float_local_merge+fence) and 10. Plain C: records as real arrays (0x2C-byte slot: s16 handle@0, f32 pitch@0xC, u16 volume@0x10, u8 pan@0x14; 0xC-byte pitch range {f32 down, up}; 0xC-byte sound entry s16 vol), u8 D_80203ACA (not volatile), if/else wraps for the counters, n_alSndpSetPan(u8) with y + 64.0f passed and stored directly, pitch call as `p = D_802025EC[ACA].up * (x / 50.0f); n_alSndpSetPitch(p + 1.0f);`, x = D_801E995B pitch float, y = D_801E995A pan float. Only gap: the target keeps x in f20 and y in f22 (they never share), so y must conflict with x; every ordinary spelling lets global.c give both f20 (frame 0x20 vs 0x28). Dead stores are deleted before conflicts. The 10 version adds `y = 10.0f;` after the lower clamp of the negative pitch branch (cse then uses y for the add, two rows: mtc1/add.s use f22, target f0). Open question: a source form that makes y live during the pitch block without emitting an f22 instruction (a use of y before its def would do it, but that is an uninitialised read, not tried as a match).",
-  "by": "manual-ac2d09b96c0443e8",
-  "created_at": 1795749710.850556,
-  "score_before": 3877,
-  "score_after": 3877
- },
- {
-  "function": "func_801FF37C",
-  "text": "[Released without compiling it once; notes not checked by a compile.] Near match at -O1 in isolation (score 10); the pitch float and pan float must conflict (f20/f22) and no faithful source found. See the function note.",
-  "by": "manual-ac2d09b96c0443e8",
-  "created_at": 1795749717.0986161,
-  "score_before": 3877,
-  "score_after": 3877
- },
- {
   "function": "func_80136A28",
   "text": "Drawing HUD function, built at -O1 (not the -O2 profile). Plain C with macros reaches 250 under -G0 -mips3 -mgp32 -mfp32 -O1 (35860 saved under -O2): car = rec.f0 as s32; y/x from two u16 tables when mode==3, else x = 0 first then y = rec.f0; y = y*108; switch(mode) cases 0,1,3 (falls into 2),2; the loop calls take row i*14+0x38+y as an expression; the CC150 row is i*14 + ({y+0x3A;}); the block-B table index is (car*143)*16 + next*5 while the test is car*0x8F0 + next*5. Left: gfxp and the hoisted 0xC constant swap s3/s4 (greg priorities 39 refs/590 against 45/696), nothing with an unchanged instruction stream found.",
   "by": "manual-e6e5a26329164357",
@@ -42115,14 +42059,6 @@
   "created_at": 1795750589.404059,
   "score_before": 76510,
   "score_after": 76510
- },
- {
-  "function": "func_801FF37C",
-  "text": "[Released without compiling it once; notes not checked by a compile.] Released unworked: known hard case (two float values in two saved registers), this session was asked to skip it.",
-  "by": "manual-4d1d7310f862456a",
-  "created_at": 1795750784.222386,
-  "score_before": 3877,
-  "score_after": 3877
  },
  {
   "function": "updateSelectionMenu",
@@ -42401,14 +42337,6 @@
   "created_at": 1795756451.114893,
   "score_before": 14589,
   "score_after": 14589
- },
- {
-  "function": "func_801FF37C",
-  "text": "[Released without compiling it once; notes not checked by a compile.] Read only, nothing compiled. Hypothesis from global.c's rules (unverified): since no float local sits in f20 inside the pan block, the pan float needs a real conflict with the pitch float, so a source form with a shared lifetime is still the open question. The score-10 source is not stored in the notes or the saved best.",
-  "by": "manual-b46f1c9eae47406c",
-  "created_at": 1795756502.7586648,
-  "score_before": 3877,
-  "score_after": 3877
  },
  {
   "function": "func_80128880",
@@ -43026,14 +42954,6 @@
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:9b67c8a138ad0978a13e74bec93e1c18c475281a46fa59af59990224c5e7d5a5"
  },
  {
-  "function": "func_801FF37C",
-  "text": "Profile probe: the machine draft (get_function section=draft) scores 6937 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (10 of its 12 nearest matched neighbours were built with it), 12332 under its own settings (the saved C: 3877); not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
-  "by": "permuter-30064771669",
-  "created_at": 1795806785.805501,
-  "score_before": 3877,
-  "score_after": 6937
- },
- {
   "function": "func_8020B3CC",
   "text": "Profile probe: this saved C scores 960 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (8 of its 12 nearest matched neighbours were built with it), 46731 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
   "by": "permuter-30064771722",
@@ -43645,15 +43565,6 @@
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:9b67c8a138ad0978a13e74bec93e1c18c475281a46fa59af59990224c5e7d5a5"
  },
  {
-  "function": "func_801FF37C",
-  "text": "Reconstructed a faithful typed-record candidate: app compiler trial 36861753d64454dccbb1 scores 10 with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1. This source fixes the inherited uninitialized negative-pan value and changes the slot reset to a halfword store. Its only differences are the two instructions loading/using the pitch adjustment constant in f22 rather than f0; the candidate uses the later pan local to carry 10.0f. The standard profile remains unchanged, and the app saved best still scores 3877 under O2. A reusable repair for the 272-to-10 constant-local step is merged in decomp-repair #2163; evidence is in decompdecomp #4509. Continue from the trial source; do not use the invalid saved best.",
-  "by": "manual-ed3beb9e8f40454c",
-  "created_at": 1795816055.4592159,
-  "score_before": 10627,
-  "score_after": 7461,
-  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:43ce522cda55cf8ec77f3f5e5adc729f23c523a2e40c511b7fe5817d45f54768"
- },
- {
   "function": "func_8013EDFC",
   "text": "[Released without compiling it once; notes not checked by a compile.] Proposed name checkZoneCarHits. rename_symbol rejected: breaks func_8013EC80, func_80149F40, func_801E3640, func_801FC768, func_80211A84, func_80214860, func_8002B454, n_alFxParamHdl, alResampleParam, alFxParamHdl (compile but no longer match). make_readable refuses without a descriptive name. Needs someone to check why those callers' matches depend on the symbol name before renaming. Body is understood: zone slots test car distance against a racer's position, then on first entry set car state and queue event 0x34.\n\n[Released without compiling it once; notes not checked by a compile.] Same as previous release: rename to checkZoneCarHits is rejected (breaks func_8013EC80, func_80149F40, func_801E3640, func_801FC768, func_80211A84, func_80214860, func_8002B454, n_alFxParamHdl, alResampleParam, alFxParamHdl). make_readable is refused until the name changes. Claim keeps returning this function, so the next agent should fix the rename conflict first or skip it.",
   "by": "claude-haiku-35",
@@ -43710,15 +43621,6 @@
   "score_after": 0
  },
  {
-  "function": "func_801FF37C",
-  "text": "Further O1 checks: all 519 applicable repair children and focused float repair pairs left the 10-point trial unchanged; mfp64 scored worse with odd float registers, and nearby SN compiler variants were substantially worse. A follow-up type-alias safety guard for the float constant reuse repair is merged as decomp-repair #2175. The recorded 10-point compiler trial remains the closest faithful candidate; the saved O2 best has known semantic errors.",
-  "by": "manual-ed3beb9e8f40454c",
-  "created_at": 1795817512.8128388,
-  "score_before": null,
-  "score_after": null,
-  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:43ce522cda55cf8ec77f3f5e5adc729f23c523a2e40c511b7fe5817d45f54768"
- },
- {
   "function": "func_8013EDFC",
   "text": "[Released without compiling it once; notes not checked by a compile.] Readable rename to checkZoneCarHits rejected again: breaks 10 matched functions (func_8013EC80, func_80149F40, func_801E3640, func_801FC768, func_80211A84, func_80214860, func_8002B454, n_alFxParamHdl, alResampleParam, alFxParamHdl). func_8013EC80's C does not reference func_8013EDFC by name, so the breakage is at link/symbol level, not source. Needs a tooling fix or a rename-safe path before this can be polished. Globals D_8011F2F0, D_8011F308, sCars, slotObjIds are .bss with no ROM data.\n\n[Released without compiling it once; notes not checked by a compile.] Second probe: renaming to zoneCarHitCheck is rejected with the same 10 breakages, so the rejection does not depend on the name. Structural: the 10 functions are not caller-side references to this name (func_8013EC80's C does not mention it). Likely a symbol-table/relocation effect of renaming this function. Requires a tooling fix before polish; no source changed.\n\n[Released without compiling it once; notes not checked by a compile.] Third claim returned this function again. The queue keeps handing it out while rename is rejected, so claim_readable is blocked here. Needs either a rename-safe path for this function or the queue skipping it.",
   "by": "claude-haiku-35",
@@ -43751,15 +43653,6 @@
   "score_after": 0
  },
  {
-  "function": "func_801FF37C",
-  "text": "Another faithful isolated O1 source also scores 10, but its two differences are the shared pitch call\u2019s 1.0f load/use in f22 rather than f12. It uses the later pan local as the 1.0f call-argument carrier in both branches plus a one-shot scope around the pitch input assignment; see private checkpoint while this session is active. This shifts the mismatch to a distinct instruction pair and may help isolate the allocator behavior. Cross-jump, integer staging, alias and further flag variants tested without a match.",
-  "by": "manual-ed3beb9e8f40454c",
-  "created_at": 1795817844.738881,
-  "score_before": null,
-  "score_after": null,
-  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:43ce522cda55cf8ec77f3f5e5adc729f23c523a2e40c511b7fe5817d45f54768"
- },
- {
   "function": "func_801644F0",
   "text": "[Released without compiling it once; notes not checked by a compile.] Intended name carLaunchBall (also tried launchCarBall). Both renames are rejected: they break matched caller func_8013EC80 (\"compiles but no longer matches\"). Its candidate declares void func_801644F0(void) and calls it by that name, so the rename likely leaves the jal target unresolved. Fix needs either a rename that rewrites the caller's reference too, or a propose_change on func_8013EC80 that uses the new name (only after the rename is live). Nothing in the source changed.\n\n[Released without compiling it once; notes not checked by a compile.] Re-claimed once after the first release; still blocked by the same rename rejection (see earlier note). Nothing changed.",
   "by": "claude-haiku-35",
@@ -43774,15 +43667,6 @@
   "created_at": 1795817891.244996,
   "score_before": 0,
   "score_after": 0
- },
- {
-  "function": "func_801FF37C",
-  "text": "The alternate faithful score-10 source is now durable compiler trial e22bb8f7e8485773bf01 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1; its only differing instructions are the 1.0f load/use in f22 instead of f12. The original score-10 trial 36861753d64454dccbb1 instead differs in the 10.0f load/use in f22 versus f0. Both remain diagnostic, with no profile applied.",
-  "by": "manual-ed3beb9e8f40454c",
-  "created_at": 1795817935.542187,
-  "score_before": null,
-  "score_after": null,
-  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:43ce522cda55cf8ec77f3f5e5adc729f23c523a2e40c511b7fe5817d45f54768"
  },
  {
   "function": "func_801644F0",
@@ -43857,48 +43741,12 @@
   "score_after": 0
  },
  {
-  "function": "func_801FF37C",
-  "text": "GCC 2.7.2 allocation evidence: the faithful plain source assigns pitch and pan locals to f20 because their live ranges do not conflict (pseudo 73 and 74 in the global allocator). Reusing the pan local for a pitch constant makes them conflict but emits the carrier in f22. Reusing a union for an earlier integer phase and the later pan float scored 1794 due integer/float transfers; a union of the two floats scored 3204 due stack spills. These were local diagnostic candidates only. The app remains open with best faithful trial score 10.",
-  "by": "manual-ed3beb9e8f40454c",
-  "created_at": 1795818655.509225,
-  "score_before": null,
-  "score_after": null,
-  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:43ce522cda55cf8ec77f3f5e5adc729f23c523a2e40c511b7fe5817d45f54768"
- },
- {
-  "function": "func_801FF37C",
-  "text": "On the latest released repair library, 237 allocator-focused single children and 200 candidate combinations from the faithful 10-point source did not improve it. Starting from the 272-point plain reconstruction, float-local merge plus a scope reached 45; further allocator-focused singles and 95 combinations did not improve that path. No unfaithful candidates were submitted.",
-  "by": "manual-ed3beb9e8f40454c",
-  "created_at": 1795818770.9286342,
-  "score_before": null,
-  "score_after": null,
-  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:43ce522cda55cf8ec77f3f5e5adc729f23c523a2e40c511b7fe5817d45f54768"
- },
- {
-  "function": "func_801FF37C",
-  "text": "Reproduced a complete automatic chain on the faithful O1 source: existing indexed_symbol_records scored 1992 -> 272, then released float_constant_local_reuse scored 272 -> 10. The final two differences remain the constant load/use in f22 rather than f0. The inherited O2 best remains quality-flagged for its uninitialized pan local and word-sized slot reset.",
-  "by": "manual-ed3beb9e8f40454c",
-  "created_at": 1795818932.608236,
-  "score_before": null,
-  "score_after": null,
-  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:43ce522cda55cf8ec77f3f5e5adc729f23c523a2e40c511b7fe5817d45f54768"
- },
- {
   "function": "func_801FC768",
   "text": "[Released without compiling it once; notes not checked by a compile.] Intro sequence state machine (fade/timer states). Renaming to updateIntroSequence was rejected: the rename itself makes it stop matching (it is referenced as func_801FC768+offsets from the jump table at D_80203540). Needs a look at how that table is declared before a rename works. Rename of D_8011F2F0 also breaks it; see earlier note.\n\n[Released without compiling it once; notes not checked by a compile.] Cannot be named yet: rename_symbol func_801FC768 -> updateIntroSequence was rejected ('compiles but no longer matches'), so polish refuses it. Needs someone to check the jump table at D_80203540 (it holds func_801FC768+offsets) before renaming.",
   "by": "claude-haiku-35",
   "created_at": 1795819324.0521212,
   "score_before": 0,
   "score_after": 0
- },
- {
-  "function": "func_801FF37C",
-  "text": "The pinned GCC global.c source confirms the current conflict-dump explanation: global allocation orders pseudos by reference/live-length priority and first prefers an already-used eligible hard register. The plain pitch and pan pseudos do not conflict, so both choose f20; making the pan local carry a pitch literal introduces a conflict, forcing it to f22 but also emitting that earlier literal load in f22. The original source or a faithful source shape that produces the target allocation remains unknown. Evidence update: decompdecomp #4564.",
-  "by": "manual-ed3beb9e8f40454c",
-  "created_at": 1795819344.960226,
-  "score_before": null,
-  "score_after": null,
-  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:43ce522cda55cf8ec77f3f5e5adc729f23c523a2e40c511b7fe5817d45f54768"
  },
  {
   "function": "func_801FC768",
@@ -43931,5 +43779,157 @@
   "created_at": 1795819610.681278,
   "score_before": 0,
   "score_after": 0
+ },
+ {
+  "function": "func_801FF37C",
+  "text": "Unmatched. Saved best 7747 (12 earlier attempts; its source has an uninitialised __repair_var_fs1_1, so don't reuse it as-is). My cleaned rewrite (revision ecd50dd965b406f765df, score 9027) uses plain fs0/fs1/fv0/fv1 locals, the else-if float branches, and duplicates the pan/pan-store conversion. Remaining diffs: the target saves f20 and f22 with frame 0x28 and materialises 10.0f/64.0f via lui $at,0x4120 + mtc1, while mine uses only one float save and frame 0x20. Target also reloads D_80203AB8 via separate lui/lw per use. Untried: keep the float locals live across the n_alSndpSetPitch calls so the compiler saves two FP registers; write the pan-value conversion once as a shared local (the target seems to reuse the pan result, not recompute it); and take the D_801E995B/D_801E995A branches in the original order.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794718068.641527,
+  "score_before": 7747,
+  "score_after": 7747
+ },
+ {
+  "function": "func_801FF37C",
+  "text": "Not matched. Saved best 7727 is the starting point; my rewrite (revision 807574f1620beb00881e, score 17337) is worse, so do not start from it. Target is 383 insns, 0x28 frame, saves $ra, $s0, $f20, $f22. The draft's pan/offset logic is wrong: the target converts a float to u32 with the usual (x >= 2^31 ? (s32)(x-2^31)|0x80000000 : (s32)x) pattern (see trunc.w.s/mfc1 blocks), on both the +10 and -10 branches, and writes the result to D_801D7E08 + idx*0x2C. The pitch path computes (d/50.0f)*table+1.0f with the table at D_802025F0 (positive case) or D_802025EC (negative), and stores d to D_801D7E00 + idx*0x2C. The counter updates (D_801E99A0/99A4/99A8/99AC for D_80203AB8 and D_80203ABC, with wrap at 0x43 and clamp at 7) and the D_80203ACA 0..4 cycle look right in the draft. Next step: get_assembly from the top and check the float-to-int block first; the frame needs $f20/$f22 saves that the C must force with a float local live across calls.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794741877.086535,
+  "score_before": 7727,
+  "score_after": 7727
+ },
+ {
+  "function": "func_801FF37C",
+  "text": "Not matched. Saved historical best is 7727 (an agent candidate with an uninitialised __repair_var_fs1_1 in the pan<-10 branch; do not reuse that). My best this session is revision 7991d238dfdb23be589f, score 9222 (75.9%). It uses f32 var_fs0/var_fs1 loaded from D_801E995B/D_801E995A, s16 temp_v0 for func_80027EE0, and the pan store as (s8)(u32)(tmp+64.0f) computed after n_alSndpSetPan((u32)(tmp+64.0f)&0xFF). The (u32) cast matches the target's unsigned-style 2.1474836e9 correction. Remaining gap: the target frame is 0x28 (sdc1 $f22 at 0x20, sdc1 $f20 at 0x18, $ra at 0x10, no $s0), but mine is 0x20 with $s0 saved. Next steps: find which float is live across the pan call, so that the target's $f22 and $f20 save pattern appears; the in-place var_fs1 -= 10 variant (34299e84e62a0fee98cd) scored worse (9307), so keep the separate tmp. Registers and ordering around the s8 stores at D_801D7E08 + idx*0x2C (addiu/sb) are also off.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794751360.143379,
+  "score_before": 7727,
+  "score_after": 7727
+ },
+ {
+  "function": "func_801FF37C",
+  "text": "Released by a1 with the move-on reason: this is a 1532-byte function, and the clean rewrite (rev 1f1636ab534680a7a6d1, 12622) is structurally far from the 383-instruction target (frame -0x28 with $f22 saved; rewrite has -0x20 and no $f22; target has ~10 mtc1/trunc/mfc1 float-to-int sequences in the pan block that the rewrite lacks). Fixing it needs a full read of get_assembly for the pan/pitch blocks, which I did not complete. Saved best remains 7727 (rev 246fbedbaa69eebf1754) with bad repair code; do not reuse its __repair_var_fs1_1 and goto block structure. Next agent: start from the clean rewrite, rebuild the pan block with explicit range-checked float-to-int conversions, and let the frame size guide the saved-float count.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794759394.237538,
+  "score_before": 7727,
+  "score_after": 7727
+ },
+ {
+  "function": "func_801FF37C",
+  "text": "Best stays the saved candidate 246fbedbaa69eebf1754 (7727, rechecked). Clean rewrites are worse: 98a0d317c49afb49d7a8 = 12622; 905a006bffff1e554b65 = 11302, which restores the float->u32 conversion for the +10 pan branch (`>= 2.1474836e9f` subtract, OR 0x80000000). Still open: (1) the -10 pan branch and the pitch branch need the same u32 conversion; (2) the target prologue is a 0x28 frame saving ra, $f20 and $f22, so a second float (the pitch/pan value) is live across the calls; ours is 0x20 with s0; (3) the target uses `lui %hi(D_80203AB8)` four times, so the global reads are not hoisted. Next: add the u32 conversion to the -10 pan branch, keep both float values in locals across calls to force the $f22 save, then fix the frame. Do not ship the `__repair_var_fs1_1` variant as a match candidate: it reads an uninitialised variable.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794762450.088116,
+  "score_before": 7727,
+  "score_after": 7727
+ },
+ {
+  "function": "func_801FF37C",
+  "text": "NOT matched, but nearly: this is -O1 (gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1), not -O2 (the app profile; saved best 3877 is -O2 scaffolding, ignore it). Isolated -O1 scores: plain C 317, 272 with a pitch product local, 25 (library float_local_merge+fence) and 10. Plain C: records as real arrays (0x2C-byte slot: s16 handle@0, f32 pitch@0xC, u16 volume@0x10, u8 pan@0x14; 0xC-byte pitch range {f32 down, up}; 0xC-byte sound entry s16 vol), u8 D_80203ACA (not volatile), if/else wraps for the counters, n_alSndpSetPan(u8) with y + 64.0f passed and stored directly, pitch call as `p = D_802025EC[ACA].up * (x / 50.0f); n_alSndpSetPitch(p + 1.0f);`, x = D_801E995B pitch float, y = D_801E995A pan float. Only gap: the target keeps x in f20 and y in f22 (they never share), so y must conflict with x; every ordinary spelling lets global.c give both f20 (frame 0x20 vs 0x28). Dead stores are deleted before conflicts. The 10 version adds `y = 10.0f;` after the lower clamp of the negative pitch branch (cse then uses y for the add, two rows: mtc1/add.s use f22, target f0). Open question: a source form that makes y live during the pitch block without emitting an f22 instruction (a use of y before its def would do it, but that is an uninitialised read, not tried as a match).",
+  "by": "manual-ac2d09b96c0443e8",
+  "created_at": 1795749710.850556,
+  "score_before": 3877,
+  "score_after": 3877
+ },
+ {
+  "function": "func_801FF37C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Near match at -O1 in isolation (score 10); the pitch float and pan float must conflict (f20/f22) and no faithful source found. See the function note.",
+  "by": "manual-ac2d09b96c0443e8",
+  "created_at": 1795749717.0986161,
+  "score_before": 3877,
+  "score_after": 3877
+ },
+ {
+  "function": "func_801FF37C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Released unworked: known hard case (two float values in two saved registers), this session was asked to skip it.",
+  "by": "manual-4d1d7310f862456a",
+  "created_at": 1795750784.222386,
+  "score_before": 3877,
+  "score_after": 3877
+ },
+ {
+  "function": "func_801FF37C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Read only, nothing compiled. Hypothesis from global.c's rules (unverified): since no float local sits in f20 inside the pan block, the pan float needs a real conflict with the pitch float, so a source form with a shared lifetime is still the open question. The score-10 source is not stored in the notes or the saved best.",
+  "by": "manual-b46f1c9eae47406c",
+  "created_at": 1795756502.7586648,
+  "score_before": 3877,
+  "score_after": 3877
+ },
+ {
+  "function": "func_801FF37C",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 6937 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (10 of its 12 nearest matched neighbours were built with it), 12332 under its own settings (the saved C: 3877); not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "permuter-30064771669",
+  "created_at": 1795806785.805501,
+  "score_before": 3877,
+  "score_after": 6937
+ },
+ {
+  "function": "func_801FF37C",
+  "text": "Reconstructed a faithful typed-record candidate: app compiler trial 36861753d64454dccbb1 scores 10 with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1. This source fixes the inherited uninitialized negative-pan value and changes the slot reset to a halfword store. Its only differences are the two instructions loading/using the pitch adjustment constant in f22 rather than f0; the candidate uses the later pan local to carry 10.0f. The standard profile remains unchanged, and the app saved best still scores 3877 under O2. A reusable repair for the 272-to-10 constant-local step is merged in decomp-repair #2163; evidence is in decompdecomp #4509. Continue from the trial source; do not use the invalid saved best.",
+  "by": "manual-ed3beb9e8f40454c",
+  "created_at": 1795816055.4592159,
+  "score_before": 10627,
+  "score_after": 7461,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:43ce522cda55cf8ec77f3f5e5adc729f23c523a2e40c511b7fe5817d45f54768"
+ },
+ {
+  "function": "func_801FF37C",
+  "text": "Further O1 checks: all 519 applicable repair children and focused float repair pairs left the 10-point trial unchanged; mfp64 scored worse with odd float registers, and nearby SN compiler variants were substantially worse. A follow-up type-alias safety guard for the float constant reuse repair is merged as decomp-repair #2175. The recorded 10-point compiler trial remains the closest faithful candidate; the saved O2 best has known semantic errors.",
+  "by": "manual-ed3beb9e8f40454c",
+  "created_at": 1795817512.8128388,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:43ce522cda55cf8ec77f3f5e5adc729f23c523a2e40c511b7fe5817d45f54768"
+ },
+ {
+  "function": "func_801FF37C",
+  "text": "Another faithful isolated O1 source also scores 10, but its two differences are the shared pitch call\u2019s 1.0f load/use in f22 rather than f12. It uses the later pan local as the 1.0f call-argument carrier in both branches plus a one-shot scope around the pitch input assignment; see private checkpoint while this session is active. This shifts the mismatch to a distinct instruction pair and may help isolate the allocator behavior. Cross-jump, integer staging, alias and further flag variants tested without a match.",
+  "by": "manual-ed3beb9e8f40454c",
+  "created_at": 1795817844.738881,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:43ce522cda55cf8ec77f3f5e5adc729f23c523a2e40c511b7fe5817d45f54768"
+ },
+ {
+  "function": "func_801FF37C",
+  "text": "The alternate faithful score-10 source is now durable compiler trial e22bb8f7e8485773bf01 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1; its only differing instructions are the 1.0f load/use in f22 instead of f12. The original score-10 trial 36861753d64454dccbb1 instead differs in the 10.0f load/use in f22 versus f0. Both remain diagnostic, with no profile applied.",
+  "by": "manual-ed3beb9e8f40454c",
+  "created_at": 1795817935.542187,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:43ce522cda55cf8ec77f3f5e5adc729f23c523a2e40c511b7fe5817d45f54768"
+ },
+ {
+  "function": "func_801FF37C",
+  "text": "GCC 2.7.2 allocation evidence: the faithful plain source assigns pitch and pan locals to f20 because their live ranges do not conflict (pseudo 73 and 74 in the global allocator). Reusing the pan local for a pitch constant makes them conflict but emits the carrier in f22. Reusing a union for an earlier integer phase and the later pan float scored 1794 due integer/float transfers; a union of the two floats scored 3204 due stack spills. These were local diagnostic candidates only. The app remains open with best faithful trial score 10.",
+  "by": "manual-ed3beb9e8f40454c",
+  "created_at": 1795818655.509225,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:43ce522cda55cf8ec77f3f5e5adc729f23c523a2e40c511b7fe5817d45f54768"
+ },
+ {
+  "function": "func_801FF37C",
+  "text": "On the latest released repair library, 237 allocator-focused single children and 200 candidate combinations from the faithful 10-point source did not improve it. Starting from the 272-point plain reconstruction, float-local merge plus a scope reached 45; further allocator-focused singles and 95 combinations did not improve that path. No unfaithful candidates were submitted.",
+  "by": "manual-ed3beb9e8f40454c",
+  "created_at": 1795818770.9286342,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:43ce522cda55cf8ec77f3f5e5adc729f23c523a2e40c511b7fe5817d45f54768"
+ },
+ {
+  "function": "func_801FF37C",
+  "text": "Reproduced a complete automatic chain on the faithful O1 source: existing indexed_symbol_records scored 1992 -> 272, then released float_constant_local_reuse scored 272 -> 10. The final two differences remain the constant load/use in f22 rather than f0. The inherited O2 best remains quality-flagged for its uninitialized pan local and word-sized slot reset.",
+  "by": "manual-ed3beb9e8f40454c",
+  "created_at": 1795818932.608236,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:43ce522cda55cf8ec77f3f5e5adc729f23c523a2e40c511b7fe5817d45f54768"
+ },
+ {
+  "function": "func_801FF37C",
+  "text": "The pinned GCC global.c source confirms the current conflict-dump explanation: global allocation orders pseudos by reference/live-length priority and first prefers an already-used eligible hard register. The plain pitch and pan pseudos do not conflict, so both choose f20; making the pan local carry a pitch literal introduces a conflict, forcing it to f22 but also emitting that earlier literal load in f22. The original source or a faithful source shape that produces the target allocation remains unknown. Evidence update: decompdecomp #4564.",
+  "by": "manual-ed3beb9e8f40454c",
+  "created_at": 1795819344.960226,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:43ce522cda55cf8ec77f3f5e5adc729f23c523a2e40c511b7fe5817d45f54768"
  }
 ]
