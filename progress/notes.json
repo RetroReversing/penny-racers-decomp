@@ -7152,14 +7152,6 @@
   "score_after": null
  },
  {
-  "function": "func_80194024",
-  "text": "No compile attempted; released at the start of this session because a rewrite from the assembly is needed. Target is 2236 B / 559 insns, frame 0xC0, saves ra/s0-s2 and fs0/fs1. The machine draft and the best saved attempt (40076, 54 tries) are both mangled: a `__repair_rows` labelled block with a goto loop, a stray `do{}while(0)` around func_8019F1C0, `block_7`/`block_10`/`block_17` gotos, and extern-typed data. Rewrite from the assembly instead of tuning the draft. Suggested structure: (1) call func_8019F1C0 and func_8019F7C0 with arg0&0xFFFF; (2) float stores to D_8011F308/30C/310 indexed by D_801C7D18*0x64 from D_801C7068/D_801C6BB9 * 400 * 0.5; (3) branch on D_801E9990[idx*0x70]==1 and D_801E9994; (4) func_800DE41C takes 18 args including f32; (5) the 4-iteration loop over D_801C7470 sets D_8011F2FD[...]=2 and clears entries to 0xFFFF. Return value is (var_s1 & 0xFF), with var_s1 set to 0xB, 1 or left unset on different paths. Untested, so no verdict on exact match.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794719513.1212428,
-  "score_before": 40076,
-  "score_after": 40076
- },
- {
   "function": "func_801FB300",
   "text": "Not matched. Released at low effort: 575-instruction target, and my best compile (score 54375, 5.4%) is a stub with only the switch skeleton and the first case-1 branch. Nothing is close to a match. Facts for the next agent: the function is a switch on u16 read at &D_8011F32E + (arg0&0xFFFF)*0x64 (cases 0 and 1). Case 0 fills tables from D_80233EC0 and D_8011F340/334/338/33C (stride 0x64), writes D_8022108C..94 + (1*0x24), then does a sin/cos block of f64 ratios (D_801FFD20/2C * D_80203440/48). Case 1 does the 1-degree steps on D_801FFD28 (wrap at 360), D_801FFD2C (clamp 85/0), D_801FFD24 (clamp 2..5000, step 1 or 4), a 0.02f lerp of D_8022108C/90/94 toward D_80203890/94/98, a sqrtf distance test < 40.0f, then a repeat of the sin/cos block with D_80203450/58. __sinf takes ONE f32 argument in this project (the m2c draft wrongly passes two). Start with the typed_temporary family in compile_family and the m2c draft's typedefs (M2C_UNK = s32 works).",
   "by": "claude-haiku-5-5-20",
@@ -11912,14 +11904,6 @@
   "score_after": 34051
  },
  {
-  "function": "func_80194024",
-  "text": "Not attempted by compile: 2236 bytes, too large for this session. The m2c draft needs substantial cleanup before it compiles: many extern data declarations, the M2C_FIELD casts, and goto block_7/block_10/block_17 labels. Visible structure: repeated writes to a 0x70-stride table at D_801E9990/D_801E9994, a 0x64-stride table at D_8011F2F4..D_8011F310 with f32 values computed as x*400.0f*0.5f, a func_800DE41C call with 18 arguments, and a 4-iteration loop over D_801C7470. Start by writing clean declarations and splitting into the two top-level branches.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794742530.802441,
-  "score_before": 33931,
-  "score_after": 33931
- },
- {
   "function": "func_80128880",
   "text": "No score yet: the draft does not compile. One compile_patch (revision 5ce26a493292202eb4c3, fixing the line-61 pointer chain) still fails: func.c:132 invalid unary `*`, func.c:142 int-to-pointer assignment, and undeclared sp34, sp38, sp44, sp48 at line 186 (the func_80127030 call uses stack words that the draft never declares). Also remaining from the original draft: unary `*` error at line 250 and the goto-based block_14/block_25/block_33 structure. Next agent: rebuild the body from get_assembly rather than patching. Declare the stack temporaries as an f32/s32 array or the struct that func_80127030 writes, fix the pointer-chain casts at lines 132 and 142, and confirm the float constants (30.0f, -32000.0f, D_8012AA30 divisor) against rodata. Arg0 is an output record (writes at +0x0 to +0x40); the outer loop walks a zero-terminated list at stride 0xC.",
   "by": "claude-haiku-5-5-24",
@@ -13350,14 +13334,6 @@
   "created_at": 1794752282.170269,
   "score_before": 23601,
   "score_after": 23601
- },
- {
-  "function": "func_80194024",
-  "text": "Not matched. The m2c draft is far off: target frame is 0xC0 and saves ra,s2,s1,s0 plus sdc1 of f20/f22 (fs0/fs1), with s2=arg0 and s1 = D_8011F32F[D_801C7074*0x64] (byte). Only the prologue and start were probed, with a stripped source scoring 50614, which is not a real candidate. The draft's control flow (goto block_7/block_10/block_17, var_a1/var_v0 juggling) needs a clean rewrite. Facts from the asm: func_8019F1C0(idx) and func_8019F7C0(idx) are called first, with idx=(u16)arg0. Stride-0x64 struct tables are indexed by D_801C7D18 for D_8011F308/30C/310 (floats x, 0, z). The float scale is (f32)v*400.0f*0.5f, emitted as two muls by constants 0x43C80000 and 0x3F000000, so keep both multiplies as written. The branch on D_801E9990[idx*0x70]==1 and D_801E9994==0 starts a large first block that calls func_800DE41C with 18 args, including &func_801B4070. Next steps: rewrite the function from the asm, starting with the prologue and the float branches, then compare paging with get_assembly.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794752282.8887,
-  "score_before": 33931,
-  "score_after": 33931
  },
  {
   "function": "func_8015BD20",
@@ -17184,14 +17160,6 @@
   "score_after": 28785
  },
  {
-  "function": "func_80194024",
-  "text": "Released unattempted beyond the m2c draft check. 559 insns, 0xC0 frame (ra, s2, s1, s0 saved; sdc1 fs0/fs1 at 0xB0/0xB8). The draft is a long chain of gotos over the D_801C7xxx state table (entries of 0x64 at D_8011F2F0-area, 0x70 stride at D_801E9990/D_801E9994). Start by naming those tables as structs and rewriting the draft as clean if/else, then check the goto block_7 / block_10 / block_17 join points against the target branch order. func_8014B854 has an exact match (code_8014674C) and its prototype is void func_8014B854(s32).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794761492.369025,
-  "score_before": 33931,
-  "score_after": 33931
- },
- {
   "function": "func_8020AAB0",
   "text": "Released unattempted. 2332 bytes, switch on u16 at D_8011F32E + (arg0*0x64) with cases 0,1,2. The m2c draft has many goto/block labels and pointer-arithmetic errors (compiler warnings about incomplete pointer types on D_8011F2F0 and D_8021AFEC/AFFC arrays). Start by declaring the per-entity record (stride 0x64, fields at 0x00 index byte, 0x3E state) and the 0x110/0x22/0x178 strides as typed arrays, then rewrite the case-1 branch tree as clean if/else before compiling. Externs used: func_80149F40, func_8014A870, func_8014B854, func_801FD530.",
   "by": "claude-haiku-5-5-21",
@@ -18486,14 +18454,6 @@
   "created_at": 1794764534.114814,
   "score_before": 765,
   "score_after": 575
- },
- {
-  "function": "func_80194024",
-  "text": "Releasing now, with a reason it cannot get closer this session: the function is 559 insns with about 60 distinct globals accessed through byte-offset strides (0x64 and 0x70). Writing that as typed struct arrays needs the struct layouts first, and the 0xC0 frame and the 6 saved registers need the full body. A stub reached 53903 and no more. The m2c draft is the best full-body candidate at 42959. The draft's control flow (branches on D_801E9990 / D_801E9994 for slot state, a 4-iteration loop over D_801C7470, the tail call to func_8014B854) is plausible. Next: guess the struct for the 0x70 slot and the 0x64 object, then write the full body, then tune registers last.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794764564.9073532,
-  "score_before": 33931,
-  "score_after": 33931
  },
  {
   "function": "func_8020AAB0",
@@ -41287,5 +41247,54 @@
   "score_before": 18518,
   "score_after": 12414,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:457e9fdb3dbdb4fa6b223fad11f61a8a173c50d25e714dace3e06571e7535631"
+ },
+ {
+  "function": "func_80194024",
+  "text": "No compile attempted; released at the start of this session because a rewrite from the assembly is needed. Target is 2236 B / 559 insns, frame 0xC0, saves ra/s0-s2 and fs0/fs1. The machine draft and the best saved attempt (40076, 54 tries) are both mangled: a `__repair_rows` labelled block with a goto loop, a stray `do{}while(0)` around func_8019F1C0, `block_7`/`block_10`/`block_17` gotos, and extern-typed data. Rewrite from the assembly instead of tuning the draft. Suggested structure: (1) call func_8019F1C0 and func_8019F7C0 with arg0&0xFFFF; (2) float stores to D_8011F308/30C/310 indexed by D_801C7D18*0x64 from D_801C7068/D_801C6BB9 * 400 * 0.5; (3) branch on D_801E9990[idx*0x70]==1 and D_801E9994; (4) func_800DE41C takes 18 args including f32; (5) the 4-iteration loop over D_801C7470 sets D_8011F2FD[...]=2 and clears entries to 0xFFFF. Return value is (var_s1 & 0xFF), with var_s1 set to 0xB, 1 or left unset on different paths. Untested, so no verdict on exact match.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794719513.1212428,
+  "score_before": 40076,
+  "score_after": 40076
+ },
+ {
+  "function": "func_80194024",
+  "text": "Not attempted by compile: 2236 bytes, too large for this session. The m2c draft needs substantial cleanup before it compiles: many extern data declarations, the M2C_FIELD casts, and goto block_7/block_10/block_17 labels. Visible structure: repeated writes to a 0x70-stride table at D_801E9990/D_801E9994, a 0x64-stride table at D_8011F2F4..D_8011F310 with f32 values computed as x*400.0f*0.5f, a func_800DE41C call with 18 arguments, and a 4-iteration loop over D_801C7470. Start by writing clean declarations and splitting into the two top-level branches.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794742530.802441,
+  "score_before": 33931,
+  "score_after": 33931
+ },
+ {
+  "function": "func_80194024",
+  "text": "Not matched. The m2c draft is far off: target frame is 0xC0 and saves ra,s2,s1,s0 plus sdc1 of f20/f22 (fs0/fs1), with s2=arg0 and s1 = D_8011F32F[D_801C7074*0x64] (byte). Only the prologue and start were probed, with a stripped source scoring 50614, which is not a real candidate. The draft's control flow (goto block_7/block_10/block_17, var_a1/var_v0 juggling) needs a clean rewrite. Facts from the asm: func_8019F1C0(idx) and func_8019F7C0(idx) are called first, with idx=(u16)arg0. Stride-0x64 struct tables are indexed by D_801C7D18 for D_8011F308/30C/310 (floats x, 0, z). The float scale is (f32)v*400.0f*0.5f, emitted as two muls by constants 0x43C80000 and 0x3F000000, so keep both multiplies as written. The branch on D_801E9990[idx*0x70]==1 and D_801E9994==0 starts a large first block that calls func_800DE41C with 18 args, including &func_801B4070. Next steps: rewrite the function from the asm, starting with the prologue and the float branches, then compare paging with get_assembly.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794752282.8887,
+  "score_before": 33931,
+  "score_after": 33931
+ },
+ {
+  "function": "func_80194024",
+  "text": "Released unattempted beyond the m2c draft check. 559 insns, 0xC0 frame (ra, s2, s1, s0 saved; sdc1 fs0/fs1 at 0xB0/0xB8). The draft is a long chain of gotos over the D_801C7xxx state table (entries of 0x64 at D_8011F2F0-area, 0x70 stride at D_801E9990/D_801E9994). Start by naming those tables as structs and rewriting the draft as clean if/else, then check the goto block_7 / block_10 / block_17 join points against the target branch order. func_8014B854 has an exact match (code_8014674C) and its prototype is void func_8014B854(s32).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794761492.369025,
+  "score_before": 33931,
+  "score_after": 33931
+ },
+ {
+  "function": "func_80194024",
+  "text": "Releasing now, with a reason it cannot get closer this session: the function is 559 insns with about 60 distinct globals accessed through byte-offset strides (0x64 and 0x70). Writing that as typed struct arrays needs the struct layouts first, and the 0xC0 frame and the 6 saved registers need the full body. A stub reached 53903 and no more. The m2c draft is the best full-body candidate at 42959. The draft's control flow (branches on D_801E9990 / D_801E9994 for slot state, a 4-iteration loop over D_801C7470, the tail call to func_8014B854) is plausible. Next: guess the struct for the 0x70 slot and the 0x64 object, then write the full body, then tune registers last.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794764564.9073532,
+  "score_before": 33931,
+  "score_after": 33931
+ },
+ {
+  "function": "func_80194024",
+  "text": "Profile probe: this saved C scores 15847 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (321 functions of this project were built with it), 19187 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721342.89463,
+  "score_before": 19187,
+  "score_after": 15847,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a90f6cdab216b9f4bd20b7343a2d439631954583ad810bfa2f0e6f5343e2c16b"
  }
 ]
