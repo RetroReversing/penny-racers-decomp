@@ -6424,14 +6424,6 @@
   "score_after": 17870
  },
  {
-  "function": "func_8014B108",
-  "text": "Not matched. Best 5675 (70.7%), saved from the variant with `u8 *b = D_8022A770;` and `s16 *p1 = D_8021E1A2;` / `s16 *p2 = D_8021E1A6;` as locals set at the top, using the literal byte offsets for D_8022A770 (0x596, 0x566+i, 0x562+i, 0x538, 6, 0x230). That beats the machine draft (6900 saved). Reordering the pointer loads to after the D_80189B34 check gave 5755 (worse, reverted). Target is 194 insns, mine 186. Target facts: prologue saves ra(0x24), s2(0x20), s1(0x1c), s0(0x18). It loads D_80189B34 into v1 first and compares to 2 before touching the other data. It keeps s1 = &D_8021E1A2 and s2 = &D_8022A770 as live pointers through the function (reads like lh 0(s1), lh 4(s1), lb 0x596(s2)). The 4-byte-stride loops use `sll v0,a0,2` (index*4) for D_80168D54 / D_8018D3A0 (7 iterations). Next step: force the two pointers to stay live (keep p1 and b in separate locals assigned at the top of the if-body, not inside a nested block), write the 7-iteration loop with `i*4` byte indexing, and check whether the `lui $s1,%hi(D_8021E1A2)` pair comes after the sw of s0 in the target. Released at move-on budget.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794711047.012671,
-  "score_before": 6677,
-  "score_after": 5675
- },
- {
   "function": "func_8003E83C",
   "text": "Best 270 (85%), 18 insns both sides, structure is right; the remaining 16 rows are ENTIRELY register names, and the target's register choice cannot come from this project's compilers.\n\nTarget = sorted-list insert: t9=prev(head), t8=cur(head->next), t7=key(item->priority), t6=cur->priority; `slt $at,$t6,$t7 / bnez $at,insert / nop`; loop `t9=t8; t8=t8->next; t6=t8->priority; slt $at; beqz $at,loop / nop`; then `t8=t9->next; item->next=t8; t9->next=item; item->queue=head` (this is `item->next = prev->next; prev->next = item; item->queue = head;` \u2014 the reload of prev->next is why the target reloads from t9).\n\nBest C (revision 3dc89142d9c7c429847c, score 270 under the range's -O1 profile):\n    void func_8003E83C(Q *head, Q *item) {\n        Q *prev = head;\n        while (item->priority <= prev->next->priority) prev = prev->next;\n        item->next = prev->next;\n        prev->next = item;\n        item->queue = head;\n    }\nSame score with `while (!(prev->next->priority < item->priority))`. Explicit `Q *cur = head->next; s32 key = ...` gives 1045 (GCC turns it into a do-while, 14 insns); `for(;;)`/break forms give 665.\n\nWHY IT CANNOT MATCH HERE: the target writes the comparison result into $at and uses only $t6-$t9 for temporaries (classic IDO ugen style). gcc-2.7.2-kmc -O1 and -O2, sn-n64-272-0001 (SN64 GCC 2.7.2) -O1 and sn-n64-281 (SN64 GCC 2.8.1) -O2 all emit `slt $v0,...` / `slt $v1,...` \u2014 GCC never writes $at for slt. ido-7.1 and ido-5.3 do use `slt $at`, but their -O2 fills the branch delay slots (bnel/beql, which the target does not have: it has plain bnez/beqz + nop) and reorders the loop; ido-7.1 -O1 spills to the stack. So this function needs either a different compiler assignment for its address range or it is hand-written assembly.\n\nBest 270/85% (revision 3dc89142d9c7c429847c): the C is settled and both sides are 18 insns \u2014 all 16 remaining rows are register names. Target C: `Q *prev = head; while (item->priority <= prev->next->priority) prev = prev->next; item->next = prev->next; prev->next = item; item->queue = head;` with `typedef struct { struct Q *next; s32 priority; struct Q *queue; } Q;`. Blocked on the compiler, not the source: the target writes `slt $at,$t6,$t7` + `bnez/beqz $at`, nop delay slots, temporaries only in $t6-$t9. gcc-2.7.2-kmc -O1/-O2, sn-n64-272-0001 -O1 and sn-n64-281 -O2 all emit `slt $v0/...` (GCC never writes $at for slt); ido-7.1/-5.3 use $at but fill delay slots (bnel/beql) and reorder the loop, and ido-7.1 -O1 spills. Filed suggest(text=..., function=\"func_8003E83C\") asking for this address range's compiler to be reviewed (possible IDO build without delay-slot filling, or hand-written assembly).",
   "by": "opencode-deepseek-v4.1-flash-free-5",
@@ -9040,14 +9032,6 @@
   "score_after": 10894
  },
  {
-  "function": "func_8014B108",
-  "text": "Not matched; releasing early because the last 4 compiles produced no score change (goto-tail form, b/p1 reorder, s16 p1 placement all give 5545 or 5465). Best current trial 5465 (71.8%) is the version with b=D_8022A770 declared at the top; the saved 5220 is from a __repair_* source and should not be restored as-is. Unmatched: prologue saves are $ra,$s2,$s1,$s0 with s0=0 in the bne delay slot; the target loads D_80189B34 into $v1 and keeps p1 in $s1 and b in $s2 across the func_8003DE60 call; my version reuses $s2 for the D_80189B34 load. Next agent: a structural change to how the flag accumulator and the early-exit test are scheduled is needed; the compiler does not respond to plain reorderings.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794727862.859474,
-  "score_before": 5220,
-  "score_after": 5220
- },
- {
   "function": "func_801E2D18",
   "text": "Move-on budget exhausted (best current 4855, historical saved_best 625 with a different header/inputs).\n\nTarget shape (56 insns): 4x lbu/sb header copy using two base pointers ($a0=D_801C5E9C, $v1=D_801F18E4) built once; then i=0 in $a0, five source pointers hoisted into $t1,$t0,$a3,$a2,$a1, loop head .L801E2D78 with `addu $v1,$v1,$a0` (off = i*5 in $v1), per field `addu $v0,$v1,$tN; lbu $v0,($v0)` and store via `lui $at,%hi(D_801C708N); addu $at,$at,$v1; sb $v0,%lo(...)($at)`, tail `addiu $a0,$a0,1; sltiu $v0,$a0,0xC8; bnel $v0,$zero,.L801E2D78; sll $v1,$a0,2`.\n\nConfirmed: dest stores only take the lui/addu$at form when the dest symbols are scalar externs indexed with *(&SYM + off) (attempt with D_801C7080[] array gave a base pointer in a register). That variant (rev b97e95c84ed6a61a7c0c) got the store side right but then gcc strength-reduced the cached source pointers to `lbu $v0,($a3)` + `addiu $a3,$a3,5`, losing the target's `addu $v0,$v1,$tN; lbu $v0,($v0)`. With dest as arrays (saved_best) the loads keep off-based addressing but the stores lose the %hi/%lo form.\n\nAlso confirmed no-effect: s8 dest, s32 i, off declaration order, do{}while(0) scope depth, u8 vs array extern for D_801F18E4.\n\nLeft to try: combine scalar dest externs with load addressing gcc cannot strength-reduce, e.g. *(u8 *)((u32)srcN + off) or a volatile index, to keep `addu $v0,$v1,$tN; lbu $v0,($v0)`.",
   "by": "api-route-llm-code-2",
@@ -11582,14 +11566,6 @@
   "created_at": 1794740638.717163,
   "score_before": 5100,
   "score_after": 5100
- },
- {
-  "function": "func_8014B108",
-  "text": "Best now 5675 (70.7%) from a clean rewrite of the repair-annotated draft (the saved draft had __repair_* artifacts; saved_best is 5220 under an older source). Diff: target saves $ra,$s2,$s1,$s0 at 0x24/0x20/0x1c/0x18 and keeps b=D_8022A770 in $s2 (`lb $v1,0x596($s2)`), loads D_80189B34 into $v1 after the prologue, and uses `sll $v0,$a0,2` for the i*4 index into D_80168D54 and D_8018D3A0. Mine keeps the base in $s1 with an extra lui/addiu pair and tests `D_80189B34` into $s2. The early `if (D_80189B34 == 2)` test and the p1/p2 pointer loads are in the wrong order. Next: make b the first pointer loaded (prologue: `addiu $s1 ... ` order), drop the local `bad` block in favour of an inline loop that matches the sll indexing, then recheck. Three compiles without improvement.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794740653.3313012,
-  "score_before": 5220,
-  "score_after": 5220
  },
  {
   "function": "func_80206848",
@@ -15608,14 +15584,6 @@
   "score_after": 2175
  },
  {
-  "function": "func_8014B108",
-  "text": "Not matched. Best saved is 5220 (permuter-339302417273); my clean rewrite (no __repair_* artifacts, plain p1/p2/b locals, flag variable for the 7-iteration loop) scored 5675 and 5680. Remaining differences: (1) target spills $ra,$s2,$s1,$s0 in that order before loading D_80189B34, i.e. s2 is not used for D_80189B34's address; in my version the compiler keeps the lui $s2 base and spills s2 first. (2) Target loads D_8021E1A2 into $s1 (lui/addiu) and reads p1[0] via lh ($s1), while mine loads D_8022A770 into $s1 first (b is hoisted). (3) Target uses sll $v0,$a0,2 six times, i.e. the D_80168D54[i*4] and D_8018D3A0[i] indexing is done with an index register; mine folds it. Next step: keep b/p1 as the first assignments only after the D_80189B34 check, and try making the 7-iteration loop use a pointer walk over D_8018D3A0 and D_80168D54 with index i*4 (sll by 2). Budget of 3 non-improving compiles was used.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794756464.6945841,
-  "score_before": 5220,
-  "score_after": 5220
- },
- {
   "function": "func_801FA240",
   "text": "Can't get closer under -O2: the C is already exact under -O1 (try_compiler byte match); suggest bundle submitted for the user to apply. No more C tuning needed.",
   "by": "claude-opus-medium-1",
@@ -16462,14 +16430,6 @@
   "created_at": 1794758671.938378,
   "score_before": 440,
   "score_after": 440
- },
- {
-  "function": "func_8014B108",
-  "text": "Not matched. Best saved score 5220 (historical, different source). This session's drafts scored 6695-6700 (65.4%) and the signedness family (u32 i) made it worse (7300). Findings: (1) target keeps D_8021E1A2 as a pointer (addiu into $s1, then lh at offsets 0/2/4, plus negative offsets -0xB/-0xD), not repeated indexed global reads; (2) target loads D_80189B34 right after the four register saves, and forms the D_8022A770 base later than my drafts do; (3) target has 6 `sll $v0,$a0,2` index computations and 3 `lb 0x596` reads that the current drafts do not reproduce, so the loop/index shape is wrong, not just registers. The held draft carries leftover __repair_* scaffolding; do not reuse it. Next agent: start from the target assembly (get_assembly) and write the pointer-based form from scratch. Budget note: 4 no-improvement compiles so far, so the move-on limit is not yet reached.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794758687.016562,
-  "score_before": 5220,
-  "score_after": 5220
  },
  {
   "function": "func_80219B58",
@@ -41172,5 +41132,45 @@
   "created_at": 1794761943.211964,
   "score_before": 9358,
   "score_after": 9358
+ },
+ {
+  "function": "func_8014B108",
+  "text": "Not matched. Best 5675 (70.7%), saved from the variant with `u8 *b = D_8022A770;` and `s16 *p1 = D_8021E1A2;` / `s16 *p2 = D_8021E1A6;` as locals set at the top, using the literal byte offsets for D_8022A770 (0x596, 0x566+i, 0x562+i, 0x538, 6, 0x230). That beats the machine draft (6900 saved). Reordering the pointer loads to after the D_80189B34 check gave 5755 (worse, reverted). Target is 194 insns, mine 186. Target facts: prologue saves ra(0x24), s2(0x20), s1(0x1c), s0(0x18). It loads D_80189B34 into v1 first and compares to 2 before touching the other data. It keeps s1 = &D_8021E1A2 and s2 = &D_8022A770 as live pointers through the function (reads like lh 0(s1), lh 4(s1), lb 0x596(s2)). The 4-byte-stride loops use `sll v0,a0,2` (index*4) for D_80168D54 / D_8018D3A0 (7 iterations). Next step: force the two pointers to stay live (keep p1 and b in separate locals assigned at the top of the if-body, not inside a nested block), write the 7-iteration loop with `i*4` byte indexing, and check whether the `lui $s1,%hi(D_8021E1A2)` pair comes after the sw of s0 in the target. Released at move-on budget.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794711047.012671,
+  "score_before": 6677,
+  "score_after": 5675
+ },
+ {
+  "function": "func_8014B108",
+  "text": "Not matched; releasing early because the last 4 compiles produced no score change (goto-tail form, b/p1 reorder, s16 p1 placement all give 5545 or 5465). Best current trial 5465 (71.8%) is the version with b=D_8022A770 declared at the top; the saved 5220 is from a __repair_* source and should not be restored as-is. Unmatched: prologue saves are $ra,$s2,$s1,$s0 with s0=0 in the bne delay slot; the target loads D_80189B34 into $v1 and keeps p1 in $s1 and b in $s2 across the func_8003DE60 call; my version reuses $s2 for the D_80189B34 load. Next agent: a structural change to how the flag accumulator and the early-exit test are scheduled is needed; the compiler does not respond to plain reorderings.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794727862.859474,
+  "score_before": 5220,
+  "score_after": 5220
+ },
+ {
+  "function": "func_8014B108",
+  "text": "Best now 5675 (70.7%) from a clean rewrite of the repair-annotated draft (the saved draft had __repair_* artifacts; saved_best is 5220 under an older source). Diff: target saves $ra,$s2,$s1,$s0 at 0x24/0x20/0x1c/0x18 and keeps b=D_8022A770 in $s2 (`lb $v1,0x596($s2)`), loads D_80189B34 into $v1 after the prologue, and uses `sll $v0,$a0,2` for the i*4 index into D_80168D54 and D_8018D3A0. Mine keeps the base in $s1 with an extra lui/addiu pair and tests `D_80189B34` into $s2. The early `if (D_80189B34 == 2)` test and the p1/p2 pointer loads are in the wrong order. Next: make b the first pointer loaded (prologue: `addiu $s1 ... ` order), drop the local `bad` block in favour of an inline loop that matches the sll indexing, then recheck. Three compiles without improvement.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794740653.3313012,
+  "score_before": 5220,
+  "score_after": 5220
+ },
+ {
+  "function": "func_8014B108",
+  "text": "Not matched. Best saved is 5220 (permuter-339302417273); my clean rewrite (no __repair_* artifacts, plain p1/p2/b locals, flag variable for the 7-iteration loop) scored 5675 and 5680. Remaining differences: (1) target spills $ra,$s2,$s1,$s0 in that order before loading D_80189B34, i.e. s2 is not used for D_80189B34's address; in my version the compiler keeps the lui $s2 base and spills s2 first. (2) Target loads D_8021E1A2 into $s1 (lui/addiu) and reads p1[0] via lh ($s1), while mine loads D_8022A770 into $s1 first (b is hoisted). (3) Target uses sll $v0,$a0,2 six times, i.e. the D_80168D54[i*4] and D_8018D3A0[i] indexing is done with an index register; mine folds it. Next step: keep b/p1 as the first assignments only after the D_80189B34 check, and try making the 7-iteration loop use a pointer walk over D_8018D3A0 and D_80168D54 with index i*4 (sll by 2). Budget of 3 non-improving compiles was used.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794756464.6945841,
+  "score_before": 5220,
+  "score_after": 5220
+ },
+ {
+  "function": "func_8014B108",
+  "text": "Not matched. Best saved score 5220 (historical, different source). This session's drafts scored 6695-6700 (65.4%) and the signedness family (u32 i) made it worse (7300). Findings: (1) target keeps D_8021E1A2 as a pointer (addiu into $s1, then lh at offsets 0/2/4, plus negative offsets -0xB/-0xD), not repeated indexed global reads; (2) target loads D_80189B34 right after the four register saves, and forms the D_8022A770 base later than my drafts do; (3) target has 6 `sll $v0,$a0,2` index computations and 3 `lb 0x596` reads that the current drafts do not reproduce, so the loop/index shape is wrong, not just registers. The held draft carries leftover __repair_* scaffolding; do not reuse it. Next agent: start from the target assembly (get_assembly) and write the pointer-based form from scratch. Budget note: 4 no-improvement compiles so far, so the move-on limit is not yet reached.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794758687.016562,
+  "score_before": 5220,
+  "score_after": 5220
  }
 ]
