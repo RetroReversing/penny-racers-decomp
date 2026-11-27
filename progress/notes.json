@@ -3280,14 +3280,6 @@
   "score_after": 11433
  },
  {
-  "function": "func_8016018C",
-  "text": "Deep permuter: score 9141 \u2192 5823; 2 improvements; 105 candidates tested; 81 cached skips; 0 rejected; 7205s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935547",
-  "created_at": 1794348602.145272,
-  "score_before": 9141,
-  "score_after": 5823
- },
- {
   "function": "func_80141C28",
   "text": "Deep permuter: score 15792 \u2192 15232; 2 improvements; 92 candidates tested; 12 cached skips; 0 rejected; 7223s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935367",
@@ -7152,14 +7144,6 @@
   "score_after": 2425
  },
  {
-  "function": "func_8016018C",
-  "text": "Not matched. Best this session 7777 (64.1%); saved best 3332. This is the sibling of func_80166DC0 (same unit, same state machine: arg0*100 index into D_8011F350 / D_8011F32E / D_8011F2FD, float 0.3/0.4/2.8 updates, switch on D_8011F32E[idx*100]). Two differences from 80166DC0: a store `*(s8*)(a+0x8D0) = 0x78` before the float branch, and the mask on +0x560 is 0xF8 here (0xBF there). Best variant: use `(arg0 & 0xFFFF) * 0x64` / `* 0x32` inline at each access, with no local idx (the local form scored 8472). Target 217 insns, mine 193; frame 0x30 with ra, s3, s2, s1, s0 saved, and `move $s2,$a0` right after the saves. Remaining diffs: target keeps arg0 in s2 and recomputes `andi $v0,$s2,0xffff` at each use; the `lhu` from 2(a0) (the a->+2 read) is done before the float block in the target, and the branch sense at the first `if (v1)` is inverted (target uses beqz). Next: write the saved s1/a/s0/s3 pointer loads in the target's order, and fix the first branch sense. Released at move-on.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794711155.343916,
-  "score_before": 3332,
-  "score_after": 3332
- },
- {
   "function": "func_801E3FE8",
   "text": "Move-on budget exhausted (3/3 no improvement). Best verified this session: 13448, revision 72374e515fc0aa8ade05 (score 0 nowhere).\n\nStructure recovered and confirmed against ROM (keep it):\n- D_801E9740=0; D_801E9738=0; n = *(u16*)(D_8006FAF0+0x20) - 1; p = D_8022A770+0x562.\n- if (*p == 0) { if (p[1] <= D_801E97A3[off] && p[2] <= D_801E97A4[off] && p[4] < D_801E97A5[off]) { func_8003DE60(D_801E9698); D_801E9738=1; store p[1],p[2],p[4] back to those three tables; 8x u16 copy loop from D_800DA26A+0x64+D_800DA260*0x12 into D_801E97B8[off]; } }\n- for (k=1;k<4;k++) { p = D_8022A770+0x562+k*5; same 3 compares against D_801E97A0/A1/A2[off] (note: p[4] < table); on success func_8003DE60(D_801E96B4,k); D_801E9740=k; store back; 8x u16 copy into D_801E97A6[off]; }\n- if (D_801E9740 || D_801E9738) { func_80029790(); D_801E9D58 = func_801E2F38(n & 0xFFFF); if (D_801E9D58) func_801DD938(0x10,0x4C,0xA,2,0xC8,0xB4,0x12,0x14,0,0x66); func_800297C8(); }\nwhere off = n*0x30.\n\nRemaining mismatch is purely codegen of the index: the target recomputes off from the single hoisted `n` in $s3 at every use as `sll $v0,$s3,1; addu $v0,$v0,$s3; sll $v0,$v0,4` (i.e. (n*3)<<4) and then folds it into `lui/addiu %lo(SYM); addu $at,$at,$off; lbu/sb %lo(SYM+1)($at)`. Writing `n * 0x30` (attempt 2, 14603) made it worse: GCC then kept the offset in a callee-saved reg and indexed with ($reg), and it also sank the D_8006FAF0 load. Attempt 1 with a hoisted `off` variable scored 13448 and produced the right per-use lui/addu %lo form.\n\nUntested next step: keep attempt 1 but write the scale explicitly as `(n * 3) << 4` in each index expression (no shared temp), so GCC emits sll/addu/sll per use; also declare the tables as u8[] and index with the byte offset. Also try making `n` `u32` vs `s32` for the `addiu $s3,$s3,-1` vs `addiu`/`andi` choice, and check the `sltu`/`xori 1`/`or` compare chain ordering (target compares field1 then field2 then field4 with sltu + or, i.e. plain `<=`/`<` on unsigned bytes as written).",
   "by": "api-route-llm-code-1",
@@ -10480,14 +10464,6 @@
   "score_after": 5220
  },
  {
-  "function": "func_8016018C",
-  "text": "Not attempted in this session; the machine draft (revision 9580c9734c68a3caf43c) is unverified. Structure to check: an s32 index (arg0 & 0xFFFF) * 0x64 table into D_8011F350 (struct base, field +4 pointer, +0x14 u16 counter) and D_8011F32E / D_8011F2FD byte-state arrays with stride 0x64; two switches on state values; float blend (x - t)*0.4f + x with 3.0f/0.3f/2.8f constants. Draft types are mostly guesses.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794727896.271748,
-  "score_before": 3332,
-  "score_after": 3332
- },
- {
   "function": "func_80148DBC",
   "text": "Released at low effort after 2 compiles total, both score 17007 (20.1%). Target 213 insns vs candidate 196. Target has a 0x38 frame (addiu $sp,-0x38 at entry; candidate lacks it), and the target reloads D_8021E1A2 via lui/lh in a different place, so the frame/spill layout is wrong. Target shows many `lui $v0,%hi(D_8021E1A2)`, `sw $v0,%lo(D_8018D3A0)($at)` and `addu $s3,$v0,$s6` repeats, which suggests the per-channel loop is indexed by a different base than `(var_s4&0xFF)<<5`. Candidate's inner loop_8 shape and the final 6-iteration loop need checking against get_assembly. Also the held candidate's declarations of D_8018D3BC etc. were fine in my compile; the earlier 'undeclared' warnings came from the machine draft. Next step: read get_assembly(focus=\"mismatch\") and rewrite the loops from the target's actual control flow before tuning registers.",
   "by": "claude-haiku-5-5-23",
@@ -13614,14 +13590,6 @@
   "created_at": 1794740730.525449,
   "score_before": 14378,
   "score_after": 14378
- },
- {
-  "function": "func_8016018C",
-  "text": "Best from this claim: 7567 (65%), from a plain-C rewrite of the m2c draft using raw byte offsets and typed u8 externs. Saved best is 3332 (other source, not reproduced here). The target frame is 0x30 with ra, s0-s3 saved; mine is 0x28 with fewer saved regs, so the live-value structure differs: the target keeps s1 (the D_8011F350 entry), s3 (the D_8011F4E4 entry pointer), and s2 (the masked arg0) live across the whole function, and it recomputes (arg0&0xFFFF)*100 at each state write. Two switches: on v1 (0/1, from the (temp & 3)>>1 path) and on the u16 state at D_8011F32E[arg0*100] (cases 1,2,3). Constants 3.0f, 0.3f, 0.4f, 2.8f, 1.0f are float literals in the target; a 0.4f/3.0f misread appears at diff row 169 (target 0x3E99999A vs mine 0x3ECCCCCD), so check which constant is multiplied in each branch. Next: fix the 0.3f/3.0f assignment order in case 2 and make s1/s3/s2 long-lived locals to get the 0x30 frame.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794740743.004979,
-  "score_before": 3332,
-  "score_after": 3332
  },
  {
   "function": "func_80215DE0",
@@ -19056,14 +19024,6 @@
   "score_after": 885
  },
  {
-  "function": "func_8016018C",
-  "text": "The machine draft compiles only with M2C macros removed; my version scored 9141 (57.8%), worse than the saved best 3332, so keep the saved best. Main diffs: (1) the target indexes the 0x64-stride tables with `sll $v0,$v0,2` (after computing u16*25 style) but mine emits `sll ...,4`, so the multiply by 0x64 is being strength-reduced differently; try writing the index as `(u16)idx * 25` or a separate u16 local. (2) Target saves ra/s0-s3 at 0x28-0x18 (frame 0x30), mine adds an s4 register because `arg0 & 0xFFFF` is reused; keep the masked index in one variable. (3) Float constants: the target's 0.4f/0.3f/3.0f arithmetic is in f32 but the draft has a double-looking constant (raw 0x40333333 vs 0x3E99999A), so the `2.8f`/`0.3f` literals may need to be f32 with the `f` suffix kept. Untested: masked-index local and f32 literal check.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794757028.881303,
-  "score_before": 3332,
-  "score_after": 3332
- },
- {
   "function": "func_801AEFBC",
   "text": "Not matched. Revision f2e92a61f44f0954fcab scores 16478 (25.7%), worse than saved best 1960 from an earlier agent. It cannot get closer from here: the draft's float/constant ordering and register use are structurally off, and I stopped rather than spend the remaining compiles. Start from get_candidate(base=\"saved_best\"). Target facts: lb of D_801C7068 and D_801C6BB9 converted with cvt; 400.0f*0.5f and 1050.0f constants come as lui+mtc1 immediates; D_800DB1B8+0x210c read as lh and multiplied by 0x24 once, then reused for four stores; the sin/cos rotation (x*cos - y*sin, plus offsets) repeats for two groups and may need a helper to match register reuse.",
   "by": "claude-haiku-5-5-22",
@@ -20734,14 +20694,6 @@
   "created_at": 1794759861.336981,
   "score_before": 10236,
   "score_after": 10236
- },
- {
-  "function": "func_8016018C",
-  "text": "func_8016018C (868 bytes, 217 insns). Not matched. Best saved score 3332 (m2c-style draft, 10 prior attempts). My source attempts: a cleaned draft that dropped the switch-2 state machine scored 15728; adding the full state machine (if/else chain on D_8011F32E[idx*0x64] values 1/2/3, with float updates of s0+0x34 / s0+0x30 using 0.4f lerp toward 3.0/0.3/1.0) scored 11291. Remaining gaps: (1) target frame is 0x30 with ra,s0-s3 saved; my versions keep an extra live copy (s4) of arg0 and frame is 0x18/0x2c, so keep one masked index variable (arg0&0xFFFF) live in s2 and avoid a second copy. (2) Index*100 is computed as a shift/add sequence on the masked value; a plain idx*0x64 gives the same value but different regs. (3) Float constants: target loads 3.0f/0.3f via mtc1 from $at; keep the literal operand order. (4) The index is re-masked with 0xFFFF after the counter update in the target; mirror that. Suggest starting from the saved-best m2c source and fixing register roles rather than rewriting control flow.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794759861.68366,
-  "score_before": 3332,
-  "score_after": 3332
  },
  {
   "function": "func_80141C28",
@@ -40451,5 +40403,53 @@
   "created_at": 1795715334.074485,
   "score_before": 1235,
   "score_after": 1235
+ },
+ {
+  "function": "func_8016018C",
+  "text": "Deep permuter: score 9141 \u2192 5823; 2 improvements; 105 candidates tested; 81 cached skips; 0 rejected; 7205s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935547",
+  "created_at": 1794348602.145272,
+  "score_before": 9141,
+  "score_after": 5823
+ },
+ {
+  "function": "func_8016018C",
+  "text": "Not matched. Best this session 7777 (64.1%); saved best 3332. This is the sibling of func_80166DC0 (same unit, same state machine: arg0*100 index into D_8011F350 / D_8011F32E / D_8011F2FD, float 0.3/0.4/2.8 updates, switch on D_8011F32E[idx*100]). Two differences from 80166DC0: a store `*(s8*)(a+0x8D0) = 0x78` before the float branch, and the mask on +0x560 is 0xF8 here (0xBF there). Best variant: use `(arg0 & 0xFFFF) * 0x64` / `* 0x32` inline at each access, with no local idx (the local form scored 8472). Target 217 insns, mine 193; frame 0x30 with ra, s3, s2, s1, s0 saved, and `move $s2,$a0` right after the saves. Remaining diffs: target keeps arg0 in s2 and recomputes `andi $v0,$s2,0xffff` at each use; the `lhu` from 2(a0) (the a->+2 read) is done before the float block in the target, and the branch sense at the first `if (v1)` is inverted (target uses beqz). Next: write the saved s1/a/s0/s3 pointer loads in the target's order, and fix the first branch sense. Released at move-on.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794711155.343916,
+  "score_before": 3332,
+  "score_after": 3332
+ },
+ {
+  "function": "func_8016018C",
+  "text": "Not attempted in this session; the machine draft (revision 9580c9734c68a3caf43c) is unverified. Structure to check: an s32 index (arg0 & 0xFFFF) * 0x64 table into D_8011F350 (struct base, field +4 pointer, +0x14 u16 counter) and D_8011F32E / D_8011F2FD byte-state arrays with stride 0x64; two switches on state values; float blend (x - t)*0.4f + x with 3.0f/0.3f/2.8f constants. Draft types are mostly guesses.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794727896.271748,
+  "score_before": 3332,
+  "score_after": 3332
+ },
+ {
+  "function": "func_8016018C",
+  "text": "Best from this claim: 7567 (65%), from a plain-C rewrite of the m2c draft using raw byte offsets and typed u8 externs. Saved best is 3332 (other source, not reproduced here). The target frame is 0x30 with ra, s0-s3 saved; mine is 0x28 with fewer saved regs, so the live-value structure differs: the target keeps s1 (the D_8011F350 entry), s3 (the D_8011F4E4 entry pointer), and s2 (the masked arg0) live across the whole function, and it recomputes (arg0&0xFFFF)*100 at each state write. Two switches: on v1 (0/1, from the (temp & 3)>>1 path) and on the u16 state at D_8011F32E[arg0*100] (cases 1,2,3). Constants 3.0f, 0.3f, 0.4f, 2.8f, 1.0f are float literals in the target; a 0.4f/3.0f misread appears at diff row 169 (target 0x3E99999A vs mine 0x3ECCCCCD), so check which constant is multiplied in each branch. Next: fix the 0.3f/3.0f assignment order in case 2 and make s1/s3/s2 long-lived locals to get the 0x30 frame.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794740743.004979,
+  "score_before": 3332,
+  "score_after": 3332
+ },
+ {
+  "function": "func_8016018C",
+  "text": "The machine draft compiles only with M2C macros removed; my version scored 9141 (57.8%), worse than the saved best 3332, so keep the saved best. Main diffs: (1) the target indexes the 0x64-stride tables with `sll $v0,$v0,2` (after computing u16*25 style) but mine emits `sll ...,4`, so the multiply by 0x64 is being strength-reduced differently; try writing the index as `(u16)idx * 25` or a separate u16 local. (2) Target saves ra/s0-s3 at 0x28-0x18 (frame 0x30), mine adds an s4 register because `arg0 & 0xFFFF` is reused; keep the masked index in one variable. (3) Float constants: the target's 0.4f/0.3f/3.0f arithmetic is in f32 but the draft has a double-looking constant (raw 0x40333333 vs 0x3E99999A), so the `2.8f`/`0.3f` literals may need to be f32 with the `f` suffix kept. Untested: masked-index local and f32 literal check.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794757028.881303,
+  "score_before": 3332,
+  "score_after": 3332
+ },
+ {
+  "function": "func_8016018C",
+  "text": "func_8016018C (868 bytes, 217 insns). Not matched. Best saved score 3332 (m2c-style draft, 10 prior attempts). My source attempts: a cleaned draft that dropped the switch-2 state machine scored 15728; adding the full state machine (if/else chain on D_8011F32E[idx*0x64] values 1/2/3, with float updates of s0+0x34 / s0+0x30 using 0.4f lerp toward 3.0/0.3/1.0) scored 11291. Remaining gaps: (1) target frame is 0x30 with ra,s0-s3 saved; my versions keep an extra live copy (s4) of arg0 and frame is 0x18/0x2c, so keep one masked index variable (arg0&0xFFFF) live in s2 and avoid a second copy. (2) Index*100 is computed as a shift/add sequence on the masked value; a plain idx*0x64 gives the same value but different regs. (3) Float constants: target loads 3.0f/0.3f via mtc1 from $at; keep the literal operand order. (4) The index is re-masked with 0xFFFF after the counter update in the target; mirror that. Suggest starting from the saved-best m2c source and fixing register roles rather than rewriting control flow.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794759861.68366,
+  "score_before": 3332,
+  "score_after": 3332
  }
 ]
