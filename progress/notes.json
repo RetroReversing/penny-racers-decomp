@@ -6736,14 +6736,6 @@
   "score_after": 50
  },
  {
-  "function": "func_80163A38",
-  "text": "Best verified 10655 (saved_best); my rewrite reached 10660 (265 target vs 261 insns). Key structural gaps found: (1) target keeps the racer base in $s2 = D_8011F350[(arg0&0xFFFF)*0x64] loaded FIRST, before the func_8013E364 call, and reuses it; my version sank the load after the call and used $fp for D_8011F534. (2) target computes temp_s3 (D_8011F2F0 + *(u16*)(s2+2)*0x64) and s5 = *(void**)(temp_s3+0x244) BEFORE the call too, so order the locals: s2 load, lhu 2(s2), addu base, lw 0x244, then call func_8013E364. (3) target has 3x `lui $at,0x4170` (30.0f) meaning 30.0f is materialised as a literal each time rather than shared; write guMtxXFMF(..., 0, 30.0f, ...) inline with a literal, not a variable. (4) target stack frame is 0x80 not 0xa0: I used 3 separate f32 sp48/sp4C/sp50 plus a lot of live values; reduce live f32 temps (reuse the same three slots for both guMtxXFMF calls, which I did) and avoid extra f64/f32 temporaries. (5) target has `andi $v1,$s6,0xffff` twice and `addu $s2,$s2,$v0` twice -> keep (arg0&0xFFFF) recomputed, don't cache it. Remaining: 167 mismatch sites mostly register/order following from (1)-(2).\n\nBest 10655 (equals saved best), rev 450bdab0960773e3ace8. Move-on budget exhausted.\n\nWhat helped: binding `u8 *tbl = D_8011F2F0;` and `u16 idx = *(u16*)(racer+2);` then `rec = tbl + idx*0x64;` and `obj = *(void**)(tbl + idx*0x64 + 0x244);` \u2014 this made the target's lui/addiu base materialise (10660->10655) and produced the correct `addu $v0,$v0,$v1` index chain.\n\nRemaining structural gaps (target 265 insns vs 256):\n1. STACK FRAME: target addiu $sp,$sp,-0x80, mine -0xa0. Mine spills sdc1 $f22/ldc1 $f22 to 0x98 and mfc1 $a2,$f20 \u2014 caused by the f64 expression `(f32)((f64)*(f32*)(racer+0x774) * D_801839D0 + D_801839D8)`. Target does NOT keep f22 across calls. Try computing that double value into a plain `f32` local via an explicit helper or restructure so gcc uses f0/f2 only (e.g. `f32 ang = *(f32*)(racer+0x774); f32 conv = (f32)((f64)ang * D_801839D0 + D_801839D8);` declared as a single f32 with the double math inline in the call argument).\n2. TARGET COMPUTES THE racer LOAD LATER than mine: target rows 20-22 (mine) are rows 31-33 in target, i.e. target emits the index chain (sll/addu x3) for arg0 first, then lui/addu/lw for D_8011F350 at 31-33 after `sll $v0,$v0,2`. Mine hoists the load. Target then does lhu 2($s2) -> own index chain -> `lui/addiu $v1,%hi(D_8011F2F0)` then `addu $s3,$v0,$v1` AND a second `addu $v1,$v1,$v0; lw $s5,0x244($v1)` (address computed twice, s3 keeps the first). My version folded the 0x244 load onto $s1 (rec). Force the duplicate by writing obj as `*(void **)(D_8011F2F0 + idx * 0x64 + 0x244)` while rec is `tbl + idx*0x64` from a *different* base expression, or by making rec a `u8*` computed with `+ idx*0x64` and obj with `idx*0x64` written as `idx*100`.\n3. Target has 3x `lui $at,0x4170` (30.0f) \u2014 the two guMtxXFMF calls plus func_8013E640's 15.0f; keep 30.0f/15.0f/-40.0f as literals at the call sites, never hoisted into a variable.\n4. Target `andi $v1,$s6,0xffff` x3 and `addu $s2,$s2,$v0` x3: keep (arg0 & 0xFFFF) recomputed at each use (do not cache in a local).\n5. Target `addiu $v0,$sp,0x48` x2: both guMtxXFMF calls take &sp48/&sp4C/&sp50 as three separate f32 slots at 0x48/0x4C/0x50 \u2014 keep them as three distinct f32 locals in that order.\n6. Tail block: target writes p+8, p+6, p+4, then D_8011F2F2+off, then D_8011F334/338/33C using `(res & 0xFFFF) * 0x64` each time (my inner `u8 *p` local is fine but the 0x64 multiplies must be recomputed per store).",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794713664.933242,
-  "score_before": 11375,
-  "score_after": 10655
- },
- {
   "function": "func_801610E0",
   "text": "SOLVED pending compiler-profile change (unit code_8015A414 = -O1). The candidate C is byte-identical to the ROM with gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (try_compiler: MATCHES; function-scoped suggest() filed). At -O2 it scores 875 with only register-allocation/order differences (40/40 insns). Do not chase those; apply -O1. Matching C: extern u8 D_8011F2FC[], D_8011F340[], D_8011F350[] (candidate-local); void func_801610E0(u32 **arg0, u16 arg1){ s32 off; u8 *obj; u32 *p; off = arg1 * 0x64; if (D_8011F2FC[off] != 0 && **(u8 **)(D_8011F340 + off) != 0) { obj = *(u8 **)(D_8011F350 + off); p = *arg0; *arg0 = p + 2; p[0] = 0xFA000000; p[1] = (obj[0x17] << 24) | (obj[0x18] << 16) | (obj[0x19] << 8) | D_8011F2FC[off]; } }. Note the pointer bump is two words (0x8 bytes) and the final D_8011F2FC byte is re-read at the end (the target reloads it).",
   "by": "opencode-deepseek-v4.1-flash-free-5",
@@ -9278,14 +9270,6 @@
   "created_at": 1794728336.085492,
   "score_before": 200,
   "score_after": 200
- },
- {
-  "function": "func_80163A38",
-  "text": "Best 10420 (60.6%), not matched. Last trial (dropping the local u8 *p and writing the table stores as D_8011F2F0 + (res&0xFFFF)*0x64 + k) scored 10990, worse; the current candidate is that worse version, so restore the saved best before continuing. Frame is still the blocker: target 0x80 (ra@0x7c, s6..s0 at 0x78..0x60), mine 0xa8 to 0xa0 with fp, s7 and sdc1 $f22 saved. The target keeps arg0 in $s6 (`move $s6,$a0`) and recomputes `andi $v1,$s6,0xffff` (x3) and `lui $at,0x4170` (x3, the 15.0f / 30.0f constants). Next: write the three `res & 0xFFFF` uses as a single local, and try replacing the f64 cast expression with a local f64 so the extra saved $f22 goes away. Compile order of the two 18-arg calls is otherwise close.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794728359.364518,
-  "score_before": 10420,
-  "score_after": 10420
  },
  {
   "function": "func_8012745C",
@@ -11910,14 +11894,6 @@
   "created_at": 1794741319.890715,
   "score_before": 10930,
   "score_after": 7890
- },
- {
-  "function": "func_80163A38",
-  "text": "Not matched. Best 11375 (57%), 259 vs 265 insns, saved at revision 08ec623c872b1aa4cb85. Why it can't get closer in this pass: the remaining gap is structural, not register tuning. The target's index arithmetic on arg0&0xFFFF and the D_8011F350 indirection use a different stride chain (sll 1/addu/sll 3/addu/sll 4) than my single *0x64, and the target's frame is 0x80 with s3-s6 saved while mine is 0xa0, so the temporaries (2.0f*M2C_FIELD terms, sp48/4C/50 outputs) need re-deriving from the target's first 12 instructions. Next step: re-derive the stride expression from get_assembly, then the frame, then registers. Lines 46 and 65 warn about pointer/integer assignments to the &func_ and &D_802378B4 globals, which need proper pointer types. Parked for a fresh pass.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794741351.759061,
-  "score_before": 8990,
-  "score_after": 8990
  },
  {
   "function": "func_801FD560",
@@ -16472,14 +16448,6 @@
   "score_after": 740
  },
  {
-  "function": "func_80163A38",
-  "text": "Unmatched. Best score 10760 (59.3%, 258 vs 265 insns), revision 983088b086593c2f3fc2. Earlier saved best 11375 (65612265075ea236cc62) is superseded. Remaining differences: target frame is 0x80 and mine is 0xa0 (too many spilled temps across the func_800DE41C / func_8013E640 calls). Target computes the node pointer as idx + &D_8011F2F0 with `addiu $v1,$v1,%lo(D_8011F2F0)` and `addu $s3,$v0,$v1`; mine uses 0x910 folded into a different register. Target loads D_8011F350 twice (lui/addu/lw sequence) and keeps the obj pointer in $s2 across the calls; my version reloads it. Signedness change on temp_v0_5 (s16 to u16) scored worse (11870), so keep s16. Next steps: (1) restructure so `obj` is loaded once and kept live in $s2 across calls; (2) compute the node index once as u16 and derive node = pool + idx*0x64 in one expression; (3) only then tune registers. Not a struct-layout problem with the pool itself: offsets 0x18/0x1C/0x20/0x28/0x30..0x38 on the node and 0x560/0x55E/0x6D4/0x774/0x7C0..0x7C8 on obj were confirmed by the matching instructions.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794758294.573358,
-  "score_before": 8990,
-  "score_after": 8990
- },
- {
   "function": "func_80135108",
   "text": "Saved best is 1990 (86.9%), from the machine-draft source (`(arg0 & 0xFFFF) * 100` repeated in each access, `(u16)(u32)` float-to-int casts). Target has `lui $at,0x4f00; mtc1` in the unsigned float-to-int path, which means the source must do an unsigned f32->u32 conversion (the 0x4f00 constant is 2^31 as a float), not a plain cast. Tried and worse: a shared idx local (7855), u8* pointers (9805), (s32) casts in place of (u32) (10215). Remaining diff in 1990: the target holds the D_8011F334 base in $at and adds the index held in $a2 before the lwc1 (`lui $at,%hi; addu $at,$at,$a2; lwc1 %lo($at)`), while mine uses a separate addiu and stores through $a1. Next: keep 1990, write the float-to-u32 conversion explicitly for the value compared against 0x10 and 0x21, and try the index hoist only after that.",
   "by": "claude-haiku-5-5-21",
@@ -17776,14 +17744,6 @@
   "score_after": 18946
  },
  {
-  "function": "func_80163A38",
-  "text": "Best 10760 (59.3%) at revision 983088b086593c2f3fc2; re-compiled this session, still 10760 (3/10 compiles without improvement). Structural gap: target frame is addiu sp,-0x80 and mine is -0xa0, so too many values stay live across calls. Target uses sll 2 (x5) and addu s2 for the 0x64-stride indexing; mine uses sll 4 (x4) and saves ra at 0x94 five times. Calls to guMtxXFMF and the D_8011F2F0+idx*0x64 node/slot pointers need the same stride treatment. Next attempt: a single base pointer with sll-based stride, and fewer locals live across calls to reach the 0x80 frame. Warnings: 'assignment makes pointer from integer' at the D_8018D6C4 and D_8011F2F2 writes, so those globals should be typed as pointers / u16 arrays.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794761147.857898,
-  "score_before": 8990,
-  "score_after": 8990
- },
- {
   "function": "func_80193A50",
   "text": "Releasing now: the candidate cannot get closer without a full reconstruction of the 373-instruction body, which is beyond this session's effort budget. Target has a 0xB0 frame and saves $ra,$s0,$s1,$s2; the candidate has a 0x60 frame and covers only the top of the function. Score 26481 (29%). Next step: reconstruct the body (a large loop/switch over the 0x1C-stride table D_801E9990/D_801E9994 and the 0x64-stride record array D_8011F2F4/D_8011F2FD, with repeated D_801C7D30/D_801C7AB0 accesses), then tune registers.",
   "by": "claude-haiku-5-5-20",
@@ -18702,14 +18662,6 @@
   "created_at": 1794762325.601965,
   "score_before": 14679,
   "score_after": 14679
- },
- {
-  "function": "func_80163A38",
-  "text": "Not matched. Best 10760 (59.3%) at revision 983088b086593c2f3fc2 (saved best, source as recorded). Tried `obj = *(void **)(&D_8011F2F0 + idx*0x64 + 0x60)` (revision 64d0eaee286f94aaf606): worse, 11095, because the target keeps a word-indexed `lui $s2,%hi(D_8011F350)` with `sll $v0,$v0,2` for the obj load, so the original `*(&D_8011F350 + ...)` form was the closer one; the warning at func.c:40 is expected and the fix belongs in the index scaling, not the base. Target frame 0x80 (ra at 0x7c, s3-s6 at 0x6c-0x78) vs candidate 0xa0 with extra fp/s7 saves: too many values live across func_800DE41C and guMtxXFMF. Target index chain for *100 is ((x*3)<<3 + x)<<2 ('sll 1; addu; sll 3; addu; sll 4' family), which the candidate does not reproduce. Next step: derive the word-index for D_8011F350 (obj = D_8011F350[arg0 & 0xFFFF] with a separate *100 for node), then cut the live set across the two func_800DE41C calls before tuning registers.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794762346.400141,
-  "score_before": 8990,
-  "score_after": 8990
  },
  {
   "function": "func_8013B1BC",
@@ -41129,5 +41081,70 @@
   "score_before": null,
   "score_after": null,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:022c5a7c1b60aaa45c57ca26b806589358ca34927dfb7462fe5a1f800112cab8"
+ },
+ {
+  "function": "func_80163A38",
+  "text": "Best verified 10655 (saved_best); my rewrite reached 10660 (265 target vs 261 insns). Key structural gaps found: (1) target keeps the racer base in $s2 = D_8011F350[(arg0&0xFFFF)*0x64] loaded FIRST, before the func_8013E364 call, and reuses it; my version sank the load after the call and used $fp for D_8011F534. (2) target computes temp_s3 (D_8011F2F0 + *(u16*)(s2+2)*0x64) and s5 = *(void**)(temp_s3+0x244) BEFORE the call too, so order the locals: s2 load, lhu 2(s2), addu base, lw 0x244, then call func_8013E364. (3) target has 3x `lui $at,0x4170` (30.0f) meaning 30.0f is materialised as a literal each time rather than shared; write guMtxXFMF(..., 0, 30.0f, ...) inline with a literal, not a variable. (4) target stack frame is 0x80 not 0xa0: I used 3 separate f32 sp48/sp4C/sp50 plus a lot of live values; reduce live f32 temps (reuse the same three slots for both guMtxXFMF calls, which I did) and avoid extra f64/f32 temporaries. (5) target has `andi $v1,$s6,0xffff` twice and `addu $s2,$s2,$v0` twice -> keep (arg0&0xFFFF) recomputed, don't cache it. Remaining: 167 mismatch sites mostly register/order following from (1)-(2).\n\nBest 10655 (equals saved best), rev 450bdab0960773e3ace8. Move-on budget exhausted.\n\nWhat helped: binding `u8 *tbl = D_8011F2F0;` and `u16 idx = *(u16*)(racer+2);` then `rec = tbl + idx*0x64;` and `obj = *(void**)(tbl + idx*0x64 + 0x244);` \u2014 this made the target's lui/addiu base materialise (10660->10655) and produced the correct `addu $v0,$v0,$v1` index chain.\n\nRemaining structural gaps (target 265 insns vs 256):\n1. STACK FRAME: target addiu $sp,$sp,-0x80, mine -0xa0. Mine spills sdc1 $f22/ldc1 $f22 to 0x98 and mfc1 $a2,$f20 \u2014 caused by the f64 expression `(f32)((f64)*(f32*)(racer+0x774) * D_801839D0 + D_801839D8)`. Target does NOT keep f22 across calls. Try computing that double value into a plain `f32` local via an explicit helper or restructure so gcc uses f0/f2 only (e.g. `f32 ang = *(f32*)(racer+0x774); f32 conv = (f32)((f64)ang * D_801839D0 + D_801839D8);` declared as a single f32 with the double math inline in the call argument).\n2. TARGET COMPUTES THE racer LOAD LATER than mine: target rows 20-22 (mine) are rows 31-33 in target, i.e. target emits the index chain (sll/addu x3) for arg0 first, then lui/addu/lw for D_8011F350 at 31-33 after `sll $v0,$v0,2`. Mine hoists the load. Target then does lhu 2($s2) -> own index chain -> `lui/addiu $v1,%hi(D_8011F2F0)` then `addu $s3,$v0,$v1` AND a second `addu $v1,$v1,$v0; lw $s5,0x244($v1)` (address computed twice, s3 keeps the first). My version folded the 0x244 load onto $s1 (rec). Force the duplicate by writing obj as `*(void **)(D_8011F2F0 + idx * 0x64 + 0x244)` while rec is `tbl + idx*0x64` from a *different* base expression, or by making rec a `u8*` computed with `+ idx*0x64` and obj with `idx*0x64` written as `idx*100`.\n3. Target has 3x `lui $at,0x4170` (30.0f) \u2014 the two guMtxXFMF calls plus func_8013E640's 15.0f; keep 30.0f/15.0f/-40.0f as literals at the call sites, never hoisted into a variable.\n4. Target `andi $v1,$s6,0xffff` x3 and `addu $s2,$s2,$v0` x3: keep (arg0 & 0xFFFF) recomputed at each use (do not cache in a local).\n5. Target `addiu $v0,$sp,0x48` x2: both guMtxXFMF calls take &sp48/&sp4C/&sp50 as three separate f32 slots at 0x48/0x4C/0x50 \u2014 keep them as three distinct f32 locals in that order.\n6. Tail block: target writes p+8, p+6, p+4, then D_8011F2F2+off, then D_8011F334/338/33C using `(res & 0xFFFF) * 0x64` each time (my inner `u8 *p` local is fine but the 0x64 multiplies must be recomputed per store).",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794713664.933242,
+  "score_before": 11375,
+  "score_after": 10655
+ },
+ {
+  "function": "func_80163A38",
+  "text": "Best 10420 (60.6%), not matched. Last trial (dropping the local u8 *p and writing the table stores as D_8011F2F0 + (res&0xFFFF)*0x64 + k) scored 10990, worse; the current candidate is that worse version, so restore the saved best before continuing. Frame is still the blocker: target 0x80 (ra@0x7c, s6..s0 at 0x78..0x60), mine 0xa8 to 0xa0 with fp, s7 and sdc1 $f22 saved. The target keeps arg0 in $s6 (`move $s6,$a0`) and recomputes `andi $v1,$s6,0xffff` (x3) and `lui $at,0x4170` (x3, the 15.0f / 30.0f constants). Next: write the three `res & 0xFFFF` uses as a single local, and try replacing the f64 cast expression with a local f64 so the extra saved $f22 goes away. Compile order of the two 18-arg calls is otherwise close.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794728359.364518,
+  "score_before": 10420,
+  "score_after": 10420
+ },
+ {
+  "function": "func_80163A38",
+  "text": "Not matched. Best 11375 (57%), 259 vs 265 insns, saved at revision 08ec623c872b1aa4cb85. Why it can't get closer in this pass: the remaining gap is structural, not register tuning. The target's index arithmetic on arg0&0xFFFF and the D_8011F350 indirection use a different stride chain (sll 1/addu/sll 3/addu/sll 4) than my single *0x64, and the target's frame is 0x80 with s3-s6 saved while mine is 0xa0, so the temporaries (2.0f*M2C_FIELD terms, sp48/4C/50 outputs) need re-deriving from the target's first 12 instructions. Next step: re-derive the stride expression from get_assembly, then the frame, then registers. Lines 46 and 65 warn about pointer/integer assignments to the &func_ and &D_802378B4 globals, which need proper pointer types. Parked for a fresh pass.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794741351.759061,
+  "score_before": 8990,
+  "score_after": 8990
+ },
+ {
+  "function": "func_80163A38",
+  "text": "Unmatched. Best score 10760 (59.3%, 258 vs 265 insns), revision 983088b086593c2f3fc2. Earlier saved best 11375 (65612265075ea236cc62) is superseded. Remaining differences: target frame is 0x80 and mine is 0xa0 (too many spilled temps across the func_800DE41C / func_8013E640 calls). Target computes the node pointer as idx + &D_8011F2F0 with `addiu $v1,$v1,%lo(D_8011F2F0)` and `addu $s3,$v0,$v1`; mine uses 0x910 folded into a different register. Target loads D_8011F350 twice (lui/addu/lw sequence) and keeps the obj pointer in $s2 across the calls; my version reloads it. Signedness change on temp_v0_5 (s16 to u16) scored worse (11870), so keep s16. Next steps: (1) restructure so `obj` is loaded once and kept live in $s2 across calls; (2) compute the node index once as u16 and derive node = pool + idx*0x64 in one expression; (3) only then tune registers. Not a struct-layout problem with the pool itself: offsets 0x18/0x1C/0x20/0x28/0x30..0x38 on the node and 0x560/0x55E/0x6D4/0x774/0x7C0..0x7C8 on obj were confirmed by the matching instructions.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794758294.573358,
+  "score_before": 8990,
+  "score_after": 8990
+ },
+ {
+  "function": "func_80163A38",
+  "text": "Best 10760 (59.3%) at revision 983088b086593c2f3fc2; re-compiled this session, still 10760 (3/10 compiles without improvement). Structural gap: target frame is addiu sp,-0x80 and mine is -0xa0, so too many values stay live across calls. Target uses sll 2 (x5) and addu s2 for the 0x64-stride indexing; mine uses sll 4 (x4) and saves ra at 0x94 five times. Calls to guMtxXFMF and the D_8011F2F0+idx*0x64 node/slot pointers need the same stride treatment. Next attempt: a single base pointer with sll-based stride, and fewer locals live across calls to reach the 0x80 frame. Warnings: 'assignment makes pointer from integer' at the D_8018D6C4 and D_8011F2F2 writes, so those globals should be typed as pointers / u16 arrays.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794761147.857898,
+  "score_before": 8990,
+  "score_after": 8990
+ },
+ {
+  "function": "func_80163A38",
+  "text": "Not matched. Best 10760 (59.3%) at revision 983088b086593c2f3fc2 (saved best, source as recorded). Tried `obj = *(void **)(&D_8011F2F0 + idx*0x64 + 0x60)` (revision 64d0eaee286f94aaf606): worse, 11095, because the target keeps a word-indexed `lui $s2,%hi(D_8011F350)` with `sll $v0,$v0,2` for the obj load, so the original `*(&D_8011F350 + ...)` form was the closer one; the warning at func.c:40 is expected and the fix belongs in the index scaling, not the base. Target frame 0x80 (ra at 0x7c, s3-s6 at 0x6c-0x78) vs candidate 0xa0 with extra fp/s7 saves: too many values live across func_800DE41C and guMtxXFMF. Target index chain for *100 is ((x*3)<<3 + x)<<2 ('sll 1; addu; sll 3; addu; sll 4' family), which the candidate does not reproduce. Next step: derive the word-index for D_8011F350 (obj = D_8011F350[arg0 & 0xFFFF] with a separate *100 for node), then cut the live set across the two func_800DE41C calls before tuning registers.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794762346.400141,
+  "score_before": 8990,
+  "score_after": 8990
+ },
+ {
+  "function": "func_80163A38",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr16, -O1 profile (not applied): the rewrite (work/func_80163A38_e.c) scores 5584, against the saved best's 2795 under -O1. The register rows follow the object pointer and the node pointer (the target keeps the object in s2 and the node in s3); eight spellings, declaration orders and the param type did not move it. Handed back at 8 judged attempts.",
+  "by": "manual-209d2dfa17f14ee1",
+  "created_at": 1795713612.4701571,
+  "score_before": 6251,
+  "score_after": 6251
+ },
+ {
+  "function": "func_80163A38",
+  "text": "Profile probe: this saved C scores 2795 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (9 of its 12 nearest matched neighbours were built with it), 6541 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721273.144711,
+  "score_before": 6541,
+  "score_after": 2795,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:c491154030b08dcc89ea03363aa2d27272740c396ed15984a0417e40a5bb094a"
  }
 ]
