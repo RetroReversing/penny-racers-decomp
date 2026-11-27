@@ -6864,14 +6864,6 @@
   "score_after": 41481
  },
  {
-  "function": "func_80162460",
-  "text": "Not attempted beyond the m2c draft; no compile of my own. 1872 B, float-heavy: per-entity update using sqrtf of 3-component vectors (D_8011F2F0 record, stride 0x64 by arg0&0xFFFF), 0x24C/0xC4 sub-struct indexing, two 7-iteration shift loops that copy f32 fields at offsets +8->+4, +0x28->+0x24, +0x48->+0x44, +0x68->+0x64, +0x88->+0x84, +0xA8->+0xA4, and a branchy speed-scaling chain (10/15/20/25-30 over 50/100/200/300 thresholds). The draft fails to compile: sqrtf is declared with a bogus 3-arg prototype (use f32 sqrtf(f32)), func_80032310 is called with too few args, and several M2C_FIELD casts need real struct types. Next step: declare the record as a struct (fields at 0x0C, 0x14, 0x18, 0x1C, 0x20, 0x60, 0x76, 0x230, 0x560) and fix sqrtf first, then match the shift loops before the float chain.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794719310.685455,
-  "score_before": 26528,
-  "score_after": 26528
- },
- {
   "function": "func_802055F8",
   "text": "Not matched; saved best 35162 (8.9%, 369 vs 386 insns) with function-wide pointer locals a/b/c = D_8021B024/D_8021B038/D_8021B04C. Tried: globals only (40012); block-scoped pointers in each case or reset block (40012); function-wide a/b/c with global D_8021B028 (35247). Any function-wide pointer local is kept in an s-register (s0-s2), giving a 0x30 frame; target is 0x18 (ra, s0 only) with $a0/$v1/$v0 reloaded per block. sqrtf(x) with the NaN fallback is correct. Next: find a reset-block expression that does not CSE the pointers across the function; re-read case 2 (asm from line 280) for the D_8021B02C[-1] address.\n\nNot matched; saved best 35162 (8.9%, 369 vs 386 insns) using function-wide pointer locals a/b/c = D_8021B024/D_8021B038/D_8021B04C. Why it cannot get closer with the current approach: any function-wide pointer local is kept in a callee-saved s-register (s0-s2) and gives a 0x30 frame; the target is 0x18 (ra, s0 only) and reloads $a0/$v1/$v0 per block. Block-scoped pointers in each case or in the reset block scored 40012 (case bodies then spill $f20/$f22). Global-only indexing scores 40012. Mixed (a/b/c function-wide plus global D_8021B028) scored 35247. sqrtf(x) with the NaN fallback is the correct shape. Next step for whoever picks this up: a reset-block expression that does not CSE the pointers across the function, and re-reading case 2 (asm from line 280) to check the D_8021B02C[-1] address.",
   "by": "claude-haiku-5-5-21",
@@ -11528,14 +11520,6 @@
   "score_after": 39763
  },
  {
-  "function": "func_80162460",
-  "text": "Not attempted to match yet; no compile of my own. The m2c draft has problems to fix first: sqrtf is declared with a bogus 3-arg prototype (use f32 sqrtf(f32)); func_80032310 is called with too few args (lines 134 and 201); M2C_FIELD accesses through void** need real struct types (the object at arg0*0x64 in D_8011F2F0 with fields +0x60 and +0x18..0x20 looks like a racer/entity struct). The function has two loops that shift 7 floats in place (+4..+0xA8 strides), a sqrt-based normalise, and a branchy speed/clamp block. Start by fixing the prototypes and the struct, then compile, then fix the float ordering and the final block with the 0x3ECCCCCD constant.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794742418.766643,
-  "score_before": 26528,
-  "score_after": 26528
- },
- {
   "function": "func_80135544",
   "text": "Best score 22557 (50.5%) at revision 71abe02bf66f6a39bf12, from the m2c draft with declarations added for the undeclared symbols. Not matched. The target is 456 insns against my 331, so the structure is wrong, not just registers. The target has many `lui $at,%hi(D_8011F32E)` and `addu $at,$at,$v1` accesses, which means the per-object flags and state are global-array indexed with stride 0x64 (the same `D_8011F32E`/`D_8011F2F0` pattern as func_80162460), and my O(arg0) macro hides that. Target frame is 0x60 with ra, s2..s0 saved, mine is 0x70 with s5/s4/s3 saved, so I have too many live locals. Next step: write the array accesses explicitly as `D_8011F32E[id*0x64]` style byte indexing, cut the spurious locals, and then compare the switch dispatch.",
   "by": "claude-haiku-5-5-22",
@@ -12918,14 +12902,6 @@
   "created_at": 1794752132.2384582,
   "score_before": 24288,
   "score_after": 23951
- },
- {
-  "function": "func_80162460",
-  "text": "Claimed func_80162460 (1872 bytes, 468 insns, gcc-2.7.2-kmc -O2). Did not compile in this session: the inherited best (score 25072 after 14 attempts) is far from matching. The m2c draft has undeclared or wrong-arity calls (func_80032310 appears in compiler warnings but not in the draft text), sqrtf is implicit, and the two 7-iteration copy loops and the f32/f64 mix (D_801839C0/C8) are unverified. Next steps: (1) reconstruct the layouts for temp_s1 (record at arg0*0x64 + D_8011F2F0, pointer at +0x60, sub-record pointer at +4 with u16 at 0x560) and temp_s2 (stride 0x24C, base D_8018A460, offset 0xC*0xC4) before touching arithmetic; (2) write the copy loops as explicit statements and compare; (3) check the sqrt-with-NaN-retry pattern against the asm; (4) needs a dedicated pass, too large for a low-effort run.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794752158.577014,
-  "score_before": 25072,
-  "score_after": 25072
  },
  {
   "function": "_n_filterBuffer",
@@ -16144,14 +16120,6 @@
   "score_after": 7212
  },
  {
-  "function": "func_80162460",
-  "text": "Tried the m2c draft (revision e01c42800dbc83ef6633, score 25072, 46.4%) after adding the M2C_UNK/M2C_FIELD macro block. The C compiles, but the frame is wrong: target is addiu $sp,-0x58 saving $ra,s0-s4 and f20/f22/f24/f26; ours is -0x60 with fewer saves. Structure is roughly right (one loop of 7 float-field shifts in each branch, two sqrtf-based normalizations, a 1000/len scale, two func_801F9D8C calls). Target also uses `sll $a1,$a1,2` x11 and `andi $s0,$s4,0xffff` x3 where ours uses sll $a0. Next steps: (1) get the callee-saved register set right first (needs s0-s4 and four double-precision saves, which suggests more live float temporaries than the draft has); (2) rewrite the loops with explicit index variables instead of var_v0 = var_v1*4; (3) compare the 0x560 and 0x230 u16 field accesses against the target. Not matched.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794760105.9441369,
-  "score_before": 25072,
-  "score_after": 25072
- },
- {
   "function": "func_80219488",
   "text": "No C yet; no compile made. Structure read from get_assembly (325 insns, frame 0x58): a 57-case jump table (sltiu 0x39, table D_8021DFE0) switches on the u16 at obj+0x3E (rec in D_8011F2F0, entry stride 0x64). Case bodies write u16 state into D_8011F350 entries (times 0xB8 pattern from D_8018BC3C), write flags into D_80190CA6+2, D_80190CAE, D_80190CB2, D_80190CAA, and call func_800DE41C(0,0,3,0), func_801D65BC(1) and func_8021AB34/func_8021A214/func_8021A334 as callbacks in a 0x84-byte record. Float constants 0x42200000 (40.0f) and 0x43700000 (240.0f) are stored to sp+0x24/0x28. Start by reading the full jump-table entries (D_8021DFE0, 57 words) with read_data, then write the switch with the case bodies from the asm; first do the case 0x0-0x2 bodies (lines 12-52), which are short.",
   "by": "claude-haiku-5-5-20",
@@ -17358,14 +17326,6 @@
   "created_at": 1794762641.0767438,
   "score_before": 660,
   "score_after": 660
- },
- {
-  "function": "func_80162460",
-  "text": "Not matched; releasing early because this session's effort budget is low and the function is 1872 B / 468 insns. Saved best 25072 (historical, different source); my last partial candidate (43350) is worse, so use get_candidate(base=\"saved_best\"). Target frame 0x58, saves ra, s0-s4, f20. m2c structure: entity array D_8011F2F0 with stride 0x64 (state +0x3E, object ptr +0x60, pos +0x18..0x20); object fields: +4 sub-struct ptr (u16 +4), +8/+0xC/+0x10 f32 vector, +0x14 u16 counter, +0x1C s32, +0x24..0x2C f32; D_8018A460 with strides 0xC4 and 0x24C. Two sqrtf calls per branch, threshold chain 50/100/200/300 on a float divide, calls to func_80129918, func_801F9D8C, func_8015D410, func_801D7028, func_8013F050, func_8013E49C. The m2c draft does not compile as-is (func_8013E49C conflicts with the context header, sqrtf implicit). Next step: write the sqrt/threshold section from the assembly, then fix the frame and calls before registers.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794762644.247218,
-  "score_before": 25072,
-  "score_after": 25072
  },
  {
   "function": "func_80143600",
@@ -41417,5 +41377,45 @@
   "score_before": 45445,
   "score_after": 8040,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:b552c81646c6d0573807ce182a57166dd1a630d5a0ec0f77a9b0a38f7a74d8fd"
+ },
+ {
+  "function": "func_80162460",
+  "text": "Not attempted beyond the m2c draft; no compile of my own. 1872 B, float-heavy: per-entity update using sqrtf of 3-component vectors (D_8011F2F0 record, stride 0x64 by arg0&0xFFFF), 0x24C/0xC4 sub-struct indexing, two 7-iteration shift loops that copy f32 fields at offsets +8->+4, +0x28->+0x24, +0x48->+0x44, +0x68->+0x64, +0x88->+0x84, +0xA8->+0xA4, and a branchy speed-scaling chain (10/15/20/25-30 over 50/100/200/300 thresholds). The draft fails to compile: sqrtf is declared with a bogus 3-arg prototype (use f32 sqrtf(f32)), func_80032310 is called with too few args, and several M2C_FIELD casts need real struct types. Next step: declare the record as a struct (fields at 0x0C, 0x14, 0x18, 0x1C, 0x20, 0x60, 0x76, 0x230, 0x560) and fix sqrtf first, then match the shift loops before the float chain.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794719310.685455,
+  "score_before": 26528,
+  "score_after": 26528
+ },
+ {
+  "function": "func_80162460",
+  "text": "Not attempted to match yet; no compile of my own. The m2c draft has problems to fix first: sqrtf is declared with a bogus 3-arg prototype (use f32 sqrtf(f32)); func_80032310 is called with too few args (lines 134 and 201); M2C_FIELD accesses through void** need real struct types (the object at arg0*0x64 in D_8011F2F0 with fields +0x60 and +0x18..0x20 looks like a racer/entity struct). The function has two loops that shift 7 floats in place (+4..+0xA8 strides), a sqrt-based normalise, and a branchy speed/clamp block. Start by fixing the prototypes and the struct, then compile, then fix the float ordering and the final block with the 0x3ECCCCCD constant.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794742418.766643,
+  "score_before": 26528,
+  "score_after": 26528
+ },
+ {
+  "function": "func_80162460",
+  "text": "Claimed func_80162460 (1872 bytes, 468 insns, gcc-2.7.2-kmc -O2). Did not compile in this session: the inherited best (score 25072 after 14 attempts) is far from matching. The m2c draft has undeclared or wrong-arity calls (func_80032310 appears in compiler warnings but not in the draft text), sqrtf is implicit, and the two 7-iteration copy loops and the f32/f64 mix (D_801839C0/C8) are unverified. Next steps: (1) reconstruct the layouts for temp_s1 (record at arg0*0x64 + D_8011F2F0, pointer at +0x60, sub-record pointer at +4 with u16 at 0x560) and temp_s2 (stride 0x24C, base D_8018A460, offset 0xC*0xC4) before touching arithmetic; (2) write the copy loops as explicit statements and compare; (3) check the sqrt-with-NaN-retry pattern against the asm; (4) needs a dedicated pass, too large for a low-effort run.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794752158.577014,
+  "score_before": 25072,
+  "score_after": 25072
+ },
+ {
+  "function": "func_80162460",
+  "text": "Tried the m2c draft (revision e01c42800dbc83ef6633, score 25072, 46.4%) after adding the M2C_UNK/M2C_FIELD macro block. The C compiles, but the frame is wrong: target is addiu $sp,-0x58 saving $ra,s0-s4 and f20/f22/f24/f26; ours is -0x60 with fewer saves. Structure is roughly right (one loop of 7 float-field shifts in each branch, two sqrtf-based normalizations, a 1000/len scale, two func_801F9D8C calls). Target also uses `sll $a1,$a1,2` x11 and `andi $s0,$s4,0xffff` x3 where ours uses sll $a0. Next steps: (1) get the callee-saved register set right first (needs s0-s4 and four double-precision saves, which suggests more live float temporaries than the draft has); (2) rewrite the loops with explicit index variables instead of var_v0 = var_v1*4; (3) compare the 0x560 and 0x230 u16 field accesses against the target. Not matched.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794760105.9441369,
+  "score_before": 25072,
+  "score_after": 25072
+ },
+ {
+  "function": "func_80162460",
+  "text": "Not matched; releasing early because this session's effort budget is low and the function is 1872 B / 468 insns. Saved best 25072 (historical, different source); my last partial candidate (43350) is worse, so use get_candidate(base=\"saved_best\"). Target frame 0x58, saves ra, s0-s4, f20. m2c structure: entity array D_8011F2F0 with stride 0x64 (state +0x3E, object ptr +0x60, pos +0x18..0x20); object fields: +4 sub-struct ptr (u16 +4), +8/+0xC/+0x10 f32 vector, +0x14 u16 counter, +0x1C s32, +0x24..0x2C f32; D_8018A460 with strides 0xC4 and 0x24C. Two sqrtf calls per branch, threshold chain 50/100/200/300 on a float divide, calls to func_80129918, func_801F9D8C, func_8015D410, func_801D7028, func_8013F050, func_8013E49C. The m2c draft does not compile as-is (func_8013E49C conflicts with the context header, sqrtf implicit). Next step: write the sqrt/threshold section from the assembly, then fix the frame and calls before registers.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794762644.247218,
+  "score_before": 25072,
+  "score_after": 25072
  }
 ]
