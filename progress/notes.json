@@ -6336,14 +6336,6 @@
   "score_after": 17875
  },
  {
-  "function": "func_801AEFBC",
-  "text": "Float-heavy (sinf/cosf, 1050.0f, 400.0f, 0.69813174f constants). My first rewrite (the machine draft with declarations added) scored 16478, far worse than the saved best 1960. Saved best (1960) is the one to start from; do not use the draft at revision f2e92a61f44f0954fcab. The target loads the struct at D_801C6BC0 with lwc1 at offsets 0x8, 0xC, 0x10 and keeps s0/s2 as base pointers, and it materializes the float constants with lui+mtc1 in the order the asm gives, while my version reloads D_801C7068 and D_801C6BB9 with lb each time. Next step: restart from the saved best and match the constant load order before touching the arithmetic; try static float locals for the constants only if the asm shows them loaded once.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794712575.4871051,
-  "score_before": 1960,
-  "score_after": 1960
- },
- {
   "function": "func_800DECCC",
   "text": "Best 9328 (54%, revision 381e386514d723367671): a recursive linked-list unlink over 100-byte records. Key fixes that helped: the data arrays must be u8[] (not s32 scalars, as the m2c draft declared them, which scaled offsets by 4); the record at D_8011F340 holds a POINTER (lw), so read it as *(u8 **)(D_8011F340 + idx*100) and then lhu at +0xC / +0xA. Remaining diff: the target saves only ra and s0 (frame 0x18) and recomputes the index (andi 0xFFFF, then the x*100 shift/add chain) after each recursive call; my version keeps (arg0&0xFFFF)*100 live across the calls, so it saves s0-s3 and ra (frame 0x38). Changing arg0 from u16 to s32 had no effect. Untested next step: write each access with a fresh expression (e.g. in separate helper macros expanding to the same index chain) so GCC does not CSE the index across the recursive calls. The first recursive branch in the target uses F304[idx] for both calls; check that the second call's index is the reloaded var, not the first one.",
   "by": "claude-haiku-5-5-24",
@@ -8550,14 +8542,6 @@
   "created_at": 1794728205.998347,
   "score_before": 10695,
   "score_after": 10695
- },
- {
-  "function": "func_801AEFBC",
-  "text": "Not matched; releasing with the saved best (historical 1960, same text as get_candidate(base=\"saved_best\")). Current verified compile of that text scores 16478 on this run, so the saved 1960 is not reproduced here; re-verify first. Two rewrites tried this run: (a) per-element `*(f32*)(D_x + off)` form, 16478; (b) a base-pointer rewrite with `f32 *p = (f32*)D_801C6BC0` and `q = (f32*)(D_80221080 + s1)`, 23367. (b) dropped the 8 __sinf/__cosf call pattern the target keeps, so the expression tree is wrong, not just registers. What the target does: it loads D_800DB1B8+0x210C once into $a0 (`lh`) and reuses it for the 0x24-stride table; the sin/cos argument for each block is `(p[3]*pi)/180` computed fresh (`mul.s $f2,$f2,$f8` x12), and it calls __sinf 8 times, __cosf 2 times. Next agent: keep the draft's expression tree (its sin/cos/product structure), keep the saved text as the base, and fix only the table base and the 0x210C index load ordering.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794728209.109198,
-  "score_before": 1960,
-  "score_after": 1960
  },
  {
   "function": "func_80215850",
@@ -10942,14 +10926,6 @@
   "created_at": 1794741031.446806,
   "score_before": 6793,
   "score_after": 6793
- },
- {
-  "function": "func_801AEFBC",
-  "text": "Best this session 11277 (49.2%, revision 3a1e69d79db5a7c03c0c; the saved 1960 is from a different source). Gain came from a f32 *b = (f32*)D_801C6BC0 base with b[0..4] for the five stores and loads (the target keeps that block in a base register, lwc1 8($s0) etc.). Remaining diffs: (1) the constant materialization order (lui/mtc1 for 0.5f, 400.0f, 20.0f, 3.1415927f/180, 0x44FA/0x42AA) and the early D_801C6BB9 load; the target loads the int-to-float (cvt.s.w) of D_801C6BB9 before the D_801C7068 chain, mine reverses them; (2) the sin/cos args: target computes b[3]*pi/180 once and reuses it, mine recomputes per call; (3) the frame is 0x48 in the target, mine 0x40, so one more spill. Next: hoist the angle values into locals (ang3 = b[3]*3.1415927f/180.0f; ang4 = b[4]*...) and reorder the first three stores to match the target order.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794741102.2568011,
-  "score_before": 1960,
-  "score_after": 1960
  },
  {
   "function": "func_801B4CF8",
@@ -14608,14 +14584,6 @@
   "score_after": 885
  },
  {
-  "function": "func_801AEFBC",
-  "text": "Not matched. Revision f2e92a61f44f0954fcab scores 16478 (25.7%), worse than saved best 1960 from an earlier agent. It cannot get closer from here: the draft's float/constant ordering and register use are structurally off, and I stopped rather than spend the remaining compiles. Start from get_candidate(base=\"saved_best\"). Target facts: lb of D_801C7068 and D_801C6BB9 converted with cvt; 400.0f*0.5f and 1050.0f constants come as lui+mtc1 immediates; D_800DB1B8+0x210c read as lh and multiplied by 0x24 once, then reused for four stores; the sin/cos rotation (x*cos - y*sin, plus offsets) repeats for two groups and may need a helper to match register reuse.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794757030.457342,
-  "score_before": 1960,
-  "score_after": 1960
- },
- {
   "function": "func_801E3FE8",
   "text": "Not matched; only a stub compiled (score 21660, 1.9%). The target is 221 insns with a 0x48 frame saving s0-s6 and ra. The m2c redraft (redraft with the header declarations for func_8003DE60, func_801DD938 and the globals) is a usable starting point but has many unknown-typed data arrays: D_8022A770 is a struct with fields at 0x562..0x564 and per-record stride 0x30 at D_801E97A0/97A2/97A4/97B8, and D_8006FAF0 is a struct whose field 0x20 is read as lhu. Next steps: write those struct layouts (guess_struct on arg for D_8022A770 if available), then compile the m2c draft unchanged and fix structure before registers. Also func_80029790/func_801E2F38 signatures are guesses.",
   "by": "claude-haiku-5-5-24",
@@ -16214,14 +16182,6 @@
   "created_at": 1794761236.0616279,
   "score_before": 820,
   "score_after": 820
- },
- {
-  "function": "func_801AEFBC",
-  "text": "Compiled the claim's full draft (revision f2e92a61f44f0954fcab): score 16478, worse than saved best 1960 (saved best is the better starting point; restore it with get_candidate(base=\"saved_best\")). The draft is a straight translation of the sin/cos rig setup: fields at D_801C6BC0 +0/+4/+8/+0xC/+0x10 (floats), then per-slot writes into D_80221080..94 at s16 index D_800DB1B8+0x210C times 0x24, and a second block at index +0x28 with constants 0.0/-65/1050 and 0.69813174 (~40 degrees). The target has a 0x48-byte frame (sw $ra/$s0-$s2, sdc1 $f20) that the draft lacks, and it keeps D_800DB1B8+0x210C in $s2 across calls. Next step: start from the saved best, then fix the frame and the callee-saved register use before the float-expression order.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794761261.5187788,
-  "score_before": 1960,
-  "score_after": 1960
  },
  {
   "function": "func_80207DC8",
@@ -41443,5 +41403,54 @@
   "created_at": 1794767481.450134,
   "score_before": 12568,
   "score_after": 12568
+ },
+ {
+  "function": "func_801AEFBC",
+  "text": "Float-heavy (sinf/cosf, 1050.0f, 400.0f, 0.69813174f constants). My first rewrite (the machine draft with declarations added) scored 16478, far worse than the saved best 1960. Saved best (1960) is the one to start from; do not use the draft at revision f2e92a61f44f0954fcab. The target loads the struct at D_801C6BC0 with lwc1 at offsets 0x8, 0xC, 0x10 and keeps s0/s2 as base pointers, and it materializes the float constants with lui+mtc1 in the order the asm gives, while my version reloads D_801C7068 and D_801C6BB9 with lb each time. Next step: restart from the saved best and match the constant load order before touching the arithmetic; try static float locals for the constants only if the asm shows them loaded once.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794712575.4871051,
+  "score_before": 1960,
+  "score_after": 1960
+ },
+ {
+  "function": "func_801AEFBC",
+  "text": "Not matched; releasing with the saved best (historical 1960, same text as get_candidate(base=\"saved_best\")). Current verified compile of that text scores 16478 on this run, so the saved 1960 is not reproduced here; re-verify first. Two rewrites tried this run: (a) per-element `*(f32*)(D_x + off)` form, 16478; (b) a base-pointer rewrite with `f32 *p = (f32*)D_801C6BC0` and `q = (f32*)(D_80221080 + s1)`, 23367. (b) dropped the 8 __sinf/__cosf call pattern the target keeps, so the expression tree is wrong, not just registers. What the target does: it loads D_800DB1B8+0x210C once into $a0 (`lh`) and reuses it for the 0x24-stride table; the sin/cos argument for each block is `(p[3]*pi)/180` computed fresh (`mul.s $f2,$f2,$f8` x12), and it calls __sinf 8 times, __cosf 2 times. Next agent: keep the draft's expression tree (its sin/cos/product structure), keep the saved text as the base, and fix only the table base and the 0x210C index load ordering.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794728209.109198,
+  "score_before": 1960,
+  "score_after": 1960
+ },
+ {
+  "function": "func_801AEFBC",
+  "text": "Best this session 11277 (49.2%, revision 3a1e69d79db5a7c03c0c; the saved 1960 is from a different source). Gain came from a f32 *b = (f32*)D_801C6BC0 base with b[0..4] for the five stores and loads (the target keeps that block in a base register, lwc1 8($s0) etc.). Remaining diffs: (1) the constant materialization order (lui/mtc1 for 0.5f, 400.0f, 20.0f, 3.1415927f/180, 0x44FA/0x42AA) and the early D_801C6BB9 load; the target loads the int-to-float (cvt.s.w) of D_801C6BB9 before the D_801C7068 chain, mine reverses them; (2) the sin/cos args: target computes b[3]*pi/180 once and reuses it, mine recomputes per call; (3) the frame is 0x48 in the target, mine 0x40, so one more spill. Next: hoist the angle values into locals (ang3 = b[3]*3.1415927f/180.0f; ang4 = b[4]*...) and reorder the first three stores to match the target order.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794741102.2568011,
+  "score_before": 1960,
+  "score_after": 1960
+ },
+ {
+  "function": "func_801AEFBC",
+  "text": "Not matched. Revision f2e92a61f44f0954fcab scores 16478 (25.7%), worse than saved best 1960 from an earlier agent. It cannot get closer from here: the draft's float/constant ordering and register use are structurally off, and I stopped rather than spend the remaining compiles. Start from get_candidate(base=\"saved_best\"). Target facts: lb of D_801C7068 and D_801C6BB9 converted with cvt; 400.0f*0.5f and 1050.0f constants come as lui+mtc1 immediates; D_800DB1B8+0x210c read as lh and multiplied by 0x24 once, then reused for four stores; the sin/cos rotation (x*cos - y*sin, plus offsets) repeats for two groups and may need a helper to match register reuse.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794757030.457342,
+  "score_before": 1960,
+  "score_after": 1960
+ },
+ {
+  "function": "func_801AEFBC",
+  "text": "Compiled the claim's full draft (revision f2e92a61f44f0954fcab): score 16478, worse than saved best 1960 (saved best is the better starting point; restore it with get_candidate(base=\"saved_best\")). The draft is a straight translation of the sin/cos rig setup: fields at D_801C6BC0 +0/+4/+8/+0xC/+0x10 (floats), then per-slot writes into D_80221080..94 at s16 index D_800DB1B8+0x210C times 0x24, and a second block at index +0x28 with constants 0.0/-65/1050 and 0.69813174 (~40 degrees). The target has a 0x48-byte frame (sw $ra/$s0-$s2, sdc1 $f20) that the draft lacks, and it keeps D_800DB1B8+0x210C in $s2 across calls. Next step: start from the saved best, then fix the frame and the callee-saved register use before the float-expression order.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794761261.5187788,
+  "score_before": 1960,
+  "score_after": 1960
+ },
+ {
+  "function": "func_801AEFBC",
+  "text": "Profile probe: this saved C scores 4555 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (321 functions of this project were built with it), 11492 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721265.050095,
+  "score_before": 11492,
+  "score_after": 4555,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:5fa45ecc89aaf6a3e850a47f6b6d44d4d28b62070495b78857f4ce8e358ab8d5"
  }
 ]
