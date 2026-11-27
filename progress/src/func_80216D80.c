@@ -63,13 +63,13 @@ extern u8 D_8021F080[];
 extern u8 D_8021B690[];
 extern u8 D_801E6B68[], D_801E7470[], D_801D4390[], D_801CF4C8[];
 extern u8 *D_802036BC;
-void func_801CA140(Gfx **);
-void func_801CA468(Gfx **, s32);
-void func_801CA494(Gfx **, s32, s32, s32, s32);
-void func_8014A4C8(Gfx **, s32, s32, s32, s32);
+void gfxSetup2DState(Gfx **);
+void gfxSetPrimAlpha(Gfx **, s32);
+void gfxSetPrimColor(Gfx **, s32, s32, s32, s32);
+void gfxDrawSprite(Gfx **, s32, s32, s32, s32);
 void func_801D8BD0(Gfx **, s32, s32, s32, s32, u8 *, u8 *);
-void func_801CABF4(Gfx **, s32, s32, s32, u8 *, u8 *, s32, u8 *, s32, s32, s32, s32);
-#define D(x, y, id) func_8014A4C8(gfxp, x, y, 0xA, id)
+void gfxDrawText(Gfx **, s32, s32, s32, u8 *, u8 *, s32, u8 *, s32, s32, s32, s32);
+#define D(x, y, id) gfxDrawSprite(gfxp, x, y, 0xA, id)
 
 void func_80216D80(Gfx **gfxp, u16 id) {
     Ob9 *obj;
@@ -81,14 +81,14 @@ void func_80216D80(Gfx **gfxp, u16 id) {
     u8 b;
 
     obj = &D_8011F2F0[id];
-    func_801CA140(gfxp);
+    gfxSetup2DState(gfxp);
     if (obj->state & 1) {
-        func_801CA468(gfxp, 0xC0);
+        gfxSetPrimAlpha(gfxp, 0xC0);
         D(0x36, 0x39, 0x17);
         D(0x36, 0x8B, 0x18);
         D(0xD8, 0x39, 0x19);
         D(0xD8, 0x8B, 0x1A);
-        func_801CA468(gfxp, 0xFF);
+        gfxSetPrimAlpha(gfxp, 0xFF);
         D(0x4B, 0x42, 0xC);
         r = D_80190CB4;
         g = 0x7F;
@@ -103,23 +103,23 @@ void func_80216D80(Gfx **gfxp, u16 id) {
             r = 0x7F;
             break;
         }
-        func_801CA494(gfxp, r, r, r, 0xFF);
+        gfxSetPrimColor(gfxp, r, r, r, 0xFF);
         D(0x4B, 0x54, 9);
-        func_801CA494(gfxp, g, g, g, 0xFF);
+        gfxSetPrimColor(gfxp, g, g, g, 0xFF);
         D(0x4B, 0x66, 0xA);
-        func_801CA494(gfxp, b, b, b, 0xFF);
+        gfxSetPrimColor(gfxp, b, b, b, 0xFF);
         D(0x4B, 0x78, 0xB);
-        func_801CA468(gfxp, 0xFF);
+        gfxSetPrimAlpha(gfxp, 0xFF);
     }
     if (obj->state & 2) {
-        func_801CA468(gfxp, 0xC0);
+        gfxSetPrimAlpha(gfxp, 0xC0);
         D(0x90, 0x54, 0x1B);
         D(0x90, 0xC1, 0x1C);
         D(0x10B, 0x54, 0x1D);
         D(0x10B, 0xC1, 0x1E);
-        func_801CA494(gfxp, D_80190CB4, D_80190CB4, D_80190CB4, 0xFF);
+        gfxSetPrimColor(gfxp, D_80190CB4, D_80190CB4, D_80190CB4, 0xFF);
         D(0x7D, 0x54, 0x2B);
-        func_801CA468(gfxp, 0xFF);
+        gfxSetPrimAlpha(gfxp, 0xFF);
         for (i = 0; i < 5; i++) {
             k = D_8021F080[D_80190CAA + i];
             if (k != 0xFF) {
@@ -141,19 +141,19 @@ void func_80216D80(Gfx **gfxp, u16 id) {
         if (D_80190CAE & 0xF) {
             D(0xCB, 0xBE, 0x14);
         }
-        func_801CA494(gfxp, D_80190CB4, D_80190CB4, D_80190CB4, 0xFF);
+        gfxSetPrimColor(gfxp, D_80190CB4, D_80190CB4, D_80190CB4, 0xFF);
         D(0x9D, D_80190C9E * 18 + 0x63, 0x2B);
-        func_801CA468(gfxp, 0xFF);
+        gfxSetPrimAlpha(gfxp, 0xFF);
     }
     if (obj->state & 4) {
-        func_801CA468(gfxp, 0xC0);
+        gfxSetPrimAlpha(gfxp, 0xC0);
         D(0x90, 0x68, 0x1B);
         D(0x90, 0xD5, 0x1C);
         D(0x10B, 0x68, 0x1D);
         D(0x10B, 0xD5, 0x1E);
-        func_801CA494(gfxp, D_80190CB4, D_80190CB4, D_80190CB4, 0xFF);
+        gfxSetPrimColor(gfxp, D_80190CB4, D_80190CB4, D_80190CB4, 0xFF);
         D(0x7D, 0x66, 0x2B);
-        func_801CA468(gfxp, 0xFF);
+        gfxSetPrimAlpha(gfxp, 0xFF);
         for (i = 0; i < 5; i++) {
             k = D_8021F080[D_80190CAA + i];
             if (k != 0xFF) {
@@ -165,12 +165,12 @@ void func_80216D80(Gfx **gfxp, u16 id) {
                 }
             }
         }
-        func_801CA494(gfxp, D_80190CB4, D_80190CB4, D_80190CB4, 0xFF);
+        gfxSetPrimColor(gfxp, D_80190CB4, D_80190CB4, D_80190CB4, 0xFF);
         D(0x9D, D_80190C9E * 18 + 0x75, 0x2B);
-        func_801CA468(gfxp, 0xFF);
+        gfxSetPrimAlpha(gfxp, 0xFF);
     }
     if (obj->model == 0x41) {
         func_801D8BD0(gfxp, 0x10, 0x4C, 0xA, 2, D_801E6B68, D_801E7470);
-        func_801CABF4(gfxp, 0x28, 0x64, 0xA, D_801D4390, D_802036BC, 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC);
+        gfxDrawText(gfxp, 0x28, 0x64, 0xA, D_801D4390, D_802036BC, 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC);
     }
 }

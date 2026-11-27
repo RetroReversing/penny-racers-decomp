@@ -10,7 +10,7 @@ extern CarF D_8022AEB8[];
 extern CarB D_8022AEE8[];
 extern Mtx D_8018D460[][4];
 extern u8 D_80167ED8[];
-f32 func_801F99A8(s32);
+f32 waveTableLookup(s32);
 void guTranslate(Mtx *, f32, f32, f32);
 void guRotate(Mtx *, f32, f32, f32, f32);
 void guMtxCatL(Mtx *, Mtx *, Mtx *);
@@ -23,7 +23,7 @@ void func_801306B4(Gfx **gfx, u16 arg1)
     s32 i = D_8011F2FC[arg1].car;
     f32 angle;
 
-    angle = 102.0f - (func_801F99A8(D_8022AEE8[i].unk0 * 10) * 100.0f + D_8022AEB8[i].unk0) * 0.019f;
+    angle = 102.0f - (waveTableLookup(D_8022AEE8[i].unk0 * 10) * 100.0f + D_8022AEB8[i].unk0) * 0.019f;
     guTranslate(&mtx, 472.0f, -318.0f, -637.0f);
     guRotate(&D_8018D460[D_80046834][i], angle, 0.0f, 0.0f, 1.0f);
     guMtxCatL(&D_8018D460[D_80046834][i], &mtx, &D_8018D460[D_80046834][i]);

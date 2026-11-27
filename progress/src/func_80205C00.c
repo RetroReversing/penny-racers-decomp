@@ -1,33 +1,33 @@
-extern s32 D_8021AFFC[];
-extern u8 D_8021B019, D_8021B06A;
-extern f32 D_8021B024[], D_8021B038[], D_8021B04C[];
-extern s8 D_8021B07E;
+extern s32 carouselSelected[];
+extern u8 carouselCmd, carouselCount;
+extern f32 carouselX[], carouselY[], carouselZ[];
+extern s8 carouselPhase;
 void func_80205C00(void) {
-    if (D_8021B019 == 1) {
-        D_8021AFFC[0]++;
-    } else if (D_8021B019 == 2) {
-        D_8021AFFC[0]--;
+    if (carouselCmd == 1) {
+        carouselSelected[0]++;
+    } else if (carouselCmd == 2) {
+        carouselSelected[0]--;
     }
-    if (D_8021AFFC[0] > D_8021B06A) {
-        D_8021AFFC[0] = 0;
-    } else if (D_8021AFFC[0] < 0) {
-        D_8021AFFC[0] = D_8021B06A;
+    if (carouselSelected[0] > carouselCount) {
+        carouselSelected[0] = 0;
+    } else if (carouselSelected[0] < 0) {
+        carouselSelected[0] = carouselCount;
     }
-    D_8021B024[0] = 0.0f;
-    D_8021B038[0] = -10.0f;
-    D_8021B04C[0] = 0.0f;
-    D_8021B024[1] = -60.0f;
-    D_8021B038[1] = 15.0f;
-    D_8021B04C[1] = -70.0f;
-    D_8021B024[2] = 60.0f;
-    D_8021B038[2] = 15.0f;
-    D_8021B04C[2] = -70.0f;
-    D_8021B024[3] = -158.0f;
-    D_8021B038[3] = 15.0f;
-    D_8021B04C[3] = -70.0f;
-    D_8021B024[4] = 158.0f;
-    D_8021B038[4] = 15.0f;
-    D_8021B04C[4] = -70.0f;
-    D_8021B019 = 0;
-    D_8021B07E = 0;
+    carouselX[0] = 0.0f;
+    carouselY[0] = -10.0f;
+    carouselZ[0] = 0.0f;
+    carouselX[1] = -60.0f;
+    carouselY[1] = 15.0f;
+    carouselZ[1] = -70.0f;
+    carouselX[2] = 60.0f;
+    carouselY[2] = 15.0f;
+    carouselZ[2] = -70.0f;
+    carouselX[3] = -158.0f;
+    carouselY[3] = 15.0f;
+    carouselZ[3] = -70.0f;
+    carouselX[4] = 158.0f;
+    carouselY[4] = 15.0f;
+    carouselZ[4] = -70.0f;
+    carouselCmd = 0;
+    carouselPhase = 0;
 }

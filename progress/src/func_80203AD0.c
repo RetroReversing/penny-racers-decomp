@@ -12,16 +12,16 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-extern M2C_UNK D_8021E180;
+extern M2C_UNK sMenu;
 
 void func_80203AD0(void) {
-    M2C_FIELD(&D_8021E180, s8 *, 0) = 0;
-    M2C_FIELD(&D_8021E180, s8 *, 9) = 0;
-    M2C_FIELD(&D_8021E180, s16 *, 0xC) = 0;
-    M2C_FIELD(&D_8021E180, s8 *, 0xE) = 5;
-    M2C_FIELD(&D_8021E180, s8 *, 0xF) = 0;
-    M2C_FIELD(&D_8021E180, s8 *, 0x11) = 0;
-    M2C_FIELD(&D_8021E180, s8 *, 0x12) = 0;
-    M2C_FIELD(&D_8021E180, s16 *, 0x1C) = 0;
-    M2C_FIELD(&D_8021E180, s8 *, 0x80) = 0;
+    M2C_FIELD(&sMenu, s8 *, 0) = 0;
+    M2C_FIELD(&sMenu, s8 *, 9) = 0;
+    M2C_FIELD(&sMenu, s16 *, 0xC) = 0;
+    M2C_FIELD(&sMenu, s8 *, 0xE) = 5;
+    M2C_FIELD(&sMenu, s8 *, 0xF) = 0;
+    M2C_FIELD(&sMenu, s8 *, 0x11) = 0;
+    M2C_FIELD(&sMenu, s8 *, 0x12) = 0;
+    M2C_FIELD(&sMenu, s16 *, 0x1C) = 0;
+    M2C_FIELD(&sMenu, s8 *, 0x80) = 0;
 }

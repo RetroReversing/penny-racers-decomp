@@ -3,12 +3,12 @@ typedef struct { char pad0[0x30]; f32 unk30; f32 unk34; char pad38[0x18]; s32 *u
 typedef struct { char pad0[2]; u16 unk2; char pad4[0x55C]; u16 unk560; char pad562[0x38E]; } Car;
 extern Cam D_8011F2F0[];
 extern Obj D_8011F4E4[];
-extern Car D_8022A770[];
+extern Car sCars[];
 
 void func_8016221C(u16 arg0)
 {
   s32 pad[2];
-  Car *car = &D_8022A770[D_8011F2F0[arg0].unk0];
+  Car *car = &sCars[D_8011F2F0[arg0].unk0];
   Obj *obj = &D_8011F4E4[car->unk2];
   s32 *p = obj->unk50;
 

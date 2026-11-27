@@ -3,7 +3,7 @@ typedef struct { u8 b0; u8 b1; u8 count; } Info;
 typedef struct { f32 x, y; } Pt;
 typedef struct { f32 dx, dy, nx, ny; } Edge;
 typedef struct { Pt p[4]; s16 n[4]; Edge e[4]; u8 pad68[4]; } Quad;
-extern Info *D_801C7AB0;
+extern Info *trackInfo;
 extern Quad D_8031EA70[];
 f32 sqrtf(f32);
 #define POS(v) ((v) * 400.0f + 400.0f - 200.0f)
@@ -13,15 +13,15 @@ u8 i;
 u8 next;
 u8 key;
 
-for (i = 0; i < D_801C7AB0->count; i++) {
-if (D_801C7AB0->b0 == 3) {
+for (i = 0; i < trackInfo->count; i++) {
+if (trackInfo->b0 == 3) {
 key = list[i].c;
 } else {
 key = list[i].c - 0x2E;
 }
 next = i;
-if (D_801C7AB0->b1 == 5) {
-if (i == D_801C7AB0->count - 1) {
+if (trackInfo->b1 == 5) {
+if (i == trackInfo->count - 1) {
 next = 0;
 } else {
 next = i + 1;
@@ -65,10 +65,10 @@ D_8031EA70[next].p[1].y = POS((list[i].y + 1));
 D_8031EA70[next].p[2].y = POS((list[i].y + 1));
 D_8031EA70[next].p[3].y = POS(list[i].y);
 }
-if (D_801C7AB0->b1 == 5) {
-if (i == D_801C7AB0->count - 1) {
+if (trackInfo->b1 == 5) {
+if (i == trackInfo->count - 1) {
 D_8031EA70[next].n[0] = 1;
-} else if (i == D_801C7AB0->count - 2) {
+} else if (i == trackInfo->count - 2) {
 D_8031EA70[next].n[0] = 0;
 } else {
 D_8031EA70[next].n[0] = i + 2;
@@ -77,8 +77,8 @@ D_8031EA70[next].n[2] = i;
 } else {
 if (i == 0) {
 D_8031EA70[next].n[0] = i + 1;
-D_8031EA70[next].n[2] = D_801C7AB0->count - 1;
-} else if (i == D_801C7AB0->count - 1) {
+D_8031EA70[next].n[2] = trackInfo->count - 1;
+} else if (i == trackInfo->count - 1) {
 D_8031EA70[next].n[0] = 0;
 D_8031EA70[next].n[2] = i - 1;
 } else {
@@ -98,7 +98,7 @@ D_8031EA70[next].p[0].y = POS((list[i].y + 1));
 D_8031EA70[next].p[1].y = POS((list[i].y + 1));
 D_8031EA70[next].p[2].y = POS(list[i].y);
 D_8031EA70[next].p[3].y = POS(list[i].y);
-if (D_801C7AB0->b1 == 5) {
+if (trackInfo->b1 == 5) {
 D_8031EA70[next].n[1] = i;
 } else {
 D_8031EA70[next].n[1] = i - 1;
@@ -114,14 +114,14 @@ D_8031EA70[next].p[1].y = POS(list[i].y);
 D_8031EA70[next].p[2].y = POS(list[i].y);
 D_8031EA70[next].p[3].y = POS((list[i].y + 1));
 D_8031EA70[next].n[1] = -1;
-if (D_801C7AB0->b1 == 5) {
+if (trackInfo->b1 == 5) {
 D_8031EA70[next].n[3] = i;
 } else {
 D_8031EA70[next].n[3] = i - 1;
 }
 }
-if (D_801C7AB0->b1 == 5) {
-if (i == D_801C7AB0->count - 2) {
+if (trackInfo->b1 == 5) {
+if (i == trackInfo->count - 2) {
 D_8031EA70[next].n[0] = 0;
 } else {
 D_8031EA70[next].n[0] = i + 2;
@@ -141,7 +141,7 @@ D_8031EA70[next].p[1].y = POS((list[i].y + 1));
 D_8031EA70[next].p[2].y = POS(list[i].y);
 D_8031EA70[next].p[3].y = POS(list[i].y);
 D_8031EA70[next].n[1] = -1;
-if (D_801C7AB0->b1 == 5) {
+if (trackInfo->b1 == 5) {
 D_8031EA70[next].n[3] = i;
 } else {
 D_8031EA70[next].n[3] = i - 1;
@@ -155,15 +155,15 @@ D_8031EA70[next].p[0].y = POS(list[i].y);
 D_8031EA70[next].p[1].y = POS((list[i].y + 1));
 D_8031EA70[next].p[2].y = POS((list[i].y + 1));
 D_8031EA70[next].p[3].y = POS(list[i].y);
-if (D_801C7AB0->b1 == 5) {
+if (trackInfo->b1 == 5) {
 D_8031EA70[next].n[1] = i;
 } else {
 D_8031EA70[next].n[1] = i - 1;
 }
 D_8031EA70[next].n[3] = -1;
 }
-if (D_801C7AB0->b1 == 5) {
-if (i == D_801C7AB0->count - 2) {
+if (trackInfo->b1 == 5) {
+if (i == trackInfo->count - 2) {
 D_8031EA70[next].n[0] = 0;
 } else {
 D_8031EA70[next].n[0] = i + 2;
@@ -183,7 +183,7 @@ D_8031EA70[next].p[1].y = POS(list[i].y);
 D_8031EA70[next].p[2].y = POS((list[i].y + 1));
 D_8031EA70[next].p[3].y = POS((list[i].y + 1));
 D_8031EA70[next].n[1] = -1;
-if (D_801C7AB0->b1 == 5) {
+if (trackInfo->b1 == 5) {
 D_8031EA70[next].n[3] = i;
 } else {
 D_8031EA70[next].n[3] = i - 1;
@@ -197,15 +197,15 @@ D_8031EA70[next].p[0].y = POS((list[i].y + 1));
 D_8031EA70[next].p[1].y = POS(list[i].y);
 D_8031EA70[next].p[2].y = POS(list[i].y);
 D_8031EA70[next].p[3].y = POS((list[i].y + 1));
-if (D_801C7AB0->b1 == 5) {
+if (trackInfo->b1 == 5) {
 D_8031EA70[next].n[1] = i;
 } else {
 D_8031EA70[next].n[1] = i - 1;
 }
 D_8031EA70[next].n[3] = -1;
 }
-if (D_801C7AB0->b1 == 5) {
-if (i == D_801C7AB0->count - 2) {
+if (trackInfo->b1 == 5) {
+if (i == trackInfo->count - 2) {
 D_8031EA70[next].n[0] = 0;
 } else {
 D_8031EA70[next].n[0] = i + 2;
@@ -224,7 +224,7 @@ D_8031EA70[next].p[0].y = POS(list[i].y);
 D_8031EA70[next].p[1].y = POS(list[i].y);
 D_8031EA70[next].p[2].y = POS((list[i].y + 1));
 D_8031EA70[next].p[3].y = POS((list[i].y + 1));
-if (D_801C7AB0->b1 == 5) {
+if (trackInfo->b1 == 5) {
 D_8031EA70[next].n[1] = i;
 } else {
 D_8031EA70[next].n[1] = i - 1;
@@ -240,14 +240,14 @@ D_8031EA70[next].p[1].y = POS((list[i].y + 1));
 D_8031EA70[next].p[2].y = POS((list[i].y + 1));
 D_8031EA70[next].p[3].y = POS(list[i].y);
 D_8031EA70[next].n[1] = -1;
-if (D_801C7AB0->b1 == 5) {
+if (trackInfo->b1 == 5) {
 D_8031EA70[next].n[3] = i;
 } else {
 D_8031EA70[next].n[3] = i - 1;
 }
 }
-if (D_801C7AB0->b1 == 5) {
-if (i == D_801C7AB0->count - 2) {
+if (trackInfo->b1 == 5) {
+if (i == trackInfo->count - 2) {
 D_8031EA70[next].n[0] = 0;
 } else {
 D_8031EA70[next].n[0] = i + 2;
@@ -297,7 +297,7 @@ D_8031EA70[next].p[3].y = POS(list[i].y);
 if (i == 0) {
 D_8031EA70[next].n[0] = i + 1;
 D_8031EA70[next].n[2] = -1;
-} else if (i == D_801C7AB0->count - 1) {
+} else if (i == trackInfo->count - 1) {
 D_8031EA70[next].n[0] = -1;
 D_8031EA70[next].n[2] = i - 1;
 }

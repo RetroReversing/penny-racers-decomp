@@ -6,7 +6,7 @@ extern u8 D_80190CB0;
 extern u16 D_80190CAE;
 s32 func_8014A870(s32, s32, u8);
 void func_80148688(s32, u8);
-void func_8014B854(s32);
+void playMenuSound(s32);
 
 void func_80146970(void)
 {
@@ -18,7 +18,7 @@ void func_80146970(void)
 
     flags = func_8014A870(0x14, 3, D_80189CBE);
     if (flags & 3) {
-        func_8014B854(0x3B);
+        playMenuSound(0x3B);
     }
     p = &D_80190CB0;
     func_80148688(flags & 0xFF, *p);
@@ -31,10 +31,10 @@ void func_80146970(void)
             { u8 *r = &D_80189B36; *r &= ~0x10; }
             D_80189C98 = *(u16 *)(p - 4);
         }
-        func_8014B854(mode);
+        playMenuSound(mode);
     }
     if (flags & 0x20) {
-        func_8014B854(0x3A);
+        playMenuSound(0x3A);
         { u8 *r = &D_80189B36; *r &= ~0x10; }
         D_80189C98 = D_80190CAE;
     }

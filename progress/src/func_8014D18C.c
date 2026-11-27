@@ -1,4 +1,4 @@
-extern char D_8011F32E[];
+extern char playerSlots[];
 extern char D_802EFB00[];
 inline static int inline_fn(u32 arg0, u32 arg1, int arg2)
 {
@@ -26,7 +26,7 @@ void func_8014D18C(u32 **arg0, s32 arg1)
   *arg0 = p + 2; p[0] = 0xF2000000; p[1] = 0x7C07C;
   q = *arg0;
   *arg0 = q + 2;
-  t = (*((u16 *) (D_8011F32E + ((arg1 & 0xFFFF) * 0x64)))) & 0xFFF;
+  t = (*((u16 *) (playerSlots + ((arg1 & 0xFFFF) * 0x64)))) & 0xFFF;
   q[0] = inline_fn(t, t, 0xF2000000); q[1] = 0x7C07C;
 }
 

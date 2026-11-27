@@ -12,20 +12,20 @@ typedef s32 M2C_UNK32;
 #endif
 /* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 
-s32 func_8014A4C8();
-s32 func_801CA140();
-s32 func_801CA468();
-s32 func_801CA494();
-s32 func_801CCE7C();
+s32 gfxDrawSprite();
+s32 gfxSetup2DState();
+s32 gfxSetPrimAlpha();
+s32 gfxSetPrimColor();
+s32 gfxDrawClippedTex8b();
 extern char D_802E66D8[];
 extern char D_802F92E0[];
 
 void func_80215CCC(s32 arg0) {
-    func_801CA140();
-    func_801CA468(arg0, 0xFF);
-    func_801CA494(arg0, 0x78, 0x78, 0x78, 0xFF);
-    func_801CCE7C(arg0, 0, 0, 0, 0, 0x140, 0xF0, 0x140, 0xF0, 0x40, 0x20, 0, 0, 0x13F, 0xEF, &D_802E66D8, &D_802F92E0);
-    func_801CA494(arg0, 0xFF, 0xFF, 0xFF, 0xFF);
-    func_8014A4C8(arg0, 0x50, 0x18, 0xA, 0x1F);
-    func_8014A4C8(arg0, 0x61, 0x1A, 0xA, 6);
+    gfxSetup2DState();
+    gfxSetPrimAlpha(arg0, 0xFF);
+    gfxSetPrimColor(arg0, 0x78, 0x78, 0x78, 0xFF);
+    gfxDrawClippedTex8b(arg0, 0, 0, 0, 0, 0x140, 0xF0, 0x140, 0xF0, 0x40, 0x20, 0, 0, 0x13F, 0xEF, &D_802E66D8, &D_802F92E0);
+    gfxSetPrimColor(arg0, 0xFF, 0xFF, 0xFF, 0xFF);
+    gfxDrawSprite(arg0, 0x50, 0x18, 0xA, 0x1F);
+    gfxDrawSprite(arg0, 0x61, 0x1A, 0xA, 6);
 }

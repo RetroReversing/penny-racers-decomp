@@ -6,9 +6,9 @@ extern u8 D_8021F036[];
 extern f64 D_8021DDC0;
 extern f64 D_8021DDC8;
 void func_80211A84(void);
-void func_800DE41C(s32, s32, s32, s32, s32, s32, s32, void *, s32, f32, s32, s32, s32, s32, s32, f32, s32, s32);
+void objCreate(s32, s32, s32, s32, s32, s32, s32, void *, s32, f32, s32, s32, s32, s32, s32, f32, s32, s32);
 s32 func_8014A870(s32, s32, s32);
-void func_8014B854(s32);
+void playMenuSound(s32);
 void func_80211C08(void);
 
 void func_802117AC(void) {
@@ -22,16 +22,16 @@ void func_802117AC(void) {
         if (D_8021EEC0.sel != 0) {
             D_8021EEC0.flags |= 0x2000;
             D_8021EEC0.sel--;
-            func_800DE41C(0, 0, 3, 0, 0x50, 0, 0, func_80211A84, 0, D_8021EEC0.x - D_8021DDC0, 0, 0, 0, 0, 0, -0.5f, 0, 0);
-            func_8014B854(0x3B);
+            objCreate(0, 0, 3, 0, 0x50, 0, 0, func_80211A84, 0, D_8021EEC0.x - D_8021DDC0, 0, 0, 0, 0, 0, -0.5f, 0, 0);
+            playMenuSound(0x3B);
         }
     }
     if (keys & 8) {
         if (D_8021EEC0.sel != D_8021EEC0.count - 1) {
             D_8021EEC0.flags |= 0x2000;
             D_8021EEC0.sel++;
-            func_800DE41C(0, 0, 3, 0, 0x50, 0, 0, func_80211A84, 0, D_8021EEC0.x + D_8021DDC8, 0, 0, 0, 0, 0, 0.5f, 0, 0);
-            func_8014B854(0x3B);
+            objCreate(0, 0, 3, 0, 0x50, 0, 0, func_80211A84, 0, D_8021EEC0.x + D_8021DDC8, 0, 0, 0, 0, 0, 0.5f, 0, 0);
+            playMenuSound(0x3B);
         }
     }
     {
@@ -52,11 +52,11 @@ void func_802117AC(void) {
         }
     }
     if (((keys & 3) != 0) & (i != 0xD)) {
-        func_8014B854(0x3C);
+        playMenuSound(0x3C);
     }
     if (keys & 0x10) {
         D_8021EEC0.flags &= ~0x8000;
-        func_8014B854(0x3B);
+        playMenuSound(0x3B);
     }
     func_80211C08();
 }

@@ -11,11 +11,13 @@ inline static char *inline_fn(void *arg0)
 
 void *n_alFxPull(void)
 {
+int __repair_literal;
+
   s16 temp_v0_3;
   s16 temp_v0_4;
   s16 temp_v0_5;
   s16 temp_v0_6;
-  s16 temp_v1;
+  s32 temp_v1;
   s16 var_s4;
   s16 var_s5;
   s16 var_s7;
@@ -42,14 +44,16 @@ void *n_alFxPull(void)
   *((s32 *) (inline_fn(temp_s1) + 4)) = 0x07C007C0;
   *((s32 *) (inline_fn(temp_s1) + 8)) = 0x0C005A82;
   *((s32 *) (inline_fn(temp_s1 + 8) + 4)) = 0x093007C0;
+  var_s0 = 0;
   temp_s1 = func_8002FC68(temp_s2, *((u32 *) (inline_fn(temp_s2) + 0x18)), 0x7C0, temp_t0 + 8);
   *((s32 *) (inline_fn(temp_s1) + 0)) = 0x02000930;
   *((s32 *) (inline_fn(temp_s1) + 4)) = 0x170;
-  var_s0 = 0;
   var_t0 = temp_s1 + 8;
   if (1)
   {
-    if (((s32) (*((u8 *) (inline_fn(temp_s2) + 0x24)))) > 0)
+__repair_literal = 0;
+
+    if (((s32) (*((u8 *) (inline_fn(temp_s2) + 0x24)))) > __repair_literal)
     {
       var_v1 = 0;
       __repair_rows:
@@ -70,7 +74,7 @@ void *n_alFxPull(void)
         }
         temp_v1 = *((s16 *) (inline_fn(temp_s1) + 8));
         var_t0 = func_8002F930(temp_s2, temp_s1, var_s4, var_t0);
-        if (temp_v1 != 0)
+        do { if (temp_v1 != 0)
         {
           *((s32 *) (inline_fn(var_t0) + 0)) = (s32) ((temp_v1 & 0xFFFF) | 0x0C000000);
           *((s32 *) (inline_fn(var_t0) + 4)) = (s32) ((var_s5 << 0x10) | (var_s4 & 0xFFFF));
@@ -114,13 +118,14 @@ void *n_alFxPull(void)
           {
             do
             {
+              (void)&temp_v0_3;
               temp_v0_3 = var_s7 + 1;
             }
             while (0);
           }
           while (0);
         }
-        while (0);
+        while (0); } while (0);
         var_s7 = temp_v0_3;
         var_s0 = (*((u32 *) (inline_fn(temp_s2) + 0x18))) + ((*((s32 *) (inline_fn(temp_s1) + 4))) * 2);
         var_v1 = var_s7;

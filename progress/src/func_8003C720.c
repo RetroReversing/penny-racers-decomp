@@ -1,5 +1,5 @@
 extern s32 D_80048120[];
-extern u8 D_800DB1B8[];
+extern u8 sRowBoard[];
 extern u8 D_800DD3E0[];
 extern u8 D_80092C04;
 extern u8 D_8006E7A0[];
@@ -21,7 +21,7 @@ u32 func_8003C720(s32 *a)
     return 5;
   func_8003F464();
   D_80092C04 = 3;
-  __osSiRawStartDma(1, D_800DB1B8 + (a[2] << 6));
+  __osSiRawStartDma(1, sRowBoard + (a[2] << 6));
   osRecvMesg(a[1], 0, 1);
   __osSiRawStartDma(0, p);
   osRecvMesg(a[1], 0, 1);

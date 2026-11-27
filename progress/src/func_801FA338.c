@@ -13,18 +13,18 @@ typedef s32 M2C_UNK32;
 #endif
 
 s32 func_8003EA20();                                /* extern */
-extern s32 D_801FB2F0;
+extern s32 randomSeed;
 
 void func_801FA338(s32 arg0) {
     switch (arg0) {                                 /* irregular */
     case 0:
-        D_801FB2F0 = 0;
+        randomSeed = 0;
         return;
     case 1:
-        D_801FB2F0 = func_8003EA20();
+        randomSeed = func_8003EA20();
         return;
     default:
-        D_801FB2F0 = arg0;
+        randomSeed = arg0;
         return;
     }
 }

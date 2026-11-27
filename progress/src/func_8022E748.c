@@ -20,7 +20,7 @@ extern u16 D_801E975C[];
 extern View D_8022B600;
 extern u16 D_8018A438;
 void func_80231A0C(void);
-void func_80231E30(void);
+void createStageObjects(void);
 void func_8022F780(u16);
 void func_800E067C(void);
 void func_802312F8(s32);
@@ -32,13 +32,13 @@ void func_8012AD9C();
 void func_80159230();
 void func_8015A414();
 void func_8013DD2C();
-s32 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
-void func_8021F6A0(u8);
+s32 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
+void initRowTable(u8);
 void func_8013ADA8(void);
 void func_801DDA5C(void);
 
 #define SPAWN(a0, a1, a2, a3, b0, b1, p0, p1, p2) \
-    func_800DE41C(a0, a1, a2, a3, b0, b1, p0, p1, p2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
+    objCreate(a0, a1, a2, a3, b0, b1, p0, p1, p2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
 
 void func_8022E748(void)
 {
@@ -46,7 +46,7 @@ void func_8022E748(void)
     u16 i;
 
     func_80231A0C();
-    func_80231E30();
+    createStageObjects();
     func_8022F780(D_8006FAF0[0x10]);
     func_800E067C();
     func_802312F8(0);
@@ -134,7 +134,7 @@ void func_8022E748(void)
         }
         break;
     }
-    func_8021F6A0(func_80232820);
+    initRowTable(func_80232820);
     switch (func_80232820) {
     case 1:
         SPAWN(0, 0, 3, 0, 0x20, 1, 0, func_8012AD9C, 0);

@@ -38,8 +38,8 @@ extern u8 D_801C6A3C[];
 extern Sel D_8006FAF0;
 extern Flag D_8006FB14;
 extern s16 D_8018A438;
-extern Race *D_801C7AB0;
-extern Car D_8022A770[];
+extern Race *trackInfo;
+extern Car sCars[];
 extern Part D_80238EC0[];
 extern u8 D_8031EA70[];
 extern u8 D_80236F58[];
@@ -54,29 +54,29 @@ extern f32 D_80235620[];
 extern f32 D_80235940[];
 extern u8 D_80323ED0[];
 extern void func_80231A0C();
-extern void func_80231E30();
+extern void createStageObjects();
 extern void func_801B09F0();
 extern void func_801B0B60(s32);
-extern void func_801B312C(s32, void *, s32, f32, f32);
+extern void placeEdgeObjects(s32, void *, s32, f32, f32);
 extern void func_801B7970(void *, s32);
-extern void func_801B36F8(s32);
+extern void linkTrackPieces(s32);
 extern void func_8022132C(void *);
 extern void func_8013E188(void);
 extern u16 func_801F9D8C(s32, s32);
-extern u32 func_801FA30C(void);
-extern void func_8003DE60();
+extern u32 nextRandom(void);
+extern void debugPrintf();
 extern void func_8022FE50(u8, u8, u8, s32);
-extern void func_8021F6A0(s32);
+extern void initRowTable(s32);
 extern void func_8013ADA8(void);
 extern f32 sqrtf(f32);
-extern s16 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *,
+extern s16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *,
                          f32, f32, f32, f32, f32, f32, f32, f32, f32);
 extern void func_8012AD9C();
 extern void func_80159230();
 extern void func_8015A414();
 extern void func_8013DD2C();
 
-#define SPAWN(a, b) func_800DE41C(0, 0, 3, 0, a, b, 0, func_8012AD9C, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
+#define SPAWN(a, b) objCreate(0, 0, 3, 0, a, b, 0, func_8012AD9C, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
 
 void func_801AFB94(s32 arg0, u8 arg1)
 {
@@ -96,25 +96,25 @@ void func_801AFB94(s32 arg0, u8 arg1)
 
     D_8006FAF0.unk20 = 0;
     func_80231A0C();
-    func_80231E30();
+    createStageObjects();
     func_801B09F0();
     func_801B0B60(arg0);
-    func_801B312C(arg0, D_80323ED0, arg1, 400.0f, 400.0f);
-    func_801B7970(D_801C7AB0, arg0);
-    func_801B36F8(arg0);
+    placeEdgeObjects(arg0, D_80323ED0, arg1, 400.0f, 400.0f);
+    func_801B7970(trackInfo, arg0);
+    linkTrackPieces(arg0);
 
     for (j = 0; j < arg1; j++) {
         for (i = 0; i < 8; i++) {
-            D_8022A770[j].parts[i] = D_80238EC0[i];
+            sCars[j].parts[i] = D_80238EC0[i];
         }
     }
     for (i = 0; i < 7; i++) {
-        func_8022132C(&D_8022A770[i]);
-        D_8022A770[i].unk8DC = D_8031EA70;
+        func_8022132C(&sCars[i]);
+        sCars[i].unk8DC = D_8031EA70;
     }
     D_8006FB14.unk4 = 0;
     func_8013E188();
-    for (i = 0; i < D_801C7AB0->unk2; i++) {
+    for (i = 0; i < trackInfo->unk2; i++) {
         D_80236F58[i] = 0;
         D_80237070[i] = -10000.0f;
     }
@@ -130,7 +130,7 @@ void func_801AFB94(s32 arg0, u8 arg1)
         }
     }
 
-    if (D_801C7AB0->unk1 == 5) {
+    if (trackInfo->unk1 == 5) {
         nodes = D_802CBEE0[D_8006FAF0.unk20];
         for (i = 0; i < D_802352F4[D_8006FAF0.unk20] + 1; i++) {
             cur = D_802352CC[D_8006FAF0.unk20][i * 2];
@@ -186,21 +186,21 @@ void func_801AFB94(s32 arg0, u8 arg1)
     if (arg1 == 1) {
         pick = 0;
     } else {
-        pick = func_801FA30C() % arg1;
+        pick = nextRandom() % arg1;
     }
     for (i = 0; i < arg1; i++) {
         while (used.b[pick]) {
-            pick = func_801FA30C() % arg1;
+            pick = nextRandom() % arg1;
         }
         used.b[pick] = 1;
-        func_8003DE60(D_801C6A3C, pick);
+        debugPrintf(D_801C6A3C, pick);
         func_8022FE50(pick, i, i, 0);
-        if (D_801C7AB0->unk1 == 6) {
-            D_8022A770[i].unk597 = 1;
+        if (trackInfo->unk1 == 6) {
+            sCars[i].unk597 = 1;
         }
     }
 
-    func_8021F6A0(arg1);
+    initRowTable(arg1);
     switch (arg1) {
     case 1:
         SPAWN(0x20, 1);
@@ -222,8 +222,8 @@ void func_801AFB94(s32 arg0, u8 arg1)
         break;
     }
     func_8013ADA8();
-    D_8018A438 = func_800DE41C(0, 0, 3, 0, 0xA1, 0xFF, 0, func_80159230, func_8015A414,
+    D_8018A438 = objCreate(0, 0, 3, 0, 0xA1, 0xFF, 0, func_80159230, func_8015A414,
                                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-    func_800DE41C(0, 0, 3, 0, 0xA1, 0xFF, 0, 0, func_8013DD2C,
+    objCreate(0, 0, 3, 0, 0xA1, 0xFF, 0, 0, func_8013DD2C,
                   0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 }

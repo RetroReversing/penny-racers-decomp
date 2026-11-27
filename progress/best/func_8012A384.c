@@ -1,131 +1,81 @@
-typedef struct 
-{
-  s16 y;
-  s16 x;
-  s16 z;
-  u8 pad[10];
-} V16;
-typedef struct 
-{
-  u8 n;
-  u8 pad[3];
-  u8 *tris;
-  V16 *verts;
-  u8 nverts;
-  u8 base;
-  u8 pad2[2];
-} Mesh;
-typedef struct 
-{
-  Mesh *meshes;
-  u8 pad[8];
-} Group;
-typedef struct 
-{
-  f32 x;
-  f32 y;
-  f32 z;
-} Vec3;
-void func_8003DE60(const char *, ...);
-extern char D_8012AA48[];
-extern char D_8012AA68[];
-extern char D_8012AA84[];
-extern char D_8012AA98[];
-extern char D_8012AABC[];
-extern char D_8012AAE0[];
-extern char D_8012AB04[];
-extern char D_8012AB20[];
-extern Vec3 D_8012AB64;
-extern Vec3 D_8012AB4C;
-extern Vec3 D_8012AB7C;
-extern Vec3 D_8012AB98[];
-inline static u8 inline_fn(Mesh *arg0)
-{
-  return arg0->base;
-}
+typedef struct { f32 x; f32 y; f32 z; } Vec;
+typedef struct { s16 x; s16 y; s16 z; s16 pad[5]; } Vert;
+typedef struct { u8 ntri; u8 pad1[3]; u8 (*tris)[3]; Vert *verts; u8 nvert; u8 base; u8 padE[2]; } Mesh;
+typedef struct { Mesh *mesh; u8 pad4[8]; } Entry;
+typedef struct { u8 pad0[4]; Entry **list; } Mid;
+typedef struct { u8 pad0[4]; Mid *mid; } Top;
+typedef struct { u8 pad0[0x18]; f32 x; f32 y; f32 z; u8 pad24[0x2C]; Top *top; } Node;
+extern Vec D_8012AB98[];
+extern Vec D_8012AB64;
+extern Vec D_8012AB4C;
+extern Vec D_8012AB7C;
+extern char D_8012AA48[], D_8012AA68[], D_8012AB04[], D_8012AA84[], D_8012AA98[], D_8012AABC[], D_8012AAE0[], D_8012AB20[];
+void debugPrintf();
 
-inline static f32 inline_fn2()
-{
-  return D_8012AB4C.x;
-}
+#define EQ(a, b) (a.x == b.x && a.y == b.y && a.z == b.z)
 
-void func_8012A384(u8 *arg0, s32 arg1)
-{
-  Vec3 *__base_D_8012AB7C;
-  Vec3 *__base_D_8012AB4C;
-  volatile unsigned long pad;
-  Group **gp;
-  Mesh *m;
-  u8 *t;
-  Group *g;
-  char *msg;
-  s32 bad;
-  s32 i;
-  s32 j;
-  s32 k;
-  s32 v;
-  do
-  {
-    func_8003DE60(D_8012AA48, arg1 & 0xFFFF);
-  }
-  while (0);
-  gp = *((Group ***) ((*((u8 **) ((*((u8 **) (arg0 + 0x50))) + 4))) + 4));
-  bad = 0;
-  for (i = 0; (*gp)[i].meshes != NULL; i++)
-  {
-    g = &(*gp)[i];
-    for (j = 0; g->meshes[0].n != 0; j++)
-    {
-      m = &g->meshes[j];
-      for (v = 0; v < m->nverts; v++)
-      {
-        D_8012AB98[m->base + v].x = (*((f32 *) (arg0 + 0x18))) + m->verts[v].x;
-        i = m->verts[v].y; D_8012AB98[inline_fn(m) + v].y = (*((f32 *) (arg0 + 0x1C))) + i;
-        D_8012AB98[inline_fn(m) + v].z = ((long) (*((f32 *) (arg0 + 0x20)))) + m->verts[v].z;
-      }
+void func_8012A384(Node *node, u16 id) {
+    Entry *entry;
+    Entry **list;
+    Mesh *m;
+    u8 *tri;
+    s32 i;
+    s32 j;
+    s32 k;
+    s32 t;
+    s32 count;
 
-      for (k = 0; 0 < m->n; k++)
-      {
-        t = &m->tris[k * 3];
-        D_8012AB64 = D_8012AB98[t[0]];
-        __base_D_8012AB4C = &D_8012AB4C;
-        *__base_D_8012AB4C = D_8012AB98[t[1]];
-        __base_D_8012AB7C = &D_8012AB7C;
-        *__base_D_8012AB7C = D_8012AB98[t[2]];
-        do
-        {
-          if (D_8012AB64.y || g->meshes)
-          {
-            bad++;
-          }
-          else
-          {
-            bad++;
-          }
+    debugPrintf(D_8012AA48, id);
+    list = node->top->mid->list;
+    count = 0;
+    for (i = 0; (*list)[i].mesh != 0; i++) {
+        entry = &(*list)[i];
+        for (j = 0; entry->mesh[j].ntri != 0; j++) {
+            m = &entry->mesh[j];
+            for (k = 0; k < m->nvert; k++) {
+                D_8012AB98[m->base + k].x = m->verts[k].x + node->x;
+                D_8012AB98[m->base + k].y = m->verts[k].y + node->y;
+                D_8012AB98[m->base + k].z = m->verts[k].z + node->z;
+            }
+            for (t = 0; t < m->ntri; t++) {
+                tri = m->tris[t];
+                D_8012AB64.x = D_8012AB98[tri[0]].x;
+                D_8012AB64.y = D_8012AB98[tri[0]].y;
+                D_8012AB64.z = D_8012AB98[tri[0]].z;
+                D_8012AB4C.x = D_8012AB98[tri[1]].x;
+                D_8012AB4C.y = D_8012AB98[tri[1]].y;
+                D_8012AB4C.z = D_8012AB98[tri[1]].z;
+                D_8012AB7C.x = D_8012AB98[tri[2]].x;
+                D_8012AB7C.y = D_8012AB98[tri[2]].y;
+                D_8012AB7C.z = D_8012AB98[tri[2]].z;
+                count++;
+                if (EQ(D_8012AB64, D_8012AB4C)) {
+                    if (EQ(D_8012AB64, D_8012AB7C)) {
+                        debugPrintf(D_8012AA68);
+                    } else {
+                        debugPrintf(D_8012AB04);
+                    }
+                } else if (EQ(D_8012AB64, D_8012AB7C)) {
+                    if (EQ(D_8012AB64, D_8012AB4C)) {
+                        debugPrintf(D_8012AA68);
+                    } else {
+                        debugPrintf(D_8012AB04);
+                    }
+                } else if (EQ(D_8012AB7C, D_8012AB4C)) {
+                    if (EQ(D_8012AB64, D_8012AB7C)) {
+                        debugPrintf(D_8012AA68);
+                    } else {
+                        debugPrintf(D_8012AB04);
+                    }
+                } else {
+                    continue;
+                }
+                debugPrintf(D_8012AA84, i);
+                debugPrintf(D_8012AA98, D_8012AB64.x, D_8012AB64.y, D_8012AB64.z);
+                debugPrintf(D_8012AABC, D_8012AB4C.x, D_8012AB4C.y, D_8012AB4C.z);
+                debugPrintf(D_8012AAE0, D_8012AB7C.x, D_8012AB7C.y, D_8012AB7C.z);
+            }
         }
-        while (0);
-        if (((((D_8012AB64.x == (*__base_D_8012AB4C).x) && (D_8012AB64.y == (*__base_D_8012AB4C).y)) && (D_8012AB64.z == (*__base_D_8012AB4C).z)) || (((D_8012AB64.x == (*__base_D_8012AB7C).x) && (D_8012AB64.y == (*__base_D_8012AB7C).y)) && (D_8012AB64.z == (*__base_D_8012AB7C).z))) || ((((*__base_D_8012AB7C).x == inline_fn2()) && ((*__base_D_8012AB7C).y == (*__base_D_8012AB4C).y)) && ((*__base_D_8012AB7C).z == (*__base_D_8012AB4C).z)))
-        {
-          if ((((((D_8012AB64.x == (*__base_D_8012AB7C).x) && (D_8012AB64.y == (*__base_D_8012AB7C).y)) && (D_8012AB64.z == (*__base_D_8012AB7C).z)) && (inline_fn2() == D_8012AB64.x)) && (D_8012AB64.y == (*__base_D_8012AB4C).y)) && (D_8012AB64.z == (*__base_D_8012AB4C).z))
-          {
-            msg = D_8012AA68;
-          }
-          else
-          {
-            msg = D_8012AB04;
-          }
-          func_8003DE60(msg);
-          func_8003DE60(D_8012AA84);
-          func_8003DE60(D_8012AA98, D_8012AB64.x, D_8012AB64.y, D_8012AB64.z);
-          func_8003DE60(D_8012AABC, (*__base_D_8012AB4C).x, (*__base_D_8012AB4C).y, (*__base_D_8012AB4C).z);
-          func_8003DE60(D_8012AAE0, (*__base_D_8012AB7C).x, (*__base_D_8012AB7C).y, (*__base_D_8012AB7C).z);
-        }
-      }
-
     }
-
-  }
-
-  func_8003DE60(D_8012AB20);
+    debugPrintf(D_8012AB20, count);
 }
-

@@ -1,4 +1,4 @@
-/* adapted from similar verified C in func_801CA140 (matched), with its names changed by decompdecomp */
+/* adapted from similar verified C in gfxSetup2DState (matched), with its names changed by decompdecomp */
 void func_801CA2D4(u32 **arg0)
 {
     u32 *d = *arg0;

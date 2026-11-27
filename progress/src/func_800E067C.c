@@ -21,7 +21,7 @@ typedef struct {
 extern Obj D_8011F2F0[];
 extern f64 D_800E1E70;
 extern u16 D_80233EC0;
-extern u16 func_800E1850;
+extern u16 objListHead;
 
 void func_800E067C(void)
 {
@@ -30,7 +30,7 @@ void func_800E067C(void)
     Pose *p;
     s32 i;
 
-    idx = func_800E1850;
+    idx = objListHead;
     do {
         if (D_8011F2F0[idx].state == 2) {
             if (D_8011F2F0[idx].anim->next != 0 && D_8011F2F0[idx].anim->next->next != 0) {

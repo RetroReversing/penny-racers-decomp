@@ -4,7 +4,7 @@ typedef struct {
 } Gfx;
 
 extern u8 D_80168166;
-extern u8 D_80126FF6;
+extern u8 viewIndex;
 extern u8 D_80183BE0;
 
 void func_8020FED8(Gfx **arg0) {
@@ -14,7 +14,7 @@ void func_8020FED8(Gfx **arg0) {
     temp_a2 = *arg0;
     (*arg0)++;
     temp_a2->w0 = 0xFD100000;
-    temp_a2->w1 = (u32)((D_80168166 << 0xB) + ((D_80126FF6 << 0xC) + &D_80183BE0));
+    temp_a2->w1 = (u32)((D_80168166 << 0xB) + ((viewIndex << 0xC) + &D_80183BE0));
     temp_v1 = *arg0;
     (*arg0)++;
     temp_v1->w0 = 0xF5100000;

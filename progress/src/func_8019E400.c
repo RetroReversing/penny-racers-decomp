@@ -1,4 +1,4 @@
-extern u8 D_80126FF6;
+extern u8 viewIndex;
 extern s32 D_801C57A0;
 extern s32 D_801C57B0;
 
@@ -11,7 +11,7 @@ void func_8019E400(void **arg0)
   *arg0 = (char *) p + 8;
   p[0] = 0xE7000000;
   p[1] = 0;
-  if (D_80126FF6 == 0) {
+  if (viewIndex == 0) {
     p = *arg0;
     *arg0 = (char *) p + 8;
     p[0] = 0x03800010;

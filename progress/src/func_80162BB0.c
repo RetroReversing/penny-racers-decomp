@@ -68,8 +68,8 @@ extern Vtx D_8018BC40[][3][16];
 extern f32 D_80182E40[];
 extern Mtx D_80190CB8[];
 extern s32 D_80046834;
-extern u8 D_80126FF7;
-s32 func_801FA30C(void);
+extern u8 lastMaterial;
+s32 nextRandom(void);
 void func_80033280(f32 *, f32, f32, f32, f32);
 void func_8003DE90(f32 *, f32 *, f32 *);
 void func_8003DF6C(f32 *, f32, f32, f32, f32 *, f32 *, f32 *);
@@ -175,9 +175,9 @@ void func_80162BB0(Gfx **gfxp, u16 id) {
                     vtx->cn[2] = 200 - k * 20;
                     break;
                 case 13 ... 255:
-                    vtx->cn[0] = func_801FA30C();
-                    vtx->cn[1] = func_801FA30C();
-                    vtx->cn[2] = func_801FA30C();
+                    vtx->cn[0] = nextRandom();
+                    vtx->cn[1] = nextRandom();
+                    vtx->cn[2] = nextRandom();
                     break;
                 }
                 vtx->cn[3] = i * 30;
@@ -200,6 +200,6 @@ void func_80162BB0(Gfx **gfxp, u16 id) {
         gDma((*gfxp)++, 0xB1121410, 0x1614);
         gDma((*gfxp)++, 0xB1161814, 0x00161A18);
         gDma((*gfxp)++, 0xB11A1C18, 0x001A1E1C);
-        D_80126FF7 = 0xFF;
+        lastMaterial = 0xFF;
     }
 }

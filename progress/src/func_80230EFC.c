@@ -12,7 +12,7 @@ typedef struct {
 typedef struct { u16 unk0; u8 pad[98]; } Slot;
 extern Slot D_8011F330[];
 extern u8 D_802328DB[][5];
-extern s32 func_800DE41C();
+extern s32 objCreate();
 extern void func_8013F638();
 
 void func_80230EFC(Obj *a0)
@@ -54,7 +54,7 @@ void func_80230EFC(Obj *a0)
         }
         break;
     }
-    ret = func_800DE41C(0, ((u8 *)a0)[5], 3, 0, 0x20, 1, 0, func_8013F638, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    ret = objCreate(0, ((u8 *)a0)[5], 3, 0, 0x20, 1, 0, func_8013F638, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     if ((u16)(ret + 2) < 2) return;
     if (a0->unk879 == 1) {
         if (s0 == 0) {

@@ -36,7 +36,7 @@ typedef struct { u16 v; } Id;
 typedef struct { Id ids[8]; u8 timer; u8 unk11; u8 anim; u8 unk13; Win win; } Menu;
 typedef struct { u16 unk0; u8 unk2[0x168]; u8 unk16A[0xE]; } Car;
 typedef struct { u8 b[12]; } Pal;
-typedef struct { u8 unk0[2]; u8 count; u8 cars[5]; } Cars;
+typedef struct { u8 unk0[2]; u8 count; u8 sCars[5]; } Cars;
 
 extern Obj D_8011F2F0[];
 extern Menu D_80190C98;
@@ -54,7 +54,7 @@ extern Car D_800DA260[];
 extern u8 D_8018FC50[];
 extern Pal D_80237DC0[];
 extern u8 D_8021F120[];
-extern u16 D_8006F9E8;
+extern u16 gameState;
 extern u8 D_8021B01A;
 extern s32 D_8021AFDC;
 extern s32 D_8021AFE0;
@@ -80,7 +80,7 @@ extern void func_80148B44();
 extern u16 func_80149220();
 extern s32 func_8014BAC0();
 extern s32 func_8014A870();
-extern void func_8014B854();
+extern void playMenuSound();
 extern void func_8014BFFC();
 extern void func_8014B410();
 extern void func_80028100();
@@ -96,15 +96,15 @@ extern void func_8014B048();
 extern void func_8014ACD0();
 extern void func_8014ADA4();
 extern void func_80146970();
-extern void func_80146A5C();
+extern void updateDemoInput();
 extern void func_80146EC4();
 extern void func_801470F8();
-extern void func_8014730C();
+extern void updateTitleMenu();
 extern void func_801478F0();
-extern s16 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *,
+extern s16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *,
                          f32, f32, f32, f32, f32, f32, f32, f32, f32);
 
-#define SPAWN0(a, b, f, g) func_800DE41C(0, 0, 3, 0, a, b, 0, f, g, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
+#define SPAWN0(a, b, f, g) objCreate(0, 0, 3, 0, a, b, 0, f, g, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
 
 void func_80144808(u16 arg0)
 {
@@ -163,13 +163,13 @@ void func_80144808(u16 arg0)
         *id3 = SPAWN0(0x4A, 0, func_8014674C, 0);
         f = 0.9f;
         for (i = 0; i < D_8018A274.count; i++) {
-            D_80190C98.ids[i].v = func_80149B38(i, D_8018A274.cars[i] & 0xF, 1.0f, f);
+            D_80190C98.ids[i].v = func_80149B38(i, D_8018A274.sCars[i] & 0xF, 1.0f, f);
             f -= 2.05;
         }
         if (D_80189C98.flags.all & 0x2000) {
             i = D_800DA260[D_80189C98.pl[1].id].unk0;
             b = i & 0xFF;
-            *id2 = func_800DE41C(0, b, 1, 0, 0x54, 0xFF, D_8018FC50, func_8014ABD8, func_8020FED8,
+            *id2 = objCreate(0, b, 1, 0, 0x54, 0xFF, D_8018FC50, func_8014ABD8, func_8020FED8,
                                  -2.259998f, -3.009998f, 0.0f, 0.0f, 360.0f, 0.0f, 0.04f, 0.04f, 0.04f);
             ((ObjB *) &D_8011F2F0[D_8011F2F0[*id2].child])->unk50->unk4 = D_80237DC0[i].b;
             func_8012AD20(D_8011F2F0[*id2].child, D_8021F120, b, D_800DA260[D_80189C98.pl[1].id].unk16A[i]);
@@ -194,14 +194,14 @@ void func_80144808(u16 arg0)
         }
         break;
     case 0x30:
-        D_80189C98.pl[0].id = D_8018A274.cars[D_80189C98.car] & 0xF;
+        D_80189C98.pl[0].id = D_8018A274.sCars[D_80189C98.car] & 0xF;
         D_80189C98.pl[0].colour = func_8014AAE8(D_80189C98.pl[0].id);
         D_80189C98.pl[1].colour = func_8014AAE8(D_80189C98.pl[1].id);
         D_80189C98.flags.f.b10 = func_8014AB2C(D_80189C98.pl[0].id, D_80189C98.pl[0].colour);
         D_80189C98.pl[0].pos = func_80148260(D_80189C98.pl[0].id, 0);
         D_80189C98.pl[1].pos = func_80148260(D_80189C98.pl[1].id, 1);
         D_80189C98.pl[0].unk1 = D_80189C98.pl[0].pos - 4;
-        *id1 = func_80149B38(3, D_8018A274.cars[D_80189C98.car] & 0xF, 1.5f, 2.3f);
+        *id1 = func_80149B38(3, D_8018A274.sCars[D_80189C98.car] & 0xF, 1.5f, 2.3f);
         D_80189C98.flags.all |= 0x4000;
     case 0x31:
         D_8011F2F0[*id2].unk18 = -2.259998f;
@@ -212,7 +212,7 @@ void func_80144808(u16 arg0)
         D_80190C98.win.unk4 = 0;
         fn = func_80146970;
         if (!(D_80189C98.flags.all & 0x800)) {
-            fn = func_80146A5C;
+            fn = updateDemoInput;
             D_80189948.unk0 = func_80149220(D_80189948.unk2[0], D_80189948.unk4[0], D_80189C98.pl[0].pos, 0);
         }
         *id3 = SPAWN0(0x4A, 0, fn, 0);
@@ -243,7 +243,7 @@ void func_80144808(u16 arg0)
         D_80190C98.win.unk4 = 1;
         fn = func_80146970;
         if (!(D_80189C98.flags.all & 0x800)) {
-            fn = func_80146A5C;
+            fn = updateDemoInput;
             D_80189948.unk0 = func_80149220(D_80189948.unk2[1], D_80189948.unk4[1], D_80189C98.pl[1].pos, 1);
         }
         *id3 = SPAWN0(0x4A, 0, fn, 0);
@@ -281,11 +281,11 @@ void func_80144808(u16 arg0)
         }
         if (b & 0x10) {
             b = 0;
-            func_8014B854(0x3D);
+            playMenuSound(0x3D);
             obj->state = 0x50;
         }
         if (b & 0x20) {
-            func_8014B854(0x3A);
+            playMenuSound(0x3A);
             obj->state = 0x41;
         }
         break;
@@ -323,7 +323,7 @@ void func_80144808(u16 arg0)
         obj->next = 0x100;
         D_80189C98.unk5 = 0;
         D_80189B34.flags |= 0x10;
-        func_800DE41C(0, 0, 3, 0, 0x5E, 0, 0, func_8014730C, func_801478F0,
+        objCreate(0, 0, 3, 0, 0x5E, 0, 0, updateTitleMenu, func_801478F0,
                       0.0f, -20.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
         obj->state = 0x105;
         break;
@@ -349,7 +349,7 @@ void func_80144808(u16 arg0)
             func_800DE2E0();
             func_80231C5C();
             func_801CF468(D_8018BC3C, 0, 0, 0);
-            D_8006F9E8 = 8;
+            gameState = 8;
             D_8021B01A = 0;
             D_8021AFDC = 0x18;
             D_8021AFE0 = 0xC;
@@ -373,7 +373,7 @@ void func_80144808(u16 arg0)
             func_801CF468(D_8018BC3C, 0, 0, 0);
             D_8021B01A = 0;
             D_8021AFDC = 0x18;
-            D_8006F9E8 = 8;
+            gameState = 8;
             D_80168BB0 = 0x2E;
         }
         break;

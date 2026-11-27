@@ -1,7 +1,7 @@
 extern u8 D_801E99C0[];
 extern u8 D_801E9994[];
 extern s8 D_80187CF0;
-extern u16 func_800E1850;
+extern u16 objListHead;
 
 typedef struct Rec {
   u8 type;
@@ -31,7 +31,7 @@ void func_8015A728(s32 arg0)
     if (*(s32 *)(D_801E99C0 + 0) == 1 || *(s32 *)(D_801E99C0 + 0x70) == 1 ||
         *(s32 *)(D_801E99C0 + 0xE0) == 1 || *(s32 *)(D_801E99C0 + 0x150) == 1)
     {
-      cur = func_800E1850;
+      cur = objListHead;
       while (cur != 0xFFFF)
       {
         if (cur != idx && D_8011F2F0[cur].type != 0x63)
@@ -47,7 +47,7 @@ void func_8015A728(s32 arg0)
     if (*(s32 *)(D_801E9994 + 0) == 1 || *(s32 *)(D_801E9994 + 0x70) == 1 ||
         *(s32 *)(D_801E9994 + 0xE0) == 1 || *(s32 *)(D_801E9994 + 0x150) == 1)
     {
-      cur = func_800E1850;
+      cur = objListHead;
       while (cur != 0xFFFF)
       {
         D_8011F2F0[cur].flags &= 0xFFEF;

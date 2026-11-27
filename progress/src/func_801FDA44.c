@@ -64,8 +64,8 @@ extern Rec D_802038E8[];
 extern u8 D_801D4FC0[];
 typedef struct { u8 *p; } Name; extern Name D_80202580[];
 extern u8 D_80203744[], D_80203760[], D_8020376C[], D_80203774[], D_8020377C[], D_80203784[], D_8020378C[], D_80203794[], D_8020379C[], D_802037A4[];
-void func_801CA140(Gfx **);
-void func_801CA468(Gfx **, s32);
+void gfxSetup2DState(Gfx **);
+void gfxSetPrimAlpha(Gfx **, s32);
 void func_801CB74C();
 void func_801CBF48();
 #define W(w0v, w1v) gDma((*gfxp)++, w0v, w1v)
@@ -128,8 +128,8 @@ void func_801FDA44(Gfx **gfxp) {
     gDPSetFillColor((*gfxp)++, (GPACK(t & 0x7F, g0 & 0x7F, b0 & 0x7F, 1) << 16) | GPACK(r1 & 0x7F, g1 & 0x7F, b1 & 0x7F, 1));
     gDPFillRectangle((*gfxp)++, 88, (D_80203AAD + 19) * 8, 111, D_80203AAD * 8 + 159);
     gDPPipeSync((*gfxp)++);
-    func_801CA140(gfxp);
-    func_801CA468(gfxp, 0xFF);
+    gfxSetup2DState(gfxp);
+    gfxSetPrimAlpha(gfxp, 0xFF);
     if (D_80202624 & 0x10) {
         func_801CB74C(gfxp, 0x38, 0x28, 8, D_801D4FC0, D_80203744);
     }

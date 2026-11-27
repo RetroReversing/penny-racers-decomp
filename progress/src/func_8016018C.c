@@ -1,5 +1,5 @@
 s32 func_8013E49C(u16);
-u16 func_801D7028(u16, s32);
+u16 queueObjEvent(u16, s32);
 extern s32 D_802378D8;
 extern s32 D_80237914;
 typedef struct { char pad0[2]; u16 unk2; char pad4[0x55A]; s16 unk55E; u16 unk560; char pad562[0x36E]; s8 unk8D0; } Car;
@@ -36,7 +36,7 @@ void func_8016018C(u16 arg0)
   {
     if (info->unk4->unk55E == 0)
     {
-      func_801D7028(info->unk4->unk2, 0x2A);
+      queueObjEvent(info->unk4->unk2, 0x2A);
       D_8011F2F0[arg0].unk3E = 1;
     }
     else

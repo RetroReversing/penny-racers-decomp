@@ -59,23 +59,23 @@ typedef struct { s32 m[16]; } Mtx;
 typedef struct { u8 kind; u8 pad1[0xB]; u8 alpha; u8 padD[0x31]; u16 model; u8 pad40[0x24]; } Ob12;
 typedef struct { u8 v; u8 pad[4]; } R5;
 extern Ob12 D_8011F2F0[];
-extern u16 D_801C7074, D_801C7078;
+extern u16 hudSlotIndex, D_801C7078;
 extern u8 D_801C6B50;
 extern u16 D_801C6BE0[];
-extern u8 *D_801C7AB0;
+extern u8 *trackInfo;
 extern u8 D_801CA130;
-extern R5 D_801C7084[];
-extern R5 D_801C7081[];
+extern R5 glyphCode[];
+extern R5 glyphLine[];
 extern u8 D_801C7AB6;
 extern u16 *D_801C5B3C[];
 extern u16 *D_801C586C[];
 extern u8 D_801D4390[], D_801CF4C8[];
-void func_801CA140(Gfx **);
-void func_801CA468(Gfx **, s32);
-void func_8014A4C8(Gfx **, s32, s32, s32, s32);
-void func_801CABF4(Gfx **, s32, s32, s32, u8 *, u16 *, s32, u8 *, s32, s32, s32, s32);
-#define D(x, y, id) func_8014A4C8(gfxp, x, y, 0xD, id)
-#define S(x, y, str) func_801CABF4(gfxp, x, y, 0xA, D_801D4390, str, 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC)
+void gfxSetup2DState(Gfx **);
+void gfxSetPrimAlpha(Gfx **, s32);
+void gfxDrawSprite(Gfx **, s32, s32, s32, s32);
+void gfxDrawText(Gfx **, s32, s32, s32, u8 *, u16 *, s32, u8 *, s32, s32, s32, s32);
+#define D(x, y, id) gfxDrawSprite(gfxp, x, y, 0xD, id)
+#define S(x, y, str) gfxDrawText(gfxp, x, y, 0xA, D_801D4390, str, 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC)
 
 void func_801B42C8(Gfx **gfxp, u16 id) {
     u8 i;
@@ -86,39 +86,39 @@ void func_801B42C8(Gfx **gfxp, u16 id) {
     u8 m;
     u8 o;
 
-    func_801CA140(gfxp);
+    gfxSetup2DState(gfxp);
     for (i = 0; i < 16; i++) {
         for (j = 0; j < 2; j++) {
             D(j * 32 + 0xF0, (s16)(i * 16), 2);
         }
     }
-    if (D_8011F2F0[D_801C7074].model == 0xD || D_8011F2F0[D_801C7074].model == 0x14) {
-        D_801C6B50 = D_8011F2F0[D_801C7074].kind;
+    if (D_8011F2F0[hudSlotIndex].model == 0xD || D_8011F2F0[hudSlotIndex].model == 0x14) {
+        D_801C6B50 = D_8011F2F0[hudSlotIndex].kind;
     } else {
-        D_801C6B50 = D_8011F2F0[D_801C7074].model;
+        D_801C6B50 = D_8011F2F0[hudSlotIndex].model;
     }
     if ((D_801C6B50 >= 4 && D_801C6B50 <= 5) || (D_801C6B50 >= 6 && D_801C6B50 <= 7) || (D_801C6B50 >= 8 && D_801C6B50 <= 9) || (D_801C6B50 >= 10 && D_801C6B50 <= 11) || D_801C6B50 == 12) {
-        func_801CA468(gfxp, D_8011F2F0[id].alpha);
+        gfxSetPrimAlpha(gfxp, D_8011F2F0[id].alpha);
         D(0xF1, 0xC, 3);
-        func_801CA468(gfxp, 0xFF);
+        gfxSetPrimAlpha(gfxp, 0xFF);
     } else if (D_801C6B50 >= 0x11 && D_801C6B50 <= 0x12) {
-        func_801CA468(gfxp, D_8011F2F0[id].alpha);
+        gfxSetPrimAlpha(gfxp, D_8011F2F0[id].alpha);
         D(0xF1, 0x17, 5);
-        func_801CA468(gfxp, 0xFF);
+        gfxSetPrimAlpha(gfxp, 0xFF);
     } else if ((D_801C6B50 >= 0xE && D_801C6B50 <= 0xF) || D_801C6B50 == 0x10 || D_801C6B50 == 0x13) {
-        func_801CA468(gfxp, D_8011F2F0[id].alpha);
+        gfxSetPrimAlpha(gfxp, D_8011F2F0[id].alpha);
         D(0xF1, 0xC, 4);
-        func_801CA468(gfxp, 0xFF);
+        gfxSetPrimAlpha(gfxp, 0xFF);
         if (D_801C6B50 >= 0xF) {
             D(0xF3, 0x3B, 0x15);
             D(0xF1, 0x45, 0x13);
             D(0xF2, 0x57, 6);
             D(0x10E, 0x59, 0x14);
             if (D_801C6BE0[D_801C7078] != 0xFFFF) {
-                if (D_801C7AB0[0] == 3) {
-                    k = D_801C7084[D_801CA130].v;
+                if (trackInfo[0] == 3) {
+                    k = glyphCode[D_801CA130].v;
                 } else {
-                    k = D_801C7084[D_801CA130].v - 0x2E;
+                    k = glyphCode[D_801CA130].v - 0x2E;
                 }
                 if ((u8)k < 10) {
                     S(0xF8, 0x46, D_801C5B3C[k]);
@@ -127,7 +127,7 @@ void func_801B42C8(Gfx **gfxp, u16 id) {
                 } else if ((u8)(k - 0x2A) < 4) {
                     S(0xFD, 0x46, D_801C5B3C[k]);
                 }
-                S(0x11A, 0x5A, D_801C586C[D_801C7081[D_801CA130].v / 60]);
+                S(0x11A, 0x5A, D_801C586C[glyphLine[D_801CA130].v / 60]);
             }
         }
     }
@@ -145,7 +145,7 @@ void func_801B42C8(Gfx **gfxp, u16 id) {
         S(0x11A, 0x6E, D_801C586C[m]);
     }
     S(0x124, 0x6E, D_801C586C[o]);
-    if (D_801C7AB0[1] == 5) {
+    if (trackInfo[1] == 5) {
         D(0xF7, 0x7F, 0);
     } else {
         D(0xF7, 0x7F, 0x25);

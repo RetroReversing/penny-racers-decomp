@@ -1,5 +1,5 @@
 extern u8 D_80046DF4;
-extern void *func_8003082C;
+extern void *seqpProcessEvents;
 void *alHeapDBAlloc(s32, s32, s32, s32, s32);
 void __n_initChanState(void *);
 void alEvtqNew(void *, void *, s32);
@@ -59,7 +59,7 @@ char __repair_stack_padding[8];
     (((Field_s32 *) ((u8 *)arg0 + 0x68))->v) = 0;
     alEvtqNew((u8 *)arg0 + 0x48, alHeapDBAlloc(0, 0, temp_s2, (((Field_s32 *) ((u8 *)arg1 + 4))->v), 0x1C), (((Field_s32 *) ((u8 *)arg1 + 4))->v));
     *(s32 *)arg0 = 0;
-    (((Field_void *) ((u8 *)arg0 + 8))->v) = &func_8003082C;
+    (((Field_void *) ((u8 *)arg0 + 8))->v) = &seqpProcessEvents;
     (((Field_void *) ((u8 *)arg0 + 4))->v) = arg0;
     n_alSynAddSeqPlayer(arg0);
 }

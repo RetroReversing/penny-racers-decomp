@@ -1,4 +1,4 @@
-s32 func_801D7028();
+s32 queueObjEvent();
 s32 func_80221AD0();
 extern char D_801E9D80[];
 extern char D_801E9D81[];
@@ -51,7 +51,7 @@ unsigned short func_80228140(s32 arg0, void *arg1)
       *((s8 *) (((char *) arg1) + 0x87C)) = 0;
     }
     *((u8 *) (((char *) arg1) + 0x87B)) = (u8) (*(D_801E9D81 + D_801F1884));
-  if ((*((s32 *) (((char *) arg1) + 0x89C))) == 1) { func_801D7028(arg0 & 0xFFFF, 0x37); }
+  if ((*((s32 *) (((char *) arg1) + 0x89C))) == 1) { queueObjEvent(arg0 & 0xFFFF, 0x37); }
   func_80221AD0(arg1);
   }
 }

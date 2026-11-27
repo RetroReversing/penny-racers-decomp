@@ -14,7 +14,7 @@ typedef struct {
     Fade *fade;
     u8 pad[0x60];
 } FadeSlot;
-extern ModeSlot D_8011F32E[];
+extern ModeSlot playerSlots[];
 extern FadeSlot D_8011F350[];
 
 void func_801CE928(u16 id)
@@ -22,9 +22,9 @@ void func_801CE928(u16 id)
     Fade *f;
     Fade *g;
 
-    switch (D_8011F32E[id].mode) {
+    switch (playerSlots[id].mode) {
     case 0:
-        D_8011F32E[id].mode = 1;
+        playerSlots[id].mode = 1;
     case 1:
         break;
     default:

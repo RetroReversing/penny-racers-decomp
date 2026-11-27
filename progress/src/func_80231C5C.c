@@ -1,4 +1,4 @@
-extern u16 func_800DE41C(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
+extern u16 objCreate(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
 extern u8 D_8011F350[];
 extern u16 D_8018BC3C;
 extern u8 D_801CE928[];
@@ -7,7 +7,7 @@ extern u8 D_801D59A0;
 
 void func_80231C5C(void)
 {
-    D_8018BC3C = func_800DE41C(0, 0, 3, 0, 0xA0, 0xFF, 0, D_801CE928, D_801CEC2C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    D_8018BC3C = objCreate(0, 0, 3, 0, 0xA0, 0xFF, 0, D_801CE928, D_801CEC2C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     {
         s32 off = D_8018BC3C * 100;
         u8 *p = &D_801D59A0;

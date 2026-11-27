@@ -55,23 +55,23 @@ typedef struct { s32 m[16]; } Mtx;
 typedef struct { u8 pad0[2]; u16 flags[4]; u8 padA; u8 mat; u8 alpha; u8 padD[0xB]; f32 x; f32 y; f32 z; f32 rx; f32 ry; f32 rz; f32 sx; f32 sy; f32 sz; u16 model; u8 pad3E[0x12]; Gfx ***list; u8 pad54[4]; void (*draw)(Gfx **, u16); u8 pad5C[8]; } Obj;
 typedef struct { u8 pad0[8]; Mtx t[2]; Mtx r[2][4]; Mtx s[2]; } Model;
 extern Obj D_8011F2F0[];
-extern Model D_800E2660[];
-extern u8 D_80126FF6;
-extern u8 D_80126FF7;
-extern Gfx *D_800E1860[];
-extern Gfx *D_800E188C;
-extern Gfx *D_800E1890;
-extern Gfx *D_800E1874;
-extern Gfx *D_800E1880;
+extern Model modelTransforms[];
+extern u8 viewIndex;
+extern u8 lastMaterial;
+extern Gfx *materialDlTable[];
+extern Gfx *materialDl11;
+extern Gfx *materialDl12;
+extern Gfx *materialDl5;
+extern Gfx *materialDl8;
 void func_800335C0(Mtx *, f32, f32, f32);
 void func_80033834(Mtx *, f32, f32, f32);
-void func_801FA678(Mtx *, f32, f32, f32);
-void func_800DF2AC(s32, f32, f32, f32, f32, f32, f32, f32 *, f32 *);
+void buildRotationMatrix(Mtx *, f32, f32, f32);
+void computeFacingAngles(s32, f32, f32, f32, f32, f32, f32, f32 *, f32 *);
 #define gSPDisplayList(pkt, dl) gDma(pkt, _S(0x06, 24, 8), dl)
 #define gSPMatrix(pkt, m, p) gDma(pkt, _S(0x01, 24, 8) | _S(p, 16, 8) | _S(64, 0, 16), m)
 #define K0(x) ((u32)(x) - 0x80000000)
 #define gDPSetPrimColor(pkt, m, l, r, g, b, a) gDma(pkt, _S(0xfa, 24, 8) | _S(m, 8, 8) | _S(l, 0, 8), (_S(r, 24, 8) | _S(g, 16, 8) | _S(b, 8, 8) | _S(a, 0, 8)))
-#define MATERIAL(v, dl) if (D_80126FF7 != (v)) { gSPDisplayList((*gfxp)++, dl); } D_80126FF7 = (v); break;
+#define MATERIAL(v, dl) if (lastMaterial != (v)) { gSPDisplayList((*gfxp)++, dl); } lastMaterial = (v); break;
 
 typedef struct { u8 pad0[0]; Gfx *dl; u8 type; u8 pad5[3]; void *img; } Tex;
 typedef struct { u8 pad0[4]; Tex *tex; u8 pad8[2]; u16 a; u16 c; } Node;
@@ -88,10 +88,10 @@ void func_800DF428(Gfx **gfxp, u16 id, u8 n, f32 px, f32 py, f32 pz, f32 a, f32 
     Mtx mtx;
 
     obj = &((Ob2 *)D_8011F2F0)[id];
-    model = &D_800E2660[obj->model];
+    model = &modelTransforms[obj->model];
     node = obj->node;
     tex = node->tex;
-    if (!(obj->flags[D_80126FF6] & 8)) {
+    if (!(obj->flags[viewIndex] & 8)) {
         func_80033834(&D_800E1E88, 0.0f, 0.0f, 0.0f);
         if (obj->sx != 1.0 || obj->sy != 1.0 || obj->sz != 1.0) {
             func_800335C0(&model->s[n], obj->sx, obj->sy, obj->sz);
@@ -101,12 +101,12 @@ void func_800DF428(Gfx **gfxp, u16 id, u8 n, f32 px, f32 py, f32 pz, f32 a, f32 
         }
         func_80033834(&model->t[n], obj->x, obj->y, obj->z);
         if (obj->type == 1) {
-            if (obj->flags[D_80126FF6] & 0x40) {
-                func_800DF2AC(1, px, py, pz, obj->x, obj->y, obj->z, &obj->rx, &obj->ry);
+            if (obj->flags[viewIndex] & 0x40) {
+                computeFacingAngles(1, px, py, pz, obj->x, obj->y, obj->z, &obj->rx, &obj->ry);
                 obj->rz = 0.0f;
             }
-            if (obj->flags[D_80126FF6] & 0x80) {
-                func_800DF2AC(0, px, py, pz, obj->x, obj->y, obj->z, &obj->rx, &obj->ry);
+            if (obj->flags[viewIndex] & 0x80) {
+                computeFacingAngles(0, px, py, pz, obj->x, obj->y, obj->z, &obj->rx, &obj->ry);
                 obj->rx = obj->rz = 0.0f;
             }
         }
@@ -119,43 +119,43 @@ void func_800DF428(Gfx **gfxp, u16 id, u8 n, f32 px, f32 py, f32 pz, f32 a, f32 
             gSPMatrix((*gfxp)++, K0(&D_800E1E88), 4);
         }
         gSPMatrix((*gfxp)++, K0(&model->t[n]), 0);
-        if (obj->flags[D_80126FF6] & 0x40 || obj->flags[D_80126FF6] & 0x80 || obj->flags[0] & 0x8000) {
+        if (obj->flags[viewIndex] & 0x40 || obj->flags[viewIndex] & 0x80 || obj->flags[0] & 0x8000) {
             
-            func_801FA678(&model->r[n][D_80126FF6], obj->rx, obj->ry, obj->rz);
-            gSPMatrix((*gfxp)++, K0(&model->r[n][D_80126FF6]), 0);
+            buildRotationMatrix(&model->r[n][viewIndex], obj->rx, obj->ry, obj->rz);
+            gSPMatrix((*gfxp)++, K0(&model->r[n][viewIndex]), 0);
         } else {
             
-            func_801FA7FC(&model->r[n][D_80126FF6], obj->rx, obj->ry, obj->rz);
-            gSPMatrix((*gfxp)++, K0(&model->r[n][D_80126FF6]), 0);
+            func_801FA7FC(&model->r[n][viewIndex], obj->rx, obj->ry, obj->rz);
+            gSPMatrix((*gfxp)++, K0(&model->r[n][viewIndex]), 0);
         }
         if (scaled) {
             gSPMatrix((*gfxp)++, K0(&model->s[n]), 0);
         }
         if (obj->mat != 0) {
             if (obj->alpha == 0xFF) {
-                if (D_80126FF7 != obj->mat) {
-                    gSPDisplayList((*gfxp)++, D_800E1860[obj->mat]);
+                if (lastMaterial != obj->mat) {
+                    gSPDisplayList((*gfxp)++, materialDlTable[obj->mat]);
                 }
-                D_80126FF7 = obj->mat;
+                lastMaterial = obj->mat;
             } else {
                 switch (obj->mat) {
                 case 1:
                 case 9:
-                    MATERIAL(11, D_800E188C)
+                    MATERIAL(11, materialDl11)
                 case 2:
                 case 10:
-                    MATERIAL(12, D_800E1890)
+                    MATERIAL(12, materialDl12)
                 case 3:
                 case 4:
-                    MATERIAL(5, D_800E1874)
+                    MATERIAL(5, materialDl5)
                 case 6:
                 case 7:
-                    MATERIAL(8, D_800E1880)
+                    MATERIAL(8, materialDl8)
                 default:
-                    if (D_80126FF7 != obj->mat) {
-                        gSPDisplayList((*gfxp)++, D_800E1860[obj->mat]);
+                    if (lastMaterial != obj->mat) {
+                        gSPDisplayList((*gfxp)++, materialDlTable[obj->mat]);
                     }
-                    D_80126FF7 = obj->mat;
+                    lastMaterial = obj->mat;
                     break;
                 }
             }
@@ -181,10 +181,10 @@ void func_800DF428(Gfx **gfxp, u16 id, u8 n, f32 px, f32 py, f32 pz, f32 a, f32 
                 break;
             }
         }
-        if (!(obj->flags[D_80126FF6] & 4) && obj->draw != 0) {
+        if (!(obj->flags[viewIndex] & 4) && obj->draw != 0) {
             obj->draw(gfxp, id);
         }
-        if (!(obj->flags[D_80126FF6] & 1) && tex != 0) {
+        if (!(obj->flags[viewIndex] & 1) && tex != 0) {
             gSPDisplayList((*gfxp)++, tex->dl);
         }
         if (node->c != 0xFFFF) {

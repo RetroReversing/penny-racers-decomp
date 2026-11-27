@@ -16,7 +16,7 @@ extern f32 m2c_fbits;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_8015B82C();                            /* extern */
+M2C_UNK initBackgroundScene();                            /* extern */
 M2C_UNK func_801E0D38();                            /* extern */
 M2C_UNK func_80205FB0();                            /* extern */
 M2C_UNK func_80206104();                            /* extern */
@@ -24,11 +24,11 @@ M2C_UNK func_80206770();                            /* extern */
 M2C_UNK func_80206830();                            /* extern */
 M2C_UNK func_80206F20();                            /* extern */
 M2C_UNK func_80207014();                            /* extern */
-M2C_UNK func_80207EC0();                            /* extern */
+M2C_UNK initResultsScreen();                            /* extern */
 M2C_UNK func_80208374();                            /* extern */
 M2C_UNK func_8020C7A0();                            /* extern */
 M2C_UNK func_8020C948();                            /* extern */
-M2C_UNK func_8020E7D0();                            /* extern */
+M2C_UNK setupSelectionMenu();                            /* extern */
 M2C_UNK func_8020EE10();                            /* extern */
 M2C_UNK func_80210050();                            /* extern */
 M2C_UNK func_80210784();                            /* extern */
@@ -47,7 +47,7 @@ M2C_UNK func_80217660();                            /* extern */
 M2C_UNK func_802178AC();                            /* extern */
 M2C_UNK func_80218840();                            /* extern */
 M2C_UNK func_80218FBC();                            /* extern */
-extern s16 D_8006F9E8;
+extern s16 gameState;
 extern u32 D_80168BB0;
 
 void func_80143F68(void) {
@@ -64,7 +64,7 @@ void func_80143F68(void) {
         D_80168BB0 = 0x33;
         break;
     case 0x28:
-        func_8015B82C();
+        initBackgroundScene();
         D_80168BB0 = 0x29;
         break;
     case 0x0:
@@ -86,7 +86,7 @@ void func_80143F68(void) {
         func_80207014();
         break;
     case 0x6:
-        func_80207EC0();
+        initResultsScreen();
         D_80168BB0 = 0x7;
     case 0x7:
         func_80208374();
@@ -101,14 +101,14 @@ void func_80143F68(void) {
         D_80168BB0 = 0xF;
         break;
     case 0x10:
-        func_8020E7D0();
+        setupSelectionMenu();
         D_80168BB0 = 0x11;
     case 0x11:
         func_8020EE10();
         break;
     case 0x16:
         func_80211FD0();
-        D_8006F9E8 = 0x14;
+        gameState = 0x14;
         break;
     case 0x17:
         func_80212350();

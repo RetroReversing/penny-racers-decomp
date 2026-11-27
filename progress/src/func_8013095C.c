@@ -12,11 +12,11 @@ extern u8 D_80183B4B;
 extern Flag D_8006FB14;
 typedef struct { u8 unk0[0x5F4]; Slot slots[4]; u8 unk6D4[0x8F0 - 0x6D4]; } Car;
 extern CarSlots D_8022AD64[];
-extern Car D_8022A770[];
-extern Race D_800DB1B8;
-extern void func_801D651C(s32, s32);
-extern void func_8013F884();
-extern s16 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *,
+extern Car sCars[];
+extern Race sRowBoard;
+extern void playStageSound(s32, s32);
+extern void updateMusicState();
+extern s16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *,
                          f32, f32, f32, f32, f32, f32, f32, f32, f32);
 
 #define START(n) D_80183B48 = n; D_80183B49 = 0x3C; D_80183B4A = 0
@@ -30,7 +30,7 @@ void func_8013095C(u16 arg0)
     switch (D_8011F2F0[arg0].state) {
     case 0:
         START(1);
-        if (D_800DB1B8.laps < 3) {
+        if (sRowBoard.laps < 3) {
             D_8011F2F0[arg0].x = 40.0f;
         } else {
             D_8011F2F0[arg0].x = 140.0f;
@@ -44,27 +44,27 @@ void func_8013095C(u16 arg0)
         START(2);
         D_8011F2F0[arg0].state = 0xA;
         D_8011F2F0[arg0].mode = 2;
-        func_801D651C(7, 0x42);
+        playStageSound(7, 0x42);
         break;
     case 2:
         START(3);
         D_8011F2F0[arg0].state = 0xA;
         D_8011F2F0[arg0].mode = 3;
-        func_801D651C(7, 0x42);
+        playStageSound(7, 0x42);
         break;
     case 3:
         START(4);
         D_8011F2F0[arg0].state = 0xA;
         D_8011F2F0[arg0].mode = 4;
-        func_801D651C(7, 0x42);
+        playStageSound(7, 0x42);
         break;
     case 4:
         START(7);
         D_8011F2F0[arg0].state = 0xA;
         D_8011F2F0[arg0].mode = 5;
         D_8006FB14.unk4 = 1;
-        func_801D651C(7, 0x43);
-        func_800DE41C(0, 0, 3, 0, 0x7F, 0, 0, func_8013F884, 0,
+        playStageSound(7, 0x43);
+        objCreate(0, 0, 3, 0, 0x7F, 0, 0, updateMusicState, 0,
                       0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
         break;
     case 5:
@@ -87,7 +87,7 @@ void func_8013095C(u16 arg0)
     case 10:
         D_80183B4A++;
         if (D_80183B48 == 7) {
-            switch (D_800DB1B8.laps) {
+            switch (sRowBoard.laps) {
             case 1:
                 for (i = 0; i < 2; i++) {
                     if (D_80183B4A == i * 5 + 5) {
@@ -104,7 +104,7 @@ void func_8013095C(u16 arg0)
                 for (i = 0; i < 2; i++) {
                     for (j = 0; j < 2; j++) {
                         if (D_80183B4A == i * 6 + j * 2 + 5) {
-                            s = &D_8022A770[i].slots[j];
+                            s = &sCars[i].slots[j];
                             s->a = i * 2 + j;
                             if (j == 0) {
                                 switch (i) {

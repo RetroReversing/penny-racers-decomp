@@ -2,7 +2,7 @@ typedef struct { u8 f0; u8 f1; u8 pad2[0xC]; u16 fE; u8 pad10[0x14]; f32 f24; f3
 typedef struct { u8 pad0[0x770]; f32 speed; u8 pad774[0x5D]; u8 b7D1; u8 pad7D2[0xA7]; u8 kind; u8 pad87A; s8 tilt; } Car;
 extern Rec D_8011F2F0[];
 extern u8 D_80233EC1;
-void func_8013AE60(u16);
+void liftCopyFlags(u16);
 void func_80226A60(u16, Car *);
 void func_80226BA0(u16, Car *);
 void func_80228140(u16, Car *);
@@ -16,7 +16,7 @@ void func_80226720(u16 id) {
     switch (*rec->f50) {
     case 0:
         D_8011F2F0[id].f0 = car->b7D1 - D_80233EC1;
-        func_8013AE60(id);
+        liftCopyFlags(id);
         break;
     case 2:
     case 3:

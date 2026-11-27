@@ -13,7 +13,7 @@ typedef s32 M2C_UNK32;
 /* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 
 s32 func_801FDA44();
-s32 func_801FE364();
+s32 drawHighScoreScreen();
 extern s32 D_80203AC0;
 
 void func_801FD9F8(s32 arg0, s32 arg1) {
@@ -22,7 +22,7 @@ void func_801FD9F8(s32 arg0, s32 arg1) {
         func_801FDA44(arg0, arg1 & 0xFFFF);
         return;
     case 1:
-        func_801FE364(arg0, arg1 & 0xFFFF);
+        drawHighScoreScreen(arg0, arg1 & 0xFFFF);
         return;
     }
 }

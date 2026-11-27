@@ -9,8 +9,8 @@ extern struct { s32 value; } D_8021EFA0;
 extern void func_80211C7C(s32);
 extern void func_80211B90(void);
 extern void func_802117AC(void);
-extern void func_80211094(void);
-extern u16 func_800DE41C(s32, s32, s32, s32, s32, s32, s32, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32);
+extern void updateNameEntry(void);
+extern u16 objCreate(s32, s32, s32, s32, s32, s32, s32, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32);
 
 void func_8021078C(u16 arg0)
 {
@@ -25,7 +25,7 @@ void func_8021078C(u16 arg0)
       if (D_8011F350[D_8018BC3C].p[0] == 0) p->unk3E = 0x10;
       break;
     case 0x10:
-      *sp = func_800DE41C(0, 0, 3, 0, 0x4F, 0, 0, func_802117AC, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+      *sp = objCreate(0, 0, 3, 0, 0x4F, 0, 0, func_802117AC, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
       D_8021EFA0.value = (D_8021EFA0.value & ~0x4000) | 0x8000;
       p->unk3E = 0x11;
     case 0x11:
@@ -36,7 +36,7 @@ void func_8021078C(u16 arg0)
       }
       break;
     case 0x20:
-      *sp = func_800DE41C(0, 0, 3, 0, 0x4F, 0, 0, func_80211094, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+      *sp = objCreate(0, 0, 3, 0, 0x4F, 0, 0, updateNameEntry, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
       D_8021EEC2[0] = 0;
       D_8021EEC2[-1] = 0x5A;
       func_80211B90();

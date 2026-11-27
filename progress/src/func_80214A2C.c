@@ -12,8 +12,8 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_8014B854(M2C_UNK);                     /* extern */
+M2C_UNK playMenuSound(M2C_UNK);                     /* extern */
 
 void func_80214A2C(void) {
-    func_8014B854(0x3B);
+    playMenuSound(0x3B);
 }

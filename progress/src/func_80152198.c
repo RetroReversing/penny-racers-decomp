@@ -1,5 +1,5 @@
 extern char D_8011F2FC[];
-extern char D_8011F32E[];
+extern char playerSlots[];
 extern char D_802E0268[];
 
 void func_80152198(void **arg0, s32 arg1)
@@ -55,6 +55,6 @@ void func_80152198(void **arg0, s32 arg1)
   ((s32 *) temp_v1_8)[1] = 0x7C0FC;
   temp_v1_9 = *arg0;
   *arg0 = temp_v1_9 + 8;
-  ((s32 *) temp_v1_9)[0] = (s32) ((*(u16 *) (D_8011F32E + temp_a3) & 0xFFF) | 0xF2000000);
+  ((s32 *) temp_v1_9)[0] = (s32) ((*(u16 *) (playerSlots + temp_a3) & 0xFFF) | 0xF2000000);
   ((s32 *) temp_v1_9)[1] = 0x7C0FC;
 }

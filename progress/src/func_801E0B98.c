@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s16 func_800DE41C(M2C_UNK, M2C_UNK, M2C_UNK, M2C_UNK, s32, s32, s32, M2C_UNK *, M2C_UNK *, s32, s32, s32, s32, s32, s32, s32, s32, s32); /* extern */
+s16 objCreate(M2C_UNK, M2C_UNK, M2C_UNK, M2C_UNK, s32, s32, s32, M2C_UNK *, M2C_UNK *, s32, s32, s32, s32, s32, s32, s32, s32, s32); /* extern */
 M2C_UNK func_801DDA5C();                            /* extern */
 M2C_UNK func_80231C5C();                            /* extern */
 extern M2C_UNK D_801D5A90;
@@ -24,10 +24,10 @@ extern s16 D_801E9D5E;
 extern M2C_UNK func_80138B1C;
 
 void func_801E0B98(void) {
-    D_801E9D5E = func_800DE41C(0, 0, 3, 0, 0x40, 0xFF, 0, NULL, &func_80138B1C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    D_801E9B1A = func_800DE41C(0, 0, 3, 0, 0x80, 0xFF, 0, &D_801DDD8C, &D_801DECB4, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    D_801E9D5E = objCreate(0, 0, 3, 0, 0x40, 0xFF, 0, NULL, &func_80138B1C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    D_801E9B1A = objCreate(0, 0, 3, 0, 0x80, 0xFF, 0, &D_801DDD8C, &D_801DECB4, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     func_80231C5C();
     func_801DDA5C();
-    func_800DE41C(0, 0xFF, 3, 0, 0x7F, 0, 0, &D_801D5A90, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    func_800DE41C(0, 0xFF, 3, 0, 0x7F, 0, 0, &D_801D6670, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0xFF, 3, 0, 0x7F, 0, 0, &D_801D5A90, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0xFF, 3, 0, 0x7F, 0, 0, &D_801D6670, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 }

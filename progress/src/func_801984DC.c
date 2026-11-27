@@ -1,10 +1,10 @@
-extern s8 D_801C6BB9;
+extern s8 cursorY;
 extern u16 D_801C6C10[];
-extern s8 D_801C7062[];
+extern s8 finishPos[];
 extern s8 D_801C7063;
-extern s8 D_801C7068;
-extern u8 D_801C7469;
-extern u8 *D_801C7AB0;
+extern s8 cursorX;
+extern u8 blockFootprint;
+extern u8 *trackInfo;
 
 s32 func_801984DC(void)
 {
@@ -12,40 +12,40 @@ s32 func_801984DC(void)
     s32 b;
     s32 a2;
 
-    b = D_801C6BB9;
+    b = cursorY;
     a1 = 0;
     if (b < 0x17)
     {
-        a2 = D_801C7068;
+        a2 = cursorX;
         if (D_801C6C10[(b * 24) + a2] == 0xFFFF)
         {
-            if (D_801C7AB0[1] == 5)
+            if (trackInfo[1] == 5)
             {
-                if (D_801C7062[0] == a2)
+                if (finishPos[0] == a2)
                 {
-                    if (D_801C7062[1] == b + 1)
+                    if (finishPos[1] == b + 1)
                     {
                         s32 a2_a1;
-                        a2_a1 = D_801C7469 == 2;
+                        a2_a1 = blockFootprint == 2;
                         a1 = a2_a1;
                         goto end;
                     }
-                    if (D_801C7062[0] == D_801C7068 && D_801C7062[1] == D_801C6BB9 - 1)
+                    if (finishPos[0] == cursorX && finishPos[1] == cursorY - 1)
                     {
-                        if ((D_801C7469 == 1) | (D_801C7469 == 3))
+                        if ((blockFootprint == 1) | (blockFootprint == 3))
                         {
                             a1 = 1;
                         }
                         goto end;
                     }
                 }
-                if (D_801C7062[0] == D_801C7068 + 1 || D_801C7062[0] == D_801C7068 - 1)
+                if (finishPos[0] == cursorX + 1 || finishPos[0] == cursorX - 1)
                 {
-                    if (D_801C7063 != D_801C6BB9)
+                    if (D_801C7063 != cursorY)
                     {
                         a1 = 1;
                     }
-                    else if ((D_801C7469 == 0) | (D_801C7469 == 2))
+                    else if ((blockFootprint == 0) | (blockFootprint == 2))
                     {
                         a1 = 1;
                     }

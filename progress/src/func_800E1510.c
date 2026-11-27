@@ -1,4 +1,4 @@
-extern u16 func_800E1850;
+extern u16 objListHead;
 extern u8 D_8011F2F0[];
 void func_800DECCC(s32);
 
@@ -8,7 +8,7 @@ void func_800E1510(void)
     u16 idx;
     u8 *ent;
 
-    idx = func_800E1850;
+    idx = objListHead;
     flag = 0;
     do {
         ent = D_8011F2F0 + (idx & 0xFFFF) * 0x64;
@@ -23,7 +23,7 @@ void func_800E1510(void)
             idx = *(u16 *)(ent + 0x10);
         } else {
             flag = 0;
-            idx = func_800E1850;
+            idx = objListHead;
         }
     } while (idx != 0xFFFF);
 }

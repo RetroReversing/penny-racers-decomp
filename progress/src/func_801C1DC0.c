@@ -10,26 +10,26 @@ typedef struct { u16 a[4]; } Four;
 extern Car D_8011F2F0[];
 extern Saved D_8011F32F[];
 typedef struct { u8 pad0[0x2108]; s16 a; u8 pad[0x26]; s16 b; } Mode;
-extern Mode D_800DB1B8;
+extern Mode sRowBoard;
 extern PadS D_801E9990[];
 extern PadS D_801E9994[];
-extern Slot D_801C7080[];
-extern MenuState *D_801C7AB0;
+extern Slot trackPoints[];
+extern MenuState *trackInfo;
 extern u8 D_801C5EA0;
 extern u16 D_801C5EA4;
 extern u16 D_801C6BB4;
-extern s8 D_801C6BB9;
+extern s8 cursorY;
 extern u16 D_801C6BE0[];
 extern u8 D_801C7060;
 extern u16 D_801C7066;
-extern u8 D_801C7068;
+extern u8 cursorX;
 extern u8 D_801C7070;
-extern u16 D_801C7074;
+extern u16 hudSlotIndex;
 extern u16 D_801C7078;
-extern u8 D_801C707B;
+extern u8 hudVisible;
 extern u8 D_801C7468;
 extern u16 D_801C7470[][4];
-extern u8 D_801C7AB4;
+extern u8 hudGlyph;
 extern s8 D_801C7AB5;
 extern u8 D_801C7AB6;
 extern u8 D_801C7AB8;
@@ -49,19 +49,19 @@ void func_8019E814(u16);
 void func_801A03F4(u16);
 u8 func_801C3418(void);
 u8 func_801C1CA4(s8);
-u16 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
+u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 u8 func_80190D40(s8);
 void func_801BB1F0(u8);
 void func_801A5610(void);
-void func_8014B854(s32);
+void playMenuSound(s32);
 u8 func_801A0590(void);
 void func_801BD7E8(void);
 void func_801B727C(u8);
 
-#define SLOT D_801C7080[D_801CA130]
+#define SLOT trackPoints[D_801CA130]
 #define VEC D_8011F2F0[D_801C7D18]
-#define FX ((f32)(s8)D_801C7068 * 400.0f * 0.5f)
-#define FZ ((f32)D_801C6BB9 * 400.0f * 0.5f)
+#define FX ((f32)(s8)cursorX * 400.0f * 0.5f)
+#define FZ ((f32)cursorY * 400.0f * 0.5f)
 #define OTHERS (D_801C7078 != D_801C6BB4 && D_801C7078 != D_801C7066)
 #define CLEAR_NEW() \
     for (i = 0; i < 4; i++) { \
@@ -79,21 +79,21 @@ void func_801B727C(u8);
         } \
     }
 #define FULL() \
-    func_8014B854(0x3E); \
+    playMenuSound(0x3E); \
     D_801C5EA4 = 0; \
-    D_8011F2F0[D_801C7074].unk0 = D_8011F32F[D_801C7074].v; \
-    D_8011F2F0[D_801C7074].st = 0xD
+    D_8011F2F0[hudSlotIndex].unk0 = D_8011F32F[hudSlotIndex].v; \
+    D_8011F2F0[hudSlotIndex].st = 0xD
 #define KEEP() \
     SLOT.unk0 = D_801C7AB8
 #define FINISH() \
-    SLOT.unk2 = D_801C7068; \
-    SLOT.unk3 = D_801C6BB9; \
-    SLOT.unk4 = D_801C7AB4; \
+    SLOT.unk2 = cursorX; \
+    SLOT.unk3 = cursorY; \
+    SLOT.unk4 = hudGlyph; \
     func_801BB1F0(D_801CA130)
 #define DONE() \
-    D_801C7AB0->unk3 = 0; \
+    trackInfo->unk3 = 0; \
     D_801C5EA0 = 0; \
-    func_8014B854(0x40)
+    playMenuSound(0x40)
 #define TAIL() \
     D_8011F2F0[D_801C6BE0[D_801C7078]].y = (f32)D_801C7070 * 0.5f; \
     KEEP(); \
@@ -101,7 +101,7 @@ void func_801B727C(u8);
     FINISH(); \
     DONE()
 #define PICK() \
-    D_801C7AC4 = &D_8031445C[(s8)D_801C7AB4]; \
+    D_801C7AC4 = &D_8031445C[(s8)hudGlyph]; \
     func_801BD7E8()
 
 void func_801C1DC0(u16 arg0)
@@ -113,24 +113,24 @@ void func_801C1DC0(u16 arg0)
     u16 e;
     u8 unused[0x50];
 
-    if (D_801C707B == 0) {
-        D_800DB1B8.a = 1;
-        D_800DB1B8.b = 1;
+    if (hudVisible == 0) {
+        sRowBoard.a = 1;
+        sRowBoard.b = 1;
         func_8019F7C0(arg0);
         func_8019E734(arg0);
         D_8011F2F0[D_801C7D24].x = 0.0f;
         D_8011F2F0[D_801C7D24].y = 10000.0f;
         D_8011F2F0[D_801C7D24].z = 0.0f;
-        D_801C7078 = (s8)D_801C7068 + D_801C6BB9 * 0x18;
+        D_801C7078 = (s8)cursorX + cursorY * 0x18;
         D_801CA130 = func_801C3418();
         D_801C7AB8 = SLOT.unk0;
         cost = func_801C1CA4(SLOT.unk4);
-        if (D_801CA130 == D_801C7AB0->unk2) {
+        if (D_801CA130 == trackInfo->unk2) {
             VEC.x = FX;
             VEC.y = 0.0f;
             VEC.z = FZ;
         } else {
-            if (D_801C7AB0->unk0 == 3) {
+            if (trackInfo->unk0 == 3) {
                 id = SLOT.unk4;
             } else {
                 id = SLOT.unk4 - 0x2E;
@@ -146,22 +146,22 @@ void func_801C1DC0(u16 arg0)
             }
         }
         if (D_801CA138 != 0) {
-            next = func_801C1CA4(D_801C7AB4);
-            if (D_801CA130 == D_801C7AB0->unk2) {
+            next = func_801C1CA4(hudGlyph);
+            if (D_801CA130 == trackInfo->unk2) {
                 if (D_801C7AB6 + next + 1 < 0xC9) {
                     D_801C7D30[D_801C7078].f0 = 0;
                     D_801C7D30[D_801C7078].f1 = 1;
-                    D_801C7D30[D_801C7078].f4 = &D_8031445C[(s8)D_801C7AB4];
-                    e = func_800DE41C(0, 0, 2, 0, 0x5A, 0xFF, &D_801C7D30[D_801C7078], 0, 0,
+                    D_801C7D30[D_801C7078].f4 = &D_8031445C[(s8)hudGlyph];
+                    e = objCreate(0, 0, 2, 0, 0x5A, 0xFF, &D_801C7D30[D_801C7078], 0, 0,
                                       FX, 0.0f, FZ, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f);
                     D_8011F2F0[e].unk4 |= 8;
                     D_801C6BE0[D_801C7078] = e;
-                    D_801C7AD8[D_801C7078] = D_801C7AB0->unk2;
-                    D_8011F2F0[e].y = (f32)func_80190D40(D_801C7AB4) * 0.5f;
+                    D_801C7AD8[D_801C7078] = trackInfo->unk2;
+                    D_8011F2F0[e].y = (f32)func_80190D40(hudGlyph) * 0.5f;
                     (&SLOT)->unk0 = D_801C7AB8;
                     (&SLOT)->unk1 = (u8)D_8011F2F0[D_801C6BE0[D_801C7078]].y * 2;
                     FINISH();
-                    D_801C7AB0->unk2++;
+                    trackInfo->unk2++;
                     D_801C7AB6++;
                     DONE();
                 } else {
@@ -171,7 +171,7 @@ void func_801C1DC0(u16 arg0)
                 if (D_801C7AB5 != 0) {
                     func_801A5610();
                     if (OTHERS) {
-                        D_801C7D30[D_801C7078].f4 = &D_8031445C[(s8)D_801C7AB4];
+                        D_801C7D30[D_801C7078].f4 = &D_8031445C[(s8)hudGlyph];
                         CLEAR_SLOT();
                     }
                     D_801C7AB5 = 0;
@@ -180,7 +180,7 @@ void func_801C1DC0(u16 arg0)
                     FULL();
                 } else {
                     if (OTHERS) {
-                        D_801C7D30[D_801C7078].f4 = &D_8031445C[(s8)D_801C7AB4];
+                        D_801C7D30[D_801C7078].f4 = &D_8031445C[(s8)hudGlyph];
                         CLEAR_SLOT();
                     }
                     TAIL();
@@ -189,33 +189,33 @@ void func_801C1DC0(u16 arg0)
             D_801CA138 = 0;
         }
         if (D_801E9990[arg0].v == 1 && D_801E9994[arg0].v == 0) {
-            if (D_801CA130 == D_801C7AB0->unk2) {
+            if (D_801CA130 == trackInfo->unk2) {
                 if (D_801C7AB6 >= 0xC8) {
                     FULL();
                 } else {
-                    func_8014B854(0x3D);
+                    playMenuSound(0x3D);
                     D_801C7ABC = 0;
-                    if (D_801C7AB0->unk0 == 3) {
-                        D_801C7AB4 = 0;
+                    if (trackInfo->unk0 == 3) {
+                        hudGlyph = 0;
                     } else {
-                        D_801C7AB4 = 0x2E;
+                        hudGlyph = 0x2E;
                     }
-                    D_801C7468 = D_801C7070 = func_80190D40(D_801C7AB4);
+                    D_801C7468 = D_801C7070 = func_80190D40(hudGlyph);
                     CLEAR_NEW();
                     PICK();
-                    D_801C707B = 1;
+                    hudVisible = 1;
                 }
             } else {
-                func_8014B854(0x3D);
+                playMenuSound(0x3D);
                 D_801C7ABC = func_801A0590();
-                D_801C7AB4 = SLOT.unk4;
+                hudGlyph = SLOT.unk4;
                 D_801C7468 = D_801C7070 = SLOT.unk1;
                 CLEAR_NEW();
                 PICK();
-                D_801C707B = 1;
+                hudVisible = 1;
             }
         } else if (D_801E9990[arg0].v == 0 && D_801E9994[arg0].v == 1) {
-            if (D_801CA130 != D_801C7AB0->unk2 && OTHERS) {
+            if (D_801CA130 != trackInfo->unk2 && OTHERS) {
                 CLEAR_SLOT();
                 if (D_801C6BE0[D_801C7078] != 0xFFFF) {
                     D_8011F2F0[D_801C6BE0[D_801C7078]].unkD = 2;
@@ -223,37 +223,37 @@ void func_801C1DC0(u16 arg0)
                 D_801C6BE0[D_801C7078] = 0xFFFF;
                 D_801C7AD8[D_801C7078] = 0xFF;
                 func_801B727C(D_801CA130);
-                func_8014B854(0x3F);
-                D_801C7AB0->unk3 = 0;
+                playMenuSound(0x3F);
+                trackInfo->unk3 = 0;
                 D_801C5EA0 = 0;
             }
         }
         D_801C7060 = 0;
-    } else if (D_801C707B == 1) {
-        D_800DB1B8.a = 2;
-        D_800DB1B8.b = 2;
+    } else if (hudVisible == 1) {
+        sRowBoard.a = 2;
+        sRowBoard.b = 2;
         func_8019E814(arg0);
         func_801A03F4(arg0);
         D_8011F2F0[D_801C7D24].x = 0.0f;
         D_8011F2F0[D_801C7D24].y = 0.0f;
         D_8011F2F0[D_801C7D24].z = 0.0f;
         if (D_801E9990[arg0].v == 1 && D_801E9994[arg0].v == 0) {
-            if (D_801CA130 == D_801C7AB0->unk2) {
+            if (D_801CA130 == trackInfo->unk2) {
                 D_801CA138 = 1;
             }
             CLEAR_NEW();
-            D_801C707B = 0;
+            hudVisible = 0;
         } else if (D_801E9990[arg0].v == 0 && D_801E9994[arg0].v == 1) {
             if (D_801CA138 != 0) {
-                if (D_801CA130 == D_801C7AB0->unk2) {
-                    if (D_801C7AB0->unk0 == 3) {
-                        D_801C7AB4 = 0;
+                if (D_801CA130 == trackInfo->unk2) {
+                    if (trackInfo->unk0 == 3) {
+                        hudGlyph = 0;
                     } else {
-                        D_801C7AB4 = 0x2E;
+                        hudGlyph = 0x2E;
                     }
                     D_801C7070 = 0;
                 } else {
-                    D_801C7AB4 = SLOT.unk4;
+                    hudGlyph = SLOT.unk4;
                     D_801C7070 = SLOT.unk1;
                 }
                 CLEAR_NEW();
@@ -267,9 +267,9 @@ void func_801C1DC0(u16 arg0)
                 }
             } else {
                 CLEAR_NEW();
-                D_801C707B = 0;
+                hudVisible = 0;
             }
-            func_8014B854(0x3A);
+            playMenuSound(0x3A);
         }
         D_801C7060 = 1;
     }

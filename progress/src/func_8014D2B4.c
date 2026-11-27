@@ -1,6 +1,6 @@
 f32 __sinf(f32);
 f32 __cosf(f32);
-void func_8013AE60(s32);
+void liftCopyFlags(s32);
 typedef struct {
     f32 y;
     char pad4[4];
@@ -21,7 +21,7 @@ void func_8014D2B4(u16 arg0)
 {
     f32 v;
 
-    func_8013AE60(arg0);
+    liftCopyFlags(arg0);
     if (D_8011F314[arg0].flag == 0) {
         D_8011F314[arg0].baseY = D_8011F314[arg0].y;
         D_8011F314[arg0].flag = 1;

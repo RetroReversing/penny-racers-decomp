@@ -21,11 +21,11 @@ extern u16 D_80233EC0;
 extern u16 D_80233D30[];
 extern u8 D_1F9030[], D_2243D0[], D_2632D0[], D_2AFC80[], D_2D58C0[], D_2FDC40[], D_32F100[], D_355850[], D_3836A0[], D_3B7C00[];
 extern void alSeqpStop(void *);
-extern void func_800294A0(void *, void *, s32);
-extern void func_8003DE60(void *);
+extern void dmaRomToRam(void *, void *, s32);
+extern void debugPrintf(void *);
 extern void func_8013D1A4(u16);
-extern u16 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, s32, s32, s32, s32, s32, s32, s32, s32, f32, f32, f32);
-#define CALL(p) func_800DE41C(0, 0, 2, 0, 0x51, 0xFF, p, 0, 0, 0, 0, 0, 0, 0, 0, 1.0f, 1.0f, 1.0f)
+extern u16 objCreate(s32, s32, s32, s32, s32, s32, void *, s32, s32, s32, s32, s32, s32, s32, s32, f32, f32, f32);
+#define CALL(p) objCreate(0, 0, 2, 0, 0x51, 0xFF, p, 0, 0, 0, 0, 0, 0, 0, 0, 1.0f, 1.0f, 1.0f)
 
 u16 func_8022F780(u16 sel)
 {
@@ -50,34 +50,34 @@ u16 func_8022F780(u16 sel)
     }
     switch (sel) {
     case 1:
-        func_800294A0(D_1F9030, D_802D6890, D_2243D0 - D_1F9030);
+        dmaRomToRam(D_1F9030, D_802D6890, D_2243D0 - D_1F9030);
         break;
     case 2:
-        func_800294A0(D_2243D0, D_802D6890, D_2632D0 - D_2243D0);
+        dmaRomToRam(D_2243D0, D_802D6890, D_2632D0 - D_2243D0);
         break;
     case 3:
-        func_800294A0(D_2632D0, D_802D6890, D_2AFC80 - D_2632D0);
+        dmaRomToRam(D_2632D0, D_802D6890, D_2AFC80 - D_2632D0);
         break;
     case 4:
-        func_800294A0(D_2AFC80, D_802D6890, D_2D58C0 - D_2AFC80);
+        dmaRomToRam(D_2AFC80, D_802D6890, D_2D58C0 - D_2AFC80);
         break;
     case 5:
-        func_800294A0(D_2D58C0, D_802D6890, D_2FDC40 - D_2D58C0);
+        dmaRomToRam(D_2D58C0, D_802D6890, D_2FDC40 - D_2D58C0);
         break;
     case 6:
-        func_800294A0(D_2FDC40, D_802D6890, D_32F100 - D_2FDC40);
+        dmaRomToRam(D_2FDC40, D_802D6890, D_32F100 - D_2FDC40);
         break;
     case 7:
-        func_800294A0(D_32F100, D_802D6890, D_355850 - D_32F100);
+        dmaRomToRam(D_32F100, D_802D6890, D_355850 - D_32F100);
         break;
     case 8:
-        func_800294A0(D_355850, D_802D6890, D_3836A0 - D_355850);
+        dmaRomToRam(D_355850, D_802D6890, D_3836A0 - D_355850);
         break;
     case 9:
-        func_800294A0(D_3836A0, D_802D6890, D_3B7C00 - D_3836A0);
+        dmaRomToRam(D_3836A0, D_802D6890, D_3B7C00 - D_3836A0);
         break;
     default:
-        func_8003DE60(D_80232C10);
+        debugPrintf(D_80232C10);
         break;
     }
     func_8013D1A4(sel);

@@ -4,11 +4,11 @@ extern Slot D_8018D6C4[];
 typedef struct { f32 unk0; u8 pad[0x78]; } Row7C_f;
 typedef struct { void *unk0; u8 pad[0x78]; } Row7C_p;
 
-u16 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, s32, f32, f32, f32, s32, s32, s32, f32, f32, f32);
-s32 func_8013E364();
+u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, s32, f32, f32, f32, s32, s32, s32, f32, f32, f32);
+s32 raceAllocSlot();
 void func_8013E640(s32, s32, void *, s32, s32, f32, s32, f32, f32, f32, s32);
-void func_801D7028(s32, s32);
-void func_80164740();
+void queueObjEvent(s32, s32);
+void updateBallRecord();
 extern u8 D_8011F2F0[];
 extern u8 D_8016850C[];
 
@@ -28,10 +28,10 @@ void func_801644F0(u8 *arg0)
   count = flags & 7;
   if (*(s32 *)(arg0 + 0x898) == 1 && !(((*(u16 *)(arg0 + 0x560) >> 3) & 1) | (full = count >= 7)))
   {
-    id = func_8013E364();
+    id = raceAllocSlot();
     if (id != 0xFFFF)
     {
-      handle = func_800DE41C(0, 0, 1, 0, 0x51, 0xFF, D_8016850C, func_80164740, 0,
+      handle = objCreate(0, 0, 1, 0, 0x51, 0xFF, D_8016850C, updateBallRecord, 0,
           *(f32 *)(rec + 0x18), *(f32 *)(rec + 0x1C), *(f32 *)(rec + 0x20), 0, 0, 0,
           *(f32 *)(rec + 0x30), *(f32 *)(rec + 0x34), *(f32 *)(rec + 0x38));
       if ((u16)(handle + 2) < 2)
@@ -45,7 +45,7 @@ void func_801644F0(u8 *arg0)
       D_8018D6C4[id].flag[*(u16 *)(arg0 + 4)] = 1;
       D_8018D6C4[id].timer = 13.0f;
       D_8018D6C4[id].owner = arg0;
-      func_801D7028(handle, 0x2B);
+      queueObjEvent(handle, 0x2B);
       if (*(s16 *)(arg0 + 0x55E) > 0)
       {
         *(s16 *)(arg0 + 0x55E) -= 1;

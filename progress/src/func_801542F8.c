@@ -9,7 +9,7 @@ typedef struct
   u8 pad[98];
 } SlotE;
 extern u8 D_802D7388[];
-extern SlotE D_8011F32E[];
+extern SlotE playerSlots[];
 
 void func_801542F8(Gfx **g, s32 i)
 {
@@ -50,7 +50,7 @@ void func_801542F8(Gfx **g, s32 i)
     }
     {
         Gfx *p = (*g)++;
-        p->w0 = 0xF2000000 | ((0x7C - D_8011F32E[(u16) i].v) & 0xFFF);
+        p->w0 = 0xF2000000 | ((0x7C - playerSlots[(u16) i].v) & 0xFFF);
         p->w1 = 0x0007C07C;
     }
 }

@@ -2,16 +2,16 @@ typedef struct Obj { u8 pad0[2]; u16 h2; u16 h4; u16 h6; u16 h8; u8 padA[2]; u8 
 typedef struct { u8 pad0[2]; u16 idx; u8 pad4[0x7B0]; f32 f7B4; u8 pad7B8[4]; f32 f7BC; f32 f7C0; u8 pad7C4[4]; f32 f7C8; u8 pad7CC[0x88]; f32 f854; u8 pad858[4]; f32 f85C; u8 pad860[0x90]; } Slot;
 typedef struct { f32 f0; u8 pad[0x78]; } Rec;
 extern Obj D_8011F2F0[];
-extern Slot D_8022A770[];
+extern Slot sCars[];
 extern Rec D_8018D730[];
 extern u8 D_8018A448;
 extern u8 D_8023984C[];
-extern u8 D_8023936C[];
-extern void func_80142288(), func_8014297C(), func_80142894();
-u16 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, s32, s32, s32, f32, f32, f32);
-u16 func_8013E364(void);
+extern u8 sprayDef[];
+extern void updateBouncingBall(), func_8014297C(), func_80142894();
+u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, s32, s32, s32, f32, f32, f32);
+u16 raceAllocSlot(void);
 void func_8013E818(u16, s32, s16, f32, f32, f32, u16);
-u32 func_801FA30C(void);
+u32 nextRandom(void);
 void func_80141C28(u16 arg0)
 {
     s32 i;
@@ -32,27 +32,27 @@ void func_80141C28(u16 arg0)
                 u16 e;
 
                 {
-                    f32 f = (func_801FA30C() & 0x7F) * 2.826771f;
+                    f32 f = (nextRandom() & 0x7F) * 2.826771f;
 
                     z = 1584.0f;
                     x = z - f;
                 }
-                id = func_8013E364();
+                id = raceAllocSlot();
                 if (id != 0xFFFF) {
-                    e = func_800DE41C(0, 0, 1, 0, 0x51, 0xFF, D_8023984C, func_80142288, func_8014297C, x, 200.0f, z, 0, 0, 0, 1.0f, 1.0f, 1.0f);
+                    e = objCreate(0, 0, 1, 0, 0x51, 0xFF, D_8023984C, updateBouncingBall, func_8014297C, x, 200.0f, z, 0, 0, 0, 1.0f, 1.0f, 1.0f);
                     if ((u16) (e + 2) >= 2U) {
                         func_8013E818(id, e, 0x40, 0.0f, 0.0f, 0.0f, 0x12C);
                         D_8018D730[id].f0 = 40.0f;
                         D_8018A448++;
                         for (i = 0; i < 5; i++) {
-                            e = func_800DE41C(0, 0, 1, 0, 0x5B, (u8) (i * 10 - 0x80), D_8023936C, func_80142894, 0, x, 200.0f, 1570.0f, 0, 0, 0, 3.0f, 3.0f, 3.0f);
+                            e = objCreate(0, 0, 1, 0, 0x5B, (u8) (i * 10 - 0x80), sprayDef, func_80142894, 0, x, 200.0f, 1570.0f, 0, 0, 0, 3.0f, 3.0f, 3.0f);
                             if ((u16) (e + 2) >= 2U) {
                                 Obj *o = &D_8011F2F0[e];
 
                                 o->h2 = o->h4 = o->h6 = o->h8 = 0x40;
-                                o->f44 = (func_801FA30C() & 0x1F) - 16.0f;
-                                o->f48 = func_801FA30C() & 0xF;
-                                o->f4C = func_801FA30C() & 0xF;
+                                o->f44 = (nextRandom() & 0x1F) - 16.0f;
+                                o->f48 = nextRandom() & 0xF;
+                                o->f4C = nextRandom() & 0xF;
                             }
                         }
                     } else {
@@ -65,8 +65,8 @@ void func_80141C28(u16 arg0)
     }
 
     for (i = 0; i < 7; i++) {
-        if (D_8022A770[i].idx != 0xFFFF) {
-            Slot *slot = &D_8022A770[i];
+        if (sCars[i].idx != 0xFFFF) {
+            Slot *slot = &sCars[i];
             Obj *o = &D_8011F2F0[slot->idx];
             f32 px = o->x;
             f32 pz;

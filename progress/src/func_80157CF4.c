@@ -1,7 +1,7 @@
 f32 __sinf(f32);
-s32 func_8013AE60(s32);
+s32 liftCopyFlags(s32);
 extern u8 D_8011F310[];
-extern u8 D_8011F32E[];
+extern u8 playerSlots[];
 extern u8 D_8011F33C[];
 extern f32 D_8016D8CC;
 extern f64 D_80183850;
@@ -15,11 +15,11 @@ void func_80157CF4(s32 arg0) {
     s32 temp_v1;
 
     temp_s0 = arg0 & 0xFFFF;
-    func_8013AE60(temp_s0);
+    liftCopyFlags(temp_s0);
     temp_v1 = temp_s0 * 0x64;
-    if (*(u16 *)(D_8011F32E + temp_v1) == 0) {
+    if (*(u16 *)(playerSlots + temp_v1) == 0) {
         *(f32 *)(D_8011F33C + temp_v1) = *(f32 *)(D_8011F310 + temp_v1);
-        *(u16 *)(D_8011F32E + temp_v1) = 1;
+        *(u16 *)(playerSlots + temp_v1) = 1;
     }
     temp_fv0 = (f32)(((f64)D_8016D8CC) + D_80183850);
     D_8016D8CC = temp_fv0;

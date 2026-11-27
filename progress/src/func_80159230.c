@@ -28,7 +28,7 @@ typedef struct { u16 v; u16 pad; } Pair;
 extern Obj D_8011F2F0[];
 #define OBJ D_8011F2F0
 #define STATE OBJ[arg0 & 0xFFFF].state
-extern u16 func_800E1850;
+extern u16 objListHead;
 extern u16 D_8018BC3C;
 extern s8 D_80189DC1;
 extern u8 D_80183BD0;
@@ -60,12 +60,12 @@ extern u16 D_8018996A;
 extern u8 D_8021F028;
 extern u8 D_8006FB38[];
 extern s32 D_80168BB0;
-extern s16 D_8006F9E8;
+extern s16 gameState;
 extern f64 D_80183910;
 extern f64 D_80183918;
 
 u8 func_80148230(void);
-void func_801D651C(s32, s16);
+void playStageSound(s32, s16);
 void alSeqpSetVol(u8 *, s16);
 void func_801CF468(s32, s32, s32, s32);
 void func_802319E8(void);
@@ -124,11 +124,11 @@ void func_80159230(s32 arg0)
                         D_80189950[i] = D_801D7E06[i].v;
                     }
                     D_8018A26C = 0;
-                    func_801D651C(7, 0x41);
+                    playStageSound(7, 0x41);
                     if (D_8021F028 != 0) {
                         alSeqpSetVol(D_8006FB38, D_8021F028 * 0x1F4);
                     }
-                    for (id = func_800E1850; id != 0xFFFF; id = OBJ[id].next) {
+                    for (id = objListHead; id != 0xFFFF; id = OBJ[id].next) {
                         if (OBJ[id].f0 != 0xFF) {
                             OBJ[id].flags |= 0x10;
                         }
@@ -147,7 +147,7 @@ void func_80159230(s32 arg0)
         break;
     case 2:
         if (D_801E9990[D_80183BD6].v == 1) {
-            func_801D651C(7, 0x3D);
+            playStageSound(7, 0x3D);
             switch (D_80183BD0) {
             case 1:
                 D_80046832 = 0;
@@ -181,15 +181,15 @@ void func_80159230(s32 arg0)
             D_80189DC1 = 0;
             D_8018A26C = 0;
             STATE = 0xB;
-            func_801D651C(7, 0x41);
+            playStageSound(7, 0x41);
         } else {
             if (D_801E9988[D_80183BD6].v == 1 && D_80183BD0 != 0) {
                 D_80183BD0--;
-                func_801D651C(7, 0x3B);
+                playStageSound(7, 0x3B);
             }
             if (D_801E998C[D_80183BD6].v == 1 && D_80183BD0 < D_80189C7C + 2) {
                 D_80183BD0++;
-                func_801D651C(7, 0x3B);
+                playStageSound(7, 0x3B);
             }
         }
         break;
@@ -209,14 +209,14 @@ void func_80159230(s32 arg0)
         func_801D65BC(0);
         func_80143D70();
         D_80168BB0 = 2;
-        D_8006F9E8 = 8;
+        gameState = 8;
         break;
     case 5:
         func_802319E8();
         func_80231C5C();
         func_801CF468(D_8018BC3C, 0, 0, 0);
         func_8021F5F0();
-        D_8006F9E8 = 0x14;
+        gameState = 0x14;
         break;
     case 6:
         if (OBJ[arg0 & 0xFFFF].alpha != 0) {
@@ -271,7 +271,7 @@ void func_80159230(s32 arg0)
     case 11:
         if (OBJ[D_8018BC3C].p[0] == 0) {
             D_80046832 = 0;
-            for (id = func_800E1850; id != 0xFFFF; id = OBJ[id].next) {
+            for (id = objListHead; id != 0xFFFF; id = OBJ[id].next) {
                 OBJ[id].flags &= 0xFFEF;
             }
             if (D_8021F028 != 0) {
@@ -318,7 +318,7 @@ void func_80159230(s32 arg0)
         break;
     case 30:
         if (OBJ[D_8018BC3C].p[0] == 0) {
-            for (id = func_800E1850; id != 0xFFFF; id = OBJ[id].next) {
+            for (id = objListHead; id != 0xFFFF; id = OBJ[id].next) {
                 OBJ[id].fd = 4;
             }
             OBJ[arg0 & 0xFFFF].fd = 0;

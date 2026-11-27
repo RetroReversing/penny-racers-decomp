@@ -1,4 +1,4 @@
-s32 func_801FA30C(void);
+s32 nextRandom(void);
 extern u8 D_80189CC9[];
 extern u8 D_8018A276;
 extern u8 D_8018A277[];
@@ -13,7 +13,7 @@ s32 func_80149110(void)
     u8 limit;
 
     var_s0 = 0;
-    if (!(func_801FA30C() & 1))
+    if (!(nextRandom() & 1))
     {
         var_a2 = 0xFF;
         var_a1 = 0;

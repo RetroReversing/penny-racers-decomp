@@ -56,9 +56,9 @@ Acmd *_loadBuffer(ALFx *r, s16 *curr_ptr, s32 buff, s32 count, Acmd *p);
 Acmd *_loadOutputBuffer(ALFx *r, ALDelay *d, s32 buff, s32 incount, Acmd *p);
 Acmd *_filterBuffer(void *lp, s32 buff, s32 count, Acmd *p);
 
-Acmd *alFxPull(void *filter, s16 *outp, s32 outCount, s32 sampleOffset, Acmd *p)
+/* Builds the RSP audio command list for one reverb pass: loads and mixes each delay section, saves its feedback, and copies the result to the output. */ Acmd *alFxPull(void *filter, s16 *outp, s32 outCount, s32 sampleOffset, Acmd *p)
 {
-    Acmd *ptr = p;
+    Acmd *cmd = p;
     ALFx *r = (ALFx *)filter;
     ALFilter *source = r->filter.source;
     s16 i, buff1, buff2, input, output, tmp;
@@ -68,18 +68,18 @@ Acmd *alFxPull(void *filter, s16 *outp, s32 outCount, s32 sampleOffset, Acmd *p)
     if (!source) {
         func_800346B0(D_8004A840, D_8004A844, 0x4B);
     }
-    ptr = (*source->handler)(source, outp, outCount, sampleOffset, p);
+    cmd = (*source->handler)(source, outp, outCount, sampleOffset, p);
 
     input = 0x6C0;
     output = 0x800;
     buff1 = 0;
     buff2 = 0x140;
 
-    aSetBuffer(ptr++, 0, 0, 0, outCount << 1);
-    aMix(ptr++, 0, 0xDA83, 0x6C0, input);
-    aMix(ptr++, 0, 0x5A82, 0x800, input);
-    ptr = _saveBuffer(r, r->input, input, outCount, ptr);
-    aClearBuffer(ptr++, output, outCount << 1);
+    aSetBuffer(cmd++, 0, 0, 0, outCount << 1);
+    aMix(cmd++, 0, 0xDA83, 0x6C0, input);
+    aMix(cmd++, 0, 0x5A82, 0x800, input);
+    cmd = _saveBuffer(r, r->input, input, outCount, cmd);
+    aClearBuffer(cmd++, output, outCount << 1);
 
     for (i = 0; i < r->section_count; i++) {
         d = &r->delay[i];
@@ -91,28 +91,28 @@ Acmd *alFxPull(void *filter, s16 *outp, s32 outCount, s32 sampleOffset, Acmd *p)
             buff2 = buff1;
             buff1 = tmp;
         } else {
-            ptr = _loadBuffer(r, in_ptr, buff1, outCount, ptr);
+            cmd = _loadBuffer(r, in_ptr, buff1, outCount, cmd);
         }
-        ptr = _loadOutputBuffer(r, d, buff2, outCount, ptr);
+        cmd = _loadOutputBuffer(r, d, buff2, outCount, cmd);
 
         if (d->ffcoef) {
-            aMix(ptr++, 0, (u16)d->ffcoef, buff1, buff2);
+            aMix(cmd++, 0, (u16)d->ffcoef, buff1, buff2);
             if (!d->rs && !d->lp) {
-                ptr = _saveBuffer(r, out_ptr, buff2, outCount, ptr);
+                cmd = _saveBuffer(r, out_ptr, buff2, outCount, cmd);
             }
         }
         if (d->fbcoef) {
-            aMix(ptr++, 0, (u16)d->fbcoef, buff2, buff1);
-            ptr = _saveBuffer(r, in_ptr, buff1, outCount, ptr);
+            aMix(cmd++, 0, (u16)d->fbcoef, buff2, buff1);
+            cmd = _saveBuffer(r, in_ptr, buff1, outCount, cmd);
         }
         if (d->lp) {
-            ptr = _filterBuffer(d->lp, buff2, outCount, ptr);
+            cmd = _filterBuffer(d->lp, buff2, outCount, cmd);
         }
         if (!d->rs) {
-            ptr = _saveBuffer(r, out_ptr, buff2, outCount, ptr);
+            cmd = _saveBuffer(r, out_ptr, buff2, outCount, cmd);
         }
         if (d->gain) {
-            aMix(ptr++, 0, (u16)d->gain, buff2, output);
+            aMix(cmd++, 0, (u16)d->gain, buff2, output);
         }
         prev_out_ptr = &r->input[d->output];
     }
@@ -122,6 +122,6 @@ Acmd *alFxPull(void *filter, s16 *outp, s32 outCount, s32 sampleOffset, Acmd *p)
         r->input -= r->length;
     }
 
-    aDMEMMove(ptr++, output, 0x6C0, outCount << 1);
-    return ptr;
+    aDMEMMove(cmd++, output, 0x6C0, outCount << 1);
+    return cmd;
 }

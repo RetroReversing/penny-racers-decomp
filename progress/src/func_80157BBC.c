@@ -1,5 +1,5 @@
 f32 __sinf(f32);
-s32 func_8013AE60(s32);
+s32 liftCopyFlags(s32);
 extern u8 D_8016D8C0[];
 extern u8 D_8016D8C4[];
 extern u8 D_8016D8C8[];
@@ -16,7 +16,7 @@ void func_80157BBC(s32 arg0)
     u16 *pa;
     u16 *pb;
 
-    func_8013AE60(arg0 & 0xFFFF);
+    liftCopyFlags(arg0 & 0xFFFF);
     for (i = 0; i < 2; i++) {
         u16 *a = (u16 *)(D_8016D8C0 + i * 2);
         u16 *b = (u16 *)(D_8016D8C8 + i * 2);

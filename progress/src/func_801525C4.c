@@ -1,5 +1,5 @@
 f32 __sinf(f32);
-void func_8013AE60(s32);
+void liftCopyFlags(s32);
 extern u8 D_8011F320[];
 extern u8 D_8011F324[];
 extern u8 D_8011F334[];
@@ -19,7 +19,7 @@ void func_801525C4(s32 arg0)
     f64 temp_fv1;
 
     temp_s0 = arg0 & 0xFFFF;
-    func_8013AE60(temp_s0);
+    liftCopyFlags(temp_s0);
     temp_v0 = temp_s0 * 100;
     temp_fv0 = (f32) (*(f32 *) (D_8011F334 + temp_v0) + D_801837E0);
     *(f32 *) (D_8011F334 + temp_v0) = temp_fv0;

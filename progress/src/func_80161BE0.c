@@ -5,16 +5,16 @@ typedef struct { u8 v[0x7C]; } Hit;
 typedef struct { f32 v; u8 pad[0x78]; } HitF;
 extern Trail D_8018A460[][3];
 extern Cam D_8011F2F0[];
-extern Row D_8018D6C0[];
+extern Row hitSlots[];
 extern Hit D_8018D727[];
 extern HitF D_8018D730[];
 extern f32 D_8022E620[][6];
 extern u8 D_8022A720[][6];
-extern u8 D_8022A770[];
+extern u8 sCars[];
 extern void func_80162460(void), func_80162BB0(void), func_8016221C(void);
-s32 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
+s32 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 void func_8013E640(s32, s32, void *, s32, f32, f32, f32, f32, f32, f32, s32);
-void func_801D7028(s32, s32);
+void queueObjEvent(s32, s32);
 void func_8003DF6C(void *, f32, f32, f32, f32 *, f32 *, f32 *);
 
 void func_80161BE0(u8 *car) {
@@ -32,7 +32,7 @@ void func_80161BE0(u8 *car) {
 
     if (*(s32 *) (car + 0x898) == 1 && (f = *(u16 *) (car + 0x560), !(f & 8)) && (f & 7) < 4
         && (u8) (car[0x8A1] - 2) >= 2) {
-        id = func_8013E364();
+        id = raceAllocSlot();
         if ((u16) id != 0xFFFF) {
             for (i = 0; i < 3; i++) {
                 t = &D_8018A460[*(u16 *) (car + 4)][i];
@@ -44,7 +44,7 @@ void func_80161BE0(u8 *car) {
                 goto fail;
             }
             t->used = 1;
-            o = func_800DE41C(0, 0, 3, 0, 0x5B, (u8) i, 0, func_80162460, func_80162BB0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+            o = objCreate(0, 0, 3, 0, 0x5B, (u8) i, 0, func_80162460, func_80162BB0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
             if ((u16) (o + 2) < 2) {
             fail:
                 func_8013E49C(id);
@@ -58,7 +58,7 @@ void func_80161BE0(u8 *car) {
                     break;
                 }
                     if (D_8022E620[*(u16 *) (car + 4)][i] < 2000.0f) {
-                        other = D_8022A770 + D_8022A720[*(u16 *) (car + 4)][i] * 0x8F0;
+                        other = sCars + D_8022A720[*(u16 *) (car + 4)][i] * 0x8F0;
                         oc = &D_8011F2F0[*(u16 *) (other + 2)];
                         d = rec->angle - (f32) (u16) func_801F9D8C((s32) (oc->z - rec->z), (s32) (oc->x - rec->x));
                         d = d > 0.0f ? d : -d;
@@ -79,10 +79,10 @@ void func_80161BE0(u8 *car) {
                 func_8003DF6C(car + 0x6D4, (f32) (car[0x778] & 0x1F) - 20.0f, 15.0f, *(f32 *) (car + 0x774) * 0.3f + -20.0f, &v[0], &v[1], &v[2]);
             }
             func_8013E640(id & 0xFFFF, (u16) o, car, 0x40, 0.0f, 0.0f, 0.0f, v[0], v[1], v[2], 0x12C);
-            D_8018D6C0[(u16) id].owner = car;
+            hitSlots[(u16) id].owner = car;
             D_8018D727[(u16) id].v[*(u16 *) (car + 4)] = 1;
             D_8018D730[(u16) id].v = 30.0f;
-            D_8018D6C0[(u16) id].unk16 = 0;
+            hitSlots[(u16) id].unk16 = 0;
             for (i = 0; i < 8; i++) {
                 t->x[i] = rec->x;
                 t->y[i] = rec->y;
@@ -92,13 +92,13 @@ void func_80161BE0(u8 *car) {
             if (*(s16 *) (car + 0x55E) > 0) {
                 *(s16 *) (car + 0x55E) -= 1;
                 if (*(s16 *) (car + 0x55E) == 0) {
-                    func_800DE41C(0, car[5], 3, 0, 0x5B, 0, 0, func_8016221C, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+                    objCreate(0, car[5], 3, 0, 0x5B, 0, 0, func_8016221C, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
                     count = *(u16 *) (car + 0x560) & 7;
                     *(u16 *) (car + 0x560) = (*(u16 *) (car + 0x560) & 0xF8) | (count + 1);
-                    func_801D7028(*(u16 *) (car + 2), 0x2A);
+                    queueObjEvent(*(u16 *) (car + 2), 0x2A);
                 }
             }
-            func_801D7028((u16) o, 0x2E);
+            queueObjEvent((u16) o, 0x2E);
         }
     }
 }

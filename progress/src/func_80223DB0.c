@@ -1,5 +1,5 @@
 extern u16 D_8006FB10;
-extern u8 *D_801C7AB0;
+extern u8 *trackInfo;
 extern u8 *D_802352CC[];
 extern f32 D_80235300[];
 extern f32 D_80235620[];
@@ -34,7 +34,7 @@ void func_80223DB0(Obj *obj) {
     dx = D_8011F308[obj->unk2].x - (row->dx * 50.0f + row->x);
     dz = D_8011F308[obj->unk2].z - (row->dz * 50.0f + row->z);
     obj->unk598 = sqrtf(dx * dx + dz * dz);
-    if (D_8006FB10 == 0 && D_801C7AB0[1] == 6) {
+    if (D_8006FB10 == 0 && trackInfo[1] == 6) {
         switch (obj->unk879) {
         case 0:
             obj->unk59C = (s32) D_80235620[obj->unk597] + (s32) ((D_80235940[obj->unk597] - obj->unk598) * D_80235300[obj->unk597]);

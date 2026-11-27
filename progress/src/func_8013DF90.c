@@ -22,7 +22,7 @@ typedef struct {
 extern u16 D_8006FAF0[];
 extern Obj D_8011F2F0[];
 extern Point *D_801687EC[];
-extern Car D_8022A770[];
+extern Car sCars[];
 extern f32 sqrtf(f32);
 extern void func_8015E8E4(Car *);
 
@@ -39,16 +39,16 @@ void func_8013DF90(void)
     points = D_801687EC[D_8006FAF0[0x10]];
     if (points != 0) {
         for (i = 0; i < 7; i++) {
-            if (D_8022A770[i].id != 0xFFFF && !(D_8022A770[i].state & 0x18)) {
-                obj = &D_8011F2F0[D_8022A770[i].id];
+            if (sCars[i].id != 0xFFFF && !(sCars[i].state & 0x18)) {
+                obj = &D_8011F2F0[sCars[i].id];
                 for (p = points; p->x != 0.0f; p++) {
-                    if (D_8022A770[i].zone == p->id) {
+                    if (sCars[i].zone == p->id) {
                         dx = obj->x - p->x;
                         dy = obj->y - p->y;
                         dz = obj->z - p->z;
                         if (sqrtf(dx * dx + dy * dy + dz * dz) < 26.0f) {
-                            func_8015E8E4(&D_8022A770[i]);
-                            D_8022A770[i].flags |= 4;
+                            func_8015E8E4(&sCars[i]);
+                            sCars[i].flags |= 4;
                         }
                     }
                 }

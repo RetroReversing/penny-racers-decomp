@@ -1,4 +1,4 @@
-extern void func_8003DE60();
+extern void debugPrintf();
 typedef struct {
     s32 sum;
     u8 a[14];
@@ -44,7 +44,7 @@ u8 func_8014B590(u8 arg0)
             sum += ((u8 *)dst)[i];
         }
         dst->sum = sum;
-        func_8003DE60(D_80183750, sum);
+        debugPrintf(D_80183750, sum);
     }
     return ret;
 }

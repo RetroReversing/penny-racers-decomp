@@ -1,13 +1,13 @@
 typedef struct { u8 type; u8 mode; u8 count; } Race;
 typedef struct { u8 unk0; u8 h; s8 x; s8 z; s8 type; } Spot;
-extern Race *D_801C7AB0;
-extern Spot D_801C7080[];
+extern Race *trackInfo;
+extern Spot trackPoints[];
 extern u16 D_801C6BE0[];
 extern u8 D_801C7AD8[];
-extern s8 D_801C7068;
-extern s8 D_801C6BB9;
-extern s8 D_801C6BB0[];
-extern s8 D_801C7062[];
+extern s8 cursorX;
+extern s8 cursorY;
+extern s8 blockPos[];
+extern s8 finishPos[];
 extern u8 D_801C7AB7;
 extern u8 D_801C746C;
 extern s32 func_801C5528();
@@ -31,14 +31,14 @@ void func_801C3634(u8 arg0, u8 *out1, u8 *out2)
     u8 f;
     s8 t;
 
-    *out1 = *out2 = D_801C7AB0->count;
+    *out1 = *out2 = trackInfo->count;
     c = f = 4;
     a = d = 0x18;
     b = e = 0x18;
-    if (D_801C7AB0->type == 3) {
-        t = D_801C7080[arg0].type;
+    if (trackInfo->type == 3) {
+        t = trackPoints[arg0].type;
     } else {
-        t = D_801C7080[arg0].type - 0x2E;
+        t = trackPoints[arg0].type - 0x2E;
     }
     if (t >= 0 && t <= 4) {
         func_801C407C(arg0, &a, &b, &c);
@@ -80,21 +80,21 @@ void func_801C3634(u8 arg0, u8 *out1, u8 *out2)
         func_801C407C(arg0, &a, &b, &c);
     }
     if (a == 0x18 || b == 0x18) {
-        *out1 = D_801C7AB0->count;
+        *out1 = trackInfo->count;
     } else if (a == 0x7F && b == 0x7F) {
-        *out1 = D_801C7AB0->count;
+        *out1 = trackInfo->count;
     } else if (D_801C6BE0[a + b * 24] != 0xFFFF) {
-        if (a == D_801C7068 && b == D_801C6BB9) {
+        if (a == cursorX && b == cursorY) {
         *out1 = D_801C7AD8[d + e * 24];
-    } else if (a == D_801C6BB0[0] && b == D_801C6BB0[1]) {
-        if (D_801C7AB0->mode == 5) {
+    } else if (a == blockPos[0] && b == blockPos[1]) {
+        if (trackInfo->mode == 5) {
             *out1 = func_801C5528(&a, &b, c);
         } else {
             *out1 = D_801C7AD8[a + b * 24];
         }
         D_801C7AB7 = *out1;
-    } else if (a == D_801C7062[0] && b == D_801C7062[1]) {
-        if (D_801C7AB0->mode == 5) {
+    } else if (a == finishPos[0] && b == finishPos[1]) {
+        if (trackInfo->mode == 5) {
             *out1 = func_801C5664(&a, &b, c);
         } else {
             *out1 = D_801C7AD8[a + b * 24];
@@ -106,24 +106,24 @@ void func_801C3634(u8 arg0, u8 *out1, u8 *out2)
         *out1 = D_801C7AD8[a + b * 24];
     }
     } else {
-        *out1 = D_801C7AB0->count;
+        *out1 = trackInfo->count;
     }
     if (d == 0x18 || e == 0x18) {
-        *out2 = D_801C7AB0->count;
+        *out2 = trackInfo->count;
     } else if (d == 0x7F && e == 0x7F) {
-        *out2 = D_801C7AB0->count;
+        *out2 = trackInfo->count;
     } else if (D_801C6BE0[d + e * 24] != 0xFFFF) {
-        if (d == D_801C7068 && e == D_801C6BB9) {
+        if (d == cursorX && e == cursorY) {
         *out2 = D_801C7AD8[a + b * 24];
-    } else if (d == D_801C6BB0[0] && e == D_801C6BB0[1]) {
-        if (D_801C7AB0->mode == 5) {
+    } else if (d == blockPos[0] && e == blockPos[1]) {
+        if (trackInfo->mode == 5) {
             *out2 = func_801C5528(&d, &e, f);
         } else {
             *out2 = D_801C7AD8[d + e * 24];
         }
         D_801C7AB7 = *out2;
-    } else if (d == D_801C7062[0] && e == D_801C7062[1]) {
-        if (D_801C7AB0->mode == 5) {
+    } else if (d == finishPos[0] && e == finishPos[1]) {
+        if (trackInfo->mode == 5) {
             *out2 = func_801C5664(&d, &e, f);
         } else {
             *out2 = D_801C7AD8[d + e * 24];
@@ -135,6 +135,6 @@ void func_801C3634(u8 arg0, u8 *out1, u8 *out2)
         *out2 = D_801C7AD8[d + e * 24];
     }
     } else {
-        *out2 = D_801C7AB0->count;
+        *out2 = trackInfo->count;
     }
 }

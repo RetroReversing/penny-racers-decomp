@@ -5,12 +5,12 @@ extern Obj D_8011F2F0[];
 extern u16 D_8006FAF0[];
 extern f32 D_80168574[];
 extern u8 D_802390C8[];
-void func_80129918(void *, f32, f32, f32, f32, f32, f32);
-void func_8015D410(u16, f32, Car *, f32);
-void func_801D7028(u16, s32);
+void ballMoveCollide(void *, f32, f32, f32, f32, f32, f32);
+void spawnCameraFly(u16, f32, Car *, f32);
+void queueObjEvent(u16, s32);
 void func_80164218(void);
 void func_80164364(void);
-s32 func_800DE41C(s32, s32, s32, s32, s32, s32, u8 *, void (*)(void), void (*)(void), f32, f32, f32, f32, f32, f32, f32, f32, f32);
+s32 objCreate(s32, s32, s32, s32, s32, s32, u8 *, void (*)(void), void (*)(void), f32, f32, f32, f32, f32, f32, f32, f32, f32);
 
 void func_80163E5C(u16 arg0)
 {
@@ -21,7 +21,7 @@ void func_80163E5C(u16 arg0)
     Obj *p;
 
     ctl->vy -= 0.1f;
-    func_80129918(&ctl->hit, obj->x, obj->y, obj->z, ctl->vx, ctl->vy, ctl->vz);
+    ballMoveCollide(&ctl->hit, obj->x, obj->y, obj->z, ctl->vx, ctl->vy, ctl->vz);
     obj->x = ctl->px;
     obj->y = ctl->py;
     obj->z = ctl->pz;
@@ -30,12 +30,12 @@ void func_80163E5C(u16 arg0)
         ctl->car->flags &= 0xF8;
         ctl->car->flags |= count - 1;
         func_8013E49C(ctl->unk76);
-        func_8015D410(arg0, 1.0f, ctl->car, 0.0f);
-        func_801D7028(arg0, 0x34);
+        spawnCameraFly(arg0, 1.0f, ctl->car, 0.0f);
+        queueObjEvent(arg0, 0x34);
         D_8011F2F0[arg0].unkD = 2;
     }
     if (!(ctl->timer & 3)) {
-        n = func_800DE41C(0, 0, 1, 0, 0x5B, 0xFA, D_802390C8, func_80164218, func_80164364, obj->x, obj->y, obj->z, 0.0f, 0.0f, 0.0f, 0.08f, 0.08f, 0.08f);
+        n = objCreate(0, 0, 1, 0, 0x5B, 0xFA, D_802390C8, func_80164218, func_80164364, obj->x, obj->y, obj->z, 0.0f, 0.0f, 0.0f, 0.08f, 0.08f, 0.08f);
         if ((u16)(n + 2) >= 2) {
             p = &D_8011F2F0[(u16)n];
             p->s2 = p->s4 = p->s6 = p->s8 = 0x40;

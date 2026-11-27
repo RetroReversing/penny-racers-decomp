@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 func_800294A0();
+s32 dmaRomToRam();
 extern char D_3B7C00[];
 extern char D_3E4880[];
 extern s32 D_80168BB0;
@@ -20,7 +20,7 @@ extern u8 D_8021B01A;
 extern char D_802D6890[];
 
 void func_80143D70(void) {
-    func_800294A0(D_3B7C00, D_802D6890, D_3E4880 - D_3B7C00);
+    dmaRomToRam(D_3B7C00, D_802D6890, D_3E4880 - D_3B7C00);
     if (D_8021B01A == 1) {
         D_80168BB0 = 0x32;
         D_8021B01A = 0;

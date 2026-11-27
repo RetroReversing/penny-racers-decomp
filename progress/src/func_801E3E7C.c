@@ -1,4 +1,4 @@
-s32 func_801CA140();
+s32 gfxSetup2DState();
 s32 func_801CB74C();
 s32 func_801CBF48();
 extern char D_8011F330[];
@@ -14,7 +14,7 @@ void func_801E3E7C(s32 arg0, s32 arg1)
 {
     s32 temp_v1;
 
-    func_801CA140();
+    gfxSetup2DState();
     temp_v1 = *(u16 *) (D_8011F330 + (arg1 & 0xFFFF) * 0x64);
     switch (temp_v1)
     {

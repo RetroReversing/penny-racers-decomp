@@ -59,7 +59,7 @@ extern u16 *D_801680C8[];
 extern u8 *D_801680F0[];
 extern Gfx D_800E1C00[];
 extern Gfx D_800E1AE0[];
-extern u8 D_80167FB8[];
+extern u8 waveVertices[];
 #define gSPDisplayList(pkt, dl) gDma(pkt, _S(0x06, 24, 8), dl)
 #define gSPClearGeometryMode(pkt, mode) gDma(pkt, _S(0xb6, 24, 8), mode)
 #define gSPVertex(pkt, v, n, v0) gDma(pkt, _S(0x04, 24, 8) | _S((v0) * 2, 16, 8) | _S(((n) << 10) | (16 * (n) - 1), 0, 16), v)
@@ -81,7 +81,7 @@ void func_8013CBBC(Gfx **gfxp, u16 id) {
         }
         gSPClearGeometryMode((*gfxp)++, 0x2000);
         gDPLoadTLUT_pal16((*gfxp)++, 0, D_801680C8[D_8006FAF0.course]);
-        gSPVertex((*gfxp)++, D_80167FB8, 16, 0);
+        gSPVertex((*gfxp)++, waveVertices, 16, 0);
         for (i = 0; i < 7; i++) {
             gDPLoadTextureTile_4b((*gfxp)++, D_801680F0[D_8006FAF0.course], 2, 224, 32, i * 32, 0, i * 32 + 31, 31, 0, 2, 2, 0, 0, 0, 0);
             gSP2Triangles((*gfxp)++, i, i + 8, i + 1, 0, i + 1, i + 8, i + 9, 0);

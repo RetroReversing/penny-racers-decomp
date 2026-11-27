@@ -10,17 +10,17 @@ extern u8 D_8006FAF0[];
 void func_801CF468(u16, s32, s32, s32);
 void func_801FA338(s32);
 void func_80231A0C(void);
-void func_80231E30(void);
+void createStageObjects(void);
 void func_8022F780(u16);
 void func_800E067C(void);
 void func_802312F8(s32);
 void func_80217F44(s32);
-void func_8021F6A0(s32);
-void func_800DE41C(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
+void initRowTable(s32);
+void objCreate(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
 void func_8013ADA8(void);
 void func_80232360(s32, s32);
 void func_8013DE3C(void *);
-extern void func_80218288(void);
+extern void updateChaseCamera(void);
 extern void func_80218788(void);
 extern void func_802178B4(void);
 
@@ -29,15 +29,15 @@ void func_80217660(void) {
     func_801FA338(0);
     func_80231A0C();
     *(u16 *)(D_8006FAF0 + 0x20) = ((u8 *)D_8021C0F8[D_8021C112])[0x1E];
-    func_80231E30();
+    createStageObjects();
     D_8021E144 = 1;
     func_8022F780(*(u16 *)(D_8006FAF0 + 0x20));
     func_800E067C();
     func_802312F8(0);
     func_80217F44((s32)D_8021C0F8[D_8021C112]);
-    func_8021F6A0(1);
+    initRowTable(1);
     *(s8 *)(D_8006FAF0 + 0x28) = 1;
-    func_800DE41C(0, 0, 3, 0, 0x80, 1, 0, func_80218288, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x80, 1, 0, updateChaseCamera, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     func_8013ADA8();
     func_80232360(0, 1);
     func_80232360(1, 2);
@@ -45,7 +45,7 @@ void func_80217660(void) {
     func_80232360(3, 2);
     func_80232360(4, 1);
     func_80232360(5, 2);
-    func_800DE41C(0, 0, 3, 0, 0x5E, 0, 0, func_802178B4, func_80218788, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x5E, 0, 0, func_802178B4, func_80218788, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     if (D_8021C112 >= 5) {
         D_8021C112 = 0;
     } else {

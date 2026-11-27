@@ -1,8 +1,8 @@
 typedef struct { u8 state; u8 min; u8 sec; u8 x3; u8 frac; } Time;
 typedef struct { u8 pad[0x562]; Time time[4]; } Race;
 typedef struct { u8 cur[3]; u8 best[3]; u16 curRows[9]; u16 bestRows[9]; u8 pad2A[6]; } Rec;
-extern Race D_8022A770;
-extern Rec D_801E97A0[];
+extern Race sCars;
+extern Rec sSaveData[];
 extern u8 D_8006FAF0[];
 extern u8 D_801E9740;
 extern u8 D_801E9738;
@@ -11,7 +11,7 @@ extern u8 D_801E96B4[];
 extern u16 D_800DA260[];
 extern PennyHalfwordRows D_800DA26A[];
 extern s32 D_801E9D58;
-void func_8003DE60();
+void debugPrintf();
 void func_80029790(void);
 void func_800297C8(void);
 s32 func_801E2F38(s32);
@@ -30,27 +30,27 @@ void func_801E3FE8(void) {
     D_801E9740 = 0;
     D_801E9738 = 0;
     id = *(u16 *) &D_8006FAF0[0x20] - 1;
-    r = &D_8022A770;
+    r = &sCars;
     t = r->time;
     if (t[0].state == 0) {
         a = t->min;
-        b = D_801E97A0[id].best[0];
+        b = sSaveData[id].best[0];
         if (a <= b) {
             less = a < b;
             a = t->sec;
-            b = D_801E97A0[id].best[1];
+            b = sSaveData[id].best[1];
             if ((a <= b) || less) {
                 if (a < b) less = 1;
                 a = t->frac;
-                b = D_801E97A0[id].best[2];
+                b = sSaveData[id].best[2];
                 if ((a < b) || less) {
-            func_8003DE60(D_801E9698);
+            debugPrintf(D_801E9698);
             D_801E9738 = 1;
-            D_801E97A0[id].best[0] = t->min;
-            D_801E97A0[id].best[1] = t->sec;
-            D_801E97A0[id].best[2] = t->frac;
+            sSaveData[id].best[0] = t->min;
+            sSaveData[id].best[1] = t->sec;
+            sSaveData[id].best[2] = t->frac;
             for (k = 0; k < 8; k++) {
-                D_801E97A0[id].bestRows[k] = D_800DA26A[0].rows[D_800DA260[0]][k];
+                sSaveData[id].bestRows[k] = D_800DA26A[0].rows[D_800DA260[0]][k];
             }
                 }
             }
@@ -59,23 +59,23 @@ void func_801E3FE8(void) {
     for (i = 1; i < 4; i++) {
         t = &r->time[i];
         a = t->min;
-        b = D_801E97A0[id].cur[0];
+        b = sSaveData[id].cur[0];
         if (a <= b) {
             less = a < b;
             a = t->sec;
-            b = D_801E97A0[id].cur[1];
+            b = sSaveData[id].cur[1];
             if ((a <= b) || less) {
                 if (a < b) less = 1;
                 a = t->frac;
-                b = D_801E97A0[id].cur[2];
+                b = sSaveData[id].cur[2];
                 if ((a < b) || less) {
-            func_8003DE60(D_801E96B4, i);
+            debugPrintf(D_801E96B4, i);
             D_801E9740 = i;
-            D_801E97A0[id].cur[0] = t->min;
-            D_801E97A0[id].cur[1] = t->sec;
-            D_801E97A0[id].cur[2] = t->frac;
+            sSaveData[id].cur[0] = t->min;
+            sSaveData[id].cur[1] = t->sec;
+            sSaveData[id].cur[2] = t->frac;
             for (k = 0; k < 8; k++) {
-                D_801E97A0[id].curRows[k] = D_800DA26A[0].rows[D_800DA260[0]][k];
+                sSaveData[id].curRows[k] = D_800DA26A[0].rows[D_800DA260[0]][k];
             }
                 }
             }

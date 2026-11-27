@@ -25,13 +25,13 @@ extern f32 D_8018D680[];
 extern u8 D_8018F5C0;
 extern f32 D_802210CC;
 extern f32 D_802210D0;
-void func_8015A960(void *, u8, u8, u8, u8, u8, u8, s32, s32, s32);
+void setCarLight(void *, u8, u8, u8, u8, u8, u8, s32, s32, s32);
 f32 __sinf(f32);
 #define SINF(x) ({ __sinf(x); })
 void func_802319E8(void);
 void func_80231C5C(void);
 void func_80143D70(void);
-void func_801D651C(s32, s32);
+void playStageSound(s32, s32);
 u32 func_801FA38C(s32);
 
 void func_8015A9CC(u16 arg0)
@@ -59,7 +59,7 @@ void func_8015A9CC(u16 arg0)
         D_80187BE8 = 0;
         n = 100;
         D_80183BB4 = n;
-        func_8015A960(D_80189928, 0, 0, 0, n, n, n, -0x49, 0x49, 0x49);
+        setCarLight(D_80189928, 0, 0, 0, n, n, n, -0x49, 0x49, 0x49);
         D_80183BBC = 1;
         D_80183BBE = 900;
         D_80183BC0 = 0;
@@ -98,7 +98,7 @@ void func_8015A9CC(u16 arg0)
             D_8011F2F0[arg0].st = D_80183BBC;
         }
         if (D_80183BC0 == 1) {
-            func_801D651C(7, 0x1D);
+            playStageSound(7, 0x1D);
         }
         if (D_8011F2F0[D_8018BC3C].p[0] == 0) {
             if (D_801E9958[0].unk68 == 1 || D_801E9958[1].unk68 == 1 || D_801E9958[2].unk68 == 1 || D_801E9958[3].unk68 == 1 ||
@@ -138,7 +138,7 @@ void func_8015A9CC(u16 arg0)
         D_8018D39F = D_8018991C = D_8018F5C0 = D_80183BB4;
         D_8018BC34 = D_80187BE8 = D_8018D669 = D_8018F5C0 - 100;
     }
-    func_8015A960(D_80189928, D_8018D669, D_8018BC34, D_80187BE8, D_8018F5C0, D_8018D39F, D_8018991C, -0x49, 0x49, 0x49);
+    setCarLight(D_80189928, D_8018D669, D_8018BC34, D_80187BE8, D_8018F5C0, D_8018D39F, D_8018991C, -0x49, 0x49, 0x49);
     if (D_8011F2F0[arg0].st != 2) {
         {
             pos = &D_802210D0;

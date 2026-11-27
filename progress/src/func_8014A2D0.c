@@ -1,6 +1,6 @@
 extern u32 func_8014A79C(s32);
 extern s32 func_8014A080(s32, s32, s32, s32);
-extern void func_801CABF4(u32 *, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32);
+extern void gfxDrawText(u32 *, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32);
 extern s32 D_80203080[];
 extern s32 D_802D92A0[];
 extern s32 D_802D6898[];
@@ -31,11 +31,11 @@ void func_8014A2D0(u32 *arg0, s32 arg1, s32 arg2, s32 arg3, u8 arg4, u8 arg5)
         v = s1 & 0xF;
         if (v < 10) {
             if (arg5 == 0) {
-                func_801CABF4(&local, (u16)(arg1 + i * 13), (u16)arg2, 0xF,
+                gfxDrawText(&local, (u16)(arg1 + i * 13), (u16)arg2, 0xF,
                               (s32)D_802D92A0, D_80203080[v], 0, (s32)D_802D6898,
                               0xE, 0x10, 0xE0, 0x60);
             } else {
-                func_801CABF4(&local, (u16)(arg1 + i * 10), (u16)arg2, 0xA,
+                gfxDrawText(&local, (u16)(arg1 + i * 10), (u16)arg2, 0xA,
                               (s32)D_801D4390, D_80203080[s1 & 0xF], 0, (s32)D_801CF4C8,
                               0xA, 0xE, 0xA0, 0xFC);
             }

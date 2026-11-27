@@ -11,7 +11,7 @@ extern u8 D_801C5EA1;
 typedef struct { u16 v; } Fade;
 extern Fade D_8021E19C;
 s32 func_8014A870(s32, s32, s32);
-void func_801D651C(s32, s32);
+void playStageSound(s32, s32);
 
 void func_80215DE0(u16 id) {
     Tri tri = D_8021DEB0;
@@ -59,12 +59,12 @@ void func_80215DE0(u16 id) {
             }
         }
         if (keys & 3) {
-            func_801D651C(7, 0x3B);
+            playStageSound(7, 0x3B);
         }
         D_801CA13C = tri.v[*sel];
         if (keys & 0x10) {
             keys = 0;
-            func_801D651C(7, 0x3D);
+            playStageSound(7, 0x3D);
             D_80190C9A.f16 = 0;
             switch (*sel) {
             case 0:
@@ -90,7 +90,7 @@ void func_80215DE0(u16 id) {
             }
         }
         if (keys & 0x20) {
-            func_801D651C(7, 0x3A);
+            playStageSound(7, 0x3A);
             D_80190C9A.timer = 0;
             rec->f40 = 0x20;
             rec->f3E = 0x20;

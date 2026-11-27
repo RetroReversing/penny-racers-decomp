@@ -6,14 +6,14 @@ typedef struct { u8 active; s8 target; u8 pad2[2]; f32 x[8]; f32 y[8]; f32 z[8];
 typedef struct { u8 pad0[2]; u16 idx; u8 pad4[0x8EC]; } Slot;
 extern Obj D_8011F2F0[];
 extern Trail D_8018A460[][3];
-extern Slot D_8022A770[];
+extern Slot sCars[];
 extern u16 D_8006FB10;
 extern f32 D_80168574[];
 f32 sqrtf(f32);
-void func_80129918(Ball *, f32, f32, f32, f32, f32, f32);
+void ballMoveCollide(Ball *, f32, f32, f32, f32, f32, f32);
 u8 func_8013F050(u16, void *);
-void func_8015D410(u16, f32, void *, u16);
-void func_801D7028(u16, s16);
+void spawnCameraFly(u16, f32, void *, u16);
+void queueObjEvent(u16, s16);
 u16 func_801F9D8C(s32, s32);
 s32 func_8013E49C(u16);
 void func_80162460(u16 arg0)
@@ -33,7 +33,7 @@ void func_80162460(u16 arg0)
             f32 dx, dy, dz;
             f32 speed, dot, k, scale;
 
-            Obj *t = &D_8011F2F0[D_8022A770[tr->target].idx];
+            Obj *t = &D_8011F2F0[sCars[tr->target].idx];
 
             dx = t->x - o->x;
             dy = t->y - o->y;
@@ -72,7 +72,7 @@ void func_80162460(u16 arg0)
         } else {
             data->vy -= 0.2f;
         }
-        func_80129918(&data->ball, o->x, o->y, o->z, data->vx, data->vy, data->vz);
+        ballMoveCollide(&data->ball, o->x, o->y, o->z, data->vx, data->vy, data->vz);
         o->x = data->ball.x;
         o->y = data->ball.y;
         o->z = data->ball.z;
@@ -105,8 +105,8 @@ void func_80162460(u16 arg0)
             tr->pitch[7] = -func_801F9D8C(fy, fx);
         }
         if (--data->timer == 0 || o->y < D_80168574[D_8006FB10] || (*(u32 *) &data->ball & 0xFFFF00) || func_8013F050(arg0, data)) {
-            func_8015D410(arg0, 0.4f, data->owner, data->owner->kind);
-            func_801D7028(arg0, 0x34);
+            spawnCameraFly(arg0, 0.4f, data->owner, data->owner->kind);
+            queueObjEvent(arg0, 0x34);
             tr->active = 0;
             data->timer = 7;
             D_8011F2F0[arg0].state = 1;

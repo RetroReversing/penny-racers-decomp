@@ -27,19 +27,19 @@ typedef struct { u16 v; } Id;
 extern Id D_80190C98[];
 extern Rec D_8011F2F0[];
 extern Anim D_80237DC0[];
-void func_800294A0(void *, void *, s32);
+void dmaRomToRam(void *, void *, s32);
 void func_80211B40(void);
 void func_80211B90(void);
 void func_80211C08(void);
-s32 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
+s32 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 void func_802153C4(s32, f32, s32, s32, s32, s32);
 void func_8021FCA4(void);
 void func_801D5A90(void);
-void func_8021FE04(void);
+void gfxSetViewViewport(void);
 void func_8022026C(void);
 void func_80149A80(void);
 void func_8021078C(void);
-void func_802109DC(void);
+void drawCourseSelectOverlay(void);
 void func_80210D88(void);
 void func_80210F70(void);
 void func_802114C8(void);
@@ -50,7 +50,7 @@ void func_80210050(void) {
     s32 i;
     s32 j;
 
-    func_800294A0(D_419270, D_8030BD90, D_41CF00 - D_419270);
+    dmaRomToRam(D_419270, D_8030BD90, D_41CF00 - D_419270);
     D_8021EEC0.sel = D_8021EEA8;
     D_8021EEC0.x = D_8021EEC0.sel * 2.5;
     D_8021EEC0.count = D_8021E230[D_8021E15F.v][0];
@@ -78,14 +78,14 @@ void func_80210050(void) {
         D_80221080[i].a = 0;
         D_80221080[i].b = 0;
     }
-    func_800DE41C(0, 0, 3, 0, 0x7F, 0, 0, func_801D5A90, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x7F, 0, 0, func_801D5A90, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     func_802153C4(0x40, 0.5f, 0, 0xB7, 0xA9, 0x8A);
     func_8021FCA4();
-    func_800DE41C(0, 0, 3, 0, 0x42, 0xFF, 0, 0, func_8021FE04, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x42, 0xFF, 0, 0, gfxSetViewViewport, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     D_80220E40 = 10.0f;
-    func_800DE41C(0, 0, 3, 0, 0x44, 0xFF, 0, 0, func_8022026C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    func_800DE41C(0, 0, 3, 0, 0x4A, 1, 0, func_80149A80, 0, 0, 0, 0, 0, 30.0f, 50.0f, 0, 0, 0);
-    func_800DE41C(0, 0, 3, 0, 0x4A, 0, 0, func_8021078C, func_802109DC, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x44, 0xFF, 0, 0, func_8022026C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x4A, 1, 0, func_80149A80, 0, 0, 0, 0, 0, 30.0f, 50.0f, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x4A, 0, 0, func_8021078C, drawCourseSelectOverlay, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     for (j = 0; j < 14; j++) {
         for (i = 0; i < 8; i++) {
             D_8018F5D0[j].slot[i] = D_80238EC0[i];
@@ -94,10 +94,10 @@ void func_80210050(void) {
     for (i = 0; i < D_8021EEC0.count; i++) {
         j = D_8021E231[D_8021E15F.v * 0x110 + i];
 
-        D_80190C98[j].v = func_800DE41C(0, i & 0xFF, 1, 0, 0x54, 0xFF, &D_8018F5D0[j], func_80210D88, func_80210F70, 2.5f, 3.19996309f, 0, -17.3999176f, 333.0f, 3.39999294f, 0.025f, 0.025f, 0.025f);
+        D_80190C98[j].v = objCreate(0, i & 0xFF, 1, 0, 0x54, 0xFF, &D_8018F5D0[j], func_80210D88, func_80210F70, 2.5f, 3.19996309f, 0, -17.3999176f, 333.0f, 3.39999294f, 0.025f, 0.025f, 0.025f);
         *(Anim **) (D_8011F2F0[D_8011F2F0[D_80190C98[j].v].link].f50 + 4) = &D_80237DC0[j];
     }
-    func_800DE41C(0, 0, 3, 0, 0x59, 0, 0, 0, func_802114C8, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    func_800DE41C(0, 0, 3, 0, 0xA1, 0xFF, 0, 0, func_8013DD2C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x59, 0, 0, 0, func_802114C8, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0xA1, 0xFF, 0, 0, func_8013DD2C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     func_80203DF8(1, 6, 0, 0, 0);
 }

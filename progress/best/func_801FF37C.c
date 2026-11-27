@@ -27,7 +27,7 @@ extern u16 D_80203ABA;
 extern s32 D_80203ABC;
 extern s16 D_80203ABE;
 extern s32 D_80203AC0;
-extern u8 D_80203ACA;
+extern volatile u8 D_80203ACA;
 inline static int inline_fn(float arg0, int arg1)
 {
   return ((s32) arg0) | arg1;
@@ -35,6 +35,7 @@ inline static int inline_fn(float arg0, int arg1)
 
 void func_801FF37C(void)
 {
+    __typeof__(D_801E99A0) mode;
   f32 temp_fs1;
   f32 temp_fs1_2;
   f32 temp_fv1;
@@ -52,10 +53,12 @@ void func_801FF37C(void)
   s32 temp_v0_2;
   s32 var_a0;
   s32 var_a0_2;
+  
   s32 var_a1;
   s32 var_v0;
   u8 var_v0_2;
-  if (D_801E99A0 == 1)
+  do { mode = D_801E99A0; } while (0);
+  if (mode == 1)
   {
     if (D_80203AB8 == 0x43)
     {
@@ -68,10 +71,13 @@ void func_801FF37C(void)
   }
   if (D_801E99A4 == 1)
   {
-    var_v0 = D_80203AB8 - 1;
     if (D_80203AB8 == 0)
     {
       var_v0 = 0x43;
+    }
+    else
+    {
+      var_v0 = D_80203AB8 - 1;
     }
     D_80203AB8 = var_v0;
   }
@@ -116,8 +122,11 @@ void func_801FF37C(void)
   }
   if (D_801E99C4 == 1)
   {
-    var_v0_2 = 4;
-    if (D_80203ACA != 0)
+    if (D_80203ACA == 0)
+    {
+      var_v0_2 = 4;
+    }
+    else
     {
       var_v0_2 = D_80203ACA - 1;
     }
@@ -137,17 +146,10 @@ void func_801FF37C(void)
   {
     if (var_fs0 > 60.0f)
     {
-      if (D_801E995A || D_80203AB8)
-      {
-        var_fs0 = 60.0f;
-      }
-      else
-      {
-        var_fs0 = 60.0f;
-      }
+      var_fs0 = 60.0f;
     }
     var_fs0_2 = var_fs0 - 10.0f;
-    var_fv1 = *((f32 *) (D_802025F0 + (D_80203ACA * 0xC)));
+    do { var_fv1 = *((f32 *) (D_802025F0 + (D_80203ACA * 0xC))); } while (0);
     var_fv0 = var_fs0_2 / 50.0f;
     n_alSndpSetPitch((var_fv0 * var_fv1) + 1.0f);
     *((f32 *) (D_801D7E00 + (D_80203ABC * 0x2C))) = var_fs0_2;
@@ -161,7 +163,7 @@ void func_801FF37C(void)
     }
     __repair_phase_var_fs0_2 = var_fs0 + 10.0f;
     var_fv0 = __repair_phase_var_fs0_2 / 50.0f;
-    var_fv1 = *((f32 *) (D_802025EC + (D_80203ACA * 0xC)));
+    do { do { do { var_fv1 = *((f32 *) (D_802025EC + (D_80203ACA * 0xC))); } while (0); } while (0); } while (0);
     n_alSndpSetPitch((var_fv0 * var_fv1) + 1.0f);
     *((f32 *) (D_801D7E00 + (D_80203ABC * 0x2C))) = __repair_phase_var_fs0_2;
   }
@@ -169,8 +171,8 @@ void func_801FF37C(void)
   {
     n_alSndpSetPitch(1.0f);
   }
-  var_fs1 = (f32) D_801E995A;
   func_8002D030(D_80203ABE);
+  do { var_fs1 = (f32) D_801E995A; } while (0);
   if (var_fs1 >= (10.0f + 1))
   {
     temp_fs1 = var_fs1 - 10.0f;
@@ -200,16 +202,8 @@ void func_801FF37C(void)
     }
     if (var_fv1_2 >= ((unsigned char) 2.1474836e9f))
     {
-      if (var_fs1)
-      {
-        var_fv0_2 = var_fv1_2 - 2.1474836e9f;
-        goto block_56;
-      }
-      else
-      {
-        var_fv0_2 = var_fv1_2 - 2.1474836e9f;
-        goto block_56;
-      }
+      var_fv0_2 = var_fv1_2 - 2.1474836e9f;
+      goto block_56;
     }
     goto block_54;
   }
@@ -223,16 +217,16 @@ void func_801FF37C(void)
     temp_fv1_2 = __repair_var_fs1_1 + 64.0f;
     if (!(temp_fv1_2 >= 2.1474836e9f))
     {
-      var_a0_2 = (s32) temp_fv1_2;
+      do { var_a0_2 = (s32) temp_fv1_2; } while (0);
       n_alSndpSetPan(var_a0_2 & 0xFF);
     }
     else
     {
-      var_a0_2 = (s32) (temp_fv1_2 - 2.1474836e9f); var_a0_2 = var_a0_2 | 0x80000000;
+      do { do { do { var_a0_2 = (s32) (temp_fv1_2 - 2.1474836e9f); } while (0); } while (0); } while (0); var_a0_2 = var_a0_2 | 0x80000000;
       n_alSndpSetPan(var_a0_2 & 0xFF);
     }
     var_fv1_2 = __repair_var_fs1_1 + 64.0f;
-    var_a1 = D_80203ABC * 0x2C;
+    do { var_a1 = D_80203ABC * 0x2C; } while (0);
     if (!(var_fv1_2 >= 2.1474836e9f))
     {
       block_54:

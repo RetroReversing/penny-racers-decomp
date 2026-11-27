@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 func_800294A0();
+s32 dmaRomToRam();
 s32 alSeqpSetBank();
 s32 alBnkfNew();
 void *alHeapDBAlloc();
@@ -26,7 +26,7 @@ void func_80027B40(s32 arg0, s32 arg1, s32 arg2) {
 
     temp_v0 = alHeapDBAlloc(0, 0, &D_8006E780, 1, arg1);
     D_800DA1E4 = temp_v0;
-    func_800294A0(arg0, temp_v0, arg1);
+    dmaRomToRam(arg0, temp_v0, arg1);
     alBnkfNew(D_800DA1E4, arg2);
     temp_s1 = M2C_FIELD(D_800DA1E4, s32 *, 4);
     alSeqpSetBank(&D_8006FB38, temp_s1);

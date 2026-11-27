@@ -7,27 +7,27 @@ typedef struct {
     s32 unk54;
     u8 pad58[100 - 0x58];
 } Ent800E15CC;
-extern u16 func_800E1850;
-extern u16 D_8011F068[];
+extern u16 objListHead;
+extern u16 visibleObjList[];
 extern Ent800E15CC D_8011F2F0[];
-void func_800E0A00(s32, s32, u16 *);
+void sortObjIndicesByGroup(s32, s32, u16 *);
 void func_800E15CC(void) {
     u16 n;
     u16 cur;
     Ent800E15CC *e;
 
     n = 0;
-    cur = func_800E1850;
+    cur = objListHead;
     do {
         e = &D_8011F2F0[cur];
         if (e->unk54 != 0 && e->unkD == 0) {
-            D_8011F068[n] = cur;
+            visibleObjList[n] = cur;
             n++;
         }
         cur = e->next;
     } while (cur != 0xFFFF);
-    D_8011F068[n] = 0xFFFF;
+    visibleObjList[n] = 0xFFFF;
     if (n - 1 > 0) {
-        func_800E0A00(0, n - 1, D_8011F068);
+        sortObjIndicesByGroup(0, n - 1, visibleObjList);
     }
 }

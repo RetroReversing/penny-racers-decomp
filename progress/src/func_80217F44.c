@@ -6,7 +6,7 @@ typedef struct {
     f32 f784; f32 f788; f32 f78C; f32 f790; f32 f794; f32 f798; u8 pad79C[0x18]; f32 f7B4; f32 f7B8; f32 f7BC; f32 f7C0; f32 f7C4; f32 f7C8; u8 pad7CC[4]; s16 f7D0; s16 f7D2; u8 pad7D4[0x40]; s16 f814; s16 f816; u8 pad818[0xCC]; u16 f8E4; u16 f8E6; u16 f8E8; u8 pad8EA[6];
 } Car;
 typedef struct { u8 pad0[0x18]; f32 x; f32 y; f32 z; u8 pad24[4]; f32 angle; u8 pad2C[0x24]; u8 *f50; u8 pad54[0x10]; } Rec;
-extern Car D_8022A770[];
+extern Car sCars[];
 extern Slot D_800DA260[];
 extern Spec D_8021B6A0[];
 extern Rec D_8011F2F0[];
@@ -24,7 +24,7 @@ void func_80217F44(Step *step) {
     s32 i;
 
     while (step->kind != 0) {
-        car = &D_8022A770[step->car];
+        car = &sCars[step->car];
         slot = &D_800DA260[step->car];
         spec = &D_8021B6A0[step->spec];
         slot->f0 = step->b1F;
@@ -41,7 +41,7 @@ void func_80217F44(Step *step) {
         slot->f20 = spec->f1C;
         slot->f24 = spec->f20;
         func_8022FE50(0, step->car, step->car, 1);
-        rec = &D_8011F2F0[D_8022A770[step->car].first];
+        rec = &D_8011F2F0[sCars[step->car].first];
         rec->x = step->x;
         rec->y = step->y + 0.1;
         rec->z = step->z;

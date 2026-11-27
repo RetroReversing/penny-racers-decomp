@@ -9,9 +9,9 @@ extern u8 D_80189CBE;
 extern u16 D_80189CC6[];
 extern u16 D_80190CA0[];
 s32 func_8014A870(s32, s32, u8);
-void func_8014B854(s32);
+void playMenuSound(s32);
 s32 func_8014BAC0(void);
-void func_80148754(u8, u8);
+void swapCarState(u8, u8);
 s32 func_801485C8(void);
 
 void func_80146EC4(u16 arg0)
@@ -25,13 +25,13 @@ void func_80146EC4(u16 arg0)
         if (flags & 8) {
             if (!(D_80189CC6[0] & 0x8000)) {
                 D_80189CC6[0] |= 0x8000;
-                func_8014B854(0x3B);
+                playMenuSound(0x3B);
             }
         }
         if (flags & 4) {
             if (D_80189CC6[0] & 0x8000) {
                 D_80189CC6[0] &= 0x7FFF;
-                func_8014B854(0x3B);
+                playMenuSound(0x3B);
             }
         }
     } else {
@@ -49,8 +49,8 @@ void func_80146EC4(u16 arg0)
             D_8011F2F0[D_80190CA0[0]].state = 2;
             D_8011F2F0[D_80190CA0[1]].state = 2;
             D_80189CC6[0] |= 0x3000;
-            func_8014B854(0x3D);
-            func_80148754(((u8 *)D_80189CC6)[-0x10], ((u8 *)D_80189CC6)[-8]);
+            playMenuSound(0x3D);
+            swapCarState(((u8 *)D_80189CC6)[-0x10], ((u8 *)D_80189CC6)[-8]);
             if (func_801485C8() == 0) {
                 *(u16 *)((u8 *)D_80189CC6 - 0x2E) = 0x100;
             } else {
@@ -59,12 +59,12 @@ void func_80146EC4(u16 arg0)
                 D_80189C9B[-1] = 0;
             }
         } else {
-            func_8014B854(0x3A);
+            playMenuSound(0x3A);
             D_80189C98 = 0x41;
         }
     }
     if (flags & 0x20) {
-        func_8014B854(0x3A);
+        playMenuSound(0x3A);
         D_80189B36[0] &= 0xEF;
         D_80189C98 = 0x41;
     }

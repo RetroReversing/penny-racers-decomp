@@ -13,13 +13,13 @@ typedef s32 M2C_UNK32;
 #endif
 
 s32 func_8019A31C();                                /* extern */
-extern s8 D_801C6BB9;
+extern s8 cursorY;
 
 s32 func_80198774(void) {
     s32 var_v1;
 
     var_v1 = 0;
-    if (D_801C6BB9 != 0) {
+    if (cursorY != 0) {
         var_v1 = func_8019A31C() & 1;
     }
     return var_v1 & 0xFF;

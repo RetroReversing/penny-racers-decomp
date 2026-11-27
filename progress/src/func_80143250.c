@@ -6,7 +6,7 @@ typedef struct {
 typedef struct { f32 height; u8 pad4[0x58]; } EffectKind;
 f32 __cosf(f32);
 f32 __sinf(f32);
-s32 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, s32, s32, s32, f32, f32, f32);
+s32 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, s32, s32, s32, f32, f32, f32);
 extern Effect D_8011F2F0[];
 extern EffectKind D_8016891C[];
 extern u8 D_802390C8;
@@ -36,7 +36,7 @@ void func_80143250(u16 arg0, s32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, u
         angle = (i * step + arg5) * 0.0174f;
         s = __sinf(angle);
         c = __cosf(angle);
-        r = func_800DE41C(0, 0, 1, 0, 0x5B, arg8, &D_802390C8, func_801434CC, func_801435A8,
+        r = objCreate(0, 0, 1, 0, 0x5B, arg8, &D_802390C8, func_801434CC, func_801435A8,
                           s * arg4 + src->x, height, c * arg4 + src->z, 0, 0, 0, arg3, arg3, arg3);
         if ((u16) (r + 2) >= 2) {
             dst = &D_8011F2F0[(u16) r];

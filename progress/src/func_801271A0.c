@@ -4,9 +4,9 @@ extern Vec3 D_8012AB4C;
 extern Vec3 D_8012AB58;
 extern Vec3 D_8012AB64;
 extern Vec3 D_8012AB7C;
-Vec3 func_80127148(Vec3 *a, Vec3 *b);
-Vec3 func_80127030(Vec3 a, Vec3 b);
-s8 func_801270B0(Vec3 a, Vec3 b);
+Vec3 vec3Sub(Vec3 *a, Vec3 *b);
+Vec3 vec3Cross(Vec3 a, Vec3 b);
+s8 vec3DotSign(Vec3 a, Vec3 b);
 
 u8 func_801271A0(void) {
     Vec3 a, b, c, d, e, f, n, p;
@@ -15,24 +15,24 @@ u8 func_801271A0(void) {
     u8 result;
 
     result = 0;
-    a = func_80127148(&D_8012AB4C, &D_8012AB64);
-    b = func_80127148(&D_8012AB7C, &D_8012AB64);
-    n = func_80127030(a, b);
-    p = func_80127148(&D_8012AB58, &D_8012AB64);
-    if (func_801270B0(p, n) == -1) {
-        p = func_80127148(&D_8012AB40, &D_8012AB64);
-        if (func_801270B0(p, n) == 1) {
-            c = func_80127148(&D_8012AB58, &D_8012AB40);
-            d = func_80127148(&D_8012AB64, &D_8012AB40);
-            e = func_80127148(&D_8012AB4C, &D_8012AB40);
-            f = func_80127148(&D_8012AB7C, &D_8012AB40);
-            p = func_80127030(e, f);
-            s0 = func_801270B0(c, p);
-            p = func_80127030(d, e);
-            s1 = func_801270B0(c, p);
+    a = vec3Sub(&D_8012AB4C, &D_8012AB64);
+    b = vec3Sub(&D_8012AB7C, &D_8012AB64);
+    n = vec3Cross(a, b);
+    p = vec3Sub(&D_8012AB58, &D_8012AB64);
+    if (vec3DotSign(p, n) == -1) {
+        p = vec3Sub(&D_8012AB40, &D_8012AB64);
+        if (vec3DotSign(p, n) == 1) {
+            c = vec3Sub(&D_8012AB58, &D_8012AB40);
+            d = vec3Sub(&D_8012AB64, &D_8012AB40);
+            e = vec3Sub(&D_8012AB4C, &D_8012AB40);
+            f = vec3Sub(&D_8012AB7C, &D_8012AB40);
+            p = vec3Cross(e, f);
+            s0 = vec3DotSign(c, p);
+            p = vec3Cross(d, e);
+            s1 = vec3DotSign(c, p);
             if (s1 == s0) {
-                p = func_80127030(f, d);
-                result = s1 == func_801270B0(c, p);
+                p = vec3Cross(f, d);
+                result = s1 == vec3DotSign(c, p);
             }
         }
     }

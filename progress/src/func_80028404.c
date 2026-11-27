@@ -12,8 +12,8 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-extern M2C_UNK D_800DD824;
+extern M2C_UNK auTaskQueue;
 
 M2C_UNK *func_80028404(void) {
-    return &D_800DD824;
+    return &auTaskQueue;
 }

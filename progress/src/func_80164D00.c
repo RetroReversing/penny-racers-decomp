@@ -8,9 +8,9 @@ extern u8 D_80239408[];
 extern Hit D_8018D727[];
 extern HitF D_8018D730[];
 extern HitP D_8018D6C4[];
-void func_80164FC0(void);
-void func_801D7028(u16, s32);
-s32 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void (*)(void), s32, f32, f32, f32, f32, f32, f32, f32, f32, f32);
+void updateCarBumpEffect(void);
+void queueObjEvent(u16, s32);
+s32 objCreate(s32, s32, s32, s32, s32, s32, void *, void (*)(void), s32, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 void func_8013E818(u16, u16, s32, f32, f32, f32, s32);
 f32 func_80033640(f32);
 f32 func_80032320(f32);
@@ -25,16 +25,16 @@ void func_80164D00(Car *car) {
     f32 vz;
 
     if ((st = car->state) == 1 && (f = car->flags, !(f & 8)) && (f & 7) < 5) {
-        slot = func_8013E364();
+        slot = raceAllocSlot();
         if (slot != 0xFFFF) {
-            n = func_800DE41C(0, 0, 3, 0, 0x20, st, 0, func_80164FC0, 0, D_8011F308[car->obj].v, D_8011F30C[car->obj].v, D_8011F310[car->obj].v, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+            n = objCreate(0, 0, 3, 0, 0x20, st, 0, updateCarBumpEffect, 0, D_8011F308[car->obj].v, D_8011F30C[car->obj].v, D_8011F310[car->obj].v, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
             if ((u16)(n + 2) < 2) {
                 func_8013E49C(slot);
             } else {
                 n2 = car->flags & 7; car->flags = (car->flags & 0xF8) | (n2 + 1);
                 vx = func_80033640(D_8011F318[car->obj].v * 3.14f / 180.0f) * 8.0f;
                 vz = func_80032320(D_8011F318[car->obj].v * 3.14f / 180.0f) * 8.0f;
-                func_801D7028(n, 0x35);
+                queueObjEvent(n, 0x35);
                 func_8013E818(slot, n, 0, -*(f32 *) ((u8 *) car + 0x7C0) * 8.0f + vx, *(f32 *) ((u8 *) car + 0x7C4), -*(f32 *) ((u8 *) car + 0x7C8) * 8.0f + vz, 5);
                 D_8018D6C4[slot].v = car;
                 if (car->ammo > 0) {

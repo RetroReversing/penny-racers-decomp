@@ -1,6 +1,6 @@
-s32 func_800E1098();
+s32 drawViewObjects();
 extern u8 D_80046837;
-extern s16 D_800DB1B8[];
+extern s16 sRowBoard[];
 extern u32 *D_800DE0E4;
 extern u8 D_801F9958[];
 extern u8 func_801F9950[];
@@ -17,7 +17,7 @@ void func_801F97E0(u32 arg0)
     i = 0;
     slot = sp18;
 loop_scan:
-    if (D_800DB1B8[4228 + i * 20] != 0) {
+    if (sRowBoard[4228 + i * 20] != 0) {
         slot[n] = i;
         n++;
     }
@@ -38,7 +38,7 @@ loop_scan:
             D_800DE0E4 = dl + 6;
             dl[4] = 0x03880010;
             dl[5] = (u32)func_801F9950;
-            func_800E1098((void *)&D_800DE0E4, D_80046837, arg0, (u8)sp18[i], i & 0xFF);
+            drawViewObjects((void *)&D_800DE0E4, D_80046837, arg0, (u8)sp18[i], i & 0xFF);
             i++;
         } while (i < n);
     }

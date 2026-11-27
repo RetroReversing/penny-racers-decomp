@@ -12,9 +12,9 @@ typedef struct {
 
 s32 guLookAt(s32, s32, s32, s32, f32, f32, f32, f32, f32, f32);
 s32 guPerspective(s32, u16 *, f32, f32, f32, f32, f32);
-extern u8 D_800DB1B8[];
+extern u8 sRowBoard[];
 extern s32 D_8011F060;
-extern u8 D_80126FF6;
+extern u8 viewIndex;
 extern LookAt D_80221080[];
 
 void func_80220C14(void **arg0)
@@ -25,9 +25,9 @@ void func_80220C14(void **arg0)
     s32 s0;
     s32 off;
 
-    off = D_80126FF6 * 0x28;
-    s2 = *(s16 *)(D_800DB1B8 + 0x210A + off);
-    if (*(s16 *)(D_800DB1B8 + 0x2108 + off) == 2) {
+    off = viewIndex * 0x28;
+    s2 = *(s16 *)(sRowBoard + 0x210A + off);
+    if (*(s16 *)(sRowBoard + 0x2108 + off) == 2) {
         guPerspective((s2 << 6) + D_8011F060, &sp28, 50.0f, 2.6666667f, 10.0f, 5000.0f, 1.0f);
     } else {
         guPerspective((s2 << 6) + D_8011F060, &sp28, 50.0f, 1.3333334f, 10.0f, 5000.0f, 1.0f);

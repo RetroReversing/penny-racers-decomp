@@ -13,7 +13,7 @@ typedef s32 M2C_UNK32;
 #endif
 
 extern u8 D_8011F2FC[];
-extern char D_8011F32E[];
+extern char playerSlots[];
 extern char D_802E8158[];
 
 void func_801578EC(void **arg0, s32 arg1) {
@@ -68,6 +68,6 @@ void func_801578EC(void **arg0, s32 arg1) {
     M2C_FIELD(temp_v1_8, s32 *, 4) = 0x7C07C;
     temp_v1_9 = *arg0;
     *arg0 = temp_v1_9 + 8;
-    M2C_FIELD(temp_v1_9, s32 *, 0) = (s32) (((*(u16 *)(D_8011F32E + temp_a3) & 0xFFF) << 0xC) | 0xF2000000);
+    M2C_FIELD(temp_v1_9, s32 *, 0) = (s32) (((*(u16 *)(playerSlots + temp_a3) & 0xFFF) << 0xC) | 0xF2000000);
     M2C_FIELD(temp_v1_9, s32 *, 4) = 0x7C07C;
 }

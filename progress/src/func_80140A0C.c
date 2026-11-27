@@ -1,4 +1,4 @@
-extern unsigned char D_80126FF7;
+extern unsigned char lastMaterial;
 void func_80140A0C(void **arg0)
 {
   void *temp_v1;
@@ -6,6 +6,6 @@ void func_80140A0C(void **arg0)
   *arg0 = temp_v1 + 8;
   *((s32 *) (((char *) temp_v1) + 0)) = 0xFA000000;
   *((s32 *) (((char *) temp_v1) + 4)) = -1;
-  D_80126FF7 = 0xFF;
+  lastMaterial = 0xFF;
 }
 

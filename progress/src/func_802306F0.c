@@ -12,7 +12,7 @@ extern u8 D_80232D04;
 extern u8 D_80232D10;
 extern u8 D_80232D1C;
 extern u8 D_80232D28;
-void func_8003DE60();
+void debugPrintf();
 void func_80230BC4(s32, s32);
 
 void func_802306F0(u16 arg0)
@@ -21,19 +21,19 @@ void func_802306F0(u16 arg0)
     s32 i;
     s32 k;
 
-    func_8003DE60(&D_80232CF8, arg0);
+    debugPrintf(&D_80232CF8, arg0);
     switch (D_8021E1A6) {
     case 0:
-        func_8003DE60(&D_80232D04);
+        debugPrintf(&D_80232D04);
         break;
     case 1:
-        func_8003DE60(&D_80232D10);
+        debugPrintf(&D_80232D10);
         break;
     case 2:
-        func_8003DE60(&D_80232D1C);
+        debugPrintf(&D_80232D1C);
         break;
     case 3:
-        func_8003DE60(&D_80232D28);
+        debugPrintf(&D_80232D28);
         break;
     }
     for (i = 0; i < 14; i++) {

@@ -8,11 +8,11 @@ extern s8 D_8021B677;
 extern s8 D_8021E15F;
 extern s8 D_8021E160;
 extern s32 D_8030BD90;
-void func_800294A0(void *, void *, s32);
+void dmaRomToRam(void *, void *, s32);
 void func_80143DCC(void);
 void func_80203DF8(s32, s32, s32, s32, s32);
 void func_80214204(s32);
-void func_800DE41C(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
+void objCreate(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
 void func_802153C4(s32, s32, s32, s32, s32, s32);
 
 void func_80212360(void) {
@@ -21,7 +21,7 @@ void func_80212360(void) {
     s32 state;
     end = &D_419270;
     start = &D_412160;
-    func_800294A0(start, &D_8030BD90, end - start);
+    dmaRomToRam(start, &D_8030BD90, end - start);
     func_80143DCC();
     D_8021B677 = 0;
     state = D_8021AFDC;
@@ -35,7 +35,7 @@ void func_80212360(void) {
         D_8021E160 = 0;
     }
     func_80203DF8(1, 6, 0, 0, 0);
-    func_800DE41C(0, 0, 3, 0, 0x42, 0, 0, &D_80212500, &D_802134EC, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x42, 0, 0, &D_80212500, &D_802134EC, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     func_802153C4(0x40, 0xBF000000, 0x3F000000, 0x96, 0x62, 0xE2);
     D_8021B084 = 0;
 }

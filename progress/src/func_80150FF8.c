@@ -1,5 +1,5 @@
 f32 __sinf(f32);
-void func_8013AE60(s32);
+void liftCopyFlags(s32);
 extern u8 D_8011F320[];
 extern u8 D_8011F324[];
 extern u8 D_8011F334[];
@@ -19,7 +19,7 @@ void func_80150FF8(s32 arg0)
   if (D_8011F324)
   {
     temp_s0 = arg0 & 0xFFFF;
-    func_8013AE60(temp_s0);
+    liftCopyFlags(temp_s0);
     temp_v1 = temp_s0 * 0x64;
     do { temp_fv0 = (f32) (((f64) (*((f32 *) (D_8011F334 + temp_v1)))) + D_80183798); } while (0);
     *((f32 *) (D_8011F334 + temp_v1)) = temp_fv0;
@@ -28,7 +28,7 @@ void func_80150FF8(s32 arg0)
   else
   {
     temp_s0 = arg0 & 0xFFFF;
-    func_8013AE60(temp_s0);
+    liftCopyFlags(temp_s0);
     temp_v1 = temp_s0 * 0x64;
     do { temp_fv0 = (f32) (((f64) (*((f32 *) (D_8011F334 + temp_v1)))) + D_80183798); } while (0);
     *((f32 *) (D_8011F334 + temp_v1)) = temp_fv0;

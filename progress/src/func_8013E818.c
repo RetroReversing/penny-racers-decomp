@@ -1,7 +1,7 @@
 s16 func_8012913C(u16, s32, s32, s32);
 extern u8 D_8011F2F0[];
 extern u8 D_8011F350[];
-extern u8 D_8018D6C0[];
+extern u8 hitSlots[];
 extern u8 D_8022A772[];
 extern u8 D_8022AD5C[];
 extern u16 D_80233EC0;
@@ -14,7 +14,7 @@ void func_8013E818(u16 arg0, s32 arg1, s16 arg2, s32 arg3, f32 arg4, f32 arg5, u
     s32 k;
 
     p = D_8011F2F0 + (arg1 & 0xFFFF) * 100;
-    s = D_8018D6C0 + (arg0 & 0xFFFF) * 124;
+    s = hitSlots + (arg0 & 0xFFFF) * 124;
     *(u8 **)(D_8011F350 + (arg1 & 0xFFFF) * 100) = s;
     *(s16 *)(p + 0x8) = arg2;
     *(s16 *)(p + 0x6) = arg2;

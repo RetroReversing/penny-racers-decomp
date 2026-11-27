@@ -56,10 +56,10 @@ typedef struct { Mtx proj[12]; Mtx view[1]; } Dyn;
 typedef struct { f32 ex; f32 ey; f32 ez; f32 ax; f32 ay; f32 az; f32 ux; f32 uy; f32 uz; } Camera;
 typedef struct { s16 active; u8 pad2[2]; s16 view; u8 pad6[6]; s16 width; s16 height; u8 pad10[0x18]; } Player;
 typedef struct { u8 pad0[0x2108]; Player player[4]; } Root;
-extern Root D_800DB1B8;
+extern Root sRowBoard;
 extern Camera D_80221080[];
 extern Dyn *D_8011F060;
-extern u8 D_80126FF6;
+extern u8 viewIndex;
 extern s16 D_800DD2CC;
 extern s16 D_800DD2CE;
 void func_800330B0(Mtx *, u16 *, f32, f32, f32, f32, f32);
@@ -71,11 +71,11 @@ void func_8019E4B8(Gfx **gfxp) {
     u16 norm;
     s32 v;
 
-    v = D_800DB1B8.player[D_80126FF6].view;
-    if (D_80126FF6 == 0) {
+    v = sRowBoard.player[viewIndex].view;
+    if (viewIndex == 0) {
         func_800330B0(&D_8011F060->proj[v], &norm, 100.0f, (f32)D_800DD2CC / (f32)D_800DD2CE, 10.0f, 5000.0f, 1.0f);
     } else {
-        func_800330B0(&D_8011F060->proj[v], &norm, 80.0f, (f32)D_800DB1B8.player[D_80126FF6].width / (f32)D_800DB1B8.player[D_80126FF6].height, 10.0f, 5000.0f, 1.0f);
+        func_800330B0(&D_8011F060->proj[v], &norm, 80.0f, (f32)sRowBoard.player[viewIndex].width / (f32)sRowBoard.player[viewIndex].height, 10.0f, 5000.0f, 1.0f);
     }
     gSPPerspNormalize((*gfxp)++, norm);
     gSPMatrix((*gfxp)++, &D_8011F060->proj[v], 3);

@@ -1,5 +1,5 @@
 /* adapted from similar verified C in func_80151178 (matched), with its names changed by decompdecomp */
-void func_8013AE60(s32 arg0);
+void liftCopyFlags(s32 arg0);
 extern s32 D_8011F334;
 extern s32 D_8011F338;
 
@@ -11,7 +11,7 @@ void func_8014C264(s32 arg0)
     s32 idx;
 
     idx = arg0 & 0xFFFF;
-    func_8013AE60(idx);
+    liftCopyFlags(idx);
     temp_a1 = idx * 100;
     f = *(f32 *)((s8 *)&D_8011F334 + temp_a1);
     *(f32 *)((s8 *)&D_8011F334 + temp_a1) = (f32)(u16)((u32)f + 1);

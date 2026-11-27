@@ -1,4 +1,4 @@
-extern u16 func_800DE41C(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
+extern u16 objCreate(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
 extern void func_801CE928();
 extern void func_801CEC2C();
 extern u8 D_801D59B2[];
@@ -9,12 +9,12 @@ typedef struct {
 typedef struct { Data *data; u8 pad4[0x60]; } Ent;
 extern Ent D_8011F350[];
 typedef struct { u8 pad[0x2110]; u16 v[4]; } Src;
-extern Src D_800DB1B8;
+extern Src sRowBoard;
 
 void func_8021AC64(s32 arg0, s32 arg1, s32 arg2, s32 arg3, u8 arg4)
 {
     u16 *p = &D_80190CB4;
-    *p = func_800DE41C(0, 0, 3, 0, arg4, 0xFF, 0, func_801CE928, func_801CEC2C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    *p = objCreate(0, 0, 3, 0, arg4, 0xFF, 0, func_801CE928, func_801CEC2C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     D_8011F350[*p].data = (Data *) D_801D59B2;
     D_8011F350[*p].data->b0 = 0;
     D_8011F350[*p].data->f2 = 0x46;
@@ -23,8 +23,8 @@ void func_8021AC64(s32 arg0, s32 arg1, s32 arg2, s32 arg3, u8 arg4)
     D_8011F350[*p].data->b7 = arg1;
     D_8011F350[*p].data->b8 = arg2;
     D_8011F350[*p].data->b9 = arg3;
-    D_8011F350[*p].data->fA = D_800DB1B8.v[0];
-    D_8011F350[*p].data->fC = D_800DB1B8.v[1];
-    D_8011F350[*p].data->fE = D_800DB1B8.v[2];
-    D_8011F350[*p].data->f10 = D_800DB1B8.v[3];
+    D_8011F350[*p].data->fA = sRowBoard.v[0];
+    D_8011F350[*p].data->fC = sRowBoard.v[1];
+    D_8011F350[*p].data->fE = sRowBoard.v[2];
+    D_8011F350[*p].data->f10 = sRowBoard.v[3];
 }

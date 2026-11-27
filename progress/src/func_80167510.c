@@ -7,21 +7,21 @@ typedef struct { u8 pad0[0x774]; f32 speed; u8 pad778[0x48]; f32 vx; f32 vy; f32
 extern Obj D_8011F2F0[];
 extern Rec D_8018D730[];
 extern Rec2 D_8018D6C4[];
-extern Slot D_8022A770[];
+extern Slot sCars[];
 extern u16 D_8018D672;
 extern u16 D_80233EC0;
 extern u8 D_802390C8[];
 extern void func_80164218(), func_80167DD4();
 f32 sqrtf(f32);
-u16 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, s32, s32, s32, f32, f32, f32);
-u16 func_8013E364(void);
+u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, s32, s32, s32, f32, f32, f32);
+u16 raceAllocSlot(void);
 void func_8013E818(u16, s32, s16, f32, f32, f32, u16);
-void func_80129918(Ball *, f32, f32, f32, f32, f32, f32);
+void ballMoveCollide(Ball *, f32, f32, f32, f32, f32, f32);
 u8 func_8013F050(u16, void *);
-u8 func_8013F1D4(u16, void *);
-void func_801D7028(u16, s16);
+u8 liftHitCars(u16, void *);
+void queueObjEvent(u16, s16);
 u16 func_8012913C(u16, f32, f32, f32);
-void func_8013AE60(u16);
+void liftCopyFlags(u16);
 void func_80167510(u16 arg0)
 {
     Obj *o;
@@ -35,14 +35,14 @@ void func_80167510(u16 arg0)
     case 0: {
         u16 id;
 
-        id = func_8013E364();
+        id = raceAllocSlot();
         if (id == 0xFFFF) {
             return;
         }
         func_8013E818(id, arg0, 0, 0.0f, 0.0f, 0.0f, 4);
         o->state = 2;
         D_8018D730[id].f0 = 15.0f;
-        D_8018D6C4[id].p = D_8022A770;
+        D_8018D6C4[id].p = sCars;
         o->f44 = o->x;
         o->f48 = o->y;
         o->f4C = o->z;
@@ -55,14 +55,14 @@ void func_80167510(u16 arg0)
             Slot *s;
             f32 t;
 
-            func_801D7028(arg0, 0x29);
+            queueObjEvent(arg0, 0x29);
             o->state = 2;
-            s = &D_8022A770[D_8018D672];
+            s = &sCars[D_8018D672];
             t = s->speed * 0.01f;
             data->vx = s->vx * 1.5f;
             data->vy = s->vy * 1.5f + 2.0f + t;
             data->vz = s->vz * 1.5f;
-            e = func_800DE41C(0, 0, 1, 0, 0x5B, 0x8C, D_802390C8, func_80164218, func_80167DD4, o->x, o->y + 5.0f, o->z, 0, 0, 0, 0.08f, 0.08f, 0.08f);
+            e = objCreate(0, 0, 1, 0, 0x5B, 0x8C, D_802390C8, func_80164218, func_80167DD4, o->x, o->y + 5.0f, o->z, 0, 0, 0, 0.08f, 0.08f, 0.08f);
             if ((u16) (e + 2) >= 2U) {
                 p = &D_8011F2F0[e];
                 p->h2 = p->h4 = p->h6 = p->h8 = 0x40;
@@ -75,7 +75,7 @@ void func_80167510(u16 arg0)
     case 2:
         data = o->data;
         data->vy -= 0.15f;
-        func_80129918(&data->ball, o->x, o->y, o->z, data->vx, data->vy, data->vz);
+        ballMoveCollide(&data->ball, o->x, o->y, o->z, data->vx, data->vy, data->vz);
         o->x = data->ball.x;
         o->y = data->ball.y;
         o->z = data->ball.z;
@@ -84,7 +84,7 @@ void func_80167510(u16 arg0)
             for (i = 0; i < 7; i++) {
                 data->hit[i] = 0;
             }
-            e = func_800DE41C(0, 0, 1, 0, 0x5B, 0x8C, D_802390C8, func_80164218, func_80167DD4, o->x, o->y + 5.0f, o->z, 0, 0, 0, 0.08f, 0.08f, 0.08f);
+            e = objCreate(0, 0, 1, 0, 0x5B, 0x8C, D_802390C8, func_80164218, func_80167DD4, o->x, o->y + 5.0f, o->z, 0, 0, 0, 0.08f, 0.08f, 0.08f);
             if ((u16) (e + 2) >= 2U) {
                 p = &D_8011F2F0[e];
                 p->h2 = p->h4 = p->h6 = p->h8 = 0x40;
@@ -93,7 +93,7 @@ void func_80167510(u16 arg0)
                 p->f4C = 0.0f;
             }
             if (--data->timer == 0) {
-                e = func_800DE41C(0, 0, 1, 0, 0x5B, 0xFA, D_802390C8, func_80164218, func_80167DD4, o->x, o->y, o->z, 0, 0, 0, 0.08f, 0.08f, 0.08f);
+                e = objCreate(0, 0, 1, 0, 0x5B, 0xFA, D_802390C8, func_80164218, func_80167DD4, o->x, o->y, o->z, 0, 0, 0, 0.08f, 0.08f, 0.08f);
                 if ((u16) (e + 2) >= 2U) {
                     p = &D_8011F2F0[e];
                     p->h2 = p->h4 = p->h6 = p->h8 = 0x40;
@@ -128,11 +128,11 @@ void func_80167510(u16 arg0)
                 }
             }
         }
-        if (func_8013F1D4(arg0, data)) {
+        if (liftHitCars(arg0, data)) {
             for (i = 0; i < 7; i++) {
                 data->hit[i] = 0;
             }
-            e = func_800DE41C(0, 0, 1, 0, 0x5B, 0xFA, D_802390C8, func_80164218, func_80167DD4, o->x, o->y, o->z, 0, 0, 0, 0.08f, 0.08f, 0.08f);
+            e = objCreate(0, 0, 1, 0, 0x5B, 0xFA, D_802390C8, func_80164218, func_80167DD4, o->x, o->y, o->z, 0, 0, 0, 0.08f, 0.08f, 0.08f);
             if ((u16) (e + 2) >= 2U) {
                 p = &D_8011F2F0[e];
                 p->h2 = p->h4 = p->h6 = p->h8 = 0x40;
@@ -166,5 +166,5 @@ void func_80167510(u16 arg0)
         }
         break;
     }
-    func_8013AE60(arg0);
+    liftCopyFlags(arg0);
 }

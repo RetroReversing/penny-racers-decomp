@@ -60,34 +60,34 @@ typedef struct { u8 pad0[0xC]; u8 count; u8 padD[0x31]; u16 model; u8 pad40[0x24
 typedef struct { u8 pad[0x2108]; s16 views; } Big;
 typedef struct { u16 sel; u8 pad2[0x6C]; u16 name[14][9]; u8 pad[14]; } Car;
 extern Ob16 D_8011F2F0[];
-extern Big D_800DB1B8;
-extern u8 D_80126FF6, D_8018A248, D_80189DC0, D_8018BC32;
+extern Big sRowBoard;
+extern u8 viewIndex, D_8018A248, D_80189DC0, D_8018BC32;
 extern u8 D_80220ED8[], D_80173170[], D_80173970[], D_80173998[], D_80173C40[], D_801CF4C8[], D_801D4390[];
 extern u8 D_8018D661[], D_8018993F[];
 extern u16 D_80237630[];
 extern Car D_800DA260[];
-void func_801CA140(Gfx **);
-void func_801CA468(Gfx **, s32);
-void func_801CC150(Gfx **, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *);
-void func_801CAF18(Gfx **, u16, u16, u16, u8 *, u8 *, s32, s32, s32, s32, s32);
-void func_801CABF4(Gfx **, s32, u16, s32, u8 *, u16 *, s32, u8 *, s32, s32, s32, s32);
+void gfxSetup2DState(Gfx **);
+void gfxSetPrimAlpha(Gfx **, s32);
+void gfxDrawClippedTex4b(Gfx **, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *);
+void drawSpriteCell(Gfx **, u16, u16, u16, u8 *, u8 *, s32, s32, s32, s32, s32);
+void gfxDrawText(Gfx **, s32, u16, s32, u8 *, u16 *, s32, u8 *, s32, s32, s32, s32);
 
 void func_80137F60(Gfx **gfxp, u16 id) {
     s32 i;
 
-    if (D_80126FF6 == D_800DB1B8.views - 1 && D_8011F2F0[id].model != 0) {
+    if (viewIndex == sRowBoard.views - 1 && D_8011F2F0[id].model != 0) {
         gDma((*gfxp)++, 0x06000000, D_80220ED8);
-        func_801CA140(gfxp);
-        func_801CA468(gfxp, D_8018A248);
-        func_801CC150(gfxp, 0x2C, D_80189DC0 + 0x12, 0, 0, 80, 51, 80, 51, 80, 51, 0, 0, 319, 239, D_80173170, D_80173970);
+        gfxSetup2DState(gfxp);
+        gfxSetPrimAlpha(gfxp, D_8018A248);
+        gfxDrawClippedTex4b(gfxp, 0x2C, D_80189DC0 + 0x12, 0, 0, 80, 51, 80, 51, 80, 51, 0, 0, 319, 239, D_80173170, D_80173970);
         for (i = 1; i < D_8011F2F0[id].count; i++) {
-            func_801CA468(gfxp, D_8018BC32);
-            func_801CC150(gfxp, D_8018D661[i] + 0x28, (s16)(i * 24 + 0x3B), 0, 0, 96, 14, 96, 14, 96, 14, 0, 0, 0xA0, 239, D_80173998, D_80173C40);
+            gfxSetPrimAlpha(gfxp, D_8018BC32);
+            gfxDrawClippedTex4b(gfxp, D_8018D661[i] + 0x28, (s16)(i * 24 + 0x3B), 0, 0, 96, 14, 96, 14, 96, 14, 0, 0, 0xA0, 239, D_80173998, D_80173C40);
             if (D_8018D661[i] == 0) {
-                func_801CAF18(gfxp, 0x1E, i * 24 + 0x34, i + 0x10, D_801CF4C8, D_801D4390, 0, 0xA, 0xE, 0xA0, 0xFC);
+                drawSpriteCell(gfxp, 0x1E, i * 24 + 0x34, i + 0x10, D_801CF4C8, D_801D4390, 0, 0xA, 0xE, 0xA0, 0xFC);
             }
-            func_801CA468(gfxp, D_8018993F[i]);
-            func_801CABF4(gfxp, 0x37, (i * 2 + i) * 8 + 0x37, 0xA, D_801D4390, D_800DA260[D_80237630[i]].name[D_800DA260[D_80237630[i]].sel], 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC);
+            gfxSetPrimAlpha(gfxp, D_8018993F[i]);
+            gfxDrawText(gfxp, 0x37, (i * 2 + i) * 8 + 0x37, 0xA, D_801D4390, D_800DA260[D_80237630[i]].name[D_800DA260[D_80237630[i]].sel], 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC);
         }
     }
 }

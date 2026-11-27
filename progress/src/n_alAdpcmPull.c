@@ -6,19 +6,20 @@ typedef struct { void *loop; ALADPCMBook *book; } ALADPCMWaveInfo;
 typedef struct { u8 *base; s32 len; u8 type; u8 flags; union { ALADPCMWaveInfo adpcmWave; } waveInfo; } ALWaveTable;
 typedef struct { void *source; void *handler; void *setParam; } ALFilter;
 typedef struct { ALFilter filter; s16 *state; s16 *lstate; ALRawLoop loop; ALWaveTable *table; s32 bookSize; void *dma; void *dmaState; s32 sample; s32 lastsam; s32 first; s32 memin; } ALLoadFilter;
-Acmd *func_8002F104(Acmd *ptr, ALLoadFilter *f, s32 tsam, s32 nbytes, s16 outp, s16 inp, u32 flags);
-#define _decodeChunk func_8002F104
+Acmd *adpcmDecodeChunk(Acmd *ptr, ALLoadFilter *f, s32 tsam, s32 nbytes, s16 outp, s16 inp, u32 flags);
 
+/* Pulls one buffer of ADPCM samples for a looping or one-shot voice. Writes
+ * the decode commands into the audio list at p and returns the list end. */
 Acmd *n_alAdpcmPull(void *filter, s16 *outp, s32 outCount, Acmd *p)
 {
-  Acmd *ptr = p;
+  Acmd *cmd = p;
   s16 inp;
   s32 tsam;
-  s32 nframes;
-  s32 nbytes;
-  s32 overFlow;
-  s32 startZero;
-  s32 nOver;
+  s32 frames;
+  s32 bytes;
+  s32 overflow;
+  s32 zeroStart;
+  s32 overCount;
   s32 nSam;
   s32 op;
   s32 nLeft;
@@ -28,11 +29,11 @@ Acmd *n_alAdpcmPull(void *filter, s16 *outp, s32 outCount, Acmd *p)
   ALLoadFilter *f = (ALLoadFilter *) filter;
   if (outCount == 0)
   {
-    return ptr;
+    return cmd;
   }
   inp = 0;
   {
-    Acmd *_a = (Acmd *) (ptr++);
+    Acmd *_a = (Acmd *) (cmd++);
     _a->words.w0 = ((unsigned int) ((((unsigned int) 11) & ((0x01 << 8) - 1)) << 24)) | ((unsigned int) ((((unsigned int) f->bookSize) & ((0x01 << 24) - 1)) << 0)); _a->words.w1 = (unsigned int) (((u32) f->table->waveInfo.adpcmWave.book->book) & 0x1FFFFFFF);
   }
   ;
@@ -58,11 +59,11 @@ Acmd *n_alAdpcmPull(void *filter, s16 *outp, s32 outCount, Acmd *p)
   {
     tsam = 0;
   }
-  nframes = ((tsam + 16) - 1) >> 4;
-  nbytes = nframes * 9;
+  frames = ((tsam + 16) - 1) >> 4;
+  bytes = frames * 9;
   if (looped)
   {
-    ptr = _decodeChunk(ptr, f, tsam, nbytes, *outp, inp, f->first);
+    cmd = adpcmDecodeChunk(cmd, f, tsam, bytes, *outp, inp, f->first);
     if (f->lastsam)
     {
       *outp += f->lastsam << 1;
@@ -78,7 +79,7 @@ Acmd *n_alAdpcmPull(void *filter, s16 *outp, s32 outCount, Acmd *p)
     while (outCount > nSam)
     {
       outCount -= nSam;
-      op = (bEnd + ((nframes + 1) << (4 + 1)) + 0x10) & (~0x1f);
+      op = (bEnd + ((frames + 1) << (4 + 1)) + 0x10) & (~0x1f);
       bEnd += nSam << 1;
       if ((f->loop.count != (-1)) && (f->loop.count != 0))
       {
@@ -90,11 +91,11 @@ Acmd *n_alAdpcmPull(void *filter, s16 *outp, s32 outCount, Acmd *p)
       {
         tsam = 0;
       }
-      nframes = ((tsam + 16) - 1) >> 4;
-      nbytes = nframes * 9;
-      ptr = _decodeChunk(ptr, f, tsam, nbytes, op, inp, f->first | 0x02);
+      frames = ((tsam + 16) - 1) >> 4;
+      bytes = frames * 9;
+      cmd = adpcmDecodeChunk(cmd, f, tsam, bytes, op, inp, f->first | 0x02);
       {
-        Acmd *_a = (Acmd *) (ptr++);
+        Acmd *_a = (Acmd *) (cmd++);
         _a->words.w0 = ((unsigned int) ((((unsigned int) 10) & ((0x01 << 8) - 1)) << 24)) | ((unsigned int) ((((unsigned int) (op + (f->lastsam << 1))) & ((0x01 << 24) - 1)) << 0)); _a->words.w1 = ((unsigned int) ((((unsigned int) bEnd) & ((0x01 << 16) - 1)) << 16)) | ((unsigned int) ((((unsigned int) (nSam << 1)) & ((0x01 << 16) - 1)) << 0));
       }
       ;
@@ -102,25 +103,25 @@ Acmd *n_alAdpcmPull(void *filter, s16 *outp, s32 outCount, Acmd *p)
 
     f->lastsam = (outCount + f->lastsam) & 0xf;
     f->sample += outCount;
-    f->memin += 9 * nframes;
-    return ptr;
+    f->memin += 9 * frames;
+    return cmd;
   }
-  nSam = (nframes << 1) << 3;
-  overFlow = (f->memin + nbytes) - (((s32) f->table->base) + f->table->len);
-  if (overFlow < 0)
+  nSam = (frames << 1) << 3;
+  overflow = (f->memin + bytes) - (((s32) f->table->base) + f->table->len);
+  if (overflow < 0)
   {
-    overFlow = 0;
+    overflow = 0;
   }
-  nOver = (overFlow / 9) << 4;
-  if (nOver > (nSam + nLeft))
+  overCount = (overflow / 9) << 4;
+  if (overCount > (nSam + nLeft))
   {
-    nOver = nSam + nLeft;
+    overCount = nSam + nLeft;
   }
-  nbytes -= overFlow;
-  if ((nOver - (nOver & 0xf)) < outCount)
+  bytes -= overflow;
+  if ((overCount - (overCount & 0xf)) < outCount)
   {
     decoded = 1;
-    ptr = _decodeChunk(ptr, f, nSam - nOver, nbytes, *outp, inp, f->first);
+    cmd = adpcmDecodeChunk(cmd, f, nSam - overCount, bytes, *outp, inp, f->first);
     if (f->lastsam)
     {
       *outp += f->lastsam << 1;
@@ -131,29 +132,29 @@ Acmd *n_alAdpcmPull(void *filter, s16 *outp, s32 outCount, Acmd *p)
     }
     f->lastsam = (outCount + f->lastsam) & 0xf;
     f->sample += outCount;
-    f->memin += 9 * nframes;
+    f->memin += 9 * frames;
   }
   else
   {
     f->lastsam = 0;
-    f->memin += 9 * nframes;
+    f->memin += 9 * frames;
   }
-  if (nOver)
+  if (overCount)
   {
     f->lastsam = 0;
     if (decoded)
     {
-      startZero = ((nLeft + nSam) - nOver) << 1;
+      zeroStart = ((nLeft + nSam) - overCount) << 1;
     }
     else
     {
-      startZero = 0;
+      zeroStart = 0;
     }
     {
-      Acmd *_a = (Acmd *) (ptr++);
-      _a->words.w0 = ((unsigned int) ((((unsigned int) 2) & ((0x01 << 8) - 1)) << 24)) | ((unsigned int) ((((unsigned int) (startZero + (*outp))) & ((0x01 << 24) - 1)) << 0)); _a->words.w1 = (unsigned int) (nOver << 1);
+      Acmd *_a = (Acmd *) (cmd++);
+      _a->words.w0 = ((unsigned int) ((((unsigned int) 2) & ((0x01 << 8) - 1)) << 24)) | ((unsigned int) ((((unsigned int) (zeroStart + (*outp))) & ((0x01 << 24) - 1)) << 0)); _a->words.w1 = (unsigned int) (overCount << 1);
     }
     ;
   }
-  return ptr;
+  return cmd;
 }

@@ -57,7 +57,7 @@ typedef struct { u8 pad0[0x20]; u16 unk20; } Game;
 typedef struct { u8 b0; u8 b1; u8 b2; } Info;
 extern Obj D_8011F2F0[];
 extern Game D_8006FAF0;
-extern Info *D_801C7AB0;
+extern Info *trackInfo;
 extern u8 (*D_802352CC[])[2];
 extern u8 D_802352F4[];
 extern f32 D_80235C60[];
@@ -112,7 +112,7 @@ void func_8022312C(Car *car) {
             car->prev = car->cur;
             car->cur = seg->next[0];
             car->edge = 0;
-            if ((D_8006FAF0.unk20 == 0 && D_801C7AB0->b1 == 6 && car->prev == D_801C7AB0->b2 - 2 && car->cur == D_801C7AB0->b2 - 1) || (car->cur == 1 && car->prev == 0)) {
+            if ((D_8006FAF0.unk20 == 0 && trackInfo->b1 == 6 && car->prev == trackInfo->b2 - 2 && car->cur == trackInfo->b2 - 1) || (car->cur == 1 && car->prev == 0)) {
                 car->lap++;
             }
             if (car->prev == order[car->idx][0] && car->cur == order[car->idx][1]) {

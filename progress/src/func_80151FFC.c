@@ -1,5 +1,5 @@
 /* identical to func_8014F43C (matched), with its names changed by decompdecomp */
-extern u8 D_8011F32E[];
+extern u8 playerSlots[];
 extern char D_802E0A70[];
 inline static void *inline_fn(void *arg0)
 {
@@ -39,7 +39,7 @@ void func_80151FFC(void **arg0, s32 arg1)
   temp_v1[1] = 0x7C07C;
   temp_v1 = inline_fn(*arg0);
   *arg0 = temp_v1 + 2;
-  temp_v1[0] = ((*((u16 *) (D_8011F32E + ((arg1 & 0xFFFF) * 0x64)))) & 0xFFF) | 0xF2000000;
+  temp_v1[0] = ((*((u16 *) (playerSlots + ((arg1 & 0xFFFF) * 0x64)))) & 0xFFF) | 0xF2000000;
   temp_v1[1] = 0x7C07C;
 }
 

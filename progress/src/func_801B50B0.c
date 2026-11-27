@@ -7,8 +7,8 @@ extern PadU D_801E998C[];
 extern PadS D_801E9990[];
 extern PadS D_801E9994[];
 extern PadS D_801E99C0[];
-extern u16 func_800E1850;
-extern u16 D_8006F9E8;
+extern u16 objListHead;
+extern u16 gameState;
 extern s32 D_80168BB0;
 extern u16 D_8018BC3C;
 extern u8 D_801C5EA0;
@@ -19,9 +19,9 @@ extern u16 D_801C6B52;
 extern u16 D_801C6B54;
 extern u16 D_801C6B56;
 extern u16 D_801C6B58;
-extern u16 D_801C7074;
+extern u16 hudSlotIndex;
 extern u8 D_801C7AB8;
-void func_8014B854(s32);
+void playMenuSound(s32);
 void func_80203DF8(s32, s32, s32, s32, s32);
 void func_802319E8(void);
 void func_80231C5C(void);
@@ -45,8 +45,8 @@ void func_801D65BC(s32);
     ME.st = 0; \
     D_8011F2F0[D_8018BC3C].p[9] = 0
 #define QUIT() \
-    func_8014B854(0x3A); \
-    D_8011F2F0[D_801C7074].st = 0x10; \
+    playMenuSound(0x3A); \
+    D_8011F2F0[hudSlotIndex].st = 0x10; \
     CLOSE(); \
     D_801C69D0 = 0
 
@@ -63,7 +63,7 @@ void func_801B50B0(u16 arg0)
         break;
     case 1:
         if (HIT(D_801E9988) || HIT(D_801E998C)) {
-            func_8014B854(0x3B);
+            playMenuSound(0x3B);
             if (D_801C5EA2 == 3) {
                 SET(4, 0x70);
             } else if (D_801C5EA2 == 4) {
@@ -72,7 +72,7 @@ void func_801B50B0(u16 arg0)
         }
         if (D_801C69D0) {
             if (OK_PRESSED) {
-                func_8014B854(0x3D);
+                playMenuSound(0x3D);
                 if (D_801C5EA2 == 3) {
                     D_801C5EA1 = 0;
                     GO(4);
@@ -82,8 +82,8 @@ void func_801B50B0(u16 arg0)
                 }
                 D_801C69D0 = 0;
             } else if (BACK_PRESSED) {
-                func_8014B854(0x3A);
-                D_8011F2F0[D_801C7074].st = D_8011F2F0[D_801C7074].unk0;
+                playMenuSound(0x3A);
+                D_8011F2F0[hudSlotIndex].st = D_8011F2F0[hudSlotIndex].unk0;
                 CLOSE();
                 D_801C69D0 = 0;
             }
@@ -93,7 +93,7 @@ void func_801B50B0(u16 arg0)
         break;
     case 2:
         if (HIT(D_801E9988)) {
-            func_8014B854(0x3B);
+            playMenuSound(0x3B);
             if (ME.unk0 == 0x50) {
                 SET(4, 0x70);
             } else if (ME.unk0 == 0x60) {
@@ -102,7 +102,7 @@ void func_801B50B0(u16 arg0)
                 SET(3, 0x60);
             }
         } else if (HIT(D_801E998C)) {
-            func_8014B854(0x3B);
+            playMenuSound(0x3B);
             if (ME.unk0 == 0x50) {
                 SET(3, 0x60);
             } else if (ME.unk0 == 0x60) {
@@ -113,9 +113,9 @@ void func_801B50B0(u16 arg0)
         }
         if (D_801C69D0) {
             if (OK_PRESSED) {
-                func_8014B854(0x3D);
+                playMenuSound(0x3D);
                 if (D_801C5EA2 == 0) {
-                    D_8011F2F0[D_801C7074].st = 0x11;
+                    D_8011F2F0[hudSlotIndex].st = 0x11;
                     D_801C7AB8 = 4;
                     CLOSE();
                 } else if (D_801C5EA2 == 3) {
@@ -135,7 +135,7 @@ void func_801B50B0(u16 arg0)
         break;
     case 3:
         if (HIT(D_801E9988)) {
-            func_8014B854(0x3B);
+            playMenuSound(0x3B);
             if (ME.unk0 == 0x60) {
                 SET(4, 0x90);
             } else if (ME.unk0 == 0x70) {
@@ -146,7 +146,7 @@ void func_801B50B0(u16 arg0)
                 SET(3, 0x80);
             }
         } else if (HIT(D_801E998C)) {
-            func_8014B854(0x3B);
+            playMenuSound(0x3B);
             if (ME.unk0 == 0x60) {
                 SET(2, 0x70);
             } else if (ME.unk0 == 0x70) {
@@ -159,7 +159,7 @@ void func_801B50B0(u16 arg0)
         }
         if (D_801C69D0) {
             if (OK_PRESSED) {
-                func_8014B854(0x3D);
+                playMenuSound(0x3D);
                 if (D_801C5EA2 == 1) {
                     D_801C5EA0 = 1;
                     D_801C5EA2 = 5;
@@ -189,7 +189,7 @@ void func_801B50B0(u16 arg0)
         func_8021F5F0();
         func_801D65BC(0);
         D_80168BB0 = 0x2A;
-        D_8006F9E8 = 8;
+        gameState = 8;
         break;
     case 5:
         func_802319E8();
@@ -198,11 +198,11 @@ void func_801B50B0(u16 arg0)
         func_8021F5F0();
         func_801D65BC(0);
         D_80168BB0 = 2;
-        D_8006F9E8 = 8;
+        gameState = 8;
         break;
     case 6:
         if (D_8011F2F0[D_8018BC3C].p[0] == 0) {
-            D_801C6B52 = func_800E1850;
+            D_801C6B52 = objListHead;
             while (D_801C6B52 != 0xFFFF) {
                 D_8011F2F0[D_801C6B52].unkD = 4;
                 D_801C6B52 = D_8011F2F0[D_801C6B52].unk10;

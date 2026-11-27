@@ -68,18 +68,18 @@ extern s16 D_8021E1A6;
 extern u8 D_802E66D8[], D_802F92E0[], D_802D92A0[], D_802D6898[];
 extern u8 D_8021F260[];
 extern u16 *D_8021B0D0[], *D_8021B0E0[], *D_8021B0F0[], *D_8021B0F8[], *D_8021B100[];
-void func_801CA140(Gfx **);
-void func_801CA494(Gfx **, s32, s32, s32, s32);
-void func_801CCE7C(Gfx **, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *);
-void func_8014A4C8(Gfx **, s32, s32, s32, s32);
-s32 func_8020557C(u16 *, s32);
-void func_801CABF4(Gfx **, s32, s32, s32, u8 *, u16 *, s32, u8 *, s32, s32, s32, s32);
-#define D(x, y, id) func_8014A4C8(gfxp, x, y, 3, id)
-#define T(x, y, str) func_801CABF4(gfxp, (u8)(x), y, 0xF, D_802D92A0, str, 0, D_802D6898, 14, 16, 224, 96)
+void gfxSetup2DState(Gfx **);
+void gfxSetPrimColor(Gfx **, s32, s32, s32, s32);
+void gfxDrawClippedTex8b(Gfx **, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *);
+void gfxDrawSprite(Gfx **, s32, s32, s32, s32);
+s32 textWidth(u16 *, s32);
+void gfxDrawText(Gfx **, s32, s32, s32, u8 *, u16 *, s32, u8 *, s32, s32, s32, s32);
+#define D(x, y, id) gfxDrawSprite(gfxp, x, y, 3, id)
+#define T(x, y, str) gfxDrawText(gfxp, (u8)(x), y, 0xF, D_802D92A0, str, 0, D_802D6898, 14, 16, 224, 96)
 #define SEL(k) \
-    if (D_8021E1A0[0] == k) { func_801CA494(gfxp, 0xFF, 0xFF, 0xFF, 0xFF); } else { func_801CA494(gfxp, 0x64, 0x64, 0x64, 0xFF); }
+    if (D_8021E1A0[0] == k) { gfxSetPrimColor(gfxp, 0xFF, 0xFF, 0xFF, 0xFF); } else { gfxSetPrimColor(gfxp, 0x64, 0x64, 0x64, 0xFF); }
 #define HI(k) \
-    if (D_8021E19E.row == k) { func_801CA494(gfxp, D_8021F260[0], D_8021F260[1], D_8021F260[2], D_8021F260[3]); } else { func_801CA494(gfxp, 0x64, 0x64, 0x64, 0xFF); }
+    if (D_8021E19E.row == k) { gfxSetPrimColor(gfxp, D_8021F260[0], D_8021F260[1], D_8021F260[2], D_8021F260[3]); } else { gfxSetPrimColor(gfxp, 0x64, 0x64, 0x64, 0xFF); }
 #define ROW(y) \
     D(0x48, y, 5); \
     for (i = 0; i < 5; i++) { D(i * 32 + 0x50, y, 6); } \
@@ -95,20 +95,20 @@ void func_80207440(Gfx **gfxp, u16 id) {
         D_8011F2F0[id].state = 1;
         break;
     case 1:
-        func_801CA140(gfxp);
-        func_801CA494(gfxp, 0x78, 0x78, 0x78, 0xFF);
-        func_801CCE7C(gfxp, 0, 0, 0, 0, 320, 240, 320, 240, 64, 32, 0, 0, 319, 239, D_802E66D8, D_802F92E0);
-        func_801CA494(gfxp, 0, 0, 0, 0x64);
-        func_8014A4C8(gfxp, 0x4C, 0x4B, 0xB, 0x30);
-        func_8014A4C8(gfxp, 0x4C, 0x7B, 0xB, 0x30);
-        func_8014A4C8(gfxp, 0x4C, 0xAB, 0xB, 0x30);
+        gfxSetup2DState(gfxp);
+        gfxSetPrimColor(gfxp, 0x78, 0x78, 0x78, 0xFF);
+        gfxDrawClippedTex8b(gfxp, 0, 0, 0, 0, 320, 240, 320, 240, 64, 32, 0, 0, 319, 239, D_802E66D8, D_802F92E0);
+        gfxSetPrimColor(gfxp, 0, 0, 0, 0x64);
+        gfxDrawSprite(gfxp, 0x4C, 0x4B, 0xB, 0x30);
+        gfxDrawSprite(gfxp, 0x4C, 0x7B, 0xB, 0x30);
+        gfxDrawSprite(gfxp, 0x4C, 0xAB, 0xB, 0x30);
         SEL(1);
         ROW(0x47);
         SEL(2);
         ROW(0x77);
         SEL(3);
         ROW(0xA7);
-        func_801CA494(gfxp, 0xFF, 0xFF, 0xFF, 0xFF);
+        gfxSetPrimColor(gfxp, 0xFF, 0xFF, 0xFF, 0xFF);
         D(0x7E, 0x3E, 2);
         D(0x7D, 0x6F, 3);
         D(0x7B, 0x9F, 4);
@@ -118,32 +118,32 @@ void func_80207440(Gfx **gfxp, u16 id) {
         switch (D_8021E19E.row) {
         case 3:
             HI(3);
-            n = func_8020557C(D_8021B0D0[D_8021E19E.c], 0xF);
+            n = textWidth(D_8021B0D0[D_8021E19E.c], 0xF);
             T(n, 0xB4, D_8021B0D0[D_8021E19E.c]);
         case 2:
             HI(2);
-            n = func_8020557C(D_8021B0F0[D_8021E19E.b], 0xF);
+            n = textWidth(D_8021B0F0[D_8021E19E.b], 0xF);
             if (D_8021E19E.a == 0) {
                 T(n, 0x84, D_8021B0F0[D_8021E19E.b]);
             }
-            n = func_8020557C(D_8021B0F8[D_8021E19E.b], 0xF);
+            n = textWidth(D_8021B0F8[D_8021E19E.b], 0xF);
             if (D_8021E19E.a == 1) {
                 T(n, 0x84, D_8021B0F8[D_8021E19E.b]);
             }
-            n = func_8020557C(D_8021B100[D_8021E19E.b], 0xF);
+            n = textWidth(D_8021B100[D_8021E19E.b], 0xF);
             if (D_8021E19E.a >= 2 && D_8021E19E.a <= 3) {
                 T(n, 0x84, D_8021B100[D_8021E19E.b]);
             }
         case 1:
             HI(1);
-            n = func_8020557C(D_8021B0E0[D_8021E19E.a], 0xF);
+            n = textWidth(D_8021B0E0[D_8021E19E.a], 0xF);
             T(n, 0x54, D_8021B0E0[D_8021E19E.a]);
             break;
         }
-        func_801CA494(gfxp, 0xFF, 0xFF, 0xFF, D_8021E19E.alpha);
+        gfxSetPrimColor(gfxp, 0xFF, 0xFF, 0xFF, D_8021E19E.alpha);
         if ((D_8021E19E.row != 1 || D_8021E19E.d != 0) && (D_8021E1A0[0] != 2 || D_8021E1A0[1] < 2) && (D_8021E1A0[0] != 3 || D_8021E1A0[6] != 0)) {
-            func_8014A4C8(gfxp, 0x37, (s16)(D_8021E1A0[0] * 48 + 0x25), 3, 8);
-            func_8014A4C8(gfxp, 0xF9, (s16)(D_8021E1A0[0] * 48 + 0x25), 3, 9);
+            gfxDrawSprite(gfxp, 0x37, (s16)(D_8021E1A0[0] * 48 + 0x25), 3, 8);
+            gfxDrawSprite(gfxp, 0xF9, (s16)(D_8021E1A0[0] * 48 + 0x25), 3, 9);
         }
         break;
     }

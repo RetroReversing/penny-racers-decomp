@@ -11,7 +11,7 @@ extern char D_8011F308[];
 extern char D_8011F30C[];
 extern char D_8011F310[];
 extern char D_8011F31C[];
-void func_80222498(Car *);
+void followTrackPath(Car *);
 void func_80222988(Car *);
 void func_80222A84(Car *);
 void func_80222368(Car *);
@@ -25,7 +25,7 @@ void func_80224334(Car *);
 void func_80224508(Car *);
 void func_80224694(Car *, f32);
 void func_80224784(Car *, f32, f32, s32);
-void func_80226280(Car *);
+void carWallCollide(Car *);
 void func_80225FDC(Car *);
 f32 func_801F9BE8(f32, f32);
 f32 __sinf(f32);
@@ -45,7 +45,7 @@ void func_80221AD0(Car *car) {
     if (car->x8D1 != 0) {
         car->x8D1--;
     }
-    func_80222498(car);
+    followTrackPath(car);
     func_80222988(car);
     func_80222A84(car);
     if (car->x894 != 0) {
@@ -78,7 +78,7 @@ void func_80221AD0(Car *car) {
     func_80224694(car, ratio);
     car->x778++;
     func_80224784(car, spd, rot, n);
-    func_80226280(car);
+    carWallCollide(car);
     func_80225FDC(car);
     if (car->x7CD != 0 && car->x770 != 0.0f) {
         switch (car->mode) {

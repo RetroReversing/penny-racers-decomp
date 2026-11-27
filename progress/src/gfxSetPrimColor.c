@@ -1,0 +1,1 @@
+typedef struct { u32 w0; u32 w1; } G; void gfxSetPrimColor(G **arg0, s32 r, s32 g, s32 b, char a) { G *p = *arg0; G *_g = p++; _g->w0 = 0xFA000000; _g->w1 = (r << 24) | ((g & 0xFF) << 16) | ((b & 0xFF) << 8) | (a & 0xFF); *arg0 = p; }

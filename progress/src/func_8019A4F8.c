@@ -12,28 +12,28 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-extern s8 D_801C6BB9;
-extern s8 D_801C7068;
+extern s8 cursorY;
+extern s8 cursorX;
 
 s32 func_8019A4F8(void) {
     s32 var_v0;
 
-    if (D_801C7068 == 0) {
-        if (D_801C6BB9 == 0) {
+    if (cursorX == 0) {
+        if (cursorY == 0) {
             var_v0 = 0xA;
         } else {
-            var_v0 = (-(D_801C6BB9 != 0x17) & 0xB) | 9;
+            var_v0 = (-(cursorY != 0x17) & 0xB) | 9;
         }
-    } else if (D_801C7068 == 0x17) {
-        if (D_801C6BB9 == 0) {
+    } else if (cursorX == 0x17) {
+        if (cursorY == 0) {
             var_v0 = 6;
         } else {
-            var_v0 = (-(D_801C6BB9 != 0x17) & 7) | 5;
+            var_v0 = (-(cursorY != 0x17) & 7) | 5;
         }
-    } else if (D_801C6BB9 == 0) {
+    } else if (cursorY == 0) {
         var_v0 = 0xE;
     } else {
-        var_v0 = (-(D_801C6BB9 != 0x17) & 0xF) | 0xD;
+        var_v0 = (-(cursorY != 0x17) & 0xF) | 0xD;
     }
     return var_v0 & 0xFF;
 }

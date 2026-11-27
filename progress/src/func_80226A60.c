@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 func_801D7028();
+s32 queueObjEvent();
 s32 func_80221AD0();
 extern char D_801E995A[];
 extern char D_801E995B[];
@@ -39,7 +39,7 @@ void func_80226A60(s32 arg0, void *arg1) {
     temp_v1 = *(s32 *)(D_801E999C + (M2C_FIELD(arg1, u16 *, 4) * 0x70));
     if (temp_v1 != 0) {
         if (temp_v1 == 1) {
-            func_801D7028(arg0 & 0xFFFF, 0x37);
+            queueObjEvent(arg0 & 0xFFFF, 0x37);
         }
         M2C_FIELD(arg1, s32 *, 0x89C) += 1;
     } else {

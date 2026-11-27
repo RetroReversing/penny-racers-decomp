@@ -15,7 +15,7 @@ typedef s32 M2C_UNK32;
 s32 func_801D8E74();
 extern char D_8011F2F0[];
 extern char D_8011F2FC[];
-extern char D_8011F32E[];
+extern char playerSlots[];
 extern char D_8011F334[];
 extern char D_8011F33C[];
 extern u16 D_801E979C;
@@ -33,7 +33,7 @@ void func_801DD938(s16 arg0, s16 arg1, s16 arg2, s16 arg3, u8 arg4, u16 arg5, u1
     D_801F188E = arg3;
     do { func_801D8E74(arg0 & 0xFFFF, arg1 & 0xFFFF, arg2 & 0xFFFF, arg3 & 0xFFFF, arg4 & 0xFF); } while (0);
     temp_v0 = D_801E979C * 0x64;
-    *(u16 *)(D_8011F32E + temp_v0) = arg6;
+    *(u16 *)(playerSlots + temp_v0) = arg6;
     __repair_rows: {
         *(f32 *)(D_8011F334 + temp_v0) = (f32) (arg7 & 0xFFFF);
         *(f32 *)(D_8011F33C + temp_v0) = (f32) (arg5 & 0xFFFF);

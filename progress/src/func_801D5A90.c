@@ -10,7 +10,7 @@ extern Tab D_801D75E4[];
 extern u8 D_8021F029;
 extern f64 D_801D7B10;
 void func_801D63F4(void);
-void func_801D663C(u16);
+void stopStageSound(u16);
 s16 func_80027EE0(u16);
 void func_8002D030(s16);
 void func_8002CFD0(void);
@@ -106,7 +106,7 @@ void func_801D5A90(u16 arg0)
             }
             if (C.timer > 0) {
                 if (--C.timer <= 0) {
-                    func_801D663C(i);
+                    stopStageSound(i);
                 }
             }
             func_8002D030(C.handle);

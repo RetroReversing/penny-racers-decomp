@@ -12,15 +12,15 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_8014A4C8(s32, M2C_UNK, M2C_UNK, M2C_UNK, s32); /* extern */
-M2C_UNK func_801CA140();                            /* extern */
-M2C_UNK func_801CCE7C(s32, M2C_UNK, M2C_UNK, M2C_UNK, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, M2C_UNK *, M2C_UNK *); /* extern */
+M2C_UNK gfxDrawSprite(s32, M2C_UNK, M2C_UNK, M2C_UNK, s32); /* extern */
+M2C_UNK gfxSetup2DState();                            /* extern */
+M2C_UNK gfxDrawClippedTex8b(s32, M2C_UNK, M2C_UNK, M2C_UNK, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, M2C_UNK *, M2C_UNK *); /* extern */
 extern s16 D_8021E1A6;
 extern M2C_UNK D_80301DE8;
 extern M2C_UNK D_80303310;
 
 void func_80219C14(s32 arg0) {
-    do { func_801CA140(); } while (0);
-    func_801CCE7C(arg0, 0x3A, 0x2B, 0, 0, 0xD0, 0x1A, 0xD0, 0x1A, 0x40, 0x20, 0, 0, 0x13F, 0xEF, &D_80301DE8, &D_80303310);
-    func_8014A4C8(arg0, 0xDC, 0xB4, 0xB, D_8021E1A6 + 0x43);
+    do { gfxSetup2DState(); } while (0);
+    gfxDrawClippedTex8b(arg0, 0x3A, 0x2B, 0, 0, 0xD0, 0x1A, 0xD0, 0x1A, 0x40, 0x20, 0, 0, 0x13F, 0xEF, &D_80301DE8, &D_80303310);
+    gfxDrawSprite(arg0, 0xDC, 0xB4, 0xB, D_8021E1A6 + 0x43);
 }

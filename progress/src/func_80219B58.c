@@ -6,7 +6,7 @@ typedef struct {
 } Struct8011F2F0;
 extern Struct8011F2F0 D_8011F2F0[];
 extern u8 D_8021CA30[][3];
-extern u8 D_80126FF7;
+extern u8 lastMaterial;
 typedef struct { u32 w0, w1; } GfxW;
 
 void func_80219B58(GfxW **dl, u16 idx)
@@ -20,5 +20,5 @@ void func_80219B58(GfxW **dl, u16 idx)
     g = (*dl)++;
     g->w0 = 0xFA000000;
     g->w1 = (D_8021CA30[f >> 6][0] << 24) | (D_8021CA30[f >> 6][1] << 16) | (D_8021CA30[f >> 6][2] << 8) | D_8011F2F0[idx].alpha;
-    D_80126FF7 = 0xFF;
+    lastMaterial = 0xFF;
 }

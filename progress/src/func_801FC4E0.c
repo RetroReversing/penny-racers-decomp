@@ -62,8 +62,8 @@ extern Setup D_8006FAF0;
 extern Gfx D_80220ED8[];
 extern u8 D_801FFD30[];
 extern u8 *D_801FFD40[];
-void func_801CA140(Gfx **);
-void func_801CA468(Gfx **, u16);
+void gfxSetup2DState(Gfx **);
+void gfxSetPrimAlpha(Gfx **, u16);
 void func_801CB74C(Gfx **, s32, s32, s32, u8 *, u8 *);
 #define gSPDisplayList(pkt, dl) gDma(pkt, _S(0x06, 24, 8), dl)
 
@@ -104,9 +104,9 @@ void func_801FC4E0(Gfx **gfxp, u16 id) {
         default:
             return;
         }
-        func_801CA140(gfxp);
+        gfxSetup2DState(gfxp);
         gSPDisplayList((*gfxp)++, D_80220ED8);
-        func_801CA468(gfxp, D_802038C4);
+        gfxSetPrimAlpha(gfxp, D_802038C4);
         func_801CB74C(gfxp, 0x64, 0xA0, 8, D_801FFD30, D_801FFD40[0]);
         func_801CB74C(gfxp, 0x64, 0x6E, 8, D_801FFD30, D_801FFD40[D_8006FAF0.lang]);
     }

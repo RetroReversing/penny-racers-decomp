@@ -13,12 +13,12 @@ typedef s32 M2C_UNK32;
 #endif
 
 s32 func_800339C0(s32);                             /* extern */
-extern s32 D_80046C40;
+extern s32 auCallback;
 
 void func_80028030(s32 arg0) {
     s32 temp_v0;
 
     temp_v0 = func_800339C0(1);
-    D_80046C40 = arg0;
+    auCallback = arg0;
     func_800339C0(temp_v0);
 }

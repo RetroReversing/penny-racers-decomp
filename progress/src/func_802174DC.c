@@ -16,7 +16,7 @@ extern f32 m2c_fbits;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_801D651C(M2C_UNK, M2C_UNK, s32);       /* extern */
+M2C_UNK playStageSound(M2C_UNK, M2C_UNK, s32);       /* extern */
 extern M2C_UNK D_80190C9E;
 extern M2C_UNK D_80190CAA;
 extern u8 D_80190CAC;
@@ -64,7 +64,7 @@ block_14:
     }
 block_15:
     if ((var_a1 & 0xFF) != 0) {
-        func_801D651C(7, 0x3B, var_a2);
+        playStageSound(7, 0x3B, var_a2);
     }
     M2C_FIELD(&D_80190C9E, s8 *, 0) = var_s0;
     M2C_FIELD(&D_80190C9E, u8 *, 0xC) = var_s1;

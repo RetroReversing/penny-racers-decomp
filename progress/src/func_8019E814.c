@@ -13,10 +13,10 @@ extern u16 D_801C6BB4;
 extern u16 D_801C7066;
 extern s8 D_801C7070;
 extern u16 D_801C7078;
-extern Slot D_801C7081[];
+extern Slot glyphLine[];
 extern u8 D_801C7468;
-extern MenuState *D_801C7AB0;
-extern u8 D_801C7AB4;
+extern MenuState *trackInfo;
+extern u8 hudGlyph;
 extern s8 D_801C7AB5;
 extern u8 D_801C7ABC;
 extern Row *D_801C7AC4;
@@ -26,7 +26,7 @@ extern s8 D_801CA138;
 extern Row D_8031445C[];
 s8 func_80190D40(s8);
 void func_801BD7E8(void);
-void func_8014B854(s32);
+void playMenuSound(s32);
 #define CLEAR_NEW() \
     for (i = 0; i < 4; i++) { \
         if (D_801C7D1A[i] != 0xFFFF) { \
@@ -43,28 +43,28 @@ void func_8019E814(u16 arg0)
     if (D_801C7AB5 == 0 && D_801C7078 != D_801C6BB4 && D_801C7078 != D_801C7066) {
         if (D_801E9958[arg0].x >= 0x33 && D_801E9958[arg0].cnt0 % 15 == 1) {
             D_801CA138 = 1;
-            D_801C7AB4++;
-            if (D_801C7AB0->unk0 == 3) {
-                if ((s8)D_801C7AB4 == 0x2A) {
-                    D_801C7AB4 = 0;
+            hudGlyph++;
+            if (trackInfo->unk0 == 3) {
+                if ((s8)hudGlyph == 0x2A) {
+                    hudGlyph = 0;
                 }
-                if (D_801CA130 == D_801C7AB0->unk2) {
-                    D_801C7070 = func_80190D40(D_801C7AB4);
+                if (D_801CA130 == trackInfo->unk2) {
+                    D_801C7070 = func_80190D40(hudGlyph);
                 } else if (D_801C7468 == 0x78) {
-                    if (D_801C7AB4 >= 0x16 && D_801C7AB4 < 0x2A) {
+                    if (hudGlyph >= 0x16 && hudGlyph < 0x2A) {
                         D_801C7070 = 0x3C;
                     } else {
                         D_801C7070 = 0x78;
                     }
                 }
-            } else if (D_801C7AB0->unk0 == 4) {
-                if ((s8)D_801C7AB4 == 0x58) {
-                    D_801C7AB4 = 0x2E;
+            } else if (trackInfo->unk0 == 4) {
+                if ((s8)hudGlyph == 0x58) {
+                    hudGlyph = 0x2E;
                 }
-                if (D_801CA130 == D_801C7AB0->unk2) {
-                    D_801C7070 = func_80190D40(D_801C7AB4);
+                if (D_801CA130 == trackInfo->unk2) {
+                    D_801C7070 = func_80190D40(hudGlyph);
                 } else if (D_801C7468 == 0x78) {
-                    if (D_801C7AB4 >= 0x44 && D_801C7AB4 < 0x58) {
+                    if (hudGlyph >= 0x44 && hudGlyph < 0x58) {
                         D_801C7070 = 0x3C;
                     } else {
                         D_801C7070 = 0x78;
@@ -72,33 +72,33 @@ void func_8019E814(u16 arg0)
                 }
             }
             CLEAR_NEW();
-            D_801C7AC4 = &D_8031445C[(s8)D_801C7AB4];
+            D_801C7AC4 = &D_8031445C[(s8)hudGlyph];
             func_801BD7E8();
-            func_8014B854(0x3B);
+            playMenuSound(0x3B);
         } else if (D_801E9958[arg0].x < -0x32 && D_801E9958[arg0].cnt1 % 15 == 1) {
             D_801CA138 = -1;
-            D_801C7AB4--;
-            if (D_801C7AB0->unk0 == 3) {
-                if ((s8)D_801C7AB4 == -1) {
-                    D_801C7AB4 = 0x29;
+            hudGlyph--;
+            if (trackInfo->unk0 == 3) {
+                if ((s8)hudGlyph == -1) {
+                    hudGlyph = 0x29;
                 }
-                if (D_801CA130 == D_801C7AB0->unk2) {
-                    D_801C7070 = func_80190D40(D_801C7AB4);
+                if (D_801CA130 == trackInfo->unk2) {
+                    D_801C7070 = func_80190D40(hudGlyph);
                 } else if (D_801C7468 == 0x78) {
-                    if (D_801C7AB4 >= 0x16 && D_801C7AB4 < 0x2A) {
+                    if (hudGlyph >= 0x16 && hudGlyph < 0x2A) {
                         D_801C7070 = 0x3C;
                     } else {
                         D_801C7070 = 0x78;
                     }
                 }
-            } else if (D_801C7AB0->unk0 == 4) {
-                if ((s8)D_801C7AB4 == 0x2D) {
-                    D_801C7AB4 = 0x57;
+            } else if (trackInfo->unk0 == 4) {
+                if ((s8)hudGlyph == 0x2D) {
+                    hudGlyph = 0x57;
                 }
-                if (D_801CA130 == D_801C7AB0->unk2) {
-                    D_801C7070 = func_80190D40(D_801C7AB4);
+                if (D_801CA130 == trackInfo->unk2) {
+                    D_801C7070 = func_80190D40(hudGlyph);
                 } else if (D_801C7468 == 0x78) {
-                    if (D_801C7AB4 >= 0x44 && D_801C7AB4 < 0x58) {
+                    if (hudGlyph >= 0x44 && hudGlyph < 0x58) {
                         D_801C7070 = 0x3C;
                     } else {
                         D_801C7070 = 0x78;
@@ -106,9 +106,9 @@ void func_8019E814(u16 arg0)
                 }
             }
             CLEAR_NEW();
-            D_801C7AC4 = &D_8031445C[(s8)D_801C7AB4];
+            D_801C7AC4 = &D_8031445C[(s8)hudGlyph];
             func_801BD7E8();
-            func_8014B854(0x3B);
+            playMenuSound(0x3B);
         }
     }
     if (D_801CA138 == 0) {
@@ -117,63 +117,63 @@ void func_8019E814(u16 arg0)
                 if ((D_801C7ABC & 1) && D_801C7AB5 == 0) {
                     D_801CA138 = 1;
                     D_801C7AB5 = 0x3C;
-                    if (D_801C7AB0->unk0 == 3) {
-                        id = D_801C7081[D_801CA130].unk3;
+                    if (trackInfo->unk0 == 3) {
+                        id = glyphLine[D_801CA130].unk3;
                     } else {
-                        id = D_801C7081[D_801CA130].unk3 - 0x2E;
+                        id = glyphLine[D_801CA130].unk3 - 0x2E;
                     }
-                    if (D_801C7081[D_801CA130].unk0 == 0x3C && (u8)(id - 0x16) < 0x14) {
+                    if (glyphLine[D_801CA130].unk0 == 0x3C && (u8)(id - 0x16) < 0x14) {
                         D_801C7070 = 0x78;
                         if ((u8)(id - 0x16) < 0x5) {
-                            D_801C7AB4 = D_801C5E92[(s8)id];
+                            hudGlyph = D_801C5E92[(s8)id];
                         } else if ((u8)(id - 0x1B) < 0x5) {
-                            D_801C7AB4 = D_801C5E8D[(s8)id];
+                            hudGlyph = D_801C5E8D[(s8)id];
                         } else if ((u8)(id - 0x20) < 0x5) {
-                            D_801C7AB4 = D_801C5E90[(s8)id];
+                            hudGlyph = D_801C5E90[(s8)id];
                         } else if ((u8)(id - 0x25) < 0x5) {
-                            D_801C7AB4 = D_801C5E8B[(s8)id];
+                            hudGlyph = D_801C5E8B[(s8)id];
                         }
-                        if (D_801C7AB0->unk0 == 4) {
-                            D_801C7AB4 += 0x2E;
+                        if (trackInfo->unk0 == 4) {
+                            hudGlyph += 0x2E;
                         }
                         CLEAR_NEW();
-                        D_801C7AC4 = &D_8031445C[(s8)D_801C7AB4];
+                        D_801C7AC4 = &D_8031445C[(s8)hudGlyph];
                         func_801BD7E8();
                     } else {
-                        D_801C7070 = D_801C7081[D_801CA130].unk0 + 0x3C;
+                        D_801C7070 = glyphLine[D_801CA130].unk0 + 0x3C;
                     }
-                    func_8014B854(0x3B);
+                    playMenuSound(0x3B);
                 }
             } else if (D_801E9958[arg0].y < -0x32 && D_801E9958[arg0].unk32 == 1) {
                 if ((D_801C7ABC & 2) && D_801C7AB5 == 0) {
                     D_801CA138 = -1;
                     D_801C7AB5 = -0x3C;
-                    if (D_801C7AB0->unk0 == 3) {
-                        id = D_801C7081[D_801CA130].unk3;
+                    if (trackInfo->unk0 == 3) {
+                        id = glyphLine[D_801CA130].unk3;
                     } else {
-                        id = D_801C7081[D_801CA130].unk3 - 0x2E;
+                        id = glyphLine[D_801CA130].unk3 - 0x2E;
                     }
-                    if (D_801C7081[D_801CA130].unk0 == 0 && (u8)(id - 0x16) < 0x14) {
+                    if (glyphLine[D_801CA130].unk0 == 0 && (u8)(id - 0x16) < 0x14) {
                         D_801C7070 = 0;
                         if ((u8)(id - 0x16) < 0x5) {
-                            D_801C7AB4 = D_801C5E92[(s8)id];
+                            hudGlyph = D_801C5E92[(s8)id];
                         } else if ((u8)(id - 0x1B) < 0x5) {
-                            D_801C7AB4 = D_801C5E8D[(s8)id];
+                            hudGlyph = D_801C5E8D[(s8)id];
                         } else if ((u8)(id - 0x20) < 0x5) {
-                            D_801C7AB4 = D_801C5E90[(s8)id];
+                            hudGlyph = D_801C5E90[(s8)id];
                         } else if ((u8)(id - 0x25) < 0x5) {
-                            D_801C7AB4 = D_801C5E8B[(s8)id];
+                            hudGlyph = D_801C5E8B[(s8)id];
                         }
-                        if (D_801C7AB0->unk0 == 4) {
-                            D_801C7AB4 += 0x2E;
+                        if (trackInfo->unk0 == 4) {
+                            hudGlyph += 0x2E;
                         }
                         CLEAR_NEW();
-                        D_801C7AC4 = &D_8031445C[(s8)D_801C7AB4];
+                        D_801C7AC4 = &D_8031445C[(s8)hudGlyph];
                         func_801BD7E8();
                     } else {
-                        D_801C7070 = D_801C7081[D_801CA130].unk0 - 0x3C;
+                        D_801C7070 = glyphLine[D_801CA130].unk0 - 0x3C;
                     }
-                    func_8014B854(0x3B);
+                    playMenuSound(0x3B);
                 }
             }
         }

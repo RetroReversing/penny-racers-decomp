@@ -1,9 +1,9 @@
 typedef struct { u32 w0; u32 w1; } Cmd;
 typedef struct { s16 mode; u8 pad[0x26]; } Rec;
 typedef struct { u8 pad[0x2108]; Rec rec[1]; } Table;
-extern Table D_800DB1B8;
+extern Table sRowBoard;
 extern u8 D_8011F2E8;
-extern u8 D_80126FF6;
+extern u8 viewIndex;
 extern u8 D_80220ED8[];
 extern u8 D_80220EF0[];
 extern u8 D_80220F08[];
@@ -16,7 +16,7 @@ extern u8 D_80220F68[];
 void func_8021FAA4(Cmd **gfx)
 {
     PIPESYNC(*gfx);
-    switch (D_800DB1B8.rec[D_80126FF6].mode) {
+    switch (sRowBoard.rec[viewIndex].mode) {
     case 2:
         if (D_8011F2E8 == 0) {
             DL(*gfx, D_80220F50);

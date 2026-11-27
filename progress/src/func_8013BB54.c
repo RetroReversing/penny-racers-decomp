@@ -48,11 +48,11 @@ extern Sel D_8006FAF0;
 extern u16 D_80167FB0[];
 extern u8 D_802390C8[];
 extern u8 D_80239200[];
-extern u8 D_8023936C[];
+extern u8 sprayDef[];
 extern u8 D_802393A0[];
 extern void func_8013AF08();
 extern void func_8013B0D4();
-extern void func_8013B1BC();
+extern void updateExpandingFx();
 extern void func_8013B704();
 extern void func_8013B894();
 extern void func_8013BA38();
@@ -61,7 +61,7 @@ extern void func_8013BB0C();
 extern u32 func_801FA38C(s32);
 extern f32 func_80033640(f32);
 extern f32 func_80032320(f32);
-extern s16 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *,
+extern s16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *,
                          f32, f32, f32, f32, f32, f32, f32, f32, f32);
 
 #define BAD(id) ((id) == 0xFFFF || (id) == 0xFFFE)
@@ -93,7 +93,7 @@ void func_8013BB54(u16 arg0)
         case 0x2A:
         case 0x2B:
             if (car->mode != 4 && car->grip < 0.95 && car->ground && (car->wheels & 7) == 7) {
-                id = func_800DE41C(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, func_8013AF08, func_8013B0D4,
+                id = objCreate(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, func_8013AF08, func_8013B0D4,
                                    car->posA[0], car->posA[1], car->posA[2], 0.0f, 0.0f, 0.0f, 0.08f, 0.08f, 0.08f);
                 if (BAD(id)) {
                     break;
@@ -104,7 +104,7 @@ void func_8013BB54(u16 arg0)
                 D_8011F2F0[id].vz = car->sz;
                 D_8011F2F0[id].kind = car->type;
                 D_8011F2F0[id].parent = arg0;
-                id = func_800DE41C(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, func_8013AF08, func_8013B0D4,
+                id = objCreate(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, func_8013AF08, func_8013B0D4,
                                    car->posB[0], car->posB[1], car->posB[2], 0.0f, 0.0f, 0.0f, 0.08f, 0.08f, 0.08f);
                 if (BAD(id)) {
                     break;
@@ -121,7 +121,7 @@ void func_8013BB54(u16 arg0)
         case 0x28:
         case 0x29:
             if (car->ground && (car->wheels & 0xF) == 0xF) {
-                id = func_800DE41C(0, (u8) car->num, 1, 0, 0x5B, 0xC8, D_80239200, func_8013B1BC, func_8013B704,
+                id = objCreate(0, (u8) car->num, 1, 0, 0x5B, 0xC8, D_80239200, updateExpandingFx, func_8013B704,
                                    D_8011F2F0[car->owner].x, D_8011F2F0[car->owner].y, D_8011F2F0[car->owner].z,
                                    D_8011F2F0[car->owner].rx, D_8011F2F0[car->owner].ry, D_8011F2F0[car->owner].rz,
                                    0.08f, 0.02f, 0.08f);
@@ -139,7 +139,7 @@ void func_8013BB54(u16 arg0)
         case 0x2C:
         case 0x2D:
             if (car->ground && (car->wheels & 0xF) == 0xF) {
-                id = func_800DE41C(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, func_8013B1BC, func_8013B704,
+                id = objCreate(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, updateExpandingFx, func_8013B704,
                                    car->posA[0], car->posA[1], car->posA[2], 0.0f, 0.0f, 0.0f, 0.08f, 0.08f, 0.08f);
                 if (BAD(id)) {
                     break;
@@ -150,7 +150,7 @@ void func_8013BB54(u16 arg0)
                 D_8011F2F0[id].vz = car->sz * 1.2f;
                 D_8011F2F0[id].kind = car->type;
                 D_8011F2F0[id].parent = arg0;
-                id = func_800DE41C(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, func_8013B1BC, func_8013B704,
+                id = objCreate(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, updateExpandingFx, func_8013B704,
                                    car->posB[0], car->posB[1], car->posB[2], 0.0f, 0.0f, 0.0f, 0.08f, 0.08f, 0.08f);
                 if (BAD(id)) {
                     break;
@@ -168,7 +168,7 @@ void func_8013BB54(u16 arg0)
         case 0x24:
         case 0x25:
             if (car->ground && (car->wheels & 0xF) == 0xF) {
-                id = func_800DE41C(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, func_8013B1BC, func_8013B704,
+                id = objCreate(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, updateExpandingFx, func_8013B704,
                                    D_8011F2F0[car->owner].x, D_8011F2F0[car->owner].y, D_8011F2F0[car->owner].z,
                                    0.0f, 0.0f, 0.0f, 0.08f, 0.08f, 0.08f);
                 if (BAD(id)) {
@@ -208,7 +208,7 @@ void func_8013BB54(u16 arg0)
                         z = D_8011F2F0[arg0].z + (z = func_801FA38C(0) % 400);
                         z -= 200.0f;
                         z = z + func_80032320(D_8011F2F0[arg0].ry * 3.14f / 180.0f) * (car->speed + car->speed + 100.0f);
-                        id = func_800DE41C(0, 0, 1, 0, 0x5B, 0xFF, D_8023936C, func_8013B894, func_8013BA38,
+                        id = objCreate(0, 0, 1, 0, 0x5B, 0xFF, sprayDef, func_8013B894, func_8013BA38,
                                            x, D_8011F2F0[arg0].y + 80.0f, z, 0.0f, 0.0f, 0.0f, 0.08f, 0.08f, 0.08f);
                         if (BAD(id)) {
                             break;
@@ -231,7 +231,7 @@ void func_8013BB54(u16 arg0)
                         z = D_8011F2F0[arg0].z + (z = func_801FA38C(0) % 400);
                         z -= 100.0f;
                         z = z + func_80032320(D_8011F2F0[arg0].ry * 3.14f / 180.0f) * (car->speed * 1.5f + 100.0f);
-                        id = func_800DE41C(0, 0, 1, 0, 0x5B, 0x64, D_802393A0, func_8013BA58, func_8013BB0C,
+                        id = objCreate(0, 0, 1, 0, 0x5B, 0x64, D_802393A0, func_8013BA58, func_8013BB0C,
                                            x, D_8011F2F0[arg0].y + 100.0f, z, 0.0f, 0.0f, 0.0f, 0.08f, 0.09f, 0.08f);
                         if (BAD(id)) {
                             break;

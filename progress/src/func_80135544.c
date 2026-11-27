@@ -14,8 +14,8 @@ typedef struct { u8 unk0[4]; u16 unk8; u8 unkA[2]; s16 unkC; u8 unkE[0x12]; u16 
 typedef struct { u8 unk0[0x2108]; s16 laps; u8 unk210A[2]; Row rows[4]; } Race;
 
 extern Obj D_8011F2F0[];
-extern Car D_8022A770[];
-extern Race D_800DB1B8;
+extern Car sCars[];
+extern Race sRowBoard;
 extern u8 D_80189CC8;
 extern u16 D_80167E62;
 extern u16 D_80167E60;
@@ -25,15 +25,15 @@ extern u16 D_80183B50;
 extern u16 D_8018A26E[];
 extern u16 D_80190C90;
 extern void func_801348C8();
-extern void func_80134C68();
+extern void drawRacerIcon();
 extern void func_80135C64();
 extern void func_80136A28();
-extern void func_801D663C();
+extern void stopStageSound();
 extern void func_801D65BC();
-extern s16 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *,
+extern s16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *,
                          f32, f32, f32, f32, f32, f32, f32, f32, f32);
 
-#define SPAWN(z) func_800DE41C(0, D_8011F2F0[arg0].player, 3, 0, 0x82, 0, 0, func_801348C8, func_80134C68, \
+#define SPAWN(z) objCreate(0, D_8011F2F0[arg0].player, 3, 0, 0x82, 0, 0, func_801348C8, drawRacerIcon, \
                                0.0f, 0.0f, z, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
 
 void func_80135544(u16 arg0)
@@ -43,7 +43,7 @@ void func_80135544(u16 arg0)
 
     switch (D_8011F2F0[arg0].state) {
     case 0:
-        if (D_8022A770[D_8011F2F0[arg0].player].mode != 5) {
+        if (sCars[D_8011F2F0[arg0].player].mode != 5) {
             if (D_80189CC8 == 1) {
                 if (D_80167E62) {
                     SPAWN(0.0f);
@@ -64,33 +64,33 @@ void func_80135544(u16 arg0)
         if ((u16) (u32) D_8011F2F0[arg0].timer > D_80183B4C[D_8011F2F0[arg0].player]) {
             D_8011F2F0[arg0].state = 2;
             for (i = 0; i < 4; i++) {
-                if (D_8022A770[D_8011F2F0[arg0].player].slots[i].snd != -1) {
-                    func_801D663C(D_8022A770[D_8011F2F0[arg0].player].slots[i].snd);
+                if (sCars[D_8011F2F0[arg0].player].slots[i].snd != -1) {
+                    stopStageSound(sCars[D_8011F2F0[arg0].player].slots[i].snd);
                 }
-                D_8022A770[D_8011F2F0[arg0].player].slots[i].snd = -1;
+                sCars[D_8011F2F0[arg0].player].slots[i].snd = -1;
             }
-            if (D_800DB1B8.laps == D_80167E60 && D_80183B50 == 0) {
+            if (sRowBoard.laps == D_80167E60 && D_80183B50 == 0) {
                 func_801D65BC(5);
                 D_80183B50 = 1;
             }
         }
         break;
     case 2:
-        if (D_800DB1B8.rows[D_8011F2F0[arg0].player].unkC > 0x90) {
-            D_800DB1B8.rows[D_8011F2F0[arg0].player].unkC -= 4;
-            D_800DB1B8.rows[D_8011F2F0[arg0].player].unk20 =
-                (D_800DB1B8.rows[D_8011F2F0[arg0].player].unk8 += 4);
+        if (sRowBoard.rows[D_8011F2F0[arg0].player].unkC > 0x90) {
+            sRowBoard.rows[D_8011F2F0[arg0].player].unkC -= 4;
+            sRowBoard.rows[D_8011F2F0[arg0].player].unk20 =
+                (sRowBoard.rows[D_8011F2F0[arg0].player].unk8 += 4);
         } else {
             D_8011F2F0[arg0].state = 3;
         }
         break;
     case 3:
         D_8011F2F0[arg0].unkD = D_8011F2F0[D_8018A26E[D_8011F2F0[arg0].player]].unkD = 2;
-        if (D_80167E60 == D_800DB1B8.laps) {
+        if (D_80167E60 == sRowBoard.laps) {
             D_8011F2F0[D_80190C90].unkD = 2;
         }
         D_8018A26E[D_8011F2F0[arg0].player] =
-            func_800DE41C(0, D_8011F2F0[arg0].player, 3, 0, 0x80, 0, 0, func_80135C64, func_80136A28,
+            objCreate(0, D_8011F2F0[arg0].player, 3, 0, 0x80, 0, 0, func_80135C64, func_80136A28,
                           0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
         break;
     }

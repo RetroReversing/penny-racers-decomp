@@ -12,8 +12,8 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 func_80209D74();
+s32 updateCarouselEntry();
 
 void func_8020AA94(s32 arg0, s32 arg1) {
-    func_80209D74(arg1 & 0xFFFF);
+    updateCarouselEntry(arg1 & 0xFFFF);
 }

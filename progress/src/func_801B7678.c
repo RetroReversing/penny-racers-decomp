@@ -2,11 +2,11 @@ typedef struct { u32 w0; u32 w1; } Cmd;
 typedef struct { u16 x; u16 y; u16 w; u16 h; } Rect;
 extern s32 D_8006F9D0;
 extern s32 D_800DB1B0;
-extern u8 D_800DB1B8[];
+extern u8 sRowBoard[];
 s32 osVirtualToPhysical(s32);
 
 #define CMD(a, b) { Cmd *_g = (Cmd *)((*gfx)++); _g->w0 = (a); _g->w1 = (b); }
-#define RECT ((Rect *)(D_800DB1B8 + 0x2138))
+#define RECT ((Rect *)(sRowBoard + 0x2138))
 
 void func_801B7678(Cmd **gfx)
 {

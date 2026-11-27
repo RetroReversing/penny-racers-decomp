@@ -61,8 +61,8 @@ typedef struct { u8 pad[0x2110]; View view[2]; } Big;
 typedef struct { u8 pad0[9]; u8 alpha; s16 x; } Panel;
 typedef struct { u8 pad0[0x40]; u16 state; u8 pad42[0x1E]; Panel *panel; } Ob5;
 typedef struct { u32 w[8]; } Row;
-extern Big D_800DB1B8;
-extern u8 D_80126FF6;
+extern Big sRowBoard;
+extern u8 viewIndex;
 extern Ob5 D_8011F2F0[];
 extern u8 D_801E4438[], D_801E4BC0[], D_801E4DC8[], D_801E59D0[], D_801E59F8[], D_801E60E0[], D_801E6108[], D_801E6430[], D_801E6638[], D_801E6960[];
 extern u8 D_801CF4C8[];
@@ -78,8 +78,8 @@ extern u8 D_801E9799;
 extern u16 D_801E9764;
 extern u8 D_801E9B1C;
 void func_801CA2D4(Gfx **);
-void func_801CA140(Gfx **);
-void func_801CC150(Gfx **, s16, s16, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *);
+void gfxSetup2DState(Gfx **);
+void gfxDrawClippedTex4b(Gfx **, s16, s16, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *);
 void func_801CB820(Gfx **, u16, u16, u16, u32, u8, u16);
 void func_801CA528(Gfx **, u16, u16, u16, u8 *, u32);
 void func_801CBC20(Gfx **, u16, u16, u16, u32, Row *);
@@ -88,12 +88,12 @@ void func_801CBC20(Gfx **, u16, u16, u16, u32, Row *);
     func_801CA2D4(gfxp); \
     for (i = 0; i < 4; i++) { \
         for (j = 0; j < 5; j++) { \
-            func_801CC150(gfxp, j * 64, i * 60, 0, 0, 64, 60, 64, 60, 64, 30, 0, 0, 319, 239, D_801E4438, D_801E4BC0); \
+            gfxDrawClippedTex4b(gfxp, j * 64, i * 60, 0, 0, 64, 60, 64, 60, 64, 30, 0, 0, 319, 239, D_801E4438, D_801E4BC0); \
         } \
     }
 #define TITLE() \
-    func_801CA140(gfxp); \
-    func_801CC150(gfxp, 0x40, 0x16, 0, 0, 0xC0, 0x20, 0xC0, 0x20, 0xC0, 0x10, 0, 0, 319, 239, D_801E4DC8, D_801E59D0)
+    gfxSetup2DState(gfxp); \
+    gfxDrawClippedTex4b(gfxp, 0x40, 0x16, 0, 0, 0xC0, 0x20, 0xC0, 0x20, 0xC0, 0x10, 0, 0, 319, 239, D_801E4DC8, D_801E59D0)
 
 void func_801DECB4(Gfx **gfxp, u16 id) {
     s32 i;
@@ -121,20 +121,20 @@ void func_801DECB4(Gfx **gfxp, u16 id) {
             func_801CBC20(gfxp, 0x48, y + D_801E9D5C, 0xA, D_801E8790[flag], &D_801E9B38[D_801F188A + i]);
             func_801CB820(gfxp, 0x106, y + D_801E9D5C, 0xA, D_801E8790[flag], 3, D_801E9B38[D_801F188A + i].w[0] >> 8);
         }
-        gDma((*gfxp)++, _S(0xED, 24, 8) | _S((s32)((f32)D_800DB1B8.view[D_80126FF6].ulx * 4.0F), 12, 12) | _S((s32)((f32)D_800DB1B8.view[D_80126FF6].uly * 4.0F), 0, 12),
-             _S((s32)((f32)D_800DB1B8.view[D_80126FF6].lrx * 4.0F), 12, 12) | _S((s32)((f32)D_800DB1B8.view[D_80126FF6].lry * 4.0F), 0, 12));
+        gDma((*gfxp)++, _S(0xED, 24, 8) | _S((s32)((f32)sRowBoard.view[viewIndex].ulx * 4.0F), 12, 12) | _S((s32)((f32)sRowBoard.view[viewIndex].uly * 4.0F), 0, 12),
+             _S((s32)((f32)sRowBoard.view[viewIndex].lrx * 4.0F), 12, 12) | _S((s32)((f32)sRowBoard.view[viewIndex].lry * 4.0F), 0, 12));
         sum = 0;
         for (i = 0; i < 16; i++) {
             sum += D_801E9B38[i].w[0];
         }
-        func_801CC150(gfxp, 0x48, 0xAC, 0, 0, 0xB0, 0x14, 0xB0, 0x14, 0xB0, 0x14, 0, 0, 319, 239, D_801E59F8, D_801E60E0);
+        gfxDrawClippedTex4b(gfxp, 0x48, 0xAC, 0, 0, 0xB0, 0x14, 0xB0, 0x14, 0xB0, 0x14, 0, 0, 319, 239, D_801E59F8, D_801E60E0);
         func_801CB820(gfxp, 0xB0, 0xB0, 0xA, D_801E8798[0], 3, D_801E9768[D_801E87C0] >> 8);
         func_801CA528(gfxp, 0xCE, 0xB0, 0xF, D_801CF4C8, D_801E8798[0]);
         func_801CB820(gfxp, 0xD8, 0xB0, 0xA, D_801E8798[0], 3, (s32)(sum + D_801E9768[D_801E87C0]) >> 8);
         if (D_801E9799 != 0) {
             D_8011F2F0[D_801E9764].panel->alpha = 0x96;
-            func_801CC150(gfxp, 0x48, 0xC5, 0, 0, 0x50, 0x14, 0x50, 0x14, 0x50, 0x14, 0, 0, 319, 239, D_801E6108, D_801E6430);
-            func_801CC150(gfxp, 0xA8, 0xC5, 0, 0, 0x50, 0x14, 0x50, 0x14, 0x50, 0x14, 0, 0, 319, 239, D_801E6638, D_801E6960);
+            gfxDrawClippedTex4b(gfxp, 0x48, 0xC5, 0, 0, 0x50, 0x14, 0x50, 0x14, 0x50, 0x14, 0, 0, 319, 239, D_801E6108, D_801E6430);
+            gfxDrawClippedTex4b(gfxp, 0xA8, 0xC5, 0, 0, 0x50, 0x14, 0x50, 0x14, 0x50, 0x14, 0, 0, 319, 239, D_801E6638, D_801E6960);
             if (D_801E9B1C == 1) {
                 D_8011F2F0[D_801E9764].panel->x = 0xA8;
             } else {

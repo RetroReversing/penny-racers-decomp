@@ -13,8 +13,8 @@ extern char D_80183668[], D_80183678[], D_80183688[], D_80183698[], D_801836A8[]
 typedef struct { u8 a, b, c, d, e; } St;
 extern St D_8018994A;
 extern u8 D_80189B35;
-void func_8003DE60(char *, ...);
-s32 func_801FA30C(void);
+void debugPrintf(char *, ...);
+s32 nextRandom(void);
 
 void func_801493F0(s32 arg0)
 {
@@ -28,19 +28,19 @@ void func_801493F0(s32 arg0)
     D_8018994A.c = 1;
   if (r->p[arg0].x >= 0.7f)
     D_8018994A.c = 0;
-  D_8018994A.a = D_80168D00[func_801FA30C() & 0xF];
+  D_8018994A.a = D_80168D00[nextRandom() & 0xF];
   if (r->f1C <= 0.9f)
     D_8018994A.a = 9;
-  D_8018994A.b = D_80168D10[func_801FA30C() & 0xF];
+  D_8018994A.b = D_80168D10[nextRandom() & 0xF];
   if (r->f1C >= 0.9f && D_80189B35 == 0)
     D_8018994A.b = 9;
-  func_8003DE60(D_80183668, r->f14);
-  func_8003DE60(D_80183678, r->f18);
-  func_8003DE60(D_80183688, r->f1C);
-  func_8003DE60(D_80183698, r->f20);
-  func_8003DE60(D_801836A8, r->f24);
-  func_8003DE60(D_801836B8, r->p[arg0].x);
-  func_8003DE60(D_801836C8, r->p[arg0].y);
-  func_8003DE60(D_801836D8, D_8018994A.a);
-  func_8003DE60(D_801836E8, D_8018994A.b);
+  debugPrintf(D_80183668, r->f14);
+  debugPrintf(D_80183678, r->f18);
+  debugPrintf(D_80183688, r->f1C);
+  debugPrintf(D_80183698, r->f20);
+  debugPrintf(D_801836A8, r->f24);
+  debugPrintf(D_801836B8, r->p[arg0].x);
+  debugPrintf(D_801836C8, r->p[arg0].y);
+  debugPrintf(D_801836D8, D_8018994A.a);
+  debugPrintf(D_801836E8, D_8018994A.b);
 }

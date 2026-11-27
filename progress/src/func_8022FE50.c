@@ -86,7 +86,7 @@ typedef struct { u8 unk0[0x20]; u16 unk20; } Sel;
 typedef struct { u8 b[12]; } Pal;
 
 extern Obj D_8011F2F0[];
-extern Car D_8022A770[];
+extern Car sCars[];
 extern Info D_800DA260[];
 extern Sel D_8006FAF0;
 extern Start *D_802CBF80[];
@@ -100,19 +100,19 @@ extern u16 D_80233EC0;
 extern u8 D_80239060[];
 extern void func_8022132C();
 extern void func_80232360();
-extern void func_8003DE60();
-extern void func_80221670();
+extern void debugPrintf();
+extern void initRaceTimes();
 extern s32 func_80148230();
 extern void func_8012AD20();
 extern void func_80230960();
 extern u16 func_8012913C(u16, f32, f32, f32);
 extern void func_80226720();
-extern void func_8013D86C();
+extern void drawCarLighting();
 extern void func_8013835C();
 extern void func_80138304();
 extern void func_8015BD20();
 extern void func_8015C560();
-extern s16 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *,
+extern s16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *,
                          f32, f32, f32, f32, f32, f32, f32, f32, f32);
 
 void func_8022FE50(u8 arg0, u8 arg1, u8 arg2, u8 arg3)
@@ -137,7 +137,7 @@ void func_8022FE50(u8 arg0, u8 arg1, u8 arg2, u8 arg3)
         alpha = 0xFF;
         ghost = 0;
     }
-    car = &D_8022A770[arg2];
+    car = &sCars[arg2];
     info = &D_800DA260[arg1];
     pos = D_802CBF80[D_8006FAF0.unk20];
     func_8022132C(car);
@@ -185,7 +185,7 @@ void func_8022FE50(u8 arg0, u8 arg1, u8 arg2, u8 arg3)
         break;
     case 1:
         func_80232360(arg2, (u16) (D_8021E1A4.course * 4 + car->unk5B0));
-        func_8003DE60(D_80232C50, arg2, D_8021E1A4.course * 4 + car->unk5B0);
+        debugPrintf(D_80232C50, arg2, D_8021E1A4.course * 4 + car->unk5B0);
         switch (car->type) {
         case 3:
         case 4:
@@ -221,7 +221,7 @@ void func_8022FE50(u8 arg0, u8 arg1, u8 arg2, u8 arg3)
         }
     }
     car->unk560 = 0;
-    func_80221670(car);
+    initRaceTimes(car);
     car->unk8DC = D_802CBEE0[D_8006FAF0.unk20];
     pos += arg0;
     y = pos->y + 0.5;
@@ -248,7 +248,7 @@ void func_8022FE50(u8 arg0, u8 arg1, u8 arg2, u8 arg3)
         x = pos->x;
         z = pos->z;
     }
-    car->id = func_800DE41C(0, 0, 1, 0, 0x51, alpha, car->unk8, func_80226720, func_8013D86C,
+    car->id = objCreate(0, 0, 1, 0, 0x51, alpha, car->unk8, func_80226720, drawCarLighting,
                                        x, y, z, 0.0f, pos->angle, 0.0f, 0.2f, 0.2f, 0.2f);
     car->num = arg2;
     car->unk0 = arg0;
@@ -264,7 +264,7 @@ void func_8022FE50(u8 arg0, u8 arg1, u8 arg2, u8 arg3)
     car->unk814 = func_8012913C(D_80233EC0, D_8011F2F0[car->id].x, D_8011F2F0[car->id].y, D_8011F2F0[car->id].z);
     car->unk816 = 0;
     if (ghost == 0) {
-        id = func_800DE41C(0, 0, 1, 0, 0x52, 0x9B, D_80239060, func_8013835C, func_80138304,
+        id = objCreate(0, 0, 1, 0, 0x52, 0x9B, D_80239060, func_8013835C, func_80138304,
                            0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.05f, 0.05f, 0.05f);
         D_8011F2F0[id].vx = car->id;
         D_8011F2F0[id].vy = arg2;
@@ -278,7 +278,7 @@ void func_8022FE50(u8 arg0, u8 arg1, u8 arg2, u8 arg3)
         }
         child = D_8011F2F0[child].child;
     }
-    id = func_800DE41C(0, (u8) car->num, 3, 0, 0x52, 0x9B, 0, func_8015BD20, func_8015C560,
+    id = objCreate(0, (u8) car->num, 3, 0, 0x52, 0x9B, 0, func_8015BD20, func_8015C560,
                        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
     D_8011F2F0[id].unkB = 0xE;
 }

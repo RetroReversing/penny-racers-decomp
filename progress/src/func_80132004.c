@@ -64,9 +64,9 @@ typedef struct { s32 v; u8 pad[0x8EC]; } PS32;
 typedef struct { s16 v; u8 pad[0x8EE]; } PS16;
 typedef struct { u8 pad[0x20]; u16 course; } Race;
 extern Ob15 D_8011F2F0[];
-extern Big D_800DB1B8;
-extern u8 D_80126FF6;
-extern Player D_8022A770[];
+extern Big sRowBoard;
+extern u8 viewIndex;
+extern Player sCars[];
 extern PS32 D_8022AD0C[];
 extern PS16 D_8022AD04[];
 extern Race D_8006FAF0;
@@ -79,14 +79,14 @@ extern u8 *D_80167E40[], *D_80167E50[];
 extern u8 D_8018D398[];
 extern u16 D_80167F08[], D_80167F1C[];
 extern f32 D_80167F30[];
-void func_801CA140(Gfx **);
-void func_801CA468(Gfx **, s32);
-void func_801CC150(Gfx **, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *);
+void gfxSetup2DState(Gfx **);
+void gfxSetPrimAlpha(Gfx **, s32);
+void gfxDrawClippedTex4b(Gfx **, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *);
 void func_801CB9EC(Gfx **, u16, u16, s32, u8 *, u8 *, s32, s32, s32, s32, s32, s32, s32, u16);
 
 #define DOTS(base) \
     for (i = 5; i >= 0; i--) { \
-        q = &D_8022A770[i]; \
+        q = &sCars[i]; \
         if (q->obj != 0xFFFF) { \
             switch (D_8006FAF0.course) { \
             case 1: \
@@ -125,28 +125,28 @@ void func_80132004(Gfx **gfxp, u16 id) {
     f32 px;
     f32 py;
 
-    if (D_80126FF6 == D_800DB1B8.views - 1) {
-        player = &D_8022A770[D_8011F2F0[id].kind];
+    if (viewIndex == sRowBoard.views - 1) {
+        player = &sCars[D_8011F2F0[id].kind];
         gDma((*gfxp)++, 0x06000000, D_80220ED8);
-        func_801CA140(gfxp);
-        func_801CA468(gfxp, D_8011F2F0[id].alpha);
-        if (D_800DB1B8.views == 1 && player->mode != D_800DB1B8.views) {
+        gfxSetup2DState(gfxp);
+        gfxSetPrimAlpha(gfxp, D_8011F2F0[id].alpha);
+        if (sRowBoard.views == 1 && player->mode != sRowBoard.views) {
             if (D_8018BC33 == 0) {
-                func_801CC150(gfxp, 0xEC, 0x9E, 0, 0, 64, 51, 64, 51, 64, 51, 0, 0, 319, 239, D_8016EFF0, D_8016F658);
+                gfxDrawClippedTex4b(gfxp, 0xEC, 0x9E, 0, 0, 64, 51, 64, 51, 64, 51, 0, 0, 319, 239, D_8016EFF0, D_8016F658);
             } else if (D_80182DC8[D_8006FAF0.course] != 0) {
-                func_801CC150(gfxp, 0xEC, 0x91, 0, 0, 64, 64, 64, 64, 64, 64, 0, 0, 319, 239, D_80182DC8[D_8006FAF0.course], D_80182DF0[D_8006FAF0.course]);
+                gfxDrawClippedTex4b(gfxp, 0xEC, 0x91, 0, 0, 64, 64, 64, 64, 64, 64, 0, 0, 319, 239, D_80182DC8[D_8006FAF0.course], D_80182DF0[D_8006FAF0.course]);
                 DOTS(0xAD);
             }
         }
-        if (D_800DB1B8.views == 2 && D_80189CC8 != 3) {
+        if (sRowBoard.views == 2 && D_80189CC8 != 3) {
             if (D_80182DC8[D_8006FAF0.course] != 0) {
-                func_801CC150(gfxp, 0xEC, 0x58, 0, 0, 64, 64, 64, 64, 64, 64, 0, 0, 319, 239, D_80182DC8[D_8006FAF0.course], D_80182DF0[D_8006FAF0.course]);
+                gfxDrawClippedTex4b(gfxp, 0xEC, 0x58, 0, 0, 64, 64, 64, 64, 64, 64, 0, 0, 319, 239, D_80182DC8[D_8006FAF0.course], D_80182DF0[D_8006FAF0.course]);
                 DOTS(0x74);
             }
         }
         if (D_80189CC8 == 3) {
             py = D_8011F2F0[D_80189C96].panel->y - 2;
-            for (i = 0; i < D_800DB1B8.views; i++) {
+            for (i = 0; i < sRowBoard.views; i++) {
                 t = D_8022AD0C[i].v;
                 if (t < 100) {
                     t = 0;

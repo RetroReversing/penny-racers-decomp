@@ -2,7 +2,7 @@ typedef struct {
     u16 st;
     u8 pad[98];
 } Slot;
-extern Slot D_8011F32E[];
+extern Slot playerSlots[];
 extern s32 D_80168BB0;
 extern u16 D_8018BC3C;
 extern s32 D_8021AFDC;
@@ -18,11 +18,11 @@ void func_80214504(u16 arg0)
 {
     s32 pressed;
 
-    switch (D_8011F32E[arg0].st) {
+    switch (playerSlots[arg0].st) {
     case 0:
         D_8021E130 = 0;
         D_8021E189 = 0;
-        D_8011F32E[arg0].st = 1;
+        playerSlots[arg0].st = 1;
         func_80203DF8(1, 0x78, 0xFF, 0xFF, 0xFF);
         break;
     case 1:
@@ -32,7 +32,7 @@ void func_80214504(u16 arg0)
         }
         if (D_8021E130 >= 0x186 || (pressed & 0x10)) {
             func_80203DF8(1, 0x78, 0xFF, 0xFF, 0xFF);
-            D_8011F32E[arg0].st = 3;
+            playerSlots[arg0].st = 3;
         }
         D_8021E130++;
         break;
@@ -42,7 +42,7 @@ void func_80214504(u16 arg0)
             func_80203DF8(2, 0x78, 0, 0, 0);
         }
         if (D_8021E130 >= 0x2D0 || (pressed & 0x10)) {
-            D_8011F32E[arg0].st = 2;
+            playerSlots[arg0].st = 2;
         }
         D_8021E130++;
         break;

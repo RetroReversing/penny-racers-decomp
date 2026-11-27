@@ -27,7 +27,7 @@ extern u8 D_801F18EC;
 extern u8 D_801F18ED;
 extern u8 D_801F18EE;
 extern u8 D_801F18EF;
-void func_8003DE60();
+void debugPrintf();
 
 void func_801E1C38(void)
 {
@@ -38,7 +38,7 @@ void func_801E1C38(void)
     u8 b;
     u32 i;
 
-    func_8003DE60(D_801E94EC, D_801E973C);
+    debugPrintf(D_801E94EC, D_801E973C);
     D_801E87E3 = 1;
     D_801E87E1 = D_801F18E4;
     D_801E87E0 = D_801F18E4;
@@ -79,7 +79,7 @@ void func_801E1C38(void)
     D_801E9D81[dst] = b;
     dst += 2;
     src += 2;
-    func_8003DE60(D_801E9500, src, dst);
+    debugPrintf(D_801E9500, src, dst);
     i = 0;
     while (1) {
         D_801F18E0[i] = D_801E9D80[i];

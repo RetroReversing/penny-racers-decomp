@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-extern char D_8011F32E[];
+extern char playerSlots[];
 extern char D_802E60F0[];
 
 void func_801561FC(void **arg0, s32 arg1) {
@@ -60,6 +60,6 @@ void func_801561FC(void **arg0, s32 arg1) {
     M2C_FIELD(temp_v1_8, s32 **, 4) = (s32 *)0x7C07C;
     temp_v1_9 = *arg0;
     *arg0 = temp_v1_9 + 8;
-    M2C_FIELD(temp_v1_9, s32 *, 0) = (s32) ((*(u16 *)(D_8011F32E + ((arg1 & 0xFFFF) * 0x64)) & 0xFFF) | 0xF2000000);
+    M2C_FIELD(temp_v1_9, s32 *, 0) = (s32) ((*(u16 *)(playerSlots + ((arg1 & 0xFFFF) * 0x64)) & 0xFFF) | 0xF2000000);
     M2C_FIELD(temp_v1_9, s32 **, 4) = (s32 *)0x7C07C;
 }

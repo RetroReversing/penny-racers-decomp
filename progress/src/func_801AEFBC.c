@@ -24,9 +24,9 @@ typedef struct {
     f32 atZ;
     u8 pad18[0xC];
 } Camera;
-extern Game D_800DB1B8;
-extern s8 D_801C6BB9;
-extern s8 D_801C7068;
+extern Game sRowBoard;
+extern s8 cursorY;
+extern s8 cursorX;
 extern Orbit D_801C6BC0;
 extern Camera D_80221080[];
 
@@ -39,9 +39,9 @@ void func_801AEFBC(void)
     f32 yaw;
     f32 pitch;
 
-    i = D_800DB1B8.view[0].slot;
-    x = D_801C6BC0.x = D_801C7068;
-    z = D_801C6BC0.y = D_801C6BB9;
+    i = sRowBoard.view[0].slot;
+    x = D_801C6BC0.x = cursorX;
+    z = D_801C6BC0.y = cursorY;
     D_801C6BC0.distance = 2000.0f;
     D_801C6BC0.yaw = 0.0f;
     D_801C6BC0.pitch = 85.0f;
@@ -64,7 +64,7 @@ void func_801AEFBC(void)
 
     yaw = 0.0f;
     pitch = 40.0f;
-    j = D_800DB1B8.view[1].slot;
+    j = sRowBoard.view[1].slot;
     D_80221080[j].atX = yaw;
     D_80221080[j].atY = -65.0f;
     D_80221080[j].atZ = yaw;

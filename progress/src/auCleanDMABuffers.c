@@ -14,30 +14,30 @@ typedef s32 M2C_UNK32;
 
 M2C_UNK alLink(void *, void *);              /* extern */
 M2C_UNK alUnlink(void *);                      /* extern */
-extern u32 D_80046C30;
-extern M2C_UNK D_8005D7A4;
+extern u32 auFrameCount;
+extern M2C_UNK auDmaActive;
 extern s32 D_8005DCB0;
 
 void auCleanDMABuffers(void) {
     void *temp_s1;
     void *var_s0;
 
-    var_s0 = M2C_FIELD(&D_8005D7A4, void **, 0);
+    var_s0 = M2C_FIELD(&auDmaActive, void **, 0);
     if (var_s0 != NULL) {
         do {
             temp_s1 = M2C_FIELD(var_s0, void **, 0);
-            if ((u32) (M2C_FIELD(var_s0, s32 *, 0xC) + 2) < (u32) D_80046C30) {
-                if (M2C_FIELD(&D_8005D7A4, void **, 0) == var_s0) {
-                    M2C_FIELD(&D_8005D7A4, void **, 0) = temp_s1;
+            if ((u32) (M2C_FIELD(var_s0, s32 *, 0xC) + 2) < (u32) auFrameCount) {
+                if (M2C_FIELD(&auDmaActive, void **, 0) == var_s0) {
+                    M2C_FIELD(&auDmaActive, void **, 0) = temp_s1;
                 }
                 alUnlink(var_s0);
-                if (M2C_FIELD(&D_8005D7A4, void **, 4) == NULL) {
-                    M2C_FIELD(&D_8005D7A4, void **, 4) = var_s0;
+                if (M2C_FIELD(&auDmaActive, void **, 4) == NULL) {
+                    M2C_FIELD(&auDmaActive, void **, 4) = var_s0;
                     M2C_FIELD(var_s0, void **, 0) = NULL;
                     M2C_FIELD(var_s0, s32 *, 4) = 0;
                     goto block_10;
                 }
-                alLink(var_s0, M2C_FIELD(&D_8005D7A4, void **, 4));
+                alLink(var_s0, M2C_FIELD(&auDmaActive, void **, 4));
                 var_s0 = temp_s1;
             } else {
 block_10:
@@ -46,5 +46,5 @@ block_10:
         } while (var_s0 != NULL);
     }
     D_8005DCB0 = 0;
-    D_80046C30 += 1;
+    auFrameCount += 1;
 }

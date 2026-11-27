@@ -1,5 +1,5 @@
-extern u8 D_801C7469;
-extern void *D_801C7AB0;
+extern u8 blockFootprint;
+extern void *trackInfo;
 extern u8 D_801C7AD8[];
 
 u8 func_801C5528(u8 *arg0, u8 *arg1, s32 arg2)
@@ -7,8 +7,8 @@ u8 func_801C5528(u8 *arg0, u8 *arg1, s32 arg2)
     s8 a3 = 0;
     s8 a0 = 0;
     u8 tmp;
-    if (D_801C7469 == (arg2 & 0xFF)) {
-        if (D_801C7469 == 0) {
+    if (blockFootprint == (arg2 & 0xFF)) {
+        if (blockFootprint == 0) {
             tmp = *arg0;
             a0 = tmp;
             tmp = *arg1;
@@ -51,7 +51,7 @@ u8 func_801C5528(u8 *arg0, u8 *arg1, s32 arg2)
     if (D_801C7AD8[a0 + 24 * a3] == 0xFF) {
         *arg0 = 0x7F;
         *arg1 = 0x7F;
-        return *((u8 *)D_801C7AB0 + 2);
+        return *((u8 *)trackInfo + 2);
     }
     return D_801C7AD8[a0 + 24 * a3];
 }

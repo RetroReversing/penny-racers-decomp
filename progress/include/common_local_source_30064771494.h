@@ -55,3 +55,10 @@ typedef struct { u8 reserved_hi:3; u8 flag10:1; u8 reserved_lo:4; } PennyByteFla
 /* Byte color setters: clamp signed 16-bit channel values to 0..255 at offsets 0x17..0x19. */
 void func_8013EA18(u8 *object, s32 red, s32 green, s32 blue);
 void func_8013EA90(u8 *object, s32 redDelta, s32 greenDelta, s32 blueDelta);
+
+/* Track point used by the edge-object layout: type is the facing direction (0..3). */
+typedef struct { u8 type; u8 y; s8 x; s8 z; s8 pad; } TrackPoint;
+/* Output slot: world position and facing angle in degrees. */
+typedef struct { f32 x; f32 y; f32 z; f32 rot; } EdgeSlot;
+/* Track layout info: b == 5 marks a looped track, count is the last point index + 1. */
+typedef struct { u8 a; u8 b; u8 count; } TrackInfo;

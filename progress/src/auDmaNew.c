@@ -1,7 +1,7 @@
 extern u8 D_8005D7A0;
 extern char D_8005D7B0[];
-extern char *D_8005D7A8;
-extern s32 D_8005D7A4;
+extern char *auDmaFree;
+extern s32 auDmaActive;
 extern s32 D_8005D7B4;
 extern char D_8005D7C0[];
 extern s32 D_8005DCB0;
@@ -21,11 +21,11 @@ void *auDmaNew(void **arg0) {
     if (D_8005D7A0 == 0) {
         s1 = 0;
         size = 0x400;
-        D_8005D7A8 = D_8005D7B0;
-        s0 = D_8005D7A8;
+        auDmaFree = D_8005D7B0;
+        s0 = auDmaFree;
         s3 = s0 + 0x14;
         s2 = 0;
-        D_8005D7A4 = 0;
+        auDmaActive = 0;
         D_8005D7B4 = 0;
         *(s32 *)s0 = 0;
         do {

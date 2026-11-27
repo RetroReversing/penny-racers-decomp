@@ -1,4 +1,4 @@
-extern u8 D_801E97A0[];
+extern u8 sSaveData[];
 
 void func_801E2EC4(s32 *arg0) {
     s32 sum;
@@ -7,7 +7,7 @@ void func_801E2EC4(s32 *arg0) {
     sum = 0;
     i = 0;
     do {
-        sum += D_801E97A0[i];
+        sum += sSaveData[i];
         i += 1;
     } while (i < 0x1B0U);
     *arg0 = sum;

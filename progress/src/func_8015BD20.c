@@ -5,19 +5,19 @@ typedef struct {
     u8 unk868[0x8A1 - 0x868]; u8 mode; u8 unk8A2[0x8F0 - 0x8A2];
 } Car;
 extern Obj D_8011F2F0[];
-extern Car D_8022A770[];
+extern Car sCars[];
 extern Vtx D_80189970[][4];
 extern Vtx D_8018B530[][16];
 extern u8 D_8018D66A[];
 extern void func_8015C838();
 extern void func_8015C8A4();
-extern s16 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *,
+extern s16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *,
                          f32, f32, f32, f32, f32, f32, f32, f32, f32);
 
 void func_8015BD20(u16 arg0)
 {
     u8 p = D_8011F2F0[arg0].player;
-    Car *car = &D_8022A770[p];
+    Car *car = &sCars[p];
     Vtx *v;
     Vtx *w;
     s32 i;
@@ -123,7 +123,7 @@ void func_8015BD20(u16 arg0)
                 v->ob[2] = b[2];
             }
             if (D_8011F2F0[arg0].vx == 10.0f || car->grip > 0.95 || !car->ground || car->mode == 4) {
-                id = func_800DE41C(0, 0, 3, 0, 0x52, 0xAA, 0, func_8015C838, func_8015C8A4,
+                id = objCreate(0, 0, 3, 0, 0x52, 0xAA, 0, func_8015C838, func_8015C8A4,
                                    0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
                 D_8011F2F0[id].unkB = 0xE;
                 D_8011F2F0[id].vx = p;

@@ -12,8 +12,8 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_8021F6A0(M2C_UNK);                     /* extern */
+M2C_UNK initRowTable(M2C_UNK);                     /* extern */
 
 void func_801F93E0(void) {
-    func_8021F6A0(1);
+    initRowTable(1);
 }

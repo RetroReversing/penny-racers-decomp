@@ -1,6 +1,6 @@
 extern s16 D_80126FF0;
 extern s16 D_80126FF4;
-extern u16 func_800E1850;
+extern u16 objListHead;
 extern s16 D_8011F300;
 extern s16 D_8011F302;
 extern s16 D_8011F2F1;
@@ -12,7 +12,7 @@ void func_800DE2E0(void) {
 
     D_80126FF0 = 0x140;
     D_80126FF4 = 0;
-    func_800E1850 = 0xFFFF;
+    objListHead = 0xFFFF;
     *(u16 *)((u8 *)&D_8011F300 + 0) = 0xFFFF;
     *(u16 *)((u8 *)&D_8011F300 + 2) = 1;
     *(u8 *)((u8 *)&D_8011F300 - 0xF) = 0;

@@ -80,7 +80,7 @@ extern Vtx D_8018B530[][4][4];
 typedef struct { u16 v; u8 pad[0x62]; } SlotH;
 typedef struct { f32 v; u8 pad[0x8EC]; } Course;
 typedef struct { s32 w[4]; } Quad;
-extern SlotH D_8011F32E[];
+extern SlotH playerSlots[];
 extern SlotB D_8011F2F0[];
 extern Course D_8022AFD4[];
 extern s32 D_80046834;
@@ -91,7 +91,7 @@ void func_8015C560(Gfx **gfxp, u16 id) {
     f32 z;
     s32 i;
 
-    if (D_8011F32E[id].v != 0) {
+    if (playerSlots[id].v != 0) {
         n = D_8011F2F0[id].v;
         z = D_8022AFD4[n].v;
         if (z > 0.95 && D_8011F334[id].v == 0.0) {

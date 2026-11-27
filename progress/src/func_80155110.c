@@ -1,5 +1,5 @@
-void func_8013AE60(u16);
-extern volatile u8 D_8011F32E[];
+void liftCopyFlags(u16);
+extern volatile u8 playerSlots[];
 void func_80155110(s32 arg0)
 {
   u16 temp_s0;
@@ -8,21 +8,21 @@ void func_80155110(s32 arg0)
   if (temp_v1)
   {
     temp_s0 = arg0;
-    func_8013AE60(temp_s0);
+    liftCopyFlags(temp_s0);
     temp_v1 = temp_s0 * 100;
-    temp_a0 = *((volatile u16 *) (D_8011F32E + temp_v1));
-    *((volatile u16 *) (D_8011F32E + temp_v1)) = temp_a0 + 4;
+    temp_a0 = *((volatile u16 *) (playerSlots + temp_v1));
+    *((volatile u16 *) (playerSlots + temp_v1)) = temp_a0 + 4;
   }
   else
   {
     temp_s0 = arg0;
-    func_8013AE60(temp_s0);
+    liftCopyFlags(temp_s0);
     temp_v1 = temp_s0 * 100;
-    temp_a0 = *((volatile u16 *) (D_8011F32E + temp_v1));
-    *((volatile u16 *) (D_8011F32E + temp_v1)) = temp_a0 + 4;
+    temp_a0 = *((volatile u16 *) (playerSlots + temp_v1));
+    *((volatile u16 *) (playerSlots + temp_v1)) = temp_a0 + 4;
   }
-  if ((*((volatile u16 *) (D_8011F32E + temp_v1))) >= 0x80)
+  if ((*((volatile u16 *) (playerSlots + temp_v1))) >= 0x80)
   {
-    *((volatile u16 *) (D_8011F32E + temp_v1)) = temp_a0 - 0x7B;
+    *((volatile u16 *) (playerSlots + temp_v1)) = temp_a0 - 0x7B;
   }
 }

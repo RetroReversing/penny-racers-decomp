@@ -13,8 +13,8 @@ typedef s32 M2C_UNK32;
 #endif
 
 M2C_UNK func_800297E8(M2C_UNK, M2C_UNK *, M2C_UNK); /* extern */
-extern M2C_UNK D_801E97A0;
+extern M2C_UNK sSaveData;
 
 void func_801E3010(void) {
-    func_800297E8(0, &D_801E97A0, 0x1B0);
+    func_800297E8(0, &sSaveData, 0x1B0);
 }

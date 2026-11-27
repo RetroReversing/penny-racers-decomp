@@ -1,5 +1,5 @@
 extern u8 D_8011F2FC[];
-extern u8 D_8011F32E[];
+extern u8 playerSlots[];
 extern u8 D_802E6320[];
 
 void func_8015601C(void **arg0, s32 arg1)
@@ -64,7 +64,7 @@ void func_8015601C(void **arg0, s32 arg1)
     {
         s32 *g = *arg0;
         *arg0 = g + 2;
-        g[0] = (*(u16 *) (D_8011F32E + off) & 0xFFF) | 0xF2000000;
+        g[0] = (*(u16 *) (playerSlots + off) & 0xFFF) | 0xF2000000;
         g[1] = 0x0007C0FC;
     }
 }

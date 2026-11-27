@@ -1,4 +1,4 @@
-extern u8 *D_801C7AB0;
+extern u8 *trackInfo;
 extern u8 D_80237470[];
 extern u8 D_80237471[];
 extern u8 D_80237472[];
@@ -12,8 +12,8 @@ void func_801B09F0(void) {
     u8 n;
 
     idx = 0;
-    c = D_801C7AB0[2];
-    p = D_801C7AB0;
+    c = trackInfo[2];
+    p = trackInfo;
     n = 0;
     if (c != 0) {
         do {
@@ -21,7 +21,7 @@ void func_801B09F0(void) {
                 if (n == p[2] - 2) {
                     D_80237470[idx] = p[2] - 1;
                     D_80237471[idx] = 0;
-                } else if (n == D_801C7AB0[2] - 1) {
+                } else if (n == trackInfo[2] - 1) {
                     D_80237470[idx] = 0;
                     D_80237471[idx] = 1;
                 } else {
@@ -32,7 +32,7 @@ void func_801B09F0(void) {
                 if (n == 0) {
                     D_80237472[0] = 0;
                     D_80237472[1] = 1;
-                } else if (n == D_801C7AB0[2] - 1) {
+                } else if (n == trackInfo[2] - 1) {
                     D_80237470[0] = 0;
                     D_80237470[1] = 0;
                 } else {
@@ -42,8 +42,8 @@ void func_801B09F0(void) {
             }
             n++;
             idx += 2;
-            p = D_801C7AB0;
+            p = trackInfo;
         } while (n < p[2]);
     }
-    D_802352F4 = D_801C7AB0[2] - 1;
+    D_802352F4 = trackInfo[2] - 1;
 }

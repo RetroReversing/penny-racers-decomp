@@ -8,7 +8,7 @@ extern PrNodeSlot D_8011F340[];
 extern PrFloatSlot D_8011F308[];
 extern PrFloatSlot D_8011F310[];
 extern u8 D_8012AA38[];
-void func_8003DE60();
+void debugPrintf();
 
 s32 func_8012913C(u16 arg0, f32 x, f32 y, f32 z)
 {
@@ -41,7 +41,7 @@ s32 func_8012913C(u16 arg0, f32 x, f32 y, f32 z)
         }
         if (arg0 == start) {
             arg0 = start;
-            func_8003DE60(D_8012AA38);
+            debugPrintf(D_8012AA38);
             break;
         }
     }

@@ -6,18 +6,18 @@ extern u8 D_801C5E9C[];
 extern u8 D_801C5E9E[];
 extern u8 D_801C5EA0;
 extern u8 D_801C5EA1;
-extern u8 D_801C6BB9;
+extern u8 cursorY;
 extern u16 D_801C6BE0[];
-extern u8 D_801C7068;
-extern Rec5 D_801C7080[];
+extern u8 cursorX;
+extern Rec5 trackPoints[];
 extern Pair D_801C7082[];
-extern u8 D_801C7469;
+extern u8 blockFootprint;
 extern u16 D_801C7470[][4];
-extern void *D_801C7AB0;
+extern void *trackInfo;
 extern u8 D_801C7AB6;
 extern u8 D_801C7AB8;
 extern u8 D_801C7AD8[];
-extern void func_800DE41C();
+extern void objCreate();
 
 void func_801AEC94(void)
 {
@@ -25,10 +25,10 @@ void func_801AEC94(void)
     u8 j;
 
     D_801C7AB8 = 4;
-    D_801C7469 = 4;
+    blockFootprint = 4;
     if (D_801C5EA1 == 0) {
-        D_801C6BB9 = 0xB;
-        D_801C7068 = 0xB;
+        cursorY = 0xB;
+        cursorX = 0xB;
         D_801C5EA0 = 0;
         {
             u8 *p = D_801C5E9E;
@@ -37,10 +37,10 @@ void func_801AEC94(void)
         }
     } else {
         u8 *p = (u8 *)D_801C7082;
-        D_801C7068 = *p++;
-        D_801C6BB9 = *p;
+        cursorX = *p++;
+        cursorY = *p;
     }
-    D_801C7AB0 = D_801C5E9C;
+    trackInfo = D_801C5E9C;
     D_801C7AB6 = 0;
     for (i = 0; i < 0x240; i++) {
         D_801C6BE0[i] = 0xFFFF;
@@ -51,7 +51,7 @@ void func_801AEC94(void)
             D_801C7470[i][j] = 0xFFFF;
         }
         if (D_801C5EA1 == 0) {
-            Rec5 *t = D_801C7080;
+            Rec5 *t = trackPoints;
             Rec5 *r = &t[i];
             r->a = 4;
             r->b = 0;
@@ -64,6 +64,6 @@ void func_801AEC94(void)
     func_8021F5F0();
     func_801AEEE8();
     func_801AEFBC();
-    func_800DE41C(0, 0, 3, 0, 0x42, 0xFF, 0, 0, D_8019E400, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    func_800DE41C(0, 0, 3, 0, 0x50, 0xFF, 0, 0, D_8019E4B8, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x42, 0xFF, 0, 0, D_8019E400, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x50, 0xFF, 0, 0, D_8019E4B8, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 }

@@ -28,7 +28,7 @@ extern void func_801DD938();
 extern void func_80029190();
 extern void func_80029070();
 extern void func_800291E0();
-extern void func_8003DE60();
+extern void debugPrintf();
 
 #define MSG(k, m) func_801DD938(0x10, 0x4C, 0xA, 2, 0xC8, 0xB4, 0x12, k, player, m)
 
@@ -144,11 +144,11 @@ void func_801E2020(u16 arg0)
                 MSG(0x1C, 0x21);
                 break;
             broken:
-                func_8003DE60(D_801E9534);
+                debugPrintf(D_801E9534);
                 break;
             case 7:
                 for (i = 0; i < 4; i++) {
-                    func_8003DE60(D_801E9520, i);
+                    debugPrintf(D_801E9520, i);
                     func_800291E0(&D_801F1898[player], i * 0x400 + 0x3340, 0x20, &D_801F18E0, 0);
                     if (D_801F1898[player].file != 0 || D_801F1898[player].free != 1) {
                         if (D_801F1898[player].file == 6) {
@@ -160,9 +160,9 @@ void func_801E2020(u16 arg0)
                     D_801E973C = D_801F18E0;
                     if (D_801E973C) {
                         D_80190CB0.saved |= D_8021B690[i];
-                        func_8003DE60(D_801E9544);
+                        debugPrintf(D_801E9544);
                     } else {
-                        func_8003DE60(D_801E9550);
+                        debugPrintf(D_801E9550);
                     }
                 }
                 break;

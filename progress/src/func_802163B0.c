@@ -1,5 +1,5 @@
 s32 func_8014A870(s32, s32, s32);
-void func_801D651C(s32, s32);
+void playStageSound(s32, s32);
 typedef struct { u8 pad0[0x3E]; u16 state; u8 pad40[0x24]; } Obj;
 extern Obj D_8011F2F0[];
 extern u16 D_80190CA0;
@@ -26,22 +26,22 @@ void func_802163B0(u16 arg0)
         obj->state = 0x10;
     case 0x10:
         if ((input & 8) && *a != 1) {
-            func_801D651C(7, 0x3B);
+            playStageSound(7, 0x3B);
             *a = 1;
         }
         if ((input & 4) && *a != 0) {
-            func_801D651C(7, 0x3B);
+            playStageSound(7, 0x3B);
             *a = 0;
         }
         D_801C5E9C[0] = *a + 3;
         if (input & 0x10) {
             input = 0;
-            func_801D651C(7, 0x3D);
+            playStageSound(7, 0x3D);
             D_80190CA6 = 1;
             obj->state = 0x20;
         }
         if (input & 0x20) {
-            func_801D651C(7, 0x3A);
+            playStageSound(7, 0x3A);
             {
                 u8 *p = &D_80190CB0;
                 do {*p = 0;}while(0);
@@ -52,21 +52,21 @@ void func_802163B0(u16 arg0)
         break;
     case 0x20:
         if ((input & 8) && *b != 1) {
-            func_801D651C(7, 0x3B);
+            playStageSound(7, 0x3B);
             *b = 1;
         }
         if ((input & 4) && *b != 0) {
-            func_801D651C(7, 0x3B);
+            playStageSound(7, 0x3B);
             *b = 0;
         }
         D_801C5E9C[1] = *b + 5;
         if (input & 0x10) {
             input = 0;
-            func_801D651C(7, 0x3D);
+            playStageSound(7, 0x3D);
             obj->state = 0x30;
         }
         if (input & 0x20) {
-            func_801D651C(7, 0x3A);
+            playStageSound(7, 0x3A);
             obj->state = 0;
         }
         break;

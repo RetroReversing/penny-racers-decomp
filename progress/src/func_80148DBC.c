@@ -5,7 +5,7 @@ extern Rec D_800DA260[];
 extern u32 D_8018D3A0[][8];
 extern u32 D_80168BC0[];
 extern u32 D_80168C40[];
-s32 func_801FA30C(void);
+s32 nextRandom(void);
 u32 func_8014A030(u32, u16, s32);
 
 void func_80148DBC(u8 kind) {
@@ -25,11 +25,11 @@ void func_80148DBC(u8 kind) {
     if (D_80189B34 == 2) {
         for (j = start; j < 6; j++) {
             for (i = 0; i < 8; i++) {
-                v = func_801FA30C();
-                v |= func_801FA30C() << 16;
+                v = nextRandom();
+                v |= nextRandom() << 16;
                 D_8018D3A0[j][i] = v;
-                v = func_801FA30C();
-                v |= func_801FA30C() << 16;
+                v = nextRandom();
+                v |= nextRandom() << 16;
                 D_8018D3A0[j][i] &= ~v;
             }
             r = &D_800DA260[j];

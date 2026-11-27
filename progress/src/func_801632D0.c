@@ -7,11 +7,11 @@ extern u8 D_802394D8[];
 extern Hit D_8018D727[];
 extern HitF D_8018D730[];
 extern HitP D_8018D6C4[];
-void func_80163588(void);
-s32 func_800DE41C(s32, s32, s32, s32, s32, s32, u8 *, void (*)(void), s32, f32, f32, f32, f32, f32, f32, f32, f32, f32);
+void updateBallProjectile(void);
+s32 objCreate(s32, s32, s32, s32, s32, s32, u8 *, void (*)(void), s32, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 void func_8013E640(u16, u16, Car *, s32, f32, f32, f32, f32, f32, f32, s32);
 void func_8003DF6C(void *, f32, f32, f32, f32 *, f32 *, f32 *);
-void func_801D7028(u16, s32);
+void queueObjEvent(u16, s32);
 
 void func_801632D0(Car *car) {
     u8 *rec;
@@ -29,13 +29,13 @@ void func_801632D0(Car *car) {
         for (i = 0; i < 2; i++) {
             count = car->flags & 7;
             if (count < 7U && car->ammo != 0) {
-                slot = func_8013E364();
+                slot = raceAllocSlot();
                 if (slot == 0xFFFF) {
                     break;
                 }
                 {
                     func_8003DF6C(car->mtx, (f32)(i * 30 - 15), 1.0f, 0.0f, &vx, &vy, &vz);
-                    n = func_800DE41C(0, 0, 1, 0, 0x51, 0xFF, D_802394D8, func_80163588, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, *(f32 *)(rec + 0x30), *(f32 *)(rec + 0x34), *(f32 *)(rec + 0x38));
+                    n = objCreate(0, 0, 1, 0, 0x51, 0xFF, D_802394D8, updateBallProjectile, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, *(f32 *)(rec + 0x30), *(f32 *)(rec + 0x34), *(f32 *)(rec + 0x38));
                     if ((u16)(n + 2) < 2) {
                         func_8013E49C(slot);
                         return;
@@ -45,7 +45,7 @@ void func_801632D0(Car *car) {
                     D_8018D727[slot].v[car->player] = 1;
                     D_8018D730[slot].v = 8.0f;
                     D_8018D6C4[slot].v = car;
-                    func_801D7028(n, 0x2F);
+                    queueObjEvent(n, 0x2F);
                     if (car->ammo > 0) {
                         car->ammo--;
                     }

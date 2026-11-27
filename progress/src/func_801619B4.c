@@ -1,8 +1,8 @@
-extern void func_80129918(void *, s32, s32, s32, f32, f32, f32);
+extern void ballMoveCollide(void *, s32, s32, s32, f32, f32, f32);
 s32 func_8013E49C(u16);
 extern s32 func_8013F050(s32, void *);
-extern void func_8015CB40(s32);
-extern void func_801D7028(s32, s32);
+extern void spawnCrashEffect(s32);
+extern void queueObjEvent(s32, s32);
 extern u8 D_8006FAF0[];
 extern u8 D_8011F2F0[];
 extern u8 D_8011F2FD[];
@@ -34,7 +34,7 @@ void func_801619B4(s32 arg0) {
     f = *(f32 *)(obj + 0xC);
     if (f != 0.0f) {
         *(f32 *)(obj + 0xC) = f - 0.1f;
-        func_80129918(obj + 0x1C, *(s32 *)(rec + 0x18), *(s32 *)(rec + 0x1C), *(s32 *)(rec + 0x20),
+        ballMoveCollide(obj + 0x1C, *(s32 *)(rec + 0x18), *(s32 *)(rec + 0x1C), *(s32 *)(rec + 0x20),
                       *(f32 *)(obj + 0x8), *(f32 *)(obj + 0xC), *(f32 *)(obj + 0x10));
         *(f32 *)(rec + 0x18) = *(f32 *)(obj + 0x24);
         *(f32 *)(rec + 0x1C) = *(f32 *)(obj + 0x28);
@@ -62,8 +62,8 @@ void func_801619B4(s32 arg0) {
             ctl = *(u8 **)(obj + 4);
             *(u16 *)(ctl + 0x560) = *(u16 *)(ctl + 0x560) | (lo - 1);
             func_8013E49C(*(u16 *)(obj + 0x76));
-            func_8015CB40(arg0 & 0xFFFF);
-            func_801D7028(arg0 & 0xFFFF, 0x33);
+            spawnCrashEffect(arg0 & 0xFFFF);
+            queueObjEvent(arg0 & 0xFFFF, 0x33);
             D_8011F2FD[(arg0 & 0xFFFF) * 100] = 2;
         }
     }

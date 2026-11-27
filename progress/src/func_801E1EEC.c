@@ -1,4 +1,4 @@
-s32 func_800DE41C(s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32);
+s32 objCreate(s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32);
 s32 func_800DEFF8();
 s32 func_801DD938(s32, s32, s32, s32, s32, s32, s32, s32, s32, s32);
 s32 func_801DDA5C();
@@ -17,10 +17,10 @@ void func_801E1EEC(u8 arg0, u8 arg1)
         return;
     }
     if (arg0 == 6) {
-        func_800DE41C(0, arg1, 3, 0, 0, 0xFF, 0, (s32) &func_801E3640, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        objCreate(0, arg1, 3, 0, 0, 0xFF, 0, (s32) &func_801E3640, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     } else if (arg0 == 9) {
-        func_800DE41C(0, arg1, 3, 0, 0, 0xFF, 0, (s32) &func_801E3AE4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        objCreate(0, arg1, 3, 0, 0, 0xFF, 0, (s32) &func_801E3AE4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     } else {
-        func_800DE41C(0, arg1, 3, 0, 0, 0xFF, 0, (s32) &func_801E2020, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        objCreate(0, arg1, 3, 0, 0, 0xFF, 0, (s32) &func_801E2020, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
 }

@@ -8,7 +8,7 @@ typedef struct { u8 unk0[0x20]; u16 track; } Sel;
 typedef struct { u8 unk0; u8 unk1; u16 unk2; u16 unk4; u8 unk6; u8 unk7; u8 unk8; u8 unk9; u16 unkA; u16 unkC; u16 unkE; u16 unk10; } Menu;
 
 extern Obj D_8011F2F0[];
-extern Car D_8022A770[];
+extern Car sCars[];
 extern Info D_800DA260[];
 extern Sel D_8006FAF0;
 extern u8 D_801E87E0;
@@ -24,16 +24,16 @@ extern u8 D_801E9D80[];
 extern u8 D_801E9D81[];
 extern u8 D_801E9498[];
 extern Menu D_801D59C4;
-extern void func_8003DE60();
+extern void debugPrintf();
 extern void func_80232360();
 extern void func_801E28BC();
 extern void func_801E2ABC();
 extern void func_801CE928();
 extern void func_801CEC2C();
-extern s16 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *,
+extern s16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *,
                          f32, f32, f32, f32, f32, f32, f32, f32, f32);
 
-#define SPAWN(a, f, g) func_800DE41C(0, 0, 3, 0, a, 0xFF, 0, f, g, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
+#define SPAWN(a, f, g) objCreate(0, 0, 3, 0, a, 0xFF, 0, f, g, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
 #define MENU ((Menu *) D_8011F2F0[D_801E87E6].unk60)
 
 void func_801E0F10(u16 arg0)
@@ -55,7 +55,7 @@ void func_801E0F10(u16 arg0)
             D_8011F2F0[arg0].state = 2;
         }
         if (key == 2) {
-            D_8022A770[D_801E87E5].mode = 2;
+            sCars[D_801E87E5].mode = 2;
             D_801F1880[D_801E87E5] = 0;
             D_8011F2F0[arg0].state = 3;
         }
@@ -65,22 +65,22 @@ void func_801E0F10(u16 arg0)
         break;
     case 2:
         flags = 0;
-        if (D_8022A770[D_801E87E5].stick < -0x20) {
+        if (sCars[D_801E87E5].stick < -0x20) {
             flags |= 1;
         }
-        if (D_8022A770[D_801E87E5].a) {
+        if (sCars[D_801E87E5].a) {
             flags |= 2;
         }
-        if (D_8022A770[D_801E87E5].b) {
+        if (sCars[D_801E87E5].b) {
             flags |= 4;
         }
-        if (D_8022A770[D_801E87E5].c) {
+        if (sCars[D_801E87E5].c) {
             flags |= 0x10;
         }
-        if (D_8022A770[D_801E87E5].d) {
+        if (sCars[D_801E87E5].d) {
             flags |= 8;
         }
-        x = D_8022A770[D_801E87E5].unk87B;
+        x = sCars[D_801E87E5].unk87B;
         D_801F18E0[D_801F1880[D_801E87E5]] = flags;
         (D_801F18E0 + 1)[D_801F1880[D_801E87E5]] = x;
         D_801F1880[D_801E87E5] += 2;
@@ -91,7 +91,7 @@ void func_801E0F10(u16 arg0)
             if (D_801F1880[D_801E87E5] < 0x7AFA) {
                 D_801E87E0 = track = D_8006FAF0.track;
                 D_801E87E2 = 1;
-                if (D_8022A770[1].laps < 4) {
+                if (sCars[1].laps < 4) {
                     D_801F1880[D_801E87E5] = 0;
                     D_801E87E3 = 1;
                     D_801E87E1 = track;
@@ -105,7 +105,7 @@ void func_801E0F10(u16 arg0)
                         }
                         D_801F1880[D_801E87E5] += 2;
                     }
-                    func_8003DE60(D_801E9498);
+                    debugPrintf(D_801E9498);
                 }
             } else {
                 SPAWN(0x9F, func_801E28BC, func_801E2ABC);
@@ -137,7 +137,7 @@ void func_801E0F10(u16 arg0)
         if ((D_801E9D80[D_801F1880[D_801E87E5]] == 0xFF && D_801E9D80[D_801F1880[D_801E87E5] + 1] == 0xFF) ||
             key == 0) {
             D_8011F2F0[arg0].key = 0;
-            D_8022A770[D_801E87E5].mode = 1;
+            sCars[D_801E87E5].mode = 1;
             func_80232360(D_801E87E5, 0);
             D_8011F2F0[arg0].state = 1;
         }

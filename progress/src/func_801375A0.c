@@ -7,15 +7,15 @@ typedef struct { s32 unk0; u8 pad[0x6C]; } Q375;
 typedef struct { u8 pad[0x2108]; s16 count; } G375;
 extern R375 D_8011F2F0[];
 extern Q375 D_801E9990[];
-extern G375 D_800DB1B8;
+extern G375 sRowBoard;
 extern u8 D_80189940[];
 extern u8 D_8018D662[];
 extern u8 D_8018A248;
 extern u8 D_8018BC32;
 extern u8 D_80189DC0;
 extern u16 D_8018BC3C;
-extern u16 D_8006F9E8;
-extern u16 func_800E1850;
+extern u16 gameState;
+extern u16 objListHead;
 void func_801CF468();
 void func_80028100();
 void func_802319E8();
@@ -57,7 +57,7 @@ void func_801375A0(u16 arg0)
       }
       break;
     case 2:
-      for (i = 0; i < D_800DB1B8.count; i++)
+      for (i = 0; i < sRowBoard.count; i++)
       {
         if (D_801E9990[i].unk0 == 1)
         {
@@ -77,7 +77,7 @@ void func_801375A0(u16 arg0)
       func_80231C5C();
       func_801CF468(D_8018BC3C, 0, 0, 0);
       func_8021F5F0();
-      D_8006F9E8 = 0xA;
+      gameState = 0xA;
       break;
     case 0x14:
       D_8011F2F0[arg0].unk48 = (u16) ((u16) D_8011F2F0[arg0].unk48 + 1);
@@ -87,7 +87,7 @@ void func_801375A0(u16 arg0)
       {
         D_8011F2F0[arg0].timer = D_8011F2F0[arg0].unk44;
       }
-      for (i = 0; i < D_800DB1B8.count; i++)
+      for (i = 0; i < sRowBoard.count; i++)
       {
         if (D_801E9990[i].unk0 == 1)
         {
@@ -107,7 +107,7 @@ void func_801375A0(u16 arg0)
     case 0x1E:
       if (D_8011F2F0[D_8018BC3C].unk60->unk0 == 0)
       {
-        j = func_800E1850;
+        j = objListHead;
         while (j != 0xFFFF)
         {
           D_8011F2F0[j].unkD = 4;

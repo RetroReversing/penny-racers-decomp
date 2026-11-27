@@ -21,7 +21,7 @@ extern u8 D_801E94AC[];
 extern u8 D_801E94CC[];
 extern u8 D_801E94EC[];
 extern u32 D_801E973C;
-void func_8003DE60();
+void debugPrintf();
 
 u16 func_801E189C(void) {
     u16 src;
@@ -79,7 +79,7 @@ u16 func_801E189C(void) {
     pos += 2;
     src += 2;
     i = pos;
-    func_8003DE60(D_801E94AC, src, i);
+    debugPrintf(D_801E94AC, src, i);
     for (; i < 0x3200; i++) {
         D_801F18E0[i] = 0;
     }
@@ -87,8 +87,8 @@ u16 func_801E189C(void) {
     for (i = 4; i < 0x3200; i++) {
         D_801E973C += D_801F18E0[i];
     }
-    func_8003DE60(D_801E94CC, i);
+    debugPrintf(D_801E94CC, i);
     *(u32 *) D_801F18E0 = D_801E973C;
-    func_8003DE60(D_801E94EC, D_801E973C);
+    debugPrintf(D_801E94EC, D_801E973C);
     return pos;
 }

@@ -1,8 +1,8 @@
 f32 __sinf(f32);
-s32 func_8013AE60(s32);
+s32 liftCopyFlags(s32);
 extern u8 D_8011F30C[];
 typedef struct { u16 f0; u8 pad[98]; } Slot_8011F32E;
-extern Slot_8011F32E D_8011F32E[];
+extern Slot_8011F32E playerSlots[];
 extern u8 D_8011F334[];
 extern u8 D_8011F338[];
 extern f64 D_80183810;
@@ -17,10 +17,10 @@ s32 __repair_phase_off;
     f32 v;
 
     idx = arg0;
-    func_8013AE60(idx);
-    if (D_8011F32E[idx].f0 == 0) {
+    liftCopyFlags(idx);
+    if (playerSlots[idx].f0 == 0) {
         F32(D_8011F338, idx * 0x64) = F32(D_8011F30C, idx * 0x64);
-        D_8011F32E[idx].f0 = 1;
+        playerSlots[idx].f0 = 1;
     }
     off = ((u16) arg0) * 0x64;
     v = F32(D_8011F334, off) + 2.0f;

@@ -1,5 +1,5 @@
 s32 func_80149778(s32);
-u32 func_801FA30C(void);
+u32 nextRandom(void);
 typedef struct { u8 mode; u8 pad1; u8 flags; u8 pad3; } Hdr;
 extern Hdr D_80189B34;
 extern u8 D_8018A277[];
@@ -15,7 +15,7 @@ void func_8014BCD8(void)
 
     if (D_80189B34.mode == 2 && (D_80189B34.flags & 0x80) && D_8021E1A6 == D_80189B34.mode && D_8018A27C != 0) {
         do {
-            r = func_801FA30C() & 3;
+            r = nextRandom() & 3;
             index = r != 3; index = -index; index &= r;
             value = D_8018A277[index] & 0xF;
         } while (func_80149778((u8) value) & 0xFF);

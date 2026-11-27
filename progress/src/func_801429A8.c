@@ -3,14 +3,14 @@ typedef struct { u8 pad0[4]; void *anim; u8 pad8[0x68]; f32 radius; u8 pad74[8];
 typedef struct { u8 pad0[4]; s16 index; s16 other; u8 pad8[4]; } Hit;
 typedef struct { f32 x, y, z; f32 unkC; s16 unk10; u8 pad12[2]; Hit hit; f32 unk20; u8 pad24[0x34]; f32 unk58; } Rec5C;
 extern Obj64 D_8011F2F0[];
-extern Obj7C D_8018D6C0[];
+extern Obj7C hitSlots[];
 extern Rec5C D_801688C4[];
 extern u8 D_8016D658[];
-extern u8 D_8022A770[];
+extern u8 sCars[];
 extern u16 D_80233EC0;
-extern void func_80142C6C();
-s32 func_8013E364(void);
-u16 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, s32, f32, f32, f32, s32, s32, s32, f32, f32, f32);
+extern void updateProximityBounce();
+s32 raceAllocSlot(void);
+u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, s32, f32, f32, f32, s32, s32, s32, f32, f32, f32);
 s32 func_8012913C(u16, f32, f32, f32);
 void func_80129C1C(void *, f32, f32, f32, f32, f32, f32);
 void func_8013E818(s32, s32, s16, f32, f32, f32, u16);
@@ -24,10 +24,10 @@ void func_801429A8(u16 arg0)
     Obj64 *p;
 
     for (i = 0; i < 8; i++) {
-        id = func_8013E364();
+        id = raceAllocSlot();
         slot = id & 0xFFFF;
         if (slot != 0xFFFF) {
-            obj = func_800DE41C(0, 0x10, 2, 0, 0x51, 0xFF, D_8016D658, func_80142C6C, 0,
+            obj = objCreate(0, 0x10, 2, 0, 0x51, 0xFF, D_8016D658, updateProximityBounce, 0,
                                 D_801688C4[i].x, D_801688C4[i].y, D_801688C4[i].z, 0, 0, 0, 1.0f, 1.0f, 1.0f);
             if (obj != 0xFFFF && obj != 0xFFFE) {
                 p = &D_8011F2F0[obj];
@@ -40,8 +40,8 @@ void func_801429A8(u16 arg0)
                 func_80129C1C(&D_801688C4[i].hit, D_801688C4[i].x, D_801688C4[i].y, D_801688C4[i].z, 0.0f, -300.0f, 0.0f);
                 D_801688C4[i].unk58 = D_801688C4[i].unk20;
                 func_8013E818(slot, obj, 0, 0.0f, 0.0f, 0.0f, 0);
-                D_8018D6C0[slot].anim = D_8022A770;
-                D_8018D6C0[slot].radius = 50.0f;
+                hitSlots[slot].anim = sCars;
+                hitSlots[slot].radius = 50.0f;
             } else {
                 func_8013E49C(id);
             }

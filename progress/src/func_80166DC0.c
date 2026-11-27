@@ -27,7 +27,7 @@ void func_80166DC0(u16 arg0)
   {
     if (ctl->car->unk55E == 0)
     {
-      func_801D7028(ctl->car->unk2, 0x2A);
+      queueObjEvent(ctl->car->unk2, 0x2A);
       D_8011F2F0[arg0].state = 1;
     }
     else

@@ -5257,7 +5257,7 @@ OSMesgQueue *osPiGetCmdQueue(void);
 
 
 
-void __osDevMgrMain(void* args) {
+/* Device manager thread: receives PI I/O requests, runs DMA or block transfers, and replies to the requester's queue. */ void __osDevMgrMain(void* args) {
     OSIoMesg* mb;
     OSMesg em;
     OSMesg dummy;

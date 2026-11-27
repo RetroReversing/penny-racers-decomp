@@ -28,8 +28,7 @@ OutCmd *_n_loadOutputBuffer(OutFx *r, OutDelay *d, s32 buff, OutCmd *p) {
             a->w1 = ((buff >> 8) & 3) | (d->rs->first << 30) | ((u32)pitch << 14) | ((delta | 0x2e0) * 4);
         }
         d->rs->first = 0;
-        incount -= 184;
-        d->rsdelta += incount;
+        d->rsdelta += incount - 184;
     } else {
         p = _n_loadBuffer(r, (s32)r->input - d->output * 2, buff, 184, (s32)p);
     }

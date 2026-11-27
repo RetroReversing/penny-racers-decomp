@@ -18,11 +18,11 @@ typedef struct {
     char pad87A[0x8F0 - 0x87A];
 } Car3F638;
 extern Obj3F638 D_8011F2F0[];
-extern Car3F638 D_8022A770[];
+extern Car3F638 sCars[];
 extern u8 D_80183408[];
 extern u8 D_801833F0[];
 void func_80230960(void *);
-void func_8003DE60(void *, s32);
+void debugPrintf(void *, s32);
 void func_8013F638(u16 arg0)
 {
     Obj3F638 *obj;
@@ -30,7 +30,7 @@ void func_8013F638(u16 arg0)
     s32 limit;
 
     obj = &D_8011F2F0[arg0];
-    car = &D_8022A770[obj->unk0];
+    car = &sCars[obj->unk0];
     limit = 0;
     switch (obj->unk3E) {
     case 0:
@@ -120,10 +120,10 @@ void func_8013F638(u16 arg0)
         if (car->unk53A == 11) {
             switch (car->unk879) {
             case 0:
-                func_8003DE60(D_801833F0, obj->unk40);
+                debugPrintf(D_801833F0, obj->unk40);
                 break;
             case 1:
-                func_8003DE60(D_80183408, obj->unk40);
+                debugPrintf(D_80183408, obj->unk40);
                 break;
             }
         }

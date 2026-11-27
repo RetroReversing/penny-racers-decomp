@@ -1,6 +1,6 @@
-s32 func_8014A4C8();
-s32 func_801CA140();
-s32 func_801CA468();
+s32 gfxDrawSprite();
+s32 gfxSetup2DState();
+s32 gfxSetPrimAlpha();
 extern unsigned short D_8011F330[];
 extern s32 D_8021E130;
 extern u8 D_8021E19E;
@@ -17,14 +17,14 @@ void func_8021473C(s32 arg0, unsigned int arg1)
       return;
 
     case 1:
-      func_801CA140(arg0);
-      func_801CA468(arg0, D_8021E19E);
+      gfxSetup2DState(arg0);
+      gfxSetPrimAlpha(arg0, D_8021E19E);
       if (D_8021E130 < 0x186) {
-        func_8014A4C8(arg0, 0x38, 0x2C, 0, 3);
-        func_8014A4C8(arg0, 0x60, 0x38, 0, 1);
-        func_8014A4C8(arg0, 0x38, 0xBB, 0, 2);
+        gfxDrawSprite(arg0, 0x38, 0x2C, 0, 3);
+        gfxDrawSprite(arg0, 0x60, 0x38, 0, 1);
+        gfxDrawSprite(arg0, 0x38, 0xBB, 0, 2);
       } else {
-        func_8014A4C8(arg0, 0x50, 0x6A, 0, 0);
+        gfxDrawSprite(arg0, 0x50, 0x6A, 0, 0);
       }
       return;
   }

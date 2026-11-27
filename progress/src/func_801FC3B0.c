@@ -1,4 +1,4 @@
-s32 func_801CA140(void **);
+s32 gfxSetup2DState(void **);
 s32 func_801CB74C(void **, s32, s32, s32, s32 *, s32 *);
 extern u8 D_8011F330[];
 extern s32 D_801D4FC0;
@@ -21,7 +21,7 @@ void func_801FC3B0(void **arg0, s32 arg1) {
     case 1:
         D_802038C0 += 1;
         if (D_802038C0 < 0xA) {
-            func_801CA140(arg0);
+            gfxSetup2DState(arg0);
             temp_v1_2 = *arg0;
             *arg0 = (char *)temp_v1_2 + 8;
             *(s32 *)temp_v1_2 = 0x06000000;

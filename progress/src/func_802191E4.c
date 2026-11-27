@@ -11,7 +11,7 @@ extern u8 D_8006FB38[];
 extern s32 D_801E9990;
 extern u8 D_8021B01A;
 extern s32 D_8021AFDC;
-extern s16 D_8006F9E8;
+extern s16 gameState;
 extern s32 D_80168BB0;
 void alSeqpStop(void *);
 void func_801D65BC(s32);
@@ -79,7 +79,7 @@ void func_802191E4(u16 id) {
             func_801CF468(D_8018BC3C, 0, 0, 0);
             D_8021B01A = 0;
             D_8021AFDC = 0x2E;
-            D_8006F9E8 = 8;
+            gameState = 8;
             D_80168BB0 = 0x30;
             rec->f3E = 0x32;
         }

@@ -12,12 +12,12 @@ typedef struct {
 
 extern Struct8021AF20 D_8011F2F0[];
 extern u16 D_8018BC3C;
-extern u16 func_800E1850;
+extern u16 objListHead;
 
 void func_8021AF20(u16 arg0) {
     u16 idx;
 
-    idx = func_800E1850;
+    idx = objListHead;
     while (idx != 0xFFFF) {
         D_8011F2F0[idx].unkD = 4;
         idx = D_8011F2F0[idx].unk10;

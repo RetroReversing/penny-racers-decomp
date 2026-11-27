@@ -9,25 +9,25 @@ typedef struct { u8 unk0; u8 pad[0x8EF]; } W375;
 typedef struct { u8 pad[0x2108]; s16 count; } G375;
 extern R375 D_8011F2F0[];
 extern Q375 D_801E9990[];
-extern G375 D_800DB1B8;
+extern G375 sRowBoard;
 extern u8 D_80189940[];
 extern u8 D_8018D662[];
 extern u8 D_8018A248;
 extern u8 D_8018BC32;
 extern u8 D_80189DC0;
 extern u16 D_8018BC3C;
-extern u16 D_8006F9E8;
-extern u16 func_800E1850;
+extern u16 gameState;
+extern u16 objListHead;
 extern u8 D_8018A250[][5];
 extern u8 D_8018A452[];
 extern u8 D_80189CC8;
-extern H375 *D_801C7AB0;
+extern H375 *trackInfo;
 extern u16 D_80167E64;
 extern u16 D_80167E66;
 extern u8 D_8006FB14[];
 extern u16 D_8018A26E[];
 extern W375 D_8022AFE9[];
-void func_800DE41C();
+void objCreate();
 void func_801375A0();
 void func_80137F60();
 void func_801CF468();
@@ -60,7 +60,7 @@ void func_80135C64(u16 arg0)
         D_8011F2F0[arg0].unk44 = 1.0f;
         D_8011F2F0[arg0].unk48 = 0;
         D_8011F2F0[arg0].unk4C = 30.0f;
-        if (D_80189CC8 == 3 && D_801C7AB0->unk1 == 6)
+        if (D_80189CC8 == 3 && trackInfo->unk1 == 6)
         {
           D_8011F2F0[arg0].unkC++;
           if (D_8011F2F0[arg0].unkC == 2)
@@ -77,7 +77,7 @@ void func_80135C64(u16 arg0)
       else
       {
         D_80167E64++;
-        if (D_800DB1B8.count == D_80167E64)
+        if (sRowBoard.count == D_80167E64)
         {
           D_8006FB14[4] = 3;
         }
@@ -85,16 +85,16 @@ void func_80135C64(u16 arg0)
       }
       break;
     case 2:
-      for (i = 0; i < D_800DB1B8.count; i++)
+      for (i = 0; i < sRowBoard.count; i++)
       {
-        if (D_801E9990[i].unk0 == 1 && D_800DB1B8.count == D_80167E64)
+        if (D_801E9990[i].unk0 == 1 && sRowBoard.count == D_80167E64)
         {
           if (D_80189CC8 == 2)
           {
             if (D_8018A250[i][3] == 0xFF && D_80167E66 == 0)
             {
-              func_800DE41C(0, 0, 3, 0, 0x80, 0, 0, func_801375A0, func_80137F60, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-              for (k = 0; k < D_800DB1B8.count; k++)
+              objCreate(0, 0, 3, 0, 0x80, 0, 0, func_801375A0, func_80137F60, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+              for (k = 0; k < sRowBoard.count; k++)
               {
                 D_8011F2F0[D_8018A26E[k]].timer = 4;
               }
@@ -120,7 +120,7 @@ void func_80135C64(u16 arg0)
       func_80231C5C();
       func_801CF468(D_8018BC3C, 0, 0, 0);
       func_8021F5F0();
-      D_8006F9E8 = 0xA;
+      gameState = 0xA;
       break;
     case 0x14:
       D_8011F2F0[arg0].unk48 = (u16) ((u16) D_8011F2F0[arg0].unk48 + 1);
@@ -130,7 +130,7 @@ void func_80135C64(u16 arg0)
       {
         D_8011F2F0[arg0].timer = D_8011F2F0[arg0].unk44;
       }
-      for (i = 0; i < D_800DB1B8.count; i++)
+      for (i = 0; i < sRowBoard.count; i++)
       {
         if (D_801E9990[i].unk0 == 1)
         {
@@ -150,7 +150,7 @@ void func_80135C64(u16 arg0)
     case 0x1E:
       if (D_8011F2F0[D_8018BC3C].unk60->unk0 == 0)
       {
-        j = func_800E1850;
+        j = objListHead;
         while (j != 0xFFFF)
         {
           D_8011F2F0[j].unkD = 4;
@@ -164,7 +164,7 @@ void func_80135C64(u16 arg0)
       break;
   }
 
-  if (D_80189CC8 == 0 || (D_80189CC8 == 2 && D_800DB1B8.count == 1))
+  if (D_80189CC8 == 0 || (D_80189CC8 == 2 && sRowBoard.count == 1))
   {
     if (D_8022AFE9[D_8011F2F0[arg0].unk0].unk0 != 5)
     {
@@ -203,7 +203,7 @@ void func_80135C64(u16 arg0)
     }
     for (i = 0; i < D_8011F2F0[arg0].unkC; i++)
     {
-      if (D_80189CC8 == 3 && D_801C7AB0->unk1 == 6 && i == 1)
+      if (D_80189CC8 == 3 && trackInfo->unk1 == 6 && i == 1)
       {
         break;
       }

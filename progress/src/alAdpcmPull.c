@@ -7910,16 +7910,16 @@ Acmd *_decodeChunk(Acmd *ptr, ALLoadFilter *f, s32 tsam, s32 nbytes, s16 outp, s
 
 
 
-Acmd *alAdpcmPull(void *filter, s16 *outp, s32 outCount, s32 sampleOffset, Acmd *p)
+/* Pulls one buffer of ADPCM samples for a voice, looping where the loop points * say so. Writes the decode commands into the audio list at p and returns the end. */ Acmd *alAdpcmPull(void *filter, s16 *outp, s32 outCount, s32 sampleOffset, Acmd *p)
 {
-    Acmd        *ptr = p;
+    Acmd        *cmd = p;
     s16         inp;
     s32         tsam;
-    s32         nframes;
-    s32         nbytes;
-    s32         overFlow;
-    s32         startZero;
-    s32         nOver;
+    s32         frames;
+    s32         bytes;
+    s32         overflow;
+    s32         zeroStart;
+    s32         overCount;
     s32         nSam;
     s32         op;
     s32         nLeft;
@@ -7929,14 +7929,17 @@ Acmd *alAdpcmPull(void *filter, s16 *outp, s32 outCount, s32 sampleOffset, Acmd 
 
     ALLoadFilter *f = (ALLoadFilter *)filter;
 
-
-
     if (outCount == 0)
-        return ptr;
+        return cmd;
 
-    inp = 0 ;
-    {	Acmd *_a = (Acmd *) ptr++ ;	_a->words.w0 = ((unsigned int) (((unsigned int)( 11  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   f->bookSize  ) & ((0x01 << (  24 )) - 1)) << (  0 ))) ;	_a->words.w1 = (unsigned int)  
-               ((u32)( f->table->waveInfo.adpcmWave.book->book )&0x1FFFFFFF)  ; } ;
+    inp = 0;
+    {
+        Acmd *_a = (Acmd *) cmd++;
+        _a->words.w0 = ((unsigned int) (((unsigned int)(11) & ((0x01 << (8)) - 1)) << (24)))
+            | ((unsigned int) (((unsigned int)(f->bookSize) & ((0x01 << (24)) - 1)) << (0)));
+        _a->words.w1 = (unsigned int)
+            ((u32)(f->table->waveInfo.adpcmWave.book->book) & 0x1FFFFFFF);
+    };
 
     looped = (outCount + f->sample > f->loop.end) && (f->loop.count != 0);
     if (looped)
@@ -7945,130 +7948,99 @@ Acmd *alAdpcmPull(void *filter, s16 *outp, s32 outCount, s32 sampleOffset, Acmd 
         nSam = outCount;
 
     if (f->lastsam)
-        nLeft = 16  - f->lastsam;
+        nLeft = 16 - f->lastsam;
     else
         nLeft = 0;
     tsam = nSam - nLeft;
-    if (tsam<0) tsam = 0;
+    if (tsam < 0) tsam = 0;
 
-    nframes = (tsam+ 16 -1)>> 4 ;
-    nbytes =  nframes* 9 ;
+    frames = (tsam + 16 - 1) >> 4;
+    bytes = frames * 9;
 
-    if (looped){
-
-        ptr = _decodeChunk(ptr, f, tsam, nbytes, *outp, inp, f->first);
-
-         
-
-
+    if (looped) {
+        cmd = _decodeChunk(cmd, f, tsam, bytes, *outp, inp, f->first);
 
         if (f->lastsam)
-            *outp += (f->lastsam<<1);
+            *outp += (f->lastsam << 1);
         else
-            *outp += (16 <<1);
+            *outp += (16 << 1);
 
-         
-
-
-        f->lastsam = f->loop.start &0xf;
-        f->memin = (s32) f->table->base + 9  *
-            ((s32) (f->loop.start>> 4 ) + 1);
+        f->lastsam = f->loop.start & 0xf;
+        f->memin = (s32) f->table->base + 9 *
+            ((s32) (f->loop.start >> 4) + 1);
         f->sample = f->loop.start;
 
         bEnd = *outp;
-        while (outCount > nSam){
-
+        while (outCount > nSam) {
             outCount -= nSam;
-
-             
-
-
-
-            op = (bEnd + ((nframes+1)<<(4 +1))) & ~0x1f;
-
-             
-
-
-            bEnd += (nSam<<1);
-
-             
-
-
-
+            op = (bEnd + ((frames + 1) << (4 + 1))) & ~0x1f;
+            bEnd += (nSam << 1);
             if ((f->loop.count != -1) && (f->loop.count != 0))
                 f->loop.count--;
 
-             
-
-
-            nSam = (( outCount ) < (  f->loop.end - f->loop.start ) ? ( outCount ) : (  f->loop.end - f->loop.start )) ;
-            tsam = nSam - 16  + f->lastsam;
-            if (tsam<0) tsam = 0;
-            nframes = (tsam+ 16 -1)>> 4 ;
-            nbytes =  nframes* 9 ;
-            ptr = _decodeChunk(ptr, f, tsam, nbytes, op, inp, f->first | 0x02 );
-             
-
-
-            {	Acmd *_a = (Acmd *) ptr++ ;	_a->words.w0 = ((unsigned int) (((unsigned int)( 10  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   op+(f->lastsam<<1)  ) & ((0x01 << (  24 )) - 1)) << (  0 ))) ;	_a->words.w1 = ((unsigned int) (((unsigned int)(   bEnd  ) & ((0x01 << (  16 )) - 1)) << (  16 )))  | ((unsigned int) (((unsigned int)(   nSam<<1  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ;	} ;
-
+            nSam = ((outCount) < (f->loop.end - f->loop.start) ? (outCount) : (f->loop.end - f->loop.start));
+            tsam = nSam - 16 + f->lastsam;
+            if (tsam < 0) tsam = 0;
+            frames = (tsam + 16 - 1) >> 4;
+            bytes = frames * 9;
+            cmd = _decodeChunk(cmd, f, tsam, bytes, op, inp, f->first | 0x02);
+            {
+                Acmd *_a = (Acmd *) cmd++;
+                _a->words.w0 = ((unsigned int) (((unsigned int)(10) & ((0x01 << (8)) - 1)) << (24)))
+                    | ((unsigned int) (((unsigned int)(op + (f->lastsam << 1)) & ((0x01 << (24)) - 1)) << (0)));
+                _a->words.w1 = ((unsigned int) (((unsigned int)(bEnd) & ((0x01 << (16)) - 1)) << (16)))
+                    | ((unsigned int) (((unsigned int)(nSam << 1) & ((0x01 << (16)) - 1)) << (0)));
+            };
         }
 
         f->lastsam = (outCount + f->lastsam) & 0xf;
         f->sample += outCount;
-        f->memin += 9 *nframes;
+        f->memin += 9 * frames;
 
-        return ptr;
+        return cmd;
     }
 
-     
+    nSam = frames << 4;
 
+    overflow = f->memin + bytes - ((s32) f->table->base + f->table->len);
+    if (overflow < 0)
+        overflow = 0;
+    overCount = (overflow / 9) << 4;
+    if (overCount > nSam + nLeft)
+        overCount = nSam + nLeft;
 
+    bytes -= overflow;
 
-    nSam = nframes<< 4 ;
-
-     
-
-
-
-    overFlow = f->memin + nbytes - ((s32) f->table->base + f->table->len);
-    if (overFlow < 0)
-        overFlow = 0;
-    nOver = (overFlow/ 9 )<< 4 ;
-    if (nOver > nSam + nLeft)
-        nOver = nSam + nLeft;
-
-    nbytes -= overFlow;
-
-    if ((nOver - (nOver & 0xf))< outCount){
+    if ((overCount - (overCount & 0xf)) < outCount) {
         decoded = 1;
-        ptr = _decodeChunk(ptr, f, nSam - nOver, nbytes, *outp, inp, f->first);
+        cmd = _decodeChunk(cmd, f, nSam - overCount, bytes, *outp, inp, f->first);
 
         if (f->lastsam)
-            *outp += (f->lastsam<<1);
+            *outp += (f->lastsam << 1);
         else
-            *outp += (16 <<1);
+            *outp += (16 << 1);
 
         f->lastsam = (outCount + f->lastsam) & 0xf;
         f->sample += outCount;
-        f->memin += 9 *nframes;
+        f->memin += 9 * frames;
     } else {
         f->lastsam = 0;
-        f->memin += 9 *nframes;
+        f->memin += 9 * frames;
     }
 
-     
-
-
-    if (nOver){
+    if (overCount) {
         f->lastsam = 0;
         if (decoded)
-            startZero = (nLeft + nSam - nOver)<<1;
+            zeroStart = (nLeft + nSam - overCount) << 1;
         else
-            startZero = 0;
-        {	Acmd *_a = (Acmd *) ptr++ ;	_a->words.w0 = ((unsigned int) (((unsigned int)( 2  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   startZero + *outp  ) & ((0x01 << (  24 )) - 1)) << (  0 ))) ;	_a->words.w1 = (unsigned int)(  nOver<<1 );	} ;
+            zeroStart = 0;
+        {
+            Acmd *_a = (Acmd *) cmd++;
+            _a->words.w0 = ((unsigned int) (((unsigned int)(2) & ((0x01 << (8)) - 1)) << (24)))
+                | ((unsigned int) (((unsigned int)(zeroStart + *outp) & ((0x01 << (24)) - 1)) << (0)));
+            _a->words.w1 = (unsigned int) (overCount << 1);
+        };
     }
 
-
-    return ptr;
+    return cmd;
 }

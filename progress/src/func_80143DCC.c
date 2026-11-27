@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #endif
 /* machine draft (m2c) for gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2, tried by autopilot */
 
-s16 func_800DE41C();
+s16 objCreate();
 s32 func_801D87FC();
 s32 func_80209AEC();
 s32 func_8021FCA4();
@@ -27,8 +27,8 @@ void func_80143DCC(void) {
     func_801D87FC();
     func_80209AEC();
     func_8021FCA4();
-    D_8021EFFA = func_800DE41C(0, 0, 3, 0, 0x50, 0xFF, 0, NULL, &D_8021FE04, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    D_8021F00E = func_800DE41C(0, 0, 3, 0, 0x50, 0xFF, 0, NULL, &D_8022026C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    func_800DE41C(0, 0xFF, 3, 0, 0x7F, 0, 0, &D_801D5A90, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    func_800DE41C(0, 0xFF, 3, 0, 0x7F, 0, 0, &D_801D6670, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    D_8021EFFA = objCreate(0, 0, 3, 0, 0x50, 0xFF, 0, NULL, &D_8021FE04, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    D_8021F00E = objCreate(0, 0, 3, 0, 0x50, 0xFF, 0, NULL, &D_8022026C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0xFF, 3, 0, 0x7F, 0, 0, &D_801D5A90, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0xFF, 3, 0, 0x7F, 0, 0, &D_801D6670, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 }

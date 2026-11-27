@@ -10,14 +10,14 @@ extern u16 D_8021C116;
 extern s32 D_801E99C0;
 extern u8 D_8021C110;
 extern u8 D_8021C111;
-extern u16 func_800E1850[];
+extern u16 objListHead[];
 extern u8 D_8006FB38[];
-extern Car D_8022A770[];
+extern Car sCars[];
 extern SlotCar D_8022AD64[];
 extern s32 D_8021B680;
 extern s32 D_80168BB0;
 extern s32 D_8021AFDC;
-extern s16 D_8006F9E8;
+extern s16 gameState;
 extern u8 D_8021E144;
 void func_80203DF8(s32, s32, s32, s32, s32);
 void func_80211C7C(s32);
@@ -69,7 +69,7 @@ void func_802178B4(u16 id) {
         break;
     case 2:
         if (*D_8011F2F0[D_8018BC3C].f60 == 0) {
-            for (k = func_800E1850[0]; k != 0xFFFF; k = D_8011F2F0[k].f10) {
+            for (k = objListHead[0]; k != 0xFFFF; k = D_8011F2F0[k].f10) {
                 D_8011F2F0[k].fD = 4;
             }
             D_8011F2F0[id].fD = 0;
@@ -93,7 +93,7 @@ void func_802178B4(u16 id) {
         func_801CF468(D_8018BC3C, 0xFF, 0xFF, 0xFF);
         func_8021F5F0();
         for (i = 0; i < 4; i++) {
-            if (D_8022A770[i].f2 != 0xFFFF && i < 4) {
+            if (sCars[i].f2 != 0xFFFF && i < 4) {
                 for (j = 0; j < 4; j++) {
                     D_8022AD64[i].e[j].a = -1;
                 }
@@ -109,7 +109,7 @@ void func_802178B4(u16 id) {
             D_80168BB0 = 0x2C;
         }
         D_8021AFDC = 0x2C;
-        D_8006F9E8 = 8;
+        gameState = 8;
         D_8021E144 = 0;
         break;
     }

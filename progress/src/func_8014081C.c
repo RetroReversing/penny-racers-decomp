@@ -34,9 +34,9 @@ typedef struct {
     Info *info;
 } Obj;
 extern Obj D_8011F2F0[];
-void func_80129918(void *, f32, f32, f32, s32, f32, s32);
-void func_8013F44C(s32, void *);
-void func_801D7028(s32, s16);
+void ballMoveCollide(void *, f32, f32, f32, s32, f32, s32);
+void liftPushCars(s32, void *);
+void queueObjEvent(s32, s16);
 
 void func_8014081C(s32 arg0)
 {
@@ -50,10 +50,10 @@ void func_8014081C(s32 arg0)
         info->vy -= 0.2f;
         obj->x += info->vx;
         obj->z += info->vz;
-        func_80129918(info->sub, obj->x, obj->y, obj->z, 0, info->vy, 0);
+        ballMoveCollide(info->sub, obj->x, obj->y, obj->z, 0, info->vy, 0);
         obj->y = info->ground;
         if (info->hit != 0) {
-            func_801D7028(idx, 0x19);
+            queueObjEvent(idx, 0x19);
             info->vy *= -0.7f;
         }
         if (obj->y < -200.0f) {
@@ -61,6 +61,6 @@ void func_8014081C(s32 arg0)
             D_8011F2F0[arg0 & 0xFFFF].state = 2;
             D_8011F2F0[(u16) (u32) obj->f44].state = 2;
         }
-        func_8013F44C(arg0 & 0xFFFF, info);
+        liftPushCars(arg0 & 0xFFFF, info);
     }
 }

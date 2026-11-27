@@ -1,8 +1,8 @@
 extern void *D_80046DF4;
 extern f64 D_8004A368;
 s32 func_8002CD38(s32, f32, char, void *);
-void func_8002FFD0(void *, u16 *);
-void func_80030250(void *, u8);
+void func_8002FFD0();
+void func_80030250();
 void n_alSynFreeVoice(void *);
 void n_alSynSetPan(void *, s32);
 void n_alSynSetPitch(void *, f32);
@@ -23,19 +23,19 @@ typedef struct
   unsigned char field_2E;
   unsigned char field_2F;
 } __repair_record_temp_s0;
-inline static int inline_fn(s32 arg0, s32 arg1)
+inline static s8 *inline_fn()
 {
-  return arg0 + arg1;
+  return (s8 *) D_80046DF4;
 }
 
-char _n_handleEvent(void *arg0)
+void _n_handleEvent(void *arg0)
 {
   u16 sp10[2];
-  volatile char sp14;
+  s32 pad;
+  s32 sp14;
   struct 
   {
     s16 type;
-    s32 pad;
     void *payload;
     s32 pad2;
   } ev;
@@ -52,17 +52,13 @@ char _n_handleEvent(void *arg0)
   s32 temp_s2;
   s32 temp_s5;
   s32 temp_v0_2;
-  u16 temp_a0_2;
+  long long temp_a0_2;
   u8 temp_a0;
   u8 temp_a1;
-  union 
-  {
-    void *pointer;
-    s32 value;
-  } __repair_phase_storage;
+  void *storage_p_pointer;
+  s32 storage_p_value;
   void *temp_s0;
   void *temp_s3;
-  void *temp_v1_4;
   temp_s0 = *((void **) (((s8 *) arg0) + 4));
   temp_v1 = *((s16 *) arg0);
   temp_s5 = *((s32 *) (((s8 *) D_80046DF4) + 0xC));
@@ -76,21 +72,17 @@ char _n_handleEvent(void *arg0)
       sp14 = 0;
       sp10[0] = ((__repair_record_temp_s0 *) temp_s0)->field_20;
       func_8002FFD0(temp_s0, sp10);
-      __repair_phase_storage.pointer = *((void **) temp_s3);
-      temp_s2 = inline_fn(((__repair_record_temp_s0 *) temp_s0)->field_2E, 0xFFC0); temp_s1 = *((u8 *) (((s8 *) temp_s3) + 0xC)); temp_v1_2 = inline_fn(temp_s1, temp_s2);
+      storage_p_pointer = *((void **) temp_s3);
+      temp_s2 = ((__repair_record_temp_s0 *) temp_s0)->field_2E + 0xFFC0; temp_s1 = *((u8 *) (((s8 *) temp_s3) + 0xC)); temp_v1_2 = temp_s1 + temp_s2;
       var_v1 = temp_v1_2 & (((s32) (~temp_v1_2)) >> 0x1F);
-      temp_s4 = ((*((u8 *) (((s8 *) __repair_phase_storage.pointer) + 0xC))) * ((__repair_record_temp_s0 *) temp_s0)->field_2C) / 127;
+      temp_a0_3 = (*((u8 *) (((s8 *) storage_p_pointer) + 0xC))) * ((__repair_record_temp_s0 *) temp_s0)->field_2C; temp_s4 = temp_a0_3 / 127;
       if (var_v1 >= 0x80)
       {
-        do
-        {
-          var_v1 = 0x7F;
-        }
-        while (0);
+        var_v1 = 0x7F;
       }
       temp_fs0 = ((__repair_record_temp_s0 *) temp_s0)->field_24;
       {
-        temp_s2 = func_8002CD38(*((s32 *) __repair_phase_storage.pointer), temp_fs0, 0x81020409, __repair_phase_storage.pointer);
+        temp_s2 = func_8002CD38(*((s32 *) storage_p_pointer), temp_fs0, 0x81020409, storage_p_pointer);
         n_alSynStartVoice(temp_s0, *((s32 *) (((s8 *) temp_s3) + 8)));
       }
       ((__repair_record_temp_s0 *) temp_s0)->field_28 = 1;
@@ -98,9 +90,17 @@ char _n_handleEvent(void *arg0)
       n_alSynSetVol(temp_s0, temp_s4, temp_s2);
       n_alSynSetPitch(temp_s0, temp_fs0);
       func_80030250(temp_s0, ((__repair_record_temp_s0 *) temp_s0)->field_2F);
-      ev.type = 6;
       ev.payload = temp_s0;
-      alEvtqPostEvent(inline_fn(*((s32 *) (((s8 *) D_80046DF4) + 0xC)), 0x14), (s16 *) (&ev), func_8002CD38(*((s32 *) (*((void **) temp_s3))), ((__repair_record_temp_s0 *) temp_s0)->field_24, 0x81020409, __repair_phase_storage.pointer));
+      {
+        void *__fence_storage_p_pointer;
+        do
+        {
+          __fence_storage_p_pointer = storage_p_pointer;
+        }
+        while (0);
+        alEvtqPostEvent((*((s32 *) (inline_fn() + 0xC))) + 0x14, (s16 *) (&ev), func_8002CD38(*((s32 *) (*((void **) temp_s3))), ((__repair_record_temp_s0 *) temp_s0)->field_24, 0x81020409, __fence_storage_p_pointer));
+      }
+      ev.type = 6;
       return;
     }
 
@@ -110,13 +110,13 @@ char _n_handleEvent(void *arg0)
     case 1:
       if (((((__repair_record_temp_s0 *) temp_s0)->field_28 != 1) | (temp_s3 == NULL)) == 0)
     {
-      __repair_phase_storage.value = func_8002CD38(*((s32 *) ((*((void **) temp_s3)) + 8)), ((__repair_record_temp_s0 *) temp_s0)->field_24, 0x81020409, temp_s3);
-      n_alSynSetVol(temp_s0, 0, __repair_phase_storage.value);
-      if (__repair_phase_storage.value != 0)
+      storage_p_value = func_8002CD38(*((s32 *) ((*((void **) temp_s3)) + 8)), ((__repair_record_temp_s0 *) temp_s0)->field_24, 0x81020409, temp_s3);
+      n_alSynSetVol(temp_s0, 0, storage_p_value);
+      if (storage_p_value != 0)
       {
         ev.type = 7;
         ev.payload = temp_s0;
-        alEvtqPostEvent(inline_fn(temp_s5, 0x14), (s16 *) (&ev), __repair_phase_storage.value);
+        alEvtqPostEvent(temp_s5 + 0x14, (s16 *) (&ev), storage_p_value);
         ((__repair_record_temp_s0 *) temp_s0)->field_28 = 2;
         return;
       }
@@ -124,25 +124,20 @@ char _n_handleEvent(void *arg0)
         n_alSynStopVoice(temp_s0);
 
       n_alSynFreeVoice(temp_s0);
-      _removeEvents(inline_fn(temp_s5, 0x14), temp_s0);
+      _removeEvents(temp_s5 + 0x14, temp_s0);
       ((__repair_record_temp_s0 *) temp_s0)->field_28 = 0;
     }
       break;
 
     case 2:
-      if (var_v1_2)
     {
+      long long phantom_wide = sp14;
+    }
       temp_a0 = *((u8 *) (((s8 *) arg0) + 8));
       ((__repair_record_temp_s0 *) temp_s0)->field_2E = temp_a0;
-    }
-    else
-    {
-      temp_a0 = *((u8 *) (((s8 *) arg0) + 8));
-      ((__repair_record_temp_s0 *) temp_s0)->field_2E = temp_a0;
-    }
       if ((((__repair_record_temp_s0 *) temp_s0)->field_28 == 1) & (temp_s3 != NULL))
     {
-      temp_v1_3 = inline_fn(*((u8 *) (((s8 *) temp_s3) + 0xC)), temp_a0 + 0xFFC0);
+      temp_v1_3 = (*((u8 *) (((s8 *) temp_s3) + 0xC))) + (temp_a0 + 0xFFC0);
       var_v1_2 = temp_v1_3 & (((s32) (~temp_v1_3)) >> 0x1F);
       if (var_v1_2 >= 0x80)
       {
@@ -188,16 +183,16 @@ char _n_handleEvent(void *arg0)
       break;
 
     case 6:
-      temp_v1_4 = *((void **) temp_s3);
-      temp_a0_3 = *((s32 *) (((s8 *) temp_v1_4) + 4));
+      storage_p_pointer = *((void **) temp_s3);
+      temp_a0_3 = *((s32 *) (((s8 *) storage_p_pointer) + 4));
       if (temp_a0_3 != (-1))
     {
-      temp_s1 = ((*((u8 *) (((s8 *) temp_v1_4) + 0xD))) * ((__repair_record_temp_s0 *) temp_s0)->field_2C) / 127;
-      __repair_phase_storage.value = func_8002CD38(temp_a0_3, ((__repair_record_temp_s0 *) temp_s0)->field_24, 0, temp_s0);
-      n_alSynSetVol(temp_s0, temp_s1, __repair_phase_storage.value);
+      temp_s1 = ((*((u8 *) (((s8 *) storage_p_pointer) + 0xD))) * ((__repair_record_temp_s0 *) temp_s0)->field_2C) / 127;
+      storage_p_value = func_8002CD38(temp_a0_3, ((__repair_record_temp_s0 *) temp_s0)->field_24, 0, temp_s0);
+      n_alSynSetVol(temp_s0, temp_s1, storage_p_value);
       ev.type = 1;
       ev.payload = temp_s0;
-      alEvtqPostEvent(inline_fn(temp_s5, 0x14), (s16 *) (&ev), __repair_phase_storage.value);
+      alEvtqPostEvent(temp_s5 + 0x14, (s16 *) (&ev), storage_p_value);
       return;
     }
       break;

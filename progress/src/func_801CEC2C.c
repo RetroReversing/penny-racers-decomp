@@ -55,8 +55,8 @@ typedef struct { u8 pad0[6]; u8 r; u8 g; u8 b; u8 a; u16 x; u16 y; u16 w; u16 h;
 typedef struct { u16 state; u8 pad2[0x1E]; Image *img; u8 pad24[0x40]; } Slot;
 typedef struct { u8 pad0[0x2108]; s16 frame; } Root;
 extern Slot D_8011F330[];
-extern Root D_800DB1B8;
-extern u8 D_80126FF6;
+extern Root sRowBoard;
+extern u8 viewIndex;
 extern u8 D_801D5590[];
 extern Gfx D_80220ED8[];
 void func_801CE7D0(Gfx **, u16);
@@ -88,7 +88,7 @@ void func_801CEC2C(Gfx **gfxp, u16 id) {
     s32 y2;
     s32 x2;
 
-    if (D_80126FF6 == D_800DB1B8.frame - 1) {
+    if (viewIndex == sRowBoard.frame - 1) {
         gSPDisplayList((*gfxp)++, D_80220ED8);
         switch (D_8011F330[id].state) {
         case 0:

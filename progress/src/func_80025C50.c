@@ -5,7 +5,7 @@ extern void func_800DE38C();
 extern void func_801D87FC();
 extern void func_8021F5F0();
 extern void func_8022132C(void *);
-extern u8 D_8022A770[];
+extern u8 sCars[];
 extern u8 D_800DA260[];
 extern s16 D_8018A44A[];
 extern s16 D_80189C94;
@@ -26,7 +26,7 @@ void func_80025C50(void)
     func_800DE38C();
     func_800DE2E0();
     for (i = 0; i < 7; i++) {
-        func_8022132C(D_8022A770 + i * 2288);
+        func_8022132C(sCars + i * 2288);
     }
     for (i = 0; i < 8; i++) {
         off = i * 376;

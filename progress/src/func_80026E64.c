@@ -9,7 +9,7 @@ extern s32 D_8004AAB0;
 extern s32 D_8004AC60;
 extern s32 D_80071F70;
 extern void (*D_800DA1E0)(void);
-extern void func_80026250(void);
+extern void bootGame(void);
 
 void func_80026E64(s32 arg0) {
     D_800DA1E0 = 0;
@@ -20,7 +20,7 @@ void func_80026E64(s32 arg0) {
         nuScCreateScheduler(0x1E, 1);
     }
     osViSetSpecialFeatures(0x5A);
-    osCreateThread(&D_8004AC60, 3, &func_80026250, 0, &D_80071F70, 0xA);
+    osCreateThread(&D_8004AC60, 3, &bootGame, 0, &D_80071F70, 0xA);
     osStartThread(&D_8004AC60);
     osSetThreadPri(&D_8004AAB0, 0);
     while (1) {

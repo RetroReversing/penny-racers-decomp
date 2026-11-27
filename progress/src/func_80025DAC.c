@@ -12,8 +12,8 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-extern s16 D_8006F9E8;
+extern s16 gameState;
 
 void func_80025DAC(void) {
-    D_8006F9E8 = 0x384;
+    gameState = 0x384;
 }

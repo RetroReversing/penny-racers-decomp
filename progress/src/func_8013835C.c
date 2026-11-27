@@ -2,7 +2,7 @@ typedef struct { u16 pad0; u16 size[4]; u8 padA[0xE]; f32 pos[3]; f32 rot[3]; f3
 typedef struct { u8 pad0[0x7D0]; u16 obj; u8 pad[0x11E]; } Car;
 typedef struct { u8 x0; u8 flag; u8 pad2[2]; u16 obj; u8 pad6[6]; f32 y; u8 pad10[4]; f32 nx; f32 ax; f32 az; u8 pad20[0x28]; } Hit;
 extern Obj D_8011F2F0[];
-extern Car D_8022A770[];
+extern Car sCars[];
 void func_80129C1C(void *, f32, f32, f32, f32, f32, f32);
 f32 func_801F9AC0(f32);
 f32 func_801F9C8C(f32, f32);
@@ -15,7 +15,7 @@ void func_8013835C(u16 id) {
     f32 x;
     f32 v;
 
-    hit.obj = D_8022A770[(s32) D_8011F2F0[id].vel[1]].obj;
+    hit.obj = sCars[(s32) D_8011F2F0[id].vel[1]].obj;
     func_80129C1C(&hit, D_8011F2F0[(u16) D_8011F2F0[id].vel[0]].pos[0], D_8011F2F0[(u16) D_8011F2F0[id].vel[0]].pos[1], D_8011F2F0[(u16) D_8011F2F0[id].vel[0]].pos[2], 0.0f, -40.0f, 0.0f);
     D_8011F2F0[id].pos[0] = D_8011F2F0[(u16) D_8011F2F0[id].vel[0]].pos[0] + 0.5f;
     D_8011F2F0[id].pos[2] = D_8011F2F0[(u16) D_8011F2F0[id].vel[0]].pos[2] - 0.5f;

@@ -1,4 +1,4 @@
-extern u8 D_8011F32E[];
+extern u8 playerSlots[];
 extern u8 D_802DF378[];
 
 void func_80153F74(s32 **arg0, u16 arg1)
@@ -48,7 +48,7 @@ void func_80153F74(s32 **arg0, u16 arg1)
     {
         s32 *g = *arg0;
         *arg0 = g + 2;
-        g[0] = ((0x7C - *(u16 *)(D_8011F32E + (arg1 & 0xFFFF) * 100)) & 0xFFF) | 0xF2000000;
+        g[0] = ((0x7C - *(u16 *)(playerSlots + (arg1 & 0xFFFF) * 100)) & 0xFFF) | 0xF2000000;
         g[1] = 0x0007C07C;
     }
 }

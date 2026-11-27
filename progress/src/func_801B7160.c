@@ -12,14 +12,14 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-s32 func_8014A4C8();
-s32 func_801CA468();
+s32 gfxDrawSprite();
+s32 gfxSetPrimAlpha();
 
 void func_801B7160(s32 arg0) {
-    func_801CA468(arg0, 0xA0);
-    func_8014A4C8(arg0, 0x11, 0xB1, 0xD, 0x27);
-    func_8014A4C8(arg0, 0x11, 0xDA, 0xD, 0x28);
-    func_8014A4C8(arg0, 0xE7, 0xB1, 0xD, 0x29);
-    func_8014A4C8(arg0, 0xE7, 0xDA, 0xD, 0xB);
-    func_801CA468(arg0, 0xFF);
+    gfxSetPrimAlpha(arg0, 0xA0);
+    gfxDrawSprite(arg0, 0x11, 0xB1, 0xD, 0x27);
+    gfxDrawSprite(arg0, 0x11, 0xDA, 0xD, 0x28);
+    gfxDrawSprite(arg0, 0xE7, 0xB1, 0xD, 0x29);
+    gfxDrawSprite(arg0, 0xE7, 0xDA, 0xD, 0xB);
+    gfxSetPrimAlpha(arg0, 0xFF);
 }

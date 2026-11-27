@@ -12,12 +12,12 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_801FA30C();                            /* extern */
+M2C_UNK nextRandom();                            /* extern */
 M2C_UNK func_801FA338();                            /* extern */
 
 void func_801FA38C(s32 arg0) {
     if (arg0 != 0) {
         func_801FA338();
     }
-    func_801FA30C();
+    nextRandom();
 }

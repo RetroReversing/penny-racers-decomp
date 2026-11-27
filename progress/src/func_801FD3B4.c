@@ -1,4 +1,4 @@
-s16 func_800DE41C(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
+s16 objCreate(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
 void func_800E067C(void);
 void func_8013ADA8(void);
 void func_801FA338(s32);
@@ -8,7 +8,7 @@ void func_80231130(void);
 void func_802312F8(s32);
 void func_80231A0C(void);
 void func_80231C5C(void);
-void func_80231E30(void);
+void createStageObjects(void);
 extern s32 D_8006FAF0;
 extern s32 D_80159230;
 extern s16 D_8018A438;
@@ -28,7 +28,7 @@ void func_801FD3B4(void) {
     func_80231A0C();
     var_s0 = 0;
     func_80231C5C();
-    func_80231E30();
+    createStageObjects();
     func_8022F780(*(u16 *)((s8 *)&D_8006FAF0 + 0x20));
     func_800E067C();
     func_80231130();
@@ -38,7 +38,7 @@ void func_801FD3B4(void) {
         var_s0 += 1;
     } while (!(var_s0 & 0xFFFF));
     D_8022AFE9 = 0;
-    func_800DE41C(0, 0, 3, 0, 0x20, 1, 0, &func_8012AD9C, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x20, 1, 0, &func_8012AD9C, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     func_8013ADA8();
-    D_8018A438 = func_800DE41C(0, 0, 3, 0, 0xA1, 0xFF, 0, &D_80159230, &func_8015A414, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    D_8018A438 = objCreate(0, 0, 3, 0, 0xA1, 0xFF, 0, &D_80159230, &func_8015A414, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 }

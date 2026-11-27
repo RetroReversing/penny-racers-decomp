@@ -2,7 +2,7 @@ typedef struct { u8 pad0[0xC]; u8 xC; u8 padD[0xB]; f32 pos[3]; f32 rot[3]; u8 p
 typedef struct { u8 pad0[2]; u16 obj; u8 pad4[0x7C8]; u8 x7CC[0xA4]; u8 x870; u8 pad871[0x7F]; } Car;
 typedef struct { f32 x; f32 y; f32 z; f32 at[3]; f32 up[3]; } Cam;
 extern Obj D_8011F2F0[];
-extern Car D_8022A770[];
+extern Car sCars[];
 extern Cam D_80221080[];
 extern f32 D_80167EB4[];
 extern f32 D_80167EA4[];
@@ -47,7 +47,7 @@ void func_8012FFF0(u16 id) {
 
     n = D_8011F2F0[id].xC;
     car = n / 3;
-    obj = D_8022A770[car].obj;
+    obj = sCars[car].obj;
     if (D_8011F2F0[id].state == 0) {
         D_80167EB4[car] = 0.0f;
         D_8011F2F0[id].state = 1;
@@ -57,7 +57,7 @@ void func_8012FFF0(u16 id) {
     px = D_8011F2F0[obj].pos[0];
     py = D_8011F2F0[obj].pos[1];
     pz = D_8011F2F0[obj].pos[2];
-    if (D_8022A770[car].x870 == 0) {
+    if (sCars[car].x870 == 0) {
         D_80221080[n].x = (rad = yaw * 3.14f / 180.0f, t = __sinf(rad) * D_80167EA4[car], t - __sinf(rad) * __sinf(D_80167EC4[car] * 3.14f / 180.0f) * D_80167EA4[car] + px);
         D_80221080[n].y = __sinf(D_80167EC4[car] * 3.14f / 180.0f) * D_80167EA4[car] + py;
         t2 = __cosf(rad) * D_80167EA4[car];
@@ -66,7 +66,7 @@ void func_8012FFF0(u16 id) {
     D_80221080[n].at[0] = px;
     D_80221080[n].at[1] = py + 10.0f;
     D_80221080[n].at[2] = pz;
-    func_80129C88(D_8022A770[car].x7CC, 4, car);
+    func_80129C88(sCars[car].x7CC, 4, car);
     rx = D_8011F2F0[obj].rot[0];
     ry = D_8011F2F0[obj].rot[1];
     rz = D_8011F2F0[obj].rot[2];

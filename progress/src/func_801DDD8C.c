@@ -38,7 +38,7 @@ extern Keys D_801E9994;
 extern u8 D_801E9B1C;
 extern Entry D_801E9D38;
 extern u16 D_80072BDC;
-extern u16 D_8006F9E8;
+extern u16 gameState;
 extern void func_801CE928();
 extern void func_801CEC2C();
 extern void func_80028EB0();
@@ -49,11 +49,11 @@ extern void func_80029190();
 extern void func_800292A0();
 extern s32 func_801DDCDC();
 extern void func_801DD938();
-extern void func_8014B854();
-extern void func_801D651C();
+extern void playMenuSound();
+extern void playStageSound();
 extern void func_800DE38C();
 extern void func_800DE2E0();
-extern s16 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *,
+extern s16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *,
                          f32, f32, f32, f32, f32, f32, f32, f32, f32);
 
 #define CHECK() \
@@ -90,7 +90,7 @@ void func_801DDD8C(u16 arg0)
         D_801E8790[2] = D_801E8730;
         D_80046832 = 1;
         D_8011F2F0[arg0].state = 1;
-        D_801E9764 = func_800DE41C(0, 0, 3, 0, 0x81, 0xFF, 0, func_801CE928, func_801CEC2C,
+        D_801E9764 = objCreate(0, 0, 3, 0, 0x81, 0xFF, 0, func_801CE928, func_801CEC2C,
                                    0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
         D_8011F2F0[D_801E9764].unk60 = (u8 *) &D_801D59B2;
         MENU->unk0 = 0;
@@ -158,10 +158,10 @@ void func_801DDD8C(u16 arg0)
                 D_801E8790[0] = D_801E86F0;
                 D_801E8790[1] = D_801E8710;
                 D_8011F2F0[arg0].state = 0xA;
-                func_8014B854(0x3B);
+                playMenuSound(0x3B);
             } else if (D_801E977E != 0) {
                 D_801E977E--;
-                func_8014B854(0x3B);
+                playMenuSound(0x3B);
             }
             D_801E9730 = D_801F188A + D_801E977E;
         } else if (D_801E998C == 1 || (D_801E998C >= 0x10 && (D_801E998C & 2))) {
@@ -170,19 +170,19 @@ void func_801DDD8C(u16 arg0)
                 D_801E8790[0] = D_801E86F0;
                 D_801E8790[1] = D_801E8710;
                 D_8011F2F0[arg0].state = 0xB;
-                func_8014B854(0x3B);
+                playMenuSound(0x3B);
             } else if (D_801E977E < 6) {
                 D_801E977E++;
-                func_8014B854(0x3B);
+                playMenuSound(0x3B);
             }
             D_801E9730 = D_801F188A + D_801E977E;
         } else if (D_801E9990 == 1 && D_801E9B20[D_801E9730] == 1) {
             D_801E9799 = 1;
             D_801E9B1C = 0;
             D_8011F2F0[arg0].state = 0x14;
-            func_801D651C(7, 0x3D);
+            playStageSound(7, 0x3D);
         } else if (D_801E9994.a == 1 || D_801E9994.b == 1) {
-            func_801D651C(7, 0x3A);
+            playStageSound(7, 0x3A);
             D_8011F2F0[arg0].state = 0x384;
             *D_8011F2F0[D_8018BC3C].unk60 = 2;
         }
@@ -209,17 +209,17 @@ void func_801DDD8C(u16 arg0)
         if (D_801E9984 == 1) {
             if (D_801E9B1C == 0) {
                 D_801E9B1C = 1;
-                func_801D651C(7, 0x3B);
+                playStageSound(7, 0x3B);
             }
         } else if (D_801E9980 == 1) {
             if (D_801E9B1C == 1) {
                 D_801E9B1C = 0;
-                func_801D651C(7, 0x3B);
+                playStageSound(7, 0x3B);
             }
         } else if (D_801E9990 == 1) {
             if (D_801E9B1C == 1) {
                 func_801DD938(0x10, 0x4C, 0xA, 2, 0xC8, 0xB4, 0x12, 0x18, D_801E87C0, 0x2E);
-                func_801D651C(7, 0x3D);
+                playStageSound(7, 0x3D);
             } else {
                 goto cancel;
             }
@@ -227,7 +227,7 @@ void func_801DDD8C(u16 arg0)
         cancel:
             D_801E9799 = 0;
             D_8011F2F0[arg0].state = 2;
-            func_801D651C(7, 0x3A);
+            playStageSound(7, 0x3A);
         }
         break;
     case 0x1E:
@@ -262,7 +262,7 @@ void func_801DDD8C(u16 arg0)
             break;
         }
     case 0x385:
-        D_8006F9E8 = D_80072BDC;
+        gameState = D_80072BDC;
         func_800DE38C();
         func_800DE2E0();
         D_80046832 = 0;

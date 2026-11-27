@@ -12,8 +12,8 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_801CA140();                            /* extern */
-M2C_UNK func_801CA468(s32, M2C_UNK);                /* extern */
+M2C_UNK gfxSetup2DState();                            /* extern */
+M2C_UNK gfxSetPrimAlpha(s32, M2C_UNK);                /* extern */
 M2C_UNK func_801CB74C(s32, M2C_UNK, s32, M2C_UNK, M2C_UNK *, M2C_UNK *); /* extern */
 M2C_UNK func_801CBF48(s32, M2C_UNK, M2C_UNK, M2C_UNK, M2C_UNK *, s32, s32); /* extern */
 extern M2C_UNK D_8006FAF0;
@@ -37,8 +37,8 @@ extern u16 D_802330A0;
 
 void func_8022F4B4(s32 arg0) {
     D_80232830 += 1;
-    func_801CA140();
-    func_801CA468(arg0, 0xFF);
+    gfxSetup2DState();
+    gfxSetPrimAlpha(arg0, 0xFF);
     func_801CB74C(arg0, 0x78, 0x46, 8, &D_801D4FC0, &D_80232B68);
     func_801CBF48(arg0, 0xC8, 0x46, 8, &D_801D4FC0, 1, (s32) M2C_FIELD(&D_8006FAF0, s16 *, 0x20));
     func_801CB74C(arg0, 0x70, 0x50, 8, &D_801D4FC0, &D_80232B74);

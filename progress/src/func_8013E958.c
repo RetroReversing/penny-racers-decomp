@@ -1,7 +1,7 @@
 s16 func_8012913C(u16, s32, s32, s32);
 extern u8 D_8011F2F0[];
 extern u8 D_8011F350[];
-extern s32 D_8018D6C0;
+extern s32 hitSlots;
 extern u16 D_80233EC0;
 void func_8013E958(s32 arg0, s32 arg1, s16 arg2, s32 arg3, f32 arg4, f32 arg5, u16 arg6)
 {
@@ -12,7 +12,7 @@ void func_8013E958(s32 arg0, s32 arg1, s16 arg2, s32 arg3, f32 arg4, f32 arg5, u
   temp_v0 = arg1 * 0x64;
   temp_t0 = temp_v0 + (D_8011F2F0);
   arg0 &= 0xFFFF;
-  temp_s0 = ((char *) (arg0 * 0x7C)) + (s32) (&D_8018D6C0);
+  temp_s0 = ((char *) (arg0 * 0x7C)) + (s32) (&hitSlots);
   *(void **)((D_8011F350) + temp_v0) = temp_s0;
   *(s16 *)((char *)temp_t0 + 8) = arg2;
   *(s16 *)((char *)temp_t0 + 6) = arg2;

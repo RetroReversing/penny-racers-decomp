@@ -5,9 +5,9 @@ typedef struct { u8 pad0[0x40]; u16 f40; u8 pad42[0x22]; } Obj;
 extern Obj D_8011F2F0[];
 extern u16 D_8006FB10;
 typedef struct { u8 pad[0x2108]; s16 count; u8 pad210a[0x1E]; Rect rect[4]; } Cfg;
-extern Cfg D_800DB1B8;
-#define RECT (D_800DB1B8.rect)
-#define COUNT (D_800DB1B8.count)
+extern Cfg sRowBoard;
+#define RECT (sRowBoard.rect)
+#define COUNT (sRowBoard.count)
 extern f32 D_80183B54;
 extern f32 D_80183B58;
 extern f32 D_80183B5C;

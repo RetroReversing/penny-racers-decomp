@@ -14,7 +14,7 @@ typedef s32 M2C_UNK32;
 
 extern char D_8011F2F0[];
 extern u8 D_8011F2FC[];
-extern u8 D_80126FF6;
+extern u8 viewIndex;
 extern char D_8018A264[];
 
 void func_8015FD64(void **arg0, s32 arg1) {
@@ -29,7 +29,7 @@ void func_8015FD64(void **arg0, s32 arg1) {
     temp_v1 = (arg1 & 0xFFFF) * 0x64;
     if (*(D_8011F2FC + temp_v1) != 0) {
         temp_v1_2 = *(D_8011F2F0 + temp_v1);
-        if (temp_v1_2 == D_80126FF6) {
+        if (temp_v1_2 == viewIndex) {
             temp_a0 = *(D_8018A264 + temp_v1_2);
             if (temp_a0 == 1) {
                 temp_v1_3 = *arg0;

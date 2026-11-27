@@ -1,4 +1,4 @@
-extern void func_8003DE60(void *, u16);
+extern void debugPrintf(void *, u16);
 extern s32 func_8014A030(u16, s16, s32);
 extern u8 D_80183740[];
 extern u8 D_80189B34;
@@ -18,7 +18,7 @@ typedef struct {
     u8 pad0[6]; u16 f6; u8 pad8[0x228]; u16 f230; u8 pad232[0x306]; s32 f538; u8 pad53C[0x26]; Rec5 recs[4]; u8 pad576[0x20]; s8 f596;
 } Save;
 extern Cfg D_8021E18C;
-extern Save D_8022A770;
+extern Save sCars;
 
 s32 func_8014B108(void)
 {
@@ -28,8 +28,8 @@ s32 func_8014B108(void)
 
     if (D_80189B34 == 2) {
         if (D_8021E18C.f16[0] == 0) {
-            Save *sv = &D_8022A770;
-            func_8003DE60(D_80183740, sv->f6);
+            Save *sv = &sCars;
+            debugPrintf(D_80183740, sv->f6);
             if (sv->f596 < 4) {
                 D_8018A44A[D_8021E18C.f16[2]] = func_8014A030(D_8018A44A[D_8021E18C.f16[2]], D_8021E18C.f0, 1);
             }

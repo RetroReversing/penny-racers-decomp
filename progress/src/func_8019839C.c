@@ -1,28 +1,28 @@
-extern s8 D_801C6BB9;
+extern s8 cursorY;
 extern u16 D_801C6BDE[];
-extern s8 D_801C7062[];
-extern s8 D_801C7068;
-extern u8 D_801C7469;
-extern u8 *D_801C7AB0;
+extern s8 finishPos[];
+extern s8 cursorX;
+extern u8 blockFootprint;
+extern u8 *trackInfo;
 
 s32 func_8019839C(void)
 {
   s32 r = 0;
-  if (D_801C7068 != 0 && D_801C6BDE[D_801C6BB9 * 24 + D_801C7068] == 0xFFFF)
+  if (cursorX != 0 && D_801C6BDE[cursorY * 24 + cursorX] == 0xFFFF)
   {
-    if (D_801C7AB0[1] == 5)
+    if (trackInfo[1] == 5)
     {
-      if (D_801C7062[0] == D_801C7068 && (D_801C7062[1] == D_801C6BB9 + 1 || D_801C7062[1] == D_801C6BB9 - 1))
+      if (finishPos[0] == cursorX && (finishPos[1] == cursorY + 1 || finishPos[1] == cursorY - 1))
       {
-        if (D_801C7469 == 1 || D_801C7469 == 3)
+        if (blockFootprint == 1 || blockFootprint == 3)
           r = 1;
       }
-      else if (D_801C7062[0] == D_801C7068 + 1 && D_801C7062[1] == D_801C6BB9)
+      else if (finishPos[0] == cursorX + 1 && finishPos[1] == cursorY)
       {
-        if (D_801C7469 == 0 || D_801C7469 == 2)
+        if (blockFootprint == 0 || blockFootprint == 2)
           r = 1;
       }
-      else if (D_801C7062[0] != D_801C7068 - 1 || D_801C7062[1] != D_801C6BB9 || D_801C7469 == 1)
+      else if (finishPos[0] != cursorX - 1 || finishPos[1] != cursorY || blockFootprint == 1)
         r = 1;
     }
     else

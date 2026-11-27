@@ -59,7 +59,7 @@ typedef struct { s32 m[16]; } Mtx;
 typedef struct { u8 pad0[0x3E]; u16 model; u16 state; u8 pad42[0x22]; } Ob11;
 typedef struct { u8 cur; u8 digits[2]; u8 slot; u8 col[8]; u8 side; u8 flags; } Entry;
 extern Ob11 D_8011F2F0[];
-extern Entry D_8021EEA4;
+extern Entry selectionMenu;
 extern s16 D_8021E1A6;
 extern struct { s8 t[8][34]; } D_8021E22F[];
 extern u16 D_80187BF0[];
@@ -69,13 +69,13 @@ extern u16 *D_80203080[];
 extern u8 D_801D4390[], D_801CF4C8[];
 extern u8 D_8021F260[];
 extern u8 D_80168C60[];
-void func_801CA140(Gfx **);
-void func_801CA468(Gfx **, s32);
-void func_801CA494(Gfx **, s32, s32, s32, s32);
-void func_8014A4C8(Gfx **, s32, s32, s32, s32);
-void func_801CABF4(Gfx **, s32, u16, s32, u8 *, u16 *, s32, u8 *, s32, s32, s32, s32);
+void gfxSetup2DState(Gfx **);
+void gfxSetPrimAlpha(Gfx **, s32);
+void gfxSetPrimColor(Gfx **, s32, s32, s32, s32);
+void gfxDrawSprite(Gfx **, s32, s32, s32, s32);
+void gfxDrawText(Gfx **, s32, u16, s32, u8 *, u16 *, s32, u8 *, s32, s32, s32, s32);
 void func_8014A2D0(Gfx **, s32, s32, s32, s32, s32);
-#define D(x, y, s, id) func_8014A4C8(gfxp, x, y, s, id)
+#define D(x, y, s, id) gfxDrawSprite(gfxp, x, y, s, id)
 
 void func_8020F354(Gfx **gfxp, u16 id) {
     Ob11 *obj;
@@ -93,14 +93,14 @@ void func_8020F354(Gfx **gfxp, u16 id) {
         obj->state = 16;
         break;
     case 16:
-        func_801CA140(gfxp);
-        func_801CA494(gfxp, 0, 0, 0, 0xFF);
+        gfxSetup2DState(gfxp);
+        gfxSetPrimColor(gfxp, 0, 0, 0, 0xFF);
         D(1, 0x12, 0xB, 0x33);
         D(1, 0x7A, 0xB, 0x34);
         D(0x49, 0xCB, 0xB, 0x35);
-        func_801CA468(gfxp, 0xFF);
+        gfxSetPrimAlpha(gfxp, 0xFF);
         D(0x16, 0x13, 6, 0);
-        D(0x1A, 0x26, 0xB, D_8021EEA4.slot + 0x47);
+        D(0x1A, 0x26, 0xB, selectionMenu.slot + 0x47);
         D(0x17, 0x88, 6, 0x1B);
         D(0x18, 0x9A, 6, 0x1D);
         D(0x6F, 0x9A, 6, 0x1E);
@@ -120,18 +120,18 @@ void func_8020F354(Gfx **gfxp, u16 id) {
             D(0xCE, y, 6, 5);
             D(0x120, y, 6, 6);
             j = 0x80;
-            if (D_8021EEA4.cur == i) {
+            if (selectionMenu.cur == i) {
                 j = obj->model == 0x10 ? 0xFF : 0x80;
             }
-            func_801CA494(gfxp, (u16)j, (u16)j, (u16)j, 0xFF);
+            gfxSetPrimColor(gfxp, (u16)j, (u16)j, (u16)j, 0xFF);
             y = i * 23 + 0x13;
             D(0x8F, y, 6, D_8021B3E0[i]);
-            func_801CA468(gfxp, 0xFF);
+            gfxSetPrimAlpha(gfxp, 0xFF);
             D(0x7B, y, 6, D_8021B3E8[i]);
-            v = (D_8021E22F + D_8021EEA4.slot)->t[i][D_8021EEA4.col[i] + 2];
+            v = (D_8021E22F + selectionMenu.slot)->t[i][selectionMenu.col[i] + 2];
             if (i == 0) {
                 for (j = 0; j < 8; j++) {
-                    D_80187BF0[j] = D_8021F270[D_8021EEA4.slot][v][j];
+                    D_80187BF0[j] = D_8021F270[selectionMenu.slot][v][j];
                 }
             } else {
                 j = 0x87;
@@ -145,7 +145,7 @@ void func_8020F354(Gfx **gfxp, u16 id) {
                 } while (src[j++] != 0xFFFF);
             }
             D_80187BF0[8] = 0xFFFF;
-            func_801CABF4(gfxp, 0xD5, i * 23 + 0x16, 0xA, D_801D4390, D_80187BF0, 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC);
+            gfxDrawText(gfxp, 0xD5, i * 23 + 0x16, 0xA, D_801D4390, D_80187BF0, 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC);
         }
         r1 = 0x80;
         g1 = 0x80;
@@ -154,7 +154,7 @@ void func_8020F354(Gfx **gfxp, u16 id) {
         g2 = 0x80;
         b2 = 0x80;
         if (obj->model == 0x20) {
-            if (D_8021EEA4.side == 0) {
+            if (selectionMenu.side == 0) {
                 r1 = D_8021F260[0];
                 g1 = D_8021F260[1];
                 b1 = D_8021F260[2];
@@ -164,28 +164,28 @@ void func_8020F354(Gfx **gfxp, u16 id) {
                 b2 = D_8021F260[2];
             }
         }
-        func_801CA494(gfxp, r1, g1, b1, 0xFF);
+        gfxSetPrimColor(gfxp, r1, g1, b1, 0xFF);
         D(0x55, 0xCD, 6, 0x17);
-        func_801CA494(gfxp, r2, g2, b2, 0xFF);
+        gfxSetPrimColor(gfxp, r2, g2, b2, 0xFF);
         D(0xA3, 0xCD, 6, 0x18);
-        func_801CA468(gfxp, 0xFF);
+        gfxSetPrimAlpha(gfxp, 0xFF);
         if (obj->model == 0x10) {
-            func_801CA494(gfxp, D_8021F260[0], D_8021F260[1], D_8021F260[2], 0xFF);
-            if ((D_8021EEA4.flags >> 6) & 1) {
-                D(0x124, D_8021EEA4.cur * 23 + 0x13, 6, 2);
+            gfxSetPrimColor(gfxp, D_8021F260[0], D_8021F260[1], D_8021F260[2], 0xFF);
+            if ((selectionMenu.flags >> 6) & 1) {
+                D(0x124, selectionMenu.cur * 23 + 0x13, 6, 2);
             }
-            if ((D_8021EEA4.flags >> 6) & 2) {
-                D(0xCB, D_8021EEA4.cur * 23 + 0x13, 6, 1);
+            if ((selectionMenu.flags >> 6) & 2) {
+                D(0xCB, selectionMenu.cur * 23 + 0x13, 6, 1);
             }
-            func_801CA468(gfxp, 0xFF);
+            gfxSetPrimAlpha(gfxp, 0xFF);
         }
         if (D_8021E1A6 != 3) {
             func_8014A2D0(gfxp, 0x56, 0x86, D_80168C60[D_8021E1A6], 2, 0);
         } else {
             D(0x5E, 0x8C, 6, 0x22);
         }
-        func_8014A2D0(gfxp, 0x5C, 0xA0, D_8021EEA4.digits[0], 2, 1);
-        func_8014A2D0(gfxp, 0x5C, 0xB6, D_8021EEA4.digits[1], 2, 1);
+        func_8014A2D0(gfxp, 0x5C, 0xA0, selectionMenu.digits[0], 2, 1);
+        func_8014A2D0(gfxp, 0x5C, 0xB6, selectionMenu.digits[1], 2, 1);
         break;
     }
 }

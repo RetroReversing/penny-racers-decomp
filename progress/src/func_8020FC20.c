@@ -34,7 +34,7 @@ typedef struct { u8 pad[0xC]; } Anim;
 typedef struct { u8 id; u8 a; u8 pad[4]; u8 b; u8 c; u8 d; } Sel;
 
 extern Obj D_8011F2F0[];
-extern Car D_8022A770[];
+extern Car sCars[];
 extern s8 D_8021E231[];
 extern s8 D_8021E2DB[];
 extern s8 D_8021E2FD[];
@@ -62,7 +62,7 @@ void func_8020FC20(u16 arg0)
         break;
     case 0x10:
         do { sel = &D_8021EEA7; } while (0);
-        car = &D_8022A770[sel->id];
+        car = &sCars[sel->id];
         car->timer = D_8021E120;
         car->f534 = (u8) func_80149F40(sel->id, 5, D_8021E2DB[(row = sel->id * 0x110) + sel->b]);
         car->f538 = (u8) func_80149F40(sel->id, 6, D_8021E2FD[(row = sel->id * 0x110) + sel->c]);

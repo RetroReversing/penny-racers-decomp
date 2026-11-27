@@ -6,7 +6,7 @@ extern u8 D_80220FC0[];
 extern u8 D_80220FC4[];
 extern u8 D_80220FC8[];
 extern u8 D_80220FCC[];
-extern u8 D_800DB1B8[];
+extern u8 sRowBoard[];
 extern f32 D_80220E40;
 
 void func_8021FCA4(void)
@@ -36,20 +36,20 @@ void func_8021FCA4(void)
     p7 = (s32)D_80220FCC;
     for (; i < 4; i++) {
         a0 = i * 40;
-        *(u16 *)(D_800DB1B8 + 0x2108 + a0) = 0;
+        *(u16 *)(sRowBoard + 0x2108 + a0) = 0;
         a1 = i * 2;
         v1 = a1 + i;
-        *(u16 *)(D_800DB1B8 + 0x210A + a0) = v1;
-        *(u16 *)(D_800DB1B8 + 0x210C + a0) = v1 + 1;
-        *(u16 *)(D_800DB1B8 + 0x210E + a0) = v1 + 2;
-        *(u16 *)(D_800DB1B8 + 0x2110 + a0) = *(u16 *)(a1 + p0);
-        *(u16 *)(D_800DB1B8 + 0x2112 + a0) = *(u16 *)(a1 + p1);
-        *(u16 *)(D_800DB1B8 + 0x2114 + a0) = *(u16 *)(a1 + p2);
-        *(u16 *)(D_800DB1B8 + 0x2116 + a0) = *(u16 *)(a1 + p3);
-        *(u16 *)(D_800DB1B8 + 0x2128 + a0) = *(u16 *)(a1 + p4);
-        *(u16 *)(D_800DB1B8 + 0x212A + a0) = *(u16 *)(a1 + p5);
-        *(u16 *)(D_800DB1B8 + 0x212C + a0) = *(u16 *)(a1 + p6);
-        *(u16 *)(D_800DB1B8 + 0x212E + a0) = *(u16 *)(a1 + p7);
+        *(u16 *)(sRowBoard + 0x210A + a0) = v1;
+        *(u16 *)(sRowBoard + 0x210C + a0) = v1 + 1;
+        *(u16 *)(sRowBoard + 0x210E + a0) = v1 + 2;
+        *(u16 *)(sRowBoard + 0x2110 + a0) = *(u16 *)(a1 + p0);
+        *(u16 *)(sRowBoard + 0x2112 + a0) = *(u16 *)(a1 + p1);
+        *(u16 *)(sRowBoard + 0x2114 + a0) = *(u16 *)(a1 + p2);
+        *(u16 *)(sRowBoard + 0x2116 + a0) = *(u16 *)(a1 + p3);
+        *(u16 *)(sRowBoard + 0x2128 + a0) = *(u16 *)(a1 + p4);
+        *(u16 *)(sRowBoard + 0x212A + a0) = *(u16 *)(a1 + p5);
+        *(u16 *)(sRowBoard + 0x212C + a0) = *(u16 *)(a1 + p6);
+        *(u16 *)(sRowBoard + 0x212E + a0) = *(u16 *)(a1 + p7);
     }
-    *(u16 *)(D_800DB1B8 + 0x2108) = 1;
+    *(u16 *)(sRowBoard + 0x2108) = 1;
 }

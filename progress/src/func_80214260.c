@@ -14,8 +14,8 @@ typedef struct {
     u8 name[14];
     u8 pad16E[0xA];
 } Rec178;
-void func_800294A0(void *, void *, s32);
-u16 func_800DE41C();
+void dmaRomToRam(void *, void *, s32);
+u16 objCreate();
 void func_80143DCC(void);
 void func_80149FA8(s32);
 void func_80203BAC(void);
@@ -46,7 +46,7 @@ void func_80214260(void)
     Obj64 *obj;
     s32 k;
 
-    func_800294A0(D_3E4880, D_8030BD90, D_3E9850 - D_3E4880);
+    dmaRomToRam(D_3E4880, D_8030BD90, D_3E9850 - D_3E4880);
     for (i = 0; i < 4; i++) {
         func_80203BDC(i);
     }
@@ -60,7 +60,7 @@ void func_80214260(void)
     }
     D_8021B079 = 0;
     func_80143DCC();
-    D_8021EEB8 = func_800DE41C(0, 0, 3, 0, 0, 0xFF, 0, 0, &func_802040C4, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    D_8021EEB8 = objCreate(0, 0, 3, 0, 0, 0xFF, 0, 0, &func_802040C4, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
     D_8011F2F0[D_8021EEB8].flags4 |= 0x20;
     D_8011F2F0[D_8021EEB8].flags6 |= 0x20;
@@ -79,5 +79,5 @@ void func_80214260(void)
     }
     func_80231C5C();
     func_802054D0();
-    func_800DE41C(0, 0, 3, 0, 0x40, 0, 0, &func_80214504, &func_8021473C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x40, 0, 0, &func_80214504, &func_8021473C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 }

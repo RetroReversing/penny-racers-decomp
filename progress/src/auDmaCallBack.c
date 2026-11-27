@@ -3,7 +3,7 @@ typedef struct DMABuf { ALink node; s32 startAddr; u32 lastFrame; char *ptr; } D
 typedef struct { u8 initialized; DMABuf *firstUsed; DMABuf *firstFree; } DMAState;
 typedef struct { u16 type; u8 pri; u8 status; void *retQueue; void *dramAddr; u32 devAddr; u32 size; void *piHandle; } IoMesg;
 extern DMAState D_8005D7A0;
-extern u32 D_80046C30;
+extern u32 auFrameCount;
 extern char D_8005D088[];
 extern IoMesg D_8005D1A0[];
 extern s32 D_8005DCB0;
@@ -26,7 +26,7 @@ s32 auDmaCallBack(s32 addr, s32 len)
         if (addr < startAddr)
             break;
         else if (addrEnd <= endAddr) {
-            dmaPtr->lastFrame = D_80046C30;
+            dmaPtr->lastFrame = auFrameCount;
             foundBuffer = dmaPtr->ptr + addr - dmaPtr->startAddr;
             return osVirtualToPhysical(foundBuffer);
         }
@@ -61,7 +61,7 @@ addr -= delta;
 dmaPtr->startAddr = addr;
 mb = &D_8005D1A0[D_8005DCB0++];
 foundBuffer = dmaPtr->ptr;
-dmaPtr->lastFrame = D_80046C30;
+dmaPtr->lastFrame = auFrameCount;
     mb->pri = 0;
     mb->retQueue = D_8005D088;
     mb->dramAddr = foundBuffer;

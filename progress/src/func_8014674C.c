@@ -7,7 +7,7 @@ extern u16 D_80189CC6[];
 extern u8 D_8018A276;
 extern u8 D_8018A277[];
 s32 func_8014A870(s32, s32, u8);
-void func_8014B854(s32);
+void playMenuSound(s32);
 
 void func_8014674C(u16 arg0)
 {
@@ -61,7 +61,7 @@ void func_8014674C(u16 arg0)
         }
     }
     if (changed) {
-        func_8014B854(0x3B);
+        playMenuSound(0x3B);
     }
     if (flags & 0x10) {
         snd = 0x3E;
@@ -70,6 +70,6 @@ void func_8014674C(u16 arg0)
             D_80189B36[0] &= 0xEF;
             *(s16 *)(D_80189C9A - 2) = 0x30;
         }
-        func_8014B854(snd);
+        playMenuSound(snd);
     }
 }

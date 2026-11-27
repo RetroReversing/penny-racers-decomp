@@ -62,15 +62,15 @@ extern Gfx *D_800DE0E4;
 extern u8 D_80190CB2;
 extern u8 D_801D4390[];
 extern u8 D_801CF4C8[];
-extern u8 D_8021C840[];
+extern u8 spawnScript[];
 extern u16 *D_8021D334[];
 extern u16 *D_80203080[];
 extern u8 D_8021CA80[][3];
 extern u8 D_8021C994[];
 extern u16 D_8018D140[];
-void func_801CA140(Gfx **);
-void func_801CA494(Gfx **, u8, u8, u8, s32);
-void func_801CABF4(Gfx **, u16, u16, u16, u8 *, u16 *, u8, u8 *, s32, s32, s32, s32);
+void gfxSetup2DState(Gfx **);
+void gfxSetPrimColor(Gfx **, u8, u8, u8, s32);
+void gfxDrawText(Gfx **, u16, u16, u16, u8 *, u16 *, u8, u8 *, s32, s32, s32, s32);
 
 void func_8021A334(Gfx **gfxp, u16 id) {
     Ob4 *obj;
@@ -84,7 +84,7 @@ void func_8021A334(Gfx **gfxp, u16 id) {
     g = 0xFF;
     b = 0;
     obj = &((Ob4 *)D_8011F2F0)[id];
-    func_801CA140(gfxp);
+    gfxSetup2DState(gfxp);
     switch (obj->state) {
     case 0:
         obj->state = 2;
@@ -93,10 +93,10 @@ void func_8021A334(Gfx **gfxp, u16 id) {
         }
         break;
     case 1:
-        func_801CA494(gfxp, 0, 0, 0, 0xAA);
-        func_801CABF4(gfxp, (u32)(obj->x + 2.0f), (u32)(obj->y + 2.0f), 0xA, D_801D4390, D_8021D334[D_8021C840[obj->kind * 2]], 0, D_801CF4C8, 10, 14, 160, 252);
-        func_801CA494(gfxp, D_8021CA80[obj->colour][0], D_8021CA80[obj->colour][1], D_8021CA80[obj->colour][2], 0xFF);
-        func_801CABF4(gfxp, (u32)obj->x, (u32)obj->y, 0xA, D_801D4390, D_8021D334[D_8021C840[obj->kind * 2]], 0, D_801CF4C8, 10, 14, 160, 252);
+        gfxSetPrimColor(gfxp, 0, 0, 0, 0xAA);
+        gfxDrawText(gfxp, (u32)(obj->x + 2.0f), (u32)(obj->y + 2.0f), 0xA, D_801D4390, D_8021D334[spawnScript[obj->kind * 2]], 0, D_801CF4C8, 10, 14, 160, 252);
+        gfxSetPrimColor(gfxp, D_8021CA80[obj->colour][0], D_8021CA80[obj->colour][1], D_8021CA80[obj->colour][2], 0xFF);
+        gfxDrawText(gfxp, (u32)obj->x, (u32)obj->y, 0xA, D_801D4390, D_8021D334[spawnScript[obj->kind * 2]], 0, D_801CF4C8, 10, 14, 160, 252);
         break;
     case 2:
         chr = D_8021C994[obj->kind] + 0x13;
@@ -132,8 +132,8 @@ void func_8021A334(Gfx **gfxp, u16 id) {
             chr = 0xEC;
             break;
         }
-        func_801CA494(gfxp, 0, 0, 0, 0xAA);
-        func_801CABF4(gfxp, (u32)(obj->x + 2.0f), (u32)(obj->y + 2.0f), 0xA, D_801D4390, D_80203080[chr], 0, D_801CF4C8, 10, 14, 160, 252);
+        gfxSetPrimColor(gfxp, 0, 0, 0, 0xAA);
+        gfxDrawText(gfxp, (u32)(obj->x + 2.0f), (u32)(obj->y + 2.0f), 0xA, D_801D4390, D_80203080[chr], 0, D_801CF4C8, 10, 14, 160, 252);
         if (D_8021C994[obj->kind] < 0xE0) {
             r = 0xFF;
             g = 0xFF;
@@ -144,8 +144,8 @@ void func_8021A334(Gfx **gfxp, u16 id) {
                 b = 0x80;
             }
         }
-        func_801CA494(gfxp, r, g, b, 0xFF);
-        func_801CABF4(gfxp, (u32)obj->x, (u32)obj->y, 0xA, D_801D4390, D_80203080[chr], 0, D_801CF4C8, 10, 14, 160, 252);
+        gfxSetPrimColor(gfxp, r, g, b, 0xFF);
+        gfxDrawText(gfxp, (u32)obj->x, (u32)obj->y, 0xA, D_801D4390, D_80203080[chr], 0, D_801CF4C8, 10, 14, 160, 252);
         break;
     }
 }
