@@ -2800,14 +2800,6 @@
   "score_after": 51712
  },
  {
-  "function": "func_8013CBBC",
-  "text": "Deep permuter: score 11535 \u2192 8790; 2 improvements; 196 candidates tested; 155 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935326",
-  "created_at": 1794348213.876279,
-  "score_before": 11535,
-  "score_after": 8790
- },
- {
   "function": "func_80136A28",
   "text": "Deep permuter: score 59616 \u2192 58170; 3 improvements; 122 candidates tested; 1 cached skips; 0 rejected; 7203s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935307",
@@ -7320,14 +7312,6 @@
   "score_after": 4030
  },
  {
-  "function": "func_8013CBBC",
-  "text": "No match. Best saved 1425 remains; my cleaned version (switch on u16 at D_8011F330 + (arg1&0xFFFF)*0x64, GFX macro, for-loop of 7) scored 6270. Target is 228 insns. Key differences: the index (arg1&0xFFFF)*0x64 is computed once and the load address is rebuilt with lui/addu (not CSE'd); the early `case 0` store and return path ordering differ; the target's second-word values use lui/addu per iteration; the loop bound and the `(i+8)<<9 & 0xFE00` terms are close but register allocation (t0 holds arg0) differs. Next: start from the saved 1425 source, keep the per-iteration recomputation of the table index, and fix the case-0 control flow first.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794712349.504592,
-  "score_before": 1425,
-  "score_after": 1425
- },
- {
   "function": "func_801348C8",
   "text": "Not matched. The machine draft's float handling is wrong: it writes the f32 counters at D_8011F334/D_8011F308/D_8011F30C/D_8011F310 with a u32 conversion and 2.1474836e9f branches (m2c's unsigned-float pattern), which my simplified version dropped; that version scored 19895 (target is 232 insns, mine 107). Next: keep the draft's conversion code, and use the state byte at D_8011F32E (stride 100) with a single index variable. The per-state structure is: state 0 bumps the u8 at D_8011F2FC by 8 (saturating at 0xFF) and a counter at D_8011F334, then moves to state 1 when the counter \u22650x79 and D_8011F310 != 0xFF; state 1 and 2 decrement the floats at D_8011F308 (min -80) and D_8011F30C (min -36). Also note the 0x80000000 bit tricks and the \"block_38\" store of var_v0_3 at state 2 (goto target). Start from the draft, not my simplified version.",
   "by": "claude-haiku-5-5-21",
@@ -10536,14 +10520,6 @@
   "score_after": 6793
  },
  {
-  "function": "func_8013CBBC",
-  "text": "Not matched. Saved best (1425) is the prior agent's candidate; my rewrite (revision 4631d094dd5a832831de, score 19025) is much worse. Findings: (1) the table index is (arg1&0xFFFF)*100 computed as ((x*2+x)*8+x)*4, and the target keeps `arg1&0xFFFF` in $v1 and loads D_8011F330 via lui/addu/lhu, with the store in the first case as `sh` (halfword), not a 32-bit store; (2) the function copies arg0 to $t0 at entry (`move $t0,$a0`) and the display-list pointer lives in $t0 across the body, so the 'arg0 as void**' form with *arg0 updates may not be the right register shape; (3) the case-1 mode test is `(mode==2)|(mode==7)` materialised as xori/sltiu/or, not a ternary. Next steps: start from saved best, fix the head (index math, lhu/beqz, move $t0,$a0) first, then the 7-iteration loop body, whose addresses (D_801680C8/D_801680F0 indexed by mode*4) the diff flagged. Not tried: compiler flag search.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794728133.285625,
-  "score_before": 1425,
-  "score_after": 1425
- },
- {
   "function": "func_801348C8",
   "text": "Not matched. Float state machine over a 100-byte-stride table: state u16 at D_8011F32E+i*100 (switch 0/1/2), u8 counters at D_8011F2FC/D_8011F2FD, f32 timers at D_8011F308/30C/310/334, with i = arg0&0xFFFF. Saved best (m2c-based draft, 9800) is the one to start from. A clean rewrite with i hoisted into a local (117 insns, score 16535) is much worse: the target re-computes (arg0 & 0xFFFF)*100 separately at every access (about 25 addu/sll chains) and re-derives the float->u16 conversion inline each time, so the index must stay un-hoisted, written as (arg0 & 0xFFFF) * 0x64 at each use as in the draft. Unfinished: the u16 conversion of the f32 timer (unsigned-compare branch on 2.1474836e9f, then &0xFFFF) still differs; try writing it as the draft does, with the same var_v0/var_v0_2 split, before changing the switch shape.",
   "by": "claude-haiku-5-5-22",
@@ -13622,14 +13598,6 @@
   "created_at": 1794741057.6786711,
   "score_before": 9800,
   "score_after": 9800
- },
- {
-  "function": "func_8013CBBC",
-  "text": "Not matched. The recorded best 1425 does not reproduce: the saved machine-draft source (revision 6fb2fd3ff3ee5f87c0ac) compiles now at about 14290, and with s32 temp_v0/var_t1 at 14260 (revision 0b0416d3c73ef5634297). The clean GW-macro rewrite scored 14290 as well. Target structure: switch on the u16 at &D_8011F330 + (arg1&0xFFFF)*100; case 0 stores 1 and returns; case 1 writes gfx pairs through *arg0, with the first pair choosing &D_800E1AE0 vs &D_800E1C00 by the u16 at D_8006FAF0+0x20 being 2 or 7; then a do-while over var_t1 0..6. Target's index uses sll 2/addu chains (x4 each) and it re-reads the u16 at +0x20 per table lookup; my draft computes the index as sll 4 and reads 2(a0), so the address math is wrong. Next: write the index as (u16)arg1*0x64 via the same chain, and read the +0x20 field from the struct pointer that the target uses. Not finished.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794741066.289548,
-  "score_before": 1425,
-  "score_after": 1425
  },
  {
   "function": "func_80129FD4",
@@ -19456,14 +19424,6 @@
   "score_after": 1647
  },
  {
-  "function": "func_8013CBBC",
-  "text": "Not matched. Saved best 1425 (other agent) is far better than my rewrites (best of mine 5285 at 76.8%). Structure, verified against asm: switch on u16 at D_8011F330[(arg1&0xFFFF)*0x64]: value 0 -> store 1 and return; value 1 -> body; default -> return. Body: 8 DL-style writes (w0,w1 pairs via *arg0 pointer, 8 bytes each): case on D_8006FAF0[0x20]==2||==7 selects D_800E1AE0 else D_800E1C00 (w0 0x06000000); then 0xB6000000/0x2000, 0xFD100000/*(D_801680C8 + u16(D_8006FAF0+0x20)*4), 0xE8000000/0, 0xF5000100/0x07000000, 0xE6000000/0, 0xF0000000/0x0703C000, 0xE7000000/0, 0x040040FF/&D_80167FB8. Loop i=0..6 (s16): 0xFD48006F/*(D_801680F0 + u16*4), 0xF5480400/0x07080200, 0xE6000000/0, then a0=(i<<5)+0x1F: 0xF4000000|((i<<6)&0xFFF)<<12 / ((a0*2)&0xFFF)<<12|0x0700007C; 0xE7000000/0; 0xF5400400/0x00080200; 0xF2000000|((i<<7)&0xFFF)<<12 / ((a0*4)&0xFFF)<<12|0x7C; 0xB1000000 word with (i*2&0xFF)<<16 | ((i+8)<<9&0xFE00) | ((i+1)*2&0xFF). Trial notes: the target loads D_8011F330 as lui/addu(index)/lhu %lo, so the index must come before the base; the (u32) integer-base form got closest (5285). Still differs: the target keeps t0 = arg0 (the pointer-to-pointer) and holds the switch value in v1 with beqz first. Next: start from the saved 1425 source and only change the switch shape and the DL pointer staging, not the list contents, which are verified.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794758408.1388512,
-  "score_before": 1425,
-  "score_after": 1425
- },
- {
   "function": "func_80165BDC",
   "text": "Unmatched. Historical saved best 4260 (revision d2d8d5371571fde7c74c) did not reproduce here: its rechecked baseline is 11173 via my cleaned version, and the one-line change `*((&D_8011F32E) + inline_fn(arg0 & 0xFFFF)) = 3` at block_27 (instead of inline_fn(var_v0)) gives 9498 (revision 177d5c26de7f93a60896), the current best this session. Remaining differences: target uses `sll $v0,$v0,2` (x9) for the 0x64 index, my build uses `sll ...,4` (x8), so inline_fn is being lowered as a 0x64 multiply by a different shift sequence; target loads lh 0x14(s0) before the beqz and keeps s0 in $s0 at 0x18(sp), while mine stores s2 first. Frame target 0x28 (ra 0x24, s2 0x20, s1 0x1c, s0 0x18), mine 0x30. Next: reconcile the 0x64 multiply form (try a literal `* 100` on the u16 vs inline_fn), and the 0x3E99999A/0x3ECCCCCD constant placement (target sees 0.3f first at row 258).",
   "by": "claude-haiku-5-5-22",
@@ -20110,14 +20070,6 @@
   "created_at": 1794759378.192309,
   "score_before": 13558,
   "score_after": 4269
- },
- {
-  "function": "func_8013CBBC",
-  "text": "Saved best 1425 is the machine-draft structure (switch on u16 at D_8011F330 + (arg1&0xFFFF)*0x64; case 0 writes 1 and returns; case 1 emits display-list commands as 8-byte pairs via *arg0 += 8, 7-iteration loop with t1<7). Tried a rewrite with a Gfx{u32 w0,w1} struct and a CMD macro: score 13800-14430 (worse). It adds a 0x10 stack frame (sw $s3, $s0) that the target does not have, and loads arg0 into $a3 where the target keeps it in $t0. The loop's per-command temporaries (temp_v1_N = *arg0) are what the target reuses, so keep the draft's per-command temps and fix the typing rather than using a macro. Open items: the 0x6FB10 vs 0x801680F0 address mismatch in the table lookup (D_801680F0 indexed by mode*4; check whether the table is at D_8006FAF0-relative), register choice for the mode load (target loads mode into $v0 via lui/lhu at D_8006FAF0+0x20, reused for both compares), and the xori/beqz shape of the case-1 `mode == 2 || mode == 7` test.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794759387.684224,
-  "score_before": 1425,
-  "score_after": 1425
  },
  {
   "function": "func_801FF37C",
@@ -40528,5 +40480,62 @@
   "score_before": 3020,
   "score_after": 2660,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:c8824f8ef96f511c3ed8a49da8cb905baf9d4f83de8656e36e75df5b058644d3"
+ },
+ {
+  "function": "func_8013CBBC",
+  "text": "Deep permuter: score 11535 \u2192 8790; 2 improvements; 196 candidates tested; 155 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935326",
+  "created_at": 1794348213.876279,
+  "score_before": 11535,
+  "score_after": 8790
+ },
+ {
+  "function": "func_8013CBBC",
+  "text": "No match. Best saved 1425 remains; my cleaned version (switch on u16 at D_8011F330 + (arg1&0xFFFF)*0x64, GFX macro, for-loop of 7) scored 6270. Target is 228 insns. Key differences: the index (arg1&0xFFFF)*0x64 is computed once and the load address is rebuilt with lui/addu (not CSE'd); the early `case 0` store and return path ordering differ; the target's second-word values use lui/addu per iteration; the loop bound and the `(i+8)<<9 & 0xFE00` terms are close but register allocation (t0 holds arg0) differs. Next: start from the saved 1425 source, keep the per-iteration recomputation of the table index, and fix the case-0 control flow first.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794712349.504592,
+  "score_before": 1425,
+  "score_after": 1425
+ },
+ {
+  "function": "func_8013CBBC",
+  "text": "Not matched. Saved best (1425) is the prior agent's candidate; my rewrite (revision 4631d094dd5a832831de, score 19025) is much worse. Findings: (1) the table index is (arg1&0xFFFF)*100 computed as ((x*2+x)*8+x)*4, and the target keeps `arg1&0xFFFF` in $v1 and loads D_8011F330 via lui/addu/lhu, with the store in the first case as `sh` (halfword), not a 32-bit store; (2) the function copies arg0 to $t0 at entry (`move $t0,$a0`) and the display-list pointer lives in $t0 across the body, so the 'arg0 as void**' form with *arg0 updates may not be the right register shape; (3) the case-1 mode test is `(mode==2)|(mode==7)` materialised as xori/sltiu/or, not a ternary. Next steps: start from saved best, fix the head (index math, lhu/beqz, move $t0,$a0) first, then the 7-iteration loop body, whose addresses (D_801680C8/D_801680F0 indexed by mode*4) the diff flagged. Not tried: compiler flag search.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794728133.285625,
+  "score_before": 1425,
+  "score_after": 1425
+ },
+ {
+  "function": "func_8013CBBC",
+  "text": "Not matched. The recorded best 1425 does not reproduce: the saved machine-draft source (revision 6fb2fd3ff3ee5f87c0ac) compiles now at about 14290, and with s32 temp_v0/var_t1 at 14260 (revision 0b0416d3c73ef5634297). The clean GW-macro rewrite scored 14290 as well. Target structure: switch on the u16 at &D_8011F330 + (arg1&0xFFFF)*100; case 0 stores 1 and returns; case 1 writes gfx pairs through *arg0, with the first pair choosing &D_800E1AE0 vs &D_800E1C00 by the u16 at D_8006FAF0+0x20 being 2 or 7; then a do-while over var_t1 0..6. Target's index uses sll 2/addu chains (x4 each) and it re-reads the u16 at +0x20 per table lookup; my draft computes the index as sll 4 and reads 2(a0), so the address math is wrong. Next: write the index as (u16)arg1*0x64 via the same chain, and read the +0x20 field from the struct pointer that the target uses. Not finished.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794741066.289548,
+  "score_before": 1425,
+  "score_after": 1425
+ },
+ {
+  "function": "func_8013CBBC",
+  "text": "Not matched. Saved best 1425 (other agent) is far better than my rewrites (best of mine 5285 at 76.8%). Structure, verified against asm: switch on u16 at D_8011F330[(arg1&0xFFFF)*0x64]: value 0 -> store 1 and return; value 1 -> body; default -> return. Body: 8 DL-style writes (w0,w1 pairs via *arg0 pointer, 8 bytes each): case on D_8006FAF0[0x20]==2||==7 selects D_800E1AE0 else D_800E1C00 (w0 0x06000000); then 0xB6000000/0x2000, 0xFD100000/*(D_801680C8 + u16(D_8006FAF0+0x20)*4), 0xE8000000/0, 0xF5000100/0x07000000, 0xE6000000/0, 0xF0000000/0x0703C000, 0xE7000000/0, 0x040040FF/&D_80167FB8. Loop i=0..6 (s16): 0xFD48006F/*(D_801680F0 + u16*4), 0xF5480400/0x07080200, 0xE6000000/0, then a0=(i<<5)+0x1F: 0xF4000000|((i<<6)&0xFFF)<<12 / ((a0*2)&0xFFF)<<12|0x0700007C; 0xE7000000/0; 0xF5400400/0x00080200; 0xF2000000|((i<<7)&0xFFF)<<12 / ((a0*4)&0xFFF)<<12|0x7C; 0xB1000000 word with (i*2&0xFF)<<16 | ((i+8)<<9&0xFE00) | ((i+1)*2&0xFF). Trial notes: the target loads D_8011F330 as lui/addu(index)/lhu %lo, so the index must come before the base; the (u32) integer-base form got closest (5285). Still differs: the target keeps t0 = arg0 (the pointer-to-pointer) and holds the switch value in v1 with beqz first. Next: start from the saved 1425 source and only change the switch shape and the DL pointer staging, not the list contents, which are verified.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794758408.1388512,
+  "score_before": 1425,
+  "score_after": 1425
+ },
+ {
+  "function": "func_8013CBBC",
+  "text": "Saved best 1425 is the machine-draft structure (switch on u16 at D_8011F330 + (arg1&0xFFFF)*0x64; case 0 writes 1 and returns; case 1 emits display-list commands as 8-byte pairs via *arg0 += 8, 7-iteration loop with t1<7). Tried a rewrite with a Gfx{u32 w0,w1} struct and a CMD macro: score 13800-14430 (worse). It adds a 0x10 stack frame (sw $s3, $s0) that the target does not have, and loads arg0 into $a3 where the target keeps it in $t0. The loop's per-command temporaries (temp_v1_N = *arg0) are what the target reuses, so keep the draft's per-command temps and fix the typing rather than using a macro. Open items: the 0x6FB10 vs 0x801680F0 address mismatch in the table lookup (D_801680F0 indexed by mode*4; check whether the table is at D_8006FAF0-relative), register choice for the mode load (target loads mode into $v0 via lui/lhu at D_8006FAF0+0x20, reused for both compares), and the xori/beqz shape of the case-1 `mode == 2 || mode == 7` test.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794759387.684224,
+  "score_before": 1425,
+  "score_after": 1425
+ },
+ {
+  "function": "func_8013CBBC",
+  "text": "Profile probe: this saved C scores 2490 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (11 of its 12 nearest matched neighbours were built with it), 3540 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721264.9943721,
+  "score_before": 3540,
+  "score_after": 2490,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:fdcc25c88e9e9a7c08d1ad870ba02443248cc06968ad8c50514ceda2c4148956"
  }
 ]
