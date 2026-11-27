@@ -6824,14 +6824,6 @@
   "score_after": null
  },
  {
-  "function": "func_801402B8",
-  "text": "Not matched. Best saved score 13620 (60.5%, 320 vs 345 insns) at revision 412684a1cee8f9b13e98; the saved-best row later shows 13830 for an equivalent source. Structure is correct: 7-iteration loop over 2288-byte stride table (off = ((i*8+i)*16 - i)*16) with D_8022A772 != 0xFFFF test and sqrtf(dx*dx+dy*dy+dz*dz) < 1400.0f flag; byte +0xC incremented; func_8013E364 gated by 0xFFFF; two unsigned conversions of func_801FA30C()&0x7F (f32)(f64)t; func_800DE41C(0,0,1,0,0x51,0xC8,...,fs2,240.0f,fs1,0,0,0,2,2,2); r2 in 0x1F/0xF branch; func_8013E818(r&0xFFFF, r2&0xFFFF, 0x40, ((fs3-fs2)*0.008f)*ts0, fv, ((fs4-fs1)*0.008f)*ts0, 0xC8); D_8011F338 s32 zero store; D_8018D730 25.0f; second func_800DE41C(0,0,1,0,0x52,0x9B,...,0.2f x3); D_8011F334 stores of (f32)(r2&0xFFFF) and (f32)(r3&0xFFFF); else func_8013E49C(r&0xFFFF). Remaining diffs are not logic: (a) frame 0x98 vs target 0x90, i.e. we have one extra 8-byte stack slot while the target has no stack locals; (b) callee-saved register assignment differs (target s0 = loop/flag, s1 = row/ptr, s2 = flag, s4 = &D_8022A770, s5 = 0xFFFF constant; ours shuffles them); (c) loop shape: target does `sll v0,s0,3` before the label and inverted branch to s5; ours uses beql; (d) the 0x1F/0xF float chain in target is in f2/f0, ours in f4/f6/f8. Tried and worse: removing the f64 local (13830), inverted-continue loop (13944). Next steps: try compile_family(family=\"signedness\") as the tool suggests (unsigned vs signed loop/ off variables), try declaring the table pointers as locals (u8 *tbl = D_8022A770) to force s4 usage, and try collapsing the two conversions into one helper-free expression so the stack slot disappears.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794718295.5020878,
-  "score_before": 18912,
-  "score_after": 13620
- },
- {
   "function": "func_80231E30",
   "text": "Not attempted, no C written. 1328 B, 332 insns, has a jump table: m2c failed with \"Unable to determine jump table for jr\" (line 194 of the .s). Frame 0x58; first calls pass 0x7F, 0, 0 as stack args to func_80233ED0. Uses about 17 data symbols in 0x80232F54..0x80233048 (spaced 0x18 apart, a table of 0x18-byte records) plus D_8006FAF0+0x20 (bss). Next agent: start by declaring a struct for the 0x18-byte records near 0x80232F54, then write the jump-table switch with an explicit `switch` over the selector and check the jump table compiles to the jr pattern. Too large for a blind first attempt at this effort level.",
   "by": "claude-haiku-5-5-23",
@@ -11520,14 +11512,6 @@
   "score_after": 22805
  },
  {
-  "function": "func_801402B8",
-  "text": "Not matched. Best revision b7ef5591413409e426b9, score 13830 (59.9%). Compiles with the draft's externs only (no local func_8013E49C declaration: it conflicts with include/context.h). Target 345 insns, frame 0x90 with ra, s0-s5 and sdc1 $f20/$f22 saves. Differences: (1) the target has `cvt.s.d` x4 and `bgezl` on the sign of the u32 result (the ((u32)x)->f64 pattern with the 2^32 add, as in `(f32)(f64)t` with `if (t<0)`); the draft's plain (f32)(f64)t does not emit it. (2) Float constants go to .rodata at +0x0..+0x18, which the ROM code does not reference this way, so the constants may need to be local floats or reused. (3) The 7-iteration loop over the 0x0E-stride table at D_8022A770/D_8022A772 needs its index in a callee-saved register (s0/s4). Next step: match the loop and frame first (get_assembly 0..40), then fix the cvt pattern.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794741944.271326,
-  "score_before": 13620,
-  "score_after": 13620
- },
- {
   "function": "func_80141268",
   "text": "Claimed but not compiled. The m2c draft has bogus __repair_rows/__repair_addr/__repair_call_balance constructs that must be removed before it compiles. The function is 1456 bytes with a sqrtf distance loop over 7 Slot_8011F334 entries (stride 0x10), f64 random-number helpers (func_801FA30C % 827, & 0x7F, with unsigned-to-float conversion), and a func_800DE41C call with 18 args. Start by rewriting cleanly from the target assembly; there is no prior best attempt. Release now: a function this size needs far more compiles than this session's budget allowed.",
   "by": "claude-haiku-5-5-24",
@@ -12918,14 +12902,6 @@
   "created_at": 1794751278.9733682,
   "score_before": 80,
   "score_after": 80
- },
- {
-  "function": "func_801402B8",
-  "text": "Best 13830 (~60%, 320 vs 345 insns). Control flow is roughly right: a 7-entry loop over D_8022A770/D_8022A772 records (off computed as ((i*8+i)*16 - i)*16, i.e. i*0x7C... check), a sqrtf distance test < 1400.0f against entries of 0x64 bytes at D_8011F2F0, then the func_8013E364/func_801FA30C random spawn block. Mismatches: target frame 0x90 with f20-f22 saved and s0-s5; ours 0x98. Target converts via cvt.s.d and uses double math for the random offsets (same unsigned-to-double pattern as func_8015F7F8), plus double-precision constants; the 'your code refers to .rodata' link messages show our float literals land in different rodata slots than the ROM's, so constants may need to be double literals or reordered. Also, the 1400.0f/240.0f/0.2f constants need checking. Next: fix the frame/saved-register set first, then constant widths.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794751335.9831161,
-  "score_before": 13620,
-  "score_after": 13620
  },
  {
   "function": "func_801FF37C",
@@ -16248,14 +16224,6 @@
   "score_after": 41481
  },
  {
-  "function": "func_801402B8",
-  "text": "Best candidate 260a48d14e4547c60ef3 at score 13830 (59.9%). Target 345 insns, candidate 320. Target has 4x cvt.s.d (double-to-float conversions, probably from double-typed constants or (f32)(f64) on a u32 in a different order), 3x bgezl and extra addiu for D_8022A770 table base; candidate lacks them. Target frame is -0x90, candidate -0x98, so the local set differs (target saves s5 and ra). Re-check the table indexing: off = ((i*8+i)*16 - i)*16 is 0x... per-entry stride; the target seems to index D_8022A770/772 with separate bases. Also .rodata constants (0.2f, 2.0f, 25.0f, etc.) are not the ROM's. Not tried: double constants via (f32)(f64) forms, splitting the random loops. Compile counts: 2/10 without improvement this session.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794759671.110869,
-  "score_before": 13620,
-  "score_after": 13620
- },
- {
   "function": "func_800DECCC",
   "text": "Profile: under KMC GCC 2.7.2 -G0 -mips3 -mgp32 -mfp32 -O1 the draft scores 3481 (vs 8763 at project -O2). search_flags and try_compiler confirm -O1; use it for this function. The C shape is right: arg0 & 0xFFFF times 100 recomputed for each record access (target does not CSE across calls; computes x*100 as ((x<<1)+x)<<3 + x)<<2), flag test (==1||==4), two recursive calls on the u16 fields at 0xC and 0xA of the pointer at D_8011F340+off, D_80126FF0++, unlink/relink on D_8011F300/D_8011F302 with func_800E1850 head update, D_80126FF4 tail, D_8011F2F1[off]=0, and the D_8011F32C / D_800E2660 / D_800E2662 list move with stride 776. Remaining diffs at -O1: target frame is 0x18 saving only ra and s0; the draft (with or without local v) gets 0x28 frame with extra saves. Target loads lui %hi(D_8011F2F1) after computing the offset into $a0; the draft loads the base first. Next: find a C form that keeps only s0 live across the calls and lets the offset be recomputed into $a0 before the flag load. Also check the second-call branch shape at .L800DED90 (target uses beq to skip). Not matched.",
   "by": "claude-haiku-5-5-21",
@@ -17606,14 +17574,6 @@
   "created_at": 1794762217.685405,
   "score_before": 1290,
   "score_after": 1290
- },
- {
-  "function": "func_801402B8",
-  "text": "Not matched. Best 13830 (59.9%, target 345 insns vs 320). Current source is the draft with the undeclared symbols declared (D_801834B8, D_801834C0 are not needed; only the draft's name-table fixes). Differences: target frame is 0x90 and saves ra, s5, s4, s3, s2, s1, s0 plus f20-f22 (sdc1 f22 at 0x70), mine is 0x98 with a different save set, so the locals are wrong. Target uses cvt.s.d twice per distance term and bgezl branches, so the int->float conversion of the random values (func_801FA30C()&mask) is likely done as (f32)(s32) with signed-extension, and the constants (0.01f, 0.1f, 0.008f, 2.0f, 0.2f, 25.0f) come from .rodata literals that my source references at .rodata+0x0..0x18 while the ROM code has none (so the target uses loads from different literal pool entries or fewer constants). The 7-element loop with off = var_s0*0x8F0 and halfword check at D_8022A772 is right (matches the 0x8F0 stride used elsewhere). Next steps: fix the frame (declare the float temporaries so f20-f22 are live across both func_801FA30C calls), then compare the rodata references. The draft's D_8022A770 pointer math should be re-derived from the target's sll/sll pattern.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794762218.155534,
-  "score_before": 13620,
-  "score_after": 13620
  },
  {
   "function": "func_80149FA8",
@@ -41321,5 +41281,54 @@
   "created_at": 1795749041.195359,
   "score_before": 34406,
   "score_after": 34406
+ },
+ {
+  "function": "func_801402B8",
+  "text": "Not matched. Best saved score 13620 (60.5%, 320 vs 345 insns) at revision 412684a1cee8f9b13e98; the saved-best row later shows 13830 for an equivalent source. Structure is correct: 7-iteration loop over 2288-byte stride table (off = ((i*8+i)*16 - i)*16) with D_8022A772 != 0xFFFF test and sqrtf(dx*dx+dy*dy+dz*dz) < 1400.0f flag; byte +0xC incremented; func_8013E364 gated by 0xFFFF; two unsigned conversions of func_801FA30C()&0x7F (f32)(f64)t; func_800DE41C(0,0,1,0,0x51,0xC8,...,fs2,240.0f,fs1,0,0,0,2,2,2); r2 in 0x1F/0xF branch; func_8013E818(r&0xFFFF, r2&0xFFFF, 0x40, ((fs3-fs2)*0.008f)*ts0, fv, ((fs4-fs1)*0.008f)*ts0, 0xC8); D_8011F338 s32 zero store; D_8018D730 25.0f; second func_800DE41C(0,0,1,0,0x52,0x9B,...,0.2f x3); D_8011F334 stores of (f32)(r2&0xFFFF) and (f32)(r3&0xFFFF); else func_8013E49C(r&0xFFFF). Remaining diffs are not logic: (a) frame 0x98 vs target 0x90, i.e. we have one extra 8-byte stack slot while the target has no stack locals; (b) callee-saved register assignment differs (target s0 = loop/flag, s1 = row/ptr, s2 = flag, s4 = &D_8022A770, s5 = 0xFFFF constant; ours shuffles them); (c) loop shape: target does `sll v0,s0,3` before the label and inverted branch to s5; ours uses beql; (d) the 0x1F/0xF float chain in target is in f2/f0, ours in f4/f6/f8. Tried and worse: removing the f64 local (13830), inverted-continue loop (13944). Next steps: try compile_family(family=\"signedness\") as the tool suggests (unsigned vs signed loop/ off variables), try declaring the table pointers as locals (u8 *tbl = D_8022A770) to force s4 usage, and try collapsing the two conversions into one helper-free expression so the stack slot disappears.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794718295.5020878,
+  "score_before": 18912,
+  "score_after": 13620
+ },
+ {
+  "function": "func_801402B8",
+  "text": "Not matched. Best revision b7ef5591413409e426b9, score 13830 (59.9%). Compiles with the draft's externs only (no local func_8013E49C declaration: it conflicts with include/context.h). Target 345 insns, frame 0x90 with ra, s0-s5 and sdc1 $f20/$f22 saves. Differences: (1) the target has `cvt.s.d` x4 and `bgezl` on the sign of the u32 result (the ((u32)x)->f64 pattern with the 2^32 add, as in `(f32)(f64)t` with `if (t<0)`); the draft's plain (f32)(f64)t does not emit it. (2) Float constants go to .rodata at +0x0..+0x18, which the ROM code does not reference this way, so the constants may need to be local floats or reused. (3) The 7-iteration loop over the 0x0E-stride table at D_8022A770/D_8022A772 needs its index in a callee-saved register (s0/s4). Next step: match the loop and frame first (get_assembly 0..40), then fix the cvt pattern.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794741944.271326,
+  "score_before": 13620,
+  "score_after": 13620
+ },
+ {
+  "function": "func_801402B8",
+  "text": "Best 13830 (~60%, 320 vs 345 insns). Control flow is roughly right: a 7-entry loop over D_8022A770/D_8022A772 records (off computed as ((i*8+i)*16 - i)*16, i.e. i*0x7C... check), a sqrtf distance test < 1400.0f against entries of 0x64 bytes at D_8011F2F0, then the func_8013E364/func_801FA30C random spawn block. Mismatches: target frame 0x90 with f20-f22 saved and s0-s5; ours 0x98. Target converts via cvt.s.d and uses double math for the random offsets (same unsigned-to-double pattern as func_8015F7F8), plus double-precision constants; the 'your code refers to .rodata' link messages show our float literals land in different rodata slots than the ROM's, so constants may need to be double literals or reordered. Also, the 1400.0f/240.0f/0.2f constants need checking. Next: fix the frame/saved-register set first, then constant widths.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794751335.9831161,
+  "score_before": 13620,
+  "score_after": 13620
+ },
+ {
+  "function": "func_801402B8",
+  "text": "Best candidate 260a48d14e4547c60ef3 at score 13830 (59.9%). Target 345 insns, candidate 320. Target has 4x cvt.s.d (double-to-float conversions, probably from double-typed constants or (f32)(f64) on a u32 in a different order), 3x bgezl and extra addiu for D_8022A770 table base; candidate lacks them. Target frame is -0x90, candidate -0x98, so the local set differs (target saves s5 and ra). Re-check the table indexing: off = ((i*8+i)*16 - i)*16 is 0x... per-entry stride; the target seems to index D_8022A770/772 with separate bases. Also .rodata constants (0.2f, 2.0f, 25.0f, etc.) are not the ROM's. Not tried: double constants via (f32)(f64) forms, splitting the random loops. Compile counts: 2/10 without improvement this session.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794759671.110869,
+  "score_before": 13620,
+  "score_after": 13620
+ },
+ {
+  "function": "func_801402B8",
+  "text": "Not matched. Best 13830 (59.9%, target 345 insns vs 320). Current source is the draft with the undeclared symbols declared (D_801834B8, D_801834C0 are not needed; only the draft's name-table fixes). Differences: target frame is 0x90 and saves ra, s5, s4, s3, s2, s1, s0 plus f20-f22 (sdc1 f22 at 0x70), mine is 0x98 with a different save set, so the locals are wrong. Target uses cvt.s.d twice per distance term and bgezl branches, so the int->float conversion of the random values (func_801FA30C()&mask) is likely done as (f32)(s32) with signed-extension, and the constants (0.01f, 0.1f, 0.008f, 2.0f, 0.2f, 25.0f) come from .rodata literals that my source references at .rodata+0x0..0x18 while the ROM code has none (so the target uses loads from different literal pool entries or fewer constants). The 7-element loop with off = var_s0*0x8F0 and halfword check at D_8022A772 is right (matches the 0x8F0 stride used elsewhere). Next steps: fix the frame (declare the float temporaries so f20-f22 are live across both func_801FA30C calls), then compare the rodata references. The draft's D_8022A770 pointer math should be re-derived from the target's sll/sll pattern.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794762218.155534,
+  "score_before": 13620,
+  "score_after": 13620
+ },
+ {
+  "function": "func_801402B8",
+  "text": "Profile probe: this saved C scores 3505 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (321 functions of this project were built with it), 4345 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721291.107866,
+  "score_before": 4345,
+  "score_after": 3505,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:ab58f62acb9d6d5784aa8e888633e043d70eea5c09206652dc8656ff93c9b404"
  }
 ]
