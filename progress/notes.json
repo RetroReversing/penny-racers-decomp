@@ -6232,14 +6232,6 @@
   "score_after": 65
  },
  {
-  "function": "func_8020FC20",
-  "text": "Not matched. Best this session 7036 (59.5%), revision 21d3b620bdcd801c33ed (the candidate C as given, compiled once). Historical saved best 2665 is listed as the same source; not reproduced here. Mismatches: target frame is 0x40 with saves ra/s2/s1/s0 at 0x3C..0x30; my build uses frame 0x28 with saves at 0x24..0x18, so the function needs more live locals (the f32 `f`, a0, a2 and the struct base s2 and s0 spill). Target preamble: s2 = &D_8011F2F0 + (u16)a0*100; switch on lhu(s2+0x3E): case 0 sets s2+2 |= 0x8000 and writes 0x10 to s2+0x3E; case 0x10 is the main body. Case 0x10 reads D_8021EEA7[0..8] many times; the target reloads lbu D_8021EEA7 for each index (no CSE across calls), so the struct index expression must be written per use, not cached. Next: give the function a larger frame by making the locals live across calls (e.g. keep D_8021EEA7[0] in a separate variable reloaded after each call), and compare the f32 path at the end (f < 0.0f adds 360.0f).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794710630.358921,
-  "score_before": 2665,
-  "score_after": 2665
- },
- {
   "function": "func_802117AC",
   "text": "Saved best 4960 is the historical best (its source is not in my transcript, so restore it with get_candidate(base=\"saved_best\") before further work). My clean rewrite (revision b3d4051990226e0be72e) scores 10102, worse. Its structure is close to the target: the 0x2000 flag test on s0, the two func_800DE41C calls (18-arg prototype, f32 at index 9 and 15), the -0.5f/0.5f constants and the (f64) cvt/add sequence all look right. The main diff is the frame: the target is 0x50 with only ra and s0 saved; ours is 0x58 and also saves s1, so one extra value is live across a call. Suspects: a0 (s8 index) or v1 (s0 & 3) carried across the func_8014B854 call, or the s0 = 0 / s0 = call merge. Target recomputes `s0 & 3` and `s0 & 0x10` after each call, so write those as fresh expressions at each use. Next step: fix the extra saved register first, then the andi s0,8 placement. I stopped after one compile of this clean rewrite, so the frame fix is untested and the remaining work is in the next agent's hands.",
   "by": "claude-haiku-5-5-22",
@@ -8542,14 +8534,6 @@
   "created_at": 1794725361.9580429,
   "score_before": 5065,
   "score_after": 4165
- },
- {
-  "function": "func_8020FC20",
-  "text": "Best current: revision 3a594dd369d0a7d50bdb, score 6710 (61.4%), target 174 insns, mine 175. Progress: the target frame is 0x40 and mine was 0x28; adding an unused local `f64 pad[3];` (16 bytes gave 0x38, 24 gave 0x40) reproduces the frame and the saves now line up. The pad is a placeholder for locals the original had that the C does not yet show, so a real local may be a better fix. Remaining: the target caches &D_8021EEA7 in s1 and loads p[0], p[1], p[6..8] via 0(s1)/1(s1)/6(s1); the current p-caching version still reloads via %lo(D_8021EEAD), so the base pointer is not being hoisted. Also the prologue saves in the target come at the top before the switch dispatch (register saves ahead of the body), mine is ordered differently. The source 0x2a0 vs 0x2a8 jump offsets point to the switch arms being emitted in a different order. The unchanged draft (score 7036) uses D_8021EEA7[...] inline, which is worse on the frame. Saved best 2665 is the same as the draft source and does not reproduce here.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794725363.849924,
-  "score_before": 2665,
-  "score_after": 2665
  },
  {
   "function": "func_801E435C",
@@ -10966,14 +10950,6 @@
   "created_at": 1794739520.805731,
   "score_before": 65,
   "score_after": 65
- },
- {
-  "function": "func_8020FC20",
-  "text": "Releasing early, reason: the gap is structural, not local. Saved best 2665 is still roughly 59% of the target, and every variant tried is worse. The target frame is 0x40 with $ra,$s2,$s1,$s0 saved; mine is 0x28 with fewer saves. The target reads D_8021EEA7 via $s1 at offsets 0,1,6,7,8, and computes `s0 = D_8022A770 + idx*0x8F0` as shift/sub/add, not a multiply. Both suggest a different local layout (a struct or array on the stack) that I could not identify from the diff alone. Next agent: find the 0x40 frame's contents first (check the other callers of func_8012AD20 / func_80149F40 for an out-arg struct), then rewrite the case-16 body. The case-0 path is probably right.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794739528.953197,
-  "score_before": 2665,
-  "score_after": 2665
  },
  {
   "function": "fixed60ToF64",
@@ -14304,14 +14280,6 @@
   "score_after": 15801
  },
  {
-  "function": "func_8020FC20",
-  "text": "Not matched. Best source scores 7036 (59.5%); saved best 2665 is a different source. The draft only covers switch cases 0 and 16 of a jump table on u16 at s2+0x3E (51-ish cases in the target), so the remaining cases are missing and no C can close the gap until they are written. Target frame is 0x40 with ra,s2,s1,s0 saved at 0x3c..0x30; my draft has 0x28, so the local set is too small. Case 16 body: the target loads D_8021EEA7[0..8] once before the stores; my draft reloads them. Next: write the remaining switch cases from the assembly (jump table at D_8021xxxx; the j at +0x2a0 is the dispatch) and fix the frame size.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794754072.343863,
-  "score_before": 2665,
-  "score_after": 2665
- },
- {
   "function": "func_801E1C38",
   "text": "Not matched; best saved 8675 (49.8%), unchanged by my attempts. Structure from the target asm (use it for a fresh draft): prologue saves ra and s0 (frame 0x20); s0=0; call func_8003DE60(&D_801E94EC, D_801E973C) with TWO args (the brief/m2c prototype with 3 args breaks it; an unprototyped `void func_8003DE60();` declaration is needed, otherwise undeclared). D_801E87E3=1; D_801E87E1=D_801E87E0=D_801F18E4. Halfword fields at D_800DA26A+0xA3E: u16 = F18E5, then s16 at +0xA40..+0xA4C = F18E6..F18EC. idx=(u16)*(D_800DA26A+0xA3E); D_800DA26A[0xBA8+idx]=F18ED. Then t1=F18EE, t0=F18EF, a1=0xE; while (t1!=FF||t0!=FF): if (t1==EE && t0==EE): n1=E0[(a1+2)&ffff], n0=E1[...]; a1+=4; cnt=*(u16*)(E0+(a1&ffff)); write D9D80/D9D81 at s0+2i for i<cnt; s0+=cnt*2. else write t1,t0 at s0; s0+=2. then a1+=2; reload t1=E0[a1&ffff], t0=E1[a1&ffff]. After loop: write t1,t0 at s0; s0+=2; call func_8003DE60(&D_801E9500, (a1+2)&ffff, s0&ffff) (s0 already incremented). Final copy loop from a0=0 step 2: E0[a0]=D80[a0]; E1[a0]=D81[a0]; v1=D80[a0]; if v1!=FF continue; if D81[a0]!=v1 continue (a0 pre-increment); a0+=2 each path; return. The machine draft's final loop is wrong (it checks D81 after incrementing). Tool problem: after two different full-source compiles the result stayed at score 8675 and the diff showed a prologue-less candidate (no s0 save), so the compile feedback may be stale; verify by get_candidate/last_diff before trusting scores. Budget used 4 of 8 compiles without improvement. share_knowledge not used.",
   "by": "claude-haiku-5-5-21",
@@ -14830,14 +14798,6 @@
   "created_at": 1794756016.3135302,
   "score_before": 4960,
   "score_after": 4960
- },
- {
-  "function": "func_8020FC20",
-  "text": "Not matched. Current rechecked score for revision 21d3b620bdcd801c33ed is 7036 (59.5%); the saved best says 2665 for the same source, which doesn't reproduce now. Structural gap: the target frame is 0x40 with ra, s0, s1, s2 saved at 0x30-0x3c; ours is 0x28 with only s2, s1, s0, ra saved at 0x18-0x24. So the target keeps more values live across the calls in the case-16 block (probably the s2 record pointer and the `s0` slot plus at least one more temp kept in a saved register). Also the target does `lbu` on D_8021EEA7 at offset 1, 6, 7, 8 via one base register, while ours reloads the global each time (`lbu $v1, %lo(D_8021EEAD)` x6). Fix: copy `D_8021EEA7` into a local `u8 *p = D_8021EEA7;` and index through it, and keep the record pointer in a local across the calls. Then re-check the frame size before touching register choice.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794756056.166487,
-  "score_before": 2665,
-  "score_after": 2665
  },
  {
   "function": "func_80026D40",
@@ -18400,14 +18360,6 @@
   "score_after": 8675
  },
  {
-  "function": "func_8020FC20",
-  "text": "Not matched. Saved best 2665 (the claimed draft, rev 21d3b620bdcd801c33ed) re-scored at 7036 in my compile, so the saved number is not comparable; treat the draft as far off. Target frame is 0x40 (saves ra,s0,s1,s2 plus locals); the draft's frame is 0x28, so the draft is missing a real local/struct area. Target reads D_8021EEA7 at +0 and +1/+6/+7/+8 with byte loads, and the raw MIPS addresses in the diff suggest D_8021EEA7 and D_8021F048 are mis-sized or mis-placed externs (0x8021EEA7 vs 0x8021EEAD; 0x8021F048 vs 0x8021F0A0). Next: re-derive the extern layouts from the assembly (get_assembly, focusing the lbu sequence at the start of case 16), then fix the frame size before tuning calls.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794765402.009131,
-  "score_before": 2665,
-  "score_after": 2665
- },
- {
   "function": "func_802191E4",
   "text": "Not matched; releasing early because the blocker is missing data, not C tuning. Best 12568 (25.6%, rev fa009133f021ff9c7cba; partial C, 93 vs 169 insns). Function is a state machine on u16 rec[0x3E] (rec = D_8011F2F0 + idx*100) with a 51-entry jump table at D_8021DF10 (sltiu 0x33). The candidate covers only states 0, 1 and 0x10. Other states, from get_assembly: 0x10 countdown (D_80190CA6, D_80190CA4 up to 0xB, then func_80028100(0,0x1E), func_80203DF8(2,0x2D,0,0,0), st=0x11); a 6-iteration loop writing D_8011F2FD[D_80190C98[i]*100] = 2, then D_80190CB0=1, st=4; a path calling func_8021AF20 and setting st=0x18; a final block calling func_800DE38C, func_800DE2E0, func_80231C5C, func_801CF468(D_8018BC3C,0,0,0), setting D_8021B01A=0, D_8021AFDC=0x2E, D_8006F9E8=8, D_80168BB0=0x30, st=0x32. Next step: read the jump table at D_8021DF10 (read_data) to get all case targets, then write every case before compiling again.",
   "by": "claude-haiku-5-5-22",
@@ -18894,14 +18846,6 @@
   "created_at": 1794767481.450134,
   "score_before": 12568,
   "score_after": 12568
- },
- {
-  "function": "func_8020FC20",
-  "text": "No match. My compiles this claim: 7036 (direct D_8021EEA7[...] source) and 7276 (with u8 *e = D_8021EEA7; worse). The saved best 2665 has the same source, but its score is historical and was not reverified here. Key mismatch is the frame: target is 0x40 with ra, s2, s1, s0 saved, and s1 holds the D_8021EEA7 base (lbu offsets 0/1/6/7/8 off s1). Mine is 0x28 with s2 and s0 only. The pointer variant made the score worse: the compiler then reloads D_8022A770 separately, while the target keeps s0 = D_8022A770 + e[0]*0x8F0 live across three func_80149F40 calls. Needed: a way to keep three values live across calls (s0 table pointer, s1 base, s2 state pointer). Case 0 (|= 0x8000 then store 0x10) and the branch target at 0x2A0 look right. Not tried: a helper for the case-16 body that takes e and s0. Asking to move on: the gap is frame and callee-saved register allocation, which depends on the original variable lifetimes.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794767507.1736362,
-  "score_before": 2665,
-  "score_after": 2665
  },
  {
   "function": "func_8015A728",
@@ -41356,5 +41300,61 @@
   "score_before": 5040,
   "score_after": 2020,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:1f1d5669831748f1635d9aa0ad35ff79b6241a12f118b2c9846f40dd85525ae9"
+ },
+ {
+  "function": "func_8020FC20",
+  "text": "Not matched. Best this session 7036 (59.5%), revision 21d3b620bdcd801c33ed (the candidate C as given, compiled once). Historical saved best 2665 is listed as the same source; not reproduced here. Mismatches: target frame is 0x40 with saves ra/s2/s1/s0 at 0x3C..0x30; my build uses frame 0x28 with saves at 0x24..0x18, so the function needs more live locals (the f32 `f`, a0, a2 and the struct base s2 and s0 spill). Target preamble: s2 = &D_8011F2F0 + (u16)a0*100; switch on lhu(s2+0x3E): case 0 sets s2+2 |= 0x8000 and writes 0x10 to s2+0x3E; case 0x10 is the main body. Case 0x10 reads D_8021EEA7[0..8] many times; the target reloads lbu D_8021EEA7 for each index (no CSE across calls), so the struct index expression must be written per use, not cached. Next: give the function a larger frame by making the locals live across calls (e.g. keep D_8021EEA7[0] in a separate variable reloaded after each call), and compare the f32 path at the end (f < 0.0f adds 360.0f).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794710630.358921,
+  "score_before": 2665,
+  "score_after": 2665
+ },
+ {
+  "function": "func_8020FC20",
+  "text": "Best current: revision 3a594dd369d0a7d50bdb, score 6710 (61.4%), target 174 insns, mine 175. Progress: the target frame is 0x40 and mine was 0x28; adding an unused local `f64 pad[3];` (16 bytes gave 0x38, 24 gave 0x40) reproduces the frame and the saves now line up. The pad is a placeholder for locals the original had that the C does not yet show, so a real local may be a better fix. Remaining: the target caches &D_8021EEA7 in s1 and loads p[0], p[1], p[6..8] via 0(s1)/1(s1)/6(s1); the current p-caching version still reloads via %lo(D_8021EEAD), so the base pointer is not being hoisted. Also the prologue saves in the target come at the top before the switch dispatch (register saves ahead of the body), mine is ordered differently. The source 0x2a0 vs 0x2a8 jump offsets point to the switch arms being emitted in a different order. The unchanged draft (score 7036) uses D_8021EEA7[...] inline, which is worse on the frame. Saved best 2665 is the same as the draft source and does not reproduce here.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794725363.849924,
+  "score_before": 2665,
+  "score_after": 2665
+ },
+ {
+  "function": "func_8020FC20",
+  "text": "Releasing early, reason: the gap is structural, not local. Saved best 2665 is still roughly 59% of the target, and every variant tried is worse. The target frame is 0x40 with $ra,$s2,$s1,$s0 saved; mine is 0x28 with fewer saves. The target reads D_8021EEA7 via $s1 at offsets 0,1,6,7,8, and computes `s0 = D_8022A770 + idx*0x8F0` as shift/sub/add, not a multiply. Both suggest a different local layout (a struct or array on the stack) that I could not identify from the diff alone. Next agent: find the 0x40 frame's contents first (check the other callers of func_8012AD20 / func_80149F40 for an out-arg struct), then rewrite the case-16 body. The case-0 path is probably right.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794739528.953197,
+  "score_before": 2665,
+  "score_after": 2665
+ },
+ {
+  "function": "func_8020FC20",
+  "text": "Not matched. Best source scores 7036 (59.5%); saved best 2665 is a different source. The draft only covers switch cases 0 and 16 of a jump table on u16 at s2+0x3E (51-ish cases in the target), so the remaining cases are missing and no C can close the gap until they are written. Target frame is 0x40 with ra,s2,s1,s0 saved at 0x3c..0x30; my draft has 0x28, so the local set is too small. Case 16 body: the target loads D_8021EEA7[0..8] once before the stores; my draft reloads them. Next: write the remaining switch cases from the assembly (jump table at D_8021xxxx; the j at +0x2a0 is the dispatch) and fix the frame size.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794754072.343863,
+  "score_before": 2665,
+  "score_after": 2665
+ },
+ {
+  "function": "func_8020FC20",
+  "text": "Not matched. Current rechecked score for revision 21d3b620bdcd801c33ed is 7036 (59.5%); the saved best says 2665 for the same source, which doesn't reproduce now. Structural gap: the target frame is 0x40 with ra, s0, s1, s2 saved at 0x30-0x3c; ours is 0x28 with only s2, s1, s0, ra saved at 0x18-0x24. So the target keeps more values live across the calls in the case-16 block (probably the s2 record pointer and the `s0` slot plus at least one more temp kept in a saved register). Also the target does `lbu` on D_8021EEA7 at offset 1, 6, 7, 8 via one base register, while ours reloads the global each time (`lbu $v1, %lo(D_8021EEAD)` x6). Fix: copy `D_8021EEA7` into a local `u8 *p = D_8021EEA7;` and index through it, and keep the record pointer in a local across the calls. Then re-check the frame size before touching register choice.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794756056.166487,
+  "score_before": 2665,
+  "score_after": 2665
+ },
+ {
+  "function": "func_8020FC20",
+  "text": "Not matched. Saved best 2665 (the claimed draft, rev 21d3b620bdcd801c33ed) re-scored at 7036 in my compile, so the saved number is not comparable; treat the draft as far off. Target frame is 0x40 (saves ra,s0,s1,s2 plus locals); the draft's frame is 0x28, so the draft is missing a real local/struct area. Target reads D_8021EEA7 at +0 and +1/+6/+7/+8 with byte loads, and the raw MIPS addresses in the diff suggest D_8021EEA7 and D_8021F048 are mis-sized or mis-placed externs (0x8021EEA7 vs 0x8021EEAD; 0x8021F048 vs 0x8021F0A0). Next: re-derive the extern layouts from the assembly (get_assembly, focusing the lbu sequence at the start of case 16), then fix the frame size before tuning calls.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794765402.009131,
+  "score_before": 2665,
+  "score_after": 2665
+ },
+ {
+  "function": "func_8020FC20",
+  "text": "No match. My compiles this claim: 7036 (direct D_8021EEA7[...] source) and 7276 (with u8 *e = D_8021EEA7; worse). The saved best 2665 has the same source, but its score is historical and was not reverified here. Key mismatch is the frame: target is 0x40 with ra, s2, s1, s0 saved, and s1 holds the D_8021EEA7 base (lbu offsets 0/1/6/7/8 off s1). Mine is 0x28 with s2 and s0 only. The pointer variant made the score worse: the compiler then reloads D_8022A770 separately, while the target keeps s0 = D_8022A770 + e[0]*0x8F0 live across three func_80149F40 calls. Needed: a way to keep three values live across calls (s0 table pointer, s1 base, s2 state pointer). Case 0 (|= 0x8000 then store 0x10) and the branch target at 0x2A0 look right. Not tried: a helper for the case-16 body that takes e and s0. Asking to move on: the gap is frame and callee-saved register allocation, which depends on the original variable lifetimes.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794767507.1736362,
+  "score_before": 2665,
+  "score_after": 2665
  }
 ]
