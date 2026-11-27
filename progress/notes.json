@@ -5976,14 +5976,6 @@
   "score_after": 170
  },
  {
-  "function": "func_801FF978",
-  "text": "Best 12815 (44.9%), saved best candidate. Structure: 3 loops. Loop1 (16 iters, stride 0x1C over D_802038E8 block) calls C0D0/C090/alCSPGetChlProgram/C0B0/C0F0. Loop2 (16 iters, same stride) does flag-gated calls C2E0/C240/C370/alSeqpSetChlFXMix/C330 else copies E8->F7, E9->F8, EC->FC(s32), F0->900, F1->901. Loop3 (8 iters, stride 0x2C over D_801D7DF0) calls D030(i), n_alSndpGetState, stores at +0xC and -1 at D7DF4 when zero. Target keeps &D_8006FB38 in s3 across loop calls and recomputes the index as (i*8-i)*4 inline; the first if on D_802038E0 uses a pointer in s0 (lui/addiu s0; lw; bnez) which my form does not reproduce; the E4/-0xC stores via a pointer p in s0 are close. Tried: local dev pointer for all calls (13555, worse), ch=i&0xFF local (worse). Remaining diff is codegen of the address/pointer hoisting and register allocation, not the control flow. Try m2c-style index variable (temp_v0 = i*0x1C vs (i*8-i)*4) and a saved pointer to D_802038E0 next.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794711116.806206,
-  "score_before": 13607,
-  "score_after": 12815
- },
- {
   "function": "main",
   "text": "Asking to release now: nothing in C can get closer, the gap is the frame pointer flag. Source (revision 7aa6832693c842060ec6): typedef struct T T; extern T D_8004AAB0; extern u8 D_8004CE10[]; void func_80033C20(void); void func_80026E64(void *); void osCreateThread(T *t, s32 id, void (*entry)(void *), void *arg, void *sp, s32 prio); void osStartThread(T *t); void main(void) { func_80033C20(); osCreateThread(&D_8004AAB0, 1, func_80026E64, NULL, D_8004CE10, 10); osStartThread(&D_8004AAB0); }\nWith the range profile -G0 -mips3 -mgp32 -mfp32 -O1 that gives 22 insns, score 506: every instruction matches except the frame pointer bookkeeping (target: sw $fp,0x18(sp), addu $fp,$sp in the jal delay slot, addu $sp,$fp and lw $fp in the epilogue, $ra at 0x1C). With -fno-omit-frame-pointer added the same C matches byte-for-byte (verified with try_compiler). Filed suggest(compiler=\"gcc-2.7.2-kmc\", flags=\"-G0 -mips3 -mgp32 -mfp32 -O1 -fno-omit-frame-pointer\", function=\"main\"); automatic compiler changes are off, so the user must apply it and recompile this C.",
   "by": "opencode-deepseek-v4.1-flash-free-5",
@@ -7902,14 +7894,6 @@
   "created_at": 1794727150.116603,
   "score_before": 12595,
   "score_after": 12595
- },
- {
-  "function": "func_801FF978",
-  "text": "Not matched. Best score 12815 (44.9%), saved candidate revision fa6e28ad21df62f517d8 (direct &SYM+t accesses). Pointer-local rewrite (ctx/tp/hp locals) scored worse at 13065; `u32 t` signedness variant gave no change. Why I stopped: the first 16-iteration loop and the 8-iteration tail loop (base D_801D7DF0, stride 0x2C, tail writes at +0xC and D_801D7DF4) need a different structure than the candidate, and the diff is dominated by register/stack ordering that follows from it. Next steps for whoever picks this up: (1) target keeps &D_8006FB38 in $s3 and passes `addu $a0,$s3,$zero` in the first loop, so take the address once into a local rather than repeating the expression; (2) the index t = i*0x1C compiles as `sll s0,s2,3; subu s0,s0,s2; sll s0,s0,2` with each access `lui at,%hi(SYM); addu at,at,s0; sb/sw %lo(SYM)(at)`; (3) struct guess for the 28-byte element at D_802038E8: +0,+1 u8, +4 s32, +8,+9 u8, +10..+14 flags, +15,+16 values, +20 s32 overlapping +23, +24,+25 values. Start by fixing the first loop's register use, then the tail loop.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794727321.351348,
-  "score_before": 12815,
-  "score_after": 12815
  },
  {
   "function": "func_80204760",
@@ -10150,14 +10134,6 @@
   "created_at": 1794740445.085979,
   "score_before": 330,
   "score_after": 330
- },
- {
-  "function": "func_801FF978",
-  "text": "Not attempted in C yet; no candidate compiled. The m2c draft is a plausible outline of an audio channel-state refresh: first it stores tempo at D_802038DC/E0 (branch on D_802038E0 == 0), then stores s16/s32 fields at D_802038E4 (offsets 0 and -0xC), then a 16-iteration loop filling 0x1C-byte records at D_802038E8+i*0x1C from the func_8002C0xx and alCSPGetChlProgram getters, then a second 16-iteration loop that compares per-channel fields at D_802038F2+(i*8-i)*4 and calls func_8002C240/2E0/330/370 or alSeqpSetChlFXMix, else copies into the record. The third loop calls func_8002D030 and n_alSndpGetState for 8 entries, writing 0x2C-byte records at D_801D7DF0 and storing -1 at D_801D7DF4 when the state is 0. The draft's index arithmetic (var_v0*8 - var_s2)*4 is suspicious and should be checked against the asm before any iteration of it. Next step: get_assembly pages for the first loop, match that loop alone, then add the others. The tempo branch and record stores should be reviewed against the asm first.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794740461.4775,
-  "score_before": 10836,
-  "score_after": 10836
  },
  {
   "function": "func_801F9BE8",
@@ -13688,14 +13664,6 @@
   "score_after": 3081
  },
  {
-  "function": "func_801FF978",
-  "text": "Released early at low effort: 932 bytes, 233 target insns. Best saved 26870 (0% match); 8 compiles without improvement, plus one signedness variant (worse, 26875). Cause: the target keeps &D_802038E0 / D_802038E4 in $s0 across the whole function and reads each global with its own lui/%lo, while our globals are addressed through D_8006FB38 and D_801D7DF0 with folded offsets, so the diff is structural from the first block. Next step: declare the D_802038xx globals as individual extern symbols (not arrays), write the tempo block first and compile it alone, then the 0x1C-stride init loop (entries: +0 byte, +1 byte, +4 word, +8 byte, +9 byte; second loop reads +10..+14 flags and writes +15..+25), then the final 8-entry loop over D_801D7DF0 (stride 0x2C, field +0xC).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794758052.0824,
-  "score_before": 10836,
-  "score_after": 10836
- },
- {
   "function": "func_80211A84",
   "text": "Bounded profile/source investigation (20+ diagnostic trials) reached O1 score20/99.6% using source448df2c3660244669dbc. Current O2 score900. Distinct local p=&D_8021EECC for value accesses, but direct D_8021EECC.flags for flags, prevents O1 folding flags into new symbol. First update uses direct inline target expression; reload target after store. Only O1 mismatch: target cvt.d.s f6,f10; ldc1 f8,D8021DDD0 vs ours swapped f8/f6; sub.d/add.d operands follow. Explicit targetD, margin, low, nextD and register declarations don't change it. Loading margin before casting target gives correct registers but moves cvt after ldc (score60). Volatile margin global and changing comparison operand syntax did not solve. search_flags O1 score20, O2/O3/g/fno-strength-reduce score900. Data tool calls label D8021DDD0 BSS/no ROM bytes, so couldn't validate possible literal constant interpretation. Next: investigate constant provenance or pseudo lifetime in float-to-double subtraction. Preserve O1 near-match source and only apply profile after exact proof.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -14022,14 +13990,6 @@
   "created_at": 1794758994.174956,
   "score_before": 3081,
   "score_after": 3081
- },
- {
-  "function": "func_801FF978",
-  "text": "Draft scores 26870 (0%), target 233 insns vs 152. The draft is structurally wrong, not just tuned. The target keeps the 0x1C-stride table at D_802038E8 as pointer arithmetic with `addu $at,$at,$s0` and `sll` pairs (about 27 of them), and it addresses D_802038E0 via `lui $s0`/`addiu $s0,%lo` and reads it with `lw ($s0)` before a `bnez`, then stores through the same pointer. The draft instead does `lui $at`/`sw %lo(...)` directly. Also the first branch loads D_802038E0 and stores D_802038DC in the else arm, but the target's branch layout is different. Next: rewrite the first block as an s0-based pointer write (`s32 *p = &D_802038E0; if (*p == 0) ...`), then rebuild the loops with a single base pointer `u8 *tbl = D_802038E8` plus an index shifted by 2 and 3 instead of `i * 0x1C`. Verify the 0x1C stride reproduces the `sll $s0,$s2,3` / `sll $s0,$s0,2` pair before judging anything else.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794759003.388736,
-  "score_before": 10836,
-  "score_after": 10836
  },
  {
   "function": "func_801FCBEC",
@@ -41721,5 +41681,45 @@
   "score_before": 19376,
   "score_after": 15888,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:e46f6650083829b60c8d47c4f50d35016eb8b621fc6fd3cde1d53a01db9da0d9"
+ },
+ {
+  "function": "func_801FF978",
+  "text": "Best 12815 (44.9%), saved best candidate. Structure: 3 loops. Loop1 (16 iters, stride 0x1C over D_802038E8 block) calls C0D0/C090/alCSPGetChlProgram/C0B0/C0F0. Loop2 (16 iters, same stride) does flag-gated calls C2E0/C240/C370/alSeqpSetChlFXMix/C330 else copies E8->F7, E9->F8, EC->FC(s32), F0->900, F1->901. Loop3 (8 iters, stride 0x2C over D_801D7DF0) calls D030(i), n_alSndpGetState, stores at +0xC and -1 at D7DF4 when zero. Target keeps &D_8006FB38 in s3 across loop calls and recomputes the index as (i*8-i)*4 inline; the first if on D_802038E0 uses a pointer in s0 (lui/addiu s0; lw; bnez) which my form does not reproduce; the E4/-0xC stores via a pointer p in s0 are close. Tried: local dev pointer for all calls (13555, worse), ch=i&0xFF local (worse). Remaining diff is codegen of the address/pointer hoisting and register allocation, not the control flow. Try m2c-style index variable (temp_v0 = i*0x1C vs (i*8-i)*4) and a saved pointer to D_802038E0 next.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794711116.806206,
+  "score_before": 13607,
+  "score_after": 12815
+ },
+ {
+  "function": "func_801FF978",
+  "text": "Not matched. Best score 12815 (44.9%), saved candidate revision fa6e28ad21df62f517d8 (direct &SYM+t accesses). Pointer-local rewrite (ctx/tp/hp locals) scored worse at 13065; `u32 t` signedness variant gave no change. Why I stopped: the first 16-iteration loop and the 8-iteration tail loop (base D_801D7DF0, stride 0x2C, tail writes at +0xC and D_801D7DF4) need a different structure than the candidate, and the diff is dominated by register/stack ordering that follows from it. Next steps for whoever picks this up: (1) target keeps &D_8006FB38 in $s3 and passes `addu $a0,$s3,$zero` in the first loop, so take the address once into a local rather than repeating the expression; (2) the index t = i*0x1C compiles as `sll s0,s2,3; subu s0,s0,s2; sll s0,s0,2` with each access `lui at,%hi(SYM); addu at,at,s0; sb/sw %lo(SYM)(at)`; (3) struct guess for the 28-byte element at D_802038E8: +0,+1 u8, +4 s32, +8,+9 u8, +10..+14 flags, +15,+16 values, +20 s32 overlapping +23, +24,+25 values. Start by fixing the first loop's register use, then the tail loop.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794727321.351348,
+  "score_before": 12815,
+  "score_after": 12815
+ },
+ {
+  "function": "func_801FF978",
+  "text": "Not attempted in C yet; no candidate compiled. The m2c draft is a plausible outline of an audio channel-state refresh: first it stores tempo at D_802038DC/E0 (branch on D_802038E0 == 0), then stores s16/s32 fields at D_802038E4 (offsets 0 and -0xC), then a 16-iteration loop filling 0x1C-byte records at D_802038E8+i*0x1C from the func_8002C0xx and alCSPGetChlProgram getters, then a second 16-iteration loop that compares per-channel fields at D_802038F2+(i*8-i)*4 and calls func_8002C240/2E0/330/370 or alSeqpSetChlFXMix, else copies into the record. The third loop calls func_8002D030 and n_alSndpGetState for 8 entries, writing 0x2C-byte records at D_801D7DF0 and storing -1 at D_801D7DF4 when the state is 0. The draft's index arithmetic (var_v0*8 - var_s2)*4 is suspicious and should be checked against the asm before any iteration of it. Next step: get_assembly pages for the first loop, match that loop alone, then add the others. The tempo branch and record stores should be reviewed against the asm first.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794740461.4775,
+  "score_before": 10836,
+  "score_after": 10836
+ },
+ {
+  "function": "func_801FF978",
+  "text": "Released early at low effort: 932 bytes, 233 target insns. Best saved 26870 (0% match); 8 compiles without improvement, plus one signedness variant (worse, 26875). Cause: the target keeps &D_802038E0 / D_802038E4 in $s0 across the whole function and reads each global with its own lui/%lo, while our globals are addressed through D_8006FB38 and D_801D7DF0 with folded offsets, so the diff is structural from the first block. Next step: declare the D_802038xx globals as individual extern symbols (not arrays), write the tempo block first and compile it alone, then the 0x1C-stride init loop (entries: +0 byte, +1 byte, +4 word, +8 byte, +9 byte; second loop reads +10..+14 flags and writes +15..+25), then the final 8-entry loop over D_801D7DF0 (stride 0x2C, field +0xC).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794758052.0824,
+  "score_before": 10836,
+  "score_after": 10836
+ },
+ {
+  "function": "func_801FF978",
+  "text": "Draft scores 26870 (0%), target 233 insns vs 152. The draft is structurally wrong, not just tuned. The target keeps the 0x1C-stride table at D_802038E8 as pointer arithmetic with `addu $at,$at,$s0` and `sll` pairs (about 27 of them), and it addresses D_802038E0 via `lui $s0`/`addiu $s0,%lo` and reads it with `lw ($s0)` before a `bnez`, then stores through the same pointer. The draft instead does `lui $at`/`sw %lo(...)` directly. Also the first branch loads D_802038E0 and stores D_802038DC in the else arm, but the target's branch layout is different. Next: rewrite the first block as an s0-based pointer write (`s32 *p = &D_802038E0; if (*p == 0) ...`), then rebuild the loops with a single base pointer `u8 *tbl = D_802038E8` plus an index shifted by 2 and 3 instead of `i * 0x1C`. Verify the 0x1C stride reproduces the `sll $s0,$s2,3` / `sll $s0,$s0,2` pair before judging anything else.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794759003.388736,
+  "score_before": 10836,
+  "score_after": 10836
  }
 ]
