@@ -3336,14 +3336,6 @@
   "score_after": 416
  },
  {
-  "function": "func_802117AC",
-  "text": "Deep permuter: score 12837 \u2192 10224; 5 improvements; 82 candidates tested; 88 cached skips; 0 rejected; 7232s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935777",
-  "created_at": 1794348749.742261,
-  "score_before": 12837,
-  "score_after": 10224
- },
- {
   "function": "n_alAdpcmPull",
   "text": "Deep permuter: score 1181 \u2192 1181; 0 improvements; 144 candidates tested; 0 cached skips; 0 rejected; 7210s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934904",
@@ -6184,14 +6176,6 @@
   "score_after": 65
  },
  {
-  "function": "func_802117AC",
-  "text": "Saved best 4960 is the historical best (its source is not in my transcript, so restore it with get_candidate(base=\"saved_best\") before further work). My clean rewrite (revision b3d4051990226e0be72e) scores 10102, worse. Its structure is close to the target: the 0x2000 flag test on s0, the two func_800DE41C calls (18-arg prototype, f32 at index 9 and 15), the -0.5f/0.5f constants and the (f64) cvt/add sequence all look right. The main diff is the frame: the target is 0x50 with only ra and s0 saved; ours is 0x58 and also saves s1, so one extra value is live across a call. Suspects: a0 (s8 index) or v1 (s0 & 3) carried across the func_8014B854 call, or the s0 = 0 / s0 = call merge. Target recomputes `s0 & 3` and `s0 & 0x10` after each call, so write those as fresh expressions at each use. Next step: fix the extra saved register first, then the andi s0,8 placement. I stopped after one compile of this clean rewrite, so the frame fix is untested and the remaining work is in the next agent's hands.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794710689.189219,
-  "score_before": 4960,
-  "score_after": 4960
- },
- {
   "function": "__voiceNeedsNoteKill",
   "text": "Score 695 -> 55 with ONE structural change (revision 8fa3576c3c1f7dc7986c, current saved best).\n\nDecisive change: bind the loop successor to a local at the top of the loop and step with it, instead of re-reading v->next:\n    while (v != NULL) {\n        Voice *next;\n        next = v->next;\n        d = v->field08;\n        total += d;\n        if (v->field0C == 5 && v->field10 == arg1) {\n            if (arg2 < total) {\n                if (next != NULL) { next->field08 += d; }\n                alUnlink(v); alLink(v, (Voice **)((u8 *)arg0 + 0x48));\n                return ret;\n            }\n            ret = 0; break;\n        }\n        v = next;\n    }\nThe form `v->next` twice (as `if (v->next) v->next->field08 += d;` and `v = v->next;`) gives score 695 with the next-load sunk to the equal-path and a plain `bne`. With the local, GCC hoists `lw next,($s0)` to the top of the loop, uses `bnel` + delay-slot `move s0,next`, and duplicates `move s0,next` in the two paths \u2014 exactly the target.\n\nWhat is left (9 diff rows, all one allocation choice): target has arg0 in $s1 and the return-value variable `ret` in $s2; the candidate has them swapped (ret=$s1, arg0=$s2), which also swaps the prologue sw $s1/sw $s2 order and every `$s1`/`$s2` use. Everything else (44 insns, incl. addiu t0,zero,5 hoisted, `move a0,zero` = total, bnel/bnez shape) matches.\n\nTried, all no better: ret before total in decls / v-last / total-first (310 or 80); separate decls + assignments in each order (55, identical output); d declared before v (80); hoisting `next` to function scope (55 identical). Declaration order must stay `Voice *v = ...; s32 total = 0; s32 ret = 1; s32 d;` with the assignments inside the loop as above.\n\nUntried next ideas: (a) introduce a `Voice **head`/context-struct pointer for `(u8*)arg0 + 0x48` so arg0's pseudo weight changes; (b) change `ret`'s type or its initialization site; (c) any change that makes arg0's global-alloc priority exceed ret's (arg0: 2 code refs, ret: 4 code refs, so ret currently wins the lower saved register).\n\nUpdate after a second session: still 55 (saved best 8fa3576c3c1f7dc7986c). The one remaining problem is a single coherent allocation choice \u2014 target: arg0 in $s1 and the return-value variable in $s2; candidate: swapped. All 44 instructions, every stack offset (except the $s1/$s2 save order that follows from it) and every branch shape already match.\n\nAdditional experiments (all with the exact source from the earlier note):\n- `Voice **head = (Voice **)((u8 *)arg0 + 0x48);` before the loop + `alLink(v, head)` -> 485 (the addiu moves to the prologue).\n- same but `head` declared with the others and assigned before the loop -> 485.\n- context struct `typedef struct { u8 pad[0x48]; Voice *freeList; Voice *active; } Ctx;` with `Ctx *c = arg0; Voice *v = c->active; alLink(v, &c->freeList);` -> 60 (only 1 diff row shifted, still 9 mismatches) \u2014 closest alternative to the plain form.\n- declaration/initialisation permutations (ret before total, total first, separate decls + assignments, d before v, hoisting `next` to function scope): 55 identical, 80, or 310.\n\nRemaining hypothesis to test: arg0 has 2 code refs and the ret variable 4, so global-alloc gives ret the better saved register. Anything that legitimately adds an arg0 reference in the loop (without adding an instruction) or removes a ret reference would flip s1/s2. Do not add dummy uses (forbidden and would change the code).\n\nMoving on at the budget limit (4 compiles without improvement, best 55). Best source is the saved candidate revision 8fa3576c3c1f7dc7986c (see the function note for the exact C and the full list of failed variants). Everything matches byte-for-byte except one coherent allocation: the target has arg0 in $s1 and the return-value variable in $s2, the candidate has them swapped (9 diff rows, all $s1/$s2, plus the sw $s1/sw $s2 prologue order that follows from it). Last try this session: signedness of field08 (u32) -> identical 55. Next idea: raise arg0's global-alloc priority above the ret variable's (arg0 has 2 code refs, ret has 4) without adding a dummy use.",
   "by": "opencode-deepseek-v4.1-flash-free-5",
@@ -8422,14 +8406,6 @@
   "created_at": 1794725163.6816242,
   "score_before": 15820,
   "score_after": 15820
- },
- {
-  "function": "func_802117AC",
-  "text": "Machine draft (m2c) compiles but scores 13462 (26%); saved best 4960 is from an earlier source. Mismatches are structural: target frame is 0x50 (addiu sp,-0x50; ra at 0x4c; s0 at 0x48) while the draft uses 0x68 with extra locals (s1 at 0x5c, ra at 0x60), and the draft hoists D_8021EFA0 loads and uses D_8021E15F as a byte (lb) where the target loads D_8021EFA0 only in the bit-test order `lui; lw; andi 0x2000; beqz`. Also target keeps float temporaries in $f0 (swc1 to 0x24($sp)) rather than sdc1 at 0x48. Start from the saved best source (get_candidate base=saved_best) rather than the draft. Structure: var_s0 = 0; if (!(D_8021EFA0 & 0x2000)) s0 = func_8014A870(0x14,3,D_8021E15F); then two 0x2000-flag increment/decrement blocks on D_8021EEC0 (u8@0, u8@3, f32@0xC, s32@0xE0) calling func_800DE41C with 0x50 and &func_80211A84 and +/-0.5f; then D_8021F036 counter updates indexed by temp = D_8021E231[D_8021E15F*0x110 + D_8021EEC0[0]], wrap at 10 and 0xFF->9; func_8014B854(0x3C) when temp != 0xD; clear bit 0x8000 of D_8021EFA0; func_80211C08().",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794725198.676548,
-  "score_before": 4960,
-  "score_after": 4960
  },
  {
   "function": "func_8015A728",
@@ -10870,14 +10846,6 @@
   "created_at": 1794739655.207799,
   "score_before": 160,
   "score_after": 160
- },
- {
-  "function": "func_802117AC",
-  "text": "Not matched. Best this session: 10192 (43.9%) at revision 81afeed2fa73e508163c; saved best 4960 is from an earlier source, so this is worse. Why I stopped: the diff is structural across the whole body (163 differing rows, 25 deleted, 29 inserted), not local. The target starts by loading D_8021EFA0 and testing 0x2000 before calling func_8014A870, while my draft loads D_8021E15F as the call argument first. Frame 0x50 (ra at 0x4c, s0/s1), my version 0x58 with an extra spill. Target's D_8021E231 table lookup and D_8021F036 counter updates are in a different order from mine, and the target has an extra lbu in the post-call tail. Next: rebuild the function from the flag test down, one arm at a time, with the m2c draft's M2C macros replaced by direct array access on D_8021EEC0.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794739655.458925,
-  "score_before": 4960,
-  "score_after": 4960
  },
  {
   "function": "func_8015A728",
@@ -14080,14 +14048,6 @@
   "score_after": 65
  },
  {
-  "function": "func_802117AC",
-  "text": "Not attempted in this session: I stopped here. Starting points: the m2c draft in the claim is structurally plausible (conditional calls to func_800DE41C with a float argument computed from D_8021EEC0+0xC and D_8021DDC0/D_8021DDC8, and the -0.5f/0.5f float stack arg). Check the float-argument order and the stack layout with get_assembly before compiling. Its pointer types for D_8021EEC0 (u8 at +0, +3, s32 at +0xE0) and the D_8021F036 byte table indexed by temp_a0 need fixing.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794754202.483708,
-  "score_before": 4960,
-  "score_after": 4960
- },
- {
   "function": "func_8015A728",
   "text": "Best 4855 (65.3%), revision eca0b50ba934ed6f07fe. Key: struct array Rec { u8 type; u8 pad0; u16 flags; u8 pad1[0x0C]; u16 next; u8 pad2[0x2C]; u16 state; u8 pad3[0x24]; } (size 0x64; state at 0x3E, next at 0x10) indexed D_8011F2F0[idx].state; plus byte-offset reads of D_801E99C0/D_801E9994 at +0,+0x70,+0xE0,+0x150. Scores: u8-base form 6545; struct with wrong next offset 5720; struct with fixed offsets 4855. No gain from: a local base pointer; an s32 idx (5440); a typed s32 base array with [off/4] indexing (4855, same). The arithmetic for idx*100 already matches (sll/addu chain). Remaining diff is register allocation and the first st==1 branch layout (target: andi $v0 then $v1 chain; target keeps idx in $v0, mine swaps). Untried: write the idx*100 product explicitly as a u8 pointer offset, and check the st==1 / st==2 branch sense with a switch.",
   "by": "claude-haiku-5-5-21",
@@ -14558,14 +14518,6 @@
   "created_at": 1794755988.830436,
   "score_before": 15801,
   "score_after": 14608
- },
- {
-  "function": "func_802117AC",
-  "text": "Not matched. Best saved score 4960 (different source); my latest C scored 10012 (44.9%). Target frame is 0x50 with ra and s0 saved; my draft uses 0x58 with s0 and s1, so the local/struct variable layout is wrong. The target loads D_8021EFA0 first (andi 0x2000 test) and calls func_8014A870(0x14,3,D_8021E15F) only when that bit is clear. The record at D_8021EEC0 is accessed with offsets 0x0 (u8 counter), 0x3 (u8 limit), 0xC (f32), 0xE0 (s32 flags, |= 0x2000). The 0x110 stride table D_8021E231 is indexed by D_8021E15F*0x110 + counter. D_8021F036 is a u8 counter table (wrap at 10 up, 9 down, 0xFF\u21929). Next: restore the saved best, make the frame and the early D_8021EFA0 test match, then fix the register allocation.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794756016.3135302,
-  "score_before": 4960,
-  "score_after": 4960
  },
  {
   "function": "func_80026D40",
@@ -18054,14 +18006,6 @@
   "created_at": 1794765488.682584,
   "score_before": 255,
   "score_after": 255
- },
- {
-  "function": "func_802117AC",
-  "text": "Cannot get closer: best this session 9668 (46.8%), candidate revision ed7cb23dd935628026f4; the saved best 4960 (earlier agent) is still the best. Structure matches the target: s0 = (D_8021EFA0&0x2000) ? 0 : func_8014A870(0x14,3,D_8021E15F); inc/dec of the D_8021EEC0 counter guarded by s0&4 and s0&8 with bound D_8021EEC0[3]-1; flags |= 0x2000 at offset 0xE0; a0 = (s8)D_8021E231[D_8021E15F*0x110+count]; D_8021F036[a0] counter with wraps at 10 and 0xFF; s0&0x10 and D_8021EFA0 &= 0xFFFF7FFF; final func_80211C08. Main problem: the frame. The target is addiu -0x50 with ra at 0x4c and s0 at 0x48 (only one callee-saved reg). Ours is -0x58 and also saves s1/s2 because the value a0 (D_8021E231 index) must survive the func_8014B854 calls and gcc keeps it in a saved register. The target recomputes it, or keeps it in a temporary across the calls only in the non-call paths. Tried with no gain: a u8 *p base (12287, frame -0x60); struct for D_8021EEC0 (9952); if/else for s0 (9668). Next: recompute the D_8021E231 index after each call instead of keeping a0 live, so the frame drops to one saved register.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794765534.825527,
-  "score_before": 4960,
-  "score_after": 4960
  },
  {
   "function": "func_80148B44",
@@ -41417,5 +41361,70 @@
   "created_at": 1794762644.247218,
   "score_before": 25072,
   "score_after": 25072
+ },
+ {
+  "function": "func_802117AC",
+  "text": "Deep permuter: score 12837 \u2192 10224; 5 improvements; 82 candidates tested; 88 cached skips; 0 rejected; 7232s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935777",
+  "created_at": 1794348749.742261,
+  "score_before": 12837,
+  "score_after": 10224
+ },
+ {
+  "function": "func_802117AC",
+  "text": "Saved best 4960 is the historical best (its source is not in my transcript, so restore it with get_candidate(base=\"saved_best\") before further work). My clean rewrite (revision b3d4051990226e0be72e) scores 10102, worse. Its structure is close to the target: the 0x2000 flag test on s0, the two func_800DE41C calls (18-arg prototype, f32 at index 9 and 15), the -0.5f/0.5f constants and the (f64) cvt/add sequence all look right. The main diff is the frame: the target is 0x50 with only ra and s0 saved; ours is 0x58 and also saves s1, so one extra value is live across a call. Suspects: a0 (s8 index) or v1 (s0 & 3) carried across the func_8014B854 call, or the s0 = 0 / s0 = call merge. Target recomputes `s0 & 3` and `s0 & 0x10` after each call, so write those as fresh expressions at each use. Next step: fix the extra saved register first, then the andi s0,8 placement. I stopped after one compile of this clean rewrite, so the frame fix is untested and the remaining work is in the next agent's hands.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794710689.189219,
+  "score_before": 4960,
+  "score_after": 4960
+ },
+ {
+  "function": "func_802117AC",
+  "text": "Machine draft (m2c) compiles but scores 13462 (26%); saved best 4960 is from an earlier source. Mismatches are structural: target frame is 0x50 (addiu sp,-0x50; ra at 0x4c; s0 at 0x48) while the draft uses 0x68 with extra locals (s1 at 0x5c, ra at 0x60), and the draft hoists D_8021EFA0 loads and uses D_8021E15F as a byte (lb) where the target loads D_8021EFA0 only in the bit-test order `lui; lw; andi 0x2000; beqz`. Also target keeps float temporaries in $f0 (swc1 to 0x24($sp)) rather than sdc1 at 0x48. Start from the saved best source (get_candidate base=saved_best) rather than the draft. Structure: var_s0 = 0; if (!(D_8021EFA0 & 0x2000)) s0 = func_8014A870(0x14,3,D_8021E15F); then two 0x2000-flag increment/decrement blocks on D_8021EEC0 (u8@0, u8@3, f32@0xC, s32@0xE0) calling func_800DE41C with 0x50 and &func_80211A84 and +/-0.5f; then D_8021F036 counter updates indexed by temp = D_8021E231[D_8021E15F*0x110 + D_8021EEC0[0]], wrap at 10 and 0xFF->9; func_8014B854(0x3C) when temp != 0xD; clear bit 0x8000 of D_8021EFA0; func_80211C08().",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794725198.676548,
+  "score_before": 4960,
+  "score_after": 4960
+ },
+ {
+  "function": "func_802117AC",
+  "text": "Not matched. Best this session: 10192 (43.9%) at revision 81afeed2fa73e508163c; saved best 4960 is from an earlier source, so this is worse. Why I stopped: the diff is structural across the whole body (163 differing rows, 25 deleted, 29 inserted), not local. The target starts by loading D_8021EFA0 and testing 0x2000 before calling func_8014A870, while my draft loads D_8021E15F as the call argument first. Frame 0x50 (ra at 0x4c, s0/s1), my version 0x58 with an extra spill. Target's D_8021E231 table lookup and D_8021F036 counter updates are in a different order from mine, and the target has an extra lbu in the post-call tail. Next: rebuild the function from the flag test down, one arm at a time, with the m2c draft's M2C macros replaced by direct array access on D_8021EEC0.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794739655.458925,
+  "score_before": 4960,
+  "score_after": 4960
+ },
+ {
+  "function": "func_802117AC",
+  "text": "Not attempted in this session: I stopped here. Starting points: the m2c draft in the claim is structurally plausible (conditional calls to func_800DE41C with a float argument computed from D_8021EEC0+0xC and D_8021DDC0/D_8021DDC8, and the -0.5f/0.5f float stack arg). Check the float-argument order and the stack layout with get_assembly before compiling. Its pointer types for D_8021EEC0 (u8 at +0, +3, s32 at +0xE0) and the D_8021F036 byte table indexed by temp_a0 need fixing.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794754202.483708,
+  "score_before": 4960,
+  "score_after": 4960
+ },
+ {
+  "function": "func_802117AC",
+  "text": "Not matched. Best saved score 4960 (different source); my latest C scored 10012 (44.9%). Target frame is 0x50 with ra and s0 saved; my draft uses 0x58 with s0 and s1, so the local/struct variable layout is wrong. The target loads D_8021EFA0 first (andi 0x2000 test) and calls func_8014A870(0x14,3,D_8021E15F) only when that bit is clear. The record at D_8021EEC0 is accessed with offsets 0x0 (u8 counter), 0x3 (u8 limit), 0xC (f32), 0xE0 (s32 flags, |= 0x2000). The 0x110 stride table D_8021E231 is indexed by D_8021E15F*0x110 + counter. D_8021F036 is a u8 counter table (wrap at 10 up, 9 down, 0xFF\u21929). Next: restore the saved best, make the frame and the early D_8021EFA0 test match, then fix the register allocation.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794756016.3135302,
+  "score_before": 4960,
+  "score_after": 4960
+ },
+ {
+  "function": "func_802117AC",
+  "text": "Cannot get closer: best this session 9668 (46.8%), candidate revision ed7cb23dd935628026f4; the saved best 4960 (earlier agent) is still the best. Structure matches the target: s0 = (D_8021EFA0&0x2000) ? 0 : func_8014A870(0x14,3,D_8021E15F); inc/dec of the D_8021EEC0 counter guarded by s0&4 and s0&8 with bound D_8021EEC0[3]-1; flags |= 0x2000 at offset 0xE0; a0 = (s8)D_8021E231[D_8021E15F*0x110+count]; D_8021F036[a0] counter with wraps at 10 and 0xFF; s0&0x10 and D_8021EFA0 &= 0xFFFF7FFF; final func_80211C08. Main problem: the frame. The target is addiu -0x50 with ra at 0x4c and s0 at 0x48 (only one callee-saved reg). Ours is -0x58 and also saves s1/s2 because the value a0 (D_8021E231 index) must survive the func_8014B854 calls and gcc keeps it in a saved register. The target recomputes it, or keeps it in a temporary across the calls only in the non-call paths. Tried with no gain: a u8 *p base (12287, frame -0x60); struct for D_8021EEC0 (9952); if/else for s0 (9668). Next: recompute the D_8021E231 index after each call instead of keeping a0 live, so the frame drops to one saved register.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794765534.825527,
+  "score_before": 4960,
+  "score_after": 4960
+ },
+ {
+  "function": "func_802117AC",
+  "text": "Profile probe: this saved C scores 4449 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (10 of its 12 nearest matched neighbours were built with it), 5140 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721239.95195,
+  "score_before": 5140,
+  "score_after": 4449,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:7bfd995a1ea30cbd4a5343c0b6168b1d1e61451487a874b873404ad88bb2fc56"
  }
 ]
