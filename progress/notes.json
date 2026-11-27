@@ -7136,14 +7136,6 @@
   "score_after": 3125
  },
  {
-  "function": "func_800E067C",
-  "text": "Releasing early: the remaining differences need the compiler to hoist the double constant D_800E1E70 and share the id*100 index with the else path. Hand-tuning the source hasn't moved the score in the last several edits, and it needs a deliberate register-allocation pass. Best revision b23db212cca1ff20d1d1 scores 6520; saved best 4625 (draft). Notes are above in the previous release attempt: record layout, 3-field chain re-walk from record base, copy else-branch, loop condition next != 0xFFFF && next >= D_80233EC0.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794710868.801103,
-  "score_before": 4625,
-  "score_after": 4625
- },
- {
   "function": "func_801993D4",
   "text": "Display-list emitter (arg0 = Gfx** cursor, arg1 = index; elements are 100 bytes). Logic read from asm: st=u16 at F330+idx*100; st==0 -> store 1 and return; st!=1 -> return. Else a=u16 at F32E+D_801C7074*100 selects one of three emitted pairs: F2FC-based (0xFA000000, u8 F2FC[idx]|0xFF00), 0x96969664 variant, and a final (0xF9000000, 1) that always runs last. Tried twice: structured if/goto version (score 10520, saved best 6180 is historical). Mismatch is structural: target computes idx once and keeps arg0 in a2 (move a2,a0 at entry); target's st==0 block sits at the end of the function, and the store-1 path is reached by fall-through. Ours uses different temp regs ($a3) and inverts the branches (sltiu/xori chains from the bool-valued conditions). Next step: express the three conditions as nested ifs (not gotos) so GCC emits the sltiu/bnez layout, and move the st==0 store to the bottom path.",
   "by": "claude-haiku-5-5-23",
@@ -10472,14 +10464,6 @@
   "score_after": 1647
  },
  {
-  "function": "func_800E067C",
-  "text": "Not matched. Best from this session is still the saved 4625 (the m2c-style draft with goto loop_1). Three rewrites I tried were all worse: (a) do-while with u16 a1 and per-iteration (a1&0xFFFF)*0x64 recomputed at the top and end: 9650; (b) same with lim = D_80233EC0 hoisted and off computed once before the loop: 9440. Target facts: loop index is a1&0xFFFF held in $v0 (andi at loop top and again in the bne delay slot); the index*100 is computed as ((i*2+i)*8+i)*4 = 100*i and re-derived in each path (the sll/addu chain repeats at the join .L800E0878); D_800E1E70 is loaded once at entry into $ft0 (ldc1) and reused for all six mul.d; D_80233EC0 is loaded once into $a2 and 0xFFFF into $a3 before the loop; the 2 is in $t0. Each if-block walks the chain D_8011F340[off] -> +4 -> +4 -> +4 once in the true branch (lw v0,4(v0) repeated, not CSE'd) and reads p3->0x40/0x42/0x44 and 0x50/0x52/0x54 as s16 with lh. The else path copies D_8011F308/30C/310 into 334/338/33C with lwc1/swc1 through $fv0 and no cvt. The loop end is: a1 = *(u16*)(D_8011F300 + 100*(a1&0xFFFF)); exit if a1 == 0xFFFF or a1 >= D_80233EC0 (unsigned). Start from the saved draft and fix the hoisted constants and the chain re-walk.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794726259.123992,
-  "score_before": 4625,
-  "score_after": 4625
- },
- {
   "function": "func_80135108",
   "text": "Best saved is 4140 (the m2c-style draft with s32 externs and &D_sym arithmetic scored 5620 in my attempt; a u8/u16/f32 typed rewrite scored 10460, worse). Target facts: the table stride is 100 bytes per entry, computed as ((idx*3)<<3 + idx)*4 = 25*idx<<2 (sll 1/addu/sll 3/addu/sll 2). D_8011F2F0 is read as a byte (lbu), indexed by idx*100. D_8022A776 is a halfword table indexed by byte*0x8F0 with &2 test. Float to u16 conversion goes through the `>= 2^31` branch with bc1tl, then trunc.w.s/mfc1 and andi 0xFFFF. Unresolved: the compiler emits the 25*idx multiply as a shift/add chain only when the index is first masked to u16 into a separate local; my attempts kept index*0x64 as one multiply. Not tried: an explicit `(idx*25)<<2` form with the u16 mask kept as its own local, and splitting the float conversions into helper-free inline blocks that mirror the two bc1tl paths.",
   "by": "claude-haiku-5-5-24",
@@ -13766,14 +13750,6 @@
   "created_at": 1794740091.48464,
   "score_before": 649,
   "score_after": 649
- },
- {
-  "function": "func_800E067C",
-  "text": "Best candidate rev 9ce40f3638a4f9bbe532 (score 5560, 61%, 132 vs 142 insns). Saved best 4605 is historical and not reproduced. Structure: for(;;) loop over slot idx (stride 0x64) from u16 D_800E1850; if D_8011F2F1[off]==2, A=*(D_8011F340+off), b=A->+4, c=b->+4 with NULL checks; three f32 lerps in f64 using a hoisted local k=D_800E1E70; d=A->+4->+4->+4 (fully re-walked for the 338/33C lerp); else copy 308/30C/310 to 334/338/33C; then a1=u16 D_8011F300[idx*0x64]; break if a1==0xFFFF or a1<lim (lim=D_80233EC0 hoisted local). Remaining diff is prologue hoisting and register allocation: target loads D_800E1850, the constant D_800E1E70 (ldc1) and D_80233EC0 up front with a2/a3/a1 usage, while mine materializes them in the loop. Also the target has 5 pointer +4 loads where mine has fewer. Next agent: try moving the k/lim loads and the 0xFFFF constant into the loop body order that the target uses, and try a goto-form loop.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794740105.4039192,
-  "score_before": 4605,
-  "score_after": 4605
  },
  {
   "function": "func_8020FFD0",
@@ -18192,14 +18168,6 @@
   "score_after": 885
  },
  {
-  "function": "func_800E067C",
-  "text": "Not matched. Best source (revision efb546e11bc1a1760a54, goto loop_1 form, lim = D_80233EC0 loaded before loop) scores 8815 (37.9%); saved best 4605 is a different source. Structure is right: loop over 100-byte records from func_800E1850; if D_8011F2F1[off]==2: p=*(void**)(D_8011F340+off), q=p->4 (no null check on p), if q && (r=q->4) then s=r->4 and three f32 stores D_8011F334/338/33C = (f32)((f64)(s->40-s->50)*D_800E1E70 + (f64)s->50 + (f64)D_8011F308/30C/310[off]) with 42/52 and 44/54; else copies. Then cur=*(u16*)(D_8011F300+(cur&0xFFFF)*100); if cur!=0xFFFF && cur>=lim goto loop_1. Remaining diff: target hoists the f64 constant load (ldc1 D_800E1E70), the 0xFFFF constant (ori $a3) and the D_80233EC0 load before the loop and keeps them in registers; gcc reloads them inside. Index register order ($v0/$v1 swapped in the x*100 chain). Next: try declaring the f64 constant and limit as locals loaded before the loop (or as a register-friendly temp), and try writing the x*100 chain as separate statements to match the target's sll/addu order.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794754034.588446,
-  "score_before": 4605,
-  "score_after": 4605
- },
- {
   "function": "func_801F9D8C",
   "text": "Not matched. Best saved 4330 (74%, rev 61bbdec665305fa4e5dd; uses (f32)((double)arg0), which gives cvt.d.w where target has cvt.s.w). Tried -((f32)arg0) (4555, worse, rev a400bd576c0e3ba9ed7b) and u32 temp_a3 (5540, worse). Target: f=(f32)a; if(0<f){if(f>=2^31) trunc(f-2^31)|0x80000000 else trunc(f)} else {f=-(f32)a; same test via bc1tl}, repeated for arg1; then table index (s32)(x<<6)/y into halfword table D_801FB230 (step 2) with 0x5A/0xB4/0x168 quadrant fixup. Remaining mismatch is branch sense and block order of the four conversion arms, which a goto-free rewrite would need to reproduce. Cannot get closer from the current draft without restructuring those arms; next agent should start from the saved 4330 revision and rewrite only the conversion arms, checking c.lt.s/c.le.s and bc1f/bc1tl sense on each.",
   "by": "claude-haiku-5-5-20",
@@ -18950,14 +18918,6 @@
   "created_at": 1794739880.05735,
   "score_before": 390,
   "score_after": 390
- },
- {
-  "function": "func_800E067C",
-  "text": "Stopping: my rewrite (revision 0b599c2b39c9460141bb, score 10525) is a wrong and much shorter version (69 insns vs 142): it dropped the second and third pointer-chain blocks and the D_8011F2F1 stride/branch structure, so the compile budget is not informative here; this needs a full structural rewrite, not register tuning. Start from the m2c draft (revision 031ddcf6762d73e292d4) or the saved best 4605. Target structure: a loop over slot index cur (initial from D_800E1850; next via D_8011F300[i].f0, stop on 0xFFFF or >= D_80233EC0). Per slot with D_8011F2F1[i*100] == 2: walk D_8011F340[i] -> +4 -> +4 -> +4 with NULL checks; three f32 results from s16 fields at +0x40/+0x42/+0x44 minus +0x50/+0x52/+0x54 scaled by D_800E1E70 (f64), stored to D_8011F334/338/33C at stride 100; fallback copies D_8011F308/30C/310 when a link is NULL. Also check the second chain-walk for the other D_8011F2F1 value. Release with that for a fresh pass.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794755900.376204,
-  "score_before": 4605,
-  "score_after": 4605
  },
  {
   "function": "func_801FA028",
@@ -24504,14 +24464,6 @@
   "score_after": 825
  },
  {
-  "function": "func_800E067C",
-  "text": "Cannot get closer with the budget left: best this session is 5585 (60.6%, candidate 2a1500c10f1e42d8ca90), behind the saved 4605. Structure is right (do-while over idx with a D_8011F2F1==2 branch, a three-level pointer chain for the fields 0x40/0x42/0x44/0x50/0x52/0x54, and a next=D_8011F300[idx].f0 loop condition with next!=0xFFFF && next>=D_80233EC0). Remaining diffs are hoisting: the target loads D_800E1E70 (ldc1 into $f4), 0xFFFF (a3), 2 (t0) and D_80233EC0 (a2) before the loop, and file-scope locals for them had no effect. Signedness of idx (s16) is worse at 6795. Untried: a typed struct for the 100-byte record with the pointers at 0x40/0x44 and a record pointer local, which would make the pointer chain explicit instead of offset arithmetic.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794765317.825511,
-  "score_before": 4605,
-  "score_after": 4605
- },
- {
   "function": "func_802306F0",
   "text": "Not matched. Best saved score 9041 (42%), revision 7379013f306427cf63e9 (case-by-case switch with local pointer `a`). Blocker: the frame needs 4 saved regs (s0-s3) plus ra at 0x30, frame 0x38; my candidates keep a 5th (s4) and the prologue order differs. Dropping `a` (revision 94e8676918a146433da3) changed the switch lowering (extra beq/nop shapes) and scored 9181; u32 i (signedness family) scored 9761. Target facts: arg0 stays in s0 across the first call; the second call sets only a0 (a1 is stale, so declare it unprototyped); D_800DA260+0x178 == D_800DA26A+0x16E; byte field at D_800DA26A + i*0x178 + 0x1B. Untested next steps: try -O1 for this switch; or restructure the sp10 clear so the loop index starts at 0 in each switch arm delay slot.",
   "by": "claude-haiku-5-5-24",
@@ -25134,14 +25086,6 @@
   "created_at": 1794767396.740708,
   "score_before": 0,
   "score_after": 0
- },
- {
-  "function": "func_800E067C",
-  "text": "No match. Saved best 4605 is an older m2c-style draft. My best rewrite this session scored 6530 (54%, revision a2d5a14e872d68caa1c3). It is structurally close: loop index i = a1 & 0xFFFF with off = i*100 (asm builds it as ((i*3)<<3 + i)<<2); D_8011F2F1[off]==2 gate; p=*(void**)(&D_8011F340+off), q=p->4, r=q->4, t=r->4; three float blocks, each re-walking the chain from the root (the asm reloads after each store); fields 0x40/0x50, 0x42/0x52, 0x44/0x54 with inputs D308/D30C/D310 and outputs D334/D338/D33C; else branch copies D308/D30C/D310 to D334/D338/D33C; tail a1 = u16 at D300+off, stop on 0xFFFF, loop when a1 >= D80233EC0. Remaining diffs are register allocation (the target keeps the loop value in $v0 and a1 in $a1, plus hoisted 2 and lui/ldc1 of D_800E1E70 before the loop) and the mtc1/cvt.d.w pair going through $f2 instead of $f0. Three further compiles (else-branch index, hoisted lim) gave no change. Asking to move on: the remaining gap is in register choice and constant hoisting, which I could not steer from C.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794767409.1426198,
-  "score_before": 4605,
-  "score_after": 4605
  },
  {
   "function": "func_801F9D8C",
@@ -40049,5 +39993,70 @@
   "score_before": 4206,
   "score_after": 2644,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:54f6e3aabfdd48591eefb57a55aff5a8ac441830818ebbd782e78b1162e476f3"
+ },
+ {
+  "function": "func_800E067C",
+  "text": "Releasing early: the remaining differences need the compiler to hoist the double constant D_800E1E70 and share the id*100 index with the else path. Hand-tuning the source hasn't moved the score in the last several edits, and it needs a deliberate register-allocation pass. Best revision b23db212cca1ff20d1d1 scores 6520; saved best 4625 (draft). Notes are above in the previous release attempt: record layout, 3-field chain re-walk from record base, copy else-branch, loop condition next != 0xFFFF && next >= D_80233EC0.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794710868.801103,
+  "score_before": 4625,
+  "score_after": 4625
+ },
+ {
+  "function": "func_800E067C",
+  "text": "Not matched. Best from this session is still the saved 4625 (the m2c-style draft with goto loop_1). Three rewrites I tried were all worse: (a) do-while with u16 a1 and per-iteration (a1&0xFFFF)*0x64 recomputed at the top and end: 9650; (b) same with lim = D_80233EC0 hoisted and off computed once before the loop: 9440. Target facts: loop index is a1&0xFFFF held in $v0 (andi at loop top and again in the bne delay slot); the index*100 is computed as ((i*2+i)*8+i)*4 = 100*i and re-derived in each path (the sll/addu chain repeats at the join .L800E0878); D_800E1E70 is loaded once at entry into $ft0 (ldc1) and reused for all six mul.d; D_80233EC0 is loaded once into $a2 and 0xFFFF into $a3 before the loop; the 2 is in $t0. Each if-block walks the chain D_8011F340[off] -> +4 -> +4 -> +4 once in the true branch (lw v0,4(v0) repeated, not CSE'd) and reads p3->0x40/0x42/0x44 and 0x50/0x52/0x54 as s16 with lh. The else path copies D_8011F308/30C/310 into 334/338/33C with lwc1/swc1 through $fv0 and no cvt. The loop end is: a1 = *(u16*)(D_8011F300 + 100*(a1&0xFFFF)); exit if a1 == 0xFFFF or a1 >= D_80233EC0 (unsigned). Start from the saved draft and fix the hoisted constants and the chain re-walk.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794726259.123992,
+  "score_before": 4625,
+  "score_after": 4625
+ },
+ {
+  "function": "func_800E067C",
+  "text": "Best candidate rev 9ce40f3638a4f9bbe532 (score 5560, 61%, 132 vs 142 insns). Saved best 4605 is historical and not reproduced. Structure: for(;;) loop over slot idx (stride 0x64) from u16 D_800E1850; if D_8011F2F1[off]==2, A=*(D_8011F340+off), b=A->+4, c=b->+4 with NULL checks; three f32 lerps in f64 using a hoisted local k=D_800E1E70; d=A->+4->+4->+4 (fully re-walked for the 338/33C lerp); else copy 308/30C/310 to 334/338/33C; then a1=u16 D_8011F300[idx*0x64]; break if a1==0xFFFF or a1<lim (lim=D_80233EC0 hoisted local). Remaining diff is prologue hoisting and register allocation: target loads D_800E1850, the constant D_800E1E70 (ldc1) and D_80233EC0 up front with a2/a3/a1 usage, while mine materializes them in the loop. Also the target has 5 pointer +4 loads where mine has fewer. Next agent: try moving the k/lim loads and the 0xFFFF constant into the loop body order that the target uses, and try a goto-form loop.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794740105.4039192,
+  "score_before": 4605,
+  "score_after": 4605
+ },
+ {
+  "function": "func_800E067C",
+  "text": "Not matched. Best source (revision efb546e11bc1a1760a54, goto loop_1 form, lim = D_80233EC0 loaded before loop) scores 8815 (37.9%); saved best 4605 is a different source. Structure is right: loop over 100-byte records from func_800E1850; if D_8011F2F1[off]==2: p=*(void**)(D_8011F340+off), q=p->4 (no null check on p), if q && (r=q->4) then s=r->4 and three f32 stores D_8011F334/338/33C = (f32)((f64)(s->40-s->50)*D_800E1E70 + (f64)s->50 + (f64)D_8011F308/30C/310[off]) with 42/52 and 44/54; else copies. Then cur=*(u16*)(D_8011F300+(cur&0xFFFF)*100); if cur!=0xFFFF && cur>=lim goto loop_1. Remaining diff: target hoists the f64 constant load (ldc1 D_800E1E70), the 0xFFFF constant (ori $a3) and the D_80233EC0 load before the loop and keeps them in registers; gcc reloads them inside. Index register order ($v0/$v1 swapped in the x*100 chain). Next: try declaring the f64 constant and limit as locals loaded before the loop (or as a register-friendly temp), and try writing the x*100 chain as separate statements to match the target's sll/addu order.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794754034.588446,
+  "score_before": 4605,
+  "score_after": 4605
+ },
+ {
+  "function": "func_800E067C",
+  "text": "Stopping: my rewrite (revision 0b599c2b39c9460141bb, score 10525) is a wrong and much shorter version (69 insns vs 142): it dropped the second and third pointer-chain blocks and the D_8011F2F1 stride/branch structure, so the compile budget is not informative here; this needs a full structural rewrite, not register tuning. Start from the m2c draft (revision 031ddcf6762d73e292d4) or the saved best 4605. Target structure: a loop over slot index cur (initial from D_800E1850; next via D_8011F300[i].f0, stop on 0xFFFF or >= D_80233EC0). Per slot with D_8011F2F1[i*100] == 2: walk D_8011F340[i] -> +4 -> +4 -> +4 with NULL checks; three f32 results from s16 fields at +0x40/+0x42/+0x44 minus +0x50/+0x52/+0x54 scaled by D_800E1E70 (f64), stored to D_8011F334/338/33C at stride 100; fallback copies D_8011F308/30C/310 when a link is NULL. Also check the second chain-walk for the other D_8011F2F1 value. Release with that for a fresh pass.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794755900.376204,
+  "score_before": 4605,
+  "score_after": 4605
+ },
+ {
+  "function": "func_800E067C",
+  "text": "Cannot get closer with the budget left: best this session is 5585 (60.6%, candidate 2a1500c10f1e42d8ca90), behind the saved 4605. Structure is right (do-while over idx with a D_8011F2F1==2 branch, a three-level pointer chain for the fields 0x40/0x42/0x44/0x50/0x52/0x54, and a next=D_8011F300[idx].f0 loop condition with next!=0xFFFF && next>=D_80233EC0). Remaining diffs are hoisting: the target loads D_800E1E70 (ldc1 into $f4), 0xFFFF (a3), 2 (t0) and D_80233EC0 (a2) before the loop, and file-scope locals for them had no effect. Signedness of idx (s16) is worse at 6795. Untried: a typed struct for the 100-byte record with the pointers at 0x40/0x44 and a record pointer local, which would make the pointer chain explicit instead of offset arithmetic.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794765317.825511,
+  "score_before": 4605,
+  "score_after": 4605
+ },
+ {
+  "function": "func_800E067C",
+  "text": "No match. Saved best 4605 is an older m2c-style draft. My best rewrite this session scored 6530 (54%, revision a2d5a14e872d68caa1c3). It is structurally close: loop index i = a1 & 0xFFFF with off = i*100 (asm builds it as ((i*3)<<3 + i)<<2); D_8011F2F1[off]==2 gate; p=*(void**)(&D_8011F340+off), q=p->4, r=q->4, t=r->4; three float blocks, each re-walking the chain from the root (the asm reloads after each store); fields 0x40/0x50, 0x42/0x52, 0x44/0x54 with inputs D308/D30C/D310 and outputs D334/D338/D33C; else branch copies D308/D30C/D310 to D334/D338/D33C; tail a1 = u16 at D300+off, stop on 0xFFFF, loop when a1 >= D80233EC0. Remaining diffs are register allocation (the target keeps the loop value in $v0 and a1 in $a1, plus hoisted 2 and lui/ldc1 of D_800E1E70 before the loop) and the mtc1/cvt.d.w pair going through $f2 instead of $f0. Three further compiles (else-branch index, hoisted lim) gave no change. Asking to move on: the remaining gap is in register choice and constant hoisting, which I could not steer from C.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794767409.1426198,
+  "score_before": 4605,
+  "score_after": 4605
+ },
+ {
+  "function": "func_800E067C",
+  "text": "m2c draft (redraft) -> clean C, -O1 4280 best (-O2 6715), not 0 after 4 variants; target keeps the copy branch as fall-through after the chain and recomputes idx*100 per block; loop-constant hoisting helped; inverted branch layout and do-while forms were worse",
+  "by": "manual-4ca4d81790724b45",
+  "created_at": 1795713959.651413,
+  "score_before": 6715,
+  "score_after": 6715,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:04ff46757a0510d7bc26fbb3d197858779eac2f0cc2eb6a8b33654fea424bade"
  }
 ]
