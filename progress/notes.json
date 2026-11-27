@@ -2880,14 +2880,6 @@
   "score_after": 313
  },
  {
-  "function": "func_8015CB40",
-  "text": "Deep permuter: score 12430 \u2192 11835; 3 improvements; 48 candidates tested; 119 cached skips; 0 rejected; 7204s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589934682",
-  "created_at": 1794357121.9749172,
-  "score_before": 12430,
-  "score_after": 11835
- },
- {
   "function": "func_80193A50",
   "text": "Deep permuter: score 24679 \u2192 17087; 6 improvements; 127 candidates tested; 0 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935587",
@@ -6488,14 +6480,6 @@
   "score_after": 9798
  },
  {
-  "function": "func_8015CB40",
-  "text": "Released after one compile (12170, 51% match), at the start of the move-on budget. Rev e285db0d900ae8cb138f is the m2c draft with its M2C typedefs replaced by s32/f64 and the loop kept as goto. Logic is right in outline: init call func_8013E364 (returns slot id, 0xFFFF = none), func_800DE41C with (arg0&0xFFFF)*100 offsets into D_8011F308/30C/310, then func_8013E818 and the D_8018D6C4 store, then a 10-iteration loop (var_s6 < 0xA) that calls func_801FA30C three times for random 6/5/6-bit values converted to float with a signed fix-up, and writes D_8018D6D6 = 1. Mismatch: the target frame is larger (sw $ra at 0x64, s6..s0 saved, f20..f26 saved) while the draft saves s0..s4 and f22..f28. So the target keeps more integer values live and uses four callee-saved double slots. Also the target loads D_8011F350 as a word at +4 before the loop. Next: check whether the float temps should be f32 (the (f32) casts) rather than f64, and split the per-iteration values into separate locals so the saved set grows to s6..s0. Verify against get_assembly first.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794712104.796371,
-  "score_before": 7580,
-  "score_after": 7580
- },
- {
   "function": "func_80146A5C",
   "text": "func_80146A5C (1008 bytes, 252 insns). Not matched. Saved best 9125 came from an m2c-style draft with D_8018A43E as an untyped M2C_FIELD block. My struct version (typedef StateBlk {u16 f0; u16 f2; u8 f4; u8 pad5; u16 f6; u16 f8;}, extern D_8018A43E) scored 10720 with direct global access; using a local `StateBlk *s = &D_8018A43E;` brought it to 9840 (revision 48415d9a97774efeecca). Remaining diff: target keeps the state block in $s1 (lui/addiu $s1 in prologue) and the record pointer (idx*0x64 + D_8011F2F0 + 0x3E) in $s0; mine recomputes lui $at %hi(D_8018A440) per field access, so the base is not CSE'd into a saved register. Also the case-2/case-3 tails and the trailing D_80189C98 = D_80190CAC store ordering differ. Next: try a plain `u8 *base` or force `s` into a saved reg via a use before the switch; check the 0x9 case (D_80189CC0[-8]) and the for-loop bound 0x96 against the ROM. Note func_801FA30C is declared s32(s32) by callers but u32(void) in its matched definition.",
   "by": "claude-haiku-5-5-22",
@@ -9086,14 +9070,6 @@
   "created_at": 1794727957.0192919,
   "score_before": 625,
   "score_after": 625
- },
- {
-  "function": "func_8015CB40",
-  "text": "Best 12170 (51.5%, 239 vs 251 insns) at revision 6dac0142dcdcff426539, a machine-draft-based C with the declarations filled in. Not close. The target keeps the loop index as u16 (`andi $s0,$s1,0xffff` x4) and carries the frame's f32 temporaries in $f24 and $f26, while mine uses f64 locals (`cvt.s.w` x6, `sdc1` to 0x80). Shape to try next: rewrite the three random-offset computations as u16 with an explicit f32 cast, and drop the f64 temps. Callees: func_800DE41C (18 args), func_8013E364, func_8013E818, func_801FA30C, func_8013E49C (s32 in context). Released after 1 compile because the structure is wrong, not just registers.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794728012.1576152,
-  "score_before": 7580,
-  "score_after": 7580
  },
  {
   "function": "func_8015D410",
@@ -11710,14 +11686,6 @@
   "created_at": 1794740942.136228,
   "score_before": 9125,
   "score_after": 9125
- },
- {
-  "function": "func_8015CB40",
-  "text": "Draft a3436e0a200195a34c30 scores 11986 (52%). Control flow and arg order match the target: three func_801FA30C randoms (&0x3F, &0x1F, &0x3F), trunc to s32 via (s16) times D_80183978, func_8013E818 with the float in $a3 and two floats on the stack. Target frame is 0x88 saving ra, s6..s0 and fs0..fs3; mine uses 0x90 and extra s7/fp. The loop counter and the arg0 copy are held in too many registers. Fix the register set before ordering.\n\nBest saved 11986 (52.2%, draft a3436e0a200195a34c30). Keep that as the base, not the latest revision (09f9787 scored 14458 after recomputing (u16)arg0*0x64 inside the loop; the target hoists the offset into $s5 and reuses it for the three float loads). Control flow and call args match: three func_801FA30C randoms (&0x3F, &0x1F, &0x3F) with the D_80183970 fixup, products by D_80183978 through (s16), func_8013E818 with the float in $a3 and two stack floats, failure paths to func_8013E49C(s0). Open problem: register/frame. Target frame 0x88 saves ra, s6..s0, fs0..fs3; mine is 0x90 and also saves s7 and fp. Next step: keep off = (u16)arg0*0x64 as one local live across the loop (target has it in $s5), and keep the arg0 copy in $s3 for the first call only. Not tried yet.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794740939.46476,
-  "score_before": 7580,
-  "score_after": 7580
  },
  {
   "function": "func_801485C8",
@@ -15848,14 +15816,6 @@
   "score_after": 435
  },
  {
-  "function": "func_8015CB40",
-  "text": "Best: rev f53ac2b81c6521f30a92, 11986 (52.2%), the machine draft as first compiled (after adding its externs). Not matched; the gap is structural, so I am stopping rather than spending compiles on register tweaks. Gaps: (1) frame: target 0x88 with saves ra,s6..s0 and sdc1 f26/f24 at 0x80/0x78; ours 0x90 with an extra s0 save at 0x48, so the loop uses more s-locals than the target. Merge the s0/s1 temporaries and drop the s-locals that only carry values across the calls. (2) Target has `bltzl` for the three `(s32)` sign checks on v6/v7/v8 (the loop's random-value conversion); ours compiles them as bgez with a delay slot, so the conversion needs rewriting (e.g. compute the signed value via a helper or (f64)(s32) with the < 0 correction in a different form). (3) The scale constant D_80183978 appears as a single f64 mul in the target; keep it as one extern f64, not via (s16) casts. Resume from the saved candidate.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794756926.862647,
-  "score_before": 7580,
-  "score_after": 7580
- },
- {
   "function": "func_80026D40",
   "text": "No work needed: already byte-exact at gcc-2.7.2-kmc -O1 with the nonvolatile FlagDesc loop; function-only suggestion pending user application.",
   "by": "claude-opus-medium-1",
@@ -17374,14 +17334,6 @@
   "created_at": 1794760235.6304169,
   "score_before": 330,
   "score_after": 330
- },
- {
-  "function": "func_8015CB40",
-  "text": "Best 10173 (59.4%), 243 vs 251 insns. Improvement from making v6/v7/v8 u32 and dropping the `if (<0) += D_80183970` fixups (signed-to-double unsigned conversion is done by the compiler's own sequence). Remaining: the target keeps four doubles live (f20,f22,f24,f26; frame -0x88, s0..s6 saved), mine keeps f20..f28 (frame -0x98, extra s7), so the extra f28 is the (f32)(f64)*D_80183978 products being kept across the func_801FA30C calls. Next: reorder so each func_801FA30C call's result is converted and multiplied immediately (rather than all three d1/d2/d3 first), and the target keeps arg0 in s3 (move $s3,$a0 before the s1 read). Not tried yet.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794760256.655949,
-  "score_before": 7580,
-  "score_after": 7580
  },
  {
   "function": "func_8015E484",
@@ -41163,5 +41115,62 @@
   "created_at": 1794760120.0250828,
   "score_before": 13956,
   "score_after": 13956
+ },
+ {
+  "function": "func_8015CB40",
+  "text": "Deep permuter: score 12430 \u2192 11835; 3 improvements; 48 candidates tested; 119 cached skips; 0 rejected; 7204s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589934682",
+  "created_at": 1794357121.9749172,
+  "score_before": 12430,
+  "score_after": 11835
+ },
+ {
+  "function": "func_8015CB40",
+  "text": "Released after one compile (12170, 51% match), at the start of the move-on budget. Rev e285db0d900ae8cb138f is the m2c draft with its M2C typedefs replaced by s32/f64 and the loop kept as goto. Logic is right in outline: init call func_8013E364 (returns slot id, 0xFFFF = none), func_800DE41C with (arg0&0xFFFF)*100 offsets into D_8011F308/30C/310, then func_8013E818 and the D_8018D6C4 store, then a 10-iteration loop (var_s6 < 0xA) that calls func_801FA30C three times for random 6/5/6-bit values converted to float with a signed fix-up, and writes D_8018D6D6 = 1. Mismatch: the target frame is larger (sw $ra at 0x64, s6..s0 saved, f20..f26 saved) while the draft saves s0..s4 and f22..f28. So the target keeps more integer values live and uses four callee-saved double slots. Also the target loads D_8011F350 as a word at +4 before the loop. Next: check whether the float temps should be f32 (the (f32) casts) rather than f64, and split the per-iteration values into separate locals so the saved set grows to s6..s0. Verify against get_assembly first.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794712104.796371,
+  "score_before": 7580,
+  "score_after": 7580
+ },
+ {
+  "function": "func_8015CB40",
+  "text": "Best 12170 (51.5%, 239 vs 251 insns) at revision 6dac0142dcdcff426539, a machine-draft-based C with the declarations filled in. Not close. The target keeps the loop index as u16 (`andi $s0,$s1,0xffff` x4) and carries the frame's f32 temporaries in $f24 and $f26, while mine uses f64 locals (`cvt.s.w` x6, `sdc1` to 0x80). Shape to try next: rewrite the three random-offset computations as u16 with an explicit f32 cast, and drop the f64 temps. Callees: func_800DE41C (18 args), func_8013E364, func_8013E818, func_801FA30C, func_8013E49C (s32 in context). Released after 1 compile because the structure is wrong, not just registers.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794728012.1576152,
+  "score_before": 7580,
+  "score_after": 7580
+ },
+ {
+  "function": "func_8015CB40",
+  "text": "Draft a3436e0a200195a34c30 scores 11986 (52%). Control flow and arg order match the target: three func_801FA30C randoms (&0x3F, &0x1F, &0x3F), trunc to s32 via (s16) times D_80183978, func_8013E818 with the float in $a3 and two floats on the stack. Target frame is 0x88 saving ra, s6..s0 and fs0..fs3; mine uses 0x90 and extra s7/fp. The loop counter and the arg0 copy are held in too many registers. Fix the register set before ordering.\n\nBest saved 11986 (52.2%, draft a3436e0a200195a34c30). Keep that as the base, not the latest revision (09f9787 scored 14458 after recomputing (u16)arg0*0x64 inside the loop; the target hoists the offset into $s5 and reuses it for the three float loads). Control flow and call args match: three func_801FA30C randoms (&0x3F, &0x1F, &0x3F) with the D_80183970 fixup, products by D_80183978 through (s16), func_8013E818 with the float in $a3 and two stack floats, failure paths to func_8013E49C(s0). Open problem: register/frame. Target frame 0x88 saves ra, s6..s0, fs0..fs3; mine is 0x90 and also saves s7 and fp. Next step: keep off = (u16)arg0*0x64 as one local live across the loop (target has it in $s5), and keep the arg0 copy in $s3 for the first call only. Not tried yet.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794740939.46476,
+  "score_before": 7580,
+  "score_after": 7580
+ },
+ {
+  "function": "func_8015CB40",
+  "text": "Best: rev f53ac2b81c6521f30a92, 11986 (52.2%), the machine draft as first compiled (after adding its externs). Not matched; the gap is structural, so I am stopping rather than spending compiles on register tweaks. Gaps: (1) frame: target 0x88 with saves ra,s6..s0 and sdc1 f26/f24 at 0x80/0x78; ours 0x90 with an extra s0 save at 0x48, so the loop uses more s-locals than the target. Merge the s0/s1 temporaries and drop the s-locals that only carry values across the calls. (2) Target has `bltzl` for the three `(s32)` sign checks on v6/v7/v8 (the loop's random-value conversion); ours compiles them as bgez with a delay slot, so the conversion needs rewriting (e.g. compute the signed value via a helper or (f64)(s32) with the < 0 correction in a different form). (3) The scale constant D_80183978 appears as a single f64 mul in the target; keep it as one extern f64, not via (s16) casts. Resume from the saved candidate.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794756926.862647,
+  "score_before": 7580,
+  "score_after": 7580
+ },
+ {
+  "function": "func_8015CB40",
+  "text": "Best 10173 (59.4%), 243 vs 251 insns. Improvement from making v6/v7/v8 u32 and dropping the `if (<0) += D_80183970` fixups (signed-to-double unsigned conversion is done by the compiler's own sequence). Remaining: the target keeps four doubles live (f20,f22,f24,f26; frame -0x88, s0..s6 saved), mine keeps f20..f28 (frame -0x98, extra s7), so the extra f28 is the (f32)(f64)*D_80183978 products being kept across the func_801FA30C calls. Next: reorder so each func_801FA30C call's result is converted and multiplied immediately (rather than all three d1/d2/d3 first), and the target keeps arg0 in s3 (move $s3,$a0 before the s1 read). Not tried yet.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794760256.655949,
+  "score_before": 7580,
+  "score_after": 7580
+ },
+ {
+  "function": "func_8015CB40",
+  "text": "Profile probe: this saved C scores 2386 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (9 of its 12 nearest matched neighbours were built with it), 3831 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721273.2692459,
+  "score_before": 3831,
+  "score_after": 2386,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:86fc852efa616b3138116c2622a9012d5b5d412df62fa8b2f9823fc40f96d970"
  }
 ]
