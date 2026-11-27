@@ -7112,14 +7112,6 @@
   "score_after": 15150
  },
  {
-  "function": "func_8016608C",
-  "text": "Score 4730 -> 3900 (87.0%, 300/301 insns, instruction set now identical; only regalloc/order left). Move-on budget exhausted.\n\nCurrent best source (revision 25aad2bbf5f5b7dff038) key conventions that produced the big gains:\n- Declare the 0x64-stride tables as structs so the index scales by 0x64 and gcc emits `andi $v1,$s2,0xffff` + sll/addu chain once per use: `typedef struct { u8 *p; u8 pad[0x60]; } RecP; extern RecP D_8011F350[];` `typedef struct { u16 v; u8 pad[0x62]; } RecS; extern RecS D_8011F32E[];` `typedef struct { u8 b; u8 pad[0x63]; } RecB; extern RecB D_8011F2FD[];`. Plain u8[] + byte index gave the same insns but worse regalloc (8699/6400).\n- Keep `arg0` raw (s32) and index with `arg0 & 0xFFFF` inline at each switch store; do NOT hoist `idx = arg0 & 0xFFFF` into a local (hoisting made gcc keep idx in a callee-saved reg and lose the repeated `andi` chain the target has).\n- Do NOT bind `obj = *(u8**)(s0+4)` into a local; repeat the full `*(u8 **)(s0 + 4)` expression at every use. That single change took 5040 -> 3900 and reproduced the target's repeated `lw $v0,4($s0)`.\n- D_8011F4E4 must be an extern u8[] used as `D_8011F4E4 + *(u16*)(*(u8**)(s0+4)+2) * 0x64` so gcc emits lui/addiu into $v1 then `addu $a0,$v0,$v1`.\n\nRemaining diffs (all regalloc/order, ~94 rows): prologue saves are emitted after the arg0 index chain instead of before `move $s2,$a0`; the record pointer lands in $a1 instead of $a0; the `lh $v0,0x14($s0)` is sunk after the 0x50 load instead of before; case 1/2 float blocks load 0x34/0x30 into $f8/$f6 before the constants instead of after. Ideas left: try making the D_8011F32E switch value a `u16` local read before the D_8011F4E4 pointer computation (target does lh 0x14 first, then the switch read); or reorder the case 1/2 statements so the 0x34 update completes (including swc1) before the 0x30 load. Also worth trying -O1 flags (search_flags scored 345 with -O1 on an earlier revision) via suggest() if the C stabilises.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794714461.077209,
-  "score_before": 4730,
-  "score_after": 3900
- },
- {
   "function": "func_80140E0C",
   "text": "Best verified 10760 (61.4%) at revision e3b0c44298fc1c149afb with the \"two syntactically different 16-bit conversions\" trick: base/switch index use (u16)arg0, every case body uses arg0 & 0xFFFF. Remaining diff: target keeps D_8011F330 base in a register (lui %hi + sh %lo(D_8011F330)($at) x17, lhu %lo($v0) x8, addu $v0,$v0,$a0 x21) while candidate folds addiu %lo and indexes with ($a2). Next: declare `u16 *tbl = D_8011F330;` style base pointer hoisted before the switch so gcc keeps the base in a register, and make the index (arg0&0xFFFF)*50 via a byte-offset pointer. Also target prologue saves s0..s3 and ra at 0x10..0x20 -> frame 0x28.",
   "by": "api-route-llm-code-1",
@@ -9910,14 +9902,6 @@
   "created_at": 1794728393.229589,
   "score_before": 6401,
   "score_after": 6401
- },
- {
-  "function": "func_8016608C",
-  "text": "Not matched. Best this session: 3875 (87.1%) at revision ab1bfff9a9b0c598583f; saved best 3855 (get_candidate(base=\"saved_best\") restores it; I do not have that source). Tried: a local `u16 idx = arg0;` for the first index (3900, worse, reverted). Remaining diffs: target keeps arg0 in $s2 (`move $s2,$a0` after saving $ra,$s2,$s1,$s0; then `andi $v1,$s2,0xffff`), candidate computes andi from $a0 and saves s2 late; the target loads `lh 0x14(s0)` (the t check) after the a1/s1 computations (near row 32), while the candidate loads it first (row 22). Float constants 0.3f/0.4f/0.9f/0.7f/1.0f/2.8f/3.0f look right but check literal order after structure. Untried: moving the t-block after the switch on D_8011F32E[].v, and declaring arg0 as s32 with an explicit (u16) cast at each use.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794728394.735727,
-  "score_before": 3855,
-  "score_after": 3855
  },
  {
   "function": "func_80134C68",
@@ -12782,14 +12766,6 @@
   "created_at": 1794741520.780086,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_8016608C",
-  "text": "Best is the saved 3855 (87%). Draft (switch on D_8011F32E[arg0].v, countdown at s0+0x14 with a 2-way switch on (t&3)>>1) reaches 3875 at revision f93d1d5e72960bc64756. Remaining diffs: prologue ordering (target saves ra/s2/s1/s0 then move $s2,$a0 before andi; ours uses a0 directly), the `lh 0x14(s0)` load is placed after the a0/s1 computation in the target, and the register for the (lw 0x50 of a0 + v0+v1) address differs. Replacing arg0 with a local u16 idx (score 3900) made it worse; undo that. Constants: 0x3E99999A = 0.3f, 0x3ECCCCCD = 0.4f, which appear in the case-1/case-2 float blend. Next step: keep the 16-bit index in a callee-saved s2 (try using the raw s16 parameter in the first load only), move the countdown read before the s1 load, then check the float blend ordering.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794741538.125522,
-  "score_before": 3855,
-  "score_after": 3855
  },
  {
   "function": "func_8015D7F0",
@@ -17944,14 +17920,6 @@
   "score_after": 10
  },
  {
-  "function": "func_8016608C",
-  "text": "Unmatched, close. Best 3855 (87.1%, 300 vs 301 insns), revision 0078f7b75a9fc7d8b774 (the t-reload variant 735ccd54f7f01ea49ff8 is the same score). Tried since: u16 index temp (3880, worse); t reloaded inside the if (no change); signedness family on t (no change). Remaining: target copies arg0 into $s2 right after the prologue and uses andi $v1,$s2; mine keeps $a0. Target puts the address math in $a0 and mine in $a1, and its save order is ra, s2, s1, s0 at 0x24..0x18. Not yet tried: reordering the switch-case bodies (case 3 first), the f/g temporary split for the 0.9f product, and the literal swap check against func_80165BDC. The register/order gap looks like a statement-order problem, not a type problem.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794758455.9281979,
-  "score_before": 3855,
-  "score_after": 3855
- },
- {
   "function": "func_80206770",
   "text": "Cannot get closer under -O2: this C MATCHES byte-for-byte at -O1 (try_compiler), function-specific suggest() filed. Source = current candidate (u8[] externs, D_3EACF0 - D_3EA210). Apply the -O1 suggestion to save it. Unit code_80203B04 likely -O1 throughout.",
   "by": "claude-opus-medium-1",
@@ -18830,14 +18798,6 @@
   "created_at": 1794759939.324219,
   "score_before": 19859,
   "score_after": 19859
- },
- {
-  "function": "func_8016608C",
-  "text": "Best 3855 (87.1%) is the recorded attempt (get_candidate base=saved_best). Remaining mismatch: target saves arg0 in $s2 (`move $s2,$a0`) and reuses it for every `andi $v1,$s2,0xffff`; my source keeps arg0 in $a0 so prologue and stack order differ. Introducing `u16 idx = (u16)arg0;` made it worse (6345): the compiler then uses $a2 and reorders the lh of 0x14($s0) before the beqz. Not yet tried: keeping arg0 live across the func_8013E49C call (case 3) via a different expression. Constant check: target loads 0x3E99999A (0.3f) at the first `(0.3f - x)*0.4f` site while mine loads 0x3ECCCCCD (0.4f) first, so the operand order of the lerp in cases 1/2 needs checking. Candidate also has a leftover __repair_f_1 variable in the saved text; drop it.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794759960.5313642,
-  "score_before": 3855,
-  "score_after": 3855
  },
  {
   "function": "func_8013D1A4",
@@ -20414,14 +20374,6 @@
   "created_at": 1794762384.878449,
   "score_before": 22408,
   "score_after": 22408
- },
- {
-  "function": "func_8016608C",
-  "text": "Releasing at 3 compiles: no further progress is likely from literal or index-name tweaks. Best 3855 (87.1%) at revision 7fef29955f568814a9e8, the saved best. Remaining gap is register allocation and statement order: the target saves ra/s2/s1/s0 at 0x24..0x18 and sets `move $s2,$a0` before `andi $v1,$s2,0xffff`, so arg0 must stay live in $s2 through the first switch; the saved best computes the andi from $a0 first. Trials that failed: `u16 idx = (u16)arg0` (939a2b0d36a477e64372, 6345); swapping the 0x8D4 constant to 0.4f (d88ebac3f0411c165033, 6365, confirming the target's 0x8D4 term is 0.3f). Next step: restructure the case-0 block so arg0 is read after the first table load (or hoist `s16 a = arg0` before the `t` test), then fix the literal ordering at the case-1/case-2 0.4f terms.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794762420.286612,
-  "score_before": 3855,
-  "score_after": 3855
  },
  {
   "function": "func_801FF37C",
@@ -40859,5 +40811,53 @@
   "score_before": 2455,
   "score_after": 1940,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:e1f7ca371dbaaca1bf21a9bfb873d67e61ebf4d2901dc8539550837c1798cb57"
+ },
+ {
+  "function": "func_8016608C",
+  "text": "Score 4730 -> 3900 (87.0%, 300/301 insns, instruction set now identical; only regalloc/order left). Move-on budget exhausted.\n\nCurrent best source (revision 25aad2bbf5f5b7dff038) key conventions that produced the big gains:\n- Declare the 0x64-stride tables as structs so the index scales by 0x64 and gcc emits `andi $v1,$s2,0xffff` + sll/addu chain once per use: `typedef struct { u8 *p; u8 pad[0x60]; } RecP; extern RecP D_8011F350[];` `typedef struct { u16 v; u8 pad[0x62]; } RecS; extern RecS D_8011F32E[];` `typedef struct { u8 b; u8 pad[0x63]; } RecB; extern RecB D_8011F2FD[];`. Plain u8[] + byte index gave the same insns but worse regalloc (8699/6400).\n- Keep `arg0` raw (s32) and index with `arg0 & 0xFFFF` inline at each switch store; do NOT hoist `idx = arg0 & 0xFFFF` into a local (hoisting made gcc keep idx in a callee-saved reg and lose the repeated `andi` chain the target has).\n- Do NOT bind `obj = *(u8**)(s0+4)` into a local; repeat the full `*(u8 **)(s0 + 4)` expression at every use. That single change took 5040 -> 3900 and reproduced the target's repeated `lw $v0,4($s0)`.\n- D_8011F4E4 must be an extern u8[] used as `D_8011F4E4 + *(u16*)(*(u8**)(s0+4)+2) * 0x64` so gcc emits lui/addiu into $v1 then `addu $a0,$v0,$v1`.\n\nRemaining diffs (all regalloc/order, ~94 rows): prologue saves are emitted after the arg0 index chain instead of before `move $s2,$a0`; the record pointer lands in $a1 instead of $a0; the `lh $v0,0x14($s0)` is sunk after the 0x50 load instead of before; case 1/2 float blocks load 0x34/0x30 into $f8/$f6 before the constants instead of after. Ideas left: try making the D_8011F32E switch value a `u16` local read before the D_8011F4E4 pointer computation (target does lh 0x14 first, then the switch read); or reorder the case 1/2 statements so the 0x34 update completes (including swc1) before the 0x30 load. Also worth trying -O1 flags (search_flags scored 345 with -O1 on an earlier revision) via suggest() if the C stabilises.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794714461.077209,
+  "score_before": 4730,
+  "score_after": 3900
+ },
+ {
+  "function": "func_8016608C",
+  "text": "Not matched. Best this session: 3875 (87.1%) at revision ab1bfff9a9b0c598583f; saved best 3855 (get_candidate(base=\"saved_best\") restores it; I do not have that source). Tried: a local `u16 idx = arg0;` for the first index (3900, worse, reverted). Remaining diffs: target keeps arg0 in $s2 (`move $s2,$a0` after saving $ra,$s2,$s1,$s0; then `andi $v1,$s2,0xffff`), candidate computes andi from $a0 and saves s2 late; the target loads `lh 0x14(s0)` (the t check) after the a1/s1 computations (near row 32), while the candidate loads it first (row 22). Float constants 0.3f/0.4f/0.9f/0.7f/1.0f/2.8f/3.0f look right but check literal order after structure. Untried: moving the t-block after the switch on D_8011F32E[].v, and declaring arg0 as s32 with an explicit (u16) cast at each use.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794728394.735727,
+  "score_before": 3855,
+  "score_after": 3855
+ },
+ {
+  "function": "func_8016608C",
+  "text": "Best is the saved 3855 (87%). Draft (switch on D_8011F32E[arg0].v, countdown at s0+0x14 with a 2-way switch on (t&3)>>1) reaches 3875 at revision f93d1d5e72960bc64756. Remaining diffs: prologue ordering (target saves ra/s2/s1/s0 then move $s2,$a0 before andi; ours uses a0 directly), the `lh 0x14(s0)` load is placed after the a0/s1 computation in the target, and the register for the (lw 0x50 of a0 + v0+v1) address differs. Replacing arg0 with a local u16 idx (score 3900) made it worse; undo that. Constants: 0x3E99999A = 0.3f, 0x3ECCCCCD = 0.4f, which appear in the case-1/case-2 float blend. Next step: keep the 16-bit index in a callee-saved s2 (try using the raw s16 parameter in the first load only), move the countdown read before the s1 load, then check the float blend ordering.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794741538.125522,
+  "score_before": 3855,
+  "score_after": 3855
+ },
+ {
+  "function": "func_8016608C",
+  "text": "Unmatched, close. Best 3855 (87.1%, 300 vs 301 insns), revision 0078f7b75a9fc7d8b774 (the t-reload variant 735ccd54f7f01ea49ff8 is the same score). Tried since: u16 index temp (3880, worse); t reloaded inside the if (no change); signedness family on t (no change). Remaining: target copies arg0 into $s2 right after the prologue and uses andi $v1,$s2; mine keeps $a0. Target puts the address math in $a0 and mine in $a1, and its save order is ra, s2, s1, s0 at 0x24..0x18. Not yet tried: reordering the switch-case bodies (case 3 first), the f/g temporary split for the 0.9f product, and the literal swap check against func_80165BDC. The register/order gap looks like a statement-order problem, not a type problem.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794758455.9281979,
+  "score_before": 3855,
+  "score_after": 3855
+ },
+ {
+  "function": "func_8016608C",
+  "text": "Best 3855 (87.1%) is the recorded attempt (get_candidate base=saved_best). Remaining mismatch: target saves arg0 in $s2 (`move $s2,$a0`) and reuses it for every `andi $v1,$s2,0xffff`; my source keeps arg0 in $a0 so prologue and stack order differ. Introducing `u16 idx = (u16)arg0;` made it worse (6345): the compiler then uses $a2 and reorders the lh of 0x14($s0) before the beqz. Not yet tried: keeping arg0 live across the func_8013E49C call (case 3) via a different expression. Constant check: target loads 0x3E99999A (0.3f) at the first `(0.3f - x)*0.4f` site while mine loads 0x3ECCCCCD (0.4f) first, so the operand order of the lerp in cases 1/2 needs checking. Candidate also has a leftover __repair_f_1 variable in the saved text; drop it.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794759960.5313642,
+  "score_before": 3855,
+  "score_after": 3855
+ },
+ {
+  "function": "func_8016608C",
+  "text": "Releasing at 3 compiles: no further progress is likely from literal or index-name tweaks. Best 3855 (87.1%) at revision 7fef29955f568814a9e8, the saved best. Remaining gap is register allocation and statement order: the target saves ra/s2/s1/s0 at 0x24..0x18 and sets `move $s2,$a0` before `andi $v1,$s2,0xffff`, so arg0 must stay live in $s2 through the first switch; the saved best computes the andi from $a0 first. Trials that failed: `u16 idx = (u16)arg0` (939a2b0d36a477e64372, 6345); swapping the 0x8D4 constant to 0.4f (d88ebac3f0411c165033, 6365, confirming the target's 0x8D4 term is 0.3f). Next step: restructure the case-0 block so arg0 is read after the first table load (or hoist `s16 a = arg0` before the `t` test), then fix the literal ordering at the case-1/case-2 0.4f terms.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794762420.286612,
+  "score_before": 3855,
+  "score_after": 3855
  }
 ]
