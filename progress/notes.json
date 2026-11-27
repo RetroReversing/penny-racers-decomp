@@ -2872,14 +2872,6 @@
   "score_after": 995
  },
  {
-  "function": "func_80156338",
-  "text": "Deep permuter: score 14792 \u2192 12687; 4 improvements; 44 candidates tested; 219 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935502",
-  "created_at": 1794356437.810261,
-  "score_before": 14792,
-  "score_after": 12687
- },
- {
   "function": "n_alAudioFrame",
   "text": "Deep permuter: score 1020 \u2192 1020; 0 improvements; 17 candidates tested; 150 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934836",
@@ -6744,14 +6736,6 @@
   "score_after": 10620
  },
  {
-  "function": "func_80156338",
-  "text": "Not matched. Best saved stays 2955 (m2c draft). My hand-written versions scored 13987 and 13762, both worse, so not saved. Recovered semantics: D_8016D698 += 3; if (u16)value >= 0x169 then value = old - 0x165. fs2 = sinf(D698*c1/c0)*D69A + 400.0f (0x43C80000); fv1 = sinf(same)*D69A + 200.0f (0x43480000), with c1=D_80183820, c0=D_80183828 as f64. Stores: D_802E90F4 gets trunc(fs2) at +0,+0x10,+0x30 and trunc(fv1) at +0x20,+0x40,+0x50. Loop i=0..5 stores trunc(fv1) to D_802E9214+i*16 and trunc(fs2) to D_802E9274+i*16. Tables: D_802E8D54 (+0 a0, +0x10 a0, +0x20 a1, +0x40 a1); D_802E8DF4 (a1 at +0,0x10,0x20,0x30,0x40,0x60); D_802E8E94 (a0 at +0..0x50 step 0x10); D_802E93A4 (+0 a1, -0x20 a0, -0x10 a1, -0x40 a0); D_802E93F4 (a1 at +0,0x20,0x40,0x50,0x60,0x70); D_802E9474 (a0 at +0..0x40 step 0x10 and +0x60), where a0=trunc(fs2), a1=trunc(fv1). Remaining diff: target frame is 0x30 with ra at 0x10 and fs2/c1/c0 saved in f24/f22/f20; mine gets a 0x28 frame with only f22/f20, so fs2 is not kept live in f24. Next experiment: make fs2 live across the second sinf (compute the second sinf after the constant loads, as in the target), then fix the store base-pointer pattern (target uses v1 for D_802E90F4 with offsets, v0 per table).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794709967.079561,
-  "score_before": 2955,
-  "score_after": 2955
- },
- {
   "function": "nuScCreateScheduler",
   "text": "Best 150 (98.8%, 133 insns, same length; no score 0). Source: base = (u8*)&D_800DDE8C, offsets off base (base-0x5F8 etc.), stores via *(s32*)(base+0), *(s16*)(base-0x66C). Only differing thing is register assignment: target saves s2 first (queue1 pointer base-0x5F8, reused for osViSetEvent and osSetEventMesg 0xE), then s5 = arg1&0xFF (used in D_800DDE98 store and osViSetEvent a2), s4 = base-0x5C0, s3 = base-0x588, s1 = arg0 then base-0x66C. Ours gives s5 to the queue1 pointer and s4 to arg1&0xFF. Tried: temp declared before/after queue1 pointer, u32 vs s32 temp, arg1&0xFF inline, osCreateMesgQueue 2nd arg as void*. None changed the score. Untried: making the andi a fresh expression reused only after first mesg queue call, or swapping which pointer is first-declared in osCreateThread blocks. address_temporary family has no applicable variants; signedness next target was empty.",
   "by": "claude-haiku-5-5-22",
@@ -10128,14 +10112,6 @@
   "score_after": 8516
  },
  {
-  "function": "func_80156338",
-  "text": "Best current: revision 03d47093e202fa1ad42a, score 14497 (0%); target 145 insns, mine 160. Blocked on structure, not registers. Facts from the asm: u16 counter D_8016D698 +3 with wrap (-0x165 when >=0x169); two __sinf calls with arg (f32)(((f64)D_8016D698 * D_80183820)/D_80183828); fs2 = sin*(f32)D_8016D69A + 400.0f, fv1 = sin*(f32)D_8016D69A + 200.0f. Target frame 0x30 with ra and three 8-byte FP saves (f20/f22/f24); the rest of the function is straight-line s16 stores at fixed offsets from D_802E90F4, D_802E8D54, D_802E8DF4, D_802E8E94, D_802E93A4 (includes -0x20/-0x10/-0x40), D_802E93F4, D_802E9474, plus a 6-iteration loop writing D_802E9214[i*16] = fv1 and D_802E9274[i*16] = fs2. Why stuck: my C keeps re-deriving the D_80183820/D_80183828 f64 constants with lui/ldc1 each use and the stores are emitted in a different order from the target, so the score is dominated by the store block, not the arithmetic. The m2c draft's control flow is right; the fix is to write the store groups in the target's order (D_802E90F4 first, then loop, then D_802E8D54...) and to hold the doubles in locals. Next session: try compile_family on the store ordering first.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794725495.663693,
-  "score_before": 2955,
-  "score_after": 2955
- },
- {
   "function": "func_80143F68",
   "text": "Switch on D_80168BB0 (0..0x33, range check sltiu 0x34, no subtract). Best 2130 (86.5%): 146 insns vs target 158. Case-to-state mapping is a guess: read_data cannot load the jump table at D_80183560 (not in loaded ROM), so case values were assigned in code-block order. Diff: target ends each case with an explicit `j epilogue; nop` and the first beqz targets the epilogue at +0x26c (mine +0x23c), i.e. 12 instructions are missing from the case bodies; blocks are reordered (jal func_802144DC and func_80206104/func_80206830 placement). Tried `return` in each case: no compile result (tool errored on synchronization). Next step: get the real jump table entries to fix case values and check whether case bodies with no call (state-only stores: 0xF, 0x15, 0xB, 0x2F-tail) are shared tails.",
   "by": "claude-haiku-5-5-22",
@@ -13326,14 +13302,6 @@
   "created_at": 1794739750.377084,
   "score_before": null,
   "score_after": null
- },
- {
-  "function": "func_80156338",
-  "text": "Not matched. Saved best 2955 (historical, m2c-derived source; the saved source is the m2c draft with M2C_FIELD stores and s32 externs). I could not reproduce that score: the same text with a do/while loop scored 12247, and my own rewrites scored 13567 and up. Facts from the target: D_8016D698 is a u16 advanced by 3 and wrapped by -0x165 at >=0x169; sinf is computed twice (no CSE), with f64 temps fs0/fs1 (saved $f20/$f22) and f32 fs2 persisting across the second call (saved $f24); frame is 0x30 with $ra and three sdc1 saves; fv1 and fs2 are truncated and stored in order (+0,+0x10,+0x30 from fs2; +0x20,+0x40,+0x50 from fv1), then a 6-iteration stride-0x10 loop, then the store groups. The saved-best source is the right starting point; the store groups should use one base register per group (target does `addiu $v1,$v1,%lo(D)` once then immediate offsets), while the saved version emits a lui per store. Next agent: start from the saved best and fix the base-register sharing, not the arithmetic.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794739758.08705,
-  "score_before": 2955,
-  "score_after": 2955
  },
  {
   "function": "func_80143F68",
@@ -17944,14 +17912,6 @@
   "score_after": 2770
  },
  {
-  "function": "func_80156338",
-  "text": "Not matched. First hand-written attempt scores 13862 (4.4%), worse than the saved historical best 2955 (other source). Target 145 insns vs mine 164. Target frame is 0x30 with f20, f22, f24 saved (sdc1), mine is 0x20 with only f20: the function needs more float temporaries kept across the stores. The target reloads D_8016D698 and computes the sine argument twice, and it stores through one hoisted base per table (addiu $v1, %lo(D_802E90F4) then sh at offsets 0x00/0x10/0x20/0x40), not a fresh lui per store. Table bases/offsets in the candidate are not yet verified against the target (raw addresses at diff rows 76/146/154/160 disagree), so the table layout needs re-deriving from the target stores before any scoring is meaningful. Next: write each table as a single base pointer with offsets from the target's sh operands, keep fs2/fv1 as double-precision intermediates, and fix the frame to 0x30 before touching register order.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794754265.84675,
-  "score_before": 2955,
-  "score_after": 2955
- },
- {
   "function": "func_802114C8",
   "text": "Stopping early at 4 compiles (not the 8-compile budget): the score is stuck at 13742 across four different edits, so the next agent should start from the notes rather than from this C. Not a verdict that the function can't match. Target facts: frame 0x40, saves only s0 (=&D_8021EEC0) and s1 (=arg0), no s2. Second call's 6th arg is an integer value D_80203080[EEC1[0] + u16(EEC1+3)], while the first call's 6th arg is pointer D_80187BF0 + D_8021E231[idx]*18, so func_801CABF4's prototype needs an integer at that index and the first call needs a cast. Current C has an extra saved register (s2) and a 0x50 frame; suspect a local (t or cur) live across a call. Stack args 0x10..0x2C: D_802D92A0, ptr, 0, D_802D6898, 0xE, 0x10, 0xE0, 0x60. idx = D_8021E15F*0x110 + D_8021EEC0[0] (lb). Next: remove locals that cross calls, fix the prototype, then compare branch order.",
   "by": "claude-haiku-5-5-23",
@@ -19328,14 +19288,6 @@
   "score_after": 11830
  },
  {
-  "function": "func_80156338",
-  "text": "Table-fill function: advances D_8016D698 by 3 (wrap at 0x169 via `sh old-0x165`), computes two sin-based coordinates (fs2 = sin(...)*D_8016D69A + 400.0f, fv1 = ... + 200.0f) and stores their truncated s16 into ~36 slots of D_802E90F4/D_802E9214/D_802E9274/D_802E8D54/D_802E8DF4/D_802E8E94/D_802E93A4/D_802E93F4/D_802E9474.\n\nVerified facts: D_8016D698 must be `volatile u16` \u2014 otherwise GCC deletes the second lhu (cvt.d.w) and the code diverges badly (13521 -> 11298 when made volatile). Loop over i=0..5 writing D_802E9214[i*8] (y) and D_802E9274[i*8] (x) as s16 arrays with `*(s16 *)((s8 *)D_802E9214 + i*0x10)`; plain `*(&D_802E9214 + var)` gives \"arithmetic on pointer to incomplete type\".\n\nBest current revision 9e0d96c2916eb182bfb9 (score 11118, static inline st3 helper). Remaining structural gap: the target keeps ONE base pointer per block in a register (`lui/addiu v1,%lo(D_802E90F4)` then `sh v0,($v1)/0x10/0x20/0x30/0x40/0x50`) and reuses a0/v1 truncation results, i.e. the original likely used a `s16 *` local per block plus `(s16)(s32)fs2` casts, whereas my casts make GCC emit `lui $at,%hi(...)` per store. Also the target computes the first coordinate and stores it into D_802E90F4 BEFORE the second __sinf call (my versions always call __sinf twice up front); the source order there is: store x-triple, then y-triple, then loop, then the rest.\nFrame: target saves fs0/fs1/fs2 (0x30 frame, ra at 0x10) \u2014 three f64/f32 callee-saved values alive across both calls.\nCompiler trials: same C at -O1 scores 7779 (diagnostic only, project uses -O2); -fno-schedule-insns identical. Next step: restructure with `s16 *p` locals and the x-store placed between the two __sinf calls.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794757036.702108,
-  "score_before": 2955,
-  "score_after": 2955
- },
- {
   "function": "func_800DF1E0",
   "text": "Can't get closer at -O2: C is byte-exact at -O1 (verified by search_flags, suggestion filed). Revision 6676f4e5bb381ddce6d4. Remaining -O2 diff is purely loop strength reduction of arg1 which -O1 doesn't do. Apply the -O1 function profile.",
   "by": "claude-opus-medium-1",
@@ -19742,14 +19694,6 @@
   "created_at": 1794758170.3975968,
   "score_before": 8135,
   "score_after": 8135
- },
- {
-  "function": "func_80156338",
-  "text": "Stopping early on purpose: saved best is 2955 from another source, and my three rewrites were 14592 to 15141 (diff counts, not matches). Target: frame 0x30, saves ra and f20/f22/f24. It computes one sin of (D_8016D698 * D_80183820 / D_80183828) and reuses it for about 50 halfword stores into 9 global arrays (D_802E90F4, a 6-row loop over D_802E9214/9274 at stride 0x10, D_802E8D54, D_802E8DF4, D_802E8E94, D_802E93A4 with negative offsets, D_802E93F4, D_802E9474). The target keeps one base register per array (addiu $v1,$v1,%lo(...) then sh with offsets). My version reloads lui/%lo per store, which is the largest diff. Next: check whether the target has the 6-row loop or unrolled stores, keep one pointer per array, and compute the sin argument once as a float expression (the draft computed it twice). The scale D_8016D69A is loaded after the first sin block. Last-compile positions are not matched; this needs a fresh read of the assembly, not more of the same rewrites.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794758175.343607,
-  "score_before": 2955,
-  "score_after": 2955
  },
  {
   "function": "func_80215850",
@@ -24638,14 +24582,6 @@
   "created_at": 1794767481.450134,
   "score_before": 12568,
   "score_after": 12568
- },
- {
-  "function": "func_80156338",
-  "text": "Not matched. My rewrite (revision ace469b0a6f56fd8e7e9) scored 13582 (6.3%), and the saved best 2955 is a different draft; I did not restore it. The target has a 0x30 frame saving f20, f22, f24 (float temporaries live across two __sinf calls), and the stores go through one base register (addiu v1,v1,%lo(D_802E90F4)) with offset stores, while my per-element array writes were compiled as separate absolute lui/sh pairs. Fix next: write the stores as a pointer walk from one base (s16 *p = D_802E90F4; p[0], p[4], p[8] ...) and keep the float temps as locals in the same order as the target's saves. Also the first branch is on the (u16) value of D_8016D698 after the += 3 (the saved best seems to have that correct). The m2c draft had invalid incomplete-type declarations for D_802E9xxx; declare them as s16 arrays of enough length. Untested.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794767499.907084,
-  "score_before": 2955,
-  "score_after": 2955
  },
  {
   "function": "func_8020FC20",
@@ -40352,5 +40288,94 @@
   "created_at": 1795714510.406123,
   "score_before": 9565,
   "score_after": 9565
+ },
+ {
+  "function": "func_80156338",
+  "text": "Deep permuter: score 14792 \u2192 12687; 4 improvements; 44 candidates tested; 219 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935502",
+  "created_at": 1794356437.810261,
+  "score_before": 14792,
+  "score_after": 12687
+ },
+ {
+  "function": "func_80156338",
+  "text": "Not matched. Best saved stays 2955 (m2c draft). My hand-written versions scored 13987 and 13762, both worse, so not saved. Recovered semantics: D_8016D698 += 3; if (u16)value >= 0x169 then value = old - 0x165. fs2 = sinf(D698*c1/c0)*D69A + 400.0f (0x43C80000); fv1 = sinf(same)*D69A + 200.0f (0x43480000), with c1=D_80183820, c0=D_80183828 as f64. Stores: D_802E90F4 gets trunc(fs2) at +0,+0x10,+0x30 and trunc(fv1) at +0x20,+0x40,+0x50. Loop i=0..5 stores trunc(fv1) to D_802E9214+i*16 and trunc(fs2) to D_802E9274+i*16. Tables: D_802E8D54 (+0 a0, +0x10 a0, +0x20 a1, +0x40 a1); D_802E8DF4 (a1 at +0,0x10,0x20,0x30,0x40,0x60); D_802E8E94 (a0 at +0..0x50 step 0x10); D_802E93A4 (+0 a1, -0x20 a0, -0x10 a1, -0x40 a0); D_802E93F4 (a1 at +0,0x20,0x40,0x50,0x60,0x70); D_802E9474 (a0 at +0..0x40 step 0x10 and +0x60), where a0=trunc(fs2), a1=trunc(fv1). Remaining diff: target frame is 0x30 with ra at 0x10 and fs2/c1/c0 saved in f24/f22/f20; mine gets a 0x28 frame with only f22/f20, so fs2 is not kept live in f24. Next experiment: make fs2 live across the second sinf (compute the second sinf after the constant loads, as in the target), then fix the store base-pointer pattern (target uses v1 for D_802E90F4 with offsets, v0 per table).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794709967.079561,
+  "score_before": 2955,
+  "score_after": 2955
+ },
+ {
+  "function": "func_80156338",
+  "text": "Best current: revision 03d47093e202fa1ad42a, score 14497 (0%); target 145 insns, mine 160. Blocked on structure, not registers. Facts from the asm: u16 counter D_8016D698 +3 with wrap (-0x165 when >=0x169); two __sinf calls with arg (f32)(((f64)D_8016D698 * D_80183820)/D_80183828); fs2 = sin*(f32)D_8016D69A + 400.0f, fv1 = sin*(f32)D_8016D69A + 200.0f. Target frame 0x30 with ra and three 8-byte FP saves (f20/f22/f24); the rest of the function is straight-line s16 stores at fixed offsets from D_802E90F4, D_802E8D54, D_802E8DF4, D_802E8E94, D_802E93A4 (includes -0x20/-0x10/-0x40), D_802E93F4, D_802E9474, plus a 6-iteration loop writing D_802E9214[i*16] = fv1 and D_802E9274[i*16] = fs2. Why stuck: my C keeps re-deriving the D_80183820/D_80183828 f64 constants with lui/ldc1 each use and the stores are emitted in a different order from the target, so the score is dominated by the store block, not the arithmetic. The m2c draft's control flow is right; the fix is to write the store groups in the target's order (D_802E90F4 first, then loop, then D_802E8D54...) and to hold the doubles in locals. Next session: try compile_family on the store ordering first.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794725495.663693,
+  "score_before": 2955,
+  "score_after": 2955
+ },
+ {
+  "function": "func_80156338",
+  "text": "Not matched. Saved best 2955 (historical, m2c-derived source; the saved source is the m2c draft with M2C_FIELD stores and s32 externs). I could not reproduce that score: the same text with a do/while loop scored 12247, and my own rewrites scored 13567 and up. Facts from the target: D_8016D698 is a u16 advanced by 3 and wrapped by -0x165 at >=0x169; sinf is computed twice (no CSE), with f64 temps fs0/fs1 (saved $f20/$f22) and f32 fs2 persisting across the second call (saved $f24); frame is 0x30 with $ra and three sdc1 saves; fv1 and fs2 are truncated and stored in order (+0,+0x10,+0x30 from fs2; +0x20,+0x40,+0x50 from fv1), then a 6-iteration stride-0x10 loop, then the store groups. The saved-best source is the right starting point; the store groups should use one base register per group (target does `addiu $v1,$v1,%lo(D)` once then immediate offsets), while the saved version emits a lui per store. Next agent: start from the saved best and fix the base-register sharing, not the arithmetic.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794739758.08705,
+  "score_before": 2955,
+  "score_after": 2955
+ },
+ {
+  "function": "func_80156338",
+  "text": "Not matched. First hand-written attempt scores 13862 (4.4%), worse than the saved historical best 2955 (other source). Target 145 insns vs mine 164. Target frame is 0x30 with f20, f22, f24 saved (sdc1), mine is 0x20 with only f20: the function needs more float temporaries kept across the stores. The target reloads D_8016D698 and computes the sine argument twice, and it stores through one hoisted base per table (addiu $v1, %lo(D_802E90F4) then sh at offsets 0x00/0x10/0x20/0x40), not a fresh lui per store. Table bases/offsets in the candidate are not yet verified against the target (raw addresses at diff rows 76/146/154/160 disagree), so the table layout needs re-deriving from the target stores before any scoring is meaningful. Next: write each table as a single base pointer with offsets from the target's sh operands, keep fs2/fv1 as double-precision intermediates, and fix the frame to 0x30 before touching register order.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794754265.84675,
+  "score_before": 2955,
+  "score_after": 2955
+ },
+ {
+  "function": "func_80156338",
+  "text": "Table-fill function: advances D_8016D698 by 3 (wrap at 0x169 via `sh old-0x165`), computes two sin-based coordinates (fs2 = sin(...)*D_8016D69A + 400.0f, fv1 = ... + 200.0f) and stores their truncated s16 into ~36 slots of D_802E90F4/D_802E9214/D_802E9274/D_802E8D54/D_802E8DF4/D_802E8E94/D_802E93A4/D_802E93F4/D_802E9474.\n\nVerified facts: D_8016D698 must be `volatile u16` \u2014 otherwise GCC deletes the second lhu (cvt.d.w) and the code diverges badly (13521 -> 11298 when made volatile). Loop over i=0..5 writing D_802E9214[i*8] (y) and D_802E9274[i*8] (x) as s16 arrays with `*(s16 *)((s8 *)D_802E9214 + i*0x10)`; plain `*(&D_802E9214 + var)` gives \"arithmetic on pointer to incomplete type\".\n\nBest current revision 9e0d96c2916eb182bfb9 (score 11118, static inline st3 helper). Remaining structural gap: the target keeps ONE base pointer per block in a register (`lui/addiu v1,%lo(D_802E90F4)` then `sh v0,($v1)/0x10/0x20/0x30/0x40/0x50`) and reuses a0/v1 truncation results, i.e. the original likely used a `s16 *` local per block plus `(s16)(s32)fs2` casts, whereas my casts make GCC emit `lui $at,%hi(...)` per store. Also the target computes the first coordinate and stores it into D_802E90F4 BEFORE the second __sinf call (my versions always call __sinf twice up front); the source order there is: store x-triple, then y-triple, then loop, then the rest.\nFrame: target saves fs0/fs1/fs2 (0x30 frame, ra at 0x10) \u2014 three f64/f32 callee-saved values alive across both calls.\nCompiler trials: same C at -O1 scores 7779 (diagnostic only, project uses -O2); -fno-schedule-insns identical. Next step: restructure with `s16 *p` locals and the x-store placed between the two __sinf calls.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794757036.702108,
+  "score_before": 2955,
+  "score_after": 2955
+ },
+ {
+  "function": "func_80156338",
+  "text": "Stopping early on purpose: saved best is 2955 from another source, and my three rewrites were 14592 to 15141 (diff counts, not matches). Target: frame 0x30, saves ra and f20/f22/f24. It computes one sin of (D_8016D698 * D_80183820 / D_80183828) and reuses it for about 50 halfword stores into 9 global arrays (D_802E90F4, a 6-row loop over D_802E9214/9274 at stride 0x10, D_802E8D54, D_802E8DF4, D_802E8E94, D_802E93A4 with negative offsets, D_802E93F4, D_802E9474). The target keeps one base register per array (addiu $v1,$v1,%lo(...) then sh with offsets). My version reloads lui/%lo per store, which is the largest diff. Next: check whether the target has the 6-row loop or unrolled stores, keep one pointer per array, and compute the sin argument once as a float expression (the draft computed it twice). The scale D_8016D69A is loaded after the first sin block. Last-compile positions are not matched; this needs a fresh read of the assembly, not more of the same rewrites.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794758175.343607,
+  "score_before": 2955,
+  "score_after": 2955
+ },
+ {
+  "function": "func_80156338",
+  "text": "Not matched. My rewrite (revision ace469b0a6f56fd8e7e9) scored 13582 (6.3%), and the saved best 2955 is a different draft; I did not restore it. The target has a 0x30 frame saving f20, f22, f24 (float temporaries live across two __sinf calls), and the stores go through one base register (addiu v1,v1,%lo(D_802E90F4)) with offset stores, while my per-element array writes were compiled as separate absolute lui/sh pairs. Fix next: write the stores as a pointer walk from one base (s16 *p = D_802E90F4; p[0], p[4], p[8] ...) and keep the float temps as locals in the same order as the target's saves. Also the first branch is on the (u16) value of D_8016D698 after the += 3 (the saved best seems to have that correct). The m2c draft had invalid incomplete-type declarations for D_802E9xxx; declare them as s16 arrays of enough length. Untested.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794767499.907084,
+  "score_before": 2955,
+  "score_after": 2955
+ },
+ {
+  "function": "func_80156338",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 4465 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (321 functions of this project were built with it), the saved C scores 10578 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721212.608861,
+  "score_before": 10578,
+  "score_after": 4465,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:654770bfeab5dc0ffd0aff685b512a8dada453992d5d0dda8c7e31eadfd5889e"
+ },
+ {
+  "function": "func_80156338",
+  "text": "Small-model attempt at func_80156338: 13 tries.\n  best 965 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 5085 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 5161 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 9031 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 17092 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 965 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 4f0591472277454bcdc0 (not applied).\n13 tries. Best 965 under gcc-2.7.2-kmc -O1 (profile 1); own -O2 stays at about 17000. Remaining diffs: register choice for fs1/fs2 (target fs1=f22, fs2=f24), the div result register, and the loop: target keeps trunc results in a1/a0 and uses lui/addu per store. Tried and worse: hoisting the constant loads (3220), precomputed loop truncs (1475), pointer-indexed stores (14265), do/while loop (same 965).",
+  "by": "manual-ed93c4fb31924523",
+  "created_at": 1795724963.838758,
+  "score_before": 10578,
+  "score_after": 10578
+ },
+ {
+  "function": "func_80156338",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Small-model attempt at func_80156338: 13 tries.\n  best 965 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 5085 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 5161 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 9031 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 17092 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nNear-miss 965 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 kept as compiler trial 4f0591472277454bcdc0 (not applied).\n13 tries. Best 965 under gcc-2.7.2-kmc -O1 (profile 1); own -O2 stays at about 17000. Remaining diffs: register choice for fs1/fs2 (target fs1=f22, fs2=f24), the div result register, and the loop: target keeps trunc results in a1/a0 and uses lui/addu per store. Tried and worse: hoisting the constant loads (3220), precomputed loop truncs (1475), pointer-indexed stores (14265), do/while loop (same 965).",
+  "by": "manual-ed93c4fb31924523",
+  "created_at": 1795724964.9251509,
+  "score_before": 10578,
+  "score_after": 10578
  }
 ]
