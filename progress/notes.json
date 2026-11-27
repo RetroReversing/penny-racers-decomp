@@ -6136,14 +6136,6 @@
   "score_after": 569
  },
  {
-  "function": "func_80143600",
-  "text": "Not attempted in this session (claimed as the only item after the batch limit). The m2c draft still has pointer-arithmetic errors: `&D_8022A770`/`&D_8022A772` arithmetic on incomplete types, and the 0x64-stride table indexing on D_8011F2F0 needs a byte-offset view (as on func_80165BDC). Structure visible: a loop over 7 rows of 8 entries, float tests on fields at 0x18/0x20 of entries indexed by ((arg0&0xFFFF)*0x64) + &D_8011F2F0, then a conditional call to func_801FA30C/func_800DE41C. Start from the draft after fixing the types.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794718126.499042,
-  "score_before": 22805,
-  "score_after": 22805
- },
- {
   "function": "__vsPan",
   "text": "Score 35 (97.9%): all 17 instructions match; only v0/v1 are swapped throughout. Target: lbu v1,0x31(a0); lw v0,0x60(a1); lw a0,0x20(a0); sll v1,v1,4; addu v1,v1,v0; lbu v0,0xc(a0); lbu v1,7(v1); addiu v0,v0,-0x40; addu v1,v1,v0; then nor/sra/and/slti/beql clamp with addiu v1,0x7F; andi v0,v1,0xff. Tried: a pointer idx local (35), split off/base locals (35). Unsolved: the first byte load must land in v1 and the arg1 word in v0. Possibly a struct-based access to arg0 (the proposal about symbol-relative stores) or swapping which expression is written first. Note the clamp is `pan & (~pan >> 31)` then `if (pan >= 0x80) pan = 0x7F`.",
   "by": "claude-haiku-5-5-20",
@@ -9992,14 +9984,6 @@
   "score_after": 350
  },
  {
-  "function": "func_80143600",
-  "text": "Not attempted. Claimed late in the session, so released unworked. The m2c draft is poor here (pointer-arithmetic failures at lines 54/66-68/128; the 0x64-stride table at D_8011F2F0 with f32 fields at 0x18/0x20/0x44-0x4C; a 0x854/0x85C/0x7B4/0x7BC/0x7C0/0x7C8 float block updated in several branches). Start by reading the full assembly, then fix the struct first (base D_8011F2F0, stride 0x64) and the float constants (-0.01f, 0.97f, 0.34f, 0.15f, 0.99f, 0.000153153f, 0.0000765765f, 0.009977477f). Expect a long float-heavy routine: budget for it.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794741924.899055,
-  "score_before": 22805,
-  "score_after": 22805
- },
- {
   "function": "func_80233ED0",
   "text": "Not attempted in this session beyond reading the machine draft. The draft (revision 36e3b34125a561435629) is a goto-heavy m2c output over 1460 bytes: it has a 7-iteration loop over a 0x8F0-byte per-voice table at D_8022A770, with nested 0x3C/0x64 carry loops and D_8023760E/D_80237600/D_80237058 arrays. Next agent: get_assembly in pages, then rewrite the loop body as structured C first (the goto loop_37/loop_40/loop_43 carries are plain while loops), and only then tune registers.",
   "by": "claude-haiku-5-5-23",
@@ -11096,28 +11080,12 @@
   "score_after": 7727
  },
  {
-  "function": "func_80143600",
-  "text": "Claim expired before a real attempt. The m2c draft needs a 0x64-stride entry struct at D_8011F2F0 (u8 counter at +0xC, fields at +0x18/+0x20/+0x44-0x4C/+0x7B4-0x85C) and a 0x60-byte frame saving $ra, $s0, $f20, $f22. A quick probe scored 32528 (5.9%), so no real attempt has been made yet. Start from the target prologue, not from the draft.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794751428.07139,
-  "score_before": 22805,
-  "score_after": 22805
- },
- {
   "function": "func_80142C6C",
   "text": "Best 19859 (47%; target 377 insns, ours 314). Switch on U16(rec,0x3E) with 5 cases (0..4) jumps via a table not loaded in ROM (jr at line 124), so case bodies are unverified. Target frame is 0x58 and saves s0-s7 plus f20; ours is 0x50 with s0-s6 only. Target's loop over 7 records at D_8022A772 uses stride 0x8F0 via addu/sll, and it keeps the base in s6 (lui $s6,%hi(D_8011F2F0)) and arg0 in s3 \u2014 the draft's loop and idx arithmetic are wrong. Unverified: D_801688C4 record stride 0x5C, D_8022AEE4 threshold, field offsets 0x30/0x34/0x38/0x3E/0x40/0x44/0x4C/0x60 in rec. Next: restructure the saved-register set (s3 for arg0, s6 for base) before fixing the case bodies.",
   "by": "claude-haiku-5-5-24",
   "created_at": 1794751435.020469,
   "score_before": 19859,
   "score_after": 19859
- },
- {
-  "function": "func_80143600",
-  "text": "Not attempted to a match: 346 instructions, float-heavy. Best saved 32528 is a stub (the 7-iteration loop and the rest are missing). Structure from assembly: prologue frame 0x60 saves ra, s0, and fs0/fs1 via sdc1 (0x58/0x50). temp=&D_8011F2F0+(arg0&0xFFFF)*0x64; byte at +0xC is incremented, then func_801F99A8(byte) gives f32 stored to D_80187BE4 with fabs. Then a loop over a2 (0..) indexing D_8022A770/D_8022A772 entries (0x10 stride via sll 4 minus, entries sentinel 0xFFFF), reading f32 fields at 0x18/0x20 of the D_8011F2F0 entry, with many inline float literal compares (bits 0xC3C38000, 0xC56F1000, 0xBC23D70A, 0x3F7851EC, 0xBE75C28F, 0xC4394000, 0xC53C9000, 0xBF70A3D7, 0x3EAE147B, 0x43620000, 0xC56F9000, 0x3DB851EC) and float writes to offsets 0x854/0x85C/0x7B4/0x7BC/0x7C0/0x7C8 of $a0 (the struct pointer). Next step: write the float literals as decimal floats (check bit patterns) and split the loop into the sentinel test then the two-branch cascade. Not attempted this session.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794751493.853222,
-  "score_before": 22805,
-  "score_after": 22805
  },
  {
   "function": "func_80193A50",
@@ -13752,14 +13720,6 @@
   "score_after": 480
  },
  {
-  "function": "func_80143600",
-  "text": "No new compile in this claim; the saved C (score 32528) is a stub. Structure from get_assembly (358 insns, frame 0x60): record = D_8011F2F0 + (arg0&0xFFFF)*0x64 (saved in $s0); byte at +0xC is incremented, then D_80187BE4 = func_801F99A8(byte at +0xC) with abs() on it (c.lt.s against 0.0 and neg.s). Then a loop over index a2 (0..?) using D_8022A772 (u16, sentinel 0xFFFF) and D_8022A770 entries of stride 0x10 (index*16 - index*... computed as (a2*8+a2)*16 - a2, i.e. a2*0x8F... see asm lines 40-60), each compared against D_8011F2F0 record fields at +0x18 and +0x20 with a chain of float constants (0x43240000, 0xC545C000, 0x38A097B2, 0x3C237892, 0xC3C38000, 0xC56F1000, 0xBC23D70A, 0x3F7851EC, 0xBE75C28F), using bc1fl branches to .L801439B0 (loop continue, a2++). Writing this needs the exact float-expression tree: start with the first loop (lines 40-120 of the asm), and keep the float literals as typed casts of the hex (e.g. *(f32*)&0x43240000 style via a union or D_ constants), not as decimal guesses. Not attempted in this session.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794760187.732158,
-  "score_before": 22805,
-  "score_after": 22805
- },
- {
   "function": "func_80207DC8",
   "text": "MATCHES with KMC GCC -O1 (suggestion filed with exact C: explicit `s32 n = 9` set between `j = 0` and `p = &D_8021E1AC`, used only in `count == n`; inner loop keeps literal 9). At -O2 best is 340 (prologue scheduling); needs user to apply -O1 compiler bundle.",
   "by": "claude-opus-medium-1",
@@ -14542,14 +14502,6 @@
   "created_at": 1794762641.0767438,
   "score_before": 660,
   "score_after": 660
- },
- {
-  "function": "func_80143600",
-  "text": "Not matched. Best score 32528 (5.9%), revision dda7b16713d07453bb6c. Releasing now because this session cannot get it closer: the saved candidate is a stub (record increment at +0xC, abs-store to D_80187BE4, empty loop), and the target is 346 instructions with a 0x60 frame, saved ra/s0/f20-f22 and long float chains (mtc1 $zero, sub.s/mul.s against f20/f22, returns in f0-f2). A real body needs to be written from the assembly first (7-iteration loop over entries at i*8 with the float accumulation), then structure matched before registers. Do not reuse the stub. Record fields: D_8011F2F0 stride 0x64; byte +0xC is a counter; floats from +0x18.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794762677.313866,
-  "score_before": 22805,
-  "score_after": 22805
  },
  {
   "function": "func_80142C6C",
@@ -41890,5 +41842,62 @@
   "score_before": 7990,
   "score_after": 6961,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:008c930e7faaa14fd614d3077ef4c958b168632d6da7d0b4ae45b5a6825f77b5"
+ },
+ {
+  "function": "func_80143600",
+  "text": "Not attempted in this session (claimed as the only item after the batch limit). The m2c draft still has pointer-arithmetic errors: `&D_8022A770`/`&D_8022A772` arithmetic on incomplete types, and the 0x64-stride table indexing on D_8011F2F0 needs a byte-offset view (as on func_80165BDC). Structure visible: a loop over 7 rows of 8 entries, float tests on fields at 0x18/0x20 of entries indexed by ((arg0&0xFFFF)*0x64) + &D_8011F2F0, then a conditional call to func_801FA30C/func_800DE41C. Start from the draft after fixing the types.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794718126.499042,
+  "score_before": 22805,
+  "score_after": 22805
+ },
+ {
+  "function": "func_80143600",
+  "text": "Not attempted. Claimed late in the session, so released unworked. The m2c draft is poor here (pointer-arithmetic failures at lines 54/66-68/128; the 0x64-stride table at D_8011F2F0 with f32 fields at 0x18/0x20/0x44-0x4C; a 0x854/0x85C/0x7B4/0x7BC/0x7C0/0x7C8 float block updated in several branches). Start by reading the full assembly, then fix the struct first (base D_8011F2F0, stride 0x64) and the float constants (-0.01f, 0.97f, 0.34f, 0.15f, 0.99f, 0.000153153f, 0.0000765765f, 0.009977477f). Expect a long float-heavy routine: budget for it.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794741924.899055,
+  "score_before": 22805,
+  "score_after": 22805
+ },
+ {
+  "function": "func_80143600",
+  "text": "Claim expired before a real attempt. The m2c draft needs a 0x64-stride entry struct at D_8011F2F0 (u8 counter at +0xC, fields at +0x18/+0x20/+0x44-0x4C/+0x7B4-0x85C) and a 0x60-byte frame saving $ra, $s0, $f20, $f22. A quick probe scored 32528 (5.9%), so no real attempt has been made yet. Start from the target prologue, not from the draft.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794751428.07139,
+  "score_before": 22805,
+  "score_after": 22805
+ },
+ {
+  "function": "func_80143600",
+  "text": "Not attempted to a match: 346 instructions, float-heavy. Best saved 32528 is a stub (the 7-iteration loop and the rest are missing). Structure from assembly: prologue frame 0x60 saves ra, s0, and fs0/fs1 via sdc1 (0x58/0x50). temp=&D_8011F2F0+(arg0&0xFFFF)*0x64; byte at +0xC is incremented, then func_801F99A8(byte) gives f32 stored to D_80187BE4 with fabs. Then a loop over a2 (0..) indexing D_8022A770/D_8022A772 entries (0x10 stride via sll 4 minus, entries sentinel 0xFFFF), reading f32 fields at 0x18/0x20 of the D_8011F2F0 entry, with many inline float literal compares (bits 0xC3C38000, 0xC56F1000, 0xBC23D70A, 0x3F7851EC, 0xBE75C28F, 0xC4394000, 0xC53C9000, 0xBF70A3D7, 0x3EAE147B, 0x43620000, 0xC56F9000, 0x3DB851EC) and float writes to offsets 0x854/0x85C/0x7B4/0x7BC/0x7C0/0x7C8 of $a0 (the struct pointer). Next step: write the float literals as decimal floats (check bit patterns) and split the loop into the sentinel test then the two-branch cascade. Not attempted this session.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794751493.853222,
+  "score_before": 22805,
+  "score_after": 22805
+ },
+ {
+  "function": "func_80143600",
+  "text": "No new compile in this claim; the saved C (score 32528) is a stub. Structure from get_assembly (358 insns, frame 0x60): record = D_8011F2F0 + (arg0&0xFFFF)*0x64 (saved in $s0); byte at +0xC is incremented, then D_80187BE4 = func_801F99A8(byte at +0xC) with abs() on it (c.lt.s against 0.0 and neg.s). Then a loop over index a2 (0..?) using D_8022A772 (u16, sentinel 0xFFFF) and D_8022A770 entries of stride 0x10 (index*16 - index*... computed as (a2*8+a2)*16 - a2, i.e. a2*0x8F... see asm lines 40-60), each compared against D_8011F2F0 record fields at +0x18 and +0x20 with a chain of float constants (0x43240000, 0xC545C000, 0x38A097B2, 0x3C237892, 0xC3C38000, 0xC56F1000, 0xBC23D70A, 0x3F7851EC, 0xBE75C28F), using bc1fl branches to .L801439B0 (loop continue, a2++). Writing this needs the exact float-expression tree: start with the first loop (lines 40-120 of the asm), and keep the float literals as typed casts of the hex (e.g. *(f32*)&0x43240000 style via a union or D_ constants), not as decimal guesses. Not attempted in this session.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794760187.732158,
+  "score_before": 22805,
+  "score_after": 22805
+ },
+ {
+  "function": "func_80143600",
+  "text": "Not matched. Best score 32528 (5.9%), revision dda7b16713d07453bb6c. Releasing now because this session cannot get it closer: the saved candidate is a stub (record increment at +0xC, abs-store to D_80187BE4, empty loop), and the target is 346 instructions with a 0x60 frame, saved ra/s0/f20-f22 and long float chains (mtc1 $zero, sub.s/mul.s against f20/f22, returns in f0-f2). A real body needs to be written from the assembly first (7-iteration loop over entries at i*8 with the float accumulation), then structure matched before registers. Do not reuse the stub. Record fields: D_8011F2F0 stride 0x64; byte +0xC is a counter; floats from +0x18.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794762677.313866,
+  "score_before": 22805,
+  "score_after": 22805
+ },
+ {
+  "function": "func_80143600",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 15377 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (9 of its 12 nearest matched neighbours were built with it), the saved C scores 20485 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721291.119602,
+  "score_before": 20485,
+  "score_after": 15377,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:2bcf5c14bdd3432889b40b7f2c56738b5a4d634472759ff9ab7822ad644e3e35"
  }
 ]
