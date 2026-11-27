@@ -10000,14 +10000,6 @@
   "score_after": 33525
  },
  {
-  "function": "func_8012A384",
-  "text": "Not attempted. 1484 bytes. m2c draft has type errors (D_8012AB4C/D_8012AB7C/_8012AB64 incomplete types; the Vec3 globals are declared as structs but used as floats in places). Structure: loops over a Group array from arg0+0x50 -> +4 -> +4 pointer chain, per-mesh vertex transform into D_8012AB98[] with offsets arg0+0x18/0x1C/0x20 (floats), then a triangle-degenerate check printing via func_8003DE60 with format strings D_8012AA48..D_8012AB20. Fix the globals' types first (Vec3 D_8012AB4C etc.) and check the draft's float compares against the asm.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794719115.2071118,
-  "score_before": 24501,
-  "score_after": 24501
- },
- {
   "function": "findTrackSegment",
   "text": "Not attempted. 1488 bytes; m2c draft compiles but is a mess of duplicate returns and goto blocks. Structure: takes u16 *arg0 (a table index, *arg0*0x64 into D_8011F340/D_8011F308/D_8011F310 arrays), u16 *arg1 (flag), f32 arg2/arg4 (x/z point). Box-containment tests on s16 fields at +0x40/+0x44/+0x50/+0x54 of a pointer chain (D_8011F340 entry -> +4 -> +4 -> +4), with a 0x1E margin, returning 0/1/2. Rewrite the control flow from the asm (not from the draft) and only then fix types.",
   "by": "claude-haiku-5-5-24",
@@ -19880,14 +19872,6 @@
   "score_after": 26644
  },
  {
-  "function": "func_8012A384",
-  "text": "Claimed but not worked. The machine draft failed to compile (incomplete types D_8012AB4C/D_8012AB7C/D_8012AB64, Vec3 vs float mismatches at lines 126-155, and a pointer-vs-float misuse). The function is 1484 bytes with debug printf calls (func_8003DE60) and a triangle-degeneracy check over mesh tris; the draft's struct layouts (Group/Mesh/V16) are unverified guesses. Start by reading get_assembly and fixing the Vec3 globals' types before any compile.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794742186.990656,
-  "score_before": 24501,
-  "score_after": 24501
- },
- {
   "function": "sortViewObjects",
   "text": "Not attempted beyond the machine draft; nothing compiled. The m2c draft is goto-heavy (block_5..block_47, loop_1/9/10/12/18/33) with nested loops over D_8011F068 (u16 index list) and D_800E23E0, a sqrtf call per entry, and func_800E08B4/func_800E0A00 sort helpers. Start by rewriting the control flow structurally: outer loop1 builds list D_8011F068 of entries where field 0x3C != 0xFFFF, flag byte 2 & 8 clear and byte 0xD == 0 (stride 0x64 table at D_8011F2F0); then the group loop (compare u8 at 0x2FA-based field across entries) and a sqrt-distance loop writing float into D_800E1EE0. Verify the sqrtf prototype (it is called with a second dummy argument in the draft, which is wrong) before compiling.",
   "by": "claude-haiku-5-5-24",
@@ -21766,14 +21750,6 @@
   "created_at": 1794751525.7458282,
   "score_before": 33525,
   "score_after": 33525
- },
- {
-  "function": "func_8012A384",
-  "text": "Not compiled this claim. Saved best 24501 is a permuter source with incomplete-type errors in the draft (D_8012AB4C/D_8012AB7C used as Vec3 before definition, 'cannot convert to a pointer' at the printf line). Layouts confirmed from the assembly: Group stride 12 (sll/addu x3 x4), Group.meshes at +0; Mesh.n u8 at 0, tris ptr at +4, verts ptr at +8, nverts u8 at +0xC, base u8 at +0xD; V16 stride 16 (s16 x,y,z at 0,2,4); Vec3 stride 12 in global D_8012AB98 with x at 0, y at 4 (D_8012AB9C), z at 8 (D_8012ABA0). The function's arg0 offsets 0x18/0x1C/0x20 are f32 translation terms added to verts. The printf-style debug output passes Vec3 fields as varargs (doubles), which is where the saved draft is least likely to match. Next step: rewrite with the Mesh/Group/V16/Vec3 types above and the three-loop structure (group, mesh, vertex; then triangle loop with the bad counter and message selection), and compile before tuning.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794751549.761164,
-  "score_before": 24501,
-  "score_after": 24501
  },
  {
   "function": "updateTitleMenu",
@@ -28408,14 +28384,6 @@
   "score_after": 2310
  },
  {
-  "function": "func_8012A384",
-  "text": "Not attempted to compile; the claim's candidate (cccdb2e6c59942644fdc) fails to compile: 'D_8012AB4C has an incomplete type' (Vec3 externs clash with the header types) and warnings on incompatible pointer assignments for the Group/Mesh pointer chain. Target is 386 insns, 1484 B. Structure: arg0 -> +0x50 -> +4 -> +4 gives Group** gp; outer loop over Group array until meshes==NULL; inner loop over Mesh (fields: n at +0, tris at +4, verts at +8, nverts at +0xC, base at +0xD); vertex loop writes D_8012AB98[base+v] with offsets from arg0+0x18/0x1C/0x20 added to the vertex; triangle loop compares three vertices and calls debug printf func_8003DE60 with strings D_8012AA48..D_8012AB20. The first lines of the target load D_8012AB64/AB4C/AB7C into s2/s1/s0. Next step: fix the declarations first (use the header's Vec3 if present, or give the globals a plain struct type), then compare against the assembly with the nested-loop shape.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794760069.0970318,
-  "score_before": 24501,
-  "score_after": 24501
- },
- {
   "function": "drawModelObject",
   "text": "Best 9496 (70.6%, 324 target insns vs 309 mine). Machine draft fails: no jump table recognised for the switch on U8(rec,0xB). My C with a plain switch (cases 1..10 grouped, default) and my goto version both score 9496; the scoring output says \"your code refers to .rodata+0x0 where the ROM has no address\", so the target's switch is a real jump table and my switch is not compiled into one. Next: find the case range that makes GCC emit a jump table (the target has cases 0..10 with the default falling through to the D_800E1860 path), and reconcile the first `if` chain: target uses `bc1fl` (branch-likely) on the three float equality tests where mine uses `bc1f`. The stack frame is 0x68 (sw $ra at 0x48) and mine is 0x30-based, so the saved-register set also differs (target has s6 and s7 saved; mine uses s1, s2). Macros U8/U16/U32 are used for rec field access to keep offsets exact.",
   "by": "claude-haiku-5-5-20",
@@ -30542,14 +30510,6 @@
   "created_at": 1794762797.7846231,
   "score_before": 40677,
   "score_after": 40677
- },
- {
-  "function": "func_8012A384",
-  "text": "Not attempted beyond reading. The machine draft (cccdb2e6c59942644fdc) is not compilable as shipped (incomplete types for D_8012AB4C/AB7C/AB64, a `for (k = 0; 0 < m->n; k++)` loop condition that is clearly wrong, and float-vs-pointer errors at line 155). Assembly is 386 insns: outer loop over Group array with 12-byte stride (idx*3*4), inner mesh loop with 16-byte stride (s6<<4), vertex loop writing D_8012AB98[base+v] and [inline_fn(m)+v] with x/y/z from arg0 offsets 0x18/0x1C/0x20 as f32, then a triangle loop comparing vertices and printing debug messages through func_8003DE60. Next step: derive struct layouts from the asm (get_assembly page 52+), fix loop conditions to match the loads, then compile. Struct guesses in the draft are unverified.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794762797.934717,
-  "score_before": 24501,
-  "score_after": 24501
  },
  {
   "function": "findTrackSegment",
@@ -40147,14 +40107,6 @@
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:2bcf5c14bdd3432889b40b7f2c56738b5a4d634472759ff9ab7822ad644e3e35"
  },
  {
-  "function": "func_8012A384",
-  "text": "Profile probe: this saved C scores 17357 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (7 of its 8 nearest matched neighbours were built with it), 21227 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
-  "by": "autopilot",
-  "created_at": 1795721291.143499,
-  "score_before": 21227,
-  "score_after": 17357
- },
- {
   "function": "initTrackObjects",
   "text": "Profile probe: this saved C scores 14751 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (321 functions of this project were built with it), 20321 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
   "by": "autopilot",
@@ -42242,24 +42194,6 @@
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:6325e0aab8a7b57e20e8f671f317a65f9a4e144b04309e99d22d90863751656e"
  },
  {
-  "function": "func_8012A384",
-  "text": "Plain typed C at -O1 (isolated judge, -G0 -mips3 -mgp32 -mfp32) scores 355: every instruction right, only registers differ (355 isolated). Struct chain node->top(+0x50)->mid(+4)->list(+4); 12-byte entries, 16-byte mesh {ntri,tris(3 bytes),Vtx verts,nvert +0xC,base +0xD}; debug check of degenerate triangles. Target has addresses s0-s2, mesh s3, i s4, t s5, j s6; ours ranks mesh first. entry declared before list gives the stack slots. Own profile is still -O2: apply -O1 on an exact trial.",
-  "by": "manual-be1ffe91e81447c2",
-  "created_at": 1795755054.866982,
-  "score_before": 14589,
-  "score_after": 14589,
-  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:107385725ab43521ee1858a74d204bb72cac56e0cc7f034cc4e7820a81a5a5fe"
- },
- {
-  "function": "func_8012A384",
-  "text": "Register-only near match (355 isolated at -O1); see note. Needs the mesh pointer ranked below the three hoisted symbol addresses.",
-  "by": "manual-be1ffe91e81447c2",
-  "created_at": 1795755059.800192,
-  "score_before": null,
-  "score_after": null,
-  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:107385725ab43521ee1858a74d204bb72cac56e0cc7f034cc4e7820a81a5a5fe"
- },
- {
   "function": "func_801DFDEC",
   "text": "[Released without compiling it once; notes not checked by a compile.] Read only, nothing compiled: a drawing loop with many text calls and several values spilled to the stack.",
   "by": "manual-a5699764766e4d76",
@@ -42308,15 +42242,6 @@
   "score_before": 96459,
   "score_after": 44230,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:624217e321e5b54e8c042cf579f65df55ae248e09b4783c7e19486d42b65bb8b"
- },
- {
-  "function": "func_8012A384",
-  "text": "Not matched: -O1 (-G0 -mips3 -mgp32 -mfp32) source below scores 355, only registers differ. greg (passes.py): the mesh pointer has priority 1.02 against 0.49 for the three hoisted vector addresses and 0.62 for the triangle index; the target ranks addresses > mesh > i > t > j. Source:\ntypedef struct { f32 x, y, z; } V3;\ntypedef struct { s16 x, y, z; s16 pad[5]; } V16;\ntypedef struct { u8 ntri; u8 pad[3]; u8 (*tris)[3]; V16 *verts; u8 nv; u8 base; u8 pad2[2]; } Mesh;\ntypedef struct { Mesh *meshes; u8 pad[8]; } Group;\ntypedef struct { s32 pad; Group **list; } Mid;\ntypedef struct { s32 pad; Mid *mid; } Top;\ntypedef struct { u8 pad[0x18]; f32 x, y, z; u8 pad2[0x2C]; Top *top; } Node;\nextern V3 D_8012AB98[];\nextern V3 D_8012AB64, D_8012AB4C, D_8012AB7C;\nextern char D_8012AA48[], D_8012AA68[], D_8012AA84[], D_8012AA98[], D_8012AABC[], D_8012AAE0[], D_8012AB04[], D_8012AB20[];\nvoid func_8003DE60(const char *, ...);\n#define EQ(p, q) ((p).x == (q).x && (p).y == (q).y && (p).z == (q).z)\n#define A D_8012AB64\n#define B D_8012AB4C\n#define C D_8012AB7C\n\nvoid func_8012A384(Node *node, u16 id) {\n    Group *g;\n    Group **list;\n    s32 i;\n    s32 j;\n    s32 k;\n    s32 t;\n    s32 count;\n    Mesh *m;\n    u8 *tri;\n\n    func_8003DE60(D_8012AA48, id);\n    list = node->top->mid->list;\n    count = 0;\n    for (i = 0; (*list)[i].meshes != 0; i++) {\n        g = &(*list)[i];\n        for (j = 0; g->meshes[j].ntri != 0; j++) {\n            m = &g->meshes[j];\n            for (k = 0; k < m->nv; k++) {\n                D_8012AB98[m->base + k].x = m->verts[k].x + node->x;\n                D_8012AB98[m->base + k].y = m->verts[k].y + node->y;\n                D_8012AB98[m->base + k].z = m->verts[k].z + node->z;\n            }\n            for (t = 0; t < m->ntri; t++) {\n                tri = m->tris[t];\n                A.x = D_8012AB98[tri[0]].x;\n                A.y = D_8012AB98[tri[0]].y;\n                A.z = D_8012AB98[tri[0]].z;\n                B.x = D_8012AB98[tri[1]].x;\n                B.y = D_8012AB98[tri[1]].y;\n                B.z = D_8012AB98[tri[1]].z;\n                C.x = D_8012AB98[tri[2]].x;\n                C.y = D_8012AB98[tri[2]].y;\n                C.z = D_8012AB98[tri[2]].z;\n                count++;\n                if (EQ(A, B)) {\n                    if (!EQ(A, C)) {\n                        goto two;\n                    }\n                    func_8003DE60(D_8012AA68);\n                } else if (EQ(A, C)) {\n                    if (!EQ(A, B)) {\n                        goto two;\n                    }\n                    func_8003DE60(D_8012AA68);\n                } else if (EQ(C, B)) {\n                    if (!EQ(A, C)) {\n                        goto two;\n                    }\n                    func_8003DE60(D_8012AA68);\n                } else {\n                    continue;\n                }\n                goto print;\ntwo:\n                func_8003DE60(D_8012AB04);\nprint:\n                func_8003DE60(D_8012AA84, i);\n                func_8003DE60(D_8012AA98, A.x, A.y, A.z);\n                func_8003DE60(D_8012AABC, B.x, B.y, B.z);\n                func_8003DE60(D_8012AAE0, C.x, C.y, C.z);\n            }\n        }\n    }\n    func_8003DE60(D_8012AB20, count);\n}",
-  "by": "manual-3b0d64ea34b34181",
-  "created_at": 1795755686.115171,
-  "score_before": 14589,
-  "score_after": 14589,
-  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:107385725ab43521ee1858a74d204bb72cac56e0cc7f034cc4e7820a81a5a5fe"
  },
  {
   "function": "func_8013835C",
@@ -42393,14 +42318,6 @@
   "created_at": 1795756237.4375901,
   "score_before": 103998,
   "score_after": 103998
- },
- {
-  "function": "func_8012A384",
-  "text": "[Released without compiling it once; notes not checked by a compile.] Still 355 (-O1 isolated, registers only). Not found: target ranks hoisted addresses (49 refs/495 live) over mesh pointer (45/220) and i over t (26/169). Tried: do-while(0) fences round the check (375, 410), all 16 for/goto-loop forms of the four loops (none better), static inline vertex loop (355 same), m as for-condition or pointer walk (worse), uses of m/t after the loops (live length barely grows).",
-  "by": "manual-b46f1c9eae47406c",
-  "created_at": 1795756451.114893,
-  "score_before": 14589,
-  "score_after": 14589
  },
  {
   "function": "updateSoundTestSfx",
@@ -43098,14 +43015,6 @@
   "score_after": 57141
  },
  {
-  "function": "func_8012A384",
-  "text": "Profile probe: this saved C scores 355 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (12 of its 12 nearest matched neighbours were built with it), 14589 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
-  "by": "permuter-30064771113",
-  "created_at": 1795807495.6880288,
-  "score_before": 14589,
-  "score_after": 355
- },
- {
   "function": "func_8020AAB0",
   "text": "Profile probe: this saved C scores 19481 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float (10 functions of this project were built with it), 44029 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
   "by": "permuter-30064771721",
@@ -43176,14 +43085,6 @@
   "created_at": 1795808843.072147,
   "score_before": 43365,
   "score_after": 4902
- },
- {
-  "function": "func_8012A384",
-  "text": "Profile probe: this saved C scores 2880 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (12 of its 12 nearest matched neighbours were built with it), 11124 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
-  "by": "permuter-30064771113",
-  "created_at": 1795809217.227547,
-  "score_before": 11124,
-  "score_after": 2880
  },
  {
   "function": "func_8012E4DC",
@@ -43468,14 +43369,6 @@
   "score_after": 8122
  },
  {
-  "function": "func_8012A384",
-  "text": "Profile probe: this saved C scores 3164 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (12 of its 12 nearest matched neighbours were built with it), 10991 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
-  "by": "permuter-30064771113",
-  "created_at": 1795811500.171891,
-  "score_before": 10991,
-  "score_after": 3164
- },
- {
   "function": "func_8019A5A0",
   "text": "Profile probe: the machine draft (get_function section=draft) scores 282119 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (12 of its 12 nearest matched neighbours were built with it), 523217 under its own settings (the saved C: 280559); not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
   "by": "permuter-30064771465",
@@ -43514,14 +43407,6 @@
   "created_at": 1795812273.874434,
   "score_before": 0,
   "score_after": 0
- },
- {
-  "function": "func_8012A384",
-  "text": "Profile probe: this saved C scores 3164 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (12 of its 12 nearest matched neighbours were built with it), 10495 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
-  "by": "permuter-30064771113",
-  "created_at": 1795812343.319875,
-  "score_before": 10495,
-  "score_after": 3164
  },
  {
   "function": "func_80138CC0",
@@ -43964,6 +43849,121 @@
   "score_before": 0,
   "score_after": 0,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:e64efa6f14fb66a898b34789d1784154683c2f33096382b21ad0cf5f073ffb59"
+ },
+ {
+  "function": "func_8012A384",
+  "text": "Not attempted. 1484 bytes. m2c draft has type errors (D_8012AB4C/D_8012AB7C/_8012AB64 incomplete types; the Vec3 globals are declared as structs but used as floats in places). Structure: loops over a Group array from arg0+0x50 -> +4 -> +4 pointer chain, per-mesh vertex transform into D_8012AB98[] with offsets arg0+0x18/0x1C/0x20 (floats), then a triangle-degenerate check printing via func_8003DE60 with format strings D_8012AA48..D_8012AB20. Fix the globals' types first (Vec3 D_8012AB4C etc.) and check the draft's float compares against the asm.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794719115.2071118,
+  "score_before": 24501,
+  "score_after": 24501
+ },
+ {
+  "function": "func_8012A384",
+  "text": "Claimed but not worked. The machine draft failed to compile (incomplete types D_8012AB4C/D_8012AB7C/D_8012AB64, Vec3 vs float mismatches at lines 126-155, and a pointer-vs-float misuse). The function is 1484 bytes with debug printf calls (func_8003DE60) and a triangle-degeneracy check over mesh tris; the draft's struct layouts (Group/Mesh/V16) are unverified guesses. Start by reading get_assembly and fixing the Vec3 globals' types before any compile.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794742186.990656,
+  "score_before": 24501,
+  "score_after": 24501
+ },
+ {
+  "function": "func_8012A384",
+  "text": "Not compiled this claim. Saved best 24501 is a permuter source with incomplete-type errors in the draft (D_8012AB4C/D_8012AB7C used as Vec3 before definition, 'cannot convert to a pointer' at the printf line). Layouts confirmed from the assembly: Group stride 12 (sll/addu x3 x4), Group.meshes at +0; Mesh.n u8 at 0, tris ptr at +4, verts ptr at +8, nverts u8 at +0xC, base u8 at +0xD; V16 stride 16 (s16 x,y,z at 0,2,4); Vec3 stride 12 in global D_8012AB98 with x at 0, y at 4 (D_8012AB9C), z at 8 (D_8012ABA0). The function's arg0 offsets 0x18/0x1C/0x20 are f32 translation terms added to verts. The printf-style debug output passes Vec3 fields as varargs (doubles), which is where the saved draft is least likely to match. Next step: rewrite with the Mesh/Group/V16/Vec3 types above and the three-loop structure (group, mesh, vertex; then triangle loop with the bad counter and message selection), and compile before tuning.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794751549.761164,
+  "score_before": 24501,
+  "score_after": 24501
+ },
+ {
+  "function": "func_8012A384",
+  "text": "Not attempted to compile; the claim's candidate (cccdb2e6c59942644fdc) fails to compile: 'D_8012AB4C has an incomplete type' (Vec3 externs clash with the header types) and warnings on incompatible pointer assignments for the Group/Mesh pointer chain. Target is 386 insns, 1484 B. Structure: arg0 -> +0x50 -> +4 -> +4 gives Group** gp; outer loop over Group array until meshes==NULL; inner loop over Mesh (fields: n at +0, tris at +4, verts at +8, nverts at +0xC, base at +0xD); vertex loop writes D_8012AB98[base+v] with offsets from arg0+0x18/0x1C/0x20 added to the vertex; triangle loop compares three vertices and calls debug printf func_8003DE60 with strings D_8012AA48..D_8012AB20. The first lines of the target load D_8012AB64/AB4C/AB7C into s2/s1/s0. Next step: fix the declarations first (use the header's Vec3 if present, or give the globals a plain struct type), then compare against the assembly with the nested-loop shape.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794760069.0970318,
+  "score_before": 24501,
+  "score_after": 24501
+ },
+ {
+  "function": "func_8012A384",
+  "text": "Not attempted beyond reading. The machine draft (cccdb2e6c59942644fdc) is not compilable as shipped (incomplete types for D_8012AB4C/AB7C/AB64, a `for (k = 0; 0 < m->n; k++)` loop condition that is clearly wrong, and float-vs-pointer errors at line 155). Assembly is 386 insns: outer loop over Group array with 12-byte stride (idx*3*4), inner mesh loop with 16-byte stride (s6<<4), vertex loop writing D_8012AB98[base+v] and [inline_fn(m)+v] with x/y/z from arg0 offsets 0x18/0x1C/0x20 as f32, then a triangle loop comparing vertices and printing debug messages through func_8003DE60. Next step: derive struct layouts from the asm (get_assembly page 52+), fix loop conditions to match the loads, then compile. Struct guesses in the draft are unverified.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794762797.934717,
+  "score_before": 24501,
+  "score_after": 24501
+ },
+ {
+  "function": "func_8012A384",
+  "text": "Profile probe: this saved C scores 17357 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (7 of its 8 nearest matched neighbours were built with it), 21227 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721291.143499,
+  "score_before": 21227,
+  "score_after": 17357
+ },
+ {
+  "function": "func_8012A384",
+  "text": "Plain typed C at -O1 (isolated judge, -G0 -mips3 -mgp32 -mfp32) scores 355: every instruction right, only registers differ (355 isolated). Struct chain node->top(+0x50)->mid(+4)->list(+4); 12-byte entries, 16-byte mesh {ntri,tris(3 bytes),Vtx verts,nvert +0xC,base +0xD}; debug check of degenerate triangles. Target has addresses s0-s2, mesh s3, i s4, t s5, j s6; ours ranks mesh first. entry declared before list gives the stack slots. Own profile is still -O2: apply -O1 on an exact trial.",
+  "by": "manual-be1ffe91e81447c2",
+  "created_at": 1795755054.866982,
+  "score_before": 14589,
+  "score_after": 14589,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:107385725ab43521ee1858a74d204bb72cac56e0cc7f034cc4e7820a81a5a5fe"
+ },
+ {
+  "function": "func_8012A384",
+  "text": "Register-only near match (355 isolated at -O1); see note. Needs the mesh pointer ranked below the three hoisted symbol addresses.",
+  "by": "manual-be1ffe91e81447c2",
+  "created_at": 1795755059.800192,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:107385725ab43521ee1858a74d204bb72cac56e0cc7f034cc4e7820a81a5a5fe"
+ },
+ {
+  "function": "func_8012A384",
+  "text": "Not matched: -O1 (-G0 -mips3 -mgp32 -mfp32) source below scores 355, only registers differ. greg (passes.py): the mesh pointer has priority 1.02 against 0.49 for the three hoisted vector addresses and 0.62 for the triangle index; the target ranks addresses > mesh > i > t > j. Source:\ntypedef struct { f32 x, y, z; } V3;\ntypedef struct { s16 x, y, z; s16 pad[5]; } V16;\ntypedef struct { u8 ntri; u8 pad[3]; u8 (*tris)[3]; V16 *verts; u8 nv; u8 base; u8 pad2[2]; } Mesh;\ntypedef struct { Mesh *meshes; u8 pad[8]; } Group;\ntypedef struct { s32 pad; Group **list; } Mid;\ntypedef struct { s32 pad; Mid *mid; } Top;\ntypedef struct { u8 pad[0x18]; f32 x, y, z; u8 pad2[0x2C]; Top *top; } Node;\nextern V3 D_8012AB98[];\nextern V3 D_8012AB64, D_8012AB4C, D_8012AB7C;\nextern char D_8012AA48[], D_8012AA68[], D_8012AA84[], D_8012AA98[], D_8012AABC[], D_8012AAE0[], D_8012AB04[], D_8012AB20[];\nvoid func_8003DE60(const char *, ...);\n#define EQ(p, q) ((p).x == (q).x && (p).y == (q).y && (p).z == (q).z)\n#define A D_8012AB64\n#define B D_8012AB4C\n#define C D_8012AB7C\n\nvoid func_8012A384(Node *node, u16 id) {\n    Group *g;\n    Group **list;\n    s32 i;\n    s32 j;\n    s32 k;\n    s32 t;\n    s32 count;\n    Mesh *m;\n    u8 *tri;\n\n    func_8003DE60(D_8012AA48, id);\n    list = node->top->mid->list;\n    count = 0;\n    for (i = 0; (*list)[i].meshes != 0; i++) {\n        g = &(*list)[i];\n        for (j = 0; g->meshes[j].ntri != 0; j++) {\n            m = &g->meshes[j];\n            for (k = 0; k < m->nv; k++) {\n                D_8012AB98[m->base + k].x = m->verts[k].x + node->x;\n                D_8012AB98[m->base + k].y = m->verts[k].y + node->y;\n                D_8012AB98[m->base + k].z = m->verts[k].z + node->z;\n            }\n            for (t = 0; t < m->ntri; t++) {\n                tri = m->tris[t];\n                A.x = D_8012AB98[tri[0]].x;\n                A.y = D_8012AB98[tri[0]].y;\n                A.z = D_8012AB98[tri[0]].z;\n                B.x = D_8012AB98[tri[1]].x;\n                B.y = D_8012AB98[tri[1]].y;\n                B.z = D_8012AB98[tri[1]].z;\n                C.x = D_8012AB98[tri[2]].x;\n                C.y = D_8012AB98[tri[2]].y;\n                C.z = D_8012AB98[tri[2]].z;\n                count++;\n                if (EQ(A, B)) {\n                    if (!EQ(A, C)) {\n                        goto two;\n                    }\n                    func_8003DE60(D_8012AA68);\n                } else if (EQ(A, C)) {\n                    if (!EQ(A, B)) {\n                        goto two;\n                    }\n                    func_8003DE60(D_8012AA68);\n                } else if (EQ(C, B)) {\n                    if (!EQ(A, C)) {\n                        goto two;\n                    }\n                    func_8003DE60(D_8012AA68);\n                } else {\n                    continue;\n                }\n                goto print;\ntwo:\n                func_8003DE60(D_8012AB04);\nprint:\n                func_8003DE60(D_8012AA84, i);\n                func_8003DE60(D_8012AA98, A.x, A.y, A.z);\n                func_8003DE60(D_8012AABC, B.x, B.y, B.z);\n                func_8003DE60(D_8012AAE0, C.x, C.y, C.z);\n            }\n        }\n    }\n    func_8003DE60(D_8012AB20, count);\n}",
+  "by": "manual-3b0d64ea34b34181",
+  "created_at": 1795755686.115171,
+  "score_before": 14589,
+  "score_after": 14589,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:107385725ab43521ee1858a74d204bb72cac56e0cc7f034cc4e7820a81a5a5fe"
+ },
+ {
+  "function": "func_8012A384",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Still 355 (-O1 isolated, registers only). Not found: target ranks hoisted addresses (49 refs/495 live) over mesh pointer (45/220) and i over t (26/169). Tried: do-while(0) fences round the check (375, 410), all 16 for/goto-loop forms of the four loops (none better), static inline vertex loop (355 same), m as for-condition or pointer walk (worse), uses of m/t after the loops (live length barely grows).",
+  "by": "manual-b46f1c9eae47406c",
+  "created_at": 1795756451.114893,
+  "score_before": 14589,
+  "score_after": 14589
+ },
+ {
+  "function": "func_8012A384",
+  "text": "Profile probe: this saved C scores 355 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (12 of its 12 nearest matched neighbours were built with it), 14589 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "permuter-30064771113",
+  "created_at": 1795807495.6880288,
+  "score_before": 14589,
+  "score_after": 355
+ },
+ {
+  "function": "func_8012A384",
+  "text": "Profile probe: this saved C scores 2880 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (12 of its 12 nearest matched neighbours were built with it), 11124 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "permuter-30064771113",
+  "created_at": 1795809217.227547,
+  "score_before": 11124,
+  "score_after": 2880
+ },
+ {
+  "function": "func_8012A384",
+  "text": "Profile probe: this saved C scores 3164 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (12 of its 12 nearest matched neighbours were built with it), 10991 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "permuter-30064771113",
+  "created_at": 1795811500.171891,
+  "score_before": 10991,
+  "score_after": 3164
+ },
+ {
+  "function": "func_8012A384",
+  "text": "Profile probe: this saved C scores 3164 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (12 of its 12 nearest matched neighbours were built with it), 10495 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "permuter-30064771113",
+  "created_at": 1795812343.319875,
+  "score_before": 10495,
+  "score_after": 3164
  },
  {
   "function": "func_8012A384",
