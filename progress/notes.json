@@ -3600,14 +3600,6 @@
   "score_after": 843
  },
  {
-  "function": "func_8015FEC0",
-  "text": "Deep permuter: score 5975 \u2192 4647; 2 improvements; 17 candidates tested; 263 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935546",
-  "created_at": 1794349597.8176699,
-  "score_before": 5975,
-  "score_after": 4647
- },
- {
   "function": "func_80207DC8",
   "text": "Deep permuter: score 1920 \u2192 1485; 1 improvements; 191 candidates tested; 67 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935741",
@@ -6606,14 +6598,6 @@
   "created_at": 1794710544.56388,
   "score_before": 649,
   "score_after": 649
- },
- {
-  "function": "func_8015FEC0",
-  "text": "Best current candidate is revision 661b568a9fda987224e7 at 3148 (82.4%). Saved best 2664 is still lower, so restore saved_best if you want its source. Kept findings: (1) the loop constant is 0.05f (0x3D4CCCCD), held in $fs0 and stored to the three f32 stack args of the second call; (2) D_8018D6D6 is a u8 array (target uses sb), so store with *(u8*); (3) the second func_800DE41C call needs f32 for its last three args, done via a cast typedef Fn18 so the first call's prototype stays; (4) the first block keeps the raw func_8013E364 result in s0 and the masked value in s2, with s0 masked after the first call. Remaining diffs: the target frame is 0x70 vs 0x68 here (sdc1 $f20 at 0x68 vs 0x60, so 8 bytes of stack space unexplained; the outgoing area already matches 0x48); the target puts `move $s3,$a0` before the loads; the `andi $s0` mask must sit after the first bnez, since putting it before the if gave 3278. Next step: find what takes the extra 8 bytes of frame (an unused-looking local that is address-taken, or an f32 array), then fix the s0 mask placement. Move-on reached at 5 compiles with no improvement over 3148.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794710558.1842072,
-  "score_before": 2664,
-  "score_after": 2664
  },
  {
   "function": "func_80219E28",
@@ -9680,14 +9664,6 @@
   "score_after": 265
  },
  {
-  "function": "func_8015FEC0",
-  "text": "Not matched. Best this session 4424 (revision 0aea37d3bd1513f77a5a; saved best is 2664 from another attempt, so take that as the start if needed). Structure is right: s1=*(s32*)(arg0+0x898); if s1==1 && !(u16 0x560 &0xF) {v=func_8013E364(); s0=v; s2=v&0xFFFF; if s2!=0xFFFF {...}}; s4 = D_8011F2F0 + (u16)arg0[2]*0x64; func_800DE41C with 18 args (floats at stack 0x24..0x2C and 0x3C..0x44; the three last floats are the constant 0.05f, bits 0x3D4CCCCD); return path calls func_8013E49C(s2 or s1, a1) (its context.h prototype takes one u16, so the call is done via a cast of the function pointer to (s32(*)(s32,s32)) to keep the 2-arg call); loop do/while s2<3 with D_8018D6C4[s0*0x7C]=arg0 and D_8018D6D6[s0*0x7C] stored as a byte (sb s2), and func_801D7028(a1,0x32). Remaining diff: frame. Target is 0x70 with ra,s4,s3,s2,s1,s0 and fs0 (0.05f kept in a callee-saved FP reg across the loop, swc1 $fs0 for the last three args). Ours is 0x80 with sdc1 $f20, so the constant is not kept in $fs0 and arg0 is copied to $s3 at entry (move $s3,$a0 is in target too). Try: write the 0.05f constant into a local f32 declared at block start and reuse it in the three stack args so it lives in $fs0; and make s4 a local that is kept across the loop (target keeps s4 across both calls). Note: declarations must come at the start of each block (C89 in this compiler).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794726173.263989,
-  "score_before": 2664,
-  "score_after": 2664
- },
- {
   "function": "func_801FA240",
   "text": "Move-on budget exhausted (3/3 without improvement). Target shape: three component diffs spilled to 0x10/0x14/0x18($sp) with swc1 right after each sub.s, squares summed in $f12 (mul.s $f12,$f12,$f12 / nop / mul.s $f14.. / add.s / mul.s $f0.. / add.s), sqrt.s $f2,$f12, then c.eq.s $f2,$f2 / bc1t over `jal sqrtf` + mov.s $f2,$f0 (i.e. sqrtf(dot) written as a plain call, not __builtin_sqrt), zero test against $f0, div.s $f14,$f14,$f2 (inv kept in $f14), then lwc1/mul.s/swc1 per component and jal func_801F9C8C with f12=d0, f14=d2. Crucially the target uses NO callee-saved float regs (no sdc1/ldc1) \u2014 all live values are stack memory, so the source must use real stack storage (f32 d[3] or sp10/sp14/sp18 locals) and the division operand must be reloaded, not kept in $f20/$f22. Tried: array form (2201, extra mov.s $f12,$f0 after jal sqrtf and different mul order), scalar locals (3131, forces sdc1 $f22 spills), m2c draft with sp10/sp14/sp18 (3131), local repair families float_call_staging/float_argument_bits/float_product_intermediate/plain_float_slots/arithmetic_operand_order/expression_placement (no untried proposals), earlier local_storage/single_use_inline/local_declaration_order all worse. Next: keep the stack-slot form but make the sqrtf argument a plain function call result stored in a local before the zero test, and write the inv scaling as three separate statements reading the slots (inv * d[i] with the slot reloaded) so gcc stays in $f0/$f12/$f14; also try declaring sqrtf as `f32 sqrtf();` (K&R, no prototype) to kill the builtin/mov.s difference.",
   "by": "api-route-llm-code-2",
@@ -12574,14 +12550,6 @@
   "created_at": 1794739926.1611688,
   "score_before": 2901,
   "score_after": 2901
- },
- {
-  "function": "func_8015FEC0",
-  "text": "Not matched. Saved best 2664 (earlier attempt, prototype-conflicting source). Rechecked this session: a clean version with the 2-arg call to func_8013E49C routed through a cast `((s32 (*)(s32,s32))func_8013E49C)(a,b)` (context.h declares func_8013E49C(u16) only; a local 2-arg prototype conflicts) scores 5975 (173 vs 179 insns). Target frame is 0x70 and saves $f20 via sdc1 0x68($sp) plus $s0-$s4, with `move $s3,$a0` before the loads; mine is 0x68 with no FP save. Hoisting the three float loads (0x18/0x1C/0x20 of temp_s4) into f32 locals made it worse (7046): it pushes an sdc1 $f24 frame to 0x80. Next step: find out what the double-width callee-saved FP slot holds (a double local or an f64 used across the loop) before tuning registers. Do not hoist the float loads.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794739948.329202,
-  "score_before": 2664,
-  "score_after": 2664
  },
  {
   "function": "func_801632D0",
@@ -16896,14 +16864,6 @@
   "score_after": 3969
  },
  {
-  "function": "func_8015FEC0",
-  "text": "Not compiled. The candidate does not build as written: it declares func_8013E49C(s32, s32), but context.h has func_8013E49C(u16) with one argument, so the calls on the error paths fail with 'too many arguments'. Also missing: D_8018D6C4, D_80239678, D_8018D6D6, func_8016018C, func_801604F0 are declared only as extern u8 arrays in the candidate and may need real types. The function is a do-while loop over up to 3 iterations, calling func_8013E364 and func_800DE41C with float args taken from the object at D_8011F2F0 + id*0x64 (offsets 0x18/0x1C/0x20). The 0x3D4CCCCD constants are float literals (0.1f) in the target, and the candidate passes them as s32, which is likely wrong. The loop body writes arg0 into D_8018D6C4[idx*0x7C] and an index into D_8018D6D6. Next: fix func_8013E49C to the context signature, retype the float arguments, then compile from the saved revision.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794754440.080328,
-  "score_before": 2664,
-  "score_after": 2664
- },
- {
   "function": "func_80164D00",
   "text": "No match. Saved best 649 (source in brief) remains the baseline; it fails to compile as-is in the current context because its local prototype `s32 func_8013E49C(s32)` conflicts with context.h `func_8013E49C(u16)`. Removing that prototype gives score 3618 (frame 0x80 vs target 0x88; target saves s0-s3 and f20/f22/f24/f26, we save only f20-f24 and s0-s2). Using `3.14` (double) instead of `3.14f` is much worse (6093): target uses single-precision mul.s/div.s. Target keeps arg0 in s2 via `move $s2,$a0` and loads `lw $s1,0x898($s2)` from it; the one-off `temp_s2` copy did not change the score. Untried: an extra live f32 across the second call, or a shared u16 index local for the D_8011F3xx offset to force the s3 slot.",
   "by": "claude-haiku-5-5-20",
@@ -17454,14 +17414,6 @@
   "created_at": 1794756187.0182002,
   "score_before": 8348,
   "score_after": 8348
- },
- {
-  "function": "func_8015FEC0",
-  "text": "Not matched. Best current candidate ee8db1c13a678a3b7742 scores 3338 (81.3%); saved historical best is 2664 from an uncompiled older draft. Fixes that worked: (1) removed the local decl of func_8013E49C (context.h has 1-arg u16 proto) and cast calls as ((s32 (*)(s32,s32))func_8013E49C)(a,b); (2) func_800DE41C prototype params 16-18 must be f32 (target passes 0.05f constant 0x3D4CCCCD as float stack args kept in $fs0; note the constant is 0.05f, not 0.1f); (3) D_8018D6D6 store is sb (u8 cast). Declaring `f32 kf` and assigning `kf = 0.05f;` right before the do-loop is in the best source. Remaining diffs: target frame is 0x70 with sw $ra at 0x64 and s4..s0 at 0x60..0x50 plus sdc1 $f20 at 0x68; mine is 0x68 (missing 8 bytes of locals, perhaps another f32/double local or larger outgoing area). Target loads 0x55e with signed lh and uses blez; switching temp_v0_3 to s16 alone made it worse (3625) in the earlier state, so retry together with frame change. Target also has a third move $s3,$a0 and andi $s2 ordering; registers differ (s0/s1/s2 roles). Next experiments: add an extra s32/f32 local to reach 0x70 frame; try s16 temp_v0_3 after that.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794756193.182312,
-  "score_before": 2664,
-  "score_after": 2664
  },
  {
   "function": "func_80026D40",
@@ -22878,14 +22830,6 @@
   "created_at": 1794767808.54959,
   "score_before": 3969,
   "score_after": 3969
- },
- {
-  "function": "func_8015FEC0",
-  "text": "Not matched. Best current compiling source: revision 01e607ef387c34831327 (score 6175, 65.5%); the saved_best (2664) no longer compiles in context v239 because its local `s32 func_8013E49C(s32, s32)` conflicts with context.h `s32 func_8013E49C(u16)`; use the context prototype (one arg). Target 186 insns, frame 0x70, saves ra, s0..s4 and f20 (sdc1 $f20,0x68), arg0 kept in s3 (move $s3,$a0 x4). Ours frame 0x68, no f20 save, so the FP/variable set is wrong. Uses (s16)0x55E decrement, 0x8D0 byte store = 0x78, 0x560 |= 7, do-while over var_s2 < 3 with 0x3D4CCCCD constant args. Next: find what needs a callee-saved double (maybe a f64 temp or an extra float local feeding the second func_800DE41C call) and force arg0 into s3 by using it after the calls.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794767848.5620348,
-  "score_before": 2664,
-  "score_after": 2664
  },
  {
   "function": "func_80164D00",
@@ -40685,5 +40629,70 @@
   "created_at": 1794759517.164844,
   "score_before": 9800,
   "score_after": 9800
+ },
+ {
+  "function": "func_8015FEC0",
+  "text": "Deep permuter: score 5975 \u2192 4647; 2 improvements; 17 candidates tested; 263 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935546",
+  "created_at": 1794349597.8176699,
+  "score_before": 5975,
+  "score_after": 4647
+ },
+ {
+  "function": "func_8015FEC0",
+  "text": "Best current candidate is revision 661b568a9fda987224e7 at 3148 (82.4%). Saved best 2664 is still lower, so restore saved_best if you want its source. Kept findings: (1) the loop constant is 0.05f (0x3D4CCCCD), held in $fs0 and stored to the three f32 stack args of the second call; (2) D_8018D6D6 is a u8 array (target uses sb), so store with *(u8*); (3) the second func_800DE41C call needs f32 for its last three args, done via a cast typedef Fn18 so the first call's prototype stays; (4) the first block keeps the raw func_8013E364 result in s0 and the masked value in s2, with s0 masked after the first call. Remaining diffs: the target frame is 0x70 vs 0x68 here (sdc1 $f20 at 0x68 vs 0x60, so 8 bytes of stack space unexplained; the outgoing area already matches 0x48); the target puts `move $s3,$a0` before the loads; the `andi $s0` mask must sit after the first bnez, since putting it before the if gave 3278. Next step: find what takes the extra 8 bytes of frame (an unused-looking local that is address-taken, or an f32 array), then fix the s0 mask placement. Move-on reached at 5 compiles with no improvement over 3148.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794710558.1842072,
+  "score_before": 2664,
+  "score_after": 2664
+ },
+ {
+  "function": "func_8015FEC0",
+  "text": "Not matched. Best this session 4424 (revision 0aea37d3bd1513f77a5a; saved best is 2664 from another attempt, so take that as the start if needed). Structure is right: s1=*(s32*)(arg0+0x898); if s1==1 && !(u16 0x560 &0xF) {v=func_8013E364(); s0=v; s2=v&0xFFFF; if s2!=0xFFFF {...}}; s4 = D_8011F2F0 + (u16)arg0[2]*0x64; func_800DE41C with 18 args (floats at stack 0x24..0x2C and 0x3C..0x44; the three last floats are the constant 0.05f, bits 0x3D4CCCCD); return path calls func_8013E49C(s2 or s1, a1) (its context.h prototype takes one u16, so the call is done via a cast of the function pointer to (s32(*)(s32,s32)) to keep the 2-arg call); loop do/while s2<3 with D_8018D6C4[s0*0x7C]=arg0 and D_8018D6D6[s0*0x7C] stored as a byte (sb s2), and func_801D7028(a1,0x32). Remaining diff: frame. Target is 0x70 with ra,s4,s3,s2,s1,s0 and fs0 (0.05f kept in a callee-saved FP reg across the loop, swc1 $fs0 for the last three args). Ours is 0x80 with sdc1 $f20, so the constant is not kept in $fs0 and arg0 is copied to $s3 at entry (move $s3,$a0 is in target too). Try: write the 0.05f constant into a local f32 declared at block start and reuse it in the three stack args so it lives in $fs0; and make s4 a local that is kept across the loop (target keeps s4 across both calls). Note: declarations must come at the start of each block (C89 in this compiler).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794726173.263989,
+  "score_before": 2664,
+  "score_after": 2664
+ },
+ {
+  "function": "func_8015FEC0",
+  "text": "Not matched. Saved best 2664 (earlier attempt, prototype-conflicting source). Rechecked this session: a clean version with the 2-arg call to func_8013E49C routed through a cast `((s32 (*)(s32,s32))func_8013E49C)(a,b)` (context.h declares func_8013E49C(u16) only; a local 2-arg prototype conflicts) scores 5975 (173 vs 179 insns). Target frame is 0x70 and saves $f20 via sdc1 0x68($sp) plus $s0-$s4, with `move $s3,$a0` before the loads; mine is 0x68 with no FP save. Hoisting the three float loads (0x18/0x1C/0x20 of temp_s4) into f32 locals made it worse (7046): it pushes an sdc1 $f24 frame to 0x80. Next step: find out what the double-width callee-saved FP slot holds (a double local or an f64 used across the loop) before tuning registers. Do not hoist the float loads.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794739948.329202,
+  "score_before": 2664,
+  "score_after": 2664
+ },
+ {
+  "function": "func_8015FEC0",
+  "text": "Not compiled. The candidate does not build as written: it declares func_8013E49C(s32, s32), but context.h has func_8013E49C(u16) with one argument, so the calls on the error paths fail with 'too many arguments'. Also missing: D_8018D6C4, D_80239678, D_8018D6D6, func_8016018C, func_801604F0 are declared only as extern u8 arrays in the candidate and may need real types. The function is a do-while loop over up to 3 iterations, calling func_8013E364 and func_800DE41C with float args taken from the object at D_8011F2F0 + id*0x64 (offsets 0x18/0x1C/0x20). The 0x3D4CCCCD constants are float literals (0.1f) in the target, and the candidate passes them as s32, which is likely wrong. The loop body writes arg0 into D_8018D6C4[idx*0x7C] and an index into D_8018D6D6. Next: fix func_8013E49C to the context signature, retype the float arguments, then compile from the saved revision.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794754440.080328,
+  "score_before": 2664,
+  "score_after": 2664
+ },
+ {
+  "function": "func_8015FEC0",
+  "text": "Not matched. Best current candidate ee8db1c13a678a3b7742 scores 3338 (81.3%); saved historical best is 2664 from an uncompiled older draft. Fixes that worked: (1) removed the local decl of func_8013E49C (context.h has 1-arg u16 proto) and cast calls as ((s32 (*)(s32,s32))func_8013E49C)(a,b); (2) func_800DE41C prototype params 16-18 must be f32 (target passes 0.05f constant 0x3D4CCCCD as float stack args kept in $fs0; note the constant is 0.05f, not 0.1f); (3) D_8018D6D6 store is sb (u8 cast). Declaring `f32 kf` and assigning `kf = 0.05f;` right before the do-loop is in the best source. Remaining diffs: target frame is 0x70 with sw $ra at 0x64 and s4..s0 at 0x60..0x50 plus sdc1 $f20 at 0x68; mine is 0x68 (missing 8 bytes of locals, perhaps another f32/double local or larger outgoing area). Target loads 0x55e with signed lh and uses blez; switching temp_v0_3 to s16 alone made it worse (3625) in the earlier state, so retry together with frame change. Target also has a third move $s3,$a0 and andi $s2 ordering; registers differ (s0/s1/s2 roles). Next experiments: add an extra s32/f32 local to reach 0x70 frame; try s16 temp_v0_3 after that.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794756193.182312,
+  "score_before": 2664,
+  "score_after": 2664
+ },
+ {
+  "function": "func_8015FEC0",
+  "text": "Not matched. Best current compiling source: revision 01e607ef387c34831327 (score 6175, 65.5%); the saved_best (2664) no longer compiles in context v239 because its local `s32 func_8013E49C(s32, s32)` conflicts with context.h `s32 func_8013E49C(u16)`; use the context prototype (one arg). Target 186 insns, frame 0x70, saves ra, s0..s4 and f20 (sdc1 $f20,0x68), arg0 kept in s3 (move $s3,$a0 x4). Ours frame 0x68, no f20 save, so the FP/variable set is wrong. Uses (s16)0x55E decrement, 0x8D0 byte store = 0x78, 0x560 |= 7, do-while over var_s2 < 3 with 0x3D4CCCCD constant args. Next: find what needs a callee-saved double (maybe a f64 temp or an extra float local feeding the second func_800DE41C call) and force arg0 into s3 by using it after the calls.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794767848.5620348,
+  "score_before": 2664,
+  "score_after": 2664
+ },
+ {
+  "function": "func_8015FEC0",
+  "text": "Profile probe: this saved C scores 1425 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (9 of its 12 nearest matched neighbours were built with it), 2044 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721239.885375,
+  "score_before": 2044,
+  "score_after": 1425,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:368c40d4e6dcaec87012bb98cd052e9d81c4118cfa7db073f22392e62a2d0a2f"
  }
 ]
