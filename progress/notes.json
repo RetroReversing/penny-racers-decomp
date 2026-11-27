@@ -6560,14 +6560,6 @@
   "score_after": 3125
  },
  {
-  "function": "func_80194E60",
-  "text": "Overall logic recovered from asm (708 bytes). Let N=D_801C6BB9 (s8), T=D_801C7068 (s8), C0=D_801C7062, C1=D_801C7063, X=D_801C7469. If N>=0x17: *arg0=D_801C7AB8, return. If ((u8*)D_801C7AB0)[1]==5 (path A): if C0==T { if C1==N+1 && X!=2 -> *arg0=4 return; if C1==N-1 && X!=1 && X!=3 -> *arg0=4 return; } if (C0==T+1 || C0==T-1) && C1==N && X!=0 && X!=2 -> *arg0=4 return. Common (F78): if ((u16*)&D_801C6C10)[N*24+T] != 0xFFFF -> *arg0=4 return; if D_801C6B25==0 -> *arg0=4 return; b=D_801C6B25: b==*arg0 -> B20=5; else b==1 -> B20=0xD; else b==3 -> B20=0xA; else skip. Tail: B22=0, B23=1, B21=5, if AB0[0]==4 {B20+=0x2E; B21=0x33;} B24=1; if B26!=2 {func_8014B854(0x3B,arg0,N); B26=2;}. Best C: score 14449 (historical best 3035). Mismatch: target frame is 0x18 (only ra spilled), ours 0x30 because the call site needs locals; target re-reads D_801C6BB9 with lb at each use and uses $a2 for N, and keeps arg0 in $a1 via move. Next step: drop the local variables (use globals directly with reloads) so the frame shrinks to 0x18, then check the branch layout of the F78 block (target places the 0xFFFF test as a bne to the store-4 block at the end).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794710932.628766,
-  "score_before": 3035,
-  "score_after": 3035
- },
- {
   "function": "func_80192B34",
   "text": "Releasing early: the transliteration (revision ebc2f8e9bc13af17c403, 9921) is structurally right, and the gap is load order and call order, which needs the draft's register/order base and compile_variants. Further hand edits to the branch structure won't help. Structure notes are above in the previous attempt, and they are verified from the asm.",
   "by": "claude-haiku-5-5-24",
@@ -9392,14 +9384,6 @@
   "score_after": 4297
  },
  {
-  "function": "func_80194E60",
-  "text": "Not matched. Target has a real stack frame (addiu sp,-0x18; sw ra,0x10(sp)) because it calls func_8014B854(0x3B, arg0, D_801C6BB9); the machine draft's body was dropped in my one compile (scored 16035, 9.4%), so that candidate is useless. Facts: arg0 is u8*, result byte stored via *arg0 at end (var_v0 / var_v0_2); top test D_801C6BB9 < 0x17 (lb, slti); then D_801C7AB0[1]==5. Global reads reload with lui/lb each time between branches (D_801C7062 two bytes at +0/+1, D_801C7068, D_801C6BB9, D_801C7469 lbu). Lookup index (BB9*0x18 + D7068)*2 into a u16 table at D_801C6C10 compared with 0xFFFF. Next pass: rebuild from the target top-down, keeping the frame and the call, one branch per if with fresh global reads.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794727016.8825228,
-  "score_before": 3035,
-  "score_after": 3035
- },
- {
   "function": "func_80192B34",
   "text": "Not matched. One clean attempt this session scored 10070 (rev 3d86b6d1d52b2eb8e583); saved best is 2175 (not mine). Instruction count matches (179 vs 179), so the remaining diff is ordering and register use. Facts from the asm: frame 0x58; saves are ra at 0x50, s1 at 0x4c, s0 at 0x48 (the compiler saves s0 last in my version but target order is ra,s1,s0 \u2014 check the save order after the first call). s1 = u8 D_8011F32F[D_801C7074*100] is read first, before func_8019E734/func_8019F7C0(s0) with s0 = arg0&0xFFFF. Then D_801C7D18*100 indexes three float tables: D_8011F308 = (f32)D_801C7068*400*0.5f, D_8011F30C = 0 (word store), D_8011F310 = (f32)D_801C6BB9*400*0.5f. The target loads D_801C7D18 (lhu) before the first D_8011F308 store and reads D_801C7068 as lb after the multiplication setup. The D_801E9990 test is at offset s0*0x70 (s0*8-s0 then <<4), must equal 1. Inside the ==5 path: D7068 != 0 or (D6BB9 != 0 and != 0x17) enter the store block; D7068==0x17 and (D6BB9==0 or D6BB9==D7068) return s1. Store block writes D_801C6BB0[0] = (u8)D7068, [1] = (u8)D6BB9, halfword [4] = (s8)D7068 + 24*(s8)D6BB9, then the 18-arg call func_800DE41C(0,0,3,0,0x53,0xFF,0,0,&func_801B3F08,f1,0,f2,0,0,0,.5,.5,.5) with f1, f2 = (f32)(s8)byte*400*0.5f. Then D_801C746A = result (sh); D_8011F2F4[idx] |= 0x20 (halfword); D_8011F2FB[idx] = 0xC; s1 = 6; D_801C5EA4 = 0 (halfword); func_8014B854(0x3D). Next: match the prologue save order and the register usage for the 18-arg call first; the body of the arithmetic is already right.",
   "by": "claude-haiku-5-5-21",
@@ -12182,14 +12166,6 @@
   "created_at": 1794740346.457178,
   "score_before": 1999,
   "score_after": 1999
- },
- {
-  "function": "func_80194E60",
-  "text": "Unmatched. Saved draft (m2c, rechecked 6320) is the best so far; my hand rewrite with goto store scored 7155 and a single-exit rewrite scored 8200, so neither beats it. Structure is understood and the logic is correct: if B(D_801C6BB9)>=0x17 store D_801C7AB8 to *arg0; else if D_801C7AB0[1]==5 and (c1|c2|c3) store 4; then table D_801C6C10[B*0x18+T]!=0xFFFF or B25==0 store 4; then B25==*arg0 -> B20=5 / B25==1 -> 0xD / B25==3 -> 0xA; set B22=0,B23=1,B21=5; if D_801C7AB0[0]==4 {B20+=0x2E;B21=0x33}; B24=1; if B26!=2 {func_8014B854(0x3B,arg0,B);B26=2}. Target specifics not reproduced: frame 0x18 with sw ra at 0x10; B is loaded once into a2 and reused (lui/lb repeated 7x); arg0 is copied into a1 in the delay slot of the first beqz (not at entry); the 5-branch loads D_801C7062 through a pointer register (addiu a0,D_801C7062). Next: write the table access as a pointer `u16 *tbl = D_801C6C10` and the player-state pair as `s8 *p = D_801C7062`, then match the a2/a1 register setup and the delay-slot move before tuning the branch sense.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794740385.3126059,
-  "score_before": 3035,
-  "score_after": 3035
  },
  {
   "function": "func_8003DAA0",
@@ -16376,14 +16352,6 @@
   "score_after": 2870
  },
  {
-  "function": "func_80194E60",
-  "text": "Not matched. Saved best 3035 (historical) stands; my goto rewrite (revision a311c0e8df3933371973) scores 8745 (50.5%), 129 insns vs 177. Sibling of func_801948E0 (same display-list/state logic). Asm facts: b9 = lb D_801C6BB9, branch 'slti b9,0x17; beqz' to the else (store D_801C7AB8 to *arg0). In the AB0[1]==5 path: cond A1 b0==T68 && b1==b9+1 && D7469!=2 -> store 4; cond A2 b0==T68 && b1==b9-1 && D7469!=1 && D7469!=3 -> store 4; cond B (b0==T68+1 || b0==T68-1) && D7063==b9 && D7469!=0 && D7469!=2 -> store 4. Then x = lhu(D6C10 + ((b9*24+T68)*2)) != 0xFFFF -> store 4; D6B25==0 -> store 4; v = (D6B25==*arg0)?5 : (D6B25==1)?0xD : (D6B25==3)?0xA : none. D6B20=v; D6B22=0; D6B23=1; D6B21=5; if (AB0[0]==4){D6B20+=0x2E; D6B21=0x33;} D6B24=1; if (D6B26!=2){func_8014B854(0x3B, arg0, b9); D6B26=2;}. Remaining diffs: the target reloads b9 with its own lui/lb at each use (not one local) and keeps arg0 in $a1 via a move after the first test; the 'slti/beqz' block order differs. Next: reuse the 801948E0 structure and spell D_801C6BB9 at each use.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794755385.915179,
-  "score_before": 3035,
-  "score_after": 3035
- },
- {
   "function": "func_80042630",
   "text": "Confirmed merged boundary again: actual first24bytes end42648, alignment NOPs through42650, separate entry42650 saves ra in t5. Report captured pending user approval. Correct four-argument forwarding dispatcher score2335 vs saved2130 (wrong arg0 test). Current extent includes disconnected routine; await boundary correction before tuning. First routine tail jumps may be assembly but do not infer whole merged target not-C solely from extent.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -16870,14 +16838,6 @@
   "created_at": 1794756617.476843,
   "score_before": 525,
   "score_after": 280
- },
- {
-  "function": "func_80194E60",
-  "text": "Not matched; releasing early because the remaining gap is structural, not a register/ordering tweak. Target 177 insns (708 bytes) has a 0x18 frame with sw ra and a call to func_8014B854(0x3B, arg0, bb9). Saved best 3035 is the m2c goto-spaghetti draft; recompiling it now gives 15360, so that baseline is not reproducible. My clean nested-if rewrite gives 11535 but lacks the prologue/frame: the compiler is not emitting the call on the path the target takes first, which means my condition grouping (the 5-branch OR/AND chain over D_801C7062 bytes, D_801C7068, D_801C6BB9, D_801C7469, D_801C7063) is evaluated in a different order from the target. Table index should be ((bb9*0x18)+c7068)*2 into an s16 table at D_801C6C10 (I wrote *12, which is wrong). Next step for whoever picks this up: rewrite the 5-branch condition chain to match the target's short-circuit order (read last_diff from the target's first 40 rows), then fix the table index, then the frame. Low confidence on control flow; a fresh author should start from the target asm, not the m2c draft.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794756621.8452961,
-  "score_before": 3035,
-  "score_after": 3035
  },
  {
   "function": "func_8003DAA0",
@@ -21750,14 +21710,6 @@
   "created_at": 1794767977.568506,
   "score_before": 75,
   "score_after": 75
- },
- {
-  "function": "func_80194E60",
-  "text": "Not attempted in this session beyond reading the brief. The machine draft is a tangle of goto blocks around the D_801C7062/D_801C7068/D_801C7063 checks and the D_801C6C10 table (stride 0x18 * 2). Saved best is 3035. Suggested start: rewrite the first condition as nested ifs following the assembly order, use a u16 for the D_801C6C10 table entry, and check the D_801C6B20 += 0x2E path. Not tested.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794767982.257427,
-  "score_before": 3035,
-  "score_after": 3035
  },
  {
   "function": "func_801AF8CC",
@@ -40911,5 +40863,53 @@
   "created_at": 1794767985.801895,
   "score_before": 2820,
   "score_after": 2820
+ },
+ {
+  "function": "func_80194E60",
+  "text": "Overall logic recovered from asm (708 bytes). Let N=D_801C6BB9 (s8), T=D_801C7068 (s8), C0=D_801C7062, C1=D_801C7063, X=D_801C7469. If N>=0x17: *arg0=D_801C7AB8, return. If ((u8*)D_801C7AB0)[1]==5 (path A): if C0==T { if C1==N+1 && X!=2 -> *arg0=4 return; if C1==N-1 && X!=1 && X!=3 -> *arg0=4 return; } if (C0==T+1 || C0==T-1) && C1==N && X!=0 && X!=2 -> *arg0=4 return. Common (F78): if ((u16*)&D_801C6C10)[N*24+T] != 0xFFFF -> *arg0=4 return; if D_801C6B25==0 -> *arg0=4 return; b=D_801C6B25: b==*arg0 -> B20=5; else b==1 -> B20=0xD; else b==3 -> B20=0xA; else skip. Tail: B22=0, B23=1, B21=5, if AB0[0]==4 {B20+=0x2E; B21=0x33;} B24=1; if B26!=2 {func_8014B854(0x3B,arg0,N); B26=2;}. Best C: score 14449 (historical best 3035). Mismatch: target frame is 0x18 (only ra spilled), ours 0x30 because the call site needs locals; target re-reads D_801C6BB9 with lb at each use and uses $a2 for N, and keeps arg0 in $a1 via move. Next step: drop the local variables (use globals directly with reloads) so the frame shrinks to 0x18, then check the branch layout of the F78 block (target places the 0xFFFF test as a bne to the store-4 block at the end).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794710932.628766,
+  "score_before": 3035,
+  "score_after": 3035
+ },
+ {
+  "function": "func_80194E60",
+  "text": "Not matched. Target has a real stack frame (addiu sp,-0x18; sw ra,0x10(sp)) because it calls func_8014B854(0x3B, arg0, D_801C6BB9); the machine draft's body was dropped in my one compile (scored 16035, 9.4%), so that candidate is useless. Facts: arg0 is u8*, result byte stored via *arg0 at end (var_v0 / var_v0_2); top test D_801C6BB9 < 0x17 (lb, slti); then D_801C7AB0[1]==5. Global reads reload with lui/lb each time between branches (D_801C7062 two bytes at +0/+1, D_801C7068, D_801C6BB9, D_801C7469 lbu). Lookup index (BB9*0x18 + D7068)*2 into a u16 table at D_801C6C10 compared with 0xFFFF. Next pass: rebuild from the target top-down, keeping the frame and the call, one branch per if with fresh global reads.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794727016.8825228,
+  "score_before": 3035,
+  "score_after": 3035
+ },
+ {
+  "function": "func_80194E60",
+  "text": "Unmatched. Saved draft (m2c, rechecked 6320) is the best so far; my hand rewrite with goto store scored 7155 and a single-exit rewrite scored 8200, so neither beats it. Structure is understood and the logic is correct: if B(D_801C6BB9)>=0x17 store D_801C7AB8 to *arg0; else if D_801C7AB0[1]==5 and (c1|c2|c3) store 4; then table D_801C6C10[B*0x18+T]!=0xFFFF or B25==0 store 4; then B25==*arg0 -> B20=5 / B25==1 -> 0xD / B25==3 -> 0xA; set B22=0,B23=1,B21=5; if D_801C7AB0[0]==4 {B20+=0x2E;B21=0x33}; B24=1; if B26!=2 {func_8014B854(0x3B,arg0,B);B26=2}. Target specifics not reproduced: frame 0x18 with sw ra at 0x10; B is loaded once into a2 and reused (lui/lb repeated 7x); arg0 is copied into a1 in the delay slot of the first beqz (not at entry); the 5-branch loads D_801C7062 through a pointer register (addiu a0,D_801C7062). Next: write the table access as a pointer `u16 *tbl = D_801C6C10` and the player-state pair as `s8 *p = D_801C7062`, then match the a2/a1 register setup and the delay-slot move before tuning the branch sense.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794740385.3126059,
+  "score_before": 3035,
+  "score_after": 3035
+ },
+ {
+  "function": "func_80194E60",
+  "text": "Not matched. Saved best 3035 (historical) stands; my goto rewrite (revision a311c0e8df3933371973) scores 8745 (50.5%), 129 insns vs 177. Sibling of func_801948E0 (same display-list/state logic). Asm facts: b9 = lb D_801C6BB9, branch 'slti b9,0x17; beqz' to the else (store D_801C7AB8 to *arg0). In the AB0[1]==5 path: cond A1 b0==T68 && b1==b9+1 && D7469!=2 -> store 4; cond A2 b0==T68 && b1==b9-1 && D7469!=1 && D7469!=3 -> store 4; cond B (b0==T68+1 || b0==T68-1) && D7063==b9 && D7469!=0 && D7469!=2 -> store 4. Then x = lhu(D6C10 + ((b9*24+T68)*2)) != 0xFFFF -> store 4; D6B25==0 -> store 4; v = (D6B25==*arg0)?5 : (D6B25==1)?0xD : (D6B25==3)?0xA : none. D6B20=v; D6B22=0; D6B23=1; D6B21=5; if (AB0[0]==4){D6B20+=0x2E; D6B21=0x33;} D6B24=1; if (D6B26!=2){func_8014B854(0x3B, arg0, b9); D6B26=2;}. Remaining diffs: the target reloads b9 with its own lui/lb at each use (not one local) and keeps arg0 in $a1 via a move after the first test; the 'slti/beqz' block order differs. Next: reuse the 801948E0 structure and spell D_801C6BB9 at each use.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794755385.915179,
+  "score_before": 3035,
+  "score_after": 3035
+ },
+ {
+  "function": "func_80194E60",
+  "text": "Not matched; releasing early because the remaining gap is structural, not a register/ordering tweak. Target 177 insns (708 bytes) has a 0x18 frame with sw ra and a call to func_8014B854(0x3B, arg0, bb9). Saved best 3035 is the m2c goto-spaghetti draft; recompiling it now gives 15360, so that baseline is not reproducible. My clean nested-if rewrite gives 11535 but lacks the prologue/frame: the compiler is not emitting the call on the path the target takes first, which means my condition grouping (the 5-branch OR/AND chain over D_801C7062 bytes, D_801C7068, D_801C6BB9, D_801C7469, D_801C7063) is evaluated in a different order from the target. Table index should be ((bb9*0x18)+c7068)*2 into an s16 table at D_801C6C10 (I wrote *12, which is wrong). Next step for whoever picks this up: rewrite the 5-branch condition chain to match the target's short-circuit order (read last_diff from the target's first 40 rows), then fix the table index, then the frame. Low confidence on control flow; a fresh author should start from the target asm, not the m2c draft.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794756621.8452961,
+  "score_before": 3035,
+  "score_after": 3035
+ },
+ {
+  "function": "func_80194E60",
+  "text": "Not attempted in this session beyond reading the brief. The machine draft is a tangle of goto blocks around the D_801C7062/D_801C7068/D_801C7063 checks and the D_801C6C10 table (stride 0x18 * 2). Saved best is 3035. Suggested start: rewrite the first condition as nested ifs following the assembly order, use a u16 for the D_801C6C10 table entry, and check the D_801C6B20 += 0x2E path. Not tested.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794767982.257427,
+  "score_before": 3035,
+  "score_after": 3035
  }
 ]
