@@ -6864,14 +6864,6 @@
   "score_after": 7690
  },
  {
-  "function": "func_80146EC4",
-  "text": "Not matched. Best saved 6746 (score 6746, 52% match; source = clean C with u8* base = D_80189CC6 used for the flag accesses in the first block and in the s1&0x10 block; D_8011F2F0 temp_s0 computed first). Remaining diffs: target frame is 0x20 (saves ra,s0,s1,s2 only) while ours is 0x28, so we keep one extra saved reg/local. Target re-loads D_80189CC6 with lui/addiu into a fresh pointer (s0) after the first func_8014B854 call in the s1&0x10 block, while the first block uses s2; using the symbol directly everywhere scored 7161, base in both blocks 6746. Swapping the func_801485C8 branch (!= 0 first) scored 8131 and is wrong; the original order is right. Target's else-arm (0x100 store to base-0x2E) appears to come first in the asm at ~row 131. Untested ideas: split the 0x10 block into its own local pointer for the second access group; check that D_80190CA0 is an array of u16 pairs (target reads it as lhu from +0 and +2 with stride 0x64 into D_8011F2FD). Also func_8014A870 prototype: caller signature (?,?,u8) vs definition (u32,s32,s32) mismatch noted by prototype review; not resolved.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794710103.854872,
-  "score_before": 5441,
-  "score_after": 5441
- },
- {
   "function": "func_80143F68",
   "text": "Not attempted yet. Structure: jal func_80214860; then switch on D_80168BB0 (sltiu 0x34 range check, jump table at D_80183560, jr $v0). Each case sets a new state value into D_80168BB0 and calls a helper, or tail-jumps to the common exit .L801441D4 / .L801441CC. Needs the jump table contents (read_data at 0x80183560, 0x34 entries) before writing a switch; the m2c draft failed because the jump table was unreadable. Start by dumping the table and mapping each case to its helper call.",
   "by": "claude-haiku-5-5-24",
@@ -10272,14 +10264,6 @@
   "score_after": 7490
  },
  {
-  "function": "func_80146EC4",
-  "text": "Cleaned source scores 6341 (55%), revision ed517548fe7b11d93119. Frame: target 0x20 saving ra, s2, s1, s0; mine 0x28 with s1. Mine caches the global base D_80189CC6 in s1, which the target does not do: the target uses D_8011F2F0 in v1 as the first base. Calls: func_8014A870(0x14,3,byte at D_80189CC6-8), func_8014BAC0(0x14), func_8014B854 with 0x3B/0x3A/0x3D (0x3D also passes &D_80190CA0), func_80148754, func_801485C8. Fix the frame and the base register first.\n\nNot matched. Best 6341 (55%), revision ed517548fe7b11d93119. Structure is roughly right (flag 0x800 branch, s1 from func_8014A870 / func_8014BAC0, the 0x10 and 0x20 bit paths, calls 0x3B/0x3A/0x3D). Blocking diffs: (1) target frame is 0x20 and saves ra, s2, s1, s0 at 0x1C..0x10; mine is 0x28 and caches the D_80189CC6 base in s1, which the target does not do. (2) Target keeps s0 = D_8011F2F0 + idx as the first base (addiu v1,v1,%lo(D_8011F2F0)) and loads the flag word through its own address. Signedness of s1 (u32) changed nothing. Next: restructure so the flag word is loaded from a fresh address each time and s1 only holds the func_8014A870 result, then fix the register order.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794725347.561975,
-  "score_before": 4850,
-  "score_after": 4850
- },
- {
   "function": "func_8015A728",
   "text": "Best 4165 (70.2%), not matched; improved from saved 5065 by rewriting the m2c draft as a clean switch on the state halfword (case 0 sets D_80187CF0=0 and state=1; case 1 and case 2 test four D_801E99C0 / D_801E9994 words at 0,0x70,0xE0,0x150 for ==1, then walk the func_800E1850 linked list through D_8011F300 with stride 0x64). Remaining: target computes arg0&0xFFFF once and reuses it (ours re-masks into a2 and reloads the base with lui/addiu each time); target materialises &D_801E99C0 in $a1 once and loads with lw 0(a1)/0x70(a1)/0xE0(a1)/0x150(a1); the case-1 loop body in the target has the `D_8011F2F2[idx].f0 |= 0x10` store in the branch delay path, so the branch shape differs. Tried: writing the state address as `(u8*)&D_8011F32E + self*0x64` (no change). Next: hoist &D_801E99C0 into a local pointer, and compare the loop body block layout with last_diff.",
   "by": "claude-haiku-5-5-22",
@@ -13622,14 +13606,6 @@
   "created_at": 1794739745.3331861,
   "score_before": 8506,
   "score_after": 8506
- },
- {
-  "function": "func_80146EC4",
-  "text": "Releasing with best 4966 (revision cd800e8b3ade6fdd10f4). Reason it cannot get closer in this session: the remaining gap is a stack-frame/layout difference (target -0x20 with ra/s2/s1/s0; candidates always get -0x28 with an extra sw at 0x20), and the two layout experiments I ran (reloading s2 vs a local s2, and reordering the s0/s2 init) went 5471 -> 4966 -> 5166. Fixing the frame needs a different local-variable structure, not further tweaks. Next agent: start from revision cd800e8b3ade6fdd10f4 and try removing the s0 local (compute the table offset inline at the one use) and making s1 a u8-free s32 with the func_8014BAC0 result assigned in its own statement.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794739750.014365,
-  "score_before": 4850,
-  "score_after": 4850
  },
  {
   "function": "func_80135C64",
@@ -18352,14 +18328,6 @@
   "score_after": 9
  },
  {
-  "function": "func_80146EC4",
-  "text": "Best 4966 (64.7%) from the saved source; current revision cd800e8b. Not matched. I'm stopping this session at low effort, so this is a handoff, not a verdict. Facts: func_8014B854 is called with one argument in the draft (prototype unknown; declaring it with two params breaks the one-arg calls, so keep the empty prototype until the real arity is known). Frame: target 0x20 (ra@0x1c, s2@0x18, s1@0x14, s0@0x10, no outgoing args); ours 0x28 (extra 8 bytes, check arity of every call). Target reads D_80189CC6 once with lhu and tests 0x800 before s0 is formed; ours forms s0 first. Raw rows 80/81 show the second index (D_80190CA0+2) mapping to 0x80189CC6 in the target, so D_80190CA0 may be a misnamed alias; verify the u16 offsets. Next steps: fix the frame, then load order, then registers.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794754336.425611,
-  "score_before": 4850,
-  "score_after": 4850
- },
- {
   "function": "func_80148B44",
   "text": "Not matched. Best stays the saved draft-based 4170. My clean rewrite (u16 arrays D_8018D140/D_8018D26C indexed by i, 0x96 iterations, u8 counters D_80189CB9/D_80189CC1) scored 10215 (35%), far worse, so the draft's pointer/offset-style codegen is closer. Semantics as read from the target: (1) for each i<150 with A=D_8018D140[i] not 0x3FFF and not (0x2FFF below 0x4000 / 0x4FFF at or above), for each j<150 if (B[j]&0xFFF)==(A[i]&0xFFF) set A[i]|=0x1000 (B=D_8018D26C); (2) CB9=0, count k<CB8 with !(A[k]&0xF000); (3) same as (1) with A and B swapped; (4) CC1 counts k<CC0 of B[k] with !(B[k]&0xF000); (5) if (arg1&0xFF)==1, for a<150 at row (arg0&0xFF)*0x12C (300 bytes = 150 u16), if !(v&0x700) then v|=0x1000. Target keeps indices as sll-by-1 with a moving base pointer (addu v0,v0,t2), so start from the draft's pointer form. Not tried: the draft's var/goto layout for the inner loops.",
   "by": "claude-haiku-5-5-20",
@@ -19158,14 +19126,6 @@
   "created_at": 1794756224.98107,
   "score_before": 2870,
   "score_after": 2870
- },
- {
-  "function": "func_80146EC4",
-  "text": "Not matched. Best 4966 (64.7%) at revision cd800e8b3ade6fdd10f4 (the m2c draft). Target frame is 0x20 with ra, s2, s1, s0 saved at 0x10-0x1c; ours is 0x28 with an extra save slot. Target keeps s2 as the address of D_80189CC6 (lbu -8($s2) etc.), and the lhu/andi on D_80189CC6 happen before the first call; ours computes lui/addiu for s2 twice and reloads with lhu. Next: write s2 as `u8 *s2 = (u8 *)&D_80189CC6;`, drop the separate s0 pointer if arg0's record is only used for `s0[0]++`, recheck the frame size first. Callee prototype arity for func_8014B854 differs by call (one arg vs (0x3D, D_80190CA0)); fix the header before tuning registers.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794756254.187762,
-  "score_before": 4850,
-  "score_after": 4850
  },
  {
   "function": "func_80206848",
@@ -24630,14 +24590,6 @@
   "created_at": 1794765580.188106,
   "score_before": 7490,
   "score_after": 7490
- },
- {
-  "function": "func_80146EC4",
-  "text": "No match. Best fresh score 4966 (64.7%) at revision 62360b8a7fd71e5187d2 (saved). Releasing now because the remaining gap needs symbol work I could not finish in this session: (1) the extern D_80190CA0 is mis-addressed (target reads through 0x80189CC6 base, candidate uses 0x80190CA0), so the extern layout and its u16 accesses must be re-derived from the assembly first; (2) frame is 0x28 vs target 0x20 (saves ra/s2/s1/s0 at 0x1c..0x10); (3) the store to 0x80189C9B (candidate uses D_80189C9A+1-3) needs a declared symbol for D_80189C9B, which the candidate lacks. Next step: declare the D_80189C9B / D_80190CA0 layouts from the data, fix the s2 base to %lo(D_80189CC6), then re-compile for the frame, then registers. A compile_patch attempt to change the odd-offset store failed for an undeclared identifier, so do not reuse that patch as is.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794765607.417042,
-  "score_before": 4850,
-  "score_after": 4850
  },
  {
   "function": "func_80148B44",
@@ -40022,5 +39974,80 @@
   "created_at": 1795714660.192163,
   "score_before": 4000,
   "score_after": 4000
+ },
+ {
+  "function": "func_80146EC4",
+  "text": "Not matched. Best saved 6746 (score 6746, 52% match; source = clean C with u8* base = D_80189CC6 used for the flag accesses in the first block and in the s1&0x10 block; D_8011F2F0 temp_s0 computed first). Remaining diffs: target frame is 0x20 (saves ra,s0,s1,s2 only) while ours is 0x28, so we keep one extra saved reg/local. Target re-loads D_80189CC6 with lui/addiu into a fresh pointer (s0) after the first func_8014B854 call in the s1&0x10 block, while the first block uses s2; using the symbol directly everywhere scored 7161, base in both blocks 6746. Swapping the func_801485C8 branch (!= 0 first) scored 8131 and is wrong; the original order is right. Target's else-arm (0x100 store to base-0x2E) appears to come first in the asm at ~row 131. Untested ideas: split the 0x10 block into its own local pointer for the second access group; check that D_80190CA0 is an array of u16 pairs (target reads it as lhu from +0 and +2 with stride 0x64 into D_8011F2FD). Also func_8014A870 prototype: caller signature (?,?,u8) vs definition (u32,s32,s32) mismatch noted by prototype review; not resolved.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794710103.854872,
+  "score_before": 5441,
+  "score_after": 5441
+ },
+ {
+  "function": "func_80146EC4",
+  "text": "Cleaned source scores 6341 (55%), revision ed517548fe7b11d93119. Frame: target 0x20 saving ra, s2, s1, s0; mine 0x28 with s1. Mine caches the global base D_80189CC6 in s1, which the target does not do: the target uses D_8011F2F0 in v1 as the first base. Calls: func_8014A870(0x14,3,byte at D_80189CC6-8), func_8014BAC0(0x14), func_8014B854 with 0x3B/0x3A/0x3D (0x3D also passes &D_80190CA0), func_80148754, func_801485C8. Fix the frame and the base register first.\n\nNot matched. Best 6341 (55%), revision ed517548fe7b11d93119. Structure is roughly right (flag 0x800 branch, s1 from func_8014A870 / func_8014BAC0, the 0x10 and 0x20 bit paths, calls 0x3B/0x3A/0x3D). Blocking diffs: (1) target frame is 0x20 and saves ra, s2, s1, s0 at 0x1C..0x10; mine is 0x28 and caches the D_80189CC6 base in s1, which the target does not do. (2) Target keeps s0 = D_8011F2F0 + idx as the first base (addiu v1,v1,%lo(D_8011F2F0)) and loads the flag word through its own address. Signedness of s1 (u32) changed nothing. Next: restructure so the flag word is loaded from a fresh address each time and s1 only holds the func_8014A870 result, then fix the register order.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794725347.561975,
+  "score_before": 4850,
+  "score_after": 4850
+ },
+ {
+  "function": "func_80146EC4",
+  "text": "Releasing with best 4966 (revision cd800e8b3ade6fdd10f4). Reason it cannot get closer in this session: the remaining gap is a stack-frame/layout difference (target -0x20 with ra/s2/s1/s0; candidates always get -0x28 with an extra sw at 0x20), and the two layout experiments I ran (reloading s2 vs a local s2, and reordering the s0/s2 init) went 5471 -> 4966 -> 5166. Fixing the frame needs a different local-variable structure, not further tweaks. Next agent: start from revision cd800e8b3ade6fdd10f4 and try removing the s0 local (compute the table offset inline at the one use) and making s1 a u8-free s32 with the func_8014BAC0 result assigned in its own statement.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794739750.014365,
+  "score_before": 4850,
+  "score_after": 4850
+ },
+ {
+  "function": "func_80146EC4",
+  "text": "Best 4966 (64.7%) from the saved source; current revision cd800e8b. Not matched. I'm stopping this session at low effort, so this is a handoff, not a verdict. Facts: func_8014B854 is called with one argument in the draft (prototype unknown; declaring it with two params breaks the one-arg calls, so keep the empty prototype until the real arity is known). Frame: target 0x20 (ra@0x1c, s2@0x18, s1@0x14, s0@0x10, no outgoing args); ours 0x28 (extra 8 bytes, check arity of every call). Target reads D_80189CC6 once with lhu and tests 0x800 before s0 is formed; ours forms s0 first. Raw rows 80/81 show the second index (D_80190CA0+2) mapping to 0x80189CC6 in the target, so D_80190CA0 may be a misnamed alias; verify the u16 offsets. Next steps: fix the frame, then load order, then registers.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794754336.425611,
+  "score_before": 4850,
+  "score_after": 4850
+ },
+ {
+  "function": "func_80146EC4",
+  "text": "Not matched. Best 4966 (64.7%) at revision cd800e8b3ade6fdd10f4 (the m2c draft). Target frame is 0x20 with ra, s2, s1, s0 saved at 0x10-0x1c; ours is 0x28 with an extra save slot. Target keeps s2 as the address of D_80189CC6 (lbu -8($s2) etc.), and the lhu/andi on D_80189CC6 happen before the first call; ours computes lui/addiu for s2 twice and reloads with lhu. Next: write s2 as `u8 *s2 = (u8 *)&D_80189CC6;`, drop the separate s0 pointer if arg0's record is only used for `s0[0]++`, recheck the frame size first. Callee prototype arity for func_8014B854 differs by call (one arg vs (0x3D, D_80190CA0)); fix the header before tuning registers.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794756254.187762,
+  "score_before": 4850,
+  "score_after": 4850
+ },
+ {
+  "function": "func_80146EC4",
+  "text": "No match. Best fresh score 4966 (64.7%) at revision 62360b8a7fd71e5187d2 (saved). Releasing now because the remaining gap needs symbol work I could not finish in this session: (1) the extern D_80190CA0 is mis-addressed (target reads through 0x80189CC6 base, candidate uses 0x80190CA0), so the extern layout and its u16 accesses must be re-derived from the assembly first; (2) frame is 0x28 vs target 0x20 (saves ra/s2/s1/s0 at 0x1c..0x10); (3) the store to 0x80189C9B (candidate uses D_80189C9A+1-3) needs a declared symbol for D_80189C9B, which the candidate lacks. Next step: declare the D_80189C9B / D_80190CA0 layouts from the data, fix the s2 base to %lo(D_80189CC6), then re-compile for the frame, then registers. A compile_patch attempt to change the odd-offset store failed for an undeclared identifier, so do not reuse that patch as is.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794765607.417042,
+  "score_before": 4850,
+  "score_after": 4850
+ },
+ {
+  "function": "func_80146EC4",
+  "text": "Small-model attempt at func_80146EC4: 14 tries.\n  best 10 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 469 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 2510 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3779 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 5631 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nBest score 10 under gcc-2.7.2-kmc -O1 (not matched). Every instruction matches the target except the stack frame: mine is addiu $sp,-0x28 (8 extra bytes of local space), target -0x20. Tried: block-scoped s0, register/u32/s32 flags, s2 base pointer (worse, 700), local byte temp, compound increment, negated return check, void prototype; none removed the 8 bytes. Next: find the source of the 8-byte stack slot (a spilled value or local) under -O1.",
+  "by": "manual-b47472a43f1a4a63",
+  "created_at": 1795719487.785961,
+  "score_before": 5726,
+  "score_after": 5726,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:54f6e3aabfdd48591eefb57a55aff5a8ac441830818ebbd782e78b1162e476f3"
+ },
+ {
+  "function": "func_80146EC4",
+  "text": "Small-model attempt at func_80146EC4: 13 tries.\n  best 10 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 469 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 3665 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 3779 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 5726 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\nProfile -O1 reached 10: every instruction matches except the prologue/epilogue frame (ours -0x28, target -0x20). Work: pointer s0 computed at the top, direct D_80189CC6 accesses, 0x20 check as a separate if (not else-if), neighbour prototypes. Frame bloat is caused by the two D_8011F2FD[...] = 2 stores in the 0x10 block: removing either one gives -0x20. Chained/cast/u16-array variants keep the frame but change the body. Next: find a form of the two stores that keeps the frame.",
+  "by": "manual-1f68b06b2b8c4be7",
+  "created_at": 1795719749.467278,
+  "score_before": 5726,
+  "score_after": 5726,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:54f6e3aabfdd48591eefb57a55aff5a8ac441830818ebbd782e78b1162e476f3"
+ },
+ {
+  "function": "func_80146EC4",
+  "text": "Profile probe: this saved C scores 2644 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (10 of its 12 nearest matched neighbours were built with it), 4206 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721212.818283,
+  "score_before": 4206,
+  "score_after": 2644,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:54f6e3aabfdd48591eefb57a55aff5a8ac441830818ebbd782e78b1162e476f3"
  }
 ]
