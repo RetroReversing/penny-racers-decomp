@@ -3120,14 +3120,6 @@
   "score_after": 18146
  },
  {
-  "function": "func_80232480",
-  "text": "Deep permuter: score 11704 \u2192 10819; 4 improvements; 79 candidates tested; 112 cached skips; 0 rejected; 7211s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935860",
-  "created_at": 1794357194.377179,
-  "score_before": 11704,
-  "score_after": 10819
- },
- {
   "function": "func_8003C720",
   "text": "Deep permuter: score 577 \u2192 562; 1 improvements; 53 candidates tested; 58 cached skips; 0 rejected; 7213s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935131",
@@ -6232,14 +6224,6 @@
   "score_after": 875
  },
  {
-  "function": "func_80232480",
-  "text": "Move-on budget exhausted (3/3 without improvement). Rechecked baseline with my source: 11319; saved historical best 2520 (different source/header, not comparable).\n\nTarget structure (230 insns) decoded from get_assembly, all confirmed:\n- prologue saves ra/s1/s0 at 0x50/0x4C/0x48, frame 0x58.\n- func_801FA338(0) FIRST, then D_80203AB0/D_802038D0/D_802038D4 = 0.\n- lui/addiu $s0,%hi/%lo(D_8006FB14+0x4) materialized BEFORE jal func_80231A0C; `sb $zero,($s0)` is the delay slot of that jal; `lhu $a0,-8($s0)` feeds func_8022F780 later. So the byte store at 0x8006FB18 is scheduled into the call's delay slot and the same pointer is reused for the 0x8006FAF0+0x20 lhu. My local-pointer attempts (`p = D_8006FB14 + 4;` declared before the calls, store after func_80231A0C) always produced `lui $at` + `sb %lo(...)($at)` and a separate `lhu %lo(D_8006FAF0+0x20)`, i.e. gcc did not keep the base live. Remaining idea: express the byte and the u16 as members of one local struct/union over D_8006FB14 (e.g. `u8 *p = &D_8006FB14[4];` used for BOTH the store and the load, and force the store to be emitted before func_80231A0C so gcc sinks it into the delay slot), or declare `extern u8 D_8006FAF0[]` and index `*(u16*)(D_8006FAF0+0x20)` so the two bases CSE.\n- Copy loop: target is a 0x34-byte block copy (13 words) with a 4x-unrolled 0x10 loop ending `bne $a2,$t0,.L` + `addiu $a3,$a3,0x10` and a single-word tail; dst = D_8022A778 + i*0x8F0 + j*0x34, src = D_80238EC0 + j*0x34, i<6, j<8. Hand-written 13-iteration s32 loop gave the right 13 words but a rolled 1-word loop. A `typedef struct { u8 b[0x34]; } Blob;` copy produced lwl/lwr/swl/swr misaligned paths (score 12149/12974) \u2014 gcc could not prove 4-alignment because the bases were `u8[]`. Next idea: keep Blob but declare the bases as `extern Blob D_8022A778[]; extern Blob D_80238EC0[];` AND index with `D_8022A778[i*0x8F0/0x34 + j]`-style struct indexing so alignment is known, or use `u32` arrays with a 13-word copy `for (k=0;k<13;k++) dst[k]=src[k];` but with dst/src typed `u32 *` derived from `u32` externs (that gave the correct 13-word tail but rolled loop).\n- Second loop: `func_8022FE50(i,i,i,1)` for i<6 with `andi $a2,$s0,0xFF` before the loop and `andi $a2,$s0,0xFF` in the bnez delay slot \u2014 the induction variable is a u8 promoted, loop bound compared as `sltiu $v0,$v0,6` on `andi $v0,$s0,0xFFFF`. Use `u16 i` and pass `(u8)i`.\n- Six func_800DE41C calls with 18 args; $s1 holds 0x20 across the first four (so 0x20 must be a reused local, e.g. `s32 z = 0x20;`), and $s0 holds &func_8012AD9C across four calls. The 5th call passes 0 for arg5 and &D_802282F0 as arg7; the 6th passes 0xC0/0xFF and &func_8015A728. Then func_80232360(1..5, 0).\n- Note the arg-order detail: target sets `sw $s1,0x10($sp)` etc. i.e. args 9..18 on the stack; my declaration with 18 params matched the layout.\n- Raw address diff at the last rows (target 0x8012AD9C vs 0x8015A728) is only the two different function pointers in the 4th/6th calls being compared out of order; not a real bug.\nNext agent: start from saved_best 2520 for the header/settings it used, and fix the copy loop + the D_8006FB14+4 pointer first; those two account for nearly all remaining differences.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794712373.032883,
-  "score_before": 2520,
-  "score_after": 2520
- },
- {
   "function": "func_8015C838",
   "text": "Target shape (27 insns) fully decoded, best 1395 (rev dd7fa4d39765e76f67c2; also dea47f7a310e2efe481a at 1475):\n  idx = (arg0 & 0xFFFF) * 0x64  (kept in v1, reused by the else path)\n  v = *(D_8011F2FC + idx) - 2   (lbu + addiu, %lo folded into the lbu)\n  bgtzl v -> store_v, delay slot andi $v1,$a0,0xFFFF\n  fall-through (v <= 0): D_8011F2FD[idx] = 2; j end      <- idx, i.e. *0x64, not the plain racer index\n  store_v: RECOMPUTES idx from arg0&0xFFFF (sll/addu/sll/addu/sll) then sb %lo(D_8011F2FC)\nNote D_8011F2FD is indexed by idx*0x64, same as matched donor func_8014AFD8.\n\nBlocker: gcc CSEs the D_8011F2FC address across the two paths and materialises the base (lui/addiu then lbu/sb ($reg)) -> 19-20 insns. The target never materialises: every access is lui %hi + addu + %lo folded into the lbu/sb, i.e. each address value is used exactly once per path. Tried: early return in the then block; early return in the else block; with and without an `idx` variable; inline (arg0 & 0xFFFF) * 0x64 in every access. Next idea: make the store path's address tree genuinely distinct (separate declaration/cast of the same address) so CSE cannot merge it while still emitting %lo(D_8011F2FC).\n\nUPDATE \u2014 score 960 (rev 09997bea9226316606ed), structure now matches except the last block. Working source:\n\n  extern u8 D_8011F2FC[]; extern char D_8011F2FD[];\n  void func_8015C838(s32 arg0) {\n      s32 idx; s32 v;\n      idx = (arg0 & 0xFFFF) * 0x64;\n      v = *(D_8011F2FC + idx) - 2;\n      if (v <= 0) { *(D_8011F2FD + idx) = 2; return; }\n      *(D_8011F2FC + (arg0 & 0xFFFF) * 0x64) = v;\n  }\n\nThis gives: idx in register, folded lbu (lui %hi + addu + lbu %lo), bgtz to the store block with the F2FD path as fall-through, exactly like the target. Remaining diff (5 insns): the target RECOMPUTES the index in the store block (andi $v1,$a0,0xFFFF; sll/addu/sll/addu/sll = x*100) and therefore fills the branch delay slot with the andi and emits bgtzl; gcc reuses the idx register instead (plain bgtz + nop).\n\nNext experiment (untested): kill the idx value before the store so gcc cannot CSE it, e.g.\n\n      if (v <= 0) { *(D_8011F2FD + idx) = 2; return; }\n      idx = (arg0 & 0xFFFF) * 0x64;\n      *(D_8011F2FC + idx) = v;\n\nwhich should force the recompute and the bgtzl fill.",
   "by": "opencode-deepseek-v4.1-flash-free-5",
@@ -8294,14 +8278,6 @@
   "created_at": 1794727576.1164758,
   "score_before": 19847,
   "score_after": 18467
- },
- {
-  "function": "func_80232480",
-  "text": "Not matched. Best current trial 11319 (50.7%), vs historical saved best 2520 from a different source. Tried: u8 loop var n for the func_8022FE50 loop (target uses andi 0xFF), s32 local c=0x20 to reuse across the func_800DE41C calls, pointer p=(u8*)&D_8006FB14+4 (also the (&D_8006FB14+1) form, no effect), j=0 before func_800E067C, s16 i (worse, 11994), and a void* fp local for &func_8012AD9C (no effect). Remaining diffs: the target keeps p in $s0 via lui/addiu of %hi/%lo(D_8006FB14+4) and reuses $s0 as j after the func_8022F780 call; mine folds the address into lui $at + sb. The prologue save order ($ra,$s1,$s0) and the $s1 use of 0x20 are unmatched. Register allocation (i in $t1, copy-loop bases $t3/$t4) is off. The local-variable and type tweaks have not moved the score, so the next agent needs a structural idea (e.g. the copy loop in the target keeps i in $t1 and the inner j in $s0 from the call on), not more CSE experiments.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794727706.419931,
-  "score_before": 2520,
-  "score_after": 2520
  },
  {
   "function": "func_80209D74",
@@ -10638,14 +10614,6 @@
   "created_at": 1794740559.2688398,
   "score_before": 4345,
   "score_after": 4345
- },
- {
-  "function": "func_80232480",
-  "text": "Saved best 2520 (historical) does not reproduce now: the same source rechecks at 11704 (49.1%). Diff: target begins with saves `sw $ra,0x50; sw $s1,0x4c; sw $s0,0x48` then `jal func_801FA338`; mine saves in a different order and inserts `move $a0,$zero` before them. Target keeps `s0 = &D_8006FB14+4` live: `addiu $s0,$s0,%lo; sb $zero,($s0); ... lhu $a0,-8($s0); jal func_8022F780` and later reuses s0 as loop index (`move $s0,$zero`). Using a local `s8 *p = (s8*)&D_8006FB14 + 4` gave the same 11704, so the pointer form is not the blocker. Also the func_800DE41C callbacks: target loads the function constant 0x8012AD9C directly (`&func_8012AD9C` should be a function pointer, not `extern s32` address); fix that declaration first, then the call order (target calls func_8022F780 before func_800E067C). The copy loop (6x8x13 words, `addiu $a2,0x10` pairs) is unverified. Three compiles without improvement; move on.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794740607.4727948,
-  "score_before": 2520,
-  "score_after": 2520
  },
  {
   "function": "func_80211FD0",
@@ -13976,14 +13944,6 @@
   "score_after": 2310
  },
  {
-  "function": "func_80232480",
-  "text": "Not matched. Best now 13784 (40%) from a clean C version; saved_best 2520 is an older draft (different source). Structure in the C: func_801FA338(0); three zero stores to D_80203AB0/D_802038D0/D_802038D4; p = D_8006FB14+4 with *p = 0 and func_8022F780(*(u16*)(p-8)); func_800E067C; a 6x8 copy loop of 13 words, dst = D_8022A778 + i*0x8F0 + j*0x34, src = D_80238EC0 + j*0x34; func_8022FE50(i,i,i,1) for i<6; D_8022AFE9=0; four func_800DE41C calls with func_8012AD9C (stack 0x10=0x20 or 0xA etc.), func_8013ADA8, a call with D_802282F0, a call with func_8015A728 (0xC0, 0xFF); then func_80232360(1..5, 0). Diff: the target keeps 0x20 in s1 and the pointer in s0 across the calls (prologue saves ra,s1,s0, delay-slot move a0,zero before the first jal); mine does not hoist the 0x20 constant, and the copy loop is unrolled 4 words at a time in the target. Tried the pointer p (no effect). Next: a local s32 c20 = 0x20 used for the 0x10 stack arg of each func_800DE41C call, and check the order of the last two calls (the target's func_8012AD9C constant vs func_8015A728 at diff row 205).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794756373.997565,
-  "score_before": 2520,
-  "score_after": 2520
- },
- {
   "function": "func_80209D74",
   "text": "Not attempted in this session; no compile run. Machine draft (m2c, -O2) is a starting point only. It uses 1000 bytes of f32 field stores through five per-slot pointers (stride 0x64 off &D_8011F2F0, slots from D_8021F090, D_8021E146, D_8021F024, D_8021F026, D_8021EFF8, and arg0). Mostly f32 constants (-10.0f, 200.0f, -200.0f, 0xC1A00000) and fields at +0x18/+0x1C/+0x20/+0x28. Expect the draft's pointer temporaries to be wrong and the control flow (type byte at +0 compared with 0 and 1..3, D_8021E1A2 test, D_8021B00C test) to need the target's order. Start by reading assembly, then write one clean C version per branch.",
   "by": "claude-haiku-5-5-22",
@@ -14702,14 +14662,6 @@
   "created_at": 1794758597.405165,
   "score_before": 260,
   "score_after": 260
- },
- {
-  "function": "func_80232480",
-  "text": "Not matched; releasing because the current draft (11704, 49.1%) is far from the saved best (2520) and needs a rewrite of the global address handling and the first call block, not tuning. Restore the saved best with get_candidate(base=\"saved_best\") before any new work. Target: 920-byte init routine, 0x50 frame, saves $ra/$s1/$s0; calls func_801FA338(0), func_80231A0C/C5C/E30, func_8022F780 on an argument read from D_8006FB14+4 at -8 (the draft writes D_8006FB14+4 via lui/%lo in the wrong order), func_800E067C; then a 6x8 copy of 13 words from D_80238EC0 (stride 0x34) into D_8022A778 (stride 0x8F0 per i, 0x34 per j); six func_8022FE50(i,i,i,1) calls; then func_800DE41C calls with 18 args, function pointers &func_8012AD9C and D_802282F0. Next: fix the first call block and the global addresses, then the copy loop, then the 18-arg calls.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794758625.574796,
-  "score_before": 2520,
-  "score_after": 2520
  },
  {
   "function": "func_80208374",
@@ -16142,14 +16094,6 @@
   "created_at": 1794761986.681677,
   "score_before": 1825,
   "score_after": 1825
- },
- {
-  "function": "func_80232480",
-  "text": "Not matched. Target 230 insns, frame 0x58 with ra 0x50, s1 0x4c, s0 0x48. Best reproduced: 11704 (49.1%), revision 51d4165c82538acfde13. A shared base-pointer rewrite (f4f7fa09cab3a86989d3) gave the same score. Saved best 2520 is a different source and does not reproduce here. Why it cannot get closer now: the remaining differences are ordering and register-lifetime structure, not single-token fixes. The target calls func_801FA338, then stores the flag through s0 = &D_8006FB14+4 kept live across the calls, and loads lhu -8(s0) for func_8022F780. The candidate reorders those stores, materialises call arguments late (move $a0,$zero x3), and does not reproduce the addiu $a2,0x10 pointer stepping in the 13-word copy loops. Next agent: place the sb store and base pointer before func_80231A0C; then get the copy-loop shape (dst/src stepped by 0x10 per iteration, andi on s0). Callees: func_801FA338(s32), func_80231A0C/C5C/E30(void), func_8022F780(u16), func_800E067C(void), func_8013ADA8(void), func_8022FE50(s32 x4), func_80232360(u16,u16), func_800DE41C (18 args). Data: D_802038D0/D4, D_80203AB0, D_8006FB14 (base+4 flag), D_8022A778 (stride 0x8F0 per i, 0x34 per j), D_80238EC0 (stride 0x34), D_8022AFE9 (s8), D_802282F0; func_8012AD9C and func_8015A728 are passed as function pointers.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794761997.065595,
-  "score_before": 2520,
-  "score_after": 2520
  },
  {
   "function": "func_801B4CF8",
@@ -41531,5 +41475,70 @@
   "score_before": 9274,
   "score_after": 6489,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a92718582d1625cced0db9072d7c0f1dbc75c7d0449919b67245dbb031b57ce2"
+ },
+ {
+  "function": "func_80232480",
+  "text": "Deep permuter: score 11704 \u2192 10819; 4 improvements; 79 candidates tested; 112 cached skips; 0 rejected; 7211s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935860",
+  "created_at": 1794357194.377179,
+  "score_before": 11704,
+  "score_after": 10819
+ },
+ {
+  "function": "func_80232480",
+  "text": "Move-on budget exhausted (3/3 without improvement). Rechecked baseline with my source: 11319; saved historical best 2520 (different source/header, not comparable).\n\nTarget structure (230 insns) decoded from get_assembly, all confirmed:\n- prologue saves ra/s1/s0 at 0x50/0x4C/0x48, frame 0x58.\n- func_801FA338(0) FIRST, then D_80203AB0/D_802038D0/D_802038D4 = 0.\n- lui/addiu $s0,%hi/%lo(D_8006FB14+0x4) materialized BEFORE jal func_80231A0C; `sb $zero,($s0)` is the delay slot of that jal; `lhu $a0,-8($s0)` feeds func_8022F780 later. So the byte store at 0x8006FB18 is scheduled into the call's delay slot and the same pointer is reused for the 0x8006FAF0+0x20 lhu. My local-pointer attempts (`p = D_8006FB14 + 4;` declared before the calls, store after func_80231A0C) always produced `lui $at` + `sb %lo(...)($at)` and a separate `lhu %lo(D_8006FAF0+0x20)`, i.e. gcc did not keep the base live. Remaining idea: express the byte and the u16 as members of one local struct/union over D_8006FB14 (e.g. `u8 *p = &D_8006FB14[4];` used for BOTH the store and the load, and force the store to be emitted before func_80231A0C so gcc sinks it into the delay slot), or declare `extern u8 D_8006FAF0[]` and index `*(u16*)(D_8006FAF0+0x20)` so the two bases CSE.\n- Copy loop: target is a 0x34-byte block copy (13 words) with a 4x-unrolled 0x10 loop ending `bne $a2,$t0,.L` + `addiu $a3,$a3,0x10` and a single-word tail; dst = D_8022A778 + i*0x8F0 + j*0x34, src = D_80238EC0 + j*0x34, i<6, j<8. Hand-written 13-iteration s32 loop gave the right 13 words but a rolled 1-word loop. A `typedef struct { u8 b[0x34]; } Blob;` copy produced lwl/lwr/swl/swr misaligned paths (score 12149/12974) \u2014 gcc could not prove 4-alignment because the bases were `u8[]`. Next idea: keep Blob but declare the bases as `extern Blob D_8022A778[]; extern Blob D_80238EC0[];` AND index with `D_8022A778[i*0x8F0/0x34 + j]`-style struct indexing so alignment is known, or use `u32` arrays with a 13-word copy `for (k=0;k<13;k++) dst[k]=src[k];` but with dst/src typed `u32 *` derived from `u32` externs (that gave the correct 13-word tail but rolled loop).\n- Second loop: `func_8022FE50(i,i,i,1)` for i<6 with `andi $a2,$s0,0xFF` before the loop and `andi $a2,$s0,0xFF` in the bnez delay slot \u2014 the induction variable is a u8 promoted, loop bound compared as `sltiu $v0,$v0,6` on `andi $v0,$s0,0xFFFF`. Use `u16 i` and pass `(u8)i`.\n- Six func_800DE41C calls with 18 args; $s1 holds 0x20 across the first four (so 0x20 must be a reused local, e.g. `s32 z = 0x20;`), and $s0 holds &func_8012AD9C across four calls. The 5th call passes 0 for arg5 and &D_802282F0 as arg7; the 6th passes 0xC0/0xFF and &func_8015A728. Then func_80232360(1..5, 0).\n- Note the arg-order detail: target sets `sw $s1,0x10($sp)` etc. i.e. args 9..18 on the stack; my declaration with 18 params matched the layout.\n- Raw address diff at the last rows (target 0x8012AD9C vs 0x8015A728) is only the two different function pointers in the 4th/6th calls being compared out of order; not a real bug.\nNext agent: start from saved_best 2520 for the header/settings it used, and fix the copy loop + the D_8006FB14+4 pointer first; those two account for nearly all remaining differences.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794712373.032883,
+  "score_before": 2520,
+  "score_after": 2520
+ },
+ {
+  "function": "func_80232480",
+  "text": "Not matched. Best current trial 11319 (50.7%), vs historical saved best 2520 from a different source. Tried: u8 loop var n for the func_8022FE50 loop (target uses andi 0xFF), s32 local c=0x20 to reuse across the func_800DE41C calls, pointer p=(u8*)&D_8006FB14+4 (also the (&D_8006FB14+1) form, no effect), j=0 before func_800E067C, s16 i (worse, 11994), and a void* fp local for &func_8012AD9C (no effect). Remaining diffs: the target keeps p in $s0 via lui/addiu of %hi/%lo(D_8006FB14+4) and reuses $s0 as j after the func_8022F780 call; mine folds the address into lui $at + sb. The prologue save order ($ra,$s1,$s0) and the $s1 use of 0x20 are unmatched. Register allocation (i in $t1, copy-loop bases $t3/$t4) is off. The local-variable and type tweaks have not moved the score, so the next agent needs a structural idea (e.g. the copy loop in the target keeps i in $t1 and the inner j in $s0 from the call on), not more CSE experiments.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794727706.419931,
+  "score_before": 2520,
+  "score_after": 2520
+ },
+ {
+  "function": "func_80232480",
+  "text": "Saved best 2520 (historical) does not reproduce now: the same source rechecks at 11704 (49.1%). Diff: target begins with saves `sw $ra,0x50; sw $s1,0x4c; sw $s0,0x48` then `jal func_801FA338`; mine saves in a different order and inserts `move $a0,$zero` before them. Target keeps `s0 = &D_8006FB14+4` live: `addiu $s0,$s0,%lo; sb $zero,($s0); ... lhu $a0,-8($s0); jal func_8022F780` and later reuses s0 as loop index (`move $s0,$zero`). Using a local `s8 *p = (s8*)&D_8006FB14 + 4` gave the same 11704, so the pointer form is not the blocker. Also the func_800DE41C callbacks: target loads the function constant 0x8012AD9C directly (`&func_8012AD9C` should be a function pointer, not `extern s32` address); fix that declaration first, then the call order (target calls func_8022F780 before func_800E067C). The copy loop (6x8x13 words, `addiu $a2,0x10` pairs) is unverified. Three compiles without improvement; move on.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794740607.4727948,
+  "score_before": 2520,
+  "score_after": 2520
+ },
+ {
+  "function": "func_80232480",
+  "text": "Not matched. Best now 13784 (40%) from a clean C version; saved_best 2520 is an older draft (different source). Structure in the C: func_801FA338(0); three zero stores to D_80203AB0/D_802038D0/D_802038D4; p = D_8006FB14+4 with *p = 0 and func_8022F780(*(u16*)(p-8)); func_800E067C; a 6x8 copy loop of 13 words, dst = D_8022A778 + i*0x8F0 + j*0x34, src = D_80238EC0 + j*0x34; func_8022FE50(i,i,i,1) for i<6; D_8022AFE9=0; four func_800DE41C calls with func_8012AD9C (stack 0x10=0x20 or 0xA etc.), func_8013ADA8, a call with D_802282F0, a call with func_8015A728 (0xC0, 0xFF); then func_80232360(1..5, 0). Diff: the target keeps 0x20 in s1 and the pointer in s0 across the calls (prologue saves ra,s1,s0, delay-slot move a0,zero before the first jal); mine does not hoist the 0x20 constant, and the copy loop is unrolled 4 words at a time in the target. Tried the pointer p (no effect). Next: a local s32 c20 = 0x20 used for the 0x10 stack arg of each func_800DE41C call, and check the order of the last two calls (the target's func_8012AD9C constant vs func_8015A728 at diff row 205).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794756373.997565,
+  "score_before": 2520,
+  "score_after": 2520
+ },
+ {
+  "function": "func_80232480",
+  "text": "Not matched; releasing because the current draft (11704, 49.1%) is far from the saved best (2520) and needs a rewrite of the global address handling and the first call block, not tuning. Restore the saved best with get_candidate(base=\"saved_best\") before any new work. Target: 920-byte init routine, 0x50 frame, saves $ra/$s1/$s0; calls func_801FA338(0), func_80231A0C/C5C/E30, func_8022F780 on an argument read from D_8006FB14+4 at -8 (the draft writes D_8006FB14+4 via lui/%lo in the wrong order), func_800E067C; then a 6x8 copy of 13 words from D_80238EC0 (stride 0x34) into D_8022A778 (stride 0x8F0 per i, 0x34 per j); six func_8022FE50(i,i,i,1) calls; then func_800DE41C calls with 18 args, function pointers &func_8012AD9C and D_802282F0. Next: fix the first call block and the global addresses, then the copy loop, then the 18-arg calls.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794758625.574796,
+  "score_before": 2520,
+  "score_after": 2520
+ },
+ {
+  "function": "func_80232480",
+  "text": "Not matched. Target 230 insns, frame 0x58 with ra 0x50, s1 0x4c, s0 0x48. Best reproduced: 11704 (49.1%), revision 51d4165c82538acfde13. A shared base-pointer rewrite (f4f7fa09cab3a86989d3) gave the same score. Saved best 2520 is a different source and does not reproduce here. Why it cannot get closer now: the remaining differences are ordering and register-lifetime structure, not single-token fixes. The target calls func_801FA338, then stores the flag through s0 = &D_8006FB14+4 kept live across the calls, and loads lhu -8(s0) for func_8022F780. The candidate reorders those stores, materialises call arguments late (move $a0,$zero x3), and does not reproduce the addiu $a2,0x10 pointer stepping in the 13-word copy loops. Next agent: place the sb store and base pointer before func_80231A0C; then get the copy-loop shape (dst/src stepped by 0x10 per iteration, andi on s0). Callees: func_801FA338(s32), func_80231A0C/C5C/E30(void), func_8022F780(u16), func_800E067C(void), func_8013ADA8(void), func_8022FE50(s32 x4), func_80232360(u16,u16), func_800DE41C (18 args). Data: D_802038D0/D4, D_80203AB0, D_8006FB14 (base+4 flag), D_8022A778 (stride 0x8F0 per i, 0x34 per j), D_80238EC0 (stride 0x34), D_8022AFE9 (s8), D_802282F0; func_8012AD9C and func_8015A728 are passed as function pointers.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794761997.065595,
+  "score_before": 2520,
+  "score_after": 2520
+ },
+ {
+  "function": "func_80232480",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 3475 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (321 functions of this project were built with it), the saved C scores 5677 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721255.973408,
+  "score_before": 5677,
+  "score_after": 3475,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:3a68cecd8eb54d98a2a6254450987a7813626101e83246192a0033e178787dcf"
  }
 ]
