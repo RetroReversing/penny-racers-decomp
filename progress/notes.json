@@ -3960,14 +3960,6 @@
   "score_after": 6130
  },
  {
-  "function": "func_80134C68",
-  "text": "Deep permuter: score 16922 \u2192 16922; 0 improvements; 136 candidates tested; 17 cached skips; 0 rejected; 7202s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935302",
-  "created_at": 1794356210.790532,
-  "score_before": 16922,
-  "score_after": 16922
- },
- {
   "function": "func_80157E30",
   "text": "Deep permuter: score 1930 \u2192 1925; 1 improvements; 55 candidates tested; 32 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935514",
@@ -6904,22 +6896,6 @@
   "score_after": 15531
  },
  {
-  "function": "func_80134C68",
-  "text": "Best source so far: revision 19b23c7bbb08763a0b86, score 14007 at project flags (-O2). Key structural facts verified from target assembly: (1) func_801CC150 takes 17 args -> stack slots 0x10..0x40; case 0 pushes D_80174560/D_80174A40, case 1 pushes D_80174058/D_80174538; (2) case 0/1 use the <<16 then sra 16 idiom on both coords (keep `a1 = (s32)((f32)a1 + D_8011F308[(arg1 & 0xFFFF) * 25] + 8.0f) << 16;` and pass `a1 >> 16`); (3) case 0xFF passes (s16)(s32)(...) directly to func_801CCE7C with 0x60/0x2A/0x60/0x2A/0x60/0x15, 0x13F/0xEF, D_8016D8F8/D_8016E8C0; (4) the D_8011F2F0 byte index must be `(arg1 & 0xFFFF) * 0x64` and the table index for D_80167F58/60 is that byte value (NOT *2) \u2014 the *2 in m2c is wrong; (5) the func_801CA468 argument must be `D_8011F2FC[((u16)arg1) * 0x64]` (different syntactic conversion) so gcc re-materializes the andi; (6) second counter read must be a fresh global read `D_800DD2C0 == 2` while the first is via a pointer `cnt = &D_800DD2C0`. UNTESTED and very promising: at -O1 with the case-0/1 s16 casts + `(s16)a1, (s16)a2` at the call, score drops to 7865 (trial 61ca5e0027392b94865f); plain -O1 gives 4940 (trial d64188c5ec579d2efade). Try suggest()/try_compiler for -O1 on this function after the C is finalised.\n\nBest score 12297 (rev 8d1222cc238ed5d76784) with a switch(v) form on D_8011F310[(arg1&0xFFFF)*25]: case 0 -> func_801CC150 with D_80174560/D_80174A40 (+8.0f/+5.0f offsets), case 1 -> func_801CC150 with D_80174058/D_80174538 (+8.0f/+5.0f), case 0xFF -> func_801CCE7C with D_8016D8F8/D_8016E8C0 (no offsets). Switching from if/else-if to switch improved 13557 -> 12297. Remaining: target has 296 insns vs 272; target repeats `sw $s2,0x50($sp)` x6, `add.s $f0,$f0,$f2` x4, `mfc1 $a0,$f0` x2, `mtc1 $a1,$f0` x2, `trunc.w.s $f2,$f0` x2 \u2014 i.e. the target recomputes the a1/a2 argument expressions per call site (each call site re-does the float add and the (s32)<<16>>16 conversion) while my version CSEs the index loads (lui/addu/lwc1 pairs) and hoists. Try duplicating the index expression at each call site with syntactically different conversions, and/or drop the shared locals so each call recomputes. Branch offsets differ because target has 4 more blocks of code.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794715092.3233988,
-  "score_before": 17517,
-  "score_after": 12297
- },
- {
-  "function": "func_80134C68",
-  "text": "Best score 15334 (48.1%) at revision 0caa4e382a27f08f4445 / 235c17f6e64e0d37c869 (equivalent). Move-on budget exhausted (3/3 without improvement).\n\nWhat is now correct in the candidate (keep it):\n- All five 0x64-stride index expansions (sll/addu/sll/addu/sll 2) match; use plain `u8` array bases with byte offsets: D_8011F2F0, D_8011F2FC, D_8011F308, D_8011F30C, D_8011F310 indexed as `*(f32*)(BASE + (arg1 & 0xFFFF) * 0x64)`.\n- D_80167F58 / D_80167F60 are `u16` tables indexed by 2*D_8011F2F0[...]; must be written as `*(u16 *)(D_80167F58 + i)` with i = byte offset (not array indexing, which scaled wrong).\n- Both sprite calls take 16 args; func_801CC150 gets 0x50/0x1F triples and (D_80174560, D_80174A40) for case 0, (D_80174058, D_80174538) for case 1; func_801CCE7C gets 0x60/0x2A,0x60/0x2A,0x60/0x15 and (D_8016D8F8, D_8016E8C0) for 0xFF.\n- Writing p[1] = D_80220ED8 BEFORE func_801CA140() matched the target's store-in-delay-slot shape.\n- Coordinates: `a1 = (s32)((f32)a1 + f + 8.0f)` then pass as s16 params (case 0/1); case 0xFF passes without the +8/+5 constants.\n- switch on `(u32)*(f32 *)(D_8011F310 + idx) & 0xFFFF` reproduces the c.le.s/trunc.w.s/0x80000000-or sequence.\n\nRemaining differences (why it is not 0):\n1. Prologue: target frame is -0x58 with only ra/s2/s1/s0 saved; mine is -0x60 with an extra $s3 because the `s16 *st = (s16*)(D_800DB1B8+0x2108)` pointer stays live across func_801CA140 and func_801CA468. Target keeps that base in $s2 only across func_801CA468 and re-materializes `lui/lh` for the `== 2` test. Writing the second test as a fresh `*(s16 *)(D_800DB1B8 + 0x2108)` load (already tried, no change) or as `*st` both give the same code here; the extra register persists.\n2. Branch offsets / register assignment in the switch dispatch differ (`beq/slti/beql` vs `beql/beqz`), and the case-0/1 bodies are emitted with the two lwc1 loads hoisted before the conversion chain whereas the target loads them inline (`lwc1 $f2, %lo(D_8011F308)($at); add.s $f0,$f0,$f2`), so mine emits `lwc1 $f4/lwc1 $f6` plus extra add.s.\n3. Case 0/1 stack argument stores: target stores 0x1F at 0x18 and 0x20 (reusing $v0), mine stores only at 0x18/0x20/0x28 differently \u2014 ordering of the 14 stack words around 0x10..0x40.\n\nUntried ideas: declare the sprite-arg block as one local struct/array passed by address; try `search_flags` (the #339302416414 -O1 scheduling note) on this revision; try inlining the D_8011F308/30C loads into the call arguments as separate expressions so they are not CSE'd across the two cases.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794715636.500212,
-  "score_before": 12297,
-  "score_after": 12297
- },
- {
   "function": "func_801341C0",
   "text": "Best verified score this session 14140 (53.7%) at revision 7a9cc522321c9426c96f; inherited historical best 7086 (different source/scoring, not comparable). Move-on budget exhausted (3/3 without improvement).\n\nConfirmed-correct structure (target line numbers from get_assembly):\n- Guard: `if (D_80126FF6 == D_800DD2C0 - 1)` with `extern s16 D_800DD2C0; extern u8 D_80126FF6;`.\n- Index: target computes `(arg1 & 0xFFFF) * 0x64` with sll/addu/sll/sll/addu/sll 2 and then `addu $fp,$fp,$s0; lbu $fp,%lo(D_8011F2F0)($fp)` \u2014 so write `D_8011F2F0[(arg1 & 0xFFFF) * 0x64]` with `extern u8 D_8011F2F0[]`.\n- Record stride: `fp * 0x8F0` is sll/addu/sll 4/subu/sll 4; `D_8022AFE9[fp * 0x8F0] != 5` guard.\n- `s7 = D_8011F2FC[(arg1 & 0xFFFF) * 0x64]` (lbu); base = fp*0x6C with `if (s7 < 3) base += 0xE` (subu/sll 2/subu/sll 2 shape).\n- Flag test: `((s32)(*(f32 *)(D_8011F334 + (arg1 & 0xFFFF) * 0x64)) & 8) == 0` reproduces c.le.s/bc1tl/sub.s/trunc.w.s/or 0x80000000/andi 8 exactly.\n- Display list: p = *arg0; *arg0 = p+8; p[0]=0x06000000; p[1]=D_80220ED8; then func_801CA140(arg0). Store of p[1] must precede the call.\n- `s7 = -(s7 != 4) & s7` (xori/sltu/negu/and).\n- s1 = (base+0x10)&0xFFFF reused for both func_801CAF18 calls (0x28/0xA and 0x40/0xB, args 0,8,0xC,0x70,0xC, D_801D51C8, D_801D5470).\n- Branch on `s7 == 4`: func_801CC150 0x5C, (s16)(base+0x11), 0x30/0xA x3, 0,0,0x13F,0xEF, D_80170F20, D_80171018; else 0x5C, (s16)(base+0x12), 0x20/8 x3, same tail with D_8016ED50/D_8016EDD8 plus func_801CB9EC(0x77, (base+0x12)&0xFFFF, 8, D_8016EE00, D_8016EF48, 0,1,0,8,8,0x50,8, s7&0xFFFF).\n- Tail: s2=(base+0x10)&0xFFFF, record index `s7*5 + fp*0x8F0` (sll/addu chain), three func_801CB9EC at 0x18/0x30/0x48 with 0,2,0,8,0xC,0x70,0xC and D_8022ACD3/D4/D6[idx] as the 14th arg (lbu then sw).\n\nRemaining blockers (why not 0):\n1. Prologue: target frame -0x78 saving ra,fp,s7..s0 (10 words). Mine is -0x80/-0x88 with an extra saved word because `s7` gets spilled to a stack slot (candidates used `sb $t0,0x57($sp)`) whenever the guard block keeps both `fp` and `s7` live across the five calls. Target keeps everything in registers. Candidate 14140 (s32 s72 + separate `s7` temp) is the closest: -0x80, one extra save.\n2. `addu $fp,$fp,$s0` and `lbu %lo(D_8011F2F0)($fp)` require the base pointer to stay in $fp; mine emits `lui/addu` then lbu with a different register when the index expression is repeated.\n3. `.L80134514` join: target re-loads `lw $t0,0x4C($sp)` and rebuilds the D_801D51C8/D_801D5470 stack words with `lui/addiu` into $t0 per call (not from saved $s5/$s4), and reuses $s5/$s4 for the 2 and 8 constants in the tail calls. Mine reuses $s5/$s4 for the pointers, so the constant registers differ.\n4. Case-4 branch: target sets `addiu $v0,$zero,0x20` in the branch delay slot and reuses $v0 for the 0x20/0x8 stack words; mine reloads.\nUntried: search_flags (proposal #339302416414 suggests -O1 for scheduling-only diffs), and declaring the D_801D51C8/D_801D5470 pointers as fresh `lui/addiu` per call site by using distinct local pointer variables per call.",
   "by": "api-route-llm-code-1",
@@ -9462,14 +9438,6 @@
   "created_at": 1794728380.6501791,
   "score_before": 10236,
   "score_after": 10236
- },
- {
-  "function": "func_80134C68",
-  "text": "Not matched. Current draft (revision 63338eff7b49211040d0) scores 13929 (52.9%): target 296 insns, ours 254; target frame is 0x58 with sw $ra at 0x54, ours is 0x60. Target re-reads the 16-bit table value D_800DB1B8+0x2108 at each comparison (lui/addiu of the same address repeated, stores of s3 and s2 copies), and it has extra sw $ra spills and repeated `j` back to a common tail (func_80134C68+0x130 x2). Our draft hoists the single load and the if/else chain collapses. Next step: rewrite the three `*(s16*)(D_800DB1B8+0x2108)` reads as separate expressions in each branch rather than one local, and check whether the switch on sel is a jump table or a compare chain in the target before changing the case bodies. Shared externs: D_800DB1B8, D_8011F2F0/F2FC/F308/F30C/F310, D_80167F58/F60 are the table base pointers used with index (arg1&0xFFFF)*0x64.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794728418.780833,
-  "score_before": 12297,
-  "score_after": 12297
  },
  {
   "function": "func_8002AF40",
@@ -12222,14 +12190,6 @@
   "created_at": 1794741575.079386,
   "score_before": 15255,
   "score_after": 15255
- },
- {
-  "function": "func_80134C68",
-  "text": "Stopping early. Best score 13929 (52.9%), unchanged after 2 compiles this session (the signedness family gave no change). Target 296 insns, candidate 254. The mismatch is structural, not register-level: target frame is 0x58 (s0-s3 saved, ra at 0x54), candidate frame is 0x60. Target recomputes the D_800DB1B8+0x2108 base with separate lui/addiu pairs per use; candidate hoists it into s3. The switch/argument blocks are also reordered. Next step for whoever picks this up: restructure locals so the frame is 0x58 and the base is recomputed per use, then fix register choice for arg1 (target keeps it in s1 with a0 saved). The candidate C is a sound starting point but needs that structural rework.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794741630.4742699,
-  "score_before": 12297,
-  "score_after": 12297
  },
  {
   "function": "func_8012745C",
@@ -17344,14 +17304,6 @@
   "score_after": 0
  },
  {
-  "function": "func_80134C68",
-  "text": "Best saved 13929 (52.9%, rev 63338eff7b49211040d0). Not matched. Target 296 insns vs 254 mine, so the gap is structural, not register-only. Target frame is 0x58 (saves ra,s0,s1,s2 at 0x54..0x48); mine is 0x60 and adds an s3/s2 pointer and an extra local. Target keeps &D_800DB1B8+0x2108 in a saved reg only for the first condition; later uses re-do lui/lh inline. arg1 goes to s0 right after the first branch, arg0 to s1. The float-to-u32 cast path (0x4F000000 threshold, bc1tl) and the switch order (==1, then <2, then ==0xFF) look right. Tried: pointer local for the first condition (no effect, rev 4855ba1bcac1bc4dd24a); removing the i/idx locals and inlining the 0x64 index (worse, 14779, rev 8955ed794e783958b16e); signedness u32->s32 for p (no effect). Next: check the call arg counts for func_801CC150/func_801CCE7C, since the 0x58 frame suggests the target's outgoing arg area is smaller than mine. Then restore 63338eff7b49211040d0 and retry register layout.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794759089.058292,
-  "score_before": 12297,
-  "score_after": 12297
- },
- {
   "function": "func_8002AF40",
   "text": "No match. The only compile was a stub (one case plus default), score 30313, so it says nothing about the full function. The saved best is 7719 (not reverified). The m2c draft is not valid C: `goto block_50` jumps into a `default:` label inside case 10's else branch, and M2C_FIELD/M2C_UNK typedefs must become a real struct. The target is 1300 bytes (325 insns) with a 0x50 frame and saves s0..s6/ra/f20. Known fields of arg0 from the draft: +0x1C, +0x20 bank, +0x28 next-event result, +0x2C state (0/1/2), +0x32, +0x38 event type, +0x3C current voice, +0x40, +0x44, +0x48 queue head (also `s6 = arg0+0x48`), +0x60, +0x64 voice list, +0x74 callback. Next: write a proper struct, keep the do/while around the switch, and add the cases in order, compiling after each batch of 4-5 cases.",
   "by": "claude-haiku-5-5-24",
@@ -19272,14 +19224,6 @@
   "score_after": 2605
  },
  {
-  "function": "func_80134C68",
-  "text": "Best candidate c7fa4c937a8845279ed9 at 14779 (saved best 13929 from source 8a058027bda3, u32 *p -> s32 *p). Frame: target 0x58, ours 0x60 (extra s3 for D_800DB1B8+0x2108 base). Tried this session: hoisting idx = (arg1&0xFFFF)*0x64 to top-level before the switch (e8052038d64e643e112c) scored 15399, worse; it moves the reg allocation and branch layout the wrong way. Not yet tried: computing the 0x2108 cnt once into a local (s16 cnt) only inside the first if, and restructuring the switch to a single shared tail as the target appears to use j to a common epilogue (func_80134C68+0x130). Next step: remove the extra saved register by reusing a1/a2 for the base, then match prologue.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794762483.3216152,
-  "score_before": 12297,
-  "score_after": 12297
- },
- {
   "function": "func_80208374",
   "text": "Current default O2 rechecks saved source2311 (historical336 corresponds O1). O1 saved source336: only s0 address lifetime/frame mismatch; target keeps &D_8021E19E across calls and lh4(s0), ours folds to lh absolute D_8021E1A2. O1 register pointer, array global, s16 array index, struct layout all336; volatile halfword526, inline helper537. -fforce-addr/-fno-expensive-optimizations/-fno-gcse/-fno-schedule-insns2/-fno-defer-pop no help. O2 repair families callee width/global scalar/array/address temporary no effect; one-shot do{call80205E04;}while(0) improves default to1402 revision97facfde1cf57c9589de but not historical best. Need source or compiler handling that preserves p across calls without artificial operations. Callee matched prototypes point to f32*, and func80205EBC final arg u8; tested corrected source, no match.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -19782,14 +19726,6 @@
   "created_at": 1794763948.169096,
   "score_before": 610,
   "score_after": 255
- },
- {
-  "function": "func_80134C68",
-  "text": "1184-byte / 296-insn HUD/display-list function, no match. Saved best 13929. Draft (clean, all calls resolved) scored 14779 (50.0%), not better. Remaining diff is prologue and register allocation: target frame is 0x58 with ra/s2/s1/s0 saved and `lui $s2,%hi(D_800DB1B8+0x2108)` kept as the base; my build uses a 0x60 frame and holds the lh base in $s3. Next step: keep one base register for D_800DB1B8+0x2108 (the three `*(s16*)(D_800DB1B8+0x2108)` reads all reuse it), which should cut a frame slot and drop s3; then check the early-return/nest order of the func_801CA468 loop vs the switch. The sel switch (0xFF, 0, 1) gets a jump-table-free compare chain (bne), matching the target.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794764034.971122,
-  "score_before": 12297,
-  "score_after": 12297
  },
  {
   "function": "func_80139F14",
@@ -41075,5 +41011,78 @@
   "created_at": 1794767800.305163,
   "score_before": 5027,
   "score_after": 5027
+ },
+ {
+  "function": "func_80134C68",
+  "text": "Deep permuter: score 16922 \u2192 16922; 0 improvements; 136 candidates tested; 17 cached skips; 0 rejected; 7202s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935302",
+  "created_at": 1794356210.790532,
+  "score_before": 16922,
+  "score_after": 16922
+ },
+ {
+  "function": "func_80134C68",
+  "text": "Best source so far: revision 19b23c7bbb08763a0b86, score 14007 at project flags (-O2). Key structural facts verified from target assembly: (1) func_801CC150 takes 17 args -> stack slots 0x10..0x40; case 0 pushes D_80174560/D_80174A40, case 1 pushes D_80174058/D_80174538; (2) case 0/1 use the <<16 then sra 16 idiom on both coords (keep `a1 = (s32)((f32)a1 + D_8011F308[(arg1 & 0xFFFF) * 25] + 8.0f) << 16;` and pass `a1 >> 16`); (3) case 0xFF passes (s16)(s32)(...) directly to func_801CCE7C with 0x60/0x2A/0x60/0x2A/0x60/0x15, 0x13F/0xEF, D_8016D8F8/D_8016E8C0; (4) the D_8011F2F0 byte index must be `(arg1 & 0xFFFF) * 0x64` and the table index for D_80167F58/60 is that byte value (NOT *2) \u2014 the *2 in m2c is wrong; (5) the func_801CA468 argument must be `D_8011F2FC[((u16)arg1) * 0x64]` (different syntactic conversion) so gcc re-materializes the andi; (6) second counter read must be a fresh global read `D_800DD2C0 == 2` while the first is via a pointer `cnt = &D_800DD2C0`. UNTESTED and very promising: at -O1 with the case-0/1 s16 casts + `(s16)a1, (s16)a2` at the call, score drops to 7865 (trial 61ca5e0027392b94865f); plain -O1 gives 4940 (trial d64188c5ec579d2efade). Try suggest()/try_compiler for -O1 on this function after the C is finalised.\n\nBest score 12297 (rev 8d1222cc238ed5d76784) with a switch(v) form on D_8011F310[(arg1&0xFFFF)*25]: case 0 -> func_801CC150 with D_80174560/D_80174A40 (+8.0f/+5.0f offsets), case 1 -> func_801CC150 with D_80174058/D_80174538 (+8.0f/+5.0f), case 0xFF -> func_801CCE7C with D_8016D8F8/D_8016E8C0 (no offsets). Switching from if/else-if to switch improved 13557 -> 12297. Remaining: target has 296 insns vs 272; target repeats `sw $s2,0x50($sp)` x6, `add.s $f0,$f0,$f2` x4, `mfc1 $a0,$f0` x2, `mtc1 $a1,$f0` x2, `trunc.w.s $f2,$f0` x2 \u2014 i.e. the target recomputes the a1/a2 argument expressions per call site (each call site re-does the float add and the (s32)<<16>>16 conversion) while my version CSEs the index loads (lui/addu/lwc1 pairs) and hoists. Try duplicating the index expression at each call site with syntactically different conversions, and/or drop the shared locals so each call recomputes. Branch offsets differ because target has 4 more blocks of code.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794715092.3233988,
+  "score_before": 17517,
+  "score_after": 12297
+ },
+ {
+  "function": "func_80134C68",
+  "text": "Best score 15334 (48.1%) at revision 0caa4e382a27f08f4445 / 235c17f6e64e0d37c869 (equivalent). Move-on budget exhausted (3/3 without improvement).\n\nWhat is now correct in the candidate (keep it):\n- All five 0x64-stride index expansions (sll/addu/sll/addu/sll 2) match; use plain `u8` array bases with byte offsets: D_8011F2F0, D_8011F2FC, D_8011F308, D_8011F30C, D_8011F310 indexed as `*(f32*)(BASE + (arg1 & 0xFFFF) * 0x64)`.\n- D_80167F58 / D_80167F60 are `u16` tables indexed by 2*D_8011F2F0[...]; must be written as `*(u16 *)(D_80167F58 + i)` with i = byte offset (not array indexing, which scaled wrong).\n- Both sprite calls take 16 args; func_801CC150 gets 0x50/0x1F triples and (D_80174560, D_80174A40) for case 0, (D_80174058, D_80174538) for case 1; func_801CCE7C gets 0x60/0x2A,0x60/0x2A,0x60/0x15 and (D_8016D8F8, D_8016E8C0) for 0xFF.\n- Writing p[1] = D_80220ED8 BEFORE func_801CA140() matched the target's store-in-delay-slot shape.\n- Coordinates: `a1 = (s32)((f32)a1 + f + 8.0f)` then pass as s16 params (case 0/1); case 0xFF passes without the +8/+5 constants.\n- switch on `(u32)*(f32 *)(D_8011F310 + idx) & 0xFFFF` reproduces the c.le.s/trunc.w.s/0x80000000-or sequence.\n\nRemaining differences (why it is not 0):\n1. Prologue: target frame is -0x58 with only ra/s2/s1/s0 saved; mine is -0x60 with an extra $s3 because the `s16 *st = (s16*)(D_800DB1B8+0x2108)` pointer stays live across func_801CA140 and func_801CA468. Target keeps that base in $s2 only across func_801CA468 and re-materializes `lui/lh` for the `== 2` test. Writing the second test as a fresh `*(s16 *)(D_800DB1B8 + 0x2108)` load (already tried, no change) or as `*st` both give the same code here; the extra register persists.\n2. Branch offsets / register assignment in the switch dispatch differ (`beq/slti/beql` vs `beql/beqz`), and the case-0/1 bodies are emitted with the two lwc1 loads hoisted before the conversion chain whereas the target loads them inline (`lwc1 $f2, %lo(D_8011F308)($at); add.s $f0,$f0,$f2`), so mine emits `lwc1 $f4/lwc1 $f6` plus extra add.s.\n3. Case 0/1 stack argument stores: target stores 0x1F at 0x18 and 0x20 (reusing $v0), mine stores only at 0x18/0x20/0x28 differently \u2014 ordering of the 14 stack words around 0x10..0x40.\n\nUntried ideas: declare the sprite-arg block as one local struct/array passed by address; try `search_flags` (the #339302416414 -O1 scheduling note) on this revision; try inlining the D_8011F308/30C loads into the call arguments as separate expressions so they are not CSE'd across the two cases.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794715636.500212,
+  "score_before": 12297,
+  "score_after": 12297
+ },
+ {
+  "function": "func_80134C68",
+  "text": "Not matched. Current draft (revision 63338eff7b49211040d0) scores 13929 (52.9%): target 296 insns, ours 254; target frame is 0x58 with sw $ra at 0x54, ours is 0x60. Target re-reads the 16-bit table value D_800DB1B8+0x2108 at each comparison (lui/addiu of the same address repeated, stores of s3 and s2 copies), and it has extra sw $ra spills and repeated `j` back to a common tail (func_80134C68+0x130 x2). Our draft hoists the single load and the if/else chain collapses. Next step: rewrite the three `*(s16*)(D_800DB1B8+0x2108)` reads as separate expressions in each branch rather than one local, and check whether the switch on sel is a jump table or a compare chain in the target before changing the case bodies. Shared externs: D_800DB1B8, D_8011F2F0/F2FC/F308/F30C/F310, D_80167F58/F60 are the table base pointers used with index (arg1&0xFFFF)*0x64.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794728418.780833,
+  "score_before": 12297,
+  "score_after": 12297
+ },
+ {
+  "function": "func_80134C68",
+  "text": "Stopping early. Best score 13929 (52.9%), unchanged after 2 compiles this session (the signedness family gave no change). Target 296 insns, candidate 254. The mismatch is structural, not register-level: target frame is 0x58 (s0-s3 saved, ra at 0x54), candidate frame is 0x60. Target recomputes the D_800DB1B8+0x2108 base with separate lui/addiu pairs per use; candidate hoists it into s3. The switch/argument blocks are also reordered. Next step for whoever picks this up: restructure locals so the frame is 0x58 and the base is recomputed per use, then fix register choice for arg1 (target keeps it in s1 with a0 saved). The candidate C is a sound starting point but needs that structural rework.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794741630.4742699,
+  "score_before": 12297,
+  "score_after": 12297
+ },
+ {
+  "function": "func_80134C68",
+  "text": "Best saved 13929 (52.9%, rev 63338eff7b49211040d0). Not matched. Target 296 insns vs 254 mine, so the gap is structural, not register-only. Target frame is 0x58 (saves ra,s0,s1,s2 at 0x54..0x48); mine is 0x60 and adds an s3/s2 pointer and an extra local. Target keeps &D_800DB1B8+0x2108 in a saved reg only for the first condition; later uses re-do lui/lh inline. arg1 goes to s0 right after the first branch, arg0 to s1. The float-to-u32 cast path (0x4F000000 threshold, bc1tl) and the switch order (==1, then <2, then ==0xFF) look right. Tried: pointer local for the first condition (no effect, rev 4855ba1bcac1bc4dd24a); removing the i/idx locals and inlining the 0x64 index (worse, 14779, rev 8955ed794e783958b16e); signedness u32->s32 for p (no effect). Next: check the call arg counts for func_801CC150/func_801CCE7C, since the 0x58 frame suggests the target's outgoing arg area is smaller than mine. Then restore 63338eff7b49211040d0 and retry register layout.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794759089.058292,
+  "score_before": 12297,
+  "score_after": 12297
+ },
+ {
+  "function": "func_80134C68",
+  "text": "Best candidate c7fa4c937a8845279ed9 at 14779 (saved best 13929 from source 8a058027bda3, u32 *p -> s32 *p). Frame: target 0x58, ours 0x60 (extra s3 for D_800DB1B8+0x2108 base). Tried this session: hoisting idx = (arg1&0xFFFF)*0x64 to top-level before the switch (e8052038d64e643e112c) scored 15399, worse; it moves the reg allocation and branch layout the wrong way. Not yet tried: computing the 0x2108 cnt once into a local (s16 cnt) only inside the first if, and restructuring the switch to a single shared tail as the target appears to use j to a common epilogue (func_80134C68+0x130). Next step: remove the extra saved register by reusing a1/a2 for the base, then match prologue.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794762483.3216152,
+  "score_before": 12297,
+  "score_after": 12297
+ },
+ {
+  "function": "func_80134C68",
+  "text": "1184-byte / 296-insn HUD/display-list function, no match. Saved best 13929. Draft (clean, all calls resolved) scored 14779 (50.0%), not better. Remaining diff is prologue and register allocation: target frame is 0x58 with ra/s2/s1/s0 saved and `lui $s2,%hi(D_800DB1B8+0x2108)` kept as the base; my build uses a 0x60 frame and holds the lh base in $s3. Next step: keep one base register for D_800DB1B8+0x2108 (the three `*(s16*)(D_800DB1B8+0x2108)` reads all reuse it), which should cut a frame slot and drop s3; then check the early-return/nest order of the func_801CA468 loop vs the switch. The sel switch (0xFF, 0, 1) gets a jump-table-free compare chain (bne), matching the target.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794764034.971122,
+  "score_before": 12297,
+  "score_after": 12297
+ },
+ {
+  "function": "func_80134C68",
+  "text": "Profile probe: this saved C scores 6560 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (5 of its 5 nearest matched neighbours were built with it), 9014 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721273.236131,
+  "score_before": 9014,
+  "score_after": 6560,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:2d23d7c8fad8b47dfcb5ae03890208c255972124ce1757759751354a74cc1357"
  }
 ]
