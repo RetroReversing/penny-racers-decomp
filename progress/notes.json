@@ -4200,14 +4200,6 @@
   "score_after": 1255
  },
  {
-  "function": "func_801F93FC",
-  "text": "Deep permuter: score 13077 \u2192 13077; 0 improvements; 103 candidates tested; 0 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935661",
-  "created_at": 1794356217.897229,
-  "score_before": 13077,
-  "score_after": 13077
- },
- {
   "function": "func_801948E0",
   "text": "Deep permuter: score 7720 \u2192 7720; 0 improvements; 92 candidates tested; 43 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935589",
@@ -7006,14 +6998,6 @@
   "created_at": 1794711047.012671,
   "score_before": 6677,
   "score_after": 5675
- },
- {
-  "function": "func_801F93FC",
-  "text": "Not matched; leaving for the next pass. Best current revision c259033284a8ba95a589 scores 20597; saved draft 1642 is a different source and is the better frame base. The function is a straight-line display-list builder: each command sets the global cursor (D_800DE080+0x64) to the next slot and stores its words at the current slot. The target re-materialises the cursor address with lui per store, keeps s0..s3 live (frame 0x28, ra at 0x20), and calls osVirtualToPhysical(D_800DB1B0) mid-stream. Ours keeps the address in $s4 and saves only s3. Next: start from the saved draft's frame and register use; the store sequence itself is correct.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794711055.57424,
-  "score_before": 1642,
-  "score_after": 1642
  },
  {
   "function": "func_8003E83C",
@@ -10214,14 +10198,6 @@
   "created_at": 1794727338.6037319,
   "score_before": 7225,
   "score_after": 7225
- },
- {
-  "function": "func_801F93FC",
-  "text": "Display-list builder, 996 B. Best 14195 (42.9%) at revision 802d5909b6a464e833bf; 249 target insns vs 244 mine. Key finding: the DL pointer global must be a separate `extern char * volatile D_800DE0E4;` (== D_800DE080+0x64, address 0x800DE0E4), NOT `&D_800DE080 + 0x64` (s32* arithmetic scales by 4). With the volatile global, target's per-store `lui $at,%hi(...)` + `sw ...,%lo($at)` pattern is reproduced. Storing the 0xBC000006/0 pair before `DLP = arg0+0x848` matched target order better. A second local `dl2` for the post-func_801F97E0 block helped slightly. Remaining diffs: (1) prologue saves: target saves s0-s3 and moves `move $s3,$a0` after the first stores, mine interleaves; (2) `addiu $v0,$v0,%lo(D_2D6308)`-style address materialization for &D_2D6308 and the dl-0x830 computation (target computes dl-0x830 into a reg then subtracts arg0; mine uses a different expression order); (3) the 0x8D/ 0x600 / 0xBA constants are loaded with lui/ori in mine but target sometimes uses addiu $zero for small values. Next: try different expression shapes for the `(dl-0x830-arg0)>>3` check and reorder the DL_ptr/store pairs at the 0x858/0x860 section; try `D_800DB1B0`/osVirtualToPhysical arg placement.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794727512.204417,
-  "score_before": 1642,
-  "score_after": 1642
  },
  {
   "function": "func_80204760",
@@ -15496,14 +15472,6 @@
   "score_after": 16970
  },
  {
-  "function": "func_801F93FC",
-  "text": "Not matched. Best saved 1642 (-O1 flag variant; project -O2 is not matching). My typed rewrite (extern u8 *D_800DE0E4 for D_800DE080+0x64, every step as `D_800DE0E4 = arg0+off; *(u32*)(arg0+off2)=...`, tail with temp_v0_2 and `(s32)(temp-0x830-arg0)>>3 >= 0x4650` check, nuGfxTaskStart(arg0+0x840, ((s32)(D_800DE0E4-0x840-arg0)>>3)*8, D_8006FB14, 1)) scored 14405 (42%, revision 977001c68691a332ea2b). Tail structure already matches (addiu/subu/sra/sll order). Main gap: gcc -O2 hoists all the lui constants (0xBC000006, 0xF64FC3BC, ...) to the top of the function and reorders the stores; target keeps each constant materialized right before its own store, after the D_800DE0E4 store. search_flags: -O2 -fno-schedule-insns 8887, -O1 1642 (not project flags). Next: find a source form that stops constant hoisting (maybe constants stored through a fresh local per statement, or a helper with the value computed inside the store expression), and check the arg0 save (target: addu s3,a0 before first store). Note the external call nuGfxTaskStart(4 args) and func_800346B0(3 args, plain stub).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794749880.639359,
-  "score_before": 1642,
-  "score_after": 1642
- },
- {
   "function": "func_80216958",
   "text": "Not matched. Best current score 8146 (69%), revision 9b8e4a6899fb3e5d5c1e (target 266 insns, mine 262). m2c state machine switch on u16 at obj+0x3E (states 0x0,0x10,0x11,0x20,0x21,0x30,0x31,0x40,0x41,0xF0). Compile-clean now: globals declared as u8/s8 arrays, prototypes for the called funcs. Earlier best 8706 used temp_s4 = D_80190CA8 - 0xA, which the compiler folds to a constant address (D_80190C9E); the local `base = D_80190CA8; temp_s4 = base - 0xA;` form fixes that and gained score. Remaining: target computes s1=&D_80190CA8 and s4=s1-0xA, s3=s1+2 BEFORE the func_8014A870 call (addiu $a0,0x1e; $a1,7; jal; move $a2,0; move s2,v0), and keeps base in s1 across calls; mine recomputes base into s2 after the call and derives s3 from s2. Next: hoist the s3 = base + 2 (and s4) local declarations before var_s2 = func_8014A870(...), and make var_s2 the callee-saved s2 assigned from the return value; then fix the 0x224 vs 0x21c branch target offsets (one extra or missing instruction in the 0x20/0x30 init blocks). Frame/prologue saves s0..s4 and ra. Stopping here: at ~69% with a 266-instruction body, each remaining fix changes many rows; not close to a match this session.",
   "by": "claude-haiku-5-5-23",
@@ -19328,14 +19296,6 @@
   "score_after": 9800
  },
  {
-  "function": "func_801F93FC",
-  "text": "Display-list builder (GBI words). Global cursor is at 0x800DE0E4 (= D_800DE080+0x64, a void*); each command does: cursor = arg0+next, then writes words at arg0+off; the first command starts at arg0+0x840, ends at 0x848 bytes. Writing it with a plain `extern char *D_800DE0E4` (direct global, not a cached &D_800DE080+0x64) is what fixed the address materialisation (score 20597 -> 15305, 38.5%). Remaining diffs: (1) ordering: target stores the cursor before the command words for each block and recomputes lui/%lo of the cursor each time; mine hoists/reorders the constant word stores (e.g. 0x840/0x844 written before the first cursor store). A volatile cursor did not change the score. (2) Tail: target computes (cursor-0x830-arg0)>>3 with addiu -0x830 on the cursor; my expression differs in order. (3) Call args: target loads D_800DB1B0 via lui/lw before osVirtualToPhysical and passes D_801F9970 as a pointer to func_800346B0 (&D_801F9970). Saved best is still 1642 (older, different source). Next: fix the cursor/word store order first (try writing each block's cursor store immediately before its words, in the exact per-block order shown in target lines 0-60 and 100-180), then the tail.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794758441.6209621,
-  "score_before": 1642,
-  "score_after": 1642
- },
- {
   "function": "func_801B4CF8",
   "text": "Not matched; released at move-on. Best candidate is revision 80e90487b927ce50ba2a at 8880 (62.6%). Its only tried variant (s16 st) scored 9080, worse, so the u16 field stays. The draft did not compile as given (func_801CABF4 called with too few args); the candidate declares it with 12 params. Target: frame 0x38 with ra (0x34) and s0 (0x30) saved; loads D_801C7074 then indexes D_8011F32E by i*100 via shift chain. The 5-argument calls to func_8014A4C8 store the fifth arg (0x17/0x18/0x19/0xB...) to 0x10(sp) before a0..a3 are set, which the candidate orders differently; that call-sequence ordering is the main remaining difference, plus the prologue. Next step: restructure the first call block so the constant 5th arg is assigned to the outgoing slot first, then re-check the diff before touching types. Not tried: typed fifth argument on func_8014A4C8.",
   "by": "claude-haiku-5-5-24",
@@ -19958,14 +19918,6 @@
   "created_at": 1794759440.517031,
   "score_before": 19054,
   "score_after": 19054
- },
- {
-  "function": "func_801F93FC",
-  "text": "Not matched. Saved best remains 1642 (other attempt). My cleaned version with a DLP macro (*(u8**)(D_800DE080+0x64)) scored 20597 (17.2%), worse: the target re-stores the display-list pointer as a global each time (lui %hi(D_800DE080+0x64) + sw at %lo) and does not keep it in a register, and the constants 0xBC000006 etc. are materialised with lui/ori per store. Target is 249 insns vs 216 mine. Structure (verified from the draft and the asm stores): 0x840..0x8B8 command table written as pairs of words with each command pointer set first; then func_801F97E0(arg0); then E9000000/0 and B8000000/0 commands; then the `(p-0x830-arg0)>>3 >= 0x4650` check calls func_800346B0(&D_801F9970); func_80029E84(arg0+0x840, ((DLP-0x840-arg0)>>3)*8, D_8006FB14); D_801F9980++. Next: write each DLP store as a direct statement on the global (no macro), and compare the ordering of the first three pointer writes against the asm before touching the constants.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794759440.6474612,
-  "score_before": 1642,
-  "score_after": 1642
  },
  {
   "function": "func_80231E30",
@@ -40572,5 +40524,70 @@
   "score_before": 1605,
   "score_after": 820,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:11ca1c73c05f5904a28627abf28779f5110ad27e8718b8acd1b966c4299fbcdd"
+ },
+ {
+  "function": "func_801F93FC",
+  "text": "Deep permuter: score 13077 \u2192 13077; 0 improvements; 103 candidates tested; 0 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935661",
+  "created_at": 1794356217.897229,
+  "score_before": 13077,
+  "score_after": 13077
+ },
+ {
+  "function": "func_801F93FC",
+  "text": "Not matched; leaving for the next pass. Best current revision c259033284a8ba95a589 scores 20597; saved draft 1642 is a different source and is the better frame base. The function is a straight-line display-list builder: each command sets the global cursor (D_800DE080+0x64) to the next slot and stores its words at the current slot. The target re-materialises the cursor address with lui per store, keeps s0..s3 live (frame 0x28, ra at 0x20), and calls osVirtualToPhysical(D_800DB1B0) mid-stream. Ours keeps the address in $s4 and saves only s3. Next: start from the saved draft's frame and register use; the store sequence itself is correct.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794711055.57424,
+  "score_before": 1642,
+  "score_after": 1642
+ },
+ {
+  "function": "func_801F93FC",
+  "text": "Display-list builder, 996 B. Best 14195 (42.9%) at revision 802d5909b6a464e833bf; 249 target insns vs 244 mine. Key finding: the DL pointer global must be a separate `extern char * volatile D_800DE0E4;` (== D_800DE080+0x64, address 0x800DE0E4), NOT `&D_800DE080 + 0x64` (s32* arithmetic scales by 4). With the volatile global, target's per-store `lui $at,%hi(...)` + `sw ...,%lo($at)` pattern is reproduced. Storing the 0xBC000006/0 pair before `DLP = arg0+0x848` matched target order better. A second local `dl2` for the post-func_801F97E0 block helped slightly. Remaining diffs: (1) prologue saves: target saves s0-s3 and moves `move $s3,$a0` after the first stores, mine interleaves; (2) `addiu $v0,$v0,%lo(D_2D6308)`-style address materialization for &D_2D6308 and the dl-0x830 computation (target computes dl-0x830 into a reg then subtracts arg0; mine uses a different expression order); (3) the 0x8D/ 0x600 / 0xBA constants are loaded with lui/ori in mine but target sometimes uses addiu $zero for small values. Next: try different expression shapes for the `(dl-0x830-arg0)>>3` check and reorder the DL_ptr/store pairs at the 0x858/0x860 section; try `D_800DB1B0`/osVirtualToPhysical arg placement.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794727512.204417,
+  "score_before": 1642,
+  "score_after": 1642
+ },
+ {
+  "function": "func_801F93FC",
+  "text": "Not matched. Best saved 1642 (-O1 flag variant; project -O2 is not matching). My typed rewrite (extern u8 *D_800DE0E4 for D_800DE080+0x64, every step as `D_800DE0E4 = arg0+off; *(u32*)(arg0+off2)=...`, tail with temp_v0_2 and `(s32)(temp-0x830-arg0)>>3 >= 0x4650` check, nuGfxTaskStart(arg0+0x840, ((s32)(D_800DE0E4-0x840-arg0)>>3)*8, D_8006FB14, 1)) scored 14405 (42%, revision 977001c68691a332ea2b). Tail structure already matches (addiu/subu/sra/sll order). Main gap: gcc -O2 hoists all the lui constants (0xBC000006, 0xF64FC3BC, ...) to the top of the function and reorders the stores; target keeps each constant materialized right before its own store, after the D_800DE0E4 store. search_flags: -O2 -fno-schedule-insns 8887, -O1 1642 (not project flags). Next: find a source form that stops constant hoisting (maybe constants stored through a fresh local per statement, or a helper with the value computed inside the store expression), and check the arg0 save (target: addu s3,a0 before first store). Note the external call nuGfxTaskStart(4 args) and func_800346B0(3 args, plain stub).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794749880.639359,
+  "score_before": 1642,
+  "score_after": 1642
+ },
+ {
+  "function": "func_801F93FC",
+  "text": "Display-list builder (GBI words). Global cursor is at 0x800DE0E4 (= D_800DE080+0x64, a void*); each command does: cursor = arg0+next, then writes words at arg0+off; the first command starts at arg0+0x840, ends at 0x848 bytes. Writing it with a plain `extern char *D_800DE0E4` (direct global, not a cached &D_800DE080+0x64) is what fixed the address materialisation (score 20597 -> 15305, 38.5%). Remaining diffs: (1) ordering: target stores the cursor before the command words for each block and recomputes lui/%lo of the cursor each time; mine hoists/reorders the constant word stores (e.g. 0x840/0x844 written before the first cursor store). A volatile cursor did not change the score. (2) Tail: target computes (cursor-0x830-arg0)>>3 with addiu -0x830 on the cursor; my expression differs in order. (3) Call args: target loads D_800DB1B0 via lui/lw before osVirtualToPhysical and passes D_801F9970 as a pointer to func_800346B0 (&D_801F9970). Saved best is still 1642 (older, different source). Next: fix the cursor/word store order first (try writing each block's cursor store immediately before its words, in the exact per-block order shown in target lines 0-60 and 100-180), then the tail.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794758441.6209621,
+  "score_before": 1642,
+  "score_after": 1642
+ },
+ {
+  "function": "func_801F93FC",
+  "text": "Not matched. Saved best remains 1642 (other attempt). My cleaned version with a DLP macro (*(u8**)(D_800DE080+0x64)) scored 20597 (17.2%), worse: the target re-stores the display-list pointer as a global each time (lui %hi(D_800DE080+0x64) + sw at %lo) and does not keep it in a register, and the constants 0xBC000006 etc. are materialised with lui/ori per store. Target is 249 insns vs 216 mine. Structure (verified from the draft and the asm stores): 0x840..0x8B8 command table written as pairs of words with each command pointer set first; then func_801F97E0(arg0); then E9000000/0 and B8000000/0 commands; then the `(p-0x830-arg0)>>3 >= 0x4650` check calls func_800346B0(&D_801F9970); func_80029E84(arg0+0x840, ((DLP-0x840-arg0)>>3)*8, D_8006FB14); D_801F9980++. Next: write each DLP store as a direct statement on the global (no macro), and compare the ordering of the first three pointer writes against the asm before touching the constants.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794759440.6474612,
+  "score_before": 1642,
+  "score_after": 1642
+ },
+ {
+  "function": "func_801F93FC",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr16, -O1 profile (not applied): the display-list writes are right (every command word matches the target), but the rewrite scores 4668 against the saved best's 2673. The target keeps the list cursor and the object pointer in saved registers and the compiler does not; eight spellings (macro forms, void pointer, temporaries, the constant hoisted) all scored 4668. Handed back at 8 judged attempts (work/func_801F93FC_v2.c).",
+  "by": "manual-209d2dfa17f14ee1",
+  "created_at": 1795713533.6026711,
+  "score_before": 7290,
+  "score_after": 7290
+ },
+ {
+  "function": "func_801F93FC",
+  "text": "Profile probe: this saved C scores 2673 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (321 functions of this project were built with it), 7290 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721265.058947,
+  "score_before": 7290,
+  "score_after": 2673,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:8ee6b0c2495f8eef49756141494bbc374040c2266f037c3f1d6de0d686f3b617"
  }
 ]
