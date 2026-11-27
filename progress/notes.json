@@ -6520,14 +6520,6 @@
   "score_after": 1045
  },
  {
-  "function": "func_801FC4E0",
-  "text": "Not attempted in this session (claimed late, released to keep the claim queue moving). Structure from the draft: a switch on D_8011F330[arg1&0xFFFF].st (Slot stride 100 bytes, st at offset 0) with 4 states; the state-1 and state-3 branches step D_802038C4 by 5 with clamps to 0xFF/0. After the switch it calls func_801CA140, writes a 2-word display-list header (0x06000000, D_80220ED8) through *arg0, then func_801CA468 and two func_801CB74C calls with D_801FFD40[0] and D_801FFD40[*(u16*)(D_8006FAF0+0x20)]. Draft has undeclared D_80203AC8, D_8011F330, D_80220ED8, D_801FFD30, D_801FFD40, D_8006FAF0 (declared in the candidate; re-check their types). Start from the draft; the switch-to-if chain shape needs checking against the jump table.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794709815.385495,
-  "score_before": 20,
-  "score_after": 20
- },
- {
   "function": "func_801FA028",
   "text": "Best 985 (92.6%), saved; revision c1c737cc9d4b587b96ba (the if/else abs form). Remaining diff is the target re-materialising 0.0f (`mtc1 $zero,$f0`) in the negative-abs branch, which GCC here does not reproduce from C: the if/else abs form (985) and the `ft0 = arg0; if (!(arg0 > 0)) ft0 = -arg0` form (1225) both miss it, and `0.0f > arg1` changes nothing. Control flow otherwise matches the target. Stopping: I cannot find a C form that re-materialises the zero without changing the branch sense; a register-level trick would be needed.",
   "by": "claude-haiku-5-5-24",
@@ -9584,14 +9576,6 @@
   "score_after": 10620
  },
  {
-  "function": "func_801FC4E0",
-  "text": "Not matched; releasing early at low effort. Saved best is 20 (historical; start from get_candidate(base=\"saved_best\")). My clean draft scored 4400 (revision f946eeb8c1774ebd52cd), far worse, so do not start from it. Confirmed from the diff: t[1] = (s32)D_801FFD30, and D_80220ED8 is the first argument of both func_801CB74C calls. Structural gap: the target saves $ra/$s2 and loads D_80203AC8 in a different order, and the switch on D_8011F330[arg1&0xFFFF].st is re-indexed per case (andi + sll/addu chain, stride 98 = 0x62). Next step: restore saved best 20, fix the switch index shape, then registers.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794724890.9161332,
-  "score_before": 20,
-  "score_after": 20
- },
- {
   "function": "func_80219E28",
   "text": "Best 1215 (91.1%), not matched. Saved best = revision 87678cfa230bc4306730 (index written as `D_8011F2F0 + (arg0*0x19)*4`, case 1 reads/writes via arg0*0x64 expression). Target computes the index as 25a<<2 and keeps the base in $s0 for the whole body, and case 1 uses 0x1C($s0) directly. Switching case 1 to temp_s0 (rev 12256...) scores 1385: the index is fine but the branch/tail layout changes (target's case-0 exit is `j` to shared epilogue at +0x218; ours tail-merges at +0x20c). `break` instead of `return` in case 0 made no difference. Remaining diffs: prologue register order (target saves $ra then $s0 and uses $v0/$v1 for the base; ours uses $a0/$a1 and writes s0 twice), and the if-chain order in case 1 (target: c.lt.s -7 test, then D_80190CB0 test, then sb/andi-7 block, then the 0x44 comparisons). Untried: separate the 0x19 index into a u32 local before the switch; reorder the two `D_8021CA44`/`D_8021CA4C` loads; try `(u8)` cast on temp_s0[0] increment. Budget spent without improvement.",
   "by": "claude-haiku-5-5-22",
@@ -12310,14 +12294,6 @@
   "created_at": 1794738806.312758,
   "score_before": 595,
   "score_after": 595
- },
- {
-  "function": "func_801FC4E0",
-  "text": "Not matched. Best in this session: rev 297c819ccd5d4b486744 (4830, 70.1%, 138 vs 162 insns). Key finding: the Slot stride is 108 bytes (0x6C), not 100. The target computes the index as sll1/addu(x3)/sll3/addu/sll2 (= i*108), so Slot must be `{ u16 st; u8 pad[106]; }`. With that fixed the 4410 layout went to 4830 and the remaining index diff is `sll 1; addu; sll 3; addu; sll 2` vs ours `sll; subu; sll; subu`. Changing the index to a local `u16 idx = arg1 & 0xFFFF` did not help (no effect). Still open: (a) the target begins with `lui/lhu D_80203AC8` then `beqz` to .L270 before saving `$s2` (ours saves $s2 and $ra in the other order); (b) the table access after the index uses `lui $at / addu $at,$at,$v1` (ours uses $a0); (c) D_80220ED8 vs D_801FFD30 relocation rows are offset, so the data pointer ordering in the two func_801CB74C calls needs rechecking. Next: fix the early `D_80203AC8` test layout and the 108-stride index form first, registers last. Saved_best (score 20) text could not be reproduced by recompiling; treat its 20 as unverified.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794738816.159585,
-  "score_before": 20,
-  "score_after": 20
  },
  {
   "function": "func_80128880",
@@ -16920,14 +16896,6 @@
   "score_after": 596
  },
  {
-  "function": "func_801FC4E0",
-  "text": "Not matched. Saved best 20 (recorded source, identical to the one in the revision 09c65922d34194e238b1) does not reproduce: it scores 4410 now. Target facts from assembly: prologue saves ra, s2, s1, s0 (frame 0x38); the first check is lhu D_80203AC8 with beqz to the end; s2 = arg0; each D_8011F330 access recomputes the index as (v*2+v)*8+v)*4 (100-byte Slot stride) and indexes the array directly (lui at / addu at / lhu %lo(at)), not through a cached pointer. Tried a cached Slot* pointer: worse (5370). Remaining diffs: register set (s0/s1 for arg1 and a second value, not reproduced), the scheduling of the D_80203AC8 check, and the call/argument layout at the end (the target's last two calls use D_801FFD30/D_801FFD40 after the D_8006FAF0 lhu). Next: find what needs s0 and s1 (likely arg1 and the t pointer). Try the direct-index version again with an s32 index local (arg1 & 0xFFFF) held across the calls, then reorder the final calls.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794754000.098579,
-  "score_before": 20,
-  "score_after": 20
- },
- {
   "function": "func_801FC768",
   "text": "Not matched. Stopping this session at low effort, so this is not a verdict that the function cannot match. 528-byte state machine on the u16 state at D_8011F32E[idx*100]. The m2c draft failed (jump table not found). My switch version (revision a61bc5688408736bf7e8) scored 3725, 71.7%. Target is 132 insns and mine is 96, so the target is not a jump table: it has chains of `lui/lhu/bnez` reads of D_80203AC8 (about 7) and D_802038C8 (about 6). Next: rewrite as if/else chains on s (0..4), reading the globals at each test as the target does, and check the bound before the first branch (target's first branch is beqz at insn 10). Start from the saved best.",
   "by": "claude-haiku-5-5-23",
@@ -17606,14 +17574,6 @@
   "created_at": 1794755976.3631082,
   "score_before": 1065,
   "score_after": 1065
- },
- {
-  "function": "func_801FC4E0",
-  "text": "Not matched. Reproducible best is 4410 (72.7%) at revision 09c65922d34194e238b1 (the original candidate); the saved-best record of 20 for the same source did not reproduce under current baseline, so don't trust it. Tried and rejected: early-return guard (61241fcd8b049250a24c, 4410, no effect); pointer-slot indexing `(u8*)D_8011F330 + (arg1&0xFFFF)*100` with *(u16*)slot (ab8ea25319f9bb21f6de, 5370, worse). Target's Slot index is computed as x*2+x <<3, +x <<2 (x*100) with `andi $v1` then `lui $at`+`addu`+`lhu` %lo; the arithmetic is right in the source, the loads/stores through a computed pointer are not. Remaining gap: the target checks D_80203AC8 at the end of the function, and the two D_801FFD30 calls use a different address pairing than ours. Next: keep the array-index form, and rework the final func_801CB74C calls and the D_80203AC8 guard placement; leave the switch alone.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794755978.772747,
-  "score_before": 20,
-  "score_after": 20
  },
  {
   "function": "func_802191E4",
@@ -22512,14 +22472,6 @@
   "score_after": 6255
  },
  {
-  "function": "func_801FC4E0",
-  "text": "Not matched. Saved best is recorded as 20 (room attempt 339302421162), but its source (revision 09c65922d34194e238b1) scores 4410 (72.7%) on the current judge, so the 20 probably depends on a different header or context. Verify that before trusting it. Variants this session: arg1 as u16 instead of u32, no change (4410). Target is 162 insns with frame 0x38; ours is 138 insns. Main diff: the target recomputes the Slot index (arg1 & 0xFFFF) as 'andi v0,a1,0xffff' then 'sll v1,v0,1 / sll v1,v1,3 / sll v1,v1,2' (i*100 via shifts) and 'addu at,at,v1' eight times; it does not keep the slot address in a register. The target also tests 'lhu v1,%lo(D_8011F330)(at)' against 0 and 2 separately, and its switch dispatch is a jump table over st (0..3), not a chain of beq. Next: try a switch that reloads D_8011F330[arg1].st per case, and check the 0x64 stride and whether D_8011F330 is a u16-only array (Slot pad size). Also check whether the first branch uses D_80203AC8 halfword read as 'lhu' (u16 global).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794765267.2179992,
-  "score_before": 20,
-  "score_after": 20
- },
- {
   "function": "func_801FC768",
   "text": "Best: revision 00b4cdb59a941553254d, score 240 (98.1%). Target 132 insns, ours 133. Target jump table: the switch on s (sltiu v0,v1,5, then jump-table dispatch) is right. Remaining diff: branch targets (target beqz to +0x208 vs ours +0x1b4, bnez to +0x208 vs ours +0x20c), so the end of the switch and the L918 block are laid out one instruction apart. The target has `andi $v0,$a0,0xffff` at the end of the switch, where ours has a nop delay slot. Tried: swapping the two stores in L918 (1295, worse), `(u16)idx` in the first index (240, no change), swapping D_802038C8=0 with D_80203AC8=0 in case 0 (280, worse). Untried: write case 3 without the fall-through into case 4 (duplicate the case 4 body), or move `D_80203AC8 = 1` into the case 2 body differently; the extra instruction likely comes from the case-3 fall-through placement.",
   "by": "claude-haiku-5-5-24",
@@ -23078,14 +23030,6 @@
   "created_at": 1794767335.951068,
   "score_before": 6780,
   "score_after": 6780
- },
- {
-  "function": "func_801FC4E0",
-  "text": "Best current score 4410 (72.7%) with the candidate in revision 09c65922d34194e238b1. The saved_best entry (score 20) has identical source text, so the 20 was probably recorded under a different header/declaration environment. Verified structure from get_assembly: 100-byte Slot stride (index*100 via sll/addu chain); frame 0x38 with ra at 0x34 and s2/s1/s0 at 0x30/0x2C/0x28; checks D_80203AC8 first; switch lowered as an if-chain in the order st==1, then st<2 (case 0), then st==2, then st==3. Rewriting the switch as if/else (revision 94615d7a...) scored worse at 6445. Next steps: reproduce the saved 20 by checking the declared types of D_802038C4/D_802038C6 and the Slot layout, then try case 0 written before case 1. Stopped at 2/8 no-improvement compiles after the if-chain rewrite; nothing else is pending for this function.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794767376.98265,
-  "score_before": 20,
-  "score_after": 20
  },
  {
   "function": "func_801FC768",
@@ -40658,5 +40602,70 @@
   "score_before": 10581,
   "score_after": 5928,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:1c51a7a2712a3fafa754553507ac6046303fd0cd844a1fe6313a489675ec6c9f"
+ },
+ {
+  "function": "func_801FC4E0",
+  "text": "Not attempted in this session (claimed late, released to keep the claim queue moving). Structure from the draft: a switch on D_8011F330[arg1&0xFFFF].st (Slot stride 100 bytes, st at offset 0) with 4 states; the state-1 and state-3 branches step D_802038C4 by 5 with clamps to 0xFF/0. After the switch it calls func_801CA140, writes a 2-word display-list header (0x06000000, D_80220ED8) through *arg0, then func_801CA468 and two func_801CB74C calls with D_801FFD40[0] and D_801FFD40[*(u16*)(D_8006FAF0+0x20)]. Draft has undeclared D_80203AC8, D_8011F330, D_80220ED8, D_801FFD30, D_801FFD40, D_8006FAF0 (declared in the candidate; re-check their types). Start from the draft; the switch-to-if chain shape needs checking against the jump table.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794709815.385495,
+  "score_before": 20,
+  "score_after": 20
+ },
+ {
+  "function": "func_801FC4E0",
+  "text": "Not matched; releasing early at low effort. Saved best is 20 (historical; start from get_candidate(base=\"saved_best\")). My clean draft scored 4400 (revision f946eeb8c1774ebd52cd), far worse, so do not start from it. Confirmed from the diff: t[1] = (s32)D_801FFD30, and D_80220ED8 is the first argument of both func_801CB74C calls. Structural gap: the target saves $ra/$s2 and loads D_80203AC8 in a different order, and the switch on D_8011F330[arg1&0xFFFF].st is re-indexed per case (andi + sll/addu chain, stride 98 = 0x62). Next step: restore saved best 20, fix the switch index shape, then registers.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794724890.9161332,
+  "score_before": 20,
+  "score_after": 20
+ },
+ {
+  "function": "func_801FC4E0",
+  "text": "Not matched. Best in this session: rev 297c819ccd5d4b486744 (4830, 70.1%, 138 vs 162 insns). Key finding: the Slot stride is 108 bytes (0x6C), not 100. The target computes the index as sll1/addu(x3)/sll3/addu/sll2 (= i*108), so Slot must be `{ u16 st; u8 pad[106]; }`. With that fixed the 4410 layout went to 4830 and the remaining index diff is `sll 1; addu; sll 3; addu; sll 2` vs ours `sll; subu; sll; subu`. Changing the index to a local `u16 idx = arg1 & 0xFFFF` did not help (no effect). Still open: (a) the target begins with `lui/lhu D_80203AC8` then `beqz` to .L270 before saving `$s2` (ours saves $s2 and $ra in the other order); (b) the table access after the index uses `lui $at / addu $at,$at,$v1` (ours uses $a0); (c) D_80220ED8 vs D_801FFD30 relocation rows are offset, so the data pointer ordering in the two func_801CB74C calls needs rechecking. Next: fix the early `D_80203AC8` test layout and the 108-stride index form first, registers last. Saved_best (score 20) text could not be reproduced by recompiling; treat its 20 as unverified.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794738816.159585,
+  "score_before": 20,
+  "score_after": 20
+ },
+ {
+  "function": "func_801FC4E0",
+  "text": "Not matched. Saved best 20 (recorded source, identical to the one in the revision 09c65922d34194e238b1) does not reproduce: it scores 4410 now. Target facts from assembly: prologue saves ra, s2, s1, s0 (frame 0x38); the first check is lhu D_80203AC8 with beqz to the end; s2 = arg0; each D_8011F330 access recomputes the index as (v*2+v)*8+v)*4 (100-byte Slot stride) and indexes the array directly (lui at / addu at / lhu %lo(at)), not through a cached pointer. Tried a cached Slot* pointer: worse (5370). Remaining diffs: register set (s0/s1 for arg1 and a second value, not reproduced), the scheduling of the D_80203AC8 check, and the call/argument layout at the end (the target's last two calls use D_801FFD30/D_801FFD40 after the D_8006FAF0 lhu). Next: find what needs s0 and s1 (likely arg1 and the t pointer). Try the direct-index version again with an s32 index local (arg1 & 0xFFFF) held across the calls, then reorder the final calls.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794754000.098579,
+  "score_before": 20,
+  "score_after": 20
+ },
+ {
+  "function": "func_801FC4E0",
+  "text": "Not matched. Reproducible best is 4410 (72.7%) at revision 09c65922d34194e238b1 (the original candidate); the saved-best record of 20 for the same source did not reproduce under current baseline, so don't trust it. Tried and rejected: early-return guard (61241fcd8b049250a24c, 4410, no effect); pointer-slot indexing `(u8*)D_8011F330 + (arg1&0xFFFF)*100` with *(u16*)slot (ab8ea25319f9bb21f6de, 5370, worse). Target's Slot index is computed as x*2+x <<3, +x <<2 (x*100) with `andi $v1` then `lui $at`+`addu`+`lhu` %lo; the arithmetic is right in the source, the loads/stores through a computed pointer are not. Remaining gap: the target checks D_80203AC8 at the end of the function, and the two D_801FFD30 calls use a different address pairing than ours. Next: keep the array-index form, and rework the final func_801CB74C calls and the D_80203AC8 guard placement; leave the switch alone.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794755978.772747,
+  "score_before": 20,
+  "score_after": 20
+ },
+ {
+  "function": "func_801FC4E0",
+  "text": "Not matched. Saved best is recorded as 20 (room attempt 339302421162), but its source (revision 09c65922d34194e238b1) scores 4410 (72.7%) on the current judge, so the 20 probably depends on a different header or context. Verify that before trusting it. Variants this session: arg1 as u16 instead of u32, no change (4410). Target is 162 insns with frame 0x38; ours is 138 insns. Main diff: the target recomputes the Slot index (arg1 & 0xFFFF) as 'andi v0,a1,0xffff' then 'sll v1,v0,1 / sll v1,v1,3 / sll v1,v1,2' (i*100 via shifts) and 'addu at,at,v1' eight times; it does not keep the slot address in a register. The target also tests 'lhu v1,%lo(D_8011F330)(at)' against 0 and 2 separately, and its switch dispatch is a jump table over st (0..3), not a chain of beq. Next: try a switch that reloads D_8011F330[arg1].st per case, and check the 0x64 stride and whether D_8011F330 is a u16-only array (Slot pad size). Also check whether the first branch uses D_80203AC8 halfword read as 'lhu' (u16 global).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794765267.2179992,
+  "score_before": 20,
+  "score_after": 20
+ },
+ {
+  "function": "func_801FC4E0",
+  "text": "Best current score 4410 (72.7%) with the candidate in revision 09c65922d34194e238b1. The saved_best entry (score 20) has identical source text, so the 20 was probably recorded under a different header/declaration environment. Verified structure from get_assembly: 100-byte Slot stride (index*100 via sll/addu chain); frame 0x38 with ra at 0x34 and s2/s1/s0 at 0x30/0x2C/0x28; checks D_80203AC8 first; switch lowered as an if-chain in the order st==1, then st<2 (case 0), then st==2, then st==3. Rewriting the switch as if/else (revision 94615d7a...) scored worse at 6445. Next steps: reproduce the saved 20 by checking the declared types of D_802038C4/D_802038C6 and the Slot layout, then try case 0 written before case 1. Stopped at 2/8 no-improvement compiles after the if-chain rewrite; nothing else is pending for this function.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794767376.98265,
+  "score_before": 20,
+  "score_after": 20
+ },
+ {
+  "function": "func_801FC4E0",
+  "text": "Profile probe: this saved C scores 1875 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (8 of its 12 nearest matched neighbours were built with it), 2170 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721220.529711,
+  "score_before": 2170,
+  "score_after": 1875,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:b9a8c568aab182e0d8a8de6c87acf5bbcdd4f4f18cc7ef350b1118b85ded7fa6"
  }
 ]
