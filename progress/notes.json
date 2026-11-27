@@ -6432,14 +6432,6 @@
   "score_after": 125309
  },
  {
-  "function": "func_80144808",
-  "text": "Baseline candidate revision cb5c24737bfba3792f3e scores 57373 (1012 differing rows). Not close to matching. The target frame is addiu $sp,-0x88 with sw $ra at 0x70 and sw $s5 at 0x6c; the candidate frame is -0x78, so the locals/saved-register set is wrong first. Fix order: (1) get the frame and saved registers right (target saves ra, s0-s5 and fs0), which means the struct-pointer local temp_s2 and the D_80190C9E/s1 base usage must match the target's s1/s2/s4/s5 register picks; (2) the first switch on temp_v1 at +0x3E is a binary-search dispatch (slti/beqz tree, cases 0,1,0x20,0x22,0x23,0x30,0x32,0x33,0x40,0x41,0x42,0x43,0x44,0x46,0x50,0x51,0x52,0x100,0x105,0x200,0x201,0x210,0x211); the candidate's fallthrough/goto layout does not reproduce it; (3) the float tail on D_80190CAA (88.0f, -2.0f, 0.3f, return) comes after the switch. Signedness variant (s32 -> u32 on var_s1_3) changed nothing. Note the candidate's goto labels (__repair_rows, block_102, block_116) should be rewritten as loops and fallthrough. Expect many sessions; start with the frame.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794719763.1485262,
-  "score_before": 57373,
-  "score_after": 57373
- },
- {
   "function": "func_8012AD9C",
   "text": "Released without a compile. 5976 bytes; m2c fails with \"Unable to determine jump table for jr instruction\" at func_8012AD9C.s line 81, so there is no draft. Needs the jump table data located and read first (see get_function brief for the jtbl symbol hint). Too large to start by hand in this session.",
   "by": "claude-haiku-5-5-20",
@@ -11528,14 +11520,6 @@
   "score_after": 23132
  },
  {
-  "function": "func_80144808",
-  "text": "Compiled the saved best draft (revision 54cb0da13d2631adc956): scores 57183 (51.4%), not improved. Target is 1177 insns with frame -0x88 (saves s0-s5, fs0/fs1); mine is frame -0x78 and the register/stack layout differs from the start. Main structural mismatch: target keeps the base D_8011F2F0 in a register and reaches fields via addiu $v1,%lo(D_8011F2F0) plus lbu/lhu/sh offsets, while my draft recomputes lui/%hi(D_8011F2F0) ~84 times. Suggested next step: write the per-entry record as a local struct pointer (e.g. struct with u16 state at 0x3E, s16 at 0x40, f32 at 0x18/0x1C, s32* at a list ptr) computed once, and reuse it for all accesses. Also the target has a fallthrough from case 0x30 into 0x31, and 0x40 into 0x41, which the draft already has; the labels __repair_rows/block_102/block_116 are gotos that may need to be restructured. The draft uses goto-based label hacks; the switch should be rebuilt from the jump table order. Not tried: struct-based rewrite, compile_variants on the case ordering.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794752620.92065,
-  "score_before": 57183,
-  "score_after": 57183
- },
- {
   "function": "func_80127AB0",
   "text": "3536-byte function, 884 target insns. Empty stub (revision 73f87006a38b82f79d1f) scores 88260 (0.1%). Machine draft (revision 4bb32fc717fc1de38b42) does not compile: syntax error line 74, invalid unary * line 185, too few args to func_80127148 line 243; it is goto-heavy m2c output, not a usable start. Facts: prologue frame 0xe0, saved ra, fp, s0-s7, sdc1 f30 at 0xd8. Outer loop walks linked records via arg1 (offsets 0x50, 4, 4). Writes arg0 fields: flag bytes at +1,+2,+3; floats at +0x14..+0x20; s32 blocks at +0x24..+0x40. Globals D_8012AB40..D_8012ABA0 are float vectors, stride 0xC. Calls: func_80127870, func_80127148, func_80127030, func_80127000, sqrtf, func_801271A0, func_8012745C, func_8003DE60. Write by hand from get_assembly.",
   "by": "claude-haiku-5-5-21",
@@ -11662,14 +11646,6 @@
   "created_at": 1794752886.357582,
   "score_before": 1645,
   "score_after": 1640
- },
- {
-  "function": "func_80144808",
-  "text": "Not matched; no real C attempt made. The saved best (57183) is still the baseline. I compiled only a stub, which scored 117560, so restore saved_best before any work. The target is 1177 instructions (4708 bytes): a state machine over the u16 state at +0x3E of records at D_8011F2F0 with stride 0x64, plus a second switch on D_80190CAA that animates an f32 at +0x1C/+0x18 (88.0f, -2.0f, +0.3f per step). The machine draft does not compile: it references undeclared symbols (func_801478F0, D_8006F9E8, D_8021B01A, D_8021AFDC, D_8021AFE0, D_80168BB0, D_80189C9D, D_80190CAA) and has fall-through cases that need checking against the jump table. Next step: declare the symbols, then split_function into per-case pieces before attempting a full match.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794752952.413847,
-  "score_before": 57183,
-  "score_after": 57183
  },
  {
   "function": "func_8012AD9C",
@@ -14552,14 +14528,6 @@
   "score_after": 10
  },
  {
-  "function": "func_80144808",
-  "text": "Releasing now, not after 10 compiles, because the current draft cannot get closer by local tuning. The one compile I made used a stub (scores 1.4%, saved best 57183). That score says nothing about the real function. Target is 1177 insns / 4708 B, with a 0x64-stride actor index into D_8011F2F0 and a switch on the u16 at +0x3E covering states 0x0,0x1,0x22,0x30-0x33,0x40-0x52,0x100,0x105,0x200,0x201,0x210,0x211. A second switch on D_80190CAA does f32 interpolation (88.0f threshold, -2.0f start, 0.3f step).\nThe machine draft uses repair artifacts (goto __repair_rows / block_102 / block_116), breaks case fallthrough (0x30 into 0x31, 0x40 into 0x41, 0x50 into 0x51, and 0x52/0x23/0x33 share a body), and references undeclared symbols (func_801478F0, D_8006F9E8, D_8021B01A, D_8021AFDC, D_8021AFE0, D_80168BB0, D_80189C9D, D_80190CAA). It needs a clean rewrite that keeps the source's fallthrough, not patching.\nNext: read get_assembly for the prologue and dispatch to confirm the jump table and frame (addiu sp,-0x88; saves ra, s5, s4, f20), then match the 0x0/0x1 and default blocks first.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794761747.2720158,
-  "score_before": 57183,
-  "score_after": 57183
- },
- {
   "function": "func_8014F5A8",
   "text": "Not matched. The saved machine draft (revision 075e252709bc7dedf089) rechecks at score 144443, far from 0. The function is about 60 straight-line calls to func_800DE41C, each with three float-like arguments passed as hex bit patterns (e.g. 0x42960000, 0xC4160000) and trailing 1.0f/0.8f values. Those hex values sit in integer-typed slots, while the prototype declares the last three params as f32. Next step: rewrite the call table with the float slots typed as f32 and the constants as real float literals, then compile_and_diff the whole function to check the register/arg layout. Local-repair families (global_scalar_type, global_address_table, call_one_shot_scope) are untried. The function is large, so do not expect a quick match.",
   "by": "claude-haiku-5-5-22",
@@ -15142,14 +15110,6 @@
   "created_at": 1794764260.4427981,
   "score_before": 335,
   "score_after": 335
- },
- {
-  "function": "func_80144808",
-  "text": "Releasing at move-on, with a reason that more compiles won't help now. The restored draft (rev 3b8db5910a4d89014341, saved best 57183) does not compile as written: it uses undeclared symbols (func_801478F0, D_8006F9E8, D_8021B01A, D_8021AFDC, D_8021AFE0, D_80168BB0, D_80189C9D, D_80190CAA) and jumps into case bodies with goto labels (block_102, block_116, __repair_rows), which gcc will not reproduce. Getting closer needs a full rewrite of the switch as real fall-through, with the state-machine structure taken from the assembly. That is a rewrite, not a tuning pass. Next agent: start from get_assembly, declare the missing symbols, and write the switch cases from the jump table. Note that my earlier stub compile replaced the candidate, and it was restored with get_candidate(base=saved_best).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794764333.316572,
-  "score_before": 57183,
-  "score_after": 57183
  },
  {
   "function": "func_80214860",
@@ -41863,5 +41823,45 @@
   "score_before": 81517,
   "score_after": 81517,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:206704d3188e8e183a081802976a5180714bfc5b750da94abfc73ecc2f84278c"
+ },
+ {
+  "function": "func_80144808",
+  "text": "Baseline candidate revision cb5c24737bfba3792f3e scores 57373 (1012 differing rows). Not close to matching. The target frame is addiu $sp,-0x88 with sw $ra at 0x70 and sw $s5 at 0x6c; the candidate frame is -0x78, so the locals/saved-register set is wrong first. Fix order: (1) get the frame and saved registers right (target saves ra, s0-s5 and fs0), which means the struct-pointer local temp_s2 and the D_80190C9E/s1 base usage must match the target's s1/s2/s4/s5 register picks; (2) the first switch on temp_v1 at +0x3E is a binary-search dispatch (slti/beqz tree, cases 0,1,0x20,0x22,0x23,0x30,0x32,0x33,0x40,0x41,0x42,0x43,0x44,0x46,0x50,0x51,0x52,0x100,0x105,0x200,0x201,0x210,0x211); the candidate's fallthrough/goto layout does not reproduce it; (3) the float tail on D_80190CAA (88.0f, -2.0f, 0.3f, return) comes after the switch. Signedness variant (s32 -> u32 on var_s1_3) changed nothing. Note the candidate's goto labels (__repair_rows, block_102, block_116) should be rewritten as loops and fallthrough. Expect many sessions; start with the frame.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794719763.1485262,
+  "score_before": 57373,
+  "score_after": 57373
+ },
+ {
+  "function": "func_80144808",
+  "text": "Compiled the saved best draft (revision 54cb0da13d2631adc956): scores 57183 (51.4%), not improved. Target is 1177 insns with frame -0x88 (saves s0-s5, fs0/fs1); mine is frame -0x78 and the register/stack layout differs from the start. Main structural mismatch: target keeps the base D_8011F2F0 in a register and reaches fields via addiu $v1,%lo(D_8011F2F0) plus lbu/lhu/sh offsets, while my draft recomputes lui/%hi(D_8011F2F0) ~84 times. Suggested next step: write the per-entry record as a local struct pointer (e.g. struct with u16 state at 0x3E, s16 at 0x40, f32 at 0x18/0x1C, s32* at a list ptr) computed once, and reuse it for all accesses. Also the target has a fallthrough from case 0x30 into 0x31, and 0x40 into 0x41, which the draft already has; the labels __repair_rows/block_102/block_116 are gotos that may need to be restructured. The draft uses goto-based label hacks; the switch should be rebuilt from the jump table order. Not tried: struct-based rewrite, compile_variants on the case ordering.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794752620.92065,
+  "score_before": 57183,
+  "score_after": 57183
+ },
+ {
+  "function": "func_80144808",
+  "text": "Not matched; no real C attempt made. The saved best (57183) is still the baseline. I compiled only a stub, which scored 117560, so restore saved_best before any work. The target is 1177 instructions (4708 bytes): a state machine over the u16 state at +0x3E of records at D_8011F2F0 with stride 0x64, plus a second switch on D_80190CAA that animates an f32 at +0x1C/+0x18 (88.0f, -2.0f, +0.3f per step). The machine draft does not compile: it references undeclared symbols (func_801478F0, D_8006F9E8, D_8021B01A, D_8021AFDC, D_8021AFE0, D_80168BB0, D_80189C9D, D_80190CAA) and has fall-through cases that need checking against the jump table. Next step: declare the symbols, then split_function into per-case pieces before attempting a full match.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794752952.413847,
+  "score_before": 57183,
+  "score_after": 57183
+ },
+ {
+  "function": "func_80144808",
+  "text": "Releasing now, not after 10 compiles, because the current draft cannot get closer by local tuning. The one compile I made used a stub (scores 1.4%, saved best 57183). That score says nothing about the real function. Target is 1177 insns / 4708 B, with a 0x64-stride actor index into D_8011F2F0 and a switch on the u16 at +0x3E covering states 0x0,0x1,0x22,0x30-0x33,0x40-0x52,0x100,0x105,0x200,0x201,0x210,0x211. A second switch on D_80190CAA does f32 interpolation (88.0f threshold, -2.0f start, 0.3f step).\nThe machine draft uses repair artifacts (goto __repair_rows / block_102 / block_116), breaks case fallthrough (0x30 into 0x31, 0x40 into 0x41, 0x50 into 0x51, and 0x52/0x23/0x33 share a body), and references undeclared symbols (func_801478F0, D_8006F9E8, D_8021B01A, D_8021AFDC, D_8021AFE0, D_80168BB0, D_80189C9D, D_80190CAA). It needs a clean rewrite that keeps the source's fallthrough, not patching.\nNext: read get_assembly for the prologue and dispatch to confirm the jump table and frame (addiu sp,-0x88; saves ra, s5, s4, f20), then match the 0x0/0x1 and default blocks first.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794761747.2720158,
+  "score_before": 57183,
+  "score_after": 57183
+ },
+ {
+  "function": "func_80144808",
+  "text": "Releasing at move-on, with a reason that more compiles won't help now. The restored draft (rev 3b8db5910a4d89014341, saved best 57183) does not compile as written: it uses undeclared symbols (func_801478F0, D_8006F9E8, D_8021B01A, D_8021AFDC, D_8021AFE0, D_80168BB0, D_80189C9D, D_80190CAA) and jumps into case bodies with goto labels (block_102, block_116, __repair_rows), which gcc will not reproduce. Getting closer needs a full rewrite of the switch as real fall-through, with the state-machine structure taken from the assembly. That is a rewrite, not a tuning pass. Next agent: start from get_assembly, declare the missing symbols, and write the switch cases from the jump table. Note that my earlier stub compile replaced the candidate, and it was restored with get_candidate(base=saved_best).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794764333.316572,
+  "score_before": 57183,
+  "score_after": 57183
  }
 ]
