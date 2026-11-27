@@ -2,59 +2,44 @@ extern s8 D_80046830;
 extern u8 D_80046831;
 extern u8 D_80046832;
 extern s32 D_80046834;
-extern s32 D_80046838;
-extern s32 D_8006E790;
-extern u32 D_8006E794;
+extern s16 D_80046838;
+extern u64 D_8006E790;
 extern volatile u16 D_8006F9E8;
 extern u8 D_8006FB38[];
 extern volatile short D_8006FE58;
-extern u16 D_80072BDC;
-extern u8 D_80092C30[];
+extern volatile u16 D_80072BDC;
+extern u8 D_80092C30[][0x23AC0];
 extern u8 D_801E4420;
 extern s32 D_801E99C0;
-extern u8 D_8022A770[];
+extern u8 D_8022A770[][0x8F0];
+extern u64 osGetTime(void);
+extern void func_800341C0(u64);
 void func_80025DE0(s32 arg0)
 {
   s32 i;
-  s32 t;
-  s32 v;
-  u8 *base;
-  func_800341C0(0, 0);
-  if (D_80046838 == 0)
+
+  func_800341C0((u64) 0);
+  if ((*(s32 *)&D_80046838) == 0)
   {
     func_801D7F60();
   }
   func_800E1728();
-  v = (u16) ((s32) D_8006F9E8);
-  switch (v)
+  switch (D_8006F9E8)
   {
     case 0x384:
-      i = 0;
       func_800DE38C();
       func_800DE2E0();
       D_80046831 = 1;
       D_80046832 = 0;
-      D_80046830 = 0;
-      base = D_8022A770;
-      loop:
-    {
-      s32 k = i << 3;
-      k += i;
-      k <<= 4;
-      k -= i;
-      k <<= 4;
-      func_8022132C(k + base);
-      i++;
-    }
-
-      if (i < 7)
-    {
-      goto loop;
-    }
+      (*(u8 *)&D_80046830) = 0;
+      for (i = 0; i < 7; i++)
+      {
+        func_8022132C(D_8022A770[i]);
+      }
       D_8006F9E8 = 8;
       D_80072BDC = D_8006F9E8;
-      D_8006FE58 = 0;
       D_8006F9E8 = 0x18;
+      D_8006FE58 = 0;
       break;
 
     case 0:
@@ -114,6 +99,16 @@ void func_80025DE0(s32 arg0)
       D_8006FE58 = 1;
       break;
 
+    case 0x1A:
+      func_80232480();
+      D_8006F9E8 = 0x1B;
+      break;
+
+    case 0x1B:
+      func_80232818();
+      D_8006FE58 = 1;
+      break;
+
     case 0x16:
       func_801B3C74();
       D_8006F9E8 = 0x17;
@@ -142,21 +137,11 @@ void func_80025DE0(s32 arg0)
       D_8006FE58 = 1;
       break;
 
-    case 0x1A:
-      func_80232480();
-      D_8006F9E8 = 0x1B;
-      break;
-
-    case 0x1B:
-      func_80232818();
-      D_8006FE58 = 1;
-      break;
-
   }
 
   if (((arg0 < 2) && (D_8006FE58 == 1)) && ((D_80046831 != 0) || (D_80046832 != 0)))
   {
-    func_801F93FC((D_80046834 * 0x23AC0) + D_80092C30);
+    func_801F93FC(D_80092C30[D_80046834]);
     do
     {
       D_80046834 ^= 1;
@@ -168,8 +153,5 @@ void func_80025DE0(s32 arg0)
   {
     D_80046831 = 1;
   }
-  t = osGetTime();
-  D_8006E790 = t;
-  D_8006E794 = t;
+  D_8006E790 = osGetTime();
 }
-

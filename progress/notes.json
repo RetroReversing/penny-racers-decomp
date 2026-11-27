@@ -7440,14 +7440,6 @@
   "score_after": 6793
  },
  {
-  "function": "func_80025DE0",
-  "text": "Best 2515 (91.0%, revision a7911e452a1e176127f2). Big switch on the state word D_8006F9E8, with a trailing condition and osGetTime. Key findings: (1) the target has a `case 0: break;` (it exists in the source and falls out; that alone took 3595 -> 2515). (2) The switch variable is read as u16 (`v = (u16)(s32)D_8006F9E8;`); using (s16) gives 3315 and a plain `v = D_8006F9E8` gives 3595, so keep the u16 form. (3) Target prologue saves ra, s2, s1 with frame 0x20; s2 holds arg0 and s1 holds the D_8022A770 base. Remaining diff: register allocation (target uses v0 for D_8006F9E8 and s1 is set once before the loop at [90]/[91] instead of [81]/[82]) and the D_8006FE58 read: target reads it with lhu+sll/sra, I read it as lh. Untested next steps: move the `base = D_8022A770` assignment inside the case 0x384 block before the loop, and try `(s16)D_8006FE58` only in the final condition (keep the switch as is). The 0x384 case (the loop over 7 entries calling func_8022132C with k = (i*8+i)*16 - i)*16 offsets) matches already.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794712692.574951,
-  "score_before": 3595,
-  "score_after": 2515
- },
- {
   "function": "func_800268C0",
   "text": "Not compiled; the draft is not usable as written. Structure is a debug dump: a long sequence of calls, each passing a string-table address (D_80049xxx) and 4 to 8 words loaded from arg0 at fixed offsets (0x14, 0x11C, 0x120, 0x118, 0x124, 0x28..0x34, 0x40..0x4C, ... up to 0x1A8). The 8-word groups are stored to the outgoing area (0x10..0x1C) two words at a time. The draft's f64/f32 casts are wrong: the target just loads words (lw) and passes them. Blocker: several calls to func_8003DE60 do not set a1 (for example the call on D_80049F1C); a1 is inherited from the previous call's argument (0x124), so no straightforward C reproduces it. Decide first whether func_8003DE60 is variadic with a dummy second argument, then check the prototype against find_similar. Calls to func_80026D40 pass a string literal name (\"cause\", \"sr\", \"fpcsr\") with a1 set to a D_80049xxx address and a2 set to a D_8004xxxx address.",
   "by": "claude-haiku-5-5-24",
@@ -10672,14 +10664,6 @@
   "score_after": 1960
  },
  {
-  "function": "func_80025DE0",
-  "text": "Not matched; best saved C scores 2515 (91%, revision a7911e452a1e176127f2). Tried `v = (s16)D_8006F9E8;` instead of `(u16)(s32)` : worse (3315). Remaining diffs: (1) prologue save order, target saves $ra at 0x1c, $s2 at 0x18, $s1 at 0x14 (ours saves $s1 later, after the switch); (2) the switch dispatch: target does `andi $v1,$v0,0xffff` on the loaded halfword, ours does sll/sra, so the switch variable should stay u16-typed with the same expression but a different intermediate; (3) the D_8006FE58 / D_8006F9E8 read order around the final `if`. Next: keep the (u16) form, fix the save order via a local that is used before the first call to func_800341C0 (move the D_8022A770 base address into a local declared before the loop), then the branch targets should follow.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794728231.261776,
-  "score_before": 2515,
-  "score_after": 2515
- },
- {
   "function": "func_80215850",
   "text": "Tried: m2c draft repaired (func_80203DF8 called with 4 and 5 args, so declare it unprototyped; D_8011F350[i].f0 is a plain u32, not a pointer; index D_8011F2FD directly). Compiled once: score 14618 (49%), worse than saved best 13558. Shape is close at the root: an 11-case sparse switch on the state word at +0x3E (cases 0,0x10,0x18,0x20,0x28,0x30,0x38,0xF0,0xF8,0xFA,0xFB) gives root beq 0x30 then slti 0x31, as in the target. Differences: frame 0x50 vs 0x58 (target keeps $ra,$s0,$s1,$s2 live and s2 = &D_80190C98+0x18 used by the sb/sh stores), the fallthrough/goto structure of the 0x10/0x18/0x20/0x28/0x30/0x38 group, and nested switch on D_801C5EA2. Next: write the 0x10..0x38 group with a shared store block that uses s2 for the sb/sh pair, then check the frame. Not attempted beyond one compile, so the remaining work is open.",
   "by": "claude-haiku-5-5-24",
@@ -13830,14 +13814,6 @@
   "created_at": 1794741205.519336,
   "score_before": 5938,
   "score_after": 5938
- },
- {
-  "function": "func_80025DE0",
-  "text": "Not matched, 91.0% (score 2515) at revision 1381329b37d9b11ff1bf. Why it stops here: the last five compiles gave no change (the (s16) cast on D_80072BDC, volatile s16 for D_8006F9E8, the base load moved to entry (worse, 3265), and the 0x384 index chain replaced by *0x8F0 (identical instructions)). What is left: (1) save order: target saves ra 0x1c, s2 0x18, s1 0x14 and mine loads `base` (lui $s1) later, so s1 is not live from the start; (2) the 0x18 case reads D_8006F9E8 with lhu/sll/sra in the target but mine reads D_8006FE58 with lh at the same spot; (3) a 4-byte offset shift before the switch jump table, so one instruction is missing in the 0x384 block or the D_80046838 check. Next agent: get_assembly(focus=mismatch) for rows 100-120 to see which of (2) and (3) comes first; do not retry the three edits above.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794741205.546796,
-  "score_before": 2515,
-  "score_after": 2515
  },
  {
   "function": "func_80216958",
@@ -19064,14 +19040,6 @@
   "score_after": 440
  },
  {
-  "function": "func_80025DE0",
-  "text": "Best: rev a5db8fd22400e08be5f7, score 2320 (91.7%). Not matched. Remaining: (1) register choice at the final flag test: target loads D_8006FE58 with lhu into $v0 (lhu $v0,%lo(D_8006FE58)), ours into $v1; (2) 13 branch-target mismatches and the 7 deletes/4 inserts sit in the switch: the target's case bodies are laid out with the jump-table order differing, so check the case order, and whether case 0x384's `D_8022A770` loop should be a `for` with the 0x384 case placed last; (3) the loop index math is k=i*0x7F (x*128 - x via shifts: i<<3, +i, <<4, -i, <<4); the target may instead use i*0x3F0 * (u16) cast. Tried and rejected: v=(s16)D_8006F9E8 (88%), (s16)(u16)D_8006FE58 cast (91%, same as the plain form at 2515). Keep the plain `D_8006FE58 == 1` form (2320).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794757111.771709,
-  "score_before": 2515,
-  "score_after": 2320
- },
- {
   "function": "func_801FD560",
   "text": "Not attempted beyond reading the machine draft; no compile run on this claim. The draft (m2c) uses raw `&D_x + offset` pointer arithmetic with M2C_FIELD casts and placeholder types (M2C_UNK), so it needs a clean rewrite: a 16-entry loop of 0x1C-stride records (D_802038E8.. offsets 0,1,4..,0x40 fills), an 8-entry loop of 0x2C-stride records (D_801D7DF4.., -1, 0, 1.0f, 0x7FFF, 0x40), and about five func_800DE41C registrations with NULL/function pointers. Start by writing those two loops as typed struct arrays after reading the target with get_assembly, then compile the pair of loops first.",
   "by": "claude-haiku-5-5-22",
@@ -20854,14 +20822,6 @@
   "created_at": 1794760006.064244,
   "score_before": 29927,
   "score_after": 29927
- },
- {
-  "function": "func_80025DE0",
-  "text": "Near match, not matched. Best 2320 (91.7%) is the saved-best revision a5db8fd22400e08be5f7 (v = (u16)(s32)D_8006F9E8). Switching to v = (s16)D_8006F9E8 scored 3120 (worse). Remaining diff: the target masks v with andi $v1,$v0,0xffff before the switch compare chain, and the tail (bnez/beqz targets) is shifted by one case. Register/stack differences: target saves ra, s2, s1 at 0x1c/0x18/0x14 and uses lui $s1,%hi(D_8022A770) later, so the base pointer for the 7-iteration loop (func_8022132C) is scheduled differently. Next: keep the (u16) form, try reordering the case-0x384 block (set base before the loop, or i as u8) and check whether the switch is a jump-table-free compare chain with 0x384 as the first test.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794760014.473092,
-  "score_before": 2320,
-  "score_after": 2320
  },
  {
   "function": "func_802153C4",
@@ -40451,5 +40411,45 @@
   "created_at": 1794759861.68366,
   "score_before": 3332,
   "score_after": 3332
+ },
+ {
+  "function": "func_80025DE0",
+  "text": "Best 2515 (91.0%, revision a7911e452a1e176127f2). Big switch on the state word D_8006F9E8, with a trailing condition and osGetTime. Key findings: (1) the target has a `case 0: break;` (it exists in the source and falls out; that alone took 3595 -> 2515). (2) The switch variable is read as u16 (`v = (u16)(s32)D_8006F9E8;`); using (s16) gives 3315 and a plain `v = D_8006F9E8` gives 3595, so keep the u16 form. (3) Target prologue saves ra, s2, s1 with frame 0x20; s2 holds arg0 and s1 holds the D_8022A770 base. Remaining diff: register allocation (target uses v0 for D_8006F9E8 and s1 is set once before the loop at [90]/[91] instead of [81]/[82]) and the D_8006FE58 read: target reads it with lhu+sll/sra, I read it as lh. Untested next steps: move the `base = D_8022A770` assignment inside the case 0x384 block before the loop, and try `(s16)D_8006FE58` only in the final condition (keep the switch as is). The 0x384 case (the loop over 7 entries calling func_8022132C with k = (i*8+i)*16 - i)*16 offsets) matches already.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794712692.574951,
+  "score_before": 3595,
+  "score_after": 2515
+ },
+ {
+  "function": "func_80025DE0",
+  "text": "Not matched; best saved C scores 2515 (91%, revision a7911e452a1e176127f2). Tried `v = (s16)D_8006F9E8;` instead of `(u16)(s32)` : worse (3315). Remaining diffs: (1) prologue save order, target saves $ra at 0x1c, $s2 at 0x18, $s1 at 0x14 (ours saves $s1 later, after the switch); (2) the switch dispatch: target does `andi $v1,$v0,0xffff` on the loaded halfword, ours does sll/sra, so the switch variable should stay u16-typed with the same expression but a different intermediate; (3) the D_8006FE58 / D_8006F9E8 read order around the final `if`. Next: keep the (u16) form, fix the save order via a local that is used before the first call to func_800341C0 (move the D_8022A770 base address into a local declared before the loop), then the branch targets should follow.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794728231.261776,
+  "score_before": 2515,
+  "score_after": 2515
+ },
+ {
+  "function": "func_80025DE0",
+  "text": "Not matched, 91.0% (score 2515) at revision 1381329b37d9b11ff1bf. Why it stops here: the last five compiles gave no change (the (s16) cast on D_80072BDC, volatile s16 for D_8006F9E8, the base load moved to entry (worse, 3265), and the 0x384 index chain replaced by *0x8F0 (identical instructions)). What is left: (1) save order: target saves ra 0x1c, s2 0x18, s1 0x14 and mine loads `base` (lui $s1) later, so s1 is not live from the start; (2) the 0x18 case reads D_8006F9E8 with lhu/sll/sra in the target but mine reads D_8006FE58 with lh at the same spot; (3) a 4-byte offset shift before the switch jump table, so one instruction is missing in the 0x384 block or the D_80046838 check. Next agent: get_assembly(focus=mismatch) for rows 100-120 to see which of (2) and (3) comes first; do not retry the three edits above.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794741205.546796,
+  "score_before": 2515,
+  "score_after": 2515
+ },
+ {
+  "function": "func_80025DE0",
+  "text": "Best: rev a5db8fd22400e08be5f7, score 2320 (91.7%). Not matched. Remaining: (1) register choice at the final flag test: target loads D_8006FE58 with lhu into $v0 (lhu $v0,%lo(D_8006FE58)), ours into $v1; (2) 13 branch-target mismatches and the 7 deletes/4 inserts sit in the switch: the target's case bodies are laid out with the jump-table order differing, so check the case order, and whether case 0x384's `D_8022A770` loop should be a `for` with the 0x384 case placed last; (3) the loop index math is k=i*0x7F (x*128 - x via shifts: i<<3, +i, <<4, -i, <<4); the target may instead use i*0x3F0 * (u16) cast. Tried and rejected: v=(s16)D_8006F9E8 (88%), (s16)(u16)D_8006FE58 cast (91%, same as the plain form at 2515). Keep the plain `D_8006FE58 == 1` form (2320).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794757111.771709,
+  "score_before": 2515,
+  "score_after": 2320
+ },
+ {
+  "function": "func_80025DE0",
+  "text": "Near match, not matched. Best 2320 (91.7%) is the saved-best revision a5db8fd22400e08be5f7 (v = (u16)(s32)D_8006F9E8). Switching to v = (s16)D_8006F9E8 scored 3120 (worse). Remaining diff: the target masks v with andi $v1,$v0,0xffff before the switch compare chain, and the tail (bnez/beqz targets) is shifted by one case. Register/stack differences: target saves ra, s2, s1 at 0x1c/0x18/0x14 and uses lui $s1,%hi(D_8022A770) later, so the base pointer for the 7-iteration loop (func_8022132C) is scheduled differently. Next: keep the (u16) form, try reordering the case-0x384 block (set base before the loop, or i as u8) and check whether the switch is a jump-table-free compare chain with 0x384 as the first test.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794760014.473092,
+  "score_before": 2320,
+  "score_after": 2320
  }
 ]
