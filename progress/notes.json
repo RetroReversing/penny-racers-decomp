@@ -7208,14 +7208,6 @@
   "score_after": 14679
  },
  {
-  "function": "func_8015EC58",
-  "text": "Best so far 13288 (69.8%), revision 3fd31bc670a2c2543bc3 (the byte-offset version, not the earlier 15143 one). Why I stopped: the remaining diff is structural, not register naming. Target frame is 0x60 and saves only ra,s0,s1,s2; ours is 0x70 and saves s0..s6, so too many values stay live across the calls to func_800DE41C and func_8013E49C. In the target arg0 lives in $s1 (move $s1,$a0) and drives andi 0xffff; ours copies it to $a2. Next steps: (1) keep n = arg0 & 0xFFFF in one variable and reuse it for the switch index and both table stores; (2) reload a0/s0 fields after each call instead of carrying them; (3) the two func_800DE41C blocks look like one loop body with different f32 args, which may match better as a helper or a shared local. Byte-offset (char*) table access with stride 0x64 is correct; typed s32 indexing gives the wrong scale. Load D_8011F350 entry into s0 first.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794719268.6614132,
-  "score_before": 15143,
-  "score_after": 13288
- },
- {
   "function": "func_802312F8",
   "text": "Not matched. 472 target lines (444 insns, 1776 B). Opens with a 9-case jump table on (D_8006FAF0[+0x20] - 1), with case values written into s1 (0x6E,0xB3,0xA9,0x45,0x69,0xE1,0x4C,0x6B, default 0xB4); the jr table is at D_80232F30. Then nested copy loops (outer t0 over 7 rows, inner s0 over 8 cols) copying 16-byte blocks from D_80238EC0 (+0x30 stride per s0) into a table at D_8022A778 (row stride 0x1F0-ish, computed as ((t0*8+t0)*16-t0)*16). The copy loop uses 4 lw/sw pairs per iteration with a bne end test. A second loop calls func_8022132C over D_8022A770 (7 entries, a0 = (s0*8+s0)*16-s0)*16 + D_8022A770). Then float constants 0x42480000 (50.0f) and 0x42700000 (60.0f) stored into D_80229B20/B24 pairs. Best candidate so far scored 44625 (0%), worse than saved 41481. A bare switch+loop skeleton is nowhere near; the 0x88-byte frame saves s0-s7 and fs0-fs4 (sdc1). Next step: write the copy loops with exact struct/array strides first (use the 0x10 unrolled copy form), then the float stores, and leave the switch for last.",
   "by": "claude-haiku-5-5-23",
@@ -12352,14 +12344,6 @@
   "score_after": 42960
  },
  {
-  "function": "func_8015EC58",
-  "text": "func_8015EC58 (1764 B): not matched. Compiled nothing usable: the m2c draft needs its M2C_UNK typedefs and M2C_FIELD macro, which conflicted when I removed the guard block (parse errors on every extern). Draft structure: base pointer temp_s0 = *(&D_8011F350 + idx*0x64), its field at +4 is a second pointer (temp_v1/temp_a0), table D_8011F4E4 indexed by u16 at +2 *0x64 gives temp_a1, and most fields are float offsets 0x748, 0x7B4, 0x7BC, 0x714-0x728, 0x7C0-0x7CC. D_8011F32E is a state byte (1/2/3 switch). The helper func_800DE41C has 18 args, and the draft's arg count is probably right. Next step: fix the typedefs (keep the M2C_UNK block or replace with s32), then compile the full draft to get a baseline before editing offsets.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794742326.479816,
-  "score_before": 12468,
-  "score_after": 12468
- },
- {
   "function": "func_80161BE0",
   "text": "Best 15178 (61.9%) at revision 0ecb81cf61ed94ec2f75. Fixes needed to compile: func_8016221C is a function (void func_8016221C();), and the duplicate `s32 func_8013E49C(s32);` line conflicts with the header's `s32 func_8013E49C(u16)`, so it was removed. Remaining diff: target frame is 0x98 with ra, fp, s7..s0 and sdc1 $f22 saved; the candidate has 0x88 with ra, s6..s0 and sdc1 $f24. So the target keeps more live locals across calls (fp, s7 are used). Warnings: line 149 assigns int to pointer, and arg 8 of func_800DE41C is passed as an incompatible pointer. Next: fix those two types (&func_80162460 / &func_80162BB0 and the NULL/var_a2 handling), then add the missing locals so the frame matches 0x98 before tuning registers.",
   "by": "claude-haiku-5-5-22",
@@ -14038,14 +14022,6 @@
   "created_at": 1794752282.8887,
   "score_before": 33931,
   "score_after": 33931
- },
- {
-  "function": "func_8015EC58",
-  "text": "Compiled the m2c-based candidate (rev 2e1fcad56a1cdc6026fb) once: score 15183 (65.5%), same as saved best. Target 441 insns, candidate 437, so the instruction count is close and the remaining gap is mostly structure and register use. Frame: target is addiu -0x60 with saves ra, s2, s1, s0 only; candidate uses -0x78 and saves s0-s5, so the draft keeps too many values live across the calls (the temp_v1_*/temp_v0_* chain repeats M2C_FIELD(M2C_FIELD(temp_s0,void**,4),...) and each reload should probably be a single local pointer, e.g. Obj *p = temp_s0->+4, reused). Index math: target uses sll $v0,$v0,2 where candidate uses sll $v0,$v0,4 for the D_8011F32E*0x64 index in the switch; try a single index variable idx = (arg0 & 0xFFFF) * 0x64 reused across the switch and the sh stores (target has sh $v0,%lo(D_8011F32E)($at) x9). Raw address diff at row 303: target 0x802390C8 vs candidate 0x8015FD04 are the two func-pointer args, check the argument order of func_800DE41C. Next step: collapse the repeated M2C_FIELD reloads into one pointer local, then fix the frame size before touching register choice.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794752282.968839,
-  "score_before": 10368,
-  "score_after": 10368
  },
  {
   "function": "func_80193160",
@@ -17968,14 +17944,6 @@
   "score_after": 9595
  },
  {
-  "function": "func_8015EC58",
-  "text": "No compile this session. Saved m2c draft (revision 31ddcc90201b4cbf23e3) rechecks at 15183 and still uses M2C_FIELD macros and temp_* names, so it is a raw draft, not a clean C rewrite. Structure to keep: arg0 selects a 0x64-stride record at D_8011F350, its field +4 points to a sub-struct whose u16 at +2 indexes D_8011F4E4 (also 0x64 stride). The function has a switch on D_8011F32E[idx*0x64] (cases 1-3) that adjusts floats at +0x30/+0x34, a block at sub-struct offsets 0x748 (clamp 3000..7000), and two func_800DE41C calls at the end (args D_802390C8, func_8013AF08, func_8015FD04, float triples at 0x714/0x718/0x71C and 0x720/0x724/0x728), each followed by a 0x64-stride store block into D_8011F2F0..D_8011F2FE. Next steps: replace M2C_FIELD with real struct types (guess_struct on arg0 first), then compile_and_diff a rewrite. Not started.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794761227.9602392,
-  "score_before": 10368,
-  "score_after": 10368
- },
- {
   "function": "func_8002B534",
   "text": "Not matched. Best saved candidate is 15851 (restructured note-on/off/controller/pitch-bend switch, same as func_80030E28's family). Latest candidate 49048ad3fcf27c9908a6 scores 15951 (70.7%) and is slightly worse. Target frame is -0x80 saving ra, fp, s7..s0 at 0x74..0x50; ours is -0x68 with fewer saves, so the function needs about 24 more bytes of stack locals (likely more 8-byte or struct-sized temporaries than sp20..sp3C/sp44 cover) and a different s-register set. The alCents2Ratio prototype comes from context.h (f32 alCents2Ratio(s32)); do not redeclare it. Next steps: (1) add the missing stack locals and match the -0x80 frame first; (2) then fix the s-register order in the 0x90 path. Verify __vsVol/__vsPan return types against the matched definitions before tuning arithmetic. Note that func_80030E28 (same command-dispatch shape, different function) is the closest template.",
   "by": "claude-haiku-5-5-24",
@@ -18862,14 +18830,6 @@
   "created_at": 1794762483.5831199,
   "score_before": 336,
   "score_after": 336
- },
- {
-  "function": "func_8015EC58",
-  "text": "Best saved revision 1c2a4032c1cf1fbfca13, score 10063 (77.1%). Restore it with get_candidate(base=\"saved_best\") before continuing. Key gain: index the 0x64-byte entity array as a struct (Ent with f2,f4,f6,f8,fD,fE,f3E,f44,f48,f4C,f60; `D_8011F2F0[idx].field`), replacing `*(&sym + idx*0x64)` (matches proposal #339302416501). Remaining diffs: (1) frame: target 0x60 with saves only s0,s1,s2,ra; ours 0x70 with extra s3,s4,s5 and f20 spills. Reduce live locals across the two func_800DE41C calls: index temp_v0_8/temp_v0_9 reuse, scope temp_a0/temp_a1 tighter. (2) Target keeps temp_s2 = temp_a1->0x50 loaded early; moving that load to case 3 gave 12178 (worse), so keep it. (3) Target materialises &D_802390C8 / &func_8013AF08 / &func_8015FD04 with a per-call addiu %lo; ours hoists fewer. func_800DE41C prototype is a best guess (mixed s32/f32 stack args). Stopped on effort budget; the next step is the frame-layout experiment in (1).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794762511.43185,
-  "score_before": 10368,
-  "score_after": 10063
  },
  {
   "function": "func_80026250",
@@ -41102,5 +41062,45 @@
   "score_before": 10525,
   "score_after": 7725,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a254950c4b7438f98e4c75c98d1c27105b9cfe693f7e594f88574f6407a7b6fc"
+ },
+ {
+  "function": "func_8015EC58",
+  "text": "Best so far 13288 (69.8%), revision 3fd31bc670a2c2543bc3 (the byte-offset version, not the earlier 15143 one). Why I stopped: the remaining diff is structural, not register naming. Target frame is 0x60 and saves only ra,s0,s1,s2; ours is 0x70 and saves s0..s6, so too many values stay live across the calls to func_800DE41C and func_8013E49C. In the target arg0 lives in $s1 (move $s1,$a0) and drives andi 0xffff; ours copies it to $a2. Next steps: (1) keep n = arg0 & 0xFFFF in one variable and reuse it for the switch index and both table stores; (2) reload a0/s0 fields after each call instead of carrying them; (3) the two func_800DE41C blocks look like one loop body with different f32 args, which may match better as a helper or a shared local. Byte-offset (char*) table access with stride 0x64 is correct; typed s32 indexing gives the wrong scale. Load D_8011F350 entry into s0 first.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794719268.6614132,
+  "score_before": 15143,
+  "score_after": 13288
+ },
+ {
+  "function": "func_8015EC58",
+  "text": "func_8015EC58 (1764 B): not matched. Compiled nothing usable: the m2c draft needs its M2C_UNK typedefs and M2C_FIELD macro, which conflicted when I removed the guard block (parse errors on every extern). Draft structure: base pointer temp_s0 = *(&D_8011F350 + idx*0x64), its field at +4 is a second pointer (temp_v1/temp_a0), table D_8011F4E4 indexed by u16 at +2 *0x64 gives temp_a1, and most fields are float offsets 0x748, 0x7B4, 0x7BC, 0x714-0x728, 0x7C0-0x7CC. D_8011F32E is a state byte (1/2/3 switch). The helper func_800DE41C has 18 args, and the draft's arg count is probably right. Next step: fix the typedefs (keep the M2C_UNK block or replace with s32), then compile the full draft to get a baseline before editing offsets.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794742326.479816,
+  "score_before": 12468,
+  "score_after": 12468
+ },
+ {
+  "function": "func_8015EC58",
+  "text": "Compiled the m2c-based candidate (rev 2e1fcad56a1cdc6026fb) once: score 15183 (65.5%), same as saved best. Target 441 insns, candidate 437, so the instruction count is close and the remaining gap is mostly structure and register use. Frame: target is addiu -0x60 with saves ra, s2, s1, s0 only; candidate uses -0x78 and saves s0-s5, so the draft keeps too many values live across the calls (the temp_v1_*/temp_v0_* chain repeats M2C_FIELD(M2C_FIELD(temp_s0,void**,4),...) and each reload should probably be a single local pointer, e.g. Obj *p = temp_s0->+4, reused). Index math: target uses sll $v0,$v0,2 where candidate uses sll $v0,$v0,4 for the D_8011F32E*0x64 index in the switch; try a single index variable idx = (arg0 & 0xFFFF) * 0x64 reused across the switch and the sh stores (target has sh $v0,%lo(D_8011F32E)($at) x9). Raw address diff at row 303: target 0x802390C8 vs candidate 0x8015FD04 are the two func-pointer args, check the argument order of func_800DE41C. Next step: collapse the repeated M2C_FIELD reloads into one pointer local, then fix the frame size before touching register choice.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794752282.968839,
+  "score_before": 10368,
+  "score_after": 10368
+ },
+ {
+  "function": "func_8015EC58",
+  "text": "No compile this session. Saved m2c draft (revision 31ddcc90201b4cbf23e3) rechecks at 15183 and still uses M2C_FIELD macros and temp_* names, so it is a raw draft, not a clean C rewrite. Structure to keep: arg0 selects a 0x64-stride record at D_8011F350, its field +4 points to a sub-struct whose u16 at +2 indexes D_8011F4E4 (also 0x64 stride). The function has a switch on D_8011F32E[idx*0x64] (cases 1-3) that adjusts floats at +0x30/+0x34, a block at sub-struct offsets 0x748 (clamp 3000..7000), and two func_800DE41C calls at the end (args D_802390C8, func_8013AF08, func_8015FD04, float triples at 0x714/0x718/0x71C and 0x720/0x724/0x728), each followed by a 0x64-stride store block into D_8011F2F0..D_8011F2FE. Next steps: replace M2C_FIELD with real struct types (guess_struct on arg0 first), then compile_and_diff a rewrite. Not started.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794761227.9602392,
+  "score_before": 10368,
+  "score_after": 10368
+ },
+ {
+  "function": "func_8015EC58",
+  "text": "Best saved revision 1c2a4032c1cf1fbfca13, score 10063 (77.1%). Restore it with get_candidate(base=\"saved_best\") before continuing. Key gain: index the 0x64-byte entity array as a struct (Ent with f2,f4,f6,f8,fD,fE,f3E,f44,f48,f4C,f60; `D_8011F2F0[idx].field`), replacing `*(&sym + idx*0x64)` (matches proposal #339302416501). Remaining diffs: (1) frame: target 0x60 with saves only s0,s1,s2,ra; ours 0x70 with extra s3,s4,s5 and f20 spills. Reduce live locals across the two func_800DE41C calls: index temp_v0_8/temp_v0_9 reuse, scope temp_a0/temp_a1 tighter. (2) Target keeps temp_s2 = temp_a1->0x50 loaded early; moving that load to case 3 gave 12178 (worse), so keep it. (3) Target materialises &D_802390C8 / &func_8013AF08 / &func_8015FD04 with a per-call addiu %lo; ours hoists fewer. func_800DE41C prototype is a best guess (mixed s32/f32 stack args). Stopped on effort budget; the next step is the frame-layout experiment in (1).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794762511.43185,
+  "score_before": 10368,
+  "score_after": 10063
  }
 ]
