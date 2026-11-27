@@ -33,7 +33,7 @@ void drawNameListPanel();
 void func_801CF468();
 void func_80028100();
 void func_802319E8();
-void func_80231C5C();
+void createNoticeScreenObj();
 void func_8021F5F0();
 
 void func_80135C64(u16 arg0)
@@ -117,7 +117,7 @@ void func_80135C64(u16 arg0)
       break;
     case 3:
       func_802319E8();
-      func_80231C5C();
+      createNoticeScreenObj();
       func_801CF468(D_8018BC3C, 0, 0, 0);
       func_8021F5F0();
       gameState = 0xA;

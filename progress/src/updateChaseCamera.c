@@ -29,7 +29,7 @@ typedef struct {
     f32 upZ;
 } Camera;
 extern Sprite D_8011F2F0[];
-extern Racer D_8022A772[];
+extern Racer slotObjIds[];
 extern f32 D_802210A4, D_802210A8, D_802210AC, D_802210B0, D_802210B4, D_802210B8, D_802210BC, D_802210C0, D_802210C4;
 extern u16 D_8022B062;
 extern u8 D_8022AF3C[];
@@ -67,7 +67,7 @@ f32 func_801F9C8C(f32, f32);
     Sprite *second;
 
     zero = 0.0f;
-    first = &D_8011F2F0[D_8022A772[0].sprite];
+    first = &D_8011F2F0[slotObjIds[0].sprite];
     second = &D_8011F2F0[D_8022B062];
     D_802210A4 = first->x;
     D_802210A8 = first->y + 30.0f;
@@ -80,7 +80,7 @@ f32 func_801F9C8C(f32, f32);
     D_802210C4 = zero;
     updateRouteFlags(D_8022AF3C, 4, 0);
     n = D_8011F2F0[id].slot;
-    lead = D_8022A772[n / 3].sprite;
+    lead = slotObjIds[n / 3].sprite;
     zero = D_8011F2F0[lead].rotX;
     ry = D_8011F2F0[lead].rotY;
     rz = D_8011F2F0[lead].rotZ;

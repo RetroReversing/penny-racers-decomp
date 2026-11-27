@@ -1,4 +1,4 @@
-extern u8 D_8011F2FC[];
+extern u8 racerTimerFlags[];
 
 void func_8015E404(s32 **arg0, s32 arg1) {
     s32 *p;
@@ -6,7 +6,7 @@ void func_8015E404(s32 **arg0, s32 arg1) {
     s32 idx;
 
     idx = (arg1 & 0xFFFF) * 0x64;
-    if (*(D_8011F2FC + idx) != 0xFF) {
+    if (*(racerTimerFlags + idx) != 0xFF) {
         p = *arg0;
         *arg0 = p + 2;
         p[0] = 0xB6000000;
@@ -14,6 +14,6 @@ void func_8015E404(s32 **arg0, s32 arg1) {
         q = *arg0;
         *arg0 = q + 2;
         q[0] = 0xFA000000;
-        q[1] = *(D_8011F2FC + idx) | ~0xFF;
+        q[1] = *(racerTimerFlags + idx) | ~0xFF;
     }
 }

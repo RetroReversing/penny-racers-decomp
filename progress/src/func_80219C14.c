@@ -15,12 +15,12 @@ typedef s32 M2C_UNK32;
 M2C_UNK gfxDrawSprite(s32, M2C_UNK, M2C_UNK, M2C_UNK, s32); /* extern */
 M2C_UNK gfxSetup2DState();                            /* extern */
 M2C_UNK gfxDrawClippedTex8b(s32, M2C_UNK, M2C_UNK, M2C_UNK, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, M2C_UNK *, M2C_UNK *); /* extern */
-extern s16 D_8021E1A6;
+extern s16 carClassIndex;
 extern M2C_UNK D_80301DE8;
 extern M2C_UNK D_80303310;
 
 void func_80219C14(s32 arg0) {
     do { gfxSetup2DState(); } while (0);
     gfxDrawClippedTex8b(arg0, 0x3A, 0x2B, 0, 0, 0xD0, 0x1A, 0xD0, 0x1A, 0x40, 0x20, 0, 0, 0x13F, 0xEF, &D_80301DE8, &D_80303310);
-    gfxDrawSprite(arg0, 0xDC, 0xB4, 0xB, D_8021E1A6 + 0x43);
+    gfxDrawSprite(arg0, 0xDC, 0xB4, 0xB, carClassIndex + 0x43);
 }

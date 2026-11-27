@@ -15,7 +15,7 @@ extern s32 D_801E9994;
 extern u8 *D_801CA134;
 extern u8 *trackInfo;
 extern u8 D_801C5EF8[], D_801C6074[], D_801C618C[], D_801C631C[], D_801C6408[], D_801C6624[], D_801C673C[], D_801C687C[], trackPointTable[];
-extern u8 D_801C5ED8[], D_801C5EDC[], D_801C5EE0[], D_801C5EE4[], D_801C5EE8[], D_801C5EEC[], D_801C5EF0[], D_801C5EF4[], D_801C5E9C[];
+extern u8 D_801C5ED8[], D_801C5EDC[], D_801C5EE0[], D_801C5EE4[], D_801C5EE8[], D_801C5EEC[], D_801C5EF0[], D_801C5EF4[], menuCursorPos[];
 extern s32 D_8021AFDC;
 extern s32 menuChoice;
 extern s32 D_8021AFE0;
@@ -25,9 +25,9 @@ void playMenuSound(s32);
 void func_8020E650(void);
 void func_8020E788(void);
 void setScreenTransition(s32, s32, s32, s32, s32);
-void func_800DE38C(void);
-void func_800DE2E0(void);
-void func_80231C5C(void);
+void initModelTransforms(void);
+void initObjList(void);
+void createNoticeScreenObj(void);
 void func_801CF468(u16, s32, s32, s32);
 
 void func_8020CAF4(u16 id) {
@@ -90,7 +90,7 @@ void func_8020CAF4(u16 id) {
                 break;
             case 17:
                 D_801CA134 = trackPointTable;
-                trackInfo = D_801C5E9C;
+                trackInfo = menuCursorPos;
                 break;
             }
             playMenuSound(0x3D);
@@ -161,9 +161,9 @@ void func_8020CAF4(u16 id) {
     case 3:
         if (*D_8011F2F0[D_8018BC3C].f60 == 0) {
             D_8021AFE0 = 0;
-            func_800DE38C();
-            func_800DE2E0();
-            func_80231C5C();
+            initModelTransforms();
+            initObjList();
+            createNoticeScreenObj();
             func_801CF468(D_8018BC3C, 0, 0, 0);
             D_80168BB0 = menuChoice;
         }

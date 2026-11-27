@@ -19,7 +19,7 @@ extern u8 D_80315A10[];
 extern u8 D_80315A44[];
 void liftCopyFlags(void);
 void drawWaveObject(void);
-void func_801C1424(void);
+void animateWaveVertices(void);
 void drawWaveObjectB(void);
 void updateWaveVertices(void);
 void func_801C1C04(void);
@@ -43,12 +43,12 @@ void func_801B7970(H *arg0, E *arg1)
                         objCreate(0, i, 0x1, 0x80, 0x52, 0xFF, D_80315A10, liftCopyFlags, 0, x + -196.0f, y + 0.0f, z + 116.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
                         objCreate(0, i, 0x1, 0x80, 0x52, 0xFF, D_80315A10, liftCopyFlags, 0, x + -196.0f, y + 0.0f, z + -116.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
                         objCreate(0, i, 0x1, 0, 0x52, 0xFF, post, liftCopyFlags, 0, x + -196.0f, y + 2.0f, z + 0.0f, 0.0f, 90.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-                        objCreate(0, i, 0x2, 0, 0x51, 0xFF, D_801680B8, func_801C1424, drawWaveObject, x + -196.0f, y + 108.0f, z + 112.0f, 0.0f, 90.0f, 0.0f, 1.12f, 1.12f, 1.12f);
+                        objCreate(0, i, 0x2, 0, 0x51, 0xFF, D_801680B8, animateWaveVertices, drawWaveObject, x + -196.0f, y + 108.0f, z + 112.0f, 0.0f, 90.0f, 0.0f, 1.12f, 1.12f, 1.12f);
                     } else if (arg1->a == 0x3) {
                         objCreate(0, i, 0x1, 0x80, 0x52, 0xFF, D_80315A10, liftCopyFlags, 0, x + 196.0f, y + 0.0f, z + 116.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
                         objCreate(0, i, 0x1, 0x80, 0x52, 0xFF, D_80315A10, liftCopyFlags, 0, x + 196.0f, y + 0.0f, z + -116.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
                         objCreate(0, i, 0x1, 0, 0x52, 0xFF, post, liftCopyFlags, 0, x + 196.0f, y + 2.0f, z + 0.0f, 0.0f, 90.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-                        objCreate(0, i, 0x2, 0, 0x51, 0xFF, D_801680B8, func_801C1424, drawWaveObject, x + 196.0f, y + 108.0f, z + -112.0f, 0.0f, -90.0f, 0.0f, 1.12f, 1.12f, 1.12f);
+                        objCreate(0, i, 0x2, 0, 0x51, 0xFF, D_801680B8, animateWaveVertices, drawWaveObject, x + 196.0f, y + 108.0f, z + -112.0f, 0.0f, -90.0f, 0.0f, 1.12f, 1.12f, 1.12f);
                     }
                 }
             }
@@ -71,12 +71,12 @@ void func_801B7970(H *arg0, E *arg1)
                         objCreate(0, i, 0x1, 0x80, 0x52, 0xFF, D_80315A10, liftCopyFlags, 0, x + 116.0f, y + 0.0f, z + -196.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
                         objCreate(0, i, 0x1, 0x80, 0x52, 0xFF, D_80315A10, liftCopyFlags, 0, x + -116.0f, y + 0.0f, z + -196.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
                         objCreate(0, i, 0x1, 0, 0x52, 0xFF, post, liftCopyFlags, 0, x + 0.0f, y + 2.0f, z + -196.0f, 0.0f, 180.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-                        objCreate(0, i, 0x2, 0, 0x51, 0xFF, D_801680B8, func_801C1424, drawWaveObject, x + -112.0f, y + 108.0f, z + -196.0f, 0.0f, 0.0f, 0.0f, 1.12f, 1.12f, 1.12f);
+                        objCreate(0, i, 0x2, 0, 0x51, 0xFF, D_801680B8, animateWaveVertices, drawWaveObject, x + -112.0f, y + 108.0f, z + -196.0f, 0.0f, 0.0f, 0.0f, 1.12f, 1.12f, 1.12f);
                     } else if (arg1->a == 0x2) {
                         objCreate(0, i, 0x1, 0x80, 0x52, 0xFF, D_80315A10, liftCopyFlags, 0, x + 116.0f, y + 0.0f, z + 196.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
                         objCreate(0, i, 0x1, 0x80, 0x52, 0xFF, D_80315A10, liftCopyFlags, 0, x + -116.0f, y + 0.0f, z + 196.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
                         objCreate(0, i, 0x1, 0, 0x52, 0xFF, post, liftCopyFlags, 0, x + 0.0f, y + 2.0f, z + 196.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-                        objCreate(0, i, 0x2, 0, 0x51, 0xFF, D_801680B8, func_801C1424, drawWaveObject, x + 112.0f, y + 108.0f, z + 196.0f, 0.0f, 180.0f, 0.0f, 1.12f, 1.12f, 1.12f);
+                        objCreate(0, i, 0x2, 0, 0x51, 0xFF, D_801680B8, animateWaveVertices, drawWaveObject, x + 112.0f, y + 108.0f, z + 196.0f, 0.0f, 180.0f, 0.0f, 1.12f, 1.12f, 1.12f);
                     }
                 }
             }
@@ -153,7 +153,7 @@ void func_801B7970(H *arg0, E *arg1)
             objCreate(0, i, 0x1, 0x80, 0x52, 0xFF, D_80315A10, liftCopyFlags, 0, x + -116.0f, y + 0.0f, z + 196.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
             objCreate(0, i, 0x1, 0, 0x52, 0xFF, post, liftCopyFlags, 0, x + 0.0f, y + 2.0f, z + 196.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
             if (i == 0) {
-                objCreate(0, 0, 0x2, 0, 0x51, 0xFF, D_801680B8, func_801C1424, drawWaveObject, x + 112.0f, y + 108.0f, z + 196.0f, 0.0f, 180.0f, 0.0f, 1.12f, 1.12f, 1.12f);
+                objCreate(0, 0, 0x2, 0, 0x51, 0xFF, D_801680B8, animateWaveVertices, drawWaveObject, x + 112.0f, y + 108.0f, z + 196.0f, 0.0f, 180.0f, 0.0f, 1.12f, 1.12f, 1.12f);
             } else {
                 objCreate(0, i, 0x2, 0, 0x51, 0xFF, D_801680B8, updateWaveVertices, drawWaveObjectB, x + -112.0f, y + 108.0f, z + 196.0f, 0, 0, 0, 1.12f, 1.12f, 1.12f);
             }
@@ -162,7 +162,7 @@ void func_801B7970(H *arg0, E *arg1)
             objCreate(0, i, 0x1, 0x80, 0x52, 0xFF, D_80315A10, liftCopyFlags, 0, x + -116.0f, y + 0.0f, z + -196.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
             objCreate(0, i, 0x1, 0, 0x52, 0xFF, post, liftCopyFlags, 0, x + 0.0f, y + 2.0f, z + -196.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
             if (i == 0) {
-                objCreate(0, 0, 0x2, 0, 0x51, 0xFF, D_801680B8, func_801C1424, drawWaveObject, x + -112.0f, y + 108.0f, z + -196.0f, 0.0f, 0.0f, 0.0f, 1.12f, 1.12f, 1.12f);
+                objCreate(0, 0, 0x2, 0, 0x51, 0xFF, D_801680B8, animateWaveVertices, drawWaveObject, x + -112.0f, y + 108.0f, z + -196.0f, 0.0f, 0.0f, 0.0f, 1.12f, 1.12f, 1.12f);
             } else {
                 objCreate(0, i, 0x2, 0, 0x51, 0xFF, D_801680B8, updateWaveVertices, drawWaveObjectB, x + 112.0f, y + 108.0f, z + -196.0f, 0, 180.0f, 0, 1.12f, 1.12f, 1.12f);
             }
@@ -171,7 +171,7 @@ void func_801B7970(H *arg0, E *arg1)
             objCreate(0, i, 0x1, 0x80, 0x52, 0xFF, D_80315A10, liftCopyFlags, 0, x + 196.0f, y + 0.0f, z + -116.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
             objCreate(0, i, 0x1, 0, 0x52, 0xFF, post, liftCopyFlags, 0, x + 196.0f, y + 2.0f, z + 0.0f, 0.0f, 90.0f, 0.0f, 1.0f, 1.0f, 1.0f);
             if (i == 0) {
-                objCreate(0, 0, 0x2, 0, 0x51, 0xFF, D_801680B8, func_801C1424, drawWaveObject, x + 196.0f, y + 108.0f, z + -112.0f, 0.0f, 270.0f, 0.0f, 1.12f, 1.12f, 1.12f);
+                objCreate(0, 0, 0x2, 0, 0x51, 0xFF, D_801680B8, animateWaveVertices, drawWaveObject, x + 196.0f, y + 108.0f, z + -112.0f, 0.0f, 270.0f, 0.0f, 1.12f, 1.12f, 1.12f);
             } else {
                 objCreate(0, i, 0x2, 0, 0x51, 0xFF, D_801680B8, updateWaveVertices, drawWaveObjectB, x + 196.0f, y + 108.0f, z + 112.0f, 0, 90.0f, 0, 1.12f, 1.12f, 1.12f);
             }
@@ -180,7 +180,7 @@ void func_801B7970(H *arg0, E *arg1)
             objCreate(0, i, 0x1, 0x80, 0x52, 0xFF, D_80315A10, liftCopyFlags, 0, x + -196.0f, y + 0.0f, z + -116.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
             objCreate(0, i, 0x1, 0, 0x52, 0xFF, post, liftCopyFlags, 0, x + -196.0f, y + 2.0f, z + 0.0f, 0.0f, 90.0f, 0.0f, 1.0f, 1.0f, 1.0f);
             if (i == 0) {
-                objCreate(0, 0, 0x2, 0, 0x51, 0xFF, D_801680B8, func_801C1424, drawWaveObject, x + -196.0f, y + 108.0f, z + 112.0f, 0.0f, 90.0f, 0.0f, 1.12f, 1.12f, 1.12f);
+                objCreate(0, 0, 0x2, 0, 0x51, 0xFF, D_801680B8, animateWaveVertices, drawWaveObject, x + -196.0f, y + 108.0f, z + 112.0f, 0.0f, 90.0f, 0.0f, 1.12f, 1.12f, 1.12f);
             } else {
                 objCreate(0, i, 0x2, 0, 0x51, 0xFF, D_801680B8, updateWaveVertices, drawWaveObjectB, x + -196.0f, y + 108.0f, z + -112.0f, 0, 270.0f, 0, 1.12f, 1.12f, 1.12f);
             }

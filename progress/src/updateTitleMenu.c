@@ -8,7 +8,7 @@ extern u8 D_80189B34, D_801E87E3;
 extern volatile u8 D_80189B36;
 extern s8 D_80189C9D[];
 extern u16 D_8006FAF0[];
-extern s16 skipFirstRowFlag, D_8021E1A6;
+extern s16 skipFirstRowFlag, carClassIndex;
 extern u16 D_8018A44A[];
 s32 func_8014BAC0(u16);
 void objCreate();
@@ -94,7 +94,7 @@ void func_801DD938(s32, s32, s32, s32, s32, s32, s32, s32, s32, s32);
             self->vy = 192.0f;
             self->f34 = 0.0f;
             self->state = 0xFF;
-            if ((D_8018A44A[D_8021E1A6] & 0x1FF) != 0x1FF) {
+            if ((D_8018A44A[carClassIndex] & 0x1FF) != 0x1FF) {
                 self->state = 0x13;
                 self->f40 = 0x20;
             }

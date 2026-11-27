@@ -5,7 +5,7 @@ void func_80150DE0(void);
 void func_80150E48(void);
 void func_80150ED4(void);
 void func_80151154(void);
-void func_80151178(void);
+void stepRacerTimer(void);
 void func_801513E4(void);
 void objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 void func_80151564(void) {
@@ -23,12 +23,12 @@ void func_80151564(void) {
     objCreate(0, 3, 2, 0, 81, 150, &D_8016BC18[0x60], liftCopyFlags, func_80151154, 848.0f, 1.0f, -842.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
     objCreate(0, 4, 2, 0, 81, 150, &D_8016BC18[0x60], liftCopyFlags, func_80151154, 498.0f, 1.0f, -967.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
     objCreate(0, 19, 2, 0, 81, 150, &D_8016BC18[0x60], liftCopyFlags, func_80151154, 225.990005f, 50.2999992f, 2020.0f, 0.0f, 0.0f, -5.69999981f, 0.5f, 1.0f, 0.625f);
-    objCreate(0, 6, 2, 128, 81, 255, D_802398E8, func_80151178, func_801513E4, -900.0f, 65.0f, -1580.0f, 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f);
-    objCreate(0, 6, 2, 128, 81, 255, D_802398E8, func_80151178, func_801513E4, -900.0f, 65.0f, -1420.0f, 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f);
-    objCreate(0, 7, 2, 128, 81, 255, D_802398E8, func_80151178, func_801513E4, -1468.85999f, 65.0f, -1468.85999f, 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f);
-    objCreate(0, 7, 2, 128, 81, 255, D_802398E8, func_80151178, func_801513E4, -1355.14001f, 65.0f, -1355.14001f, 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f);
-    objCreate(0, 8, 2, 128, 81, 255, D_802398E8, func_80151178, func_801513E4, -1580.0f, 65.0f, -900.0f, 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f);
-    objCreate(0, 8, 2, 128, 81, 255, D_802398E8, func_80151178, func_801513E4, -1420.0f, 65.0f, -900.0f, 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f);
-    objCreate(0, 9, 2, 128, 81, 255, D_802398E8, func_80151178, func_801513E4, -1468.85999f, 65.0f, -331.140015f, 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f);
-    objCreate(0, 9, 2, 128, 81, 255, D_802398E8, func_80151178, func_801513E4, -1355.14001f, 65.0f, -444.859985f, 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f);
+    objCreate(0, 6, 2, 128, 81, 255, D_802398E8, stepRacerTimer, func_801513E4, -900.0f, 65.0f, -1580.0f, 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f);
+    objCreate(0, 6, 2, 128, 81, 255, D_802398E8, stepRacerTimer, func_801513E4, -900.0f, 65.0f, -1420.0f, 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f);
+    objCreate(0, 7, 2, 128, 81, 255, D_802398E8, stepRacerTimer, func_801513E4, -1468.85999f, 65.0f, -1468.85999f, 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f);
+    objCreate(0, 7, 2, 128, 81, 255, D_802398E8, stepRacerTimer, func_801513E4, -1355.14001f, 65.0f, -1355.14001f, 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f);
+    objCreate(0, 8, 2, 128, 81, 255, D_802398E8, stepRacerTimer, func_801513E4, -1580.0f, 65.0f, -900.0f, 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f);
+    objCreate(0, 8, 2, 128, 81, 255, D_802398E8, stepRacerTimer, func_801513E4, -1420.0f, 65.0f, -900.0f, 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f);
+    objCreate(0, 9, 2, 128, 81, 255, D_802398E8, stepRacerTimer, func_801513E4, -1468.85999f, 65.0f, -331.140015f, 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f);
+    objCreate(0, 9, 2, 128, 81, 255, D_802398E8, stepRacerTimer, func_801513E4, -1355.14001f, 65.0f, -444.859985f, 0.0f, 0.0f, 0.0f, 2.0f, 2.0f, 2.0f);
 }

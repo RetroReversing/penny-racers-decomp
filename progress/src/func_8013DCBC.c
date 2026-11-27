@@ -1,4 +1,4 @@
-extern u8 D_8011F2FC[];
+extern u8 racerTimerFlags[];
 extern u8 lastMaterial;
 
 void func_8013DCBC(u32 **arg0, s32 arg1) {
@@ -8,7 +8,7 @@ void func_8013DCBC(u32 **arg0, s32 arg1) {
     temp_a2 = *arg0;
     *arg0 = temp_a2 + 2;
     temp_a2[0] = 0xFA000000;
-    temp_a2[1] = D_8011F2FC[(arg1 & 0xFFFF) * 0x64] | ~0xFF;
+    temp_a2[1] = racerTimerFlags[(arg1 & 0xFFFF) * 0x64] | ~0xFF;
     temp_v1 = *arg0;
     *arg0 = temp_v1 + 2;
     temp_v1[0] = 0xB6000000;

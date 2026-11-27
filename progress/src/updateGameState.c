@@ -27,8 +27,8 @@ extern void func_800341C0(u64);
   switch (gameState)
   {
     case 0x384:
-      func_800DE38C();
-      func_800DE2E0();
+      initModelTransforms();
+      initObjList();
       D_80046831 = 1;
       D_80046832 = 0;
       (*(u8 *)&D_80046830) = 0;
@@ -65,7 +65,7 @@ extern void func_800341C0(u64);
       break;
 
     case 9:
-      func_80143F68();
+      runSceneStep();
       D_8006FE58 = 1;
       break;
 
@@ -80,7 +80,7 @@ extern void func_800341C0(u64);
       break;
 
     case 0x12:
-      func_8022F0E0();
+      initCreditsScreen();
       gameState = 0x13;
       break;
 

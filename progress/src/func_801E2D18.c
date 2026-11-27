@@ -1,4 +1,4 @@
-extern u8 D_801C5E9C[];
+extern u8 menuCursorPos[];
 extern u8 trackPointTable[];
 extern u8 D_801F18E4[];
 extern u8 D_801F18F8[];
@@ -12,10 +12,10 @@ void func_801E2D18(void) {
     u32 i;
     u32 off;
 
-    D_801C5E9C[0] = D_801F18E4[0];
-    D_801C5E9C[1] = D_801F18E4[1];
-    D_801C5E9C[2] = D_801F18E4[2];
-    D_801C5E9C[3] = D_801F18E4[3];
+    menuCursorPos[0] = D_801F18E4[0];
+    menuCursorPos[1] = D_801F18E4[1];
+    menuCursorPos[2] = D_801F18E4[2];
+    menuCursorPos[3] = D_801F18E4[3];
     i = 0;
     b0 = (u32)D_801F18F8;
     b1 = (u32)D_801F18F9;

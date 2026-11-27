@@ -1,5 +1,5 @@
 typedef struct { u8 time; u8 pad[0x63]; } Rec8011F2FC;
-extern Rec8011F2FC D_8011F2FC[];
+extern Rec8011F2FC racerTimerFlags[];
 extern u16 D_8006FB1C;
 extern char D_801839E0[];
 extern void debugPrintf();
@@ -11,7 +11,7 @@ void func_80164364(u32 **arg0, u16 arg1) {
     u32 a;
     u32 *p;
 
-    switch (D_8011F2FC[arg1].time) {
+    switch (racerTimerFlags[arg1].time) {
     case 0 ... 0x77:
         r = 0xFF;
         g = 0xFF;
@@ -51,7 +51,7 @@ void func_80164364(u32 **arg0, u16 arg1) {
         debugPrintf(D_801839E0);
         return;
     }
-    a = D_8011F2FC[arg1].time;
+    a = racerTimerFlags[arg1].time;
     if (!(D_8006FB1C & 1)) {
         b = 0xFF;
         g = 0xFF;

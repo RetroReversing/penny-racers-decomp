@@ -19,7 +19,7 @@ f32 sqrtf(f32);
 extern char D_8006FAF0[];
 extern char sRowBoard[];
 extern char sNodeFlags[];
-extern char D_8011F2FC[];
+extern char racerTimerFlags[];
 extern char D_8011F2FD[];
 extern char D_8011F304[];
 extern char D_8011F308[];
@@ -44,7 +44,7 @@ extern char D_80183B18[];
 extern char D_80183B28[];
 extern char D_80183B38[];
 extern char D_80189C84[];
-extern u16 D_80189C96;
+extern u16 playerFadeObj;
 extern u8 D_80189CC8;
 extern char D_8018A264[];
 extern char D_8018A26E[];
@@ -72,20 +72,20 @@ extern char D_80221094[];
 extern char D_80221098[];
 extern char D_8022109C[];
 extern char D_802210A0[];
-extern char D_8022A772[];
+extern char slotObjIds[];
 extern char D_8022A980[];
 extern char D_8022AD04[];
 extern char D_8022AD64[];
 extern char D_8022AF3C[];
 extern unsigned char D_8022AFE0[];
 extern char D_8022AFE9[];
-extern char D_80237740[];
+extern char carPartSpriteInfo[];
 extern char D_80237D18[];
-extern char D_80237FC8[];
+extern char carPartFrameUvs[];
 extern char D_80237FCC[];
 extern char D_80237FD0[];
 extern char D_80237FD4[];
-extern char D_802387D8[];
+extern char carPartFrameTable[];
 extern s32 func_8012FFF0;
 extern s32 func_80135544;
 extern s32 func_80135C64;
@@ -276,10 +276,10 @@ void func_8012E4DC(u16 arg0)
   __base_D_8011F308 = D_8011F308; do { } while (0);
   sp16E = arg0;
   temp_a0 = inline_fn234(sp16E);
-  temp_s4 = *(D_8011F2FC + temp_a0);
+  temp_s4 = *(racerTimerFlags + temp_a0);
   temp_v1 = *((u16 *) (playerSlots + temp_a0));
   temp_a0 = inline_fn2(temp_s4) / 3;
-  temp_fp = *((u16 *) (D_8022A772 + (inline_fn2(temp_a0) * 0x8F0)));
+  temp_fp = *((u16 *) (slotObjIds + (inline_fn2(temp_a0) * 0x8F0)));
   if (temp_v1 != 0)
   {
     temp_a0_2 = inline_fn2(temp_a0);
@@ -610,7 +610,7 @@ void func_8012E4DC(u16 arg0)
         temp_s0_4 = temp_a0 & 0xFFFF;
         if (D_80189CC8 == 0)
         {
-          *(D_8011F2FC + inline_fn234(D_801E975A)) = 0;
+          *(racerTimerFlags + inline_fn234(D_801E975A)) = 0;
         }
         if (temp_s0_4 < 2U)
         {
@@ -699,7 +699,7 @@ temp_a0_10 = inline_fn2(temp_a0) * 0x8F0;
         if (D_80167E60 == D_800DD2C0)
         {
           *(D_8011F2FD + inline_fn234(D_80190C90)) = 2;
-          *(D_8011F2FD + inline_fn234(D_80189C96)) = 2;
+          *(D_8011F2FD + inline_fn234(playerFadeObj)) = 2;
           var_a0_3 = temp_a0 & 0xFFFF;
           if (D_800DD2C0 == 1)
           {
@@ -737,10 +737,10 @@ break;
         *((void **) (((char *) (*((s32 *) (sNodeTable + inline_fn234(*((u16 *) (D_8011F304 + temp_a0_13))))))) + 4)) = (void *) (((*(D_80183AF0 + __repair_web_temp_s1_3)) * 0xC) + D_80237D18);
         func_800DF1E0(*((u16 *) (D_8011F304 + temp_a0_13)), (__repair_web_temp_s1_3 * 0x8F0) + D_8022A980);
         temp_a0_14 = inline_fn234((temp_fp & 0xFFFF) + 5);
-        *(__base_D_8011F308 + temp_a0_14) = *((f32 *) (D_80237FC8 + ((*((((*(D_80183AF4 + __repair_web_temp_s1_3)) * 0x10) + D_802387D8) + (*(D_80183AF0 + __repair_web_temp_s1_3)))) * 0x10)));
-        *((f32 *) (sPrimColorG + temp_a0_14)) = *((f32 *) inline_fn((*(D_80183AF4 + __repair_web_temp_s1_3)) * 0x10, D_802387D8, D_80183AF0 + __repair_web_temp_s1_3));
-        *(f32 *)(sPrimColorB + temp_a0_14) = *((f32 *) (D_80237FD0 + ((*((((*(D_80183AF4 + __repair_web_temp_s1_3)) * 0x10) + D_802387D8) + (*(D_80183AF0 + __repair_web_temp_s1_3)))) * 0x10)));
-        *((f32 *) (D_8011F314 + temp_a0_14)) = *((f32 *) (D_80237FD4 + ((*((((*(D_80183AF4 + __repair_web_temp_s1_3)) * 0x10) + D_802387D8) + (*(D_80183AF0 + __repair_web_temp_s1_3)))) * 0x10)));
+        *(__base_D_8011F308 + temp_a0_14) = *((f32 *) (carPartFrameUvs + ((*((((*(D_80183AF4 + __repair_web_temp_s1_3)) * 0x10) + carPartFrameTable) + (*(D_80183AF0 + __repair_web_temp_s1_3)))) * 0x10)));
+        *((f32 *) (sPrimColorG + temp_a0_14)) = *((f32 *) inline_fn((*(D_80183AF4 + __repair_web_temp_s1_3)) * 0x10, carPartFrameTable, D_80183AF0 + __repair_web_temp_s1_3));
+        *(f32 *)(sPrimColorB + temp_a0_14) = *((f32 *) (D_80237FD0 + ((*((((*(D_80183AF4 + __repair_web_temp_s1_3)) * 0x10) + carPartFrameTable) + (*(D_80183AF0 + __repair_web_temp_s1_3)))) * 0x10)));
+        *((f32 *) (D_8011F314 + temp_a0_14)) = *((f32 *) (D_80237FD4 + ((*((((*(D_80183AF4 + __repair_web_temp_s1_3)) * 0x10) + carPartFrameTable) + (*(D_80183AF0 + __repair_web_temp_s1_3)))) * 0x10)));
       }
       temp_s1_3 = temp_a0 & 0xFFFF;
       if ((*((s32 *) (D_801E999C + (temp_s1_3 * 0x70)))) == 1)
@@ -773,11 +773,11 @@ break;
         }
         temp_a1_2 = inline_fn2(temp_a0);
         ;
-        *((void **) (((char *) (*((s32 *) (sNodeTable + inline_fn234(var_v0_3 + 5))))) + 4)) = (void *) (((*(D_80183AF4 + temp_a1_2)) * 0xC) + D_80237740);
-        *(__base_D_8011F308 + inline_fn234(var_v0_3 + 5)) = *((f32 *) (D_80237FC8 + ((*((((*(D_80183AF4 + temp_a1_2)) * 0x10) + D_802387D8) + (*(D_80183AF0 + temp_a1_2)))) * 0x10)));
-        *((f32 *) (sPrimColorG + inline_fn234(var_v0_3 + 5))) = *((f32 *) inline_fn((*(D_80183AF4 + temp_a1_2)) * 0x10, D_802387D8, D_80183AF0 + temp_a1_2));
-        *(f32 *)(sPrimColorB + inline_fn234(var_v0_3 + 5)) = *((f32 *) (D_80237FD0 + ((*((((*(D_80183AF4 + temp_a1_2)) * 0x10) + D_802387D8) + (*(D_80183AF0 + temp_a1_2)))) * 0x10)));
-        *((f32 *) (D_8011F314 + inline_fn234(var_v0_3 + 5))) = *((f32 *) (D_80237FD4 + ((*((((*(D_80183AF4 + temp_a1_2)) * 0x10) + D_802387D8) + (*(D_80183AF0 + temp_a1_2)))) * 0x10)));
+        *((void **) (((char *) (*((s32 *) (sNodeTable + inline_fn234(var_v0_3 + 5))))) + 4)) = (void *) (((*(D_80183AF4 + temp_a1_2)) * 0xC) + carPartSpriteInfo);
+        *(__base_D_8011F308 + inline_fn234(var_v0_3 + 5)) = *((f32 *) (carPartFrameUvs + ((*((((*(D_80183AF4 + temp_a1_2)) * 0x10) + carPartFrameTable) + (*(D_80183AF0 + temp_a1_2)))) * 0x10)));
+        *((f32 *) (sPrimColorG + inline_fn234(var_v0_3 + 5))) = *((f32 *) inline_fn((*(D_80183AF4 + temp_a1_2)) * 0x10, carPartFrameTable, D_80183AF0 + temp_a1_2));
+        *(f32 *)(sPrimColorB + inline_fn234(var_v0_3 + 5)) = *((f32 *) (D_80237FD0 + ((*((((*(D_80183AF4 + temp_a1_2)) * 0x10) + carPartFrameTable) + (*(D_80183AF0 + temp_a1_2)))) * 0x10)));
+        *((f32 *) (D_8011F314 + inline_fn234(var_v0_3 + 5))) = *((f32 *) (D_80237FD4 + ((*((((*(D_80183AF4 + temp_a1_2)) * 0x10) + carPartFrameTable) + (*(D_80183AF0 + temp_a1_2)))) * 0x10)));
       }
     }
     else

@@ -6,7 +6,7 @@ extern MenuRecord D_8011F2F0[];
 extern MenuState sMenuState;
 extern OptionMap D_8021DEB0;
 extern u8 D_801CA13C;
-extern u8 D_801C5E9C[];
+extern u8 menuCursorPos[];
 extern u8 D_801C5EA0;
 extern u8 D_801C5EA1;
 extern Fade sFadeLevel;
@@ -72,10 +72,10 @@ void updateMenuSelect(u16 id) {
             case 0:
                 sMenuState.timer = 0x20;
                 if (D_801C5EA0 == 0) {
-                    D_801C5E9C[0] = 3;
-                    D_801C5E9C[1] = 5;
-                    D_801C5E9C[2] = 0;
-                    D_801C5E9C[3] = 0;
+                    menuCursorPos[0] = 3;
+                    menuCursorPos[1] = 5;
+                    menuCursorPos[2] = 0;
+                    menuCursorPos[3] = 0;
                 }
                 D_801C5EA1 = 0;
                 break;

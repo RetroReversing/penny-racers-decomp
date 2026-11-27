@@ -12,13 +12,13 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-extern char D_8011F2FC[];
+extern char racerTimerFlags[];
 
 void func_8015FD04(void **arg0, s32 arg1) {
     s32 temp_a1;
     void *temp_v1;
 
-    temp_a1 = (*(D_8011F2FC + ((arg1 & 0xFFFF) * 0x64)) * 2) & 0xFF;
+    temp_a1 = (*(racerTimerFlags + ((arg1 & 0xFFFF) * 0x64)) * 2) & 0xFF;
     if (temp_a1 != 0xFE) {
         temp_v1 = *arg0;
         *arg0 = temp_v1 + 8;

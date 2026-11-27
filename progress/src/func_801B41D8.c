@@ -1,5 +1,5 @@
 extern u8 D_8011F2F0[];
-extern u8 D_8011F2FC[];
+extern u8 racerTimerFlags[];
 
 void func_801B41D8(u16 arg0)
 {
@@ -10,14 +10,14 @@ void func_801B41D8(u16 arg0)
     i = (arg0 & 0xFFFF) * 100;
     if (D_8011F2F0[i] < 0x1E)
     {
-        D_8011F2FC[i] -= 6;
+        racerTimerFlags[i] -= 6;
     }
     else
     {
         j = (arg0 & 0xFFFF) * 100;
         if ((u8) (D_8011F2F0[j] - 0x1E) < 0x1E)
         {
-            D_8011F2FC[j] += 6;
+            racerTimerFlags[j] += 6;
         }
     }
     k = (arg0 & 0xFFFF) * 100;

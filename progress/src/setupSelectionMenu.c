@@ -29,15 +29,15 @@ typedef struct {
     s32 w[13];
 } Part;
 extern Sprite D_8011F2F0[];
-extern u16 D_8021EEB8;
+extern u16 noticeColorId;
 extern u8 D_8021E200;
-extern Menu D_8021E189;
+extern Menu noticeFlag;
 extern u8 D_404F10[];
 extern u8 D_40A890[];
 extern u8 D_8030BD90[];
 extern s32 D_8021AFDC;
 extern s8 menuInputLock[];
-extern u8 D_8021E22F[][8][34];
+extern u8 randomSequenceTable[][8][34];
 extern s8 D_8021E231[];
 extern Pick selectionMenu;
 extern u8 D_8021F260[];
@@ -69,20 +69,20 @@ void func_8013DD2C();
     s32 index;
     s32 tileRow;
 
-    D_8011F2F0[D_8021EEB8].x = 0.0f;
-    D_8011F2F0[D_8021EEB8].y = 0.0f;
-    D_8011F2F0[D_8021EEB8].z = 255.0f;
+    D_8011F2F0[noticeColorId].x = 0.0f;
+    D_8011F2F0[noticeColorId].y = 0.0f;
+    D_8011F2F0[noticeColorId].z = 255.0f;
     if (D_8021E200 == 0) {
         func_80203B04();
     }
-    D_8021E189.f7B = D_8021E189.f1A;
-    D_8021E189.f0 = 0;
-    D_8021E189.f80 = 2;
-    D_8021E189.f79 = 1;
+    noticeFlag.f7B = noticeFlag.f1A;
+    noticeFlag.f0 = 0;
+    noticeFlag.f80 = 2;
+    noticeFlag.f79 = 1;
     dmaRomToRam(D_404F10, D_8030BD90, D_40A890 - D_404F10);
     if (D_8021AFDC == 0x1C) {
         for (index = 0; index < 8; index++) {
-            selectionMenu.list[index] = D_8021E22F[menuInputLock[0]][index][0];
+            selectionMenu.list[index] = randomSequenceTable[menuInputLock[0]][index][0];
         }
         selectionMenu.f0 = 0;
         selectionMenu.fC = 1;

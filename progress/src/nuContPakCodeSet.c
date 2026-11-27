@@ -13,10 +13,10 @@ typedef s32 M2C_UNK32;
 #endif
 
 s32 func_8003DAA0();
-extern char D_80046D60[];
-extern char D_80046D64[];
+extern char pfsCompanyCode[];
+extern char pfsGameCode[];
 
 void nuContPakCodeSet(s32 arg0, s32 *arg1) {
-    func_8003DAA0(arg0, &D_80046D60, (s32 *)2);
-    func_8003DAA0(arg1, &D_80046D64, 4);
+    func_8003DAA0(arg0, &pfsCompanyCode, (s32 *)2);
+    func_8003DAA0(arg1, &pfsGameCode, 4);
 }

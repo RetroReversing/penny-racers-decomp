@@ -13,12 +13,12 @@ typedef s32 M2C_UNK32;
 #endif
 
 M2C_UNK func_80205E04(M2C_UNK *, f32, u8);      /* extern */
-M2C_UNK func_80211C7C(M2C_UNK);                     /* extern */
+M2C_UNK updateColorCycle(M2C_UNK);                     /* extern */
 extern u8 D_8021B084;
 extern M2C_UNK D_8021B30C;
 
 void func_8020C948(void) {
-    do { func_80211C7C(0x14); } while (0);
+    do { updateColorCycle(0x14); } while (0);
     func_80205E04(&D_8021B30C, 43.0f, D_8021B084);
     if (D_8021B084 == 0) {
         D_8021B084 = 1;

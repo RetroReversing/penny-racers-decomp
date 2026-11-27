@@ -1,4 +1,4 @@
-extern u16 D_8011F330[][50];
+extern u16 noticeStates[][50];
 extern u8 D_801E9798;
 extern s8 D_8021E15D;
 extern s8 menuInputLock;
@@ -27,14 +27,14 @@ void gfxSetPrimColor(s32, u16, u16, u16, u16);
 void gfxDrawSprite(s32, s16, s16, s32, s32);
 void drawPanelFrame(s32, s32, s32, s32, s32, void *, void *);
 void gfxDrawText(s32, u16, u16, s32, void *, void *, s32, void *, s32, s32, s32, s32);
-void func_801CAD00(s32, u16, u16, s32, void *, void *, s32, void *, s32, s32, s32, s32, s32, s32);
-void func_801CA528(s32, u16, u16, s32, void *, void *);
+void drawWrappedText(s32, u16, u16, s32, void *, void *, s32, void *, s32, s32, s32, s32, s32, s32);
+void drawGlyphCell(s32, u16, u16, s32, void *, void *);
 
 void func_802134EC(s32 gfx, u16 id)
 {
     s32 i;
 
-    switch (D_8011F330[id][0]) {
+    switch (noticeStates[id][0]) {
     case 0:
         D_801E9798 = 0;
         break;
@@ -70,11 +70,11 @@ void func_802134EC(s32 gfx, u16 id)
         gfxDrawText(gfx, 0x28, 0x64, 0xA, D_801D4390, D_8021C6CC[0], 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC);
         gfxDrawText(gfx, 0x28, 0x74, 0xA, D_801D4390, D_8021C6CC[1], 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC);
         gfxDrawText(gfx, 0x28, 0x84, 0xA, D_801D4390, D_8021C6CC[2], 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC);
-        func_801CAD00(gfx, 0xFA, 0x78, 0xA, D_801D4390, D_8021C6CC[4], 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC, 0x15, 0xE);
-        func_801CAD00(gfx, 0xFA, 0x86, 0xA, D_801D4390, D_8021C6CC[3], 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC, 0x15, 0xE);
+        drawWrappedText(gfx, 0xFA, 0x78, 0xA, D_801D4390, D_8021C6CC[4], 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC, 0x15, 0xE);
+        drawWrappedText(gfx, 0xFA, 0x86, 0xA, D_801D4390, D_8021C6CC[3], 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC, 0x15, 0xE);
         if (D_801E9798 < 0xF) {
-        func_801CA528(gfx, 0xE2, (D_8021B678 + 2) * 14 + 0x5C, 0x11E, D_801CF4C8, D_801D4390);
-        func_801CA528(gfx, 0xEC, (D_8021B678 + 2) * 14 + 0x5C, 0x11F, D_801CF4C8, D_801D4390);
+        drawGlyphCell(gfx, 0xE2, (D_8021B678 + 2) * 14 + 0x5C, 0x11E, D_801CF4C8, D_801D4390);
+        drawGlyphCell(gfx, 0xEC, (D_8021B678 + 2) * 14 + 0x5C, 0x11F, D_801CF4C8, D_801D4390);
         }
         }
         if (D_8021B06B == 1) {
@@ -135,5 +135,5 @@ void func_802134EC(s32 gfx, u16 id)
         }
         return;
     }
-    D_8011F330[id][0]++;
+    noticeStates[id][0]++;
 }

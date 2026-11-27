@@ -43,7 +43,7 @@ extern Menu D_80190C98;
 extern Sel D_80189C98;
 extern Mode D_80189B34;
 extern Pick D_80189948;
-extern s16 D_8021E1A6;
+extern s16 carClassIndex;
 extern u8 D_8021E1A7;
 extern u16 D_8018A44A[];
 extern u8 D_8006FB38[];
@@ -60,7 +60,7 @@ extern s32 D_8021AFDC;
 extern s32 D_8021AFE0;
 extern s32 D_80168BB0;
 
-extern void func_80211C7C();
+extern void updateColorCycle();
 extern void func_8002C410();
 extern void func_8014843C();
 extern void buildRandomMasks();
@@ -76,7 +76,7 @@ extern void func_8012AD20();
 extern s32 func_8014AAE8();
 extern s32 func_8014AB2C();
 extern s32 func_80148260();
-extern void func_80148B44();
+extern void refreshPickFlags();
 extern u16 func_80149220();
 extern s32 func_8014BAC0();
 extern s32 getMenuNavMask();
@@ -84,21 +84,21 @@ extern void playMenuSound();
 extern void func_8014BFFC();
 extern void func_8014B410();
 extern void func_80028100();
-extern void func_800DE38C();
-extern void func_800DE2E0();
-extern void func_80231C5C();
+extern void initModelTransforms();
+extern void initObjList();
+extern void createNoticeScreenObj();
 extern void func_801CF468();
-extern void func_8014674C();
+extern void updateMenuNav();
 extern void func_8014ABD8();
 extern void func_8020FED8();
 extern void func_8014AFD8();
 extern void func_8014B048();
 extern void func_8014ACD0();
-extern void func_8014ADA4();
+extern void drawNoticeIcon();
 extern void func_80146970();
 extern void updateDemoInput();
-extern void func_80146EC4();
-extern void func_801470F8();
+extern void menuConfirmTask();
+extern void drawYesNoPrompt();
 extern void updateTitleMenu();
 extern void func_801478F0();
 extern s16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *,
@@ -117,10 +117,10 @@ void func_80144808(u16 arg0)
     s32 b;
     void (*fn)();
 
-    func_80211C7C(0x14);
+    updateColorCycle(0x14);
     switch (obj->state) {
     case 0:
-        if (!(D_80189B34.flags & 0x80) && (D_8018A44A[D_8021E1A6] & 0x1FF) == 0x1FF) {
+        if (!(D_80189B34.flags & 0x80) && (D_8018A44A[carClassIndex] & 0x1FF) == 0x1FF) {
             obj->state = 0x210;
             break;
         }
@@ -160,7 +160,7 @@ void func_80144808(u16 arg0)
         }
         func_8014981C(D_80189C98.pl[1].id);
         D_80189C98.unk4 = func_80149110();
-        *id3 = SPAWN0(0x4A, 0, func_8014674C, 0);
+        *id3 = SPAWN0(0x4A, 0, updateMenuNav, 0);
         f = 0.9f;
         for (i = 0; i < D_8018A274.count; i++) {
             D_80190C98.ids[i].v = func_80149B38(i, D_8018A274.sCars[i] & 0xF, 1.0f, f);
@@ -178,7 +178,7 @@ void func_80144808(u16 arg0)
         D_8011F2F0[*id2].unk18 = -2.259998f;
         SPAWN0(0x5E, 0xFF, func_8014AFD8, func_8014B048);
         if (D_80189C98.flags.all & 0x1000) {
-            D_80190C98.ids[5].v = SPAWN0(0x59, 0xFF, func_8014ACD0, func_8014ADA4);
+            D_80190C98.ids[5].v = SPAWN0(0x59, 0xFF, func_8014ACD0, drawNoticeIcon);
             D_80189C98.flags.all &= 0xEFFF;
         }
         D_80189B34.flags |= 0x10;
@@ -206,7 +206,7 @@ void func_80144808(u16 arg0)
     case 0x31:
         D_8011F2F0[*id2].unk18 = -2.259998f;
         D_80189B34.flags |= 0x10;
-        func_80148B44(0, D_80189C98.pl[0].colour);
+        refreshPickFlags(0, D_80189C98.pl[0].colour);
         D_80190C98.win.unk0 = 0x40;
         D_80190C98.win.unk2 = 0x21;
         D_80190C98.win.unk4 = 0;
@@ -237,7 +237,7 @@ void func_80144808(u16 arg0)
         D_80189C98.pl[1].unk1 = (D_80189C98.pl[1].pos = func_80148260(D_80189C98.pl[1].id, 1)) - i;
     case 0x41:
         D_80189B34.flags |= 0x10;
-        func_80148B44(1, D_80189C98.pl[1].colour);
+        refreshPickFlags(1, D_80189C98.pl[1].colour);
         D_80190C98.win.unk0 = 0x44;
         D_80190C98.win.unk2 = 0x31;
         D_80190C98.win.unk4 = 1;
@@ -292,7 +292,7 @@ void func_80144808(u16 arg0)
     case 0x50:
         D_80189B34.flags |= 0x10;
         D_80189C98.flags.all &= 0x7FFF;
-        *id3 = SPAWN0(0x5E, 0, func_80146EC4, func_801470F8);
+        *id3 = SPAWN0(0x5E, 0, menuConfirmTask, drawYesNoPrompt);
         obj->state = 0x51;
     case 0x51:
         if (!(D_80189B34.flags & 0x10)) {
@@ -332,7 +332,7 @@ void func_80144808(u16 arg0)
             func_8014BFFC();
             func_8014B410();
             obj->state = 0x210;
-            if ((D_8018A44A[D_8021E1A6] & 0x1FF) != 0x1FF) {
+            if ((D_8018A44A[carClassIndex] & 0x1FF) != 0x1FF) {
                 obj->state = 0x200;
             }
         }
@@ -345,9 +345,9 @@ void func_80144808(u16 arg0)
     case 0x201:
         if (*D_8011F2F0[D_8018BC3C].unk60 == 0) {
             func_8002C410(D_8006FB38);
-            func_800DE38C();
-            func_800DE2E0();
-            func_80231C5C();
+            initModelTransforms();
+            initObjList();
+            createNoticeScreenObj();
             func_801CF468(D_8018BC3C, 0, 0, 0);
             gameState = 8;
             D_8021B01A = 0;
@@ -367,9 +367,9 @@ void func_80144808(u16 arg0)
     case 0x211:
         if (*D_8011F2F0[D_8018BC3C].unk60 == 0) {
             func_8002C410(D_8006FB38);
-            func_800DE38C();
-            func_800DE2E0();
-            func_80231C5C();
+            initModelTransforms();
+            initObjList();
+            createNoticeScreenObj();
             func_801CF468(D_8018BC3C, 0, 0, 0);
             D_8021B01A = 0;
             D_8021AFDC = 0x18;

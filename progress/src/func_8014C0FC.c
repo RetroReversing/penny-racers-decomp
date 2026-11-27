@@ -1,13 +1,13 @@
 typedef struct { u32 w0; u32 w1; } Gfx;
 #define CMD(a, b) { Gfx *_g = (Gfx *)((*gp)++); _g->w0 = (a); _g->w1 = (b); }
-extern u8 D_8011F2FC[];
+extern u8 racerTimerFlags[];
 extern u8 playerSlots[];
 extern u8 D_802E6CB8[];
 void func_8014C0FC(Gfx **gp, u16 arg1)
 {
 
     CMD(0xB6000000, 0x2000);
-    CMD(0xFA000000, D_8011F2FC[arg1 * 100] | ~0xFF);
+    CMD(0xFA000000, racerTimerFlags[arg1 * 100] | ~0xFF);
     CMD(0xFD88001F, (u32) D_802E6CB8);
     CMD(0xF5880800, 0x7014050);
     CMD(0xE6000000, 0);

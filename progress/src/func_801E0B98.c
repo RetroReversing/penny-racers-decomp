@@ -13,8 +13,8 @@ typedef s32 M2C_UNK32;
 #endif
 
 s16 objCreate(M2C_UNK, M2C_UNK, M2C_UNK, M2C_UNK, s32, s32, s32, M2C_UNK *, M2C_UNK *, s32, s32, s32, s32, s32, s32, s32, s32, s32); /* extern */
-M2C_UNK func_801DDA5C();                            /* extern */
-M2C_UNK func_80231C5C();                            /* extern */
+M2C_UNK spawnSceneFadeObjects();                            /* extern */
+M2C_UNK createNoticeScreenObj();                            /* extern */
 extern M2C_UNK D_801D5A90;
 extern M2C_UNK D_801D6670;
 extern M2C_UNK D_801DDD8C;
@@ -26,8 +26,8 @@ extern M2C_UNK func_80138B1C;
 void func_801E0B98(void) {
     D_801E9D5E = objCreate(0, 0, 3, 0, 0x40, 0xFF, 0, NULL, &func_80138B1C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     D_801E9B1A = objCreate(0, 0, 3, 0, 0x80, 0xFF, 0, &D_801DDD8C, &D_801DECB4, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    func_80231C5C();
-    func_801DDA5C();
+    createNoticeScreenObj();
+    spawnSceneFadeObjects();
     objCreate(0, 0xFF, 3, 0, 0x7F, 0, 0, &D_801D5A90, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     objCreate(0, 0xFF, 3, 0, 0x7F, 0, 0, &D_801D6670, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 }

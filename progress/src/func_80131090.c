@@ -4,7 +4,7 @@ extern MenuRec D_8011F2F0[];
 extern u8 viewIndex;
 typedef struct { u8 pad[0x2108]; s16 views; } Screen;
 extern Screen sRowBoard;
-extern u8 D_80220ED8[];
+extern u8 noticeBackgroundDl[];
 extern u8 D_80171040[];
 extern u8 D_80172E48[];
 void func_801CA2D4();
@@ -13,7 +13,7 @@ void gfxDrawClippedTex8b(void *, s16, s16, s16, s16, s16, s16, s16, s16, s16, s1
 
 void func_80131090(Cmd **gfxp, u16 id) {
 if (viewIndex == sRowBoard.views - 1) {
-{ Cmd *g = (*gfxp)++; g->w0 = 0x06000000; g->w1 = (u32)D_80220ED8; }
+{ Cmd *g = (*gfxp)++; g->w0 = 0x06000000; g->w1 = (u32)noticeBackgroundDl; }
 func_801CA2D4(gfxp);
 gfxSetPrimAlpha(gfxp, 0xFF);
 if (D_8011F2F0[id].state != 0) {

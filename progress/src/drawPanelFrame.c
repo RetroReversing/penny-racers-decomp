@@ -34,7 +34,7 @@ typedef union { Gwords words; long long force; } Gfx;
     gDma(pkt, _S(0xe4, 24, 8) | _S(xh, 12, 12) | _S(yh, 0, 12), _S(tile, 24, 3) | _S(xl, 12, 12) | _S(yl, 0, 12)); \
     gImmp1(pkt, 0xb4, _S(s, 16, 16) | _S(t, 0, 16)); \
     gImmp1(pkt, 0xb3, _S(dsdx, 16, 16) | _S(dtdy, 0, 16)); }
-void func_801D8980(Gfx **, u16, u16, s32, u8 *, u8 *);
+void drawFrameCell(Gfx **, u16, u16, s32, u8 *, u8 *);
 
 /* Draws a rectangular panel border of size w by h at (x, y) from 8 frame pieces: four corners, then the top, bottom, left and right edges. */
 void drawPanelFrame(Gfx **gfxp, u16 x, u16 y, u16 w, u16 h, u8 *timg, u8 *tlut) {
@@ -42,21 +42,21 @@ void drawPanelFrame(Gfx **gfxp, u16 x, u16 y, u16 w, u16 h, u8 *timg, u8 *tlut) 
     s32 i;
 
     gfx = *gfxp;
-    func_801D8980(&gfx, x, y, 0, timg, tlut);
-    func_801D8980(&gfx, x + (w + 1) * 24, y, 2, timg, tlut);
-    func_801D8980(&gfx, x, y + (h + 1) * 24, 5, timg, tlut);
-    func_801D8980(&gfx, x + (w + 1) * 24, y + (h + 1) * 24, 7, timg, tlut);
+    drawFrameCell(&gfx, x, y, 0, timg, tlut);
+    drawFrameCell(&gfx, x + (w + 1) * 24, y, 2, timg, tlut);
+    drawFrameCell(&gfx, x, y + (h + 1) * 24, 5, timg, tlut);
+    drawFrameCell(&gfx, x + (w + 1) * 24, y + (h + 1) * 24, 7, timg, tlut);
     for (i = 1; i <= w; i++) {
-        func_801D8980(&gfx, x + i * 24, y, 1, timg, tlut);
+        drawFrameCell(&gfx, x + i * 24, y, 1, timg, tlut);
     }
     for (i = 1; i <= w; i++) {
-        func_801D8980(&gfx, x + i * 24, y + (h + 1) * 24, 6, timg, tlut);
+        drawFrameCell(&gfx, x + i * 24, y + (h + 1) * 24, 6, timg, tlut);
     }
     for (i = 1; i <= h; i++) {
-        func_801D8980(&gfx, x, y + i * 24, 3, timg, tlut);
+        drawFrameCell(&gfx, x, y + i * 24, 3, timg, tlut);
     }
     for (i = 1; i <= h; i++) {
-        func_801D8980(&gfx, x + (w + 1) * 24, y + i * 24, 4, timg, tlut);
+        drawFrameCell(&gfx, x + (w + 1) * 24, y + i * 24, 4, timg, tlut);
     }
     *gfxp = gfx;
 }

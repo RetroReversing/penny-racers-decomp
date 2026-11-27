@@ -6,7 +6,7 @@ extern Hit hitSlots[];
 extern u8 D_80239610[];
 u16 raceAllocSlot(void);
 s32 objCreate(s32, s32, s32, s32, s32, s32, u8 *, void (*)(void), void (*)(void), f32, f32, f32, f32, f32, f32, f32, f32, f32);
-void func_8013E818(u16, s32, s32, s32, s32, s32, s32);
+void initHitSlot(u16, s32, s32, s32, s32, s32, s32);
 void queueObjEvent(u16, s32);
 void updateCarBoostEffect(void);
 void updateCarExhaust(void);
@@ -42,7 +42,7 @@ void func_8015FD64(void);
                         } else {
                             D_8011F2F0[(u16)objIndex].f44 = 16.0f;
                             D_8011F2F0[(u16)objIndex].f48 = 0;
-                            func_8013E818(slot, (u16)objIndex, 0x40, 0, 0, 0, 0x3C);
+                            initHitSlot(slot, (u16)objIndex, 0x40, 0, 0, 0, 0x3C);
                             hitSlots[slot].car = car;
                         }
                     }

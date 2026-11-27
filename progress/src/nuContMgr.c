@@ -1,8 +1,8 @@
-extern u8 D_800DE058[];
-extern u8 D_800DE2C8[];
-extern u8 D_8006F970[];
-extern u8 D_8006FE40[];
-extern u8 D_8006F9D8[];
+extern u8 contStartMesgQ[];
+extern u8 contSiMesgQ[];
+extern u8 contRetraceMesgQ[];
+extern u8 contReadData[];
+extern u8 contQueryData[];
 extern s32 D_8006F9D4;
 extern void (*D_80046DA0)(s16);
 
@@ -13,14 +13,14 @@ static inline s32 contRetrace(SiMesg *mesg) {
     if (D_8006F9D4 != 0) {
         return 1;
     }
-    q = D_8006F970;
+    q = contRetraceMesgQ;
     osRecvMesg(q, 0, 0);
-    osContStartReadData(D_800DE058);
-    osRecvMesg(D_800DE058, 0, 1);
+    osContStartReadData(contStartMesgQ);
+    osRecvMesg(contStartMesgQ, 0, 1);
     if (!(D_8006F9D4 & 1)) {
-        osSendMesg(D_800DE2C8, 0, 1);
-        osContGetReadData(D_8006FE40);
-        osRecvMesg(D_800DE2C8, 0, 1);
+        osSendMesg(contSiMesgQ, 0, 1);
+        osContGetReadData(contReadData);
+        osRecvMesg(contSiMesgQ, 0, 1);
     }
     if (D_80046DA0 != 0) {
         D_80046DA0(mesg->mesg);
@@ -32,24 +32,24 @@ static inline s32 contRetrace(SiMesg *mesg) {
 static inline s32 contRead(SiMesg *mesg) {
     void *pad;
     pad = mesg->dataPtr;
-    osContStartReadData(D_800DE058);
-    osRecvMesg(D_800DE058, 0, 1);
-    osSendMesg(D_800DE2C8, 0, 1);
+    osContStartReadData(contStartMesgQ);
+    osRecvMesg(contStartMesgQ, 0, 1);
+    osSendMesg(contSiMesgQ, 0, 1);
     osContGetReadData(pad);
-    osRecvMesg(D_800DE2C8, 0, 1);
+    osRecvMesg(contSiMesgQ, 0, 1);
     osSendMesg(mesg->rtnMesgQ, 0, 0);
     return 1;
 }
 
 static inline s32 contReadNW(SiMesg *mesg) {
     u8 *q;
-    q = D_8006F970;
+    q = contRetraceMesgQ;
     osRecvMesg(q, 0, 0);
-    osContStartReadData(D_800DE058);
-    osRecvMesg(D_800DE058, 0, 1);
-    osSendMesg(D_800DE2C8, 0, 1);
-    osContGetReadData(D_8006FE40);
-    osRecvMesg(D_800DE2C8, 0, 1);
+    osContStartReadData(contStartMesgQ);
+    osRecvMesg(contStartMesgQ, 0, 1);
+    osSendMesg(contSiMesgQ, 0, 1);
+    osContGetReadData(contReadData);
+    osRecvMesg(contSiMesgQ, 0, 1);
     if (D_80046DA0 != 0) {
         D_80046DA0(mesg->mesg);
     }
@@ -58,13 +58,14 @@ static inline s32 contReadNW(SiMesg *mesg) {
 }
 
 static inline s32 contQuery(SiMesg *mesg) {
-    osContStartQuery(D_800DE058);
-    osRecvMesg(D_800DE058, 0, 1);
-    osContGetQuery(D_8006F9D8);
+    osContStartQuery(contStartMesgQ);
+    osRecvMesg(contStartMesgQ, 0, 1);
+    osContGetQuery(contQueryData);
     osSendMesg(mesg->rtnMesgQ, 0, 0);
     return 1;
 }
 
+/* Controller-manager message dispatcher: retrace poll, read, non-waiting read, or query. */
 s32 nuContMgr(SiMesg *mesg) {
     switch (mesg->mesg) {
     case 1:

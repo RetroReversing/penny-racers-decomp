@@ -52,7 +52,7 @@ typedef union { Gwords words; long long force; } Gfx;
     gImmp1(pkt, 0xb3, _S(dsdx, 16, 16) | _S(dtdy, 0, 16)); }
 
 typedef struct { u16 state; u8 pad2[0x62]; } Slot;
-extern Slot D_8011F330[];
+extern Slot noticeStates[];
 extern Gfx D_800E1C00[];
 extern u16 D_8031B5D0[];
 extern u8 D_8031A7C8[];
@@ -67,9 +67,9 @@ extern u8 waveVertices[];
 void drawWaveObject(Gfx **gfxp, u16 slot) {
     s16 strip;
 
-    switch (D_8011F330[slot].state) {
+    switch (noticeStates[slot].state) {
     case 0:
-        D_8011F330[slot].state = 1;
+        noticeStates[slot].state = 1;
         break;
     case 1:
         gSPDisplayList((*gfxp)++, D_800E1C00);

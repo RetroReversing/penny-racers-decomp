@@ -5,7 +5,7 @@ typedef struct { char pad0[0x30]; f32 unk30; f32 unk34; char pad38[0x18]; s32 *u
 typedef struct { f32 v; u8 pad[0x60]; } SlotF;
 extern Cam D_8011F2F0[];
 extern SlotF D_8011F318[];
-extern Obj D_8011F4E4[];
+extern Obj carPartObjs[];
 extern u8 D_802378CC[];
 extern u8 D_80237914[];
 void queueObjEvent(u16, s32);
@@ -13,7 +13,7 @@ void queueObjEvent(u16, s32);
 /* Runs one car's outro spin state machine: spins the view, slows down, then settles the car and ends the sequence. */ void updateCarOutroSpin(u16 arg0)
 {
   Ctl *ctl = D_8011F2F0[arg0].ctl;
-  Obj *obj = &D_8011F4E4[ctl->car->unk2];
+  Obj *obj = &carPartObjs[ctl->car->unk2];
   s32 *p = obj->unk50;
 
   if (ctl->timer != 0)

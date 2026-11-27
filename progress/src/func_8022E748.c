@@ -19,12 +19,12 @@ extern u16 D_801E975A[];
 extern u16 D_801E975C[];
 extern View D_8022B600;
 extern u16 D_8018A438;
-void func_80231A0C(void);
+void initSceneBackdrop(void);
 void createStageObjects(void);
 void func_8022F780(u16);
-void func_800E067C(void);
+void interpolateObjPositions(void);
 void func_802312F8(s32);
-void func_802306F0(u8);
+void assignCarSlots(u8);
 u8 func_80148230(void);
 void func_8022FE50(u8, u8, u8, s32);
 void func_801E0F10();
@@ -35,7 +35,7 @@ void func_8013DD2C();
 s32 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 void initRowTable(u8);
 void func_8013ADA8(void);
-void func_801DDA5C(void);
+void spawnSceneFadeObjects(void);
 
 #define SPAWN(a0, a1, a2, a3, b0, b1, p0, p1, p2) \
     objCreate(a0, a1, a2, a3, b0, b1, p0, p1, p2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
@@ -45,13 +45,13 @@ void func_8022E748(void)
     s32 flag = 0;
     u16 i;
 
-    func_80231A0C();
+    initSceneBackdrop();
     createStageObjects();
     func_8022F780(D_8006FAF0[0x10]);
-    func_800E067C();
+    interpolateObjPositions();
     func_802312F8(0);
     if (func_80232820 == 1 || func_80232820 == 2) {
-        func_802306F0(func_80232820);
+        assignCarSlots(func_80232820);
     }
     switch (func_80232820) {
     case 2:
@@ -156,7 +156,7 @@ void func_8022E748(void)
         break;
     }
     func_8013ADA8();
-    func_801DDA5C();
+    spawnSceneFadeObjects();
     D_8018A438 = SPAWN(0, 0, 3, 0, 0xA1, 0xFF, 0, func_80159230, drawPlayerStatusBars);
     SPAWN(0, 0, 3, 0, 0xA1, 0xFF, 0, 0, func_8013DD2C);
 }

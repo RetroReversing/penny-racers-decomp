@@ -14,17 +14,17 @@ extern s32 updateCursorBelowObject;
 extern s32 updateCursorLeftObject;
 extern s32 updateCursorObject;
 extern s32 updateCursorOffsetObject;
-extern s32 func_8019917C;
-extern s32 func_801993D4;
-extern s32 func_8019961C;
-extern s32 func_80199864;
+extern s32 emitSlotTint;
+extern s32 emitCursorColour;
+extern s32 emitSecondCursorColour;
+extern s32 emitThirdCursorColour;
 
 /* Creates four cursor-follow objects at 0, 90, 180 and 270 degrees and clears the cursor state flags. */ void initCursorObjects(void)
 {
-    D_801CA13A = objCreate(0, 0, 1, 0, 0x54, 0, &D_803147B4, &updateCursorBelowObject, &func_8019917C, -10000.0f, 10000.0f, -10000.0f, 0, 0, 0, 0.5f, 0.5f, 0.5f);
-    D_801C7072 = objCreate(0, 0, 1, 0, 0x54, 0, &D_803147B4, &updateCursorLeftObject, &func_801993D4, -10000.0f, 10000.0f, -10000.0f, 0, 90.0f, 0, 0.5f, 0.5f, 0.5f);
-    D_801C7D22 = objCreate(0, 0, 1, 0, 0x54, 0, &D_803147B4, &updateCursorObject, &func_8019961C, -10000.0f, 10000.0f, -10000.0f, 0, 180.0f, 0, 0.5f, 0.5f, 0.5f);
-    D_801C7076 = objCreate(0, 0, 1, 0, 0x54, 0, &D_803147B4, &updateCursorOffsetObject, &func_80199864, -10000.0f, 10000.0f, -10000.0f, 0, 270.0f, 0, 0.5f, 0.5f, 0.5f);
+    D_801CA13A = objCreate(0, 0, 1, 0, 0x54, 0, &D_803147B4, &updateCursorBelowObject, &emitSlotTint, -10000.0f, 10000.0f, -10000.0f, 0, 0, 0, 0.5f, 0.5f, 0.5f);
+    D_801C7072 = objCreate(0, 0, 1, 0, 0x54, 0, &D_803147B4, &updateCursorLeftObject, &emitCursorColour, -10000.0f, 10000.0f, -10000.0f, 0, 90.0f, 0, 0.5f, 0.5f, 0.5f);
+    D_801C7D22 = objCreate(0, 0, 1, 0, 0x54, 0, &D_803147B4, &updateCursorObject, &emitSecondCursorColour, -10000.0f, 10000.0f, -10000.0f, 0, 180.0f, 0, 0.5f, 0.5f, 0.5f);
+    D_801C7076 = objCreate(0, 0, 1, 0, 0x54, 0, &D_803147B4, &updateCursorOffsetObject, &emitThirdCursorColour, -10000.0f, 10000.0f, -10000.0f, 0, 270.0f, 0, 0.5f, 0.5f, 0.5f);
     D_8011F2F4[D_801CA13A].st |= 8;
     D_8011F2F4[D_801C7072].st |= 8;
     D_8011F2F4[D_801C7D22].st |= 8;

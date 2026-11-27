@@ -29,7 +29,7 @@ extern E12 D_80237DC0[];
 extern S800DA260 sCarSlots;
 extern u8 D_8021F0A0[];
 extern s16 sCars[];
-extern s16 D_8021E1A6;
+extern s16 carClassIndex;
 extern s16 D_8018A44A[];
 extern s16 D_80189C94;
 extern s8 D_8018A43C;
@@ -43,7 +43,7 @@ void func_80218840(void) {
     S800DA260 *g = &sCarSlots;
     s16 *q = sCars;
     D_80190C98.f18 = 0;
-    D_8018A44A[D_8021E1A6] = 0;
+    D_8018A44A[carClassIndex] = 0;
     D_80189C94 = 0;
     D_8018A43C = 0;
     D_80046832 = 1;

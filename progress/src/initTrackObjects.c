@@ -7,7 +7,7 @@ typedef struct { u8 a; u8 tex; u16 id; } Start;
 typedef struct { u32 w0; u32 w1; } Tex;
 typedef struct Def Def;
 extern Obj D_8011F2F0[];
-extern Info D_801C5E9C;
+extern Info menuCursorPos;
 extern Info *trackInfo;
 extern Point trackPointTable[];
 extern Point *D_801C706C;
@@ -35,7 +35,7 @@ void initTrackObjects(void) {
     u16 cell;
     u16 pieceObj;
 
-    trackInfo = &D_801C5E9C;
+    trackInfo = &menuCursorPos;
     D_801C706C = trackPointTable;
     blockDirection = trackPointTable[0].pad0;
     blockPos.x = trackPointTable[0].x;
@@ -45,15 +45,15 @@ void initTrackObjects(void) {
     placedBlockObj = objCreate(0, 0, 3, 0, 0x5B, 0x64, 0, 0, (s32) func_801B3F08, (f32) blockPos.x * 400.0f * 0.5f, (f32) trackPointTable[0].y * 0.5f, (f32) blockPos.z * 400.0f * 0.5f, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f);
     D_8011F2F0[placedBlockObj].flags |= 0x20;
     D_8011F2F0[placedBlockObj].xB = 0xC;
-    finishPos.x = trackPointTable[D_801C5E9C.count - 1].x;
-    finishPos.z = trackPointTable[D_801C5E9C.count - 1].z;
-    finishPos.tex = trackPointTable[D_801C5E9C.count - 1].tex;
+    finishPos.x = trackPointTable[menuCursorPos.count - 1].x;
+    finishPos.z = trackPointTable[menuCursorPos.count - 1].z;
+    finishPos.tex = trackPointTable[menuCursorPos.count - 1].tex;
     finishPos.cell = finishPos.x + finishPos.z * 24;
-    D_801C6BB6 = objCreate(0, 0, 3, 0, 0x5B, 0x64, 0, 0, (s32) func_801B4070, (f32) finishPos.x * 400.0f * 0.5f, (f32) trackPointTable[D_801C5E9C.count - 1].y * 0.5f, (f32) finishPos.z * 400.0f * 0.5f, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f);
+    D_801C6BB6 = objCreate(0, 0, 3, 0, 0x5B, 0x64, 0, 0, (s32) func_801B4070, (f32) finishPos.x * 400.0f * 0.5f, (f32) trackPointTable[menuCursorPos.count - 1].y * 0.5f, (f32) finishPos.z * 400.0f * 0.5f, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f);
     D_8011F2F0[D_801C6BB6].flags |= 0x20;
     D_8011F2F0[D_801C6BB6].xB = 0xC;
-    trackPointEntryCount = D_801C5E9C.count;
-    for (pieceIdx = 0; pieceIdx < D_801C5E9C.count; pieceIdx++) {
+    trackPointEntryCount = menuCursorPos.count;
+    for (pieceIdx = 0; pieceIdx < menuCursorPos.count; pieceIdx++) {
         cell = trackPointTable[pieceIdx].x + trackPointTable[pieceIdx].z * 24;
         D_801C7D30[cell].a = 0;
         D_801C7D30[cell].b = 1;
@@ -62,15 +62,15 @@ void initTrackObjects(void) {
         D_8011F2F0[pieceObj].flags |= 8;
         D_801C6BE0[cell] = pieceObj;
         trackPointIndexByCell[cell] = pieceIdx;
-        if (D_801C5E9C.b == 5) {
-            if (pieceIdx == D_801C5E9C.count - 1) {
+        if (menuCursorPos.b == 5) {
+            if (pieceIdx == menuCursorPos.count - 1) {
                 func_801BFA1C(pieceIdx, 1);
             } else {
                 func_801BB1F0(pieceIdx);
             }
         } else if (pieceIdx == 0) {
             func_801BFA1C(0, 0);
-        } else if (pieceIdx == D_801C5E9C.count - 1) {
+        } else if (pieceIdx == menuCursorPos.count - 1) {
             func_801BFA1C(pieceIdx, 1);
         } else {
             func_801BB1F0(pieceIdx);

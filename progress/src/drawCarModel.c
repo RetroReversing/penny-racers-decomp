@@ -5,7 +5,7 @@ typedef struct { u8 car; u8 pad[0x63]; } Entry;
 typedef struct { f32 unk0; u8 pad[0x8EC]; } CarF;
 typedef struct { u8 unk0; u8 pad[0x8EF]; } CarB;
 extern s32 D_80046834;
-extern Entry D_8011F2FC[];
+extern Entry racerTimerFlags[];
 extern CarF D_8022AEB8[];
 extern CarB D_8022AEE8[];
 extern Mtx D_8018D460[][4];
@@ -21,7 +21,7 @@ void guMtxCatL(Mtx *, Mtx *, Mtx *);
 void drawCarModel(Gfx **gfx, u16 entryIndex)
 {
     Mtx offset;
-    s32 carIdx = D_8011F2FC[entryIndex].car;
+    s32 carIdx = racerTimerFlags[entryIndex].car;
     f32 tilt;
 
     tilt = 102.0f - (waveTableLookup(D_8022AEE8[carIdx].unk0 * 10) * 100.0f + D_8022AEB8[carIdx].unk0) * 0.019f;

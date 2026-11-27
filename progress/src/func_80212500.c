@@ -56,7 +56,7 @@ extern u8 D_8021B676;
 extern u8 D_8021B677;
 extern u8 D_8021B678;
 extern s16 skipFirstRowFlag;
-extern s16 D_8021E1A6[];
+extern s16 carClassIndex[];
 extern s8 D_8021E20B;
 extern u8 D_8021E251[][0x110];
 extern u8 D_8021F048[][14];
@@ -72,8 +72,8 @@ extern s32 carouselSelected[];
 extern u16 D_8018A44A[];
 extern s32 D_80168BB0;
 
-void func_800DE2E0(void);
-void func_800DE38C(void);
+void initObjList(void);
+void initModelTransforms(void);
 void func_800DF100(s32);
 void func_800DF138(s32);
 void func_80149FA8(s32);
@@ -82,12 +82,12 @@ s32 getMenuNavMask(u32, s32, s32);
 void playMenuSound(s32);
 void func_801CF468(s32, s32, s32, s32);
 void func_801E1EEC(u8, u8);
-void func_80203BDC(s32);
+void initRandomSlot(s32);
 void setScreenTransition(s8, s16, s8, s8, u8);
 void func_80207DC8(void);
 void func_80211E9C(s32);
 void func_80214230(s8 *, s32);
-void func_80231C5C(void);
+void createNoticeScreenObj(void);
 
 void func_80212500(u16 arg0)
 {
@@ -306,7 +306,7 @@ void func_80212500(u16 arg0)
                     D_8021B00C[D_8021E15C.f3] = 0;
                     D_8021B064[D_8021E15C.f3] = 0;
                     D_8021AFEC[D_8021E15C.f3] = 0;
-                    func_80203BDC(D_8021E15C.f3);
+                    initRandomSlot(D_8021E15C.f3);
                     D_8021E251[D_8021E15C.f3][0] = 0;
                     D_8021B674 = 0;
                     D_8021B128 = 0;
@@ -332,12 +332,12 @@ void func_80212500(u16 arg0)
     case 2:
         if (*D_8011F350[D_8018BC3C].p == 0) {
             func_80207DC8();
-            if (D_8021E1A6[3] == 0) {
-                D_8021E1A6[0] = 0;
+            if (carClassIndex[3] == 0) {
+                carClassIndex[0] = 0;
             }
-            func_800DE38C();
-            func_800DE2E0();
-            func_80231C5C();
+            initModelTransforms();
+            initObjList();
+            createNoticeScreenObj();
             func_801CF468(D_8018BC3C, 0, 0, 0);
             D_80168BB0 = menuChoice;
         }

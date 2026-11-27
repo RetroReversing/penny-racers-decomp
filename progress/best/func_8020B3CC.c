@@ -38,7 +38,7 @@ extern u8 D_802D6898[];
 extern u16 D_80187BF0[];
 extern u16 D_8021F270[][14][8];
 typedef struct { s8 v; u8 pad[0x10F]; } Sel;
-extern Sel D_8021E22F[];
+extern Sel randomSequenceTable[];
 extern s8 D_8021E231[];
 extern s8 D_8021E31D[];
 extern s8 D_8021E31F[];
@@ -46,7 +46,7 @@ extern s8 D_8021E2FB[];
 extern s8 D_8021E2FD[];
 extern s8 D_8021E2D9[];
 extern s8 D_8021E2DB[];
-#define PICKED(w) (D_8021E231[(w) * 0x110 + D_8021E22F[w].v])
+#define PICKED(w) (D_8021E231[(w) * 0x110 + randomSequenceTable[w].v])
 extern f32 D_8021B020;
 extern f32 D_8021B01C;
 extern Quad D_8021B298[];

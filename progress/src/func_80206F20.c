@@ -7,7 +7,7 @@ extern s8 D_8021F260[];
 
 void dmaRomToRam(void *, void *, s32);
 void objCreate(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
-void func_80143DCC(void);
+void createSceneObjects(void);
 void func_80203B04(void);
 void func_80203B34(void);
 void setScreenTransition(s32, s32, s32, s32, s32);
@@ -17,7 +17,7 @@ extern char func_80207440[];
 
 void func_80206F20(void) {
     dmaRomToRam(D_3EACF0, D_8030BD90, D_3ED8F0 - D_3EACF0);
-    func_80143DCC();
+    createSceneObjects();
     func_80203B04();
     func_80203B34();
     D_8021B068 = 0;

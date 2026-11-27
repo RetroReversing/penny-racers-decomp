@@ -50,7 +50,7 @@ extern Row70 D_801E998C[];
 extern Row70 D_801E9990[];
 extern RowByte D_8022AFE9[];
 extern RowHalf D_8022AD04[];
-extern RowUHalf D_8022A772[];
+extern RowUHalf slotObjIds[];
 extern RowElem D_8022AD64[];
 extern s32 D_80189950[];
 extern Row2C D_801D7E06[];
@@ -69,7 +69,7 @@ void playStageSound(s32, s16);
 void alSeqpSetVol(u8 *, s16);
 void func_801CF468(s32, s32, s32, s32);
 void func_802319E8(void);
-void func_80231C5C(void);
+void createNoticeScreenObj(void);
 void func_8021F5F0(void);
 void func_801D63F4(void);
 void func_801D65BC(s32);
@@ -195,11 +195,11 @@ void func_80159230(s32 arg0)
         break;
     case 4:
         func_802319E8();
-        func_80231C5C();
+        createNoticeScreenObj();
         func_801CF468(D_8018BC3C, 0, 0, 0);
         func_8021F5F0();
         for (i = 0; i < 4; i++) {
-            if (D_8022A772[i].v != 0xFFFF && i < 4) {
+            if (slotObjIds[i].v != 0xFFFF && i < 4) {
                 for (j = 0; j < 4; j++) {
                     D_8022AD64[i].e[j].v = -1;
                 }
@@ -213,7 +213,7 @@ void func_80159230(s32 arg0)
         break;
     case 5:
         func_802319E8();
-        func_80231C5C();
+        createNoticeScreenObj();
         func_801CF468(D_8018BC3C, 0, 0, 0);
         func_8021F5F0();
         gameState = 0x14;

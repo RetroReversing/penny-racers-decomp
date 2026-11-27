@@ -5,10 +5,10 @@ typedef struct { f32 size; u8 pad[0x8EC]; } CarB;
 typedef struct { u8 pad[0x67]; u8 f[7]; } Link;
 extern Rec D_8011F2F0[];
 extern Ent D_801688C4[];
-extern CarA D_8022A772[];
+extern CarA slotObjIds[];
 extern CarB D_8022AEE4[];
 extern float sqrtf(float);
-void func_80143250(u16, f32, f32, f32, f32, f32, s32, s32, s32, s32);
+void spawnRingEffects(u16, f32, f32, f32, f32, f32, s32, s32, s32, s32);
 void queueObjEvent(u16, s32);
 u8 liftHitCars(u16, u8 *);
 
@@ -28,8 +28,8 @@ u8 liftHitCars(u16, u8 *);
     ent = &D_801688C4[self->idx];
     carNear = 0;
     for (i = 0; i < 7; i++) {
-        if (D_8022A772[i].rec != 0xFFFF) {
-            other = &D_8011F2F0[D_8022A772[i].rec];
+        if (slotObjIds[i].rec != 0xFFFF) {
+            other = &D_8011F2F0[slotObjIds[i].rec];
             dx = other->x - self->x;
             dy = other->y - self->y;
             dz = other->z - self->z;
@@ -47,7 +47,7 @@ u8 liftHitCars(u16, u8 *);
             self->vy = 0.0f;
             ent->timer = 0x5F;
             D_8011F2F0[objId].state = 1;
-            func_80143250(objId, 0.0f, 6.0f, 1.0f, 43.0f, 0.0f, 8, 1, 0xFF, 0);
+            spawnRingEffects(objId, 0.0f, 6.0f, 1.0f, 43.0f, 0.0f, 8, 1, 0xFF, 0);
             queueObjEvent(objId, 0x27);
         }
         }
@@ -62,7 +62,7 @@ u8 liftHitCars(u16, u8 *);
             queueObjEvent(objId, 0x34);
         }
         if ((ent->timer & 3) == 0 && ent->timer < 0x19) {
-            func_80143250(objId, (ent->timer & 7) * 2, 6.0f, 2.0f, (0x64 - ent->timer) * 0.5f, ent->timer * 3, 4, 1, 0xFF, 1);
+            spawnRingEffects(objId, (ent->timer & 7) * 2, 6.0f, 2.0f, (0x64 - ent->timer) * 0.5f, ent->timer * 3, 4, 1, 0xFF, 1);
         }
         if (liftHitCars(objId, link)) {
             for (i = 0; i < 7; i++) {

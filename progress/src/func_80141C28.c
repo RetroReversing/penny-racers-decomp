@@ -10,7 +10,7 @@ extern u8 sprayDef[];
 extern void updateBouncingBall(), func_8014297C(), func_80142894();
 u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, s32, s32, s32, f32, f32, f32);
 u16 raceAllocSlot(void);
-void func_8013E818(u16, s32, s16, f32, f32, f32, u16);
+void initHitSlot(u16, s32, s16, f32, f32, f32, u16);
 u32 nextRandom(void);
 void func_80141C28(u16 arg0)
 {
@@ -41,7 +41,7 @@ void func_80141C28(u16 arg0)
                 if (id != 0xFFFF) {
                     e = objCreate(0, 0, 1, 0, 0x51, 0xFF, D_8023984C, updateBouncingBall, func_8014297C, x, 200.0f, z, 0, 0, 0, 1.0f, 1.0f, 1.0f);
                     if ((u16) (e + 2) >= 2U) {
-                        func_8013E818(id, e, 0x40, 0.0f, 0.0f, 0.0f, 0x12C);
+                        initHitSlot(id, e, 0x40, 0.0f, 0.0f, 0.0f, 0x12C);
                         slotRadius[id].f0 = 40.0f;
                         D_8018A448++;
                         for (i = 0; i < 5; i++) {

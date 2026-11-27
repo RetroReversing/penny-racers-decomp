@@ -1,7 +1,7 @@
 extern void func_80025DAC();
 extern void func_80025DBC(void *);
-extern void func_800DE2E0();
-extern void func_800DE38C();
+extern void initObjList();
+extern void initModelTransforms();
 extern void func_801D87FC();
 extern void func_8021F5F0();
 extern void resetCar(void *);
@@ -23,8 +23,8 @@ void func_80025C50(void)
     func_801D87FC();
     func_80025DAC();
     func_8021F5F0();
-    func_800DE38C();
-    func_800DE2E0();
+    initModelTransforms();
+    initObjList();
     for (i = 0; i < 7; i++) {
         resetCar(sCars + i * 2288);
     }

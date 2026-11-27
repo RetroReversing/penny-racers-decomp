@@ -10,7 +10,7 @@ extern u8 blockDirection;
 extern u8 trackPointEntryCount;
 extern u16 trackPointLinks[][4];
 extern Obj D_8011F2F0[];
-extern void func_801C1424();
+extern void animateWaveVertices();
 extern void drawWaveObject();
 extern void updateWaveVertices();
 extern void drawWaveObjectB();
@@ -45,7 +45,7 @@ ids[1] = objCreate(0, arg0, 1, 0x80, 0x5B, 0xFF, &D_80315A10[0], 0, 0,
     POS(-196.0f, 0.0f, -116.0f), 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f);
 ids[2] = objCreate(0, arg0, 1, 0, 0x5B, 0xFF, &D_80315A10[1], 0, 0,
     POS(-196.0f, 2.0f, 0.0f), 0.0f, 90.0f, 0.0f, 0.5f, 0.5f, 0.5f);
-ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, func_801C1424, drawWaveObject,
+ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, animateWaveVertices, drawWaveObject,
     POS(-196.0f, 108.0f, 112.0f), 0.0f, 90.0f, 0.0f, 0.56f, 0.56f, 0.56f);
 } else if (blockDirection == 3) {
 ids[0] = objCreate(0, arg0, 1, 0x80, 0x5B, 0xFF, &D_80315A10[0], 0, 0,
@@ -54,7 +54,7 @@ ids[1] = objCreate(0, arg0, 1, 0x80, 0x5B, 0xFF, &D_80315A10[0], 0, 0,
     POS(196.0f, 0.0f, -116.0f), 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f);
 ids[2] = objCreate(0, arg0, 1, 0, 0x5B, 0xFF, &D_80315A10[1], 0, 0,
     POS(196.0f, 2.0f, 0.0f), 0.0f, 90.0f, 0.0f, 0.5f, 0.5f, 0.5f);
-ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, func_801C1424, drawWaveObject,
+ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, animateWaveVertices, drawWaveObject,
     POS(196.0f, 108.0f, -112.0f), 0.0f, -90.0f, 0.0f, 0.56f, 0.56f, 0.56f);
 }
 } else if (type == 5 || type == 0x33) {
@@ -65,7 +65,7 @@ ids[1] = objCreate(0, arg0, 1, 0x80, 0x5B, 0xFF, &D_80315A10[0], 0, 0,
     POS(-116.0f, 0.0f, -196.0f), 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f);
 ids[2] = objCreate(0, arg0, 1, 0, 0x5B, 0xFF, &D_80315A10[1], 0, 0,
     POS(0.0f, 2.0f, -196.0f), 0.0f, 180.0f, 0.0f, 0.5f, 0.5f, 0.5f);
-ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, func_801C1424, drawWaveObject,
+ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, animateWaveVertices, drawWaveObject,
     POS(-112.0f, 108.0f, -196.0f), 0.0f, 0.0f, 0.0f, 0.56f, 0.56f, 0.56f);
 } else if (blockDirection == 2) {
 ids[0] = objCreate(0, arg0, 1, 0x80, 0x5B, 0xFF, &D_80315A10[0], 0, 0,
@@ -74,7 +74,7 @@ ids[1] = objCreate(0, arg0, 1, 0x80, 0x5B, 0xFF, &D_80315A10[0], 0, 0,
     POS(-116.0f, 0.0f, 196.0f), 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f);
 ids[2] = objCreate(0, arg0, 1, 0, 0x5B, 0xFF, &D_80315A10[1], 0, 0,
     POS(0.0f, 2.0f, 196.0f), 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f);
-ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, func_801C1424, drawWaveObject,
+ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, animateWaveVertices, drawWaveObject,
     POS(112.0f, 108.0f, 196.0f), 0.0f, 180.0f, 0.0f, 0.56f, 0.56f, 0.56f);
 }
 }
@@ -86,7 +86,7 @@ ids[1] = objCreate(0, arg0, 1, 0x80, 0x5B, 0xFF, &D_80315A10[0], 0, 0,
 ids[2] = objCreate(0, arg0, 1, 0, 0x5B, 0xFF, &D_80315A10[1], 0, 0,
     POS(0.0f, 2.0f, 196.0f), 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f);
 if (arg1 == 0) {
-ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, func_801C1424, drawWaveObject,
+ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, animateWaveVertices, drawWaveObject,
     POS(112.0f, 108.0f, 196.0f), 0.0f, 180.0f, 0.0f, 0.56f, 0.56f, 0.56f);
 } else {
 ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, updateWaveVertices, drawWaveObjectB,
@@ -100,7 +100,7 @@ ids[1] = objCreate(0, arg0, 1, 0x80, 0x5B, 0xFF, &D_80315A10[0], 0, 0,
 ids[2] = objCreate(0, arg0, 1, 0, 0x5B, 0xFF, &D_80315A10[1], 0, 0,
     POS(0.0f, 2.0f, -196.0f), 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f);
 if (arg1 == 0) {
-ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, func_801C1424, drawWaveObject,
+ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, animateWaveVertices, drawWaveObject,
     POS(-112.0f, 108.0f, -196.0f), 0.0f, 0.0f, 0.0f, 0.56f, 0.56f, 0.56f);
 } else {
 ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, updateWaveVertices, drawWaveObjectB,
@@ -114,7 +114,7 @@ ids[1] = objCreate(0, arg0, 1, 0x80, 0x5B, 0xFF, &D_80315A10[0], 0, 0,
 ids[2] = objCreate(0, arg0, 1, 0, 0x5B, 0xFF, &D_80315A10[1], 0, 0,
     POS(196.0f, 2.0f, 0.0f), 0.0f, 90.0f, 0.0f, 0.5f, 0.5f, 0.5f);
 if (arg1 == 0) {
-ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, func_801C1424, drawWaveObject,
+ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, animateWaveVertices, drawWaveObject,
     POS(196.0f, 108.0f, -112.0f), 0.0f, 270.0f, 0.0f, 0.56f, 0.56f, 0.56f);
 } else {
 ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, updateWaveVertices, drawWaveObjectB,
@@ -128,7 +128,7 @@ ids[1] = objCreate(0, arg0, 1, 0x80, 0x5B, 0xFF, &D_80315A10[0], 0, 0,
 ids[2] = objCreate(0, arg0, 1, 0, 0x5B, 0xFF, &D_80315A10[1], 0, 0,
     POS(-196.0f, 2.0f, 0.0f), 0.0f, 90.0f, 0.0f, 0.5f, 0.5f, 0.5f);
 if (arg1 == 0) {
-ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, func_801C1424, drawWaveObject,
+ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, animateWaveVertices, drawWaveObject,
     POS(-196.0f, 108.0f, 112.0f), 0.0f, 90.0f, 0.0f, 0.56f, 0.56f, 0.56f);
 } else {
 ids[3] = objCreate(0, arg0, 2, 0, 0x5B, 0xFF, D_801680B8, updateWaveVertices, drawWaveObjectB,

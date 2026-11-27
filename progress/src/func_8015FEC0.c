@@ -1,7 +1,7 @@
 u16 objCreate(s32, s32, s32, s32, s32, s32, s32 *, void (*)(u16), s32, f32, f32, f32, s32, s32, s32, f32, f32, f32);
 u16 raceAllocSlot(void);
 void launchBall(u16, u16, void *, s32, f32, f32, f32, f32, f32, f32, s16);
-void func_8013E818(u16, s32, s16, s32, f32, f32, u16);
+void initHitSlot(u16, s32, s16, s32, f32, f32, u16);
 u16 queueObjEvent(u16, s32);
 void updateCarIntroAnim(u16);
 void updateOrbitSprite(u16);
@@ -29,7 +29,7 @@ void func_8015FEC0(Car *car)
                 func_8013E49C(slot);
                 return;
             }
-            func_8013E818(slot, h, 0, 0, 0, 0, 0x258);
+            initHitSlot(slot, h, 0, 0, 0, 0, 0x258);
             hitSlots[slot].unk4 = car;
             car->unk8D0 = 0x78;
             car->unk560 |= 7;

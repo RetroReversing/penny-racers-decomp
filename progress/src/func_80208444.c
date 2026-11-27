@@ -34,12 +34,12 @@ s32 getMenuNavMask(s32, s32, s32);
 void playMenuSound(s32);
 u8 func_80148230(void);
 void func_80205C00(void);
-void func_80203BDC(s32);
+void initRandomSlot(s32);
 void setScreenTransition(s32, s32, s32, s32, s32);
 void func_801E1EEC(s32, s32);
-void func_800DE38C(void);
-void func_800DE2E0(void);
-void func_80231C5C(void);
+void initModelTransforms(void);
+void initObjList(void);
+void createNoticeScreenObj(void);
 void func_801CF468(u16, s32, s32, s32);
 
 void func_80208444(u16 id) {
@@ -145,9 +145,9 @@ void func_80208444(u16 id) {
     case 4:
         if (*D_8011F2F0[D_8018BC3C].f60 == 0) {
             D_8021B068 = 1;
-            func_800DE38C();
-            func_800DE2E0();
-            func_80231C5C();
+            initModelTransforms();
+            initObjList();
+            createNoticeScreenObj();
             func_801CF468(D_8018BC3C, 0, 0, 0);
             D_80168BB0 = D_8021AFDC = 0xC;
         }
@@ -160,7 +160,7 @@ void func_80208444(u16 id) {
                 D_8021AFE0 = 6;
                 for (i = 0; i <= skipFirstRowFlag.v; i++) {
                     if (D_8021B00C[i] == 0) {
-                        func_80203BDC(i);
+                        initRandomSlot(i);
                         for (j = 0; j < 8; j++) {
                             D_8021F270[i][0][i] = 0xFFFF;
                         }
@@ -182,7 +182,7 @@ void func_80208444(u16 id) {
                 D_8021B01A = 1;
                 for (i = 0; i <= skipFirstRowFlag.v; i++) {
                     if (D_8021B00C[i] == 0) {
-                        func_80203BDC(i);
+                        initRandomSlot(i);
                         D_8021B064[i] = 1;
                         D_8021AFEC[i] = 0;
                         D_8021B00C[i] = 1;
@@ -192,9 +192,9 @@ void func_80208444(u16 id) {
                     }
                 }
             }
-            func_800DE38C();
-            func_800DE2E0();
-            func_80231C5C();
+            initModelTransforms();
+            initObjList();
+            createNoticeScreenObj();
             func_801CF468(D_8018BC3C, 0, 0, 0);
             D_80168BB0 = menuChoice;
         }

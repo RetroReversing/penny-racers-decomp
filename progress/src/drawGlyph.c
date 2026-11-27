@@ -36,20 +36,22 @@ typedef union { Gwords words; long long force; } Gfx;
     gImmp1(pkt, 0xb4, _S(s, 16, 16) | _S(t, 0, 16)); \
     gImmp1(pkt, 0xb3, _S(dsdx, 16, 16) | _S(dtdy, 0, 16)); }
 
-void drawGlyph(Gfx **gfxp, u16 x, u16 y, u32 index, u8 *timg, u16 *tlut) {
+/* Draws one 8x8 glyph from a 4-bit texture atlas (16 glyphs per row) as a textured
+   rectangle, using a 16-entry palette, and appends the commands to the display list. */
+void drawGlyph(Gfx **dlPtr, u16 posX, u16 posY, u32 glyphIndex, u8 *glyphTex, u16 *palette) {
     Gfx *gfx;
-    u16 s;
-    u16 t;
+    u16 texS;
+    u16 texT;
 
-    gfx = *gfxp;
-    index &= 0xFFFF;
-    t = index >> 4;
-    s = index & 0xF;
-    t *= 8;
-    s *= 8;
-    gDPLoadTLUT_pal16(gfx++, 0, tlut);
-    gDPLoadTextureTile_4b(gfx++, timg, 2, 128, 0, s, t, s + 7, t + 7, 0, 2, 2, 0, 0, 0, 0);
-    gSPTextureRectangle(gfx++, x * 4, y * 4, (x + 8) * 4, (y + 8) * 4, 0, s << 5, t << 5, 1024, 1024);
+    gfx = *dlPtr;
+    glyphIndex &= 0xFFFF;
+    texT = glyphIndex >> 4;
+    texS = glyphIndex & 0xF;
+    texT *= 8;
+    texS *= 8;
+    gDPLoadTLUT_pal16(gfx++, 0, palette);
+    gDPLoadTextureTile_4b(gfx++, glyphTex, 2, 128, 0, texS, texT, texS + 7, texT + 7, 0, 2, 2, 0, 0, 0, 0);
+    gSPTextureRectangle(gfx++, posX * 4, posY * 4, (posX + 8) * 4, (posY + 8) * 4, 0, texS << 5, texT << 5, 1024, 1024);
     gDPPipeSync(gfx++);
-    *gfxp = gfx;
+    *dlPtr = gfx;
 }

@@ -5,10 +5,10 @@ extern Ent_80160930 D_8011F2F0[];
 extern Slot_80160930 hitSlots[];
 extern s32 D_802396AC;
 extern void updateCarCamera(void);
-extern void func_801610E0(void);
+extern void emitRacerPrimColor(void);
 s32 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 s32 raceAllocSlot(void);
-void func_8013E818(s32, s32, s32, s32, f32, f32, s32);
+void initHitSlot(s32, s32, s32, s32, f32, f32, s32);
 
 void func_80160930(Obj_80160930 *obj) {
     s32 ret;
@@ -20,14 +20,14 @@ void func_80160930(Obj_80160930 *obj) {
         ret = raceAllocSlot();
         slot = ret & 0xFFFF;
         if (slot != 0xFFFF) {
-            id = objCreate(0, 0, 1, 0, 0x52, 0, &D_802396AC, updateCarCamera, func_801610E0,
+            id = objCreate(0, 0, 1, 0, 0x52, 0, &D_802396AC, updateCarCamera, emitRacerPrimColor,
                                ((Ent_80160930 *) id)->f18[0], ((Ent_80160930 *) id)->f18[1], ((Ent_80160930 *) id)->f18[2], ((Ent_80160930 *) id)->f18[3], ((Ent_80160930 *) id)->f18[4], ((Ent_80160930 *) id)->f18[5], ((Ent_80160930 *) id)->f18[6], ((Ent_80160930 *) id)->f18[7], ((Ent_80160930 *) id)->f18[8]);
             if ((u16)(id + 2) < 2) {
                 func_8013E49C(slot);
             } else {
                 s32 idx = ret & 0xFFFF;
                 id &= 0xFFFF;
-                func_8013E818(idx, id, 0, 0, 0.0f, 0.0f, 0x258);
+                initHitSlot(idx, id, 0, 0, 0.0f, 0.0f, 0x258);
                 hitSlots[idx].f4 = obj;
                 hitSlots[idx].f17 = hitSlots[idx].f18 = hitSlots[idx].f19 = 0xFF;
                 hitSlots[idx].f67[obj->f4] = 1;

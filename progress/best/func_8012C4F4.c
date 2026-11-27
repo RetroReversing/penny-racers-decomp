@@ -18,29 +18,24 @@ extern f32 m2c_fbits;
 
 f32 __cosf(f32);                                    /* extern */
 f32 __sinf();                     /* extern */
-u16 objCreate(M2C_UNK, s32, M2C_UNK, M2C_UNK);  /* extern */
-M2C_UNK updateRouteFlags(void *, M2C_UNK, s32);        /* extern */
-M2C_UNK racerUpdateTrackWindow(void *, M2C_UNK, s32);        /* extern */
 M2C_UNK func_801D65BC(M2C_UNK);                     /* extern */
-M2C_UNK stopStageSound(s16);                         /* extern */
 M2C_UNK func_80232360(s32, M2C_UNK);                /* extern */
 M2C_UNK guMtxCatF(M2C_UNK *, M2C_UNK *, M2C_UNK *); /* extern */
 M2C_UNK guMtxXFMF(M2C_UNK *, f32, f32, f32 *);      /* extern */
 M2C_UNK guRotateF(M2C_UNK *, f32, f32 *, f32 *);    /* extern */
+u16 objCreate(M2C_UNK, s32, M2C_UNK, M2C_UNK);      /* extern */
+M2C_UNK racerUpdateTrackWindow(void *, M2C_UNK, s32); /* extern */
 f32 sqrtf(f32);                                     /* extern */
+M2C_UNK stopStageSound(s16);                        /* extern */
+M2C_UNK updateRouteFlags(void *, M2C_UNK, s32);     /* extern */
 extern M2C_UNK D_8006FAF0;
-extern M2C_UNK sRowBoard;
-extern M2C_UNK sNodeFlags;
-extern M2C_UNK D_8011F2FC;
-extern M2C_UNK D_8011F2FD;
+typedef struct { u16 f0; u8 pad[98]; } Slot_8011F2FD;
+extern Slot_8011F2FD D_8011F2FD[];
 extern M2C_UNK D_8011F304;
 extern M2C_UNK D_8011F308;
-extern M2C_UNK sPrimColorG;
-extern M2C_UNK sPrimColorB;
 extern M2C_UNK D_8011F314;
 extern M2C_UNK D_8011F318;
 extern M2C_UNK D_8011F31C;
-extern M2C_UNK playerSlots;
 extern u16 D_80167E60;
 extern u8 D_80167E61;
 extern u16 D_80167E62;
@@ -58,7 +53,7 @@ extern M2C_UNK D_80183AD0;
 extern M2C_UNK D_80183AE0;
 extern M2C_UNK D_80189B30;
 extern M2C_UNK D_80189C84;
-extern u16 D_80189C96[];
+extern u16 playerFadeObj;
 extern u8 D_80189CC8;
 extern M2C_UNK D_8018A264;
 extern M2C_UNK D_8018A26E;
@@ -66,7 +61,6 @@ extern M2C_UNK D_8018B520;
 extern u16 D_8018BC30;
 extern u8 D_8018BC33;
 extern u16 D_80190C90;
-extern void *trackInfo;
 extern u16 D_801E975A;
 extern M2C_UNK D_801E99A0;
 extern M2C_UNK D_801E99A4;
@@ -80,7 +74,6 @@ extern M2C_UNK D_80221094;
 extern M2C_UNK D_80221098;
 extern M2C_UNK D_8022109C;
 extern M2C_UNK D_802210A0;
-extern M2C_UNK D_8022A772;
 extern M2C_UNK D_8022AD04;
 extern M2C_UNK D_8022AD64;
 extern M2C_UNK D_8022AF3C;
@@ -91,6 +84,14 @@ extern M2C_UNK func_8012FFF0;
 extern M2C_UNK func_80135544;
 extern M2C_UNK func_80135C64;
 extern M2C_UNK func_80136A28;
+extern M2C_UNK playerSlots;
+extern M2C_UNK racerTimerFlags;
+extern M2C_UNK sNodeFlags;
+extern M2C_UNK sPrimColorB;
+extern M2C_UNK sPrimColorG;
+extern M2C_UNK sRowBoard;
+extern M2C_UNK slotObjIds;
+extern void *trackInfo;
 
 void func_8012C4F4(u16 arg0) {
     f32 *sp10;
@@ -293,10 +294,10 @@ void func_8012C4F4(u16 arg0) {
     sp18E = arg0;
     temp_v1 = sp18E * 0x64;
     sp1A6 = *(&playerSlots + temp_v1);
-    temp_s6 = *(&D_8011F2FC + temp_v1);
+    temp_s6 = *(&racerTimerFlags + temp_v1);
     temp_s5 = (temp_s6 & 0xFFFF) / 3;
     temp_a0 = temp_s5 & 0xFFFF;
-    sp19E = *(&D_8022A772 + (temp_a0 * 0x8F0));
+    sp19E = *(&slotObjIds + (temp_a0 * 0x8F0));
     temp_a1 = temp_s5 & 0xFFFF;
     if (*(&playerSlots + temp_v1) != 0) {
         temp_v0 = sp19E * 0x64;
@@ -334,7 +335,7 @@ void func_8012C4F4(u16 arg0) {
                 *(&D_80221084 + temp_v0_3) = var_s4;
                 *(&D_80221088 + temp_v0_3) = var_s7;
                 temp_s0 = (temp_s5 & 0xFFFF) * 0x8F0;
-                temp_v0_4 = *(&D_8022A772 + temp_s0) * 0x64;
+                temp_v0_4 = *(&slotObjIds + temp_s0) * 0x64;
                 temp_fs0 = *(&D_8011F318 + temp_v0_4);
                 temp_fs1 = *(&D_8011F31C + temp_v0_4);
                 sp10 = NULL;
@@ -367,7 +368,7 @@ void func_8012C4F4(u16 arg0) {
                         var_v1_2 = temp_s6 & 0xFFFF;
                     } else {
 block_46:
-                        temp_fs0_2 = *(&D_8011F31C + (*(&D_8011F304 + (*(&D_8022A772 + (var_v1 * 0x8F0)) * 0x64)) * 0x64));
+                        temp_fs0_2 = *(&D_8011F31C + (*(&D_8011F304 + (*(&slotObjIds + (var_v1 * 0x8F0)) * 0x64)) * 0x64));
                         sp10 = &sp170;
                         sp14 = &sp174;
                         sp18 = &sp178;
@@ -381,7 +382,7 @@ block_46:
                         goto block_48;
                     }
                 } else {
-                    temp_fs0_3 = *(&D_8011F314 + (*(&D_8011F304 + (*(&D_8022A772 + ((temp_s5 & 0xFFFF) * 0x8F0)) * 0x64)) * 0x64));
+                    temp_fs0_3 = *(&D_8011F314 + (*(&D_8011F304 + (*(&slotObjIds + ((temp_s5 & 0xFFFF) * 0x8F0)) * 0x64)) * 0x64));
                     sp10 = &sp17C;
                     sp14 = &sp180;
                     sp18 = &sp184;
@@ -689,9 +690,9 @@ block_76:
             temp_a0_9 = (temp_a0_8 * 2) + (((sp19E + 1) * 0x64) + &sNodeFlags);
             *temp_a0_9 &= 0xFFF7;
             if (M2C_FIELD(&sRowBoard, s16 *, 0x2108) == 1) {
-                *(&D_8011F2FD + (D_8018BC30 * 0x64)) = 2;
+                D_8011F2FD[D_8018BC30].f0 = 2;
             }
-            *(&D_8011F2FD + (sp18E * 0x64)) = 1;
+            D_8011F2FD[sp18E].f0 = 1;
             sp10 = (f32 *)0x80;
             sp14 = temp_s6 & 0xFF;
             sp18 = NULL;
@@ -716,7 +717,7 @@ block_76:
                 }
                 temp_s0_6 = temp_s5 & 0xFFFF;
                 if (D_80189CC8 == 0) {
-                    *(&D_8011F2FC + (D_801E975A * 0x64)) = 0;
+                    *(&racerTimerFlags + (D_801E975A * 0x64)) = 0;
                 }
                 if (temp_s0_6 < 2U) {
                     sp10 = (f32 *)0x81;
@@ -769,7 +770,7 @@ block_76:
                     *(&D_8022AFE9 + temp_a0_12) = 4;
                 }
                 temp_s0_7 = ((temp_s5 & 0xFFFF) * 2) + &D_8018A26E;
-                *(&D_8011F2FD + (*temp_s0_7 * 0x64)) = 2;
+                D_8011F2FD[*temp_s0_7].f0 = 2;
                 sp10 = (f32 *)0x80;
                 sp14 = NULL;
                 sp18 = NULL;
@@ -786,10 +787,10 @@ block_76:
                 sp44 = 0;
                 *temp_s0_7 = objCreate(0, temp_s5 & 0xFF, 3, 0);
                 if (D_80167E60 == M2C_FIELD(&sRowBoard, s16 *, 0x2108)) {
-                    *(&D_8011F2FD + (D_80190C90 * 0x64)) = 2;
-                    *(&D_8011F2FD + (D_80189C96[0] * 0x64)) = 2;
+                    D_8011F2FD[D_80190C90].f0 = 2;
+                    D_8011F2FD[playerFadeObj].f0 = 2;
                     if (M2C_FIELD(&sRowBoard, s16 *, 0x2108) == 1) {
-                        *(&D_8011F2FD + (D_8018BC30 * 0x64)) = 2;
+                        D_8011F2FD[D_8018BC30].f0 = 2;
                     }
                 }
             }

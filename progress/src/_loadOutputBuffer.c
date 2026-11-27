@@ -8176,7 +8176,7 @@ f32 _doModFunc(ALDelay *d, s32 count);
 
 
 
-Acmd *_loadOutputBuffer(ALFx *r, ALDelay *d, s32 buff, s32 incount, Acmd *p)
+/* Loads one audio output buffer, resampling it through the sample-rate state when one is active. */ Acmd *_loadOutputBuffer(ALFx *r, ALDelay *d, s32 buff, s32 incount, Acmd *p)
 {
     Acmd        *ptr = p;
     s32         ratio, count, rbuff = 640 ;

@@ -19,7 +19,7 @@ typedef struct {
 } Ply;
 typedef struct { u8 b[0xC]; } Gx;
 extern Obj D_8011F2F0[];
-extern Ply D_8021E22F[];
+extern Ply randomSequenceTable[];
 extern s8 D_8021E231[];
 extern Gx D_80237DC0[];
 extern Def D_8021E680[][8];
@@ -58,15 +58,15 @@ void func_8020A160(s32 arg0) {
         }
         objCreate(0, 0, 3, 0, 0xA1, 0xFF, 0, 0, func_8013DD2C, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
         D_8021F090[0] = objCreate(0, 0, 1, 0, 0x64, 0xFF, D_8021E680[0], func_8020AA48, func_8020FED8, carouselX[0], carouselY[0], carouselZ[0], 15.0f, 0.0f, 0.0f, 0.3f, 0.3f, 0.3f);
-        D_8011F2F0[D_8011F2F0[D_8021F090[arg0]].child].def->unk4 = &D_80237DC0[D_8021E231[arg0 * 0x110 + D_8021E22F[arg0].sel]];
+        D_8011F2F0[D_8011F2F0[D_8021F090[arg0]].child].def->unk4 = &D_80237DC0[D_8021E231[arg0 * 0x110 + randomSequenceTable[arg0].sel]];
         D_8021E146 = objCreate(0, 0, 1, 0, 0x64, 0xFF, D_8021E680[1], 0, func_8020FED8, carouselX[1], 0.0f, carouselZ[1], 15.0f, 0.0f, 0.0f, 0.3f, 0.3f, 0.3f);
-        D_8011F2F0[D_8011F2F0[D_8021E146].child].def->unk4 = &D_80237DC0[D_8021E231[arg0 * 0x110 + D_8021E22F[arg0].sel]];
+        D_8011F2F0[D_8011F2F0[D_8021E146].child].def->unk4 = &D_80237DC0[D_8021E231[arg0 * 0x110 + randomSequenceTable[arg0].sel]];
         D_8021F024 = objCreate(0, 0, 1, 0, 0x64, 0xFF, D_8021E680[2], 0, func_8020FED8, carouselX[2], 0.0f, carouselZ[2], 15.0f, 0.0f, 0.0f, 0.3f, 0.3f, 0.3f);
-        D_8011F2F0[D_8011F2F0[D_8021F024].child].def->unk4 = &D_80237DC0[D_8021E231[arg0 * 0x110 + D_8021E22F[arg0].sel]];
+        D_8011F2F0[D_8011F2F0[D_8021F024].child].def->unk4 = &D_80237DC0[D_8021E231[arg0 * 0x110 + randomSequenceTable[arg0].sel]];
         D_8021F026 = objCreate(0, 0, 1, 0, 0x64, 0xFF, D_8021E680[3], 0, func_8020FED8, carouselX[3], 0.0f, carouselZ[3], 15.0f, 0.0f, 0.0f, 0.3f, 0.3f, 0.3f);
-        D_8011F2F0[D_8011F2F0[D_8021F026].child].def->unk4 = &D_80237DC0[D_8021E231[arg0 * 0x110 + D_8021E22F[arg0].sel]];
+        D_8011F2F0[D_8011F2F0[D_8021F026].child].def->unk4 = &D_80237DC0[D_8021E231[arg0 * 0x110 + randomSequenceTable[arg0].sel]];
         D_8021EFF8 = objCreate(0, 0, 1, 0, 0x64, 0xFF, D_8021E680[4], 0, func_8020FED8, carouselX[4], 0.0f, carouselZ[4], 15.0f, 0.0f, 0.0f, 0.3f, 0.3f, 0.3f);
-        D_8011F2F0[D_8011F2F0[D_8021EFF8].child].def->unk4 = &D_80237DC0[D_8021E231[arg0 * 0x110 + D_8021E22F[arg0].sel]];
+        D_8011F2F0[D_8011F2F0[D_8021EFF8].child].def->unk4 = &D_80237DC0[D_8021E231[arg0 * 0x110 + randomSequenceTable[arg0].sel]];
     } else {
         if (skipFirstRowFlag == 1) {
             y = 5.0f;
@@ -78,6 +78,6 @@ void func_8020A160(s32 arg0) {
         }
         objCreate(0, 0, 3, 0, 0xA1, 0xFF, 0, 0, func_8013DD2C, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
         D_8021F090[arg0] = objCreate(0, arg0, 1, 0, 0x64, 0xFF, D_8021E680[arg0], func_8020AA48, func_8020FED8, 12.0f, y + D_8021B2D8[arg0], 0.0f, D_8021B2E8[arg0], 0.0f, 0.0f, 0.4f, 0.4f, 0.4f);
-        D_8011F2F0[D_8011F2F0[D_8021F090[arg0]].child].def->unk4 = &D_80237DC0[D_8021E231[arg0 * 0x110 + D_8021E22F[arg0].sel]];
+        D_8011F2F0[D_8011F2F0[D_8021F090[arg0]].child].def->unk4 = &D_80237DC0[D_8021E231[arg0 * 0x110 + randomSequenceTable[arg0].sel]];
     }
 }

@@ -4,7 +4,7 @@ typedef struct { u8 pad[0x2108]; Rec rec[1]; } Table;
 extern Table sRowBoard;
 extern u8 D_8011F2E8;
 extern u8 viewIndex;
-extern u8 D_80220ED8[];
+extern u8 noticeBackgroundDl[];
 extern u8 D_80220EF0[];
 extern u8 D_80220F08[];
 extern u8 D_80220F20[];
@@ -46,7 +46,7 @@ void func_8021FAA4(Cmd **gfx)
         break;
     case 1:
     default:
-        DL(*gfx, D_80220ED8);
+        DL(*gfx, noticeBackgroundDl);
         break;
     }
 }

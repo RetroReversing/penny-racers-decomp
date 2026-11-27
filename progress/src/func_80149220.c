@@ -1,7 +1,7 @@
 extern u8 D_8018994E;
 extern u8 D_80189B36;
 extern u16 D_8018A288[];
-extern u16 D_8018D140[][150];
+extern u16 pickLists[][150];
 s32 func_801496B0(u8 arg0, u16 arg1, u8 arg2);
 
 u16 func_80149220(u8 arg0, u8 arg1, u8 arg2, s32 arg3) {
@@ -16,8 +16,8 @@ u16 func_80149220(u8 arg0, u8 arg1, u8 arg2, s32 arg3) {
     }
     if (arg0 == 8) {
         for (i = 0, found = 0; i < arg2; i++) {
-            if ((D_8018D140[arg3][i] & 0x1FFF) == 0xD) {
-                result = D_8018D140[arg3][i];
+            if ((pickLists[arg3][i] & 0x1FFF) == 0xD) {
+                result = pickLists[arg3][i];
                 found = 1;
             }
         }

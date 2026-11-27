@@ -14,9 +14,9 @@ typedef s32 M2C_UNK32;
 
 s32 func_801D8E74();
 extern char D_8011F2F0[];
-extern char D_8011F2FC[];
+extern char racerTimerFlags[];
 extern char playerSlots[];
-extern char D_8011F334[];
+extern char racerTimers[];
 extern char D_8011F33C[];
 extern u16 D_801E979C;
 extern s16 D_801E9950;
@@ -35,9 +35,9 @@ void func_801DD938(s16 arg0, s16 arg1, s16 arg2, s16 arg3, u8 arg4, u16 arg5, u1
     temp_v0 = D_801E979C * 0x64;
     *(u16 *)(playerSlots + temp_v0) = arg6;
     __repair_rows: {
-        *(f32 *)(D_8011F334 + temp_v0) = (f32) (arg7 & 0xFFFF);
+        *(f32 *)(racerTimers + temp_v0) = (f32) (arg7 & 0xFFFF);
         *(f32 *)(D_8011F33C + temp_v0) = (f32) (arg5 & 0xFFFF);
-        *(D_8011F2FC + temp_v0) = (arg8 & 0xFF);
+        *(racerTimerFlags + temp_v0) = (arg8 & 0xFF);
         *(D_8011F2F0 + (D_801E979C * 0x64)) = (s8) arg9;
     }
 if (0) goto __repair_rows;

@@ -51,9 +51,9 @@ s32 nuContPakGetFree(Pak *);
 void func_801DD938(s32, s32, s32, s32, s32, s32, s32, s32, s32, s32);
 void setScreenTransition(s32, s32, s32, s32, s32);
 void playStageSound(s32, s16);
-void func_800DE38C(void);
-void func_800DE2E0(void);
-void func_80231C5C(void);
+void initModelTransforms(void);
+void initObjList(void);
+void createNoticeScreenObj(void);
 void func_801CF468(u16, s32, s32, s32);
 void func_801DF62C(volatile unsigned short id)
 {
@@ -265,9 +265,9 @@ void func_801DF62C(volatile unsigned short id)
     }
 
     case 902:
-      func_800DE38C();
-      func_800DE2E0();
-      func_80231C5C();
+      initModelTransforms();
+      initObjList();
+      createNoticeScreenObj();
       func_801CF468(D_8018BC3C, 0, 0, 0);
       D_8021AFDC = 0x22;
       D_80168BB0 = 0x22;

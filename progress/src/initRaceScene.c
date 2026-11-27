@@ -33,7 +33,7 @@ extern u8 D_80190CAA;
 extern u8 D_8018D678;
 extern u16 D_8018A27C;
 extern u16 D_8018A43A;
-extern s16 D_8021E1A6;
+extern s16 carClassIndex;
 extern u16 D_8018A44A[];
 extern u8 D_80183630[], D_80183644[];
 extern State D_80189C9A;
@@ -43,7 +43,7 @@ extern Part D_8018F5D0[][8];
 extern Part D_80238EC0[];
 extern u16 D_80190CB4;
 u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
-void func_801DDA5C();
+void spawnSceneFadeObjects();
 void dmaRomToRam(void *, void *, s32);
 void func_8021FCA4();
 u8 func_80148230();
@@ -59,7 +59,7 @@ void func_801D5A90(), func_80138B1C(), gfxSetViewViewport(), func_8022026C(), fu
     s32 j;
     u16 slot;
 
-    func_801DDA5C();
+    spawnSceneFadeObjects();
     objCreate(0, 0xFF, 3, 0, 0x7F, 0, 0, func_801D5A90, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     dmaRomToRam(D_3B7C00, D_802D6890, D_3E4880 - D_3B7C00);
     dmaRomToRam(D_40A890, D_8030BD90, D_412160 - D_40A890);
@@ -96,7 +96,7 @@ void func_801D5A90(), func_80138B1C(), gfxSetViewViewport(), func_8022026C(), fu
     D_8018A27C = computeUnlockFlags();
     D_8018A43A = func_8014BB30(0);
     D_8018A27C &= ~D_8018A43A;
-    debugPrintf(D_80183630, D_8018A44A[D_8021E1A6]);
+    debugPrintf(D_80183630, D_8018A44A[carClassIndex]);
     debugPrintf(D_80183644, D_8018A27C, D_8018A43A);
     D_80189C9A.f1D = 0;
     D_80189C9A.f25 = 0;

@@ -39,22 +39,24 @@ extern void func_80042980(void);
 extern void auAudioThread(void *);
 void *auDmaNew(void **);
 
-void nuAuStlMgrInit(u8 *ptr, u32 size, ALSynConfig *config)
+/* Initializes the audio manager: sets up the heap, command lists and audio buffers, fills in the
+ * synth config, sets up the two audio task slots, and starts the audio thread. */
+void nuAuStlMgrInit(u8 *heapBase, u32 heapSize, ALSynConfig *synConfig)
 {
     u32 i;
 
     D_80046C3C = 1;
-    alHeapInit(&D_8006E780, ptr, size);
+    alHeapInit(&D_8006E780, heapBase, heapSize);
     auCmdLists[0] = alHeapAlloc(&D_8006E780, 1, 0x2000);
     auCmdLists[1] = alHeapAlloc(&D_8006E780, 1, 0x2000);
     auAudioBufs[0] = alHeapAlloc(&D_8006E780, 1, 0x8000);
     auAudioBufs[1] = alHeapAlloc(&D_8006E780, 1, 0x8000);
     auAudioBufs[2] = alHeapAlloc(&D_8006E780, 1, 0x8000);
     osCreateMesgQueue(&D_8005D088, D_8005D0A0, 0x40);
-    config->dmaproc = (void *)auDmaNew;
-    config->heap = &D_8006E780;
-    config->outputRate = osAiSetFrequency(config->outputRate);
-    n_alInit(&D_80072B80, config);
+    synConfig->dmaproc = (void *)auDmaNew;
+    synConfig->heap = &D_8006E780;
+    synConfig->outputRate = osAiSetFrequency(synConfig->outputRate);
+    n_alInit(&D_80072B80, synConfig);
     for (i = 0; i < 2; i++) {
         auTasks[i].msg = 0;
         auTasks[i].list.t.type = 2;

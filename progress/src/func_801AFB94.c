@@ -53,7 +53,7 @@ extern f32 D_80235300[];
 extern f32 D_80235620[];
 extern f32 D_80235940[];
 extern u8 D_80323ED0[];
-extern void func_80231A0C();
+extern void initSceneBackdrop();
 extern void createStageObjects();
 extern void func_801B09F0();
 extern void func_801B0B60(s32);
@@ -95,7 +95,7 @@ void func_801AFB94(s32 arg0, u8 arg1)
     Trail *t;
 
     D_8006FAF0.unk20 = 0;
-    func_80231A0C();
+    initSceneBackdrop();
     createStageObjects();
     func_801B09F0();
     func_801B0B60(arg0);

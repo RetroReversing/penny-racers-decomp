@@ -32,7 +32,7 @@ extern char D_801FACA0[];
 extern f32 D_802038D4;
 extern char D_8022A720[];
 extern s32 sCars;
-extern u16 D_8022A772;
+extern u16 slotObjIds;
 extern char D_8022E620[];
 extern s32 func_801FA980;
 
@@ -437,7 +437,7 @@ block_79:
     if ((u8) M2C_FIELD(arg1, u8 *, 0x74C) < 5U) {
         M2C_FIELD(arg1, s32 *, 0x89C) = 0;
     }
-    if (D_8022A772 == (arg0 & 0xFFFF)) {
+    if (slotObjIds == (arg0 & 0xFFFF)) {
         D_802038D4 = (f32) M2C_FIELD(arg1, s8 *, 0x87B);
     }
     if ((M2C_FIELD(arg1, u16 *, 4) == 6) && (M2C_FIELD(arg1, u8 *, 0x778) == 0)) {
@@ -450,7 +450,7 @@ block_79:
     var_v0_2 = 0 & 0xFFFF;
     do {
         temp_v1_8 = var_v0_2 * 0x8F0;
-        temp_a0_8 = *(s32 *)(D_8022A772 + temp_v1_8);
+        temp_a0_8 = *(s32 *)(slotObjIds + temp_v1_8);
         if ((temp_a0_8 != 0xFFFF) && (temp_a0_8 != M2C_FIELD(arg1, u16 *, 2)) && (M2C_FIELD(arg1, u8 *, 0x8A1) == 0) && (M2C_FIELD(arg1, u8 *, 0x860) != 0)) {
             temp_s3_2 = temp_v1_8 + &sCars;
             __index_D_8011F2F0 = M2C_FIELD(temp_s3_2, u16 *, 2) * 0x64;

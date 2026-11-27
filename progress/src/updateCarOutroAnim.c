@@ -3,14 +3,14 @@ typedef struct { char pad0[4]; Car *car; char pad8[0xC]; u16 timer; char pad16[0
 typedef struct { u8 unk0; char pad1[0xC]; u8 unkD; char padE[0x30]; u16 state; char pad40[0x20]; Ctl *ctl; } Cam;
 typedef struct { char pad0[0x30]; f32 unk30; f32 unk34; char pad38[0x18]; s32 *unk50; char pad54[0x10]; } Obj;
 extern Cam D_8011F2F0[];
-extern Obj D_8011F4E4[];
+extern Obj carPartObjs[];
 extern u8 D_802378FC[];
 extern u8 D_80237914[];
 
 /* Per-frame update for a car outro: counts down the timer, then lerps the object's scale and offset through two phases before releasing it. */ void updateCarOutroAnim(u16 slot)
 {
   Ctl *ctl = D_8011F2F0[slot].ctl;
-  Obj *obj = &D_8011F4E4[ctl->car->unk2];
+  Obj *obj = &carPartObjs[ctl->car->unk2];
   s32 *animSlot = obj->unk50;
 
   switch (((ctl->timer & 3) >> 1) && (s16)ctl->timer > 0)

@@ -12,7 +12,7 @@ extern Src80189B38 D_80189B38;
 extern u8 D_8021F048[][14];
 extern u16 D_8021F270[][14][8];
 extern s32 randomMasks[][8];
-extern u8 D_8021E22F[][8][0x22];
+extern u8 randomSequenceTable[][8][0x22];
 extern char D_80183750[];
 
 u8 func_8014B590(u8 arg0)
@@ -34,7 +34,7 @@ u8 func_8014B590(u8 arg0)
         }
         for (i = 0; i < 8; i++) {
             dst->d[i] = randomMasks[arg0][i];
-            dst->b[i] = D_8021E22F[arg0][i][0];
+            dst->b[i] = randomSequenceTable[arg0][i][0];
         }
         for (i = 0; i < 4; i++) {
             dst->e[i] = 0;

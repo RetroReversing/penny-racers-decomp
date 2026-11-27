@@ -67,7 +67,7 @@ extern u16 *D_8021D334[];
 extern u16 *D_80203080[];
 extern u8 D_8021CA80[][3];
 extern u8 D_8021C994[];
-extern u16 D_8018D140[];
+extern u16 pickLists[];
 void gfxSetup2DState(Gfx **);
 void gfxSetPrimColor(Gfx **, u8, u8, u8, s32);
 void gfxDrawText(Gfx **, u16, u16, u16, u8 *, u16 *, u8, u8 *, s32, s32, s32, s32);
@@ -138,7 +138,7 @@ void func_8021A334(Gfx **gfxp, u16 id) {
             r = 0xFF;
             g = 0xFF;
             b = 0xFF;
-            if (D_8018D140[D_8021C994[obj->kind]] == 0) {
+            if (pickLists[D_8021C994[obj->kind]] == 0) {
                 r = 0x80;
                 g = 0x80;
                 b = 0x80;

@@ -2,9 +2,9 @@ typedef struct { u8 f0; u8 pad1[0x3D]; u16 f3E; u16 f40; u8 pad42[0x22]; } Rec;
 typedef struct { u16 timer; u8 pad2[2]; u8 page; u8 pad5[9]; u8 cur; u8 padF; u8 sel; u8 pad11; u8 kind; u8 pad13[3]; u8 f16; u8 pad17; u8 f18; } State;
 extern Rec D_8011F2F0[];
 extern State sMenuState;
-extern u8 D_801C5E9C[];
+extern u8 menuCursorPos[];
 extern u8 D_801C5EA0;
-extern u8 D_801C5EA2;
+extern u8 menuNextScene;
 extern u8 D_801E9B34;
 extern s32 D_8021DEB4;
 s32 getMenuNavMask(s32, s32, s32);
@@ -26,7 +26,7 @@ void updateSelectMenu(u16 id) {
 
     switch (rec->f3E) {
     case 0:
-        if (D_801C5EA2 == 2) {
+        if (menuNextScene == 2) {
             *cur = 1;
             rec->f3E = 0x30;
         } else {
@@ -88,10 +88,10 @@ void updateSelectMenu(u16 id) {
                 D_801E9B34 -= 8;
                 debugPrintf(&D_8021DEB4, D_801E9B34);
                 func_801E1EEC(5, 0);
-                D_801C5E9C[3] = D_801C5E9C[2];
+                menuCursorPos[3] = menuCursorPos[2];
             } else {
                 func_801E1EEC(8, 0);
-                D_801C5E9C[3] = D_801C5E9C[2];
+                menuCursorPos[3] = menuCursorPos[2];
                 rec->f0 = 0;
                 rec->f3E = 0x21;
             }
@@ -143,7 +143,7 @@ void updateSelectMenu(u16 id) {
         sMenuState.f16 = 0;
         sMenuState.timer = 0x10;
         rec->f40 = 1;
-        D_801C5EA2 = 5;
+        menuNextScene = 5;
         break;
     }
 }

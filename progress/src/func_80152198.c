@@ -1,4 +1,4 @@
-extern char D_8011F2FC[];
+extern char racerTimerFlags[];
 extern char playerSlots[];
 extern char D_802E0268[];
 
@@ -24,7 +24,7 @@ void func_80152198(void **arg0, s32 arg1)
   *arg0 = temp_a2 + 8;
   ((s32 *) temp_a2)[0] = 0xFA000000;
   temp_a3 = (arg1 & 0xFFFF) * 0x64;
-  ((s32 *) temp_a2)[1] = (s32) (*(u8 *) (D_8011F2FC + temp_a3) | ~0xFF);
+  ((s32 *) temp_a2)[1] = (s32) (*(u8 *) (racerTimerFlags + temp_a3) | ~0xFF);
   temp_v1_2 = *arg0;
   *arg0 = temp_v1_2 + 8;
   ((s32 *) temp_v1_2)[0] = 0xFD88001F;

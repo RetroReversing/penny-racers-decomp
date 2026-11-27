@@ -13,7 +13,7 @@ typedef s32 M2C_UNK32;
 #endif
 
 extern char D_8011F2F0[];
-extern u8 D_8011F2FC[];
+extern u8 racerTimerFlags[];
 extern u8 viewIndex;
 extern char D_8018A264[];
 
@@ -27,7 +27,7 @@ void func_8015FD64(void **arg0, s32 arg1) {
     void *temp_v1_5;
 
     temp_v1 = (arg1 & 0xFFFF) * 0x64;
-    if (*(D_8011F2FC + temp_v1) != 0) {
+    if (*(racerTimerFlags + temp_v1) != 0) {
         temp_v1_2 = *(D_8011F2F0 + temp_v1);
         if (temp_v1_2 == viewIndex) {
             temp_a0 = *(D_8018A264 + temp_v1_2);
@@ -49,6 +49,6 @@ void func_8015FD64(void **arg0, s32 arg1) {
         temp_a0_2 = *arg0;
         *arg0 = temp_a0_2 + 8;
         M2C_FIELD(temp_a0_2, s32 *, 0) = 0xFA000000;
-        M2C_FIELD(temp_a0_2, s32 *, 4) = (s32) (*(D_8011F2FC + ((arg1 & 0xFFFF) * 0x64)) | 0xFF000000);
+        M2C_FIELD(temp_a0_2, s32 *, 4) = (s32) (*(racerTimerFlags + ((arg1 & 0xFFFF) * 0x64)) | 0xFF000000);
     }
 }

@@ -11,7 +11,7 @@ extern HitF slotRadius[];
 extern f32 D_8022E620[][6];
 extern u8 D_8022A720[][6];
 extern u8 sCars[];
-extern void func_80162460(void), func_80162BB0(void), func_8016221C(void);
+extern void func_80162460(void), func_80162BB0(void), stepCarPartAnim(void);
 s32 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 void launchBall(s32, s32, void *, s32, f32, f32, f32, f32, f32, f32, s32);
 void queueObjEvent(s32, s32);
@@ -92,7 +92,7 @@ void func_80161BE0(u8 *car) {
             if (*(s16 *) (car + 0x55E) > 0) {
                 *(s16 *) (car + 0x55E) -= 1;
                 if (*(s16 *) (car + 0x55E) == 0) {
-                    objCreate(0, car[5], 3, 0, 0x5B, 0, 0, func_8016221C, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+                    objCreate(0, car[5], 3, 0, 0x5B, 0, 0, stepCarPartAnim, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
                     count = *(u16 *) (car + 0x560) & 7;
                     *(u16 *) (car + 0x560) = (*(u16 *) (car + 0x560) & 0xF8) | (count + 1);
                     queueObjEvent(*(u16 *) (car + 2), 0x2A);

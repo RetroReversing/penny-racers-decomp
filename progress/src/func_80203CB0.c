@@ -1,4 +1,4 @@
-void func_80149CC4(s32, s32);
+void buildRandomSequenceTable(s32, s32);
 extern s32 randomMasks;
 extern s32 D_8018D3A4;
 extern s32 D_8018D3A8;
@@ -20,5 +20,5 @@ void func_80203CB0(s32 arg0) {
     *(s32 *)((u8 *)&D_8018D3B4 + temp_v1) = 0xFF;
     *(s32 *)((u8 *)&D_8018D3B8 + temp_v1) = 0x1FFFFF;
     *(s32 *)((u8 *)&D_8018D3BC + temp_v1) = 0x7FFF;
-    func_80149CC4(arg0, 0);
+    buildRandomSequenceTable(arg0, 0);
 }

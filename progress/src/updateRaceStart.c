@@ -59,7 +59,7 @@ extern Obj D_8011F2F0[];
 extern Race *D_8018A280;
 extern s32 D_8018D674;
 extern Race hitSlots[];
-extern s16 D_8021E1A6;
+extern s16 carClassIndex;
 extern Car sCars[];
 extern Car D_8022DD10;
 extern u8 D_80237980[];
@@ -98,7 +98,7 @@ extern u8 D_80322A4C[];
         D_800DAB50 = 0;
         D_800DAB54 = 0;
         func_8022FE50(6, 6, 6, 1);
-        switch (D_8021E1A6)
+        switch (carClassIndex)
         {
         case 0:
           car->unk8E0 = D_80322A4C;

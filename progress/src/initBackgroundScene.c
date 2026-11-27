@@ -47,8 +47,8 @@ extern u16 D_8018BC3C;
 extern u16 menuPanelTlut;
 void dmaRomToRam(void *, void *, s32);
 u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
-void func_801DDA5C(void);
-void func_80231A0C(void);
+void spawnSceneFadeObjects(void);
+void initSceneBackdrop(void);
 void func_801D5A90();
 void func_8015A9CC();
 void drawBackgroundGrid();
@@ -63,7 +63,7 @@ void updateSaveDataSync();
 
     dmaRomToRam(D_3B7C00, D_802D6890, D_3E4880 - D_3B7C00);
     menuPanelTlut = 0xFFFF;
-    func_80231A0C();
+    initSceneBackdrop();
     D_802210C8[0] = 170.0f;
     D_802210C8[1] = -100.0f;
     D_802210C8[2] = 40.0f;
@@ -118,5 +118,5 @@ void updateSaveDataSync();
     }
     objCreate(0, 0, 3, 0, 0x71, 0xFF, 0, func_8015A9CC, drawBackgroundGrid, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.1f, 0.1f, 0.1f);
     objCreate(0, 0, 3, 0, 0xC0, 0xFF, 0, updateSaveDataSync, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.1f, 0.1f, 0.1f);
-    func_801DDA5C();
+    spawnSceneFadeObjects();
 }

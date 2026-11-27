@@ -24,17 +24,17 @@ extern u16 sMenuState;
 extern s32 D_8021AFDC;
 extern u8 D_8021E15C;
 extern u8 D_8021E200;
-extern Slot D_8021E22F[][8];
+extern Slot randomSequenceTable[][8];
 extern Menu selectionMenu;
 extern s32 D_80168BB0;
 s32 getMenuNavMask(u32, s32, s32);
-void func_80211C7C(s32);
+void updateColorCycle(s32);
 u8 func_8020FFD0(s32, s32, s32);
 void playMenuSound(s32);
 void setScreenTransition(s32, s32, s32, s32, s32);
-void func_800DE38C(void);
-void func_800DE2E0(void);
-void func_80231C5C(void);
+void initModelTransforms(void);
+void initObjList(void);
+void createNoticeScreenObj(void);
 void func_801CF468(s32, s32, s32, s32);
 
 /* Runs the selection menu: moves the cursor, adjusts per-slot values and handles confirm or cancel. */ void updateSelectionMenu(u16 arg0)
@@ -47,7 +47,7 @@ void func_801CF468(s32, s32, s32, s32);
     s32 i;
 
     input = getMenuNavMask(0x14, 7, selectionMenu.player);
-    func_80211C7C(0xA);
+    updateColorCycle(0xA);
     switch (obj->state) {
     case 0:
         if (*D_8011F2F0[D_8018BC3C].p60 == 0) {
@@ -68,7 +68,7 @@ void func_801CF468(s32, s32, s32, s32);
             changed = 1;
         }
         selectionMenu.cur &= 7;
-        max = D_8021E22F[selectionMenu.player][selectionMenu.cur].max;
+        max = randomSequenceTable[selectionMenu.player][selectionMenu.cur].max;
         if ((input & 4) && selectionMenu.vals[selectionMenu.cur] != 0) {
             selectionMenu.vals[selectionMenu.cur]--;
             changed = 1;
@@ -123,7 +123,7 @@ void func_801CF468(s32, s32, s32, s32);
             } else {
                 *screenMode = 0x1C;
                 for (i = 0; i < 8; i++) {
-                    D_8021E22F[selectionMenu.player][i].val = selectionMenu.vals[i];
+                    randomSequenceTable[selectionMenu.player][i].val = selectionMenu.vals[i];
                 }
                 D_8021E15C = 0;
             }
@@ -142,9 +142,9 @@ void func_801CF468(s32, s32, s32, s32);
         break;
     case 0x31:
         if (*D_8011F2F0[D_8018BC3C].p60 == 0) {
-            func_800DE38C();
-            func_800DE2E0();
-            func_80231C5C();
+            initModelTransforms();
+            initObjList();
+            createNoticeScreenObj();
             func_801CF468(D_8018BC3C, 0, 0, 0);
             D_8021AFDC = 0x10;
             D_80168BB0 = *screenMode;

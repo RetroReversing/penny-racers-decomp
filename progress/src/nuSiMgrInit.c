@@ -8,7 +8,7 @@ extern s32 D_80063DC0;
 extern s32 D_80065F70;
 extern s32 D_80092BF8;
 extern s32 D_80092BFC;
-extern s32 D_800DE058;
+extern s32 contStartMesgQ;
 extern s32 nuSiMgrThread;
 u8 nuSiMgrInit(void)
 {
@@ -16,9 +16,9 @@ u8 nuSiMgrInit(void)
   u8 sp28;
   D_80092BF8 = 0;
   D_80092BFC = 0;
-  func_80033A90(&D_800DE058, &D_80063DA0, 8);
-  func_80034090(5, &D_800DE058, 0);
-  osContInit(&D_800DE058, &sp28, sp18);
+  func_80033A90(&contStartMesgQ, &D_80063DA0, 8);
+  func_80034090(5, &contStartMesgQ, 0);
+  osContInit(&contStartMesgQ, &sp28, sp18);
   osCreateThread(&D_80063DC0, 5, &nuSiMgrThread, 0, &D_80065F70, 0x73);
   osStartThread(&D_80063DC0);
   return sp28;

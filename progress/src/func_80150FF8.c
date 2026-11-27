@@ -2,7 +2,7 @@ f32 __sinf(f32);
 void liftCopyFlags(s32);
 extern u8 D_8011F320[];
 extern u8 D_8011F324[];
-extern u8 D_8011F334[];
+extern u8 racerTimers[];
 extern f64 D_80183798;
 extern f64 D_801837A0;
 extern f64 D_801837A8;
@@ -21,8 +21,8 @@ void func_80150FF8(s32 arg0)
     temp_s0 = arg0 & 0xFFFF;
     liftCopyFlags(temp_s0);
     temp_v1 = temp_s0 * 0x64;
-    do { temp_fv0 = (f32) (((f64) (*((f32 *) (D_8011F334 + temp_v1)))) + D_80183798); } while (0);
-    *((f32 *) (D_8011F334 + temp_v1)) = temp_fv0;
+    do { temp_fv0 = (f32) (((f64) (*((f32 *) (racerTimers + temp_v1)))) + D_80183798); } while (0);
+    *((f32 *) (racerTimers + temp_v1)) = temp_fv0;
     temp_fv1 = (f64) temp_fv0;
   }
   else
@@ -30,16 +30,16 @@ void func_80150FF8(s32 arg0)
     temp_s0 = arg0 & 0xFFFF;
     liftCopyFlags(temp_s0);
     temp_v1 = temp_s0 * 0x64;
-    do { temp_fv0 = (f32) (((f64) (*((f32 *) (D_8011F334 + temp_v1)))) + D_80183798); } while (0);
-    *((f32 *) (D_8011F334 + temp_v1)) = temp_fv0;
+    do { temp_fv0 = (f32) (((f64) (*((f32 *) (racerTimers + temp_v1)))) + D_80183798); } while (0);
+    *((f32 *) (racerTimers + temp_v1)) = temp_fv0;
     temp_fv1 = (f64) temp_fv0;
   }
   do { if (D_801837A0 <= temp_fv1)
   {
-    *((f32 *) (D_8011F334 + temp_v1)) = (f32) (D_801837A0 - temp_fv1);
+    *((f32 *) (racerTimers + temp_v1)) = (f32) (D_801837A0 - temp_fv1);
   } } while (0);
   temp_s0_2 = ((u16) arg0) * 0x64;
-  temp_fv0 = __sinf(*((f32 *) (D_8011F334 + temp_s0_2)));
+  temp_fv0 = __sinf(*((f32 *) (racerTimers + temp_s0_2)));
   *((f32 *) (D_8011F320 + temp_s0_2)) = (f32) ((((f64) temp_fv0) * (temp_fs0 = D_801837A8)) + D_801837B0);
- do { temp_fv0 = __sinf(*((f32 *) (D_8011F334 + temp_s0_2))); *((f32 *) (D_8011F324 + temp_s0_2)) = (f32) ((((f64) temp_fv0) * temp_fs0) + D_801837B8); } while (0);
+ do { temp_fv0 = __sinf(*((f32 *) (racerTimers + temp_s0_2))); *((f32 *) (D_8011F324 + temp_s0_2)) = (f32) ((((f64) temp_fv0) * temp_fs0) + D_801837B8); } while (0);
 }

@@ -13,7 +13,7 @@ extern s32 D_80168BB0;
 extern u16 D_8018BC3C;
 extern u8 D_801C5EA0;
 extern u8 D_801C5EA1;
-extern u8 D_801C5EA2;
+extern u8 menuNextScene;
 extern u8 D_801C69D0;
 extern u16 D_801C6B52;
 extern u16 D_801C6B54;
@@ -24,14 +24,14 @@ extern u8 D_801C7AB8;
 void playMenuSound(s32);
 void setScreenTransition(s32, s32, s32, s32, s32);
 void func_802319E8(void);
-void func_80231C5C(void);
+void createNoticeScreenObj(void);
 void func_801CF468(u16, s32, s32, s32);
 void func_8021F5F0(void);
 void func_801D65BC(s32);
 
 #define ME D_8011F2F0[arg0]
 #define HIT(t) ((t)[player].v % 15 == 1)
-#define SET(a, b) D_801C5EA2 = a; ME.unk0 = b
+#define SET(a, b) menuNextScene = a; ME.unk0 = b
 #define GO(next) \
     setScreenTransition(4, 0x14, 0, 0, 0); \
     *(u16 *)(D_8011F2F0[D_8018BC3C].p + 4) = 0xC; \
@@ -64,20 +64,20 @@ void func_801B50B0(u16 arg0)
     case 1:
         if (HIT(D_801E9988) || HIT(D_801E998C)) {
             playMenuSound(0x3B);
-            if (D_801C5EA2 == 3) {
+            if (menuNextScene == 3) {
                 SET(4, 0x70);
-            } else if (D_801C5EA2 == 4) {
+            } else if (menuNextScene == 4) {
                 SET(3, 0x60);
             }
         }
         if (D_801C69D0) {
             if (OK_PRESSED) {
                 playMenuSound(0x3D);
-                if (D_801C5EA2 == 3) {
+                if (menuNextScene == 3) {
                     D_801C5EA1 = 0;
                     GO(4);
-                } else if (D_801C5EA2 == 4) {
-                    D_801C5EA2 = 5;
+                } else if (menuNextScene == 4) {
+                    menuNextScene = 5;
                     GO(5);
                 }
                 D_801C69D0 = 0;
@@ -114,15 +114,15 @@ void func_801B50B0(u16 arg0)
         if (D_801C69D0) {
             if (OK_PRESSED) {
                 playMenuSound(0x3D);
-                if (D_801C5EA2 == 0) {
+                if (menuNextScene == 0) {
                     D_8011F2F0[hudSlotIndex].st = 0x11;
                     D_801C7AB8 = 4;
                     CLOSE();
-                } else if (D_801C5EA2 == 3) {
+                } else if (menuNextScene == 3) {
                     D_801C5EA1 = 0;
                     GO(4);
-                } else if (D_801C5EA2 == 4) {
-                    D_801C5EA2 = 5;
+                } else if (menuNextScene == 4) {
+                    menuNextScene = 5;
                     GO(5);
                 }
                 D_801C69D0 = 0;
@@ -160,18 +160,18 @@ void func_801B50B0(u16 arg0)
         if (D_801C69D0) {
             if (OK_PRESSED) {
                 playMenuSound(0x3D);
-                if (D_801C5EA2 == 1) {
+                if (menuNextScene == 1) {
                     D_801C5EA0 = 1;
-                    D_801C5EA2 = 5;
+                    menuNextScene = 5;
                     GO(5);
-                } else if (D_801C5EA2 == 2) {
+                } else if (menuNextScene == 2) {
                     D_801C5EA0 = 1;
                     GO(4);
-                } else if (D_801C5EA2 == 3) {
+                } else if (menuNextScene == 3) {
                     D_801C5EA1 = 0;
                     GO(4);
-                } else if (D_801C5EA2 == 4) {
-                    D_801C5EA2 = 5;
+                } else if (menuNextScene == 4) {
+                    menuNextScene = 5;
                     GO(5);
                 }
                 D_801C69D0 = 0;
@@ -184,7 +184,7 @@ void func_801B50B0(u16 arg0)
         break;
     case 4:
         func_802319E8();
-        func_80231C5C();
+        createNoticeScreenObj();
         func_801CF468(D_8018BC3C, 0, 0, 0);
         func_8021F5F0();
         func_801D65BC(0);
@@ -193,7 +193,7 @@ void func_801B50B0(u16 arg0)
         break;
     case 5:
         func_802319E8();
-        func_80231C5C();
+        createNoticeScreenObj();
         func_801CF468(D_8018BC3C, 0, 0, 0);
         func_8021F5F0();
         func_801D65BC(0);

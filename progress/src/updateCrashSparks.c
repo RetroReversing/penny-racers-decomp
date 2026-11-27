@@ -6,7 +6,7 @@ typedef struct { u8 v; u8 pad[0x63]; } SlotB;
 extern SlotP D_8011F350[];
 extern SlotH playerSlots[];
 extern SlotF D_8011F320[];
-extern SlotB D_8011F2FC[];
+extern SlotB racerTimerFlags[];
 extern SlotB D_8011F2FD[];
 void func_8013EC48(u16, f32);
 void func_8013EBB0(u16, f32, f32, f32);
@@ -38,8 +38,8 @@ u32 nextRandom(void);
         func_8013EB20(slot, spark, 0.0f, -0.15f, 0.0f);
         func_8013EA90(spark, 0, (s16)-(nextRandom() & 7), -9);
         func_8013EC48(slot, (0.3f - D_8011F320[slot].v) * 0.05f + D_8011F320[slot].v);
-        D_8011F2FC[slot].v -= 4;
-        if (D_8011F2FC[slot].v < 5) {
+        racerTimerFlags[slot].v -= 4;
+        if (racerTimerFlags[slot].v < 5) {
             playerSlots[slot].v = 3;
         }
         break;

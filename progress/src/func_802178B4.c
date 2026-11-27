@@ -20,10 +20,10 @@ extern s32 D_8021AFDC;
 extern s16 gameState;
 extern u8 D_8021E144;
 void setScreenTransition(s32, s32, s32, s32, s32);
-void func_80211C7C(s32);
+void updateColorCycle(s32);
 void alSeqpStop(void *);
 void func_802319E8(void);
-void func_80231C5C(void);
+void createNoticeScreenObj(void);
 void func_801CF468(u16, s32, s32, s32);
 void func_8021F5F0(void);
 void func_801D63F4(void);
@@ -50,7 +50,7 @@ void func_802178B4(u16 id) {
         if (*D_8011F2F0[D_8018BC3C].f60 == 0) {
             D_8011F2F0[id].f3E = 1;
         }
-        func_80211C7C(0x14);
+        updateColorCycle(0x14);
         break;
     case 1:
         if (D_8021C114 >= 0x385 || D_801E99C0 == 1) {
@@ -65,7 +65,7 @@ void func_802178B4(u16 id) {
         } else {
             D_8021C114++;
         }
-        func_80211C7C(0x14);
+        updateColorCycle(0x14);
         break;
     case 2:
         if (*D_8011F2F0[D_8018BC3C].f60 == 0) {
@@ -89,7 +89,7 @@ void func_802178B4(u16 id) {
         break;
     case 4:
         func_802319E8();
-        func_80231C5C();
+        createNoticeScreenObj();
         func_801CF468(D_8018BC3C, 0xFF, 0xFF, 0xFF);
         func_8021F5F0();
         for (i = 0; i < 4; i++) {

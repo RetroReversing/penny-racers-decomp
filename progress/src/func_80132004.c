@@ -70,9 +70,9 @@ extern Player sCars[];
 extern PS32 D_8022AD0C[];
 extern PS16 D_8022AD04[];
 extern Race D_8006FAF0;
-extern u8 D_80220ED8[];
+extern u8 noticeBackgroundDl[];
 extern u8 D_8018BC33, D_80189CC8;
-extern u16 D_80189C96;
+extern u16 playerFadeObj;
 extern u8 *D_80182DC8[], *D_80182DF0[];
 extern u8 D_8016EFF0[], D_8016F658[], D_80175278[], D_8016EE00[];
 extern u8 *D_80167E40[], *D_80167E50[];
@@ -82,7 +82,7 @@ extern f32 D_80167F30[];
 void gfxSetup2DState(Gfx **);
 void gfxSetPrimAlpha(Gfx **, s32);
 void gfxDrawClippedTex4b(Gfx **, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *);
-void func_801CB9EC(Gfx **, u16, u16, s32, u8 *, u8 *, s32, s32, s32, s32, s32, s32, s32, u16);
+void drawNumberDigits(Gfx **, u16, u16, s32, u8 *, u8 *, s32, s32, s32, s32, s32, s32, s32, u16);
 
 #define DOTS(base) \
     for (i = 5; i >= 0; i--) { \
@@ -112,7 +112,7 @@ void func_801CB9EC(Gfx **, u16, u16, s32, u8 *, u8 *, s32, s32, s32, s32, s32, s
                 py = D_8011F2F0[q->obj].z * D_80167F30[D_8006FAF0.course]; \
                 break; \
             } \
-            func_801CB9EC(gfxp, (u32)px + (u16)(D_80167F08[D_8006FAF0.course] + 0x108), (u32)py + (u16)(D_80167F1C[D_8006FAF0.course] + base), 8, D_80175278, D_80167E40[D_8018D398[i]], 0, 1, 0, 8, 8, 0x10, 8, 0); \
+            drawNumberDigits(gfxp, (u32)px + (u16)(D_80167F08[D_8006FAF0.course] + 0x108), (u32)py + (u16)(D_80167F1C[D_8006FAF0.course] + base), 8, D_80175278, D_80167E40[D_8018D398[i]], 0, 1, 0, 8, 8, 0x10, 8, 0); \
         } \
     }
 
@@ -127,7 +127,7 @@ void func_80132004(Gfx **gfxp, u16 id) {
 
     if (viewIndex == sRowBoard.views - 1) {
         player = &sCars[D_8011F2F0[id].kind];
-        gDma((*gfxp)++, 0x06000000, D_80220ED8);
+        gDma((*gfxp)++, 0x06000000, noticeBackgroundDl);
         gfxSetup2DState(gfxp);
         gfxSetPrimAlpha(gfxp, D_8011F2F0[id].alpha);
         if (sRowBoard.views == 1 && player->mode != sRowBoard.views) {
@@ -145,7 +145,7 @@ void func_80132004(Gfx **gfxp, u16 id) {
             }
         }
         if (D_80189CC8 == 3) {
-            py = D_8011F2F0[D_80189C96].panel->y - 2;
+            py = D_8011F2F0[playerFadeObj].panel->y - 2;
             for (i = 0; i < sRowBoard.views; i++) {
                 t = D_8022AD0C[i].v;
                 if (t < 100) {
@@ -153,8 +153,8 @@ void func_80132004(Gfx **gfxp, u16 id) {
                 } else {
                     t -= D_8022AD04[i].v * 100;
                 }
-                px = D_8011F2F0[D_80189C96].panel->x + (t2 = t - 4);
-                func_801CB9EC(gfxp, (u32)px, (u32)py, 8, D_8016EE00, D_80167E50[D_8018D398[i]], 0, 1, 0, 8, 8, 0x50, 8, i + 1);
+                px = D_8011F2F0[playerFadeObj].panel->x + (t2 = t - 4);
+                drawNumberDigits(gfxp, (u32)px, (u32)py, 8, D_8016EE00, D_80167E50[D_8018D398[i]], 0, 1, 0, 8, 8, 0x50, 8, i + 1);
             }
         }
     }

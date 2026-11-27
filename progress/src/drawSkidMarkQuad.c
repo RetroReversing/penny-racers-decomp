@@ -54,10 +54,10 @@ typedef union { Gwords words; long long force; } Gfx;
 typedef struct { f32 v; u8 pad[0x60]; } SlotF;
 typedef struct { u8 v; u8 pad[0x63]; } SlotB;
 typedef struct { u8 b[16]; } Vtx;
-extern SlotF D_8011F334[];
-extern SlotF D_8011F338[];
+extern SlotF racerTimers[];
+extern SlotF racerAnimFrames[];
 extern SlotF D_8011F33C[];
-extern SlotB D_8011F2FC[];
+extern SlotB racerTimerFlags[];
 extern u8 D_80182E20[];
 extern Vtx D_8018B530[][4][4];
 #define gDPSetPrimColor(pkt, m, l, r, g, b, a) gDma(pkt, _S(0xfa, 24, 8) | _S(m, 8, 8) | _S(l, 0, 8), (_S(r, 24, 8) | _S(g, 16, 8) | _S(b, 8, 8) | _S(a, 0, 8)))
@@ -82,10 +82,10 @@ extern Vtx D_8018B530[][4][4];
     u8 slot;
     f32 grip;
 
-    player = (u32)D_8011F334[id].v;
-    slot = (u32)D_8011F338[id].v;
+    player = (u32)racerTimers[id].v;
+    slot = (u32)racerAnimFrames[id].v;
     grip = D_8011F33C[id].v;
-    gDPSetPrimColor((*gfxp)++, 0, 0, 0, 0, 0, D_8011F2FC[id].v);
+    gDPSetPrimColor((*gfxp)++, 0, 0, 0, 0, 0, racerTimerFlags[id].v);
     gDPLoadTextureBlock_4b((*gfxp)++, D_80182E20, 4, 32, 1, 0, 2, 2, 0, 0, 0, 0);
     gSPVertex((*gfxp)++, &D_8018B530[player][slot][0], 4, 0);
     if (grip >= 0.0f) {

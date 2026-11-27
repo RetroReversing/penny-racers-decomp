@@ -18,8 +18,8 @@ extern u16 D_801F188E;
 extern u16 **D_8021C734[];
 void gfxSetup2DState();
 void drawPanelFrame(void *, u16, u16, u16, u16, u8 *, u8 *);
-void func_801CAD00(void *, u16, u16, s32, s32, u16 *, s32, s32, s32, s32, s32, s32, u32, s32);
-void func_801CA528(void *, u16, u16, u32, u8 *, u16 *);
+void drawWrappedText(void *, u16, u16, s32, s32, u16 *, s32, s32, s32, s32, s32, s32, u32, s32);
+void drawGlyphCell(void *, u16, u16, u32, u8 *, u16 *);
 
 void func_801DAD68(void *gfx, u16 id) {
 switch (D_8011F2F0[id].state) {
@@ -29,303 +29,303 @@ break;
 case 11:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][1], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][1], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 12:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][2], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][2], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 13:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][3], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x50, 0xa, D_801D4390, D_801E86EC[D_80046820][6], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xae, D_801E9950 + 0x7e, 0xa, D_801D4390, D_801E86E4[D_80046820][4], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x14, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xae, D_801E9950 + 0x8e, 0xa, D_801D4390, D_801E86E4[D_80046820][5], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x14, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][3], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x50, 0xa, D_801D4390, D_801E86EC[D_80046820][6], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xae, D_801E9950 + 0x7e, 0xa, D_801D4390, D_801E86E4[D_80046820][4], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x14, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xae, D_801E9950 + 0x8e, 0xa, D_801D4390, D_801E86E4[D_80046820][5], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x14, 0xe);
 if (D_801E9798 < 0xf) {
-func_801CA528(gfx, D_801E9D74 + 0x96, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 8) * 14 + 0xe; z + D_801E9780 * 2; }), 0x11e, D_801CF4C8, D_801D4390);
-func_801CA528(gfx, D_801E9D74 + 0xa0, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 8) * 14 + 0xe; z + D_801E9780 * 2; }), 0x11f, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0x96, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 8) * 14 + 0xe; z + D_801E9780 * 2; }), 0x11e, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xa0, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 8) * 14 + 0xe; z + D_801E9780 * 2; }), 0x11f, D_801CF4C8, D_801D4390);
 }
 break;
 case 14:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][6], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][6], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 15:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][7], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][7], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 16:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][8], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x26, 0xa, D_801D4390, D_801E86E4[D_80046820][15], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][8], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x26, 0xa, D_801D4390, D_801E86E4[D_80046820][15], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 17:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][13], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x2c, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x3a, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][13], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x2c, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x3a, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
 if (D_801E9798 < 0xf) {
-func_801CA528(gfx, D_801E9D74 + 0xd2, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11e, D_801CF4C8, D_801D4390);
-func_801CA528(gfx, D_801E9D74 + 0xdc, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11f, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xd2, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11e, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xdc, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11f, D_801CF4C8, D_801D4390);
 }
 break;
 case 18:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][14], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x26, 0xa, D_801D4390, D_801E86E4[D_80046820][15], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][14], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x26, 0xa, D_801D4390, D_801E86E4[D_80046820][15], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 19:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][16], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][16], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 20:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][17], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][17], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 21:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][18], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][18], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 22:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][19], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x34, 0xa, D_801D4390, D_801E86E4[D_80046820][12], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][19], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x34, 0xa, D_801D4390, D_801E86E4[D_80046820][12], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 23:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][9], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x26, 0xa, D_801D4390, D_801E86E4[D_80046820][15], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][9], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x26, 0xa, D_801D4390, D_801E86E4[D_80046820][15], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 24:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][10], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x26, 0xa, D_801D4390, D_801E86E4[D_80046820][15], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][10], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x26, 0xa, D_801D4390, D_801E86E4[D_80046820][15], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 25:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][11], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][11], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 26:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][12], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][12], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 27:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][20], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][20], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 28:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][21], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x2c, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x3a, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][21], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x2c, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x3a, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
 if (D_801E9798 < 0xf) {
-func_801CA528(gfx, D_801E9D74 + 0xd2, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11e, D_801CF4C8, D_801D4390);
-func_801CA528(gfx, D_801E9D74 + 0xdc, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11f, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xd2, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11e, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xdc, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11f, D_801CF4C8, D_801D4390);
 }
 break;
 case 29:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][22], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x36, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x44, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][22], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x36, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x44, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
 if (D_801E9798 < 0xf) {
-func_801CA528(gfx, D_801E9D74 + 0xd2, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x1a; z; }), 0x11e, D_801CF4C8, D_801D4390);
-func_801CA528(gfx, D_801E9D74 + 0xdc, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x1a; z; }), 0x11f, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xd2, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x1a; z; }), 0x11e, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xdc, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x1a; z; }), 0x11f, D_801CF4C8, D_801D4390);
 }
 break;
 case 30:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][23], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x2c, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x3a, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][23], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x2c, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x3a, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
 if (D_801E9798 < 0xf) {
-func_801CA528(gfx, D_801E9D74 + 0xd2, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11e, D_801CF4C8, D_801D4390);
-func_801CA528(gfx, D_801E9D74 + 0xdc, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11f, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xd2, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11e, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xdc, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11f, D_801CF4C8, D_801D4390);
 }
 break;
 case 31:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][24], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x36, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x44, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][24], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x36, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x44, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
 if (D_801E9798 < 0xf) {
-func_801CA528(gfx, D_801E9D74 + 0xd2, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x1a; z; }), 0x11e, D_801CF4C8, D_801D4390);
-func_801CA528(gfx, D_801E9D74 + 0xdc, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x1a; z; }), 0x11f, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xd2, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x1a; z; }), 0x11e, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xdc, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x1a; z; }), 0x11f, D_801CF4C8, D_801D4390);
 }
 break;
 case 32:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][25], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x2c, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x3a, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][25], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x2c, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x3a, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
 if (D_801E9798 < 0xf) {
-func_801CA528(gfx, D_801E9D74 + 0xd2, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11e, D_801CF4C8, D_801D4390);
-func_801CA528(gfx, D_801E9D74 + 0xdc, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11f, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xd2, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11e, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xdc, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11f, D_801CF4C8, D_801D4390);
 }
 break;
 case 33:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][26], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x19, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x36, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x44, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][26], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x19, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x36, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x44, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
 if (D_801E9798 < 0xf) {
-func_801CA528(gfx, D_801E9D74 + 0xd2, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x1a; z; }), 0x11e, D_801CF4C8, D_801D4390);
-func_801CA528(gfx, D_801E9D74 + 0xdc, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x1a; z; }), 0x11f, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xd2, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x1a; z; }), 0x11e, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xdc, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x1a; z; }), 0x11f, D_801CF4C8, D_801D4390);
 }
 break;
 case 34:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][30], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][30], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 35:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][31], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][31], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 36:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][32], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][32], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 37:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][33], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][33], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 38:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][34], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][34], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 39:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][35], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][35], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 40:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][36], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][36], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 41:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][37], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][37], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 42:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][38], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][38], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 43:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_8021C734[D_801E87E1], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x26, 0xa, D_801D4390, D_801E86E4[D_80046820][29], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_8021C734[D_801E87E1], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x26, 0xa, D_801D4390, D_801E86E4[D_80046820][29], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 44:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][10], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][10], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 45:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][40], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x26, 0xa, D_801D4390, D_801E86E4[D_80046820][15], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][40], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x26, 0xa, D_801D4390, D_801E86E4[D_80046820][15], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 46:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][51], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x2c, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x3a, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][51], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x2c, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x3a, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
 if (D_801E9798 < 0xf) {
-func_801CA528(gfx, D_801E9D74 + 0xd2, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11e, D_801CF4C8, D_801D4390);
-func_801CA528(gfx, D_801E9D74 + 0xdc, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11f, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xd2, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11e, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xdc, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11f, D_801CF4C8, D_801D4390);
 }
 break;
 case 47:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][53], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x50, 0xa, D_801D4390, D_801E86E4[D_80046820][54], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xae, D_801E9950 + 0x7e, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x14, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xae, D_801E9950 + 0x8e, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x14, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][53], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x50, 0xa, D_801D4390, D_801E86E4[D_80046820][54], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xae, D_801E9950 + 0x7e, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x14, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xae, D_801E9950 + 0x8e, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x14, 0xe);
 if (D_801E9798 < 0xf) {
-func_801CA528(gfx, D_801E9D74 + 0x96, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 8) * 14 + 0xe; z + D_801E9780 * 2; }), 0x11e, D_801CF4C8, D_801D4390);
-func_801CA528(gfx, D_801E9D74 + 0xa0, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 8) * 14 + 0xe; z + D_801E9780 * 2; }), 0x11f, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0x96, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 8) * 14 + 0xe; z + D_801E9780 * 2; }), 0x11e, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xa0, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 8) * 14 + 0xe; z + D_801E9780 * 2; }), 0x11f, D_801CF4C8, D_801D4390);
 }
 break;
 case 51:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][43], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][43], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 100:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E8[D_80046820][0], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E8[D_80046820][0], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 101:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E8[D_80046820][1], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E8[D_80046820][1], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 102:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E8[D_80046820][2], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E8[D_80046820][2], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 103:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E8[D_80046820][3], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x34, 0xa, D_801D4390, D_801E86E8[D_80046820][4], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E8[D_80046820][3], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x34, 0xa, D_801D4390, D_801E86E8[D_80046820][4], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 104:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E8[D_80046820][5], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x2c, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
-func_801CAD00(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x3a, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E8[D_80046820][5], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x2c, 0xa, D_801D4390, D_801E86E4[D_80046820][28], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0xea, D_801E9950 + 0x3a, 0xa, D_801D4390, D_801E86E4[D_80046820][27], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x15, 0xe);
 if (D_801E9798 < 0xf) {
-func_801CA528(gfx, D_801E9D74 + 0xd2, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11e, D_801CF4C8, D_801D4390);
-func_801CA528(gfx, D_801E9D74 + 0xdc, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11f, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xd2, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11e, D_801CF4C8, D_801D4390);
+drawGlyphCell(gfx, D_801E9D74 + 0xdc, ({ s32 y = D_801E9950; s32 z = y + (D_801E9780 + 2) * 14 + 0x10; z; }), 0x11f, D_801CF4C8, D_801D4390);
 }
 break;
 case 105:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E8[D_80046820][6], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E8[D_80046820][6], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 default:
 gfxSetup2DState(gfx);
 drawPanelFrame(gfx, D_801E9D74, D_801E9950, D_801E9B30, D_801F188E, D_801E6B68, D_801E7470);
-func_801CAD00(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][0], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
+drawWrappedText(gfx, D_801E9D74 + 0x18, D_801E9950 + 0x18, 0xa, D_801D4390, D_801E86E4[D_80046820][0], 0, D_801CF4C8, 0xa, 0xe, 0xa0, 0xfc, 0x18, 0xe);
 break;
 case 1:
 break;

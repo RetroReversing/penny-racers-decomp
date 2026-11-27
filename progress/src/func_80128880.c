@@ -21,7 +21,7 @@ f32 func_80127000(Vec3 *, Vec3 *);
 Vec3 vec3Cross(Vec3, Vec3);
 Vec3 vec3Sub(Vec3 *, Vec3 *);
 s32 segmentCrossesQuad(void);
-void func_80127870(Vec3 *, Vec3 *, Vec3 *, Vec3 *, Vec3 *);
+void vec3MinMax(Vec3 *, Vec3 *, Vec3 *, Vec3 *, Vec3 *);
 f32 sqrtf(f32);
 
 void func_80128880(Result *res, Obj *obj, f32 x, f32 y, f32 z, f32 dx, f32 dy, f32 dz) {
@@ -86,7 +86,7 @@ void func_80128880(Result *res, Obj *obj, f32 x, f32 y, f32 z, f32 dx, f32 dy, f
                     D_8012AB7C.x = D_8012AB98[tri->c].x;
                     D_8012AB7C.y = D_8012AB98[tri->c].y;
                     D_8012AB7C.z = D_8012AB98[tri->c].z;
-                    func_80127870(&D_8012AB64, &D_8012AB4C, &D_8012AB7C, &D_8012AB88, &D_8012AB70);
+                    vec3MinMax(&D_8012AB64, &D_8012AB4C, &D_8012AB7C, &D_8012AB88, &D_8012AB70);
                     D_8012AB88.x -= 30.0f;
                     D_8012AB88.z -= 30.0f;
                     D_8012AB70.x += 30.0f;

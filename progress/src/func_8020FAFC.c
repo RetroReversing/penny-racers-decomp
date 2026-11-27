@@ -1,7 +1,7 @@
 extern u8 D_8011F2F0[];
 extern u8 D_80168C60[];
 extern u16 D_80190C98;
-extern s16 D_8021E1A6;
+extern s16 carClassIndex;
 extern u8 D_8021EEA6;
 void func_8020FAFC(s32 arg0)
 {
@@ -11,7 +11,7 @@ void func_8020FAFC(s32 arg0)
  do { p = D_8011F2F0 + ((arg0 & 0xFFFF) * 100); } while (0);
   q = &D_80190C98;
   *((u16 *) (p + 0x3E)) = 0;
-  if (D_80168C60[D_8021E1A6] < D_8021EEA6)
+  if (D_80168C60[carClassIndex] < D_8021EEA6)
   {
     *((u16 *) (p + 0x3E)) = 1;
   }

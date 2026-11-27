@@ -1,6 +1,6 @@
 typedef struct { u16 button; s8 x; s8 y; u8 err; u8 unk5; } Pad;
 typedef struct { u16 press; s8 x; s8 y; u16 held; u16 mask[16]; u8 unk26[2]; u32 cnt[18]; } Input;
-extern u8 D_8006FE40[];
+extern u8 contReadData[];
 extern Pad D_801E96E0[];
 extern Input D_801E9958[];
 extern u8 D_801E4420;
@@ -12,7 +12,7 @@ void func_801D7F60(void)
     u16 j;
     Pad *pad;
 
-    func_8003DAA0(D_8006FE40, D_801E96E0, 0x18);
+    func_8003DAA0(contReadData, D_801E96E0, 0x18);
     j = 0;
     for (i = 0; i < 4; i++) {
         if (!((D_801E4420 >> i) & 1)) {

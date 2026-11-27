@@ -12,8 +12,8 @@ extern u8 D_80189CBE[];
 extern u8 D_80189CC9[];
 extern u8 D_8018A277[];
 extern u8 D_8018BC35[];
-extern u16 D_8018D140[];
-extern u16 D_8018D26C[];
+extern u16 pickLists[];
+extern u16 sharedPickList[];
 extern u16 D_80187BF0[];
 extern u8 D_801CF4C8[];
 extern u8 D_801D4390[];
@@ -154,7 +154,7 @@ void func_80145A6C(Gfx_ **gfxp, u16 id) {
         gfxDrawSprite(gfxp, 0x28, 0xD1, 7, 7);
         for (i = 0; i < 7; i++) {
            
-            v = D_8018D26C[D_80189CBE[1] + i];
+            v = sharedPickList[D_80189CBE[1] + i];
             v = (u16) v;
             c = v; c &= 0x1000; c = c == 0; c = -c; c = (u8) c; c |= 0x7F;
 
@@ -179,7 +179,7 @@ void func_80145A6C(Gfx_ **gfxp, u16 id) {
             u8 g;
             u8 b;
 
-            v = D_8018D140[D_80189CB7 + i];
+            v = pickLists[D_80189CB7 + i];
             r = 0xFF;
             g = 0xFF;
             b = 0xFF;

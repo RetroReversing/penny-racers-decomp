@@ -9,7 +9,7 @@ extern u8 D_80239950[];
 extern void func_8014081C(), func_80140A0C(), func_80140A38(), func_80138304();
 u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, s32, s32, s32, f32, f32, f32);
 u16 raceAllocSlot(void);
-void func_8013E818(u16, s32, s16, f32, f32, f32, u16);
+void initHitSlot(u16, s32, s16, f32, f32, f32, u16);
 u32 nextRandom(void);
 f32 sqrtf(f32);
 /* Every 64 frames, while a car is within range, spawns a pair of linked objects that fly toward a target. */ void updateNearCarSpawner(u16 objIndex)
@@ -55,7 +55,7 @@ f32 sqrtf(f32);
                 f32 height = (nextRandom() & 0xF) * 0.1f + 4.0f;
                 u16 partnerIdx;
 
-                func_8013E818(slotId, objIdx, 0x40, (targetX - x) * 0.008f * speed, height, (targetZ - z) * 0.008f * speed, 0xC8);
+                initHitSlot(slotId, objIdx, 0x40, (targetX - x) * 0.008f * speed, height, (targetZ - z) * 0.008f * speed, 0xC8);
                 D_8011F2F0[objIdx].f48 = 0;
                 slotRadius[slotId].f0 = 25.0f;
                 partnerIdx = objCreate(0, 0, 1, 0, 0x52, 0x9B, D_80239950, func_80140A38, func_80138304, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0.2f, 0.2f, 0.2f);

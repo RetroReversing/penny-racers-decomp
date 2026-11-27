@@ -13,8 +13,8 @@ typedef s32 M2C_UNK32;
 #endif
 
 M2C_UNK osRecvMesg(M2C_UNK *, M2C_UNK, M2C_UNK); /* extern */
-extern M2C_UNK D_800DE2C8;
+extern M2C_UNK contSiMesgQ;
 
 void func_8002A0E8(void) {
-    osRecvMesg(&D_800DE2C8, 0, 1);
+    osRecvMesg(&contSiMesgQ, 0, 1);
 }

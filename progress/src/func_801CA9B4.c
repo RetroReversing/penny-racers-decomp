@@ -1,4 +1,4 @@
-s32 func_801CA528(s32 *, s32, s32, u8, s32 *, s32); /* extern */
+s32 drawGlyphCell(s32 *, s32, s32, u8, s32 *, s32); /* extern */
 extern s32 D_801CF4C8;
 
 void func_801CA9B4(s32 *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u8 *arg5) {
@@ -16,7 +16,7 @@ void func_801CA9B4(s32 *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u8 *arg5) 
     w = arg2;
     if (arg5[0] != 0xFF) {
         do {
-            func_801CA528(&sp18, pos & 0xFFFF, w, arg5[i], &D_801CF4C8, arg4);
+            drawGlyphCell(&sp18, pos & 0xFFFF, w, arg5[i], &D_801CF4C8, arg4);
             i++;
             next_pos = step + pos;
             pos = next_pos;

@@ -18,7 +18,7 @@ extern u8 D_801E8710[];
 extern u8 D_801E8730[];
 extern u8 D_80046832;
 extern u16 D_801E9764;
-extern Menu D_801D59B2;
+extern Menu playerFadeData;
 extern Entry D_801E9B38[];
 extern u16 D_801E9D5C;
 extern u8 D_801E87C0;
@@ -51,8 +51,8 @@ extern s32 func_801DDCDC();
 extern void func_801DD938();
 extern void playMenuSound();
 extern void playStageSound();
-extern void func_800DE38C();
-extern void func_800DE2E0();
+extern void initModelTransforms();
+extern void initObjList();
 extern s16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *,
                          f32, f32, f32, f32, f32, f32, f32, f32, f32);
 
@@ -92,7 +92,7 @@ void func_801DDD8C(u16 arg0)
         D_8011F2F0[arg0].state = 1;
         D_801E9764 = objCreate(0, 0, 3, 0, 0x81, 0xFF, 0, updatePlayerFade, func_801CEC2C,
                                    0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-        D_8011F2F0[D_801E9764].unk60 = (u8 *) &D_801D59B2;
+        D_8011F2F0[D_801E9764].unk60 = (u8 *) &playerFadeData;
         MENU->unk0 = 0;
         MENU->unk2 = 0;
         MENU->unk4 = 0;
@@ -263,8 +263,8 @@ void func_801DDD8C(u16 arg0)
         }
     case 0x385:
         gameState = D_80072BDC;
-        func_800DE38C();
-        func_800DE2E0();
+        initModelTransforms();
+        initObjList();
         D_80046832 = 0;
         break;
     }

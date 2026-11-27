@@ -18,9 +18,9 @@ extern s32 menuChoice;
 extern u8 menuCursor;
 s32 getMenuNavMask(s32, s32, s32);
 void playMenuSound(s32);
-void func_800DE2E0(void);
-void func_800DE38C(void);
-void func_80231C5C(void);
+void initObjList(void);
+void initModelTransforms(void);
+void createNoticeScreenObj(void);
 void func_801CF468(s32, s32, s32, s32);
 void setScreenTransition(s32, s32, s32, s32, s32);
 /* Per-frame menu state machine: waits for the load, handles cursor input, then starts the transition and publishes menuChoice. */ void updateMenuScreen(u16 slot)
@@ -85,9 +85,9 @@ void setScreenTransition(s32, s32, s32, s32, s32);
       break;
     case 3:
       if (*D_8011F350[D_8018BC3C].p == 0) {
-        func_800DE38C();
-        func_800DE2E0();
-        func_80231C5C();
+        initModelTransforms();
+        initObjList();
+        createNoticeScreenObj();
         func_801CF468(D_8018BC3C, 0, 0, 0);
         D_80168BB0 = menuChoice;
       }

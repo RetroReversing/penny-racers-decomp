@@ -60,8 +60,8 @@ typedef struct { u8 pad0[0x3E]; u16 model; u16 state; u8 pad42[0x22]; } Ob11;
 typedef struct { u8 cur; u8 digits[2]; u8 slot; u8 col[8]; u8 side; u8 flags; } Entry;
 extern Ob11 D_8011F2F0[];
 extern Entry selectionMenu;
-extern s16 D_8021E1A6;
-extern struct { s8 t[8][34]; } D_8021E22F[];
+extern s16 carClassIndex;
+extern struct { s8 t[8][34]; } randomSequenceTable[];
 extern u16 D_80187BF0[];
 extern u16 D_8021F270[][14][8];
 extern u8 D_8021B3E0[], D_8021B3E8[], D_8021B3F0[];
@@ -113,7 +113,7 @@ void func_8020F354(Gfx **gfxp, u16 id) {
         for (i = 0; i < 13; i++) {
             D((s16)(i * 8 + 4), 0x7C, 6, 0x19);
         }
-        D(0x16, 0x71, 0xB, D_8021E1A6 + 0x43);
+        D(0x16, 0x71, 0xB, carClassIndex + 0x43);
         for (i = 0; i < 8; i++) {
             y = i * 23 + 0x12;
             D(0x78, y, 6, 4);
@@ -128,7 +128,7 @@ void func_8020F354(Gfx **gfxp, u16 id) {
             D(0x8F, y, 6, D_8021B3E0[i]);
             gfxSetPrimAlpha(gfxp, 0xFF);
             D(0x7B, y, 6, D_8021B3E8[i]);
-            v = (D_8021E22F + selectionMenu.slot)->t[i][selectionMenu.col[i] + 2];
+            v = (randomSequenceTable + selectionMenu.slot)->t[i][selectionMenu.col[i] + 2];
             if (i == 0) {
                 for (j = 0; j < 8; j++) {
                     D_80187BF0[j] = D_8021F270[selectionMenu.slot][v][j];
@@ -179,8 +179,8 @@ void func_8020F354(Gfx **gfxp, u16 id) {
             }
             gfxSetPrimAlpha(gfxp, 0xFF);
         }
-        if (D_8021E1A6 != 3) {
-            func_8014A2D0(gfxp, 0x56, 0x86, D_80168C60[D_8021E1A6], 2, 0);
+        if (carClassIndex != 3) {
+            func_8014A2D0(gfxp, 0x56, 0x86, D_80168C60[carClassIndex], 2, 0);
         } else {
             D(0x5E, 0x8C, 6, 0x22);
         }

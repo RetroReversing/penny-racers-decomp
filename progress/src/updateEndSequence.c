@@ -1,7 +1,7 @@
 typedef struct { u8 pad0[0xD]; u8 fD; u8 padE[0x30]; u16 f3E; u8 pad40[0x20]; u8 *f60; } Rec;
 extern Rec D_8011F2F0[];
 extern u16 D_8018BC3C;
-extern s16 D_80190CA6;
+extern s16 menuConfirmed;
 typedef struct { u8 v; } Count;
 extern Count D_80190CA4;
 typedef struct { u16 v; } Id;
@@ -18,15 +18,15 @@ void func_801D65BC(s32);
 void func_80028100(s32, s32);
 void setScreenTransition(s32, s32, s32, s32, s32);
 void func_8021AF20(u16);
-void func_800DE38C(void);
-void func_800DE2E0(void);
-void func_80231C5C(void);
+void initModelTransforms(void);
+void initObjList(void);
+void createNoticeScreenObj(void);
 void func_801CF468(u16, s32, s32, s32);
 
 /* State machine for the end-of-race sequence: stops the music, runs the timed transition, marks the six result objects, then sets the game state to the results screen. */
 void updateEndSequence(u16 id) {
     Rec *rec = &D_8011F2F0[id];
-    s16 *timer = &D_80190CA6;
+    s16 *timer = &menuConfirmed;
     s32 i;
 
     switch (rec->f3E) {
@@ -74,9 +74,9 @@ void updateEndSequence(u16 id) {
         }
     case 0x18:
         if (--*timer < 0) {
-            func_800DE38C();
-            func_800DE2E0();
-            func_80231C5C();
+            initModelTransforms();
+            initObjList();
+            createNoticeScreenObj();
             func_801CF468(D_8018BC3C, 0, 0, 0);
             D_8021B01A = 0;
             D_8021AFDC = 0x2E;

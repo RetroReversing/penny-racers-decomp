@@ -11,7 +11,7 @@ extern HitP slotOwner[];
 void updateCarBumpEffect(void);
 void queueObjEvent(u16, s32);
 s32 objCreate(s32, s32, s32, s32, s32, s32, void *, void (*)(void), s32, f32, f32, f32, f32, f32, f32, f32, f32, f32);
-void func_8013E818(u16, u16, s32, f32, f32, f32, s32);
+void initHitSlot(u16, u16, s32, f32, f32, f32, s32);
 f32 func_80033640(f32);
 f32 func_80032320(f32);
 
@@ -35,7 +35,7 @@ void func_80164D00(Car *car) {
                 vx = func_80033640(D_8011F318[car->obj].v * 3.14f / 180.0f) * 8.0f;
                 vz = func_80032320(D_8011F318[car->obj].v * 3.14f / 180.0f) * 8.0f;
                 queueObjEvent(n, 0x35);
-                func_8013E818(slot, n, 0, -*(f32 *) ((u8 *) car + 0x7C0) * 8.0f + vx, *(f32 *) ((u8 *) car + 0x7C4), -*(f32 *) ((u8 *) car + 0x7C8) * 8.0f + vz, 5);
+                initHitSlot(slot, n, 0, -*(f32 *) ((u8 *) car + 0x7C0) * 8.0f + vx, *(f32 *) ((u8 *) car + 0x7C4), -*(f32 *) ((u8 *) car + 0x7C8) * 8.0f + vz, 5);
                 slotOwner[slot].v = car;
                 if (car->ammo > 0) {
                     car->ammo--;

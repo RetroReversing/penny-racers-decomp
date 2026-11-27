@@ -6,14 +6,14 @@ extern u8 D_8018A277[];
 extern u16 D_8018A27C;
 typedef struct { s32 f[8]; } Rec;
 extern Rec randomMasks[];
-extern s16 D_8021E1A6;
+extern s16 carClassIndex;
 /* In random-mask mode, picks a free random slot and sets the mask bits for each enabled option bit on it. */ void applyRandomMaskBits(void)
 {
     s32 slot;
     s32 maskIdx;
     s32 rnd;
 
-    if (D_80189B34.mode == 2 && (D_80189B34.flags & 0x80) && D_8021E1A6 == D_80189B34.mode && D_8018A27C != 0) {
+    if (D_80189B34.mode == 2 && (D_80189B34.flags & 0x80) && carClassIndex == D_80189B34.mode && D_8018A27C != 0) {
         do {
             rnd = nextRandom() & 3;
             slot = rnd != 3; slot = -slot; slot &= rnd;

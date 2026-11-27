@@ -43,7 +43,7 @@ void D_801FB300(void);
 void D_80221230(void);
 void D_80233ED0(void);
 void D_802376A0(void);
-void func_800DE2E0(void);
+void initObjList(void);
 void func_80127000(void);
 void func_8012AD20(void);
 void gfxSetup2DState(void);
@@ -70,7 +70,7 @@ void bootGame(void)
     s32 size;
     s32 padSlot;
     u16 frameBefore;
-    LOAD(D_80049870, D_25EA0, D_29A40, func_800DE2E0)
+    LOAD(D_80049870, D_25EA0, D_29A40, initObjList)
     LOAD(D_80049898, D_29A40, D_2D580, func_80127000)
     LOAD(D_800498C0, D_2D580, D_86290, func_8012AD20)
     LOAD(D_800498E8, D_86290, D_BC070, D_80190D40)

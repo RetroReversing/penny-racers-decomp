@@ -13,7 +13,7 @@ extern void func_8013FDC0(void);
 extern void func_8013FDEC(void);
 extern void updateRaceStart(void);
 extern void updateNearCarSpawner(void);
-extern void func_80140BEC(void);
+extern void spawnLiftPlatforms(void);
 extern void updateRoadSpawner(void);
 extern void func_80141C28(void);
 extern void spawnGridCars(void);
@@ -61,7 +61,7 @@ extern u8 D_8006FAF0[];
             break;
         case 5:
             debugPrintf(D_80232FD0);
-            objCreate(0, 0, 3, 0, 0x7F, 0, 0, func_80140BEC, 0, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0, 0);
+            objCreate(0, 0, 3, 0, 0x7F, 0, 0, spawnLiftPlatforms, 0, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0, 0);
             break;
         case 6:
             debugPrintf(D_80232FE8);

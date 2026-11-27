@@ -54,13 +54,13 @@ typedef union { Gwords words; long long force; } Gfx;
 typedef struct { f32 v; u8 pad[0x60]; } SlotF;
 typedef struct { u8 pad0[2]; u16 slot; u8 pad4[0x875]; u8 kind; u8 pad87A[0x76]; } Car;
 typedef struct { u8 pad0[0x20]; u16 course; } Setup;
-extern SlotF D_8011F334[];
+extern SlotF racerTimers[];
 extern SlotF D_8011F33C[];
 extern SlotF D_8011F308[];
 extern SlotF sPrimColorB[];
 extern Car sCars[];
 extern Setup D_8006FAF0;
-extern Gfx D_80220ED8[];
+extern Gfx noticeBackgroundDl[];
 extern u8 viewIndex;
 extern u16 D_802002F0;
 extern u16 D_802002F2;
@@ -85,14 +85,14 @@ void func_801CBDE8(Gfx **, u16, u16, s32, u8 *, s32, u16);
     s32 i;
 
     gfxSetup2DState(gfxp);
-    gSPDisplayList((*gfxp)++, D_80220ED8);
+    gSPDisplayList((*gfxp)++, noticeBackgroundDl);
     if (viewIndex == 0) {
         PULSE(D_802002F0, D_802002F2, 0x20, 0xDF)
         PULSE(D_802002EC, D_802002EE, 4, 0xFB)
     }
     gfxSetPrimAlpha(gfxp, 0x64);
     for (i = 0; i < D_80232840[D_8006FAF0.course]; i++) {
-        drawText(gfxp, (u32)(D_8011F334[D_80233EC0 + i].v / 30.0f + 160.0f), (u32)(D_8011F33C[D_80233EC0 + i].v / 30.0f + 120.0f), 8, D_802002DC, D_80203554);
+        drawText(gfxp, (u32)(racerTimers[D_80233EC0 + i].v / 30.0f + 160.0f), (u32)(D_8011F33C[D_80233EC0 + i].v / 30.0f + 120.0f), 8, D_802002DC, D_80203554);
     }
     gfxSetPrimAlpha(gfxp, D_802002F0);
     for (i = 0; i < 6; i++) {

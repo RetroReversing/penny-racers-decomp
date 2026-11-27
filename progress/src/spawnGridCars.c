@@ -13,7 +13,7 @@ s32 raceAllocSlot(void);
 u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, s32, f32, f32, f32, s32, s32, s32, f32, f32, f32);
 s32 func_8012913C(u16, f32, f32, f32);
 void func_80129C1C(void *, f32, f32, f32, f32, f32, f32);
-void func_8013E818(s32, s32, s16, f32, f32, f32, u16);
+void initHitSlot(s32, s32, s16, f32, f32, f32, u16);
 
 /* Spawns up to eight car objects at the grid positions, links each to its hit slot and the owner object, and marks the owner as spawned. */ void spawnGridCars(u16 ownerObj)
 {
@@ -39,7 +39,7 @@ void func_8013E818(s32, s32, s16, f32, f32, f32, u16);
                 D_801688C4[gridIndex].hit.other = 0;
                 func_80129C1C(&D_801688C4[gridIndex].hit, D_801688C4[gridIndex].x, D_801688C4[gridIndex].y, D_801688C4[gridIndex].z, 0.0f, -300.0f, 0.0f);
                 D_801688C4[gridIndex].unk58 = D_801688C4[gridIndex].unk20;
-                func_8013E818(slotIndex, carObj, 0, 0.0f, 0.0f, 0.0f, 0);
+                initHitSlot(slotIndex, carObj, 0, 0.0f, 0.0f, 0.0f, 0);
                 hitSlots[slotIndex].anim = sCars;
                 hitSlots[slotIndex].radius = 50.0f;
             } else {

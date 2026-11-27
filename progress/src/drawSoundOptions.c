@@ -2,7 +2,7 @@ void gfxDrawSprite(int a, int b, int c, int d, int e);
 void gfxSetup2DState(int a);
 void gfxSetPrimAlpha(int arg0, int a);
 void gfxSetPrimColor(int a, int b, int c, int d, int e);
-extern u8 D_8011F330[];
+extern u8 noticeStates[];
 extern u8 D_80190C98;
 extern u8 D_8021F028;
 extern u8 D_8021F029;
@@ -19,9 +19,9 @@ void drawSoundOptions(int gfxp, unsigned int objIdx)
     int k;
 
     objOff = (objIdx & 0xFFFF) * 100;
-    switch (*(u16 *)(D_8011F330 + objOff)) {
+    switch (*(u16 *)(noticeStates + objOff)) {
     case 0:
-        *(u16 *)(D_8011F330 + (objIdx & 0xFFFF) * 100) = 1;
+        *(u16 *)(noticeStates + (objIdx & 0xFFFF) * 100) = 1;
         return;
     case 1:
         break;

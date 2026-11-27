@@ -1,7 +1,7 @@
-extern u16 D_801D5960[];
+extern u16 decimalDivisors[];
 extern s32 D_801CF4C8;
 typedef struct { u16 v[5]; } Tab5;
-void func_801CA528(u32 *, u16, u16, u16, void *, u32);
+void drawGlyphCell(u32 *, u16, u16, u16, void *, u32);
 
 void func_801CB820(u32 *arg0, u16 a1, u16 a2, u16 a3, u32 a4, u8 a5, u16 a6)
 {
@@ -12,7 +12,7 @@ void func_801CB820(u32 *arg0, u16 a1, u16 a2, u16 a3, u32 a4, u8 a5, u16 a6)
     u16 x;
     u16 y;
 
-    *(Tab5 *) d = *(Tab5 *) D_801D5960;
+    *(Tab5 *) d = *(Tab5 *) decimalDivisors;
     val = *arg0;
     for (i = 0; i < 5; i++)
     {
@@ -29,7 +29,7 @@ void func_801CB820(u32 *arg0, u16 a1, u16 a2, u16 a3, u32 a4, u8 a5, u16 a6)
     y = a2;
     for (j = 5 - a5; j < 5; j++)
     {
-        func_801CA528(&val, x, y, d[1][j], &D_801CF4C8, a4);
+        drawGlyphCell(&val, x, y, d[1][j], &D_801CF4C8, a4);
         x = a3 + x;
     }
     *arg0 = val;

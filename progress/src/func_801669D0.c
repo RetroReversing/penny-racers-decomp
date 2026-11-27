@@ -8,7 +8,7 @@ extern u8 D_80239540[];
 void updateCarOutroAnim(void);
 void updateHomingMissile(void);
 s32 objCreate(s32, s32, s32, s32, s32, s32, u8 *, void (*)(void), s32, f32, f32, f32, f32, f32, f32, f32, f32, f32);
-void func_8013E818(u16, u16, s32, s32, f32, f32, s32);
+void initHitSlot(u16, u16, s32, s32, f32, f32, s32);
 void queueObjEvent(u16, s32);
 
 void func_801669D0(Car *car) {
@@ -26,7 +26,7 @@ void func_801669D0(Car *car) {
                 func_8013E49C(slot);
                 return;
             }
-            func_8013E818(slot, n, 0, 0, 0.0f, 0.0f, 0x136);
+            initHitSlot(slot, n, 0, 0, 0.0f, 0.0f, 0x136);
             slotOwner[slot].v = car;
             car->flags |= 0x40;
             if (car->ammo > 0) {
@@ -48,7 +48,7 @@ void func_801669D0(Car *car) {
                     sCars[i].flags |= 8;
                     sCars[i].f760 += 30000.0f;
                     queueObjEvent(n, 0x36);
-                    func_8013E818(slot, n, 0, 0, 200.0f, D_8011F320[sCars[i].obj].v, 0x12C);
+                    initHitSlot(slot, n, 0, 0, 200.0f, D_8011F320[sCars[i].obj].v, 0x12C);
                     slotOwner[slot].v = &sCars[i];
                 }
             }

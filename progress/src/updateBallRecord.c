@@ -39,7 +39,7 @@ void queueObjEvent(s32, s32);
 void func_8016410C(void);
 void func_80164324(void);
 
-extern u16 D_8018D672;
+extern u16 liftHitIndex;
 typedef struct { f32 v; u8 pad[0x8EC]; } Big;
 extern Big D_8022AF30[];
 extern Big D_8022AF38[];
@@ -139,9 +139,9 @@ void updateBallRecord(u16 index)
       }
       else
       {
-        obj->vx = -D_8022AF30[D_8018D672].v;
+        obj->vx = -D_8022AF30[liftHitIndex].v;
         obj->vy = 2.0f;
-        obj->vz = -D_8022AF38[D_8018D672].v;
+        obj->vz = -D_8022AF38[liftHitIndex].v;
         D_8011F2F0[index].state = 0;
       }
       queueObjEvent(index, 0x27);

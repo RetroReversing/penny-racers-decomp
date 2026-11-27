@@ -81,7 +81,7 @@ void func_801CA2D4(Gfx **);
 void gfxSetup2DState(Gfx **);
 void gfxDrawClippedTex4b(Gfx **, s16, s16, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *);
 void func_801CB820(Gfx **, u16, u16, u16, u32, u8, u16);
-void func_801CA528(Gfx **, u16, u16, u16, u8 *, u32);
+void drawGlyphCell(Gfx **, u16, u16, u16, u8 *, u32);
 void func_801CBC20(Gfx **, u16, u16, u16, u32, Row *);
 
 #define BACKDROP() \
@@ -117,7 +117,7 @@ void func_801DECB4(Gfx **gfxp, u16 id) {
             flag = D_801F188A + i == D_801E9730;
             y = i * 14 + 0x40;
             func_801CB820(gfxp, 0x20, y + D_801E9D5C, 0xA, D_801E8790[flag], 2, i + 1 + D_801F188A);
-            func_801CA528(gfxp, 0x34, y + D_801E9D5C, 0x1A, D_801CF4C8, D_801E8790[flag]);
+            drawGlyphCell(gfxp, 0x34, y + D_801E9D5C, 0x1A, D_801CF4C8, D_801E8790[flag]);
             func_801CBC20(gfxp, 0x48, y + D_801E9D5C, 0xA, D_801E8790[flag], &D_801E9B38[D_801F188A + i]);
             func_801CB820(gfxp, 0x106, y + D_801E9D5C, 0xA, D_801E8790[flag], 3, D_801E9B38[D_801F188A + i].w[0] >> 8);
         }
@@ -129,7 +129,7 @@ void func_801DECB4(Gfx **gfxp, u16 id) {
         }
         gfxDrawClippedTex4b(gfxp, 0x48, 0xAC, 0, 0, 0xB0, 0x14, 0xB0, 0x14, 0xB0, 0x14, 0, 0, 319, 239, D_801E59F8, D_801E60E0);
         func_801CB820(gfxp, 0xB0, 0xB0, 0xA, D_801E8798[0], 3, D_801E9768[D_801E87C0] >> 8);
-        func_801CA528(gfxp, 0xCE, 0xB0, 0xF, D_801CF4C8, D_801E8798[0]);
+        drawGlyphCell(gfxp, 0xCE, 0xB0, 0xF, D_801CF4C8, D_801E8798[0]);
         func_801CB820(gfxp, 0xD8, 0xB0, 0xA, D_801E8798[0], 3, (s32)(sum + D_801E9768[D_801E87C0]) >> 8);
         if (D_801E9799 != 0) {
             D_8011F2F0[D_801E9764].panel->alpha = 0x96;

@@ -29,7 +29,7 @@ void setCarLight(void *, u8, u8, u8, u8, u8, u8, s32, s32, s32);
 f32 __sinf(f32);
 #define SINF(x) ({ __sinf(x); })
 void func_802319E8(void);
-void func_80231C5C(void);
+void createNoticeScreenObj(void);
 void func_80143D70(void);
 void playStageSound(s32, s32);
 u32 func_801FA38C(s32);
@@ -77,7 +77,7 @@ void func_8015A9CC(u16 arg0)
         if (D_8011F2F0[D_8018BC3C].p[0] == 0) {
             D_80046832 = 0;
             func_802319E8();
-            func_80231C5C();
+            createNoticeScreenObj();
             func_80143D70();
             D_80168BB0 = 0;
             menuPanelTlut = 0;

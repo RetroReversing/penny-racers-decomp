@@ -8,14 +8,14 @@ extern Obj D_8011F2F0[];
 extern Rec slotRadius[];
 extern Rec2 slotOwner[];
 extern Slot sCars[];
-extern u16 D_8018D672;
+extern u16 liftHitIndex;
 extern u16 D_80233EC0;
 extern u8 D_802390C8[];
 extern void func_80164218(), func_80167DD4();
 f32 sqrtf(f32);
 u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, s32, s32, s32, f32, f32, f32);
 u16 raceAllocSlot(void);
-void func_8013E818(u16, s32, s16, f32, f32, f32, u16);
+void initHitSlot(u16, s32, s16, f32, f32, f32, u16);
 void ballMoveCollide(Ball *, f32, f32, f32, f32, f32, f32);
 u8 func_8013F050(u16, void *);
 u8 liftHitCars(u16, void *);
@@ -39,7 +39,7 @@ void func_80167510(u16 arg0)
         if (id == 0xFFFF) {
             return;
         }
-        func_8013E818(id, arg0, 0, 0.0f, 0.0f, 0.0f, 4);
+        initHitSlot(id, arg0, 0, 0.0f, 0.0f, 0.0f, 4);
         o->state = 2;
         slotRadius[id].f0 = 15.0f;
         slotOwner[id].p = sCars;
@@ -57,7 +57,7 @@ void func_80167510(u16 arg0)
 
             queueObjEvent(arg0, 0x29);
             o->state = 2;
-            s = &sCars[D_8018D672];
+            s = &sCars[liftHitIndex];
             t = s->speed * 0.01f;
             data->vx = s->vx * 1.5f;
             data->vy = s->vy * 1.5f + 2.0f + t;

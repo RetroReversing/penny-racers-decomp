@@ -8,7 +8,7 @@ void func_80155FA0();
 void func_8015601C();
 void func_80156180();
 void func_801561FC();
-void func_80156338();
+void animateWaveHeights();
 s32 objCreate(u8, u8, u8, u16, u8, u8, void *, s32, s32, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 
 void func_8015657C(void) {
@@ -34,7 +34,7 @@ void func_8015657C(void) {
     objCreate(0, 0, 2, 0, 0x51, 0xff, (void *)(D_8016D588 + 0xF0), (s32)liftCopyFlags, 0, 1353.15f, 2.0f, -758.68f, 0.0f, 180.0f, 0.0f, 1.0f, 1.0f, 1.0f);
     objCreate(0, 0x12, 2, 0, 0x51, 0xff, (void *)(D_8016D588 + 0xF0), (s32)liftCopyFlags, 0, -3118.37f, -167.73f, -836.35f, 9.46f, -90.0f, 0.0f, 1.0f, 1.0f, 1.0f);
     objCreate(0, 0x17, 2, 0, 0x51, 0xff, (void *)(D_8016D588 + 0xF0), (s32)liftCopyFlags, 0, -3314.49f, -236.1f, 711.05f, -2.38f, 90.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    objCreate(0, 0, 3, 0, 0x40, 0xff, 0, (s32)func_80156338, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+    objCreate(0, 0, 3, 0, 0x40, 0xff, 0, (s32)animateWaveHeights, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
     objCreate(0, 7, 2, 0, 0x51, 0x96, (void *)(D_8016D588 + 0x100), (s32)liftCopyFlags, (s32)func_80155F7C, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
     objCreate(0, 6, 2, 0, 0x51, 0xff, (void *)D_8023991C, (s32)liftCopyFlags, 0, -1135.52f, 20.82f, -1971.45f, -11.21f, 97.66f, 180.0f, 1.5f, 1.5f, 1.0f);
     objCreate(0, 9, 2, 0, 0x51, 0xff, (void *)D_8023991C, (s32)liftCopyFlags, 0, -119.8f, 66.38f, -758.67f, -10.57f, -69.97f, 2.67f, 1.5f, 1.5f, 1.0f);

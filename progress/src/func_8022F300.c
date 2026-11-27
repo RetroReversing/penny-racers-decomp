@@ -7,8 +7,8 @@ extern u16 creditsCursor;
 extern u16 gameState;
 extern u16 D_8006FB10;
 extern u16 D_8006FE58;
-void func_800DE38C(void);
-void func_800DE2E0(void);
+void initModelTransforms(void);
+void initObjList(void);
 
 void func_8022F300(void)
 {
@@ -56,8 +56,8 @@ void func_8022F300(void)
             case 8: v = 0xE; gameState = v; break;
             case 9: v = 0x10; gameState = v; break;
             }
-            func_800DE38C();
-            func_800DE2E0();
+            initModelTransforms();
+            initObjList();
             D_8006FE58 = 0;
         }
     }

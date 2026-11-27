@@ -1,7 +1,7 @@
 typedef struct { s8 x; s8 y; u8 pad[3]; } P5;
 typedef struct { s16 n; u8 pad2[0x14]; s16 e16; s16 e18; s16 e1A; } St;
 extern St D_8021E18C;
-extern u8 D_801C5EA0, D_801C5E9C, D_801E87E1, D_8021B068;
+extern u8 D_801C5EA0, menuCursorPos, D_801E87E1, D_8021B068;
 extern u16 D_8021B30A[];
 extern f32 D_8021B30C;
 extern u8 D_8021B310[], D_8021B311[], D_8021B324[], D_8021B325[], D_8021B326[], D_8021B327[], D_8021B328[], D_8021B37A[];
@@ -32,7 +32,7 @@ void gfxSetPrimColor(void *, s32, s32, s32, s32);
 void gfxDrawClippedTex8b(void *, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, void *, void *);
 void gfxDrawSprite(void *, s16, s16, s32, s32);
 void drawSpriteCell(void *, u16, s32, s32, void *, void *, s32, s32, s32, s32, s32);
-void func_801CB9EC(void *, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32);
+void drawNumberDigits(void *, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32);
 void gfxDrawText(void *, s32, s32, s32, void *, void *, s32, void *, s32, s32, s32, s32);
 u8 func_801E435C(u8, u8);
 u8 func_80148230(void);
@@ -180,10 +180,10 @@ void func_8020D1AC(void *arg0)
         gfxDrawSprite(arg0, 0xD3, off + 0x83, 4, D_8021B327[D_8021E18C.n * 5]);
     }
     if (D_801C5EA0 == 1) {
-        if (D_801C5E9C == 3) {
+        if (menuCursorPos == 3) {
             D_8021B37A[0] = 0x1F;
             D_8021B37A[3] = 0x25;
-        } else if (D_801C5E9C == 4) {
+        } else if (menuCursorPos == 4) {
             D_8021B37A[0] = 0x20;
             D_8021B37A[3] = 0x26;
         }
@@ -207,12 +207,12 @@ void func_8020D1AC(void *arg0)
     for (i = 0; i < 2; i++) {
         drawSpriteCell(arg0, i * 0x6E + 0x7A, 0x9E, 0xB, D_801D51C8, D_801D5470, 0, 8, 0xC, 0x70, 0xC);
     }
-    func_801CB9EC(arg0, 0xBE, 0x9E, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_801E97A3[D_8021E18C.n * 0x30]);
-    func_801CB9EC(arg0, 0xD7, 0x9E, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_801E97A4[D_8021E18C.n * 0x30]);
-    func_801CB9EC(arg0, 0xF0, 0x9E, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_801E97A5[D_8021E18C.n * 0x30]);
-    func_801CB9EC(arg0, 0x50, 0x9E, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, sSaveData[D_8021E18C.n * 0x30]);
-    func_801CB9EC(arg0, 0x69, 0x9E, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_801E97A1[D_8021E18C.n * 0x30]);
-    func_801CB9EC(arg0, 0x82, 0x9E, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_801E97A2[D_8021E18C.n * 0x30]);
+    drawNumberDigits(arg0, 0xBE, 0x9E, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_801E97A3[D_8021E18C.n * 0x30]);
+    drawNumberDigits(arg0, 0xD7, 0x9E, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_801E97A4[D_8021E18C.n * 0x30]);
+    drawNumberDigits(arg0, 0xF0, 0x9E, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_801E97A5[D_8021E18C.n * 0x30]);
+    drawNumberDigits(arg0, 0x50, 0x9E, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, sSaveData[D_8021E18C.n * 0x30]);
+    drawNumberDigits(arg0, 0x69, 0x9E, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_801E97A1[D_8021E18C.n * 0x30]);
+    drawNumberDigits(arg0, 0x82, 0x9E, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_801E97A2[D_8021E18C.n * 0x30]);
     gfxDrawText(arg0, 0x50, 0xAB, 0xA, D_801D4390, D_801E97A6[D_8021E18C.n].b, 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC);
     gfxDrawText(arg0, 0xBE, 0xAB, 0xA, D_801D4390, D_801E97A6[D_8021E18C.n].b + 0x12, 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC);
     }

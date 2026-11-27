@@ -12,10 +12,10 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-M2C_UNK func_800DE2E0();                            /* extern */
-M2C_UNK func_800DE38C();                            /* extern */
+M2C_UNK initObjList();                            /* extern */
+M2C_UNK initModelTransforms();                            /* extern */
 
 void func_802319E8(void) {
-    func_800DE38C();
-    func_800DE2E0();
+    initModelTransforms();
+    initObjList();
 }

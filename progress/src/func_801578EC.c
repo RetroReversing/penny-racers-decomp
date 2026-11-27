@@ -12,7 +12,7 @@ typedef s32 M2C_UNK32;
 #define M2C_OVERFLOW(a) (0)
 #endif
 
-extern u8 D_8011F2FC[];
+extern u8 racerTimerFlags[];
 extern char playerSlots[];
 extern char D_802E8158[];
 
@@ -37,7 +37,7 @@ void func_801578EC(void **arg0, s32 arg1) {
     *arg0 = temp_a2 + 8;
     M2C_FIELD(temp_a2, s32 *, 0) = 0xFA000000;
     temp_a3 = (arg1 & 0xFFFF) * 0x64;
-    M2C_FIELD(temp_a2, s32 *, 4) = (s32) (*(D_8011F2FC + temp_a3) | 0x1414FF00);
+    M2C_FIELD(temp_a2, s32 *, 4) = (s32) (*(racerTimerFlags + temp_a3) | 0x1414FF00);
     temp_v1_2 = *arg0;
     *arg0 = temp_v1_2 + 8;
     M2C_FIELD(temp_v1_2, s32 *, 0) = 0xFD88001F;

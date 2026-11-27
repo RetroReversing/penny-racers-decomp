@@ -3,7 +3,7 @@ extern u8 D_8011F308[];
 extern u8 sPrimColorG[];
 extern u8 sPrimColorB[];
 extern u8 hitSlots[];
-extern u8 D_8022A772[];
+extern u8 slotObjIds[];
 extern u8 D_8022AD5C[];
 extern u16 D_80233EC0;
 s32 func_8012913C();
@@ -45,7 +45,7 @@ void launchBall(u16 arg0, u16 arg1, u8 *arg2, s16 arg3, f32 arg4, f32 arg5, f32 
     for (i = 0; i < 7; i++) {
         *(u8 *)(s + i + 0x67) = 0;
         k = ((((i << 3) + i) << 4) - i) << 4;
-        v = *(u16 *)(D_8022A772 + k);
+        v = *(u16 *)(slotObjIds + k);
         if (v != 0xFFFF) {
             if (0.0f < *(f32 *)(D_8022AD5C + k)) {
                 *(s8 *)(s + i + 0x60) = i;

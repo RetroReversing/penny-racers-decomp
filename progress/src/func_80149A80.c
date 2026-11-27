@@ -1,5 +1,5 @@
 extern u8 D_8011F2F0[];
-extern u8 D_8011F2FC[];
+extern u8 racerTimerFlags[];
 extern f32 D_80221080[];
 extern f32 D_80221084[];
 extern f32 D_80221088[];
@@ -15,7 +15,7 @@ void func_80149A80(s32 arg0) {
 
     temp_v0 = (arg0 & 0xFFFF) * 0x64;
     e = D_8011F2F0 + temp_v0;
-    idx = D_8011F2FC[temp_v0];
+    idx = racerTimerFlags[temp_v0];
     if (*(u16 *)(e + 0x3E) == 0) {
         temp_v0_2 = idx * 0x24;
         *(f32 *)((u8 *)D_8022108C + temp_v0_2) = *(f32 *)(e + 0x18);

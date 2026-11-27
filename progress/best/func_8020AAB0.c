@@ -18,10 +18,10 @@ extern u8 D_8021B069;
 extern u8 D_8021B06A;
 extern char D_8021E180[];
 extern s16 D_8021E1A2;
-extern s16 D_8021E1A6;
+extern s16 carClassIndex;
 extern char D_8021E20B[];
 extern char D_8021E20C[];
-extern char D_8021E22F[];
+extern char randomSequenceTable[];
 inline static unsigned char inline_fn(int arg0)
 {
   return *(D_8011F2F0 + arg0);
@@ -296,8 +296,8 @@ s32 func_8020AAB0(s32 arg0)
       do { temp_v0_2 = var_s0 * 0x22; } while (0);
       temp_a0_5 = inline_fn(temp_s1);
       __index_D_8021E22F = temp_v0_2 + temp_v1_9;
-      __repair_phase___base_D_8021E22F = D_8021E22F;
-      *(D_8021B010 + temp_a0_5) = (*(D_8021B010 + temp_a0_5)) + func_801FD530((s32) var_s0, func_80149F40((s32) (*((u16 *) (D_800DA260 + (temp_v0 * 0x178)))), var_s0, (s32) (*((s8 *) (((s8 *) ((temp_v0_2 + (temp_v1_9 + D_8021E22F)) + (*(__repair_phase___base_D_8021E22F + __index_D_8021E22F)))) + 2)))) & 0xFF);
+      __repair_phase___base_D_8021E22F = randomSequenceTable;
+      *(D_8021B010 + temp_a0_5) = (*(D_8021B010 + temp_a0_5)) + func_801FD530((s32) var_s0, func_80149F40((s32) (*((u16 *) (D_800DA260 + (temp_v0 * 0x178)))), var_s0, (s32) (*((s8 *) (((s8 *) ((temp_v0_2 + (temp_v1_9 + randomSequenceTable)) + (*(__repair_phase___base_D_8021E22F + __index_D_8021E22F)))) + 2)))) & 0xFF);
       do
       {
         do
@@ -319,7 +319,7 @@ s32 func_8020AAB0(s32 arg0)
     }
     temp_a0_6 = inline_fn((arg0 & 0xFFFF) * 0x64);
   }
-  if (((u8) (*(D_80168C60 + D_8021E1A6))) < ((u8) (*(D_8021B010 + temp_a0_6))))
+  if (((u8) (*(D_80168C60 + carClassIndex))) < ((u8) (*(D_8021B010 + temp_a0_6))))
   {
     *(D_8021B014 + temp_a0_6) = 1;
     return;

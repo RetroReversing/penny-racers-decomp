@@ -3,7 +3,7 @@ extern u8 D_8011F2F0[][0x64];
 extern u8 viewIndex;
 extern u8 D_8018A264[];
 extern u16 playerSlots[][0x32];
-extern u8 D_8011F2FC[][0x64];
+extern u8 racerTimerFlags[][0x64];
 
 void func_8013B704(Gfx **pkt, s32 arg1)
 {
@@ -72,6 +72,6 @@ void func_8013B704(Gfx **pkt, s32 arg1)
     {
                 Gfx *_g = (*pkt)++;
                 _g->w0 = 0xFA000000;
-                _g->w1 = (r << 24) | (gr << 16) | (b << 8) | D_8011F2FC[(u16) arg1][0];
+                _g->w1 = (r << 24) | (gr << 16) | (b << 8) | racerTimerFlags[(u16) arg1][0];
             }
 }

@@ -21,17 +21,19 @@ typedef struct {
 typedef struct { f32 v; s32 w; } E;
 typedef struct { char pad[0x5B4]; E e[1]; } M;
 extern Obj D_8011F308[];
-extern Slot D_8022A772[];
+extern Slot slotObjIds[];
 extern u8 D_8011F2F0[];
 extern u8 sCars[];
 
-extern s16 D_8018D672;
+extern s16 liftHitIndex;
 
 typedef union { s32 i; f32 f; } Bits;
 
-s32 liftHitCars(s32 arg0, void *a1)
+/* Checks the seven hit zones of an object against nearby cars. On the first car in range
+ * that has not been hit yet, knocks it up and records which zone was hit. */
+s32 liftHitCars(s32 objIndex, void *zonePtr)
 {
-    Zone *arg1 = a1;
+    Zone *zone = zonePtr;
     Bits x;
     f32 y;
     f32 z;
@@ -40,40 +42,40 @@ s32 liftHitCars(s32 arg0, void *a1)
     f32 dz;
     s32 i;
     s32 j;
-    u8 *s0;
+    u8 *car;
 
-    D_8018D672 = 0;
-    x.i = *(s32 *) &D_8011F308[arg0 & 0xFFFF].x;
-    y = D_8011F308[arg0 & 0xFFFF].y;
-    z = D_8011F308[arg0 & 0xFFFF].z;
+    liftHitIndex = 0;
+    x.i = *(s32 *) &D_8011F308[objIndex & 0xFFFF].x;
+    y = D_8011F308[objIndex & 0xFFFF].y;
+    z = D_8011F308[objIndex & 0xFFFF].z;
     for (i = 0; i < 7; i++) {
-        if (arg1->owner[i] != -1) {
+        if (zone->owner[i] != -1) {
 do { do { do { 
-            s0 = sCars + arg1->owner[i] * 0x8F0;
-            j = D_8022A772[i].id;
+            car = sCars + zone->owner[i] * 0x8F0;
+            j = slotObjIds[i].id;
             dx = x.f - D_8011F308[j].x;
             dy = y - D_8011F308[j].y;
             dz = z - D_8011F308[j].z;
-            if (sqrtf(dx * dx + dy * dy + dz * dz) < arg1->range) {
-                if (arg1->hit[i] == 0) {
-                    if (!(*(u16 *)(s0 + 0x560) & 0x20)) {
-                        *(u8 *)(s0 + 0x8A1) = 3;
-                        *(u8 *)(s0 + 0x8C8) = 0;
-                        *(u8 *)(s0 + 0x8C9) = 1;
-                        *(f32 *)(s0 + 0x8CC) = 360.0f;
-                        *(f32 *)(s0 + 0x7B4) = -dx * 0.025f;
-                        *(f32 *)(s0 + 0x7BC) = -dz * 0.025f;
-                        *(f32 *)(s0 + 0x7C0) = -dx * 0.025f;
-                        *(f32 *)(s0 + 0x7C8) = -dz * 0.025f;
-                        queueObjEvent(*(u16 *)(s0 + 2), 0x34);
+            if (sqrtf(dx * dx + dy * dy + dz * dz) < zone->range) {
+                if (zone->hit[i] == 0) {
+                    if (!(*(u16 *)(car + 0x560) & 0x20)) {
+                        *(u8 *)(car + 0x8A1) = 3;
+                        *(u8 *)(car + 0x8C8) = 0;
+                        *(u8 *)(car + 0x8C9) = 1;
+                        *(f32 *)(car + 0x8CC) = 360.0f;
+                        *(f32 *)(car + 0x7B4) = -dx * 0.025f;
+                        *(f32 *)(car + 0x7BC) = -dz * 0.025f;
+                        *(f32 *)(car + 0x7C0) = -dx * 0.025f;
+                        *(f32 *)(car + 0x7C8) = -dz * 0.025f;
+                        queueObjEvent(*(u16 *)(car + 2), 0x34);
                     }
-do { do { do { do { do { do { ((M *)s0)->e[arg1->info[2]].v = (1.0f - ((M *)s0)->e[arg1->info[2]].v) * *(f32 *)(s0 + 0x5A0) + ((M *)s0)->e[arg1->info[2]].v; } while (0); } while (0); } while (0); } while (0); } while (0); } while (0);
-                    arg1->hit[i] = 1;
-                    D_8018D672 = i;
+do { do { do { do { do { do { ((M *)car)->e[zone->info[2]].v = (1.0f - ((M *)car)->e[zone->info[2]].v) * *(f32 *)(car + 0x5A0) + ((M *)car)->e[zone->info[2]].v; } while (0); } while (0); } while (0); } while (0); } while (0); } while (0);
+                    zone->hit[i] = 1;
+                    liftHitIndex = i;
                     return 1;
                 }
             }
- } while (0); } while (0); } while (0);
+} while (0); } while (0); } while (0);
         }
     }
     return 0;

@@ -64,13 +64,13 @@ typedef struct { Time t[4]; u8 pad[0x8F0 - 20]; } PTime;
 extern Ob19 D_8011F2F0[];
 extern Big sRowBoard;
 extern u8 viewIndex;
-extern u8 D_80220ED8[], D_801D51C8[], D_801D5470[], D_80170F20[], D_80171018[], D_8016ED50[], D_8016EDD8[], D_8016EE00[], D_8016EF48[];
+extern u8 noticeBackgroundDl[], D_801D51C8[], D_801D5470[], D_80170F20[], D_80171018[], D_8016ED50[], D_8016EDD8[], D_8016EE00[], D_8016EF48[];
 extern PU8 D_8022AFE9[];
 extern PTime D_8022ACD3[];
 void gfxSetup2DState(Gfx **);
 void drawSpriteCell(Gfx **, u16, u16, u16, u8 *, u8 *, u8, s32, s32, s32, s32);
 void gfxDrawClippedTex4b(Gfx **, s16, s16, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *);
-void func_801CB9EC(Gfx **, u16, u16, u16, u8 *, u8 *, u8, s32, s32, s32, s32, s32, s32, u16);
+void drawNumberDigits(Gfx **, u16, u16, u16, u8 *, u8 *, u8, s32, s32, s32, s32, s32, s32, u16);
 
 /* Draws one car's split-time card (blinking, per-split times) for the object in slot id. */ void drawSplitTimeCard(Gfx **gfxp, u16 id) {
     s32 kind;
@@ -86,7 +86,7 @@ void func_801CB9EC(Gfx **, u16, u16, u16, u8 *, u8 *, u8, s32, s32, s32, s32, s3
                 y += 14;
             }
             if (!((u32)D_8011F2F0[id].timer & 8)) {
-                gDma((*gfxp)++, 0x06000000, D_80220ED8);
+                gDma((*gfxp)++, 0x06000000, noticeBackgroundDl);
                 gfxSetup2DState(gfxp);
                 if (n == 4) {
                     n = 0;
@@ -97,11 +97,11 @@ void func_801CB9EC(Gfx **, u16, u16, u16, u8 *, u8 *, u8, s32, s32, s32, s32, s3
                     gfxDrawClippedTex4b(gfxp, 0x5C, y + 0x11, 0, 0, 0x30, 0xA, 0x30, 0xA, 0x30, 0xA, 0, 0, 319, 239, D_80170F20, D_80171018);
                 } else {
                     gfxDrawClippedTex4b(gfxp, 0x5C, y + 0x12, 0, 0, 0x20, 8, 0x20, 8, 0x20, 8, 0, 0, 319, 239, D_8016ED50, D_8016EDD8);
-                    func_801CB9EC(gfxp, 0x77, y + 0x12, 8, D_8016EE00, D_8016EF48, 0, 1, 0, 8, 8, 0x50, 8, n);
+                    drawNumberDigits(gfxp, 0x77, y + 0x12, 8, D_8016EE00, D_8016EF48, 0, 1, 0, 8, 8, 0x50, 8, n);
                 }
-                func_801CB9EC(gfxp, 0x18, y + 0x10, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_8022ACD3[kind].t[n].a);
-                func_801CB9EC(gfxp, 0x30, y + 0x10, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_8022ACD3[kind].t[n].b);
-                func_801CB9EC(gfxp, 0x48, y + 0x10, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_8022ACD3[kind].t[n].d);
+                drawNumberDigits(gfxp, 0x18, y + 0x10, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_8022ACD3[kind].t[n].a);
+                drawNumberDigits(gfxp, 0x30, y + 0x10, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_8022ACD3[kind].t[n].b);
+                drawNumberDigits(gfxp, 0x48, y + 0x10, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_8022ACD3[kind].t[n].d);
             }
         }
     }

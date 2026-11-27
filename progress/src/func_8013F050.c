@@ -17,7 +17,7 @@ typedef struct {
     f32 range;
 } Zone;
 extern Obj D_8011F308[];
-extern Slot D_8022A772[];
+extern Slot slotObjIds[];
 
 s32 func_8013F050(u16 arg0, Zone *arg1)
 {
@@ -35,7 +35,7 @@ s32 func_8013F050(u16 arg0, Zone *arg1)
     z = D_8011F308[arg0].z;
     for (i = 0; i < 7; i++) {
         if (arg1->owner[i] != -1) {
-            j = D_8022A772[i].id;
+            j = slotObjIds[i].id;
             dx = x - D_8011F308[j].x;
             dy = y - D_8011F308[j].y;
             dz = z - D_8011F308[j].z;

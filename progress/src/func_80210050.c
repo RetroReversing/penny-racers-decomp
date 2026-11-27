@@ -38,7 +38,7 @@ void func_801D5A90(void);
 void gfxSetViewViewport(void);
 void func_8022026C(void);
 void func_80149A80(void);
-void func_8021078C(void);
+void updateCourseSelectState(void);
 void drawCourseSelectOverlay(void);
 void func_80210D88(void);
 void func_80210F70(void);
@@ -85,7 +85,7 @@ void func_80210050(void) {
     D_80220E40 = 10.0f;
     objCreate(0, 0, 3, 0, 0x44, 0xFF, 0, 0, func_8022026C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     objCreate(0, 0, 3, 0, 0x4A, 1, 0, func_80149A80, 0, 0, 0, 0, 0, 30.0f, 50.0f, 0, 0, 0);
-    objCreate(0, 0, 3, 0, 0x4A, 0, 0, func_8021078C, drawCourseSelectOverlay, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x4A, 0, 0, updateCourseSelectState, drawCourseSelectOverlay, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     for (j = 0; j < 14; j++) {
         for (i = 0; i < 8; i++) {
             D_8018F5D0[j].slot[i] = D_80238EC0[i];

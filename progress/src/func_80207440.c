@@ -59,12 +59,12 @@ typedef struct { s32 m[16]; } Mtx;
 typedef struct { u8 pad0[0x40]; u16 state; u8 pad42[0x22]; } Ob14;
 typedef struct { u8 alpha; u8 pad; s16 row; s16 a; s16 b; s16 c; s16 d; s16 e; s16 f; } Menu;
 extern Ob14 D_8011F2F0[];
-extern u8 D_8021E189;
+extern u8 noticeFlag;
 extern Menu menuArrowAlpha;
 extern s16 D_8021E1A0[];
 extern s16 skipFirstRowFlag;
 extern s16 D_8021E1A4;
-extern s16 D_8021E1A6;
+extern s16 carClassIndex;
 extern u8 menuBgTex[], menuBgTlut[], D_802D92A0[], D_802D6898[];
 extern u8 D_8021F260[];
 extern u16 *D_8021B0D0[], *D_8021B0E0[], *D_8021B0F0[], *D_8021B0F8[], *D_8021B100[];
@@ -91,7 +91,7 @@ void func_80207440(Gfx **gfxp, u16 id) {
 
     switch (D_8011F2F0[id].state) {
     case 0:
-        D_8021E189 = 0;
+        noticeFlag = 0;
         D_8011F2F0[id].state = 1;
         break;
     case 1:

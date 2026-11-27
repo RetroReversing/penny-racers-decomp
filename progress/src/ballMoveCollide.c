@@ -13,66 +13,67 @@ extern Obj64 D_8011F2F0[];
 void func_80127AB0(Ball *, Obj64 *, f32, f32, f32, f32, f32, f32, f32, s32);
 u8 findTrackSegment(s16 *, s16 *, f32, f32, f32);
 
-void ballMoveCollide(Ball *b, f32 x, f32 y, f32 z, f32 argX, f32 argY, f32 argZ)
+/* Moves the ball from (startX, startY, startZ) by (velX, velY, velZ), bouncing off track geometry until the move is used up; updates its track segment and accumulates hit flags and bounce count. */
+void ballMoveCollide(Ball *ball, f32 startX, f32 startY, f32 startZ, f32 velX, f32 velY, f32 velZ)
 {
-    u8 flags = 0;
-    u8 count = 0;
-    u8 r;
-    f32 px, py, pz;
-    f32 vx, vy, vz;
+    u8 hitFlags = 0;
+    u8 bounceCount = 0;
+    u8 segResult;
+    f32 posX, posY, posZ;
+    f32 remX, remY, remZ;
 
-    vx = argX;
-    vy = argY;
-    vz = argZ;
+    remX = velX;
+    remY = velY;
+    remZ = velZ;
 
-    r = findTrackSegment(&b->s4, &b->s6, x, y, z);
-    if (r == 0 || r == 2) {
-        b->x = vx + b->x;
-        b->y = vy + b->y;
-        b->z = vz + b->z;
-        b->f1 = 0;
-        b->u.b.f2 = 0;
+    segResult = findTrackSegment(&ball->s4, &ball->s6, startX, startY, startZ);
+    if (segResult == 0 || segResult == 2) {
+        ball->x = remX + ball->x;
+        ball->y = remY + ball->y;
+        ball->z = remZ + ball->z;
+        ball->f1 = 0;
+        ball->u.b.f2 = 0;
         return;
     }
     while (1) {
-        func_80127AB0(b, &D_8011F2F0[(u16)b->s4], 12.0f, x, y, z, vx, vy, vz, 1);
-        px = b->x;
-        py = b->y;
-        pz = b->z;
-        vx = px - x;
-        vy = py - y;
-        vz = pz - z;
-        flags |= b->f1;
-        count += b->u.b.f2;
-        if (b->u.h == 1) {
+        func_80127AB0(ball, &D_8011F2F0[(u16)ball->s4], 12.0f, startX, startY, startZ, remX, remY, remZ, 1);
+        posX = ball->x;
+        posY = ball->y;
+        posZ = ball->z;
+        remX = posX - startX;
+        remY = posY - startY;
+        remZ = posZ - startZ;
+        hitFlags |= ball->f1;
+        bounceCount += ball->u.b.f2;
+        if (ball->u.h == 1) {
             break;
         }
-        if (b->u.b.f3 != 0) {
+        if (ball->u.b.f3 != 0) {
             continue;
         }
-        r = findTrackSegment(&b->s4, &b->s6, px, py, pz);
-        if (r == 0) {
+        segResult = findTrackSegment(&ball->s4, &ball->s6, posX, posY, posZ);
+        if (segResult == 0) {
             break;
         }
-        if (r != 2) {
+        if (segResult != 2) {
             continue;
         }
-        func_80127AB0(b, &D_8011F2F0[(u16)b->s4], 12.0f, x, y, z, vx, vy, vz, 1);
-        px = b->x;
-        py = b->y;
-        pz = b->z;
-        vx = px - x;
-        vy = py - y;
-        vz = pz - z;
-        flags = b->f1 | flags;
-        count = b->u.b.f2 + count;
-        if (b->u.b.f2 == 0) {
+        func_80127AB0(ball, &D_8011F2F0[(u16)ball->s4], 12.0f, startX, startY, startZ, remX, remY, remZ, 1);
+        posX = ball->x;
+        posY = ball->y;
+        posZ = ball->z;
+        remX = posX - startX;
+        remY = posY - startY;
+        remZ = posZ - startZ;
+        hitFlags = ball->f1 | hitFlags;
+        bounceCount = ball->u.b.f2 + bounceCount;
+        if (ball->u.b.f2 == 0) {
             break;
         }
-        if (b->u.b.f3 == 0) {
-            findTrackSegment(&b->s4, &b->s6, px, py, pz);
+        if (ball->u.b.f3 == 0) {
+            findTrackSegment(&ball->s4, &ball->s6, posX, posY, posZ);
         }
     }
-    b->f1 = flags;
-    b->u.b.f2 = count;
+    ball->f1 = hitFlags;
+    ball->u.b.f2 = bounceCount;
 }

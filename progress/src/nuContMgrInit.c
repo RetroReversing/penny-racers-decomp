@@ -1,11 +1,11 @@
 extern char D_8006C320[];
 extern char D_8006C324[];
-extern char D_8006F970[];
-extern u8 D_8006F9D8[];
+extern char contRetraceMesgQ[];
+extern u8 contQueryData[];
 extern u8 D_8006F9DB[];
 extern s32 D_8006FEF8;
 extern s32 D_80071F70;
-extern char D_800DE2C8[];
+extern char contSiMesgQ[];
 extern s32 nuContMgr;
 void nuSiCallBackAdd();
 void nuContDataUnLock();
@@ -24,8 +24,8 @@ s32 nuContMgrInit(void)
     return 0;
   }
   nuContDataUnLock();
-  osCreateMesgQueue(D_8006F970, D_8006C320, 1);
-  osCreateMesgQueue(D_800DE2C8, D_8006C324, 1);
+  osCreateMesgQueue(contRetraceMesgQ, D_8006C320, 1);
+  osCreateMesgQueue(contSiMesgQ, D_8006C324, 1);
   nuSiCallBackAdd(p - 1, &nuContMgr);
   nuContQueryRead();
   D_80071F70 = 0;
@@ -36,7 +36,7 @@ s32 nuContMgrInit(void)
   {
     if (D_8006F9DB[var_v1] == 0)
     {
-      if (((*((u16 *) (D_8006F9D8 + var_v1))) & 5) == var_a2)
+      if (((*((u16 *) (contQueryData + var_v1))) & 5) == var_a2)
       {
         var_a1 |= var_a0;
         D_80071F70 += 1;

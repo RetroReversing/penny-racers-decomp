@@ -1,4 +1,4 @@
-extern u8 D_8011F2FC[];
+extern u8 racerTimerFlags[];
 extern u8 playerSlots[];
 extern u8 D_802DF5A8[];
 
@@ -10,7 +10,7 @@ void func_80154494(void **arg0, unsigned long arg1)
         u32 *g = (u32 *) *arg0;
         *arg0 = (void *) (g + 2);
         g[0] = 0xFA000000;
-        g[1] = (s32) (D_8011F2FC[((arg1 & 0xFFFF) * 100)] | ~0xFF);
+        g[1] = (s32) (racerTimerFlags[((arg1 & 0xFFFF) * 100)] | ~0xFF);
     }
     {
         u32 *g = (u32 *) *arg0;

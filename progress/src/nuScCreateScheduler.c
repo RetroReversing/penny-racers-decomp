@@ -12,7 +12,7 @@ extern void nuScEventHandler(void *);
 extern void nuScExecuteAudio(void *);
 extern void nuScExecuteGraphics(void *);
 
-void nuScCreateScheduler(s32 arg0, s32 arg1) {
+/* Creates the scheduler: sets up its message queues and VI manager, then starts the event, audio and graphics threads. */ void nuScCreateScheduler(s32 tvType, s32 retraceMsgCount) {
     u8 *base;
     u8 *temp_s2;
     u8 *temp_s4;
@@ -25,7 +25,7 @@ void nuScCreateScheduler(s32 arg0, s32 arg1) {
 
     base = (u8 *)D_800DDE8C;
     temp_s2 = base - 0x5F8;
-    temp_s5 = arg1 & 0xFF;
+    temp_s5 = retraceMsgCount & 0xFF;
     *(s32 *)base = 0;
     D_800DDE90 = 0;
     D_800DDE94 = 0;
@@ -42,7 +42,7 @@ void nuScCreateScheduler(s32 arg0, s32 arg1) {
     osCreateMesgQueue(base - 0x668, base - 0x650, 8);
     osCreateMesgQueue(base - 0x550, base - 0x538, 8);
     osCreateViManager(0xFE);
-    osViSetMode(((arg0 & 0xFF) * 0x50) + D_800473F0);
+    osViSetMode(((tvType & 0xFF) * 0x50) + D_800473F0);
     osViBlack(1);
     osViSetEvent(temp_s2, 0x29A, temp_s5);
     osSetEventMesg(4, temp_s4, 0x29B);

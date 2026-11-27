@@ -5,7 +5,7 @@ extern Row hitSlots[];
 extern u8 D_801684D8[], D_802395A8[], D_802395DC[];
 extern void updateCameraFlyOut(void), func_8015E240(void), func_8015DC9C(void), func_8015E404(void), updateCameraFlyIn(void), func_8015E484(void);
 s32 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
-void func_8013E818(u16, u16, s32, f32, f32, f32, s32);
+void initHitSlot(u16, u16, s32, f32, f32, f32, s32);
 
 /* Spawns the three camera fly objects (fly-out, track, fly-in) for the car at carIdx, each owned by ownerPtr and freed if an object cannot be created. */ void spawnCameraFly(u16 carIdx, f32 scale, void *ownerPtr, u8 kind) {
     s32 allocRet;
@@ -22,7 +22,7 @@ void func_8013E818(u16, u16, s32, f32, f32, f32, s32);
     if ((u16) (objId + 2) < 2) {
         goto fail;
     }
-    func_8013E818(allocRet, objId, 0, scale, 0.0f, 0.0f, 3);
+    initHitSlot(allocRet, objId, 0, scale, 0.0f, 0.0f, 3);
     hitSlots[(u16) allocRet].owner = ownerPtr;
     hitSlots[(u16) allocRet].unk16 = kind;
     } while (0);
@@ -36,7 +36,7 @@ void func_8013E818(u16, u16, s32, f32, f32, f32, s32);
     if ((u16) (objId + 2) < 2) {
         goto fail;
     }
-    func_8013E818(allocRet, objId, 0, scale, 0.0f, 0.0f, 0);
+    initHitSlot(allocRet, objId, 0, scale, 0.0f, 0.0f, 0);
     hitSlots[(u16) allocRet].owner = ownerPtr;
     hitSlots[(u16) allocRet].unk16 = kind;
     } while (0);
@@ -52,7 +52,7 @@ void func_8013E818(u16, u16, s32, f32, f32, f32, s32);
         ((void (*)(s32)) func_8013E49C)(slotIdx);
         return;
     }
-    func_8013E818(allocRet, objId, 0, scale, 0.0f, 0.0f, 0);
+    initHitSlot(allocRet, objId, 0, scale, 0.0f, 0.0f, 0);
     hitSlots[(u16) allocRet].owner = ownerPtr;
     hitSlots[(u16) allocRet].unk16 = kind;
     } while (0);

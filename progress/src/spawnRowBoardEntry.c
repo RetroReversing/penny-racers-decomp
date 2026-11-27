@@ -1,7 +1,7 @@
 extern u16 objCreate(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
 extern void updatePlayerFade();
 extern void func_801CEC2C();
-extern u8 D_801D59B2[];
+extern u8 playerFadeData[];
 extern u16 D_80190CB4;
 typedef struct {
     u8 b0; u8 pad1; u16 f2; u16 f4; u8 b6; u8 b7; u8 b8; u8 b9; u16 fA; u16 fC; u16 fE; u16 f10;
@@ -16,7 +16,7 @@ void spawnRowBoardEntry(s32 valA, s32 valB, s32 valC, s32 valD, u8 flags)
 {
     u16 *p = &D_80190CB4;
     *p = objCreate(0, 0, 3, 0, flags, 0xFF, 0, updatePlayerFade, func_801CEC2C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    D_8011F350[*p].data = (Data *) D_801D59B2;
+    D_8011F350[*p].data = (Data *) playerFadeData;
     D_8011F350[*p].data->b0 = 0;
     D_8011F350[*p].data->f2 = 0x46;
     D_8011F350[*p].data->f4 = 0;

@@ -52,7 +52,7 @@ typedef union { Gwords words; long long force; } Gfx;
     gImmp1(pkt, 0xb3, _S(dsdx, 16, 16) | _S(dtdy, 0, 16)); }
 
 typedef struct { u16 state; u8 pad2[0x62]; } Slot;
-extern Slot D_8011F330[];
+extern Slot noticeStates[];
 typedef struct { u8 pad0[0x20]; u16 course; } Setup;
 extern Setup D_8006FAF0;
 extern u16 *D_801680C8[];
@@ -69,9 +69,9 @@ extern u8 waveVertices[];
 /* Draws the course's water surface: sets up the display list, loads its palette and draws seven textured strips. */ void drawWaterStrips(Gfx **gfxp, u16 objIndex) {
     s16 i;
 
-    switch (D_8011F330[objIndex].state) {
+    switch (noticeStates[objIndex].state) {
     case 0:
-        D_8011F330[objIndex].state = 1;
+        noticeStates[objIndex].state = 1;
         break;
     case 1:
         if (D_8006FAF0.course == 2 || D_8006FAF0.course == 7) {

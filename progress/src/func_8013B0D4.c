@@ -1,6 +1,6 @@
 typedef s32 M2C_UNK;
 extern char D_8011F2F0[];
-extern u8 D_8011F2FC[];
+extern u8 racerTimerFlags[];
 extern u8 viewIndex;
 extern char D_8018A264[];
 
@@ -33,5 +33,5 @@ void func_8013B0D4(void **arg0, s32 arg1) {
     temp_a0_2 = *arg0;
     *arg0 = temp_a0_2 + 8;
     *(s32 *)temp_a0_2 = 0xFA000000;
-    *(s32 *)((s8 *)temp_a0_2 + 4) = (s32) (*(D_8011F2FC + ((arg1 & 0xFFFF) * 0x64)) | ~0xFF);
+    *(s32 *)((s8 *)temp_a0_2 + 4) = (s32) (*(racerTimerFlags + ((arg1 & 0xFFFF) * 0x64)) | ~0xFF);
 }

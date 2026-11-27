@@ -1,13 +1,13 @@
 s16 objCreate(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
-void func_800E067C(void);
+void interpolateObjPositions(void);
 void func_8013ADA8(void);
 void func_801FA338(s32);
 void func_8022F780(u16);
 void func_8022FE50(s32, s32, s32, s32);
 void func_80231130(void);
 void func_802312F8(s32);
-void func_80231A0C(void);
-void func_80231C5C(void);
+void initSceneBackdrop(void);
+void createNoticeScreenObj(void);
 void createStageObjects(void);
 extern s32 D_8006FAF0;
 extern s32 D_80159230;
@@ -25,12 +25,12 @@ void func_801FD3B4(void) {
     D_80203AB0 = 0;
     D_802038D0 = 0;
     D_802038D4 = 0;
-    func_80231A0C();
+    initSceneBackdrop();
     var_s0 = 0;
-    func_80231C5C();
+    createNoticeScreenObj();
     createStageObjects();
     func_8022F780(*(u16 *)((s8 *)&D_8006FAF0 + 0x20));
-    func_800E067C();
+    interpolateObjPositions();
     func_80231130();
     func_802312F8(0);
     do {

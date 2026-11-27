@@ -1,4 +1,4 @@
-extern u8 D_8011F338[];
+extern u8 racerAnimFrames[];
 extern s32 D_8016D0B0[];
 extern u8 D_8016D0C4[];
 
@@ -12,7 +12,7 @@ void func_801513E4(void **arg0, s32 arg1)
     *arg0 = g + 2;
     h = g;
     h[0] = 0xFD900000;
-    f = *(f32 *) (D_8011F338 + (arg1 & 0xFFFF) * 100);
+    f = *(f32 *) (racerAnimFrames + (arg1 & 0xFFFF) * 100);
     idx = (u32) f;
     h[1] = D_8016D0B0[D_8016D0C4[idx]];
     {

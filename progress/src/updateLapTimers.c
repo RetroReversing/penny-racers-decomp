@@ -17,7 +17,7 @@ extern u8 D_80236ED4[];
 extern u8 D_80236F10[];
 extern u8 D_80236F20[];
 void debugPrintf();
-void func_80230EFC(Car *);
+void spawnCarNotice(Car *);
 
 /* Per-frame lap timer update for the race. For each car, follows which lap
  * segment it is on, adds the elapsed frames to that segment's lap time and
@@ -92,7 +92,7 @@ void updateLapTimers(u16 index) {
                             debugPrintf(D_80236F20, car->x6 & 0x40);
                         }
                         if (D_8023760E[i] >= 2) {
-                            func_80230EFC(car);
+                            spawnCarNotice(car);
                         }
                         car->t[0].centis += car->t[D_80237600[i]].centis;
                         car->t[0].seconds += car->t[D_80237600[i]].seconds;

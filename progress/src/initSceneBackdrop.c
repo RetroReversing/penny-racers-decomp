@@ -1,0 +1,26 @@
+s32 objCreate();
+void func_8021F5F0();
+void func_8021FCA4();
+extern char D_8011F2F4[];
+extern char D_8011F2F8[];
+extern char D_8021FE04[];
+extern char D_8022026C[];
+extern char D_80220454[];
+extern char D_8022063C[];
+extern s32 func_80139F14;
+
+/* Spawns the sky-gradient backdrop object and the scene's other objects, and marks the backdrop's table entries as active. */
+void initSceneBackdrop(void) {
+    s32 slotOffset;
+
+    slotOffset = (objCreate(0, 0, 3, 0, 0x20, 0xFF, 0, 0, &func_80139F14, 0, 0, 0, 0, 0, 0, 0, 0, 0) & 0xFFFF) * 0x64;
+    *(u16 *)(D_8011F2F4 + slotOffset) = *(u16 *)(D_8011F2F4 + slotOffset) | 0x20;
+    *(u16 *)(D_8011F2F4 + 2 + slotOffset) = *(u16 *)(D_8011F2F4 + 2 + slotOffset) | 0x20;
+    *(u16 *)(D_8011F2F8 + slotOffset) = *(u16 *)(D_8011F2F8 + slotOffset) | 0x20;
+    func_8021F5F0();
+    func_8021FCA4();
+    objCreate(0, 0, 3, 0, 0x21, 0xFF, 0, 0, &D_8021FE04, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x40, 0xFF, 0, 0, &D_80220454, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x50, 0xFF, 0, 0, &D_8022026C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x70, 0xFF, 0, 0, &D_8022063C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+}

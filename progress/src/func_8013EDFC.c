@@ -21,7 +21,7 @@ typedef struct {
 typedef struct { f32 v; s32 w; } E;
 typedef struct { char pad[0x5B4]; E e[1]; } M;
 extern Obj D_8011F308[];
-extern Slot D_8022A772[];
+extern Slot slotObjIds[];
 extern u8 D_8011F2F0[];
 extern u8 sCars[];
 
@@ -46,7 +46,7 @@ s32 func_8013EDFC(s32 arg0, void *a1)
     for (i = 0; i < 7; i++) {
         if (arg1->owner[i] != -1) {
             s0 = sCars + arg1->owner[i] * 0x8F0;
-            j = D_8022A772[i].id;
+            j = slotObjIds[i].id;
             dx = x - D_8011F308[j].x;
             dy = y - D_8011F308[j].y;
             dz = z - D_8011F308[j].z;

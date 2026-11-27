@@ -58,7 +58,7 @@ typedef struct { s32 m[16]; } Mtx;
 #define gDPPipeSyncP(pkt) gDPPipeSync(pkt)
 typedef struct { u8 pad0[0x3E]; u16 model; u16 state; u8 pad42[0x22]; } Ob9;
 extern Ob9 D_8011F2F0[];
-extern u8 D_80190CB4, D_80190CA8, D_80190CAA, D_80190CAE, D_80190CB2, D_80190C9E;
+extern u8 D_80190CB4, D_80190CA8, D_80190CAA, D_80190CAE, D_80190CB2, menuSelectRow;
 extern u8 D_8021F080[];
 extern u8 D_8021B690[];
 extern u8 D_801E6B68[], D_801E7470[], D_801D4390[], D_801CF4C8[];
@@ -142,7 +142,7 @@ void func_80216D80(Gfx **gfxp, u16 id) {
             D(0xCB, 0xBE, 0x14);
         }
         gfxSetPrimColor(gfxp, D_80190CB4, D_80190CB4, D_80190CB4, 0xFF);
-        D(0x9D, D_80190C9E * 18 + 0x63, 0x2B);
+        D(0x9D, menuSelectRow * 18 + 0x63, 0x2B);
         gfxSetPrimAlpha(gfxp, 0xFF);
     }
     if (obj->state & 4) {
@@ -166,7 +166,7 @@ void func_80216D80(Gfx **gfxp, u16 id) {
             }
         }
         gfxSetPrimColor(gfxp, D_80190CB4, D_80190CB4, D_80190CB4, 0xFF);
-        D(0x9D, D_80190C9E * 18 + 0x75, 0x2B);
+        D(0x9D, menuSelectRow * 18 + 0x75, 0x2B);
         gfxSetPrimAlpha(gfxp, 0xFF);
     }
     if (obj->model == 0x41) {

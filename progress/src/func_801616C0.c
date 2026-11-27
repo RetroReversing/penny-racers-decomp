@@ -61,7 +61,7 @@ extern u8 D_80239408[];
 extern Hit slotHitFlags[];
 extern HitF slotRadius[];
 extern HitP slotOwner[];
-void func_801619B4(void);
+void updateBallState(void);
 void queueObjEvent(u16, s32);
 s32 objCreate(s32, s32, s32, s32, s32, s32, u8 *, void (*)(void), s32, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 void launchBall(u16, u16, Car *, f32, f32, f32, f32, f32, f32, f32, s32);
@@ -75,7 +75,7 @@ void func_801616C0(Car *car) {
     if (car->state == 1 && (f = car->flags, !(f & 8)) && (f & 7) < 7) {
         slot = raceAllocSlot();
         if (slot != 0xFFFF) {
-            n = objCreate(0, 0, 1, 0, 0x51, 0xFF, D_80239408, func_801619B4, 0, D_8011F308[car->obj].v, sPrimColorG[car->obj].v + 15.0f, sPrimColorB[car->obj].v, 0.0f, D_8011F318[car->obj].v, 0.0f, D_8011F320[car->obj].v * 2.0f, D_8011F324[car->obj].v * 2.0f, D_8011F328[car->obj].v * 2.0f);
+            n = objCreate(0, 0, 1, 0, 0x51, 0xFF, D_80239408, updateBallState, 0, D_8011F308[car->obj].v, sPrimColorG[car->obj].v + 15.0f, sPrimColorB[car->obj].v, 0.0f, D_8011F318[car->obj].v, 0.0f, D_8011F320[car->obj].v * 2.0f, D_8011F324[car->obj].v * 2.0f, D_8011F328[car->obj].v * 2.0f);
             if ((u16)(n + 2) < 2) {
                 func_8013E49C(slot);
             } else {

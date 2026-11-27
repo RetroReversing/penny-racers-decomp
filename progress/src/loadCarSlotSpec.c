@@ -4,7 +4,7 @@ typedef struct { u16 v; } Half;
 extern Half D_8006FB10;
 extern Spec *D_802D6288[];
 extern Slot sCarSlots[];
-extern s16 D_8021E1A6;
+extern s16 carClassIndex;
 extern s32 D_801E99C4;
 extern char D_80232D34[], D_80232D44[], D_80232D58[], D_80232D6C[], D_80232D80[], D_80232D94[], D_80232DA8[], D_80232DBC[], D_80232DD0[], D_80232DE4[], D_80232DF8[], D_80232E0C[], D_80232E20[];
 u32 func_801FA38C(s32);
@@ -15,7 +15,7 @@ void debugPrintf(char *, ...);
     Spec *spec = D_802D6288[D_8006FB10.v];
     Slot *slot = &sCarSlots[id];
 
-    if (D_8021E1A6 >= 3) {
+    if (carClassIndex >= 3) {
         spec += 28 + entry;
         sCarSlots[id].f6 = 0xE;
         if (D_8006FB10.v == 6) {
@@ -27,7 +27,7 @@ void debugPrintf(char *, ...);
         sCarSlots[id].f8 = 5;
         slot->f0 = entry;
     } else {
-        spec += entry + D_8021E1A6 * 14;
+        spec += entry + carClassIndex * 14;
         slot->f6 = spec->f4;
         slot->f4 = spec->f2;
         slot->f1C = spec->f18;

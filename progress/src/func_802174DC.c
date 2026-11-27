@@ -17,7 +17,7 @@ extern f32 m2c_fbits;
 #endif
 
 M2C_UNK playStageSound(M2C_UNK, M2C_UNK, s32);       /* extern */
-extern M2C_UNK D_80190C9E;
+extern M2C_UNK menuSelectRow;
 extern M2C_UNK D_80190CAA;
 extern u8 D_80190CAC;
 
@@ -66,12 +66,12 @@ block_15:
     if ((var_a1 & 0xFF) != 0) {
         playStageSound(7, 0x3B, var_a2);
     }
-    M2C_FIELD(&D_80190C9E, s8 *, 0) = var_s0;
-    M2C_FIELD(&D_80190C9E, u8 *, 0xC) = var_s1;
-    M2C_FIELD(&D_80190C9E, s8 *, 0x10) = 0;
-    if ((u8) M2C_FIELD(&D_80190C9E, u8 *, 0xE) >= 6U) {
-        if ((M2C_FIELD(&D_80190C9E, u8 *, 0xC) + 5) != M2C_FIELD(&D_80190C9E, u8 *, 0xE)) {
-            M2C_FIELD(&D_80190C9E, s8 *, 0x10) = 0xF;
+    M2C_FIELD(&menuSelectRow, s8 *, 0) = var_s0;
+    M2C_FIELD(&menuSelectRow, u8 *, 0xC) = var_s1;
+    M2C_FIELD(&menuSelectRow, s8 *, 0x10) = 0;
+    if ((u8) M2C_FIELD(&menuSelectRow, u8 *, 0xE) >= 6U) {
+        if ((M2C_FIELD(&menuSelectRow, u8 *, 0xC) + 5) != M2C_FIELD(&menuSelectRow, u8 *, 0xE)) {
+            M2C_FIELD(&menuSelectRow, s8 *, 0x10) = 0xF;
         }
         if (M2C_FIELD(&D_80190CAA, u8 *, 0) != 0) {
             M2C_FIELD(&D_80190CAA, u8 *, 4) = (u8) (M2C_FIELD(&D_80190CAA, u8 *, 4) | 0xF0);

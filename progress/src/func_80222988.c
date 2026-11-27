@@ -1,4 +1,4 @@
-extern s16 D_8022A772;
+extern s16 slotObjIds;
 extern s32 D_8022AD0C;
 
 void func_80222988(void *arg0)
@@ -13,7 +13,7 @@ void func_80222988(void *arg0)
     if (*((u8 *) ((char *) arg0 + 0x778)) == 0) {
         for (var_a1 = 0; var_a1 < 7; var_a1++) {
             temp_off = var_a1 * 0x8F0;
-            temp_v1 = *((s16 *) ((char *) &D_8022A772 + temp_off));
+            temp_v1 = *((s16 *) ((char *) &slotObjIds + temp_off));
             if (temp_v1 != 0xFFFF) {
                 if (temp_v1 != *((u16 *) ((char *) arg0 + 2))) {
                     temp_v0 = (char *) arg0 + var_a1 * 8;

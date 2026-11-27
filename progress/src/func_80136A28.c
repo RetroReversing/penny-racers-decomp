@@ -72,7 +72,7 @@ extern u8 viewIndex, D_80189CC8, newTotalRecord, newLapRecord;
 extern u16 D_80167FA0[], D_80167FA8[];
 extern u8 *D_80167F68[], *D_80167F84[];
 extern u8 D_80183BA4[], D_8018A250[][5], D_8018A254[][5], D_8018A452[];
-extern u8 D_80220ED8[], D_801D51C8[], D_801D5470[], D_80170F20[], D_80171018[], D_8016ED50[], D_8016EDD8[], D_8016EE00[], D_8016EF48[], D_8016F680[], D_80170678[], D_80175348[], D_80175828[];
+extern u8 noticeBackgroundDl[], D_801D51C8[], D_801D5470[], D_80170F20[], D_80171018[], D_8016ED50[], D_8016EDD8[], D_8016EE00[], D_8016EF48[], D_8016F680[], D_80170678[], D_80175348[], D_80175828[];
 extern PU8 D_8022AFE9[];
 extern PU8 D_8022AD06[];
 extern PB5 D_8022ACD2[], D_8022ACD3[], D_8022ACD4[], D_8022ACD6[];
@@ -81,7 +81,7 @@ void gfxSetup2DState(Gfx **);
 void gfxSetPrimAlpha(Gfx **, s32);
 void drawSpriteCell(Gfx **, u16, u16, u16, u8 *, u8 *, u8, s32, s32, s32, s32);
 void gfxDrawClippedTex4b(Gfx **, s16, s16, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *);
-void func_801CB9EC(Gfx **, u16, u16, u16, u8 *, u8 *, u8, s32, s32, s32, s32, s32, s32, u16);
+void drawNumberDigits(Gfx **, u16, u16, u16, u8 *, u8 *, u8, s32, s32, s32, s32, s32, s32, u16);
 
 void func_80136A28(Gfx **gfxp, u16 id) {
     s32 car;
@@ -118,7 +118,7 @@ void func_80136A28(Gfx **gfxp, u16 id) {
             k = D_80183BA4[car];
             limit = k;
         }
-        gDma((*gfxp)++, 0x06000000, D_80220ED8);
+        gDma((*gfxp)++, 0x06000000, noticeBackgroundDl);
         gfxSetup2DState(gfxp);
         if (D_8011F2F0[id].count) {
             k = D_8018A254[car][0];
@@ -136,7 +136,7 @@ void func_80136A28(Gfx **gfxp, u16 id) {
                 }
             case 2:
                 n = (s8)D_8022AD06[car].v;
-                func_801CB9EC(gfxp, x + 0x3E, y + 0x10, 0x1B, D_8016F680, D_80170678, 0, 1, 0, 0x1A, 0x1E, 0x110, 0x1E, n);
+                drawNumberDigits(gfxp, x + 0x3E, y + 0x10, 0x1B, D_8016F680, D_80170678, 0, 1, 0, 0x1A, 0x1E, 0x110, 0x1E, n);
                 gfxDrawClippedTex4b(gfxp, x + 0x5C, y + 0x1B, 0, 0, 0x20, 0x13, 0x20, 0x13, 0x20, 0x13, 0, 0, 319, 239, D_80167F68[n], D_80167F84[n]);
                 break;
             }
@@ -168,16 +168,16 @@ void func_80136A28(Gfx **gfxp, u16 id) {
                 drawSpriteCell(gfxp, x + 0x50, i * 14 + 0x38 + y, 0xC, D_801D51C8, D_801D5470, 0, 8, 0xC, 0x70, 0xC);
                 drawSpriteCell(gfxp, x + 0x58, i * 14 + 0x38 + y, 0xC, D_801D51C8, D_801D5470, 0, 8, 0xC, 0x70, 0xC);
             } else {
-                func_801CB9EC(gfxp, x + 0x20, i * 14 + 0x38 + y, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_8022ACD3[car].t[next].v);
-                func_801CB9EC(gfxp, x + 0x38, i * 14 + 0x38 + y, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_8022ACD4[car].t[next].v);
-                func_801CB9EC(gfxp, x + 0x50, i * 14 + 0x38 + y, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_8022ACD6[car].t[next].v);
+                drawNumberDigits(gfxp, x + 0x20, i * 14 + 0x38 + y, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_8022ACD3[car].t[next].v);
+                drawNumberDigits(gfxp, x + 0x38, i * 14 + 0x38 + y, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_8022ACD4[car].t[next].v);
+                drawNumberDigits(gfxp, x + 0x50, i * 14 + 0x38 + y, 9, D_801D51C8, D_801D5470, 0, 2, 0, 8, 0xC, 0x70, 0xC, D_8022ACD6[car].t[next].v);
             }
             if (show) {
                 if (i == 3) {
                     gfxDrawClippedTex4b(gfxp, x + 0x64, y + 0x63, 0, 0, 0x30, 0xA, 0x30, 0xA, 0x30, 0xA, 0, 0, 319, 239, D_80170F20, D_80171018);
                 } else {
                     gfxDrawClippedTex4b(gfxp, x + 0x64, i * 14 + ({ y + 0x3A; }), 0, 0, 0x20, 8, 0x20, 8, 0x20, 8, 0, 0, 319, 239, D_8016ED50, D_8016EDD8);
-                    func_801CB9EC(gfxp, x + 0x7F, (n = i * 14) + 0x3A + y, 8, D_8016EE00, D_8016EF48, 0, 1, 0, 8, 8, 0x50, 8, next);
+                    drawNumberDigits(gfxp, x + 0x7F, (n = i * 14) + 0x3A + y, 8, D_8016EE00, D_8016EF48, 0, 1, 0, 8, 8, 0x50, 8, next);
                 }
             }
         }

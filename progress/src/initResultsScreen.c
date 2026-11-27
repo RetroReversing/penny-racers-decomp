@@ -22,15 +22,15 @@ extern s16 D_8021EFA4;
 extern s32 D_8021AFE4;
 extern u8 D_8021B00C[];
 extern u8 D_8021B010[];
-extern Pick D_8021E22F[];
+extern Pick randomSequenceTable[];
 extern u16 sCarSlots;
-extern s16 D_8021E1A6;
+extern s16 carClassIndex;
 extern u8 D_80168C60[];
 extern u8 D_8021B014[];
 extern Colour D_8021F260;
 extern u8 D_8021B084;
 void dmaRomToRam(void *, void *, s32);
-void func_80143DCC(void);
+void createSceneObjects(void);
 void initRowTable(s32);
 s32 objCreate(s32, u8, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
 void func_80208444(u16);
@@ -47,7 +47,7 @@ u8 func_801FD530(s32, u8);
     dmaRomToRam(D_400E00, D_8030BD90, D_404F10 - D_400E00);
     D_8021B01C = 0;
     D_8021B020 = 0;
-    func_80143DCC();
+    createSceneObjects();
     D_8021B128.state = 0;
     D_8021B128.choice = 0;
     for (i = 0; i < 4; i++) {
@@ -100,9 +100,9 @@ u8 func_801FD530(s32, u8);
         D_8021AFEC[0] = 0;
         D_8021B010[0] = 0;
         for (i = 0; i < 8; i++) {
-            D_8021B010[0] += func_801FD530(i, func_80149F40(sCarSlots, i, (&D_8021E22F[i])->t[D_8021E22F[i].sel]));
+            D_8021B010[0] += func_801FD530(i, func_80149F40(sCarSlots, i, (&randomSequenceTable[i])->t[randomSequenceTable[i].sel]));
         }
-        if (D_8021B010[0] > D_80168C60[D_8021E1A6]) {
+        if (D_8021B010[0] > D_80168C60[carClassIndex]) {
             D_8021B014[0] = 1;
         } else {
             D_8021B014[0] = 0;

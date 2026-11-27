@@ -16,13 +16,13 @@ extern u8 D_8021E678;
 extern f32 D_8021EEA0;
 extern s32 D_8021EEB4;
 extern u16 D_8021F02C;
-void func_800DE2E0(void);
-void func_800DE38C(void);
+void initObjList(void);
+void initModelTransforms(void);
 void playMenuSound(s32);
 void func_801CF468(u16, s32, s32, s32);
 void setScreenTransition(s32, s32, s32, s32, s32);
 void func_80205EBC(f32 *, s32, f32, s32, s32);
-void func_80231C5C(void);
+void createNoticeScreenObj(void);
 
 /* Steps the title-screen sequence for entry entryIdx: waits for the intro to finish, runs the start-menu fly-in timer, then hands off to the next screen. */ void updateTitleSequence(u16 entryIdx)
 {
@@ -79,9 +79,9 @@ void func_80231C5C(void);
   }
   case 2:
     if (D_8011F350[D_8018BC3C].p[0] == 0) {
-      func_800DE38C();
-      func_800DE2E0();
-      func_80231C5C();
+      initModelTransforms();
+      initObjList();
+      createNoticeScreenObj();
       func_801CF468(D_8018BC3C, 0, 0, 0);
       D_8021AFDC = 0;
       D_80168BB0 = menuChoice;

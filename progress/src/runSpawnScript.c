@@ -4,14 +4,14 @@ typedef struct { s16 timer; u8 frames; } Clock;
 typedef struct { u8 kind; u8 pad; u8 busy; } Byte;
 extern Rec D_8011F2F0[];
 extern u16 D_8018BC3C;
-extern Clock D_80190CA6;
+extern Clock menuConfirmed;
 extern Byte D_80190CAC;
 extern u8 D_80190CAA;
  
 extern u8 D_80190CB2;
 extern u8 D_8021C994[];
 extern Step spawnScript[];
-extern s16 D_8021E1A6;
+extern s16 carClassIndex;
 extern u8 D_8021B01A;
 extern s32 D_8021AFDC;
 extern u8 D_80046832;
@@ -25,16 +25,16 @@ void func_801D65BC(s32);
 void func_80028100(s32, s32);
 void setScreenTransition(s32, s32, s32, s32, s32);
 void func_8021AF20(u16);
-void func_800DE38C(void);
-void func_800DE2E0(void);
-void func_80231C5C(void);
+void initModelTransforms(void);
+void initObjList(void);
+void createNoticeScreenObj(void);
 void func_801CF468(u16, s32, s32, s32);
 
 /* Steps through the spawn script, creating timed objects and handling its wait, set and end opcodes. */ void runSpawnScript(u16 objIndex) {
     Rec *scriptObj = &D_8011F2F0[objIndex];
-    s16 *timer = &D_80190CA6.timer;
+    s16 *timer = &menuConfirmed.timer;
 
-    D_80190CA6.frames++;
+    menuConfirmed.frames++;
     switch (scriptObj->f3E) {
     case 0:
         if (*D_8011F2F0[D_8018BC3C].f60 == 0) {
@@ -78,7 +78,7 @@ void func_801CF468(u16, s32, s32, s32);
             *timer = 0;
             scriptObj->f0 = 0;
             scriptObj->f3E = 0x28;
-            if (D_8021E1A6 != 3) {
+            if (carClassIndex != 3) {
                 scriptObj->f3E = 0x30;
             }
         }
@@ -133,9 +133,9 @@ void func_801CF468(u16, s32, s32, s32);
         }
     case 0x33:
         if (--*timer < 0) {
-            func_800DE38C();
-            func_800DE2E0();
-            func_80231C5C();
+            initModelTransforms();
+            initObjList();
+            createNoticeScreenObj();
             func_801CF468(D_8018BC3C, 0xFF, 0xFF, 0xFF);
             D_8021B01A = 0;
             D_8021AFDC = 0x30;

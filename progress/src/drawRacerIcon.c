@@ -61,7 +61,7 @@ typedef struct { u8 pad[0x2108]; s16 views; } Big;
 extern Ob18 D_8011F2F0[];
 extern Big sRowBoard;
 extern u8 viewIndex;
-extern u8 D_80220ED8[], D_80174560[], D_80174A40[], D_80174058[], D_80174538[], D_8016D8F8[], D_8016E8C0[];
+extern u8 noticeBackgroundDl[], D_80174560[], D_80174A40[], D_80174058[], D_80174538[], D_8016D8F8[], D_8016E8C0[];
 extern u16 D_80167F58[], D_80167F60[];
 void gfxSetup2DState(Gfx **);
 void gfxSetPrimAlpha(Gfx **, s32);
@@ -75,7 +75,7 @@ void drawRacerIcon(Gfx **gfxp, u16 objIndex) {
     s32 offsetY;
 
     if (viewIndex == sRowBoard.views - 1) {
-        gDma((*gfxp)++, 0x06000000, D_80220ED8);
+        gDma((*gfxp)++, 0x06000000, noticeBackgroundDl);
         gfxSetup2DState(gfxp);
         gfxSetPrimAlpha(gfxp, D_8011F2F0[objIndex].alpha);
         if (sRowBoard.views == 1) {

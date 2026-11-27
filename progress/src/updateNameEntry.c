@@ -18,9 +18,9 @@ s32 getMenuNavMask(s32, s32, s32);
 void playMenuSound(s32);
 void func_80211B90(void);
 void setScreenTransition(s32, s32, s32, s32, s32);
-void func_800DE38C(void);
-void func_800DE2E0(void);
-void func_80231C5C(void);
+void initModelTransforms(void);
+void initObjList(void);
+void createNoticeScreenObj(void);
 void func_801CF468(u16, s32, s32, s32);
 
 /* Name entry screen: the cursor moves over the character grid, a press on a
@@ -102,9 +102,9 @@ void updateNameEntry(u16 id) {
                 }
                 D_8021F048[menuInputLock.v][i] = D_8021F036[i];
             }
-            func_800DE38C();
-            func_800DE2E0();
-            func_80231C5C();
+            initModelTransforms();
+            initObjList();
+            createNoticeScreenObj();
             func_801CF468(D_8018BC3C, 0, 0, 0);
             D_8021AFDC = 0x12;
             D_80168BB0 = 0x10;

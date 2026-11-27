@@ -15,9 +15,9 @@ void alSeqpSetVol(void *, s16);
 void func_801D65BC(s32);
 void setScreenTransition(s32, s32, s32, s32, s32);
 void func_801E1EEC(s32, s32);
-void func_800DE38C(void);
-void func_800DE2E0(void);
-void func_80231C5C(void);
+void initModelTransforms(void);
+void initObjList(void);
+void createNoticeScreenObj(void);
 void func_801CF468(u16, s32, s32, s32);
 
 /* Sound options screen: moves the cursor, changes the music and effects volume
@@ -112,9 +112,9 @@ void updateSoundOptions(u16 id) {
         break;
     case 0x20:
         if (*D_8011F2F0[D_8018BC3C].f60 == 0) {
-            func_800DE38C();
-            func_800DE2E0();
-            func_80231C5C();
+            initModelTransforms();
+            initObjList();
+            createNoticeScreenObj();
             func_801CF468(D_8018BC3C, 0, 0, 0);
             D_8021AFDC = 0x26;
             D_80168BB0 = D_8021AFE0;

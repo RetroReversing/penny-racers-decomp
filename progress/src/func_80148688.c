@@ -1,7 +1,7 @@
 extern u8 D_80189CB7[];
 extern u8 D_80189CBF[];
 extern u8 D_80183BD3[];
-extern u8 D_8018D140[];
+extern u8 pickLists[];
 void func_80148688(s32 arg0, s32 arg1)
 {
   u8 *p;
@@ -46,7 +46,7 @@ void func_80148688(s32 arg0, s32 arg1)
   r = D_80183BD3;
   *r = *p;
   k = arg1 & 0xFF;
-  base = D_8018D140;
+  base = pickLists;
   row = (u16 *) (base + (arg1 & 0xFF) * 0x12C);
   v = row[*r + 3];
   *p5 = v;

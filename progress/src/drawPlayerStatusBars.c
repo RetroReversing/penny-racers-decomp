@@ -1,7 +1,7 @@
 extern void gfxSetup2DState(void);
 extern void gfxSetPrimAlpha(void **, u8);
 extern void gfxDrawClippedTex4b(void **, s32, s16, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, void *, void *);
-extern u8 D_8011F2FC[];
+extern u8 racerTimerFlags[];
 extern u16 playerSlots[];
 extern s32 D_80175DD0;
 extern s32 D_801760B8;
@@ -17,7 +17,7 @@ extern f32 D_80189C78;
 extern u8 D_80189C7C;
 extern u8 D_80189DC1;
 extern u8 D_8018A148[];
-extern s32 D_80220ED8;
+extern s32 noticeBackgroundDl;
 
 /* Draws the status bar panel and its four bars for one player, skipping players whose slot is inactive. */ void drawPlayerStatusBars(void **gfxp, u32 playerIdx)
 {
@@ -35,8 +35,8 @@ extern s32 D_80220ED8;
         cmd = *gfxp;
         *gfxp = (char *)cmd + 8;
         *(s32 *)cmd = 0x06000000;
-        *(s32 **)((char *)cmd + 4) = &D_80220ED8;
-        gfxSetPrimAlpha(gfxp, D_8011F2FC[slotOff]);
+        *(s32 **)((char *)cmd + 4) = &noticeBackgroundDl;
+        gfxSetPrimAlpha(gfxp, racerTimerFlags[slotOff]);
         gfxDrawClippedTex4b(gfxp, 0x7F, (s16)(0x3F - (s32)D_80189C78), 0, 0, 0x40, 0x17, 0x40, 0x17, 0x40, 0x17, 0, 0, 0x13F, 0xEF, &D_80175DD0, &D_801760B8);
         gfxSetPrimAlpha(gfxp, D_8018A148[0]);
         gfxDrawClippedTex4b(gfxp, 0x78, 0x5A, 0, 0, 0x50, 0x10, 0x50, 0x10, 0x50, 0x10, 0, 0, 0x13F, 0xEF, &D_801760E0, &D_80176368);

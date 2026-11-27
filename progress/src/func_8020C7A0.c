@@ -11,7 +11,7 @@ extern s16 D_8021E110;
 extern s8 D_8021F260[];
 void dmaRomToRam();
 s16 objCreate();
-void func_80143DCC();
+void createSceneObjects();
 void setScreenTransition();
 void func_8020E788();
 void func_8020E7AC();
@@ -25,7 +25,7 @@ void func_8020C7A0(void)
     s32 i;
 
     dmaRomToRam(D_3ED8F0, D_8030BD90, D_400E00 - D_3ED8F0);
-    func_80143DCC();
+    createSceneObjects();
     D_8021B304 = 0;
     D_8021B300 = 0;
     func_8020E7AC();

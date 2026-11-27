@@ -8,7 +8,7 @@ extern Row hitSlots[];
 extern u8 D_802390C8[];
 extern void func_8015CF2C(void), updateCrashSparks(void), func_8015D368(void);
 s32 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
-void func_8013E818(u16, u16, s32, f32, f32, f32, s32);
+void initHitSlot(u16, u16, s32, f32, f32, f32, s32);
 
 /* Spawns a crash marker on the car at carIdx, then up to 10 debris particles with random velocities. */ void spawnCrashEffect(u16 carIdx) {
     s32 allocRet;
@@ -26,7 +26,7 @@ void func_8013E818(u16, u16, s32, f32, f32, f32, s32);
             ((void (*)(s32)) func_8013E49C)(slotIdx);
             return;
         }
-        func_8013E818(allocRet, objId, 0, 0.0f, 0.0f, 0.0f, 3);
+        initHitSlot(allocRet, objId, 0, 0.0f, 0.0f, 0.0f, 3);
         hitSlots[(u16) allocRet].owner = D_8011F350[carIdx].v->car;
         for (i = 0; i < 10; i++) {
             allocRet = raceAllocSlot();
@@ -41,7 +41,7 @@ void func_8013E818(u16, u16, s32, f32, f32, f32, s32);
             a = (f32) (u32) (nextRandom() & 0x3F) - 32.0f;
             b = (f32) (u32) (nextRandom() & 0x1F);
             c = (f32) (u32) (nextRandom() & 0x3F) - 32.0f;
-            func_8013E818(allocRet, objId, 0x40, a * 0.2, b * 0.2, c * 0.2, nextRandom() & 8);
+            initHitSlot(allocRet, objId, 0x40, a * 0.2, b * 0.2, c * 0.2, nextRandom() & 8);
             hitSlots[(u16) allocRet].unk16 = 1;
         }
     }

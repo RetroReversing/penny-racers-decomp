@@ -14,7 +14,7 @@ typedef struct {
 } Obj;
 extern Obj D_8011F314[];
 extern f64 D_80183760;
-extern f32 D_8011F334;
+extern f32 racerTimers;
 extern f64 D_80183768;
 
 void func_8014D2B4(u16 arg0)
@@ -28,7 +28,7 @@ void func_8014D2B4(u16 arg0)
     }
     D_8011F314[arg0].phase += 1.0f;
     {
-        f32 w = *(f32 *)((u8 *)&D_8011F334 + arg0 * 0x64);
+        f32 w = *(f32 *)((u8 *)&racerTimers + arg0 * 0x64);
         if (w > 360.0f) {
             D_8011F314[arg0].phase = w - 360.0f;
         }

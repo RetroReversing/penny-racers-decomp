@@ -8,21 +8,21 @@ extern u8 D_80190CA8;
 extern u8 D_80190CB2;
 extern u16 sMenuState;
 extern s16 sFadeLevel;
-extern u8 D_801C5EA2;
+extern u8 menuNextScene;
 extern s32 D_8021AFDC;
 extern s32 menuChoice;
 extern s32 D_80168BB0;
 extern s16 gameState;
 s32 objCreate();
-void func_800DE38C(void);
-void func_800DE2E0(void);
-void func_80231C5C(void);
+void initModelTransforms(void);
+void initObjList(void);
+void createNoticeScreenObj(void);
 void func_801CF468(s32, s32, s32, s32);
 void setScreenTransition(s32, s32, s32, s32, s32);
 void func_801E1EEC(s32, s32);
 void updateMenuSelect(void);
-void func_80216128(void);
-void func_802163B0(void);
+void drawMenuOptions(void);
+void updateChoiceMenu(void);
 void drawSelectionPanel(void);
 void updateSelectMenu(void);
 void func_80216D80(void);
@@ -43,9 +43,9 @@ void func_80216D80(void);
     {
       sFadeLevel = 0;
       *((u16 *) (entry + 0x3E)) = 0x10;
-      if (!(D_801C5EA2 == 2))
+      if (!(menuNextScene == 2))
       {
-        if (D_801C5EA2 == 3)
+        if (menuNextScene == 3)
         {
           *((u16 *) (entry + 0x3E)) = 0x20;
         }
@@ -64,13 +64,13 @@ void func_80216D80(void);
       break;
 
     case 0x10:
-      *spawnedIdPtr = objCreate(0, 0, 3, 0, 0x4A, 0, 0, updateMenuSelect, func_80216128, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+      *spawnedIdPtr = objCreate(0, 0, 3, 0, 0x4A, 0, 0, updateMenuSelect, drawMenuOptions, 0, 0, 0, 0, 0, 0, 0, 0, 0);
       *spawnedActivePtr = 1;
       *((u16 *) (entry + 0x3E)) = 0x18;
       goto check;
 
     case 0x20:
-      *spawnedIdPtr = objCreate(0, 0, 3, 0, 0x4A, 0, 0, func_802163B0, drawSelectionPanel, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+      *spawnedIdPtr = objCreate(0, 0, 3, 0, 0x4A, 0, 0, updateChoiceMenu, drawSelectionPanel, 0, 0, 0, 0, 0, 0, 0, 0, 0);
       *spawnedActivePtr = 1;
       *((u16 *) (entry + 0x3E)) = 0x28;
       goto check;
@@ -103,9 +103,9 @@ void func_80216D80(void);
     case 0xF8:
       if ((*((u8 *) (*((u8 **) (D_8011F350 + (D_8018BC3C * 0x64)))))) == 0)
     {
-      func_800DE38C();
-      func_800DE2E0();
-      func_80231C5C();
+      initModelTransforms();
+      initObjList();
+      createNoticeScreenObj();
       func_801CF468(D_8018BC3C, 0, 0, 0);
       D_8021AFDC = 0x2A;
       menuChoice = 2;
@@ -121,9 +121,9 @@ void func_80216D80(void);
     case 0xFB:
       if ((*((u8 *) (*((u8 **) (D_8011F350 + (D_8018BC3C * 0x64)))))) == 0)
     {
-      func_800DE38C();
-      func_800DE2E0();
-      func_80231C5C();
+      initModelTransforms();
+      initObjList();
+      createNoticeScreenObj();
       func_801CF468(D_8018BC3C, 0, 0, 0);
       D_8021AFDC = 0x2A;
       menuChoice = 2;

@@ -1,13 +1,13 @@
 void objCreate(s32, s32, s32, s32, s32, s32, s32, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32);
-void func_800E067C();
+void interpolateObjPositions();
 void func_8013ADA8(void);
 void func_801FA338(s32);
 void initRowTable(s32);
 void func_8022F780(u16);
 void func_8022FE50(s32, s32, s32, s32);
-void func_802306F0(u8);
+void assignCarSlots(u8);
 void func_802312F8(s32);
-void func_80231A0C();
+void initSceneBackdrop();
 void createStageObjects();
 void func_80232360(s32, s32);
 extern u16 D_8006FAF0[];
@@ -22,15 +22,15 @@ void func_8021A994(void)
 {
     u16 i;
     func_801FA338(0);
-    func_80231A0C();
+    initSceneBackdrop();
     *(u16 *)((u8 *)D_8006FAF0 + 0x20) = (u16) (D_8021E18C + 1);
     createStageObjects();
     D_8021E144 = 1;
     func_8022F780(*(u16 *)((u8 *)D_8006FAF0 + 0x20));
     D_8021E144 = 0;
-    func_800E067C();
+    interpolateObjPositions();
     func_802312F8(0);
-    func_802306F0(D_8021EEB2);
+    assignCarSlots(D_8021EEB2);
     i = 0;
     do {
         func_8022FE50(i & 0xFF, i & 0xFF, i & 0xFF, 1);

@@ -1,7 +1,7 @@
 s32 gfxSetup2DState();
 s32 drawText();
 s32 drawNumber();
-extern char D_8011F330[];
+extern char noticeStates[];
 extern char fontPalette[];
 extern char D_801E9658[];
 extern char D_801E964C[];
@@ -15,7 +15,7 @@ void func_801E3E7C(s32 arg0, s32 arg1)
     s32 temp_v1;
 
     gfxSetup2DState();
-    temp_v1 = *(u16 *) (D_8011F330 + (arg1 & 0xFFFF) * 0x64);
+    temp_v1 = *(u16 *) (noticeStates + (arg1 & 0xFFFF) * 0x64);
     switch (temp_v1)
     {
     case 0:

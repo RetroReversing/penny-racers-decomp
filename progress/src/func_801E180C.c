@@ -2,7 +2,7 @@ extern void gfxSetup2DState(void **, s32);
 extern u8 D_8011F2F0[];
 extern u8 sNodeFlags[];
 extern u8 D_801E87E5;
-extern u8 D_80220ED8[];
+extern u8 noticeBackgroundDl[];
 
 void func_801E180C(u32 **arg0, s32 arg1) {
     s32 idx;
@@ -16,7 +16,7 @@ void func_801E180C(u32 **arg0, s32 arg1) {
         temp_v1 = *arg0;
         *arg0 = temp_v1 + 2;
         temp_v1[0] = 0x06000000;
-        temp_v1[1] = (u32)D_80220ED8;
+        temp_v1[1] = (u32)noticeBackgroundDl;
         D_801E87E5 = D_8011F2F0[off];
     }
 }

@@ -54,10 +54,10 @@ typedef union { Gwords words; long long force; } Gfx;
 typedef struct { f32 v; u8 pad[0x60]; } SlotF;
 typedef struct { u8 v; u8 pad[0x63]; } SlotB;
 typedef struct { u8 b[16]; } Vtx;
-extern SlotF D_8011F334[];
-extern SlotF D_8011F338[];
+extern SlotF racerTimers[];
+extern SlotF racerAnimFrames[];
 extern SlotF D_8011F33C[];
-extern SlotB D_8011F2FC[];
+extern SlotB racerTimerFlags[];
 extern u8 D_80182E20[];
 extern Vtx D_8018B530[][4][4];
 #define gDPSetPrimColor(pkt, m, l, r, g, b, a) gDma(pkt, _S(0xfa, 24, 8) | _S(m, 8, 8) | _S(l, 0, 8), (_S(r, 24, 8) | _S(g, 16, 8) | _S(b, 8, 8) | _S(a, 0, 8)))
@@ -94,10 +94,10 @@ void drawPlayerIcon(Gfx **gfxp, u16 id) {
     if (playerSlots[id].v != 0) {
         slot = D_8011F2F0[id].v;
         progress = D_8022AFD4[slot].v;
-        if (progress > 0.95 && D_8011F334[id].v == 0.0) {
+        if (progress > 0.95 && racerTimers[id].v == 0.0) {
             return;
         }
-        gDPSetPrimColor((*gfxp)++, 0, 0, 0, 0, 0, D_8011F2FC[id].v);
+        gDPSetPrimColor((*gfxp)++, 0, 0, 0, 0, 0, racerTimerFlags[id].v);
         gDPLoadTextureBlock_4b((*gfxp)++, D_80182E20, 4, 32, 1, 0, 2, 2, 0, 0, 0, 0);
         for (i = 0; i < 4; i++) {
             D_80189DC8[D_80046834][slot][i] = D_80189970[slot][i];

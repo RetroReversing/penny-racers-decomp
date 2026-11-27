@@ -2,7 +2,7 @@ typedef struct { u16 unk0; s16 unk2; s16 unk4; s16 unk6; s16 unk8; u8 padA[2]; u
 typedef struct { u8 pad0[4]; u8 *car; f32 unk8; u8 padC[8]; u16 timer; u8 pad16[0x60]; u16 unk76; } Ctl;
 typedef struct { u8 pad0[0x30]; f32 unk30; f32 unk34; u8 pad38[0x18]; s32 *unk50; u8 pad54[0x10]; } Obj;
 extern Cam D_8011F2F0[];
-extern Obj D_8011F4E4[];
+extern Obj carPartObjs[];
 extern u8 D_802390C8[];
 extern void func_8013AF08();
 extern void func_8015FD04();

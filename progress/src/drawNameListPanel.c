@@ -62,7 +62,7 @@ typedef struct { u16 sel; u8 pad2[0x6C]; u16 name[14][9]; u8 pad[14]; } Car;
 extern Ob16 D_8011F2F0[];
 extern Big sRowBoard;
 extern u8 viewIndex, D_8018A248, D_80189DC0, D_8018BC32;
-extern u8 D_80220ED8[], D_80173170[], D_80173970[], D_80173998[], D_80173C40[], D_801CF4C8[], D_801D4390[];
+extern u8 noticeBackgroundDl[], D_80173170[], D_80173970[], D_80173998[], D_80173C40[], D_801CF4C8[], D_801D4390[];
 extern u8 D_8018D661[], D_8018993F[];
 extern u16 D_80237630[];
 extern Car sCarSlots[];
@@ -77,7 +77,7 @@ void drawNameListPanel(Gfx **gfxp, u16 entryId) {
 
     /* Draws the background and per-row car names for the list shown in the final view, when the entry has a model. */
     if (viewIndex == sRowBoard.views - 1 && D_8011F2F0[entryId].model != 0) {
-        gDma((*gfxp)++, 0x06000000, D_80220ED8);
+        gDma((*gfxp)++, 0x06000000, noticeBackgroundDl);
         gfxSetup2DState(gfxp);
         gfxSetPrimAlpha(gfxp, D_8018A248);
         gfxDrawClippedTex4b(gfxp, 0x2C, D_80189DC0 + 0x12, 0, 0, 80, 51, 80, 51, 80, 51, 0, 0, 319, 239, D_80173170, D_80173970);

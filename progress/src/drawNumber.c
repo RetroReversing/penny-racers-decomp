@@ -1,4 +1,4 @@
-extern u16 D_801D5960[];
+extern u16 decimalDivisors[];
 typedef struct { u16 v[5]; } Tab5;
 void drawText(s32 *arg0, s32 arg1, u16 arg2, s32 arg3, s32 arg4, u8 *arg5);
 
@@ -12,7 +12,7 @@ void drawNumber(u32 *arg0, u16 a1, u16 a2, u16 a3, u32 a4, u8 a5, s16 a6)
     s32 lim;
     s32 w;
 
-    tab = *(Tab5 *) D_801D5960;
+    tab = *(Tab5 *) decimalDivisors;
     val = *arg0;
     w = a6;
     if ((s16) a6 < 0) {

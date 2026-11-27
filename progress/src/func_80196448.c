@@ -7,7 +7,7 @@ extern PadS D_801E9994[];
 extern MenuState *trackInfo;
 extern u16 D_8018BC3C;
 extern u8 D_801C5EA1;
-extern u8 D_801C5EA2;
+extern u8 menuNextScene;
 extern u16 D_801C5EA4;
 extern u8 D_801C6B24, D_801C6B25, D_801C6B26, D_801C6B28, D_801C6B29, D_801C6B2A, D_801C6B2B, D_801C6B2C;
 extern s8 cursorY;
@@ -20,7 +20,7 @@ extern u8 D_801C7ABD;
 extern u8 D_801C7AD0;
 extern u16 boardCursorObj;
 extern u8 D_801CA130;
-void func_801AEC94(void);
+void initTrackEditor(void);
 void updateMenuObjects(u16);
 void initTrackObjects(void);
 void updateBoardCamera(u16);
@@ -55,7 +55,7 @@ void func_80196448(u16 arg0)
     }
     switch (ME.st) {
     case 0:
-        func_801AEC94();
+        initTrackEditor();
         D_801C6B24 = 0;
         D_801C6B25 = 4;
         D_801C6B26 = 4;
@@ -99,7 +99,7 @@ void func_80196448(u16 arg0)
             ME.unk0 = ME.st;
             ME.st = 0x14;
             NEXT.st = 1;
-            D_801C5EA2 = 3;
+            menuNextScene = 3;
             NEXT.unk0 = 0x60;
             playMenuSound(0x41);
         }
@@ -127,7 +127,7 @@ void func_80196448(u16 arg0)
             ME.unk0 = ME.st;
             ME.st = 0x14;
             NEXT.st = 1;
-            D_801C5EA2 = 3;
+            menuNextScene = 3;
             NEXT.unk0 = 0x60;
             playMenuSound(0x41);
         }
@@ -140,7 +140,7 @@ void func_80196448(u16 arg0)
             ME.unk0 = ME.st;
             ME.st = 0x14;
             NEXT.st = 1;
-            D_801C5EA2 = 3;
+            menuNextScene = 3;
             NEXT.unk0 = 0x60;
             playMenuSound(0x41);
         }
@@ -168,7 +168,7 @@ void func_80196448(u16 arg0)
             ME.unk0 = ME.st;
             ME.st = 0x14;
             NEXT.st = 1;
-            D_801C5EA2 = 3;
+            menuNextScene = 3;
             NEXT.unk0 = 0x60;
             playMenuSound(0x41);
         }
@@ -193,7 +193,7 @@ void func_80196448(u16 arg0)
             ME.unk0 = ME.st;
             ME.st = 0x14;
             NEXT.st = 1;
-            D_801C5EA2 = 3;
+            menuNextScene = 3;
             NEXT.unk0 = 0x60;
             playMenuSound(0x41);
         }
@@ -242,11 +242,11 @@ void func_80196448(u16 arg0)
             ME.st = 0x14;
             if (trackInfo->unk3 == trackInfo->unk2) {
                 NEXT.st = 3;
-                D_801C5EA2 = 1;
+                menuNextScene = 1;
                 NEXT.unk0 = 0x60;
             } else {
                 NEXT.st = 2;
-                D_801C5EA2 = 0;
+                menuNextScene = 0;
                 NEXT.unk0 = 0x50;
             }
             playMenuSound(0x41);
@@ -277,7 +277,7 @@ void func_80196448(u16 arg0)
                 ME.unk0 = 0x10;
                 ME.st = 0x14;
                 NEXT.st = 3;
-                D_801C5EA2 = 1;
+                menuNextScene = 1;
                 NEXT.unk0 = 0x60;
             } else {
                 ME.st = 0x10;
@@ -290,7 +290,7 @@ void func_80196448(u16 arg0)
                 ME.unk0 = 0x10;
                 ME.st = 0x14;
                 NEXT.st = 3;
-                D_801C5EA2 = 1;
+                menuNextScene = 1;
                 NEXT.unk0 = 0x60;
             } else {
                 ME.st = 0x10;

@@ -54,11 +54,11 @@ typedef union { Gwords words; long long force; } Gfx;
 typedef struct { u8 pad0[6]; u8 r; u8 g; u8 b; u8 a; u16 x; u16 y; u16 w; u16 h; } Image;
 typedef struct { u16 state; u8 pad2[0x1E]; Image *img; u8 pad24[0x40]; } Slot;
 typedef struct { u8 pad0[0x2108]; s16 frame; } Root;
-extern Slot D_8011F330[];
+extern Slot noticeStates[];
 extern Root sRowBoard;
 extern u8 viewIndex;
 extern u8 D_801D5590[];
-extern Gfx D_80220ED8[];
+extern Gfx noticeBackgroundDl[];
 void func_801CE7D0(Gfx **, u16);
 #define gSPDisplayList(pkt, dl) gDma(pkt, _S(0x06, 24, 8), dl)
 #define gDPSetRenderMode(pkt, mode) gDma(pkt, _S(0xb9, 24, 8) | _S(3, 8, 8) | _S(29, 0, 8), mode)
@@ -89,50 +89,50 @@ void func_801CEC2C(Gfx **gfxp, u16 id) {
     s32 x2;
 
     if (viewIndex == sRowBoard.frame - 1) {
-        gSPDisplayList((*gfxp)++, D_80220ED8);
-        switch (D_8011F330[id].state) {
+        gSPDisplayList((*gfxp)++, noticeBackgroundDl);
+        switch (noticeStates[id].state) {
         case 0:
-            D_8011F330[id].state = 1;
+            noticeStates[id].state = 1;
             break;
         case 1:
             break;
         default:
             return;
         }
-        cols = D_8011F330[id].img->w / 80;
-        remw = D_8011F330[id].img->w % 80;
-        remh = D_8011F330[id].img->h % 24;
-        rows = D_8011F330[id].img->h / 24;
-        if (D_8011F330[id].img->a != 0) {
-            func_801CE7D0(gfxp, D_8011F330[id].img->h);
-            if (D_8011F330[id].img->a == 0xFF) {
+        cols = noticeStates[id].img->w / 80;
+        remw = noticeStates[id].img->w % 80;
+        remh = noticeStates[id].img->h % 24;
+        rows = noticeStates[id].img->h / 24;
+        if (noticeStates[id].img->a != 0) {
+            func_801CE7D0(gfxp, noticeStates[id].img->h);
+            if (noticeStates[id].img->a == 0xFF) {
                 gDPSetRenderMode((*gfxp)++, 0x0F0A4000);
             } else {
                 gDPSetRenderMode((*gfxp)++, 0x00504340);
             }
-            gDPSetPrimColor((*gfxp)++, 0, 0, D_8011F330[id].img->r, D_8011F330[id].img->g, D_8011F330[id].img->b, D_8011F330[id].img->a);
+            gDPSetPrimColor((*gfxp)++, 0, 0, noticeStates[id].img->r, noticeStates[id].img->g, noticeStates[id].img->b, noticeStates[id].img->a);
             gDPLoadTextureBlock_4b((*gfxp)++, D_801D5590, 4, 80, 24, 0, 2, 2, 0, 0, 0, 0);
         }
-        if (D_8011F330[id].img->a != 0) {
+        if (noticeStates[id].img->a != 0) {
             for (i = 0; i < rows; i++) {
                 for (j = 0; j < cols; j++) {
-                    gSPTextureRectangle((*gfxp)++, (D_8011F330[id].img->x + j * 80) * 4, (D_8011F330[id].img->y + i * 24) * 4,
-                        (D_8011F330[id].img->x + (x2 = j * 80 + 80)) * 4, (D_8011F330[id].img->y + (y1 = i * 24 + 24)) * 4, 0, 0, 0, 1024, 1024);
+                    gSPTextureRectangle((*gfxp)++, (noticeStates[id].img->x + j * 80) * 4, (noticeStates[id].img->y + i * 24) * 4,
+                        (noticeStates[id].img->x + (x2 = j * 80 + 80)) * 4, (noticeStates[id].img->y + (y1 = i * 24 + 24)) * 4, 0, 0, 0, 1024, 1024);
                 }
                 if (remw != 0) {
-                    gSPTextureRectangle((*gfxp)++, (D_8011F330[id].img->x + j * 80) * 4, (D_8011F330[id].img->y + i * 24) * 4,
-                        (remw + D_8011F330[id].img->x + j * 80) * 4, (D_8011F330[id].img->y + ({ i * 24 + 24; })) * 4, 0, 0, 0, 1024, 1024);
+                    gSPTextureRectangle((*gfxp)++, (noticeStates[id].img->x + j * 80) * 4, (noticeStates[id].img->y + i * 24) * 4,
+                        (remw + noticeStates[id].img->x + j * 80) * 4, (noticeStates[id].img->y + ({ i * 24 + 24; })) * 4, 0, 0, 0, 1024, 1024);
                 }
             }
             j = 0;
             if (remh != 0) {
                 for (j = 0; j < cols; j++) {
-                    gSPTextureRectangle((*gfxp)++, (D_8011F330[id].img->x + j * 80) * 4, (D_8011F330[id].img->y + i * 24) * 4,
-                        (D_8011F330[id].img->x + (x2 = j * 80 + 80)) * 4, (remh + D_8011F330[id].img->y + i * 24) * 4, 0, 0, 0, 1024, 1024);
+                    gSPTextureRectangle((*gfxp)++, (noticeStates[id].img->x + j * 80) * 4, (noticeStates[id].img->y + i * 24) * 4,
+                        (noticeStates[id].img->x + (x2 = j * 80 + 80)) * 4, (remh + noticeStates[id].img->y + i * 24) * 4, 0, 0, 0, 1024, 1024);
                 }
                 if (remw != 0) {
-                    gSPTextureRectangle((*gfxp)++, (D_8011F330[id].img->x + j * 80) * 4, (D_8011F330[id].img->y + i * 24) * 4,
-                        (remw + D_8011F330[id].img->x + j * 80) * 4, (remh + D_8011F330[id].img->y + i * 24) * 4, 0, 0, 0, 1024, 1024);
+                    gSPTextureRectangle((*gfxp)++, (noticeStates[id].img->x + j * 80) * 4, (noticeStates[id].img->y + i * 24) * 4,
+                        (remw + noticeStates[id].img->x + j * 80) * 4, (remh + noticeStates[id].img->y + i * 24) * 4, 0, 0, 0, 1024, 1024);
                 }
             }
             gDPPipeSync((*gfxp)++);

@@ -9,7 +9,7 @@ extern s8 menuInputLock;
 extern s8 D_8021E160;
 extern s32 D_8030BD90;
 void dmaRomToRam(void *, void *, s32);
-void func_80143DCC(void);
+void createSceneObjects(void);
 void setScreenTransition(s32, s32, s32, s32, s32);
 void func_80214204(s32);
 void objCreate(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
@@ -22,7 +22,7 @@ void func_80212360(void) {
     end = &D_419270;
     start = &D_412160;
     dmaRomToRam(start, &D_8030BD90, end - start);
-    func_80143DCC();
+    createSceneObjects();
     D_8021B677 = 0;
     state = D_8021AFDC;
     if (state == 2 || state == 6 || state == 0x18) {
