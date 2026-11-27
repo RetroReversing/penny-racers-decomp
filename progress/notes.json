@@ -3136,14 +3136,6 @@
   "score_after": 18146
  },
  {
-  "function": "func_80141C28",
-  "text": "Deep permuter: score 15792 \u2192 15232; 2 improvements; 92 candidates tested; 12 cached skips; 0 rejected; 7223s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935367",
-  "created_at": 1794357195.432989,
-  "score_before": 15792,
-  "score_after": 15232
- },
- {
   "function": "func_80232480",
   "text": "Deep permuter: score 11704 \u2192 10819; 4 improvements; 79 candidates tested; 112 cached skips; 0 rejected; 7211s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935860",
@@ -6878,14 +6870,6 @@
   "created_at": 1794719196.248093,
   "score_before": 22408,
   "score_after": 22408
- },
- {
-  "function": "func_80141C28",
-  "text": "Compiles now at score 14432 (64.6%, 377 vs 408 insns), no match. Fix applied: deleted the conflicting `s32 func_8013E49C(s32);` prototype (context.h already declares `s32 func_8013E49C(u16)`). The draft still has injected `__repair_constant`/`__repair_rows` goto junk and a `do{}while(0)` wrapper; those should be removed in a rewrite. Assembly facts (lines 12-52 of 424): arg0 is masked to u16 and indexes a 0x64-byte table at D_8011F32E via lhu; stride is ((x*2+x)*8+x)*4. Byte stores hit D_8018A448 and D_8011F2FC; sh to D_8011F32E. Target prologue saves $ra at 0x54 and $s0-$s2 at 0x48-0x50, and it re-reads `andi $v1,$a0,0xffff` for the table index, whereas the draft keeps arg0 in a register. Next: read get_assembly lines 52-424 and rewrite the body from the assembly, with the 0x64-stride table struct, rather than tuning the draft.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794719208.4698749,
-  "score_before": 14737,
-  "score_after": 14432
  },
  {
   "function": "func_802178B4",
@@ -11576,14 +11560,6 @@
   "score_after": 27543
  },
  {
-  "function": "func_80141C28",
-  "text": "Not compiled. The m2c draft (revision 8370b4276a8477da92db) is not usable: it references undeclared symbols (func_8014297C, D_8018D730, D_80183520, D_8023936C, func_80142894, D_8011F2F0, D_8022A770, D_8022A772 need declarations), and it contains stray __repair_constant / __repair_rows text that must be removed. Structure from the draft: arg0 is u16 index with record stride 0x64 (D_8011F32E is state u16 at idx*0x64; D_8011F2FC is an u8 counter at idx*0x64); state 0 resets D_8018A448 and sets state 1; state 1 counts up and calls func_8013E364/func_800DE41C on a random-ish spawn with an (f64) conversion of func_801FA30C()&0x7F and 1584.0f - x*2.826771f; a 5-iteration loop writes four s16 at record+2..+8 and three f32 at +0x44/+0x48/+0x4C; the tail is a 7-iteration loop over D_8022A772 (0x8F0 stride) with a rectangle test on record+0x18/+0x20 and six f32 updates at +0x7B4..+0x85C. Recheck every float constant against the assembly (the draft's 0.0424f / 0.993f values are guesses). Start by declaring all externs, deleting the repair text, and compiling only the tail loop first.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794742293.715605,
-  "score_before": 14097,
-  "score_after": 14097
- },
- {
   "function": "func_80142288",
   "text": "Not matched. Best candidate scores 17767 (54%, 364 insns vs target 387); saved best 17752 is from a different source. Structure of the m2c draft is roughly right: u16 index*0x64 into D_8011F350 / D_8011F32E / D_8011F2F0, state switch 0..3, two func_80129918 calls, 5-iteration loop calling func_800DE41C, random values from func_801FA30C & 0x1F / & 0xF converted via the signed-to-double pattern with D_80183528/D_80183530, float constants 0.000424f / 0.00993f / 0.1f / 0.15f in the right places. Main mismatch is the frame: the target is addiu $sp,-0x80 with sw $ra at 0x60 and s2..s5 at 0x50..0x5c, while my candidates use -0x88 (ra at 0x6c) and keep the raw arg in s6. Trying `u16 idx = arg0` made it worse (18073). Next step: remove locals so the frame shrinks to 0x80 before touching register order (the 16-bit index is probably one andi kept in a saved register and reused for the table addresses). Stopping here as low-yield for this effort level.",
   "by": "claude-haiku-5-5-23",
@@ -12998,14 +12974,6 @@
   "created_at": 1794752090.2019782,
   "score_before": 431,
   "score_after": 30
- },
- {
-  "function": "func_80141C28",
-  "text": "Not matched. Best saved 14097 (historical). Attempts this session: 15596 (candidate be2d42e5290bbe8961a2, full-length with repair junk); 27634 (rewrite 9151784e9bcc497ab34e, typed u8/u16 indexing, but the final 7-record loop was omitted, so it is incomplete). Target facts from get_assembly: frame 0x88; saves ra@0x54, s0@0x48, s1@0x4C, s2@0x50, doubles fs0-fs5 at 0x58..0x80. Index x*100 is sll/addu chains. Path: state==0 -> D_8018A448=0 (sb), D_8011F2FC entry=0, D_8011F32E entry=1; state==1 && D_8018A448<2 -> counter++ branch; else falls to the final loop. Final loop: 7 iterations, stride math ((v+s)*0x10-s)*0x10 over D_8022A770 table, gated box test on record fields 0x18/0x20 with 6 float adjustments at offsets 0x854,0x85C,0x7B4,0x7BC,0x7C0,0x7C8. Next step: write the final loop correctly first (it is missing from the newest rewrite), then fix the frame size and fs-register count. The cause of the 0x88 frame vs 0x90 candidate is still unknown.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794752105.284874,
-  "score_before": 14097,
-  "score_after": 14097
  },
  {
   "function": "func_802312F8",
@@ -16192,14 +16160,6 @@
   "score_after": 10236
  },
  {
-  "function": "func_80141C28",
-  "text": "Cannot get closer in this session. The target is 424 instructions (1632 bytes) and the saved m2c draft does not compile (undeclared D_8018D730, D_80183520, D_8023936C, func_8014297C, func_80142894, D_8011F2F0, D_8022A770/72; injected __repair_* constructs). My one rewrite was a skeleton, not a faithful translation, and failed on a conflicting prototype for func_8013E49C (already in context.h as s32 func_8013E49C(u16)); do not reuse it. What the assembly shows so far (get_assembly lines 12-52): the index is (arg0&0xFFFF)*0x64 (computed as ((x<<1)+x)<<3 + x)<<2 pattern, i.e. x*100); state=lhu D_8011F32E[idx]; state==0 path clears D_8018A448 and D_8011F2FC[idx] byte and sets the u16 D_8011F32E[idx]=1; state==1 path checks D_8018A448<2 (sltiu) and continues at .L80141CD4. Next agent: read get_assembly page by page (focus=\"page\") and write the C one branch at a time, compiling each branch in isolation via compile_and_diff with a stub for the rest.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794759872.12597,
-  "score_before": 14097,
-  "score_after": 14097
- },
- {
   "function": "func_8020FFD0",
   "text": "Freshly verified exact KMC O1 source/profile submitted. Current O2 profile unsuitable, pending automatic-changes-off manual application. No further C tuning needed.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -17534,14 +17494,6 @@
   "created_at": 1794762597.2621691,
   "score_before": 330,
   "score_after": 330
- },
- {
-  "function": "func_80141C28",
-  "text": "Not started. Machine draft scores but is garbled: it contains __repair_constant / __repair_rows artifacts and undeclared symbols (func_8014297C, D_8018D730, D_80183520, D_8023936C, func_80142894, D_8011F2F0, D_8022A770, D_8022A772). Needs a clean rewrite from the assembly. Entity stride is 100 bytes (idx*0x64) on D_8011F2F0 / D_8011F32E; same struct layout as proposal #339302416501. Function is 1632 bytes with a 5-iteration row loop and a 7-iteration float-distance loop over a 0x10-stride table at D_8022A770.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794762607.802124,
-  "score_before": 14097,
-  "score_after": 14097
  },
  {
   "function": "func_80219488",
@@ -41373,5 +41325,61 @@
   "score_before": 5510,
   "score_after": 1731,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:3e41a7c7b53db03d02b742cfba10d54812830401765384e42b81b7c24d50f912"
+ },
+ {
+  "function": "func_80141C28",
+  "text": "Deep permuter: score 15792 \u2192 15232; 2 improvements; 92 candidates tested; 12 cached skips; 0 rejected; 7223s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935367",
+  "created_at": 1794357195.432989,
+  "score_before": 15792,
+  "score_after": 15232
+ },
+ {
+  "function": "func_80141C28",
+  "text": "Compiles now at score 14432 (64.6%, 377 vs 408 insns), no match. Fix applied: deleted the conflicting `s32 func_8013E49C(s32);` prototype (context.h already declares `s32 func_8013E49C(u16)`). The draft still has injected `__repair_constant`/`__repair_rows` goto junk and a `do{}while(0)` wrapper; those should be removed in a rewrite. Assembly facts (lines 12-52 of 424): arg0 is masked to u16 and indexes a 0x64-byte table at D_8011F32E via lhu; stride is ((x*2+x)*8+x)*4. Byte stores hit D_8018A448 and D_8011F2FC; sh to D_8011F32E. Target prologue saves $ra at 0x54 and $s0-$s2 at 0x48-0x50, and it re-reads `andi $v1,$a0,0xffff` for the table index, whereas the draft keeps arg0 in a register. Next: read get_assembly lines 52-424 and rewrite the body from the assembly, with the 0x64-stride table struct, rather than tuning the draft.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794719208.4698749,
+  "score_before": 14737,
+  "score_after": 14432
+ },
+ {
+  "function": "func_80141C28",
+  "text": "Not compiled. The m2c draft (revision 8370b4276a8477da92db) is not usable: it references undeclared symbols (func_8014297C, D_8018D730, D_80183520, D_8023936C, func_80142894, D_8011F2F0, D_8022A770, D_8022A772 need declarations), and it contains stray __repair_constant / __repair_rows text that must be removed. Structure from the draft: arg0 is u16 index with record stride 0x64 (D_8011F32E is state u16 at idx*0x64; D_8011F2FC is an u8 counter at idx*0x64); state 0 resets D_8018A448 and sets state 1; state 1 counts up and calls func_8013E364/func_800DE41C on a random-ish spawn with an (f64) conversion of func_801FA30C()&0x7F and 1584.0f - x*2.826771f; a 5-iteration loop writes four s16 at record+2..+8 and three f32 at +0x44/+0x48/+0x4C; the tail is a 7-iteration loop over D_8022A772 (0x8F0 stride) with a rectangle test on record+0x18/+0x20 and six f32 updates at +0x7B4..+0x85C. Recheck every float constant against the assembly (the draft's 0.0424f / 0.993f values are guesses). Start by declaring all externs, deleting the repair text, and compiling only the tail loop first.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794742293.715605,
+  "score_before": 14097,
+  "score_after": 14097
+ },
+ {
+  "function": "func_80141C28",
+  "text": "Not matched. Best saved 14097 (historical). Attempts this session: 15596 (candidate be2d42e5290bbe8961a2, full-length with repair junk); 27634 (rewrite 9151784e9bcc497ab34e, typed u8/u16 indexing, but the final 7-record loop was omitted, so it is incomplete). Target facts from get_assembly: frame 0x88; saves ra@0x54, s0@0x48, s1@0x4C, s2@0x50, doubles fs0-fs5 at 0x58..0x80. Index x*100 is sll/addu chains. Path: state==0 -> D_8018A448=0 (sb), D_8011F2FC entry=0, D_8011F32E entry=1; state==1 && D_8018A448<2 -> counter++ branch; else falls to the final loop. Final loop: 7 iterations, stride math ((v+s)*0x10-s)*0x10 over D_8022A770 table, gated box test on record fields 0x18/0x20 with 6 float adjustments at offsets 0x854,0x85C,0x7B4,0x7BC,0x7C0,0x7C8. Next step: write the final loop correctly first (it is missing from the newest rewrite), then fix the frame size and fs-register count. The cause of the 0x88 frame vs 0x90 candidate is still unknown.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794752105.284874,
+  "score_before": 14097,
+  "score_after": 14097
+ },
+ {
+  "function": "func_80141C28",
+  "text": "Cannot get closer in this session. The target is 424 instructions (1632 bytes) and the saved m2c draft does not compile (undeclared D_8018D730, D_80183520, D_8023936C, func_8014297C, func_80142894, D_8011F2F0, D_8022A770/72; injected __repair_* constructs). My one rewrite was a skeleton, not a faithful translation, and failed on a conflicting prototype for func_8013E49C (already in context.h as s32 func_8013E49C(u16)); do not reuse it. What the assembly shows so far (get_assembly lines 12-52): the index is (arg0&0xFFFF)*0x64 (computed as ((x<<1)+x)<<3 + x)<<2 pattern, i.e. x*100); state=lhu D_8011F32E[idx]; state==0 path clears D_8018A448 and D_8011F2FC[idx] byte and sets the u16 D_8011F32E[idx]=1; state==1 path checks D_8018A448<2 (sltiu) and continues at .L80141CD4. Next agent: read get_assembly page by page (focus=\"page\") and write the C one branch at a time, compiling each branch in isolation via compile_and_diff with a stub for the rest.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794759872.12597,
+  "score_before": 14097,
+  "score_after": 14097
+ },
+ {
+  "function": "func_80141C28",
+  "text": "Not started. Machine draft scores but is garbled: it contains __repair_constant / __repair_rows artifacts and undeclared symbols (func_8014297C, D_8018D730, D_80183520, D_8023936C, func_80142894, D_8011F2F0, D_8022A770, D_8022A772). Needs a clean rewrite from the assembly. Entity stride is 100 bytes (idx*0x64) on D_8011F2F0 / D_8011F32E; same struct layout as proposal #339302416501. Function is 1632 bytes with a 5-iteration row loop and a 7-iteration float-distance loop over a 0x10-stride table at D_8022A770.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794762607.802124,
+  "score_before": 14097,
+  "score_after": 14097
+ },
+ {
+  "function": "func_80141C28",
+  "text": "Profile probe: this saved C scores 7125 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (321 functions of this project were built with it), 11815 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721320.31866,
+  "score_before": 11815,
+  "score_after": 7125
  }
 ]
