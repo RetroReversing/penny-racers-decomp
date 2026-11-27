@@ -6416,14 +6416,6 @@
   "score_after": null
  },
  {
-  "function": "func_8013BB54",
-  "text": "Not attempted in C. 4200 bytes with a jr jump table (draft failed at func_8013BB54.s line 617), so it is too large to start from scratch in one pass. Next agent: locate the jump table base from get_assembly near line 617, and split the function into its switch arms before writing the body. No share_knowledge.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794719727.0681112,
-  "score_before": null,
-  "score_after": null
- },
- {
   "function": "func_8020B3CC",
   "text": "Not attempted to compile. 1269 instructions / 5076 bytes, deeply branchy: multiple tables indexed by (u16)arg1*0x3C... (idx*=3*... via shifts: x*0x... computed as ((x*2+x)*8+x)*4 = x*0x2C? actually (3x*8+x)*4 = x*100 = x*0x64), state lookups in D_8011F330 / D_8011F2F0 / D_8021B00C / D_8021AFEC, and many calls to func_801CA140, func_801CA494, func_801CABF4, func_8020557C. The existing candidate is junk (incomplete-type/undeclared-data errors, nonsense body). Suggested path: split_function into the top-level branch regions (prologue at .L8020B438 / .L8020B460 / .L8020B4A4 / .L8020B598 / .L8020B648 / .L8020B9E4 / .L8020C77C) and match each region as its own helper first; declare the D_ data with proper struct types (x*100 stride table at D_8011F2F0/D_8011F330).",
   "by": "claude-haiku-5-5-23",
@@ -9720,14 +9712,6 @@
   "score_after": 0
  },
  {
-  "function": "func_8013BB54",
-  "text": "Inspected switch at assembly lines 606-616: u8 at s0+0x7CC minus 0x1F, range 14, dispatch through D_801832C0. read_data(D_801832C0,56) fails: not in loaded ROM. No saved C and m2c fails at this indirect jump. Cannot reconstruct switch case mapping from available project data. Suggested loading overlay rodata. No fabricated partial candidate compiled; resume when table is readable, then redraft.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794739015.63452,
-  "score_before": null,
-  "score_after": null
- },
- {
   "function": "nuGfxTaskMgrInit",
   "text": "Best 1035 (90.5%, not matched). The array is nuGfxTask[10] (NUScTask, 0x58 bytes; next@0, msgQ@0x50). Use data symbols as addresses ((u32)&SYM), not values, or gcc reloads them each iteration. ucode_boot_size = func_80042980 - func_800428B0 (func_80042980 is a separate symbol). Remaining: the msgQ address (&D_800DE0E8) is hoisted once in the target but re-materialised in mine; the tail differs (target: lui/addiu of D_800DAE98 then addiu a0,v0,-8 and move a1,v0; final store via v0 = D_800DB158 with addiu v1,v0,-0x318).\n\nBest 1035 (90.5%), not matched. Array is nuGfxTask[10] (NUScTask, 0x58 bytes; next@0, msgQ@0x50, ucode_boot@0x18, ucode_boot_size=(func_80042980-func_800428B0)@0x1C, dram_stack@0x30, output_buff@0x38, output_buff_size@0x3C, yield_data@0x48). Use data symbols as addresses ((u32)&SYM), never values, or gcc reloads them per iteration. Remaining diffs: (1) target hoists &D_800DE0E8 into $a3 before the loop and reuses it; mine re-materialises it. (2) Tail: gcc folds (&D_800DB158 - 0x318) to &D_800DAE40 as a constant, but the target computes v0=&D_800DB158 then addiu v1,v0,-0x318 and stores via v0 first, then D_8006A140. Needs an un-foldable form of that subtraction. Also tried: pointer-variable a1/a0 setup (lui/addiu then addiu a0,a1,-8), matches target shape but score unchanged.",
   "by": "claude-haiku-5-5-20",
@@ -11510,14 +11494,6 @@
   "created_at": 1794752541.166229,
   "score_before": 51512,
   "score_after": 51512
- },
- {
-  "function": "func_8013BB54",
-  "text": "Tried one partial source (first switch case only, scored 93693 at 130 insns vs 1050 target). Its frame (-0x58) does not match the target's -0xa0 frame. The draft in the candidate has a switch on p->unk7CC (cases 10-12, 20, 30, 45, then 31/33/35/37/39/44 early return) that gives 'Unable to determine jump table' for a jr. The saved best (23132) is from a different source. Next: keep the full switch with all cases, the D_8006FAF0[16] branches and the sin/cos loops, and check that the target's jump table is in the data (it may need the switch cases spelled out so the compiler emits a table). Frame and register allocation need the full body before tuning.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794752620.8537421,
-  "score_before": 23132,
-  "score_after": 23132
  },
  {
   "function": "func_80127AB0",
@@ -14488,14 +14464,6 @@
   "score_after": 60
  },
  {
-  "function": "func_8013BB54",
-  "text": "Best candidate compiled once: score 23132 (77.9%), 1012 insns vs target 1050. Structure is right: a switch on p->unk7CC for the first block, then two timer blocks (D_6FAF0[16] == 7 and == 2) that spawn effects with func_800DE41C and loops with __sinf/__cosf. Remaining diff: the target saves 5 more callee-saved regs (sw $ra at 0x6c, then fp/s7/s6/s5); the candidate spills $s4 first. Target computes `(idx_calc) * 0x10`-style offsets with sll/addu chains for D_80167FB0[p->unk4] and the D_8011F2F0 indexing, which suggests the loop index and the p->unk4 index are computed differently than in the draft (the candidate uses andi $v1,$s4,0xffff with a separate move $s4,$a0). Also the switch on p->unk7CC is compiled as a jump table in the target (jr with an lbl_ table). The candidate has no jump table, so the switch needs to be rewritten as a dense case list. Also note: func_800DE41C's last six args were ordered per the target's float loads; not yet verified. Next: restore the jump-table switch for p->unk7CC (cases 10..45 with dense values), then fix the register layout.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794761702.432031,
-  "score_before": 23132,
-  "score_after": 23132
- },
- {
   "function": "func_8014A134",
   "text": "EXACT MATCH at KMC GCC -O1, suggestion filed: void f(u16 arg0,u16 arg1,s32 arg2){s32 k=arg1*100,i=arg0*100; X[k] += (X[i]-X[k])/(f32)arg2; for X=D_8011F308,D_8011F30C,D_8011F310 (byte-offset f32 casts)}. Apply the suggestion to save.",
   "by": "claude-opus-medium-1",
@@ -15206,22 +15174,6 @@
   "created_at": 1794764662.237893,
   "score_before": 58449,
   "score_after": 58449
- },
- {
-  "function": "func_8013BB54",
-  "text": "Best candidate revision 14eb22cc1da1af71df39, score 23132 (77.9%), 1012 vs 1050 insns. Structure (switch on p->unk7CC: cases 10/11/12, 20, 30, 45; early return for 31/33/35/37/39/44; two D_8006FAF0[16] branches with 5-iteration and 4-iteration loops calling func_800DE41C) is right, but the target has 38 more instructions. Known diffs: (1) target does `move $s3,$a0` and computes arg0*100 (sll 1/addu/sll 3/addu/sll 2) early, saves regs ra/fp/s7/s6/s5/s4/s3, while ours copies arg0 to $s4 and saves one fewer reg; (2) target loads p->unk770 (lwc1 0x770) before the 20.0f lui, ours after; (3) target has cvt.d.s after lwc1 0x864 for the `p->unk864 < 0.5` double compare; ours lacks it. Tried (double)p->unk864 < 0.5: no score change (f615fda2a2da914dc6f8). Tried s16 unk2 (signedness family): worse, 24932. Untried: caching &D_8011F2F0[arg0] in a local for the loops, to see if the 38 extra insns are from recomputed indexing; and -O1. Next session should start with the arg0 indexing/caching, since that accounts for the early sll chains and the register order.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794764770.175967,
-  "score_before": 23132,
-  "score_after": 23132
- },
- {
-  "function": "func_8013BB54",
-  "text": "func_8013BB54 (4200 bytes, 1050 insns, score 23132, 77.9%). Source: Racer struct (unk770 speed-like float, unk7CC type byte switched on at 10/11/12/20/30/45, unk860 flag, unk778 bits, unk4 index), Effect struct (16-entry stride 0x68ish, unk60 Racer*), D_8011F2F0 effect pool, four func_800DE41C spawn calls. The switch on p->unk7CC needs a jump table; the first diff is the prologue: target saves $ra at 0x6c and s5/s6/s7/fp at 0x5c..0x68, so the frame is larger than mine (I save s4 at 0x58 with no ra first). Next: fix the frame size/saved set (more live locals across the spawn loops: arg0, p, i, x, z), then check the 2nd switch (31..44 return) and the .rodata jump-table references (rodata+0x0,+0x90,+0x98,+0xD0,+0xD8 unmatched). Not tried: separate per-case helper for the repeated spawn-setup block.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794764805.224981,
-  "score_before": 23132,
-  "score_after": 23132
  },
  {
   "function": "func_8012AD9C",
@@ -41863,5 +41815,53 @@
   "created_at": 1794764333.316572,
   "score_before": 57183,
   "score_after": 57183
+ },
+ {
+  "function": "func_8013BB54",
+  "text": "Not attempted in C. 4200 bytes with a jr jump table (draft failed at func_8013BB54.s line 617), so it is too large to start from scratch in one pass. Next agent: locate the jump table base from get_assembly near line 617, and split the function into its switch arms before writing the body. No share_knowledge.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794719727.0681112,
+  "score_before": null,
+  "score_after": null
+ },
+ {
+  "function": "func_8013BB54",
+  "text": "Inspected switch at assembly lines 606-616: u8 at s0+0x7CC minus 0x1F, range 14, dispatch through D_801832C0. read_data(D_801832C0,56) fails: not in loaded ROM. No saved C and m2c fails at this indirect jump. Cannot reconstruct switch case mapping from available project data. Suggested loading overlay rodata. No fabricated partial candidate compiled; resume when table is readable, then redraft.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794739015.63452,
+  "score_before": null,
+  "score_after": null
+ },
+ {
+  "function": "func_8013BB54",
+  "text": "Tried one partial source (first switch case only, scored 93693 at 130 insns vs 1050 target). Its frame (-0x58) does not match the target's -0xa0 frame. The draft in the candidate has a switch on p->unk7CC (cases 10-12, 20, 30, 45, then 31/33/35/37/39/44 early return) that gives 'Unable to determine jump table' for a jr. The saved best (23132) is from a different source. Next: keep the full switch with all cases, the D_8006FAF0[16] branches and the sin/cos loops, and check that the target's jump table is in the data (it may need the switch cases spelled out so the compiler emits a table). Frame and register allocation need the full body before tuning.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794752620.8537421,
+  "score_before": 23132,
+  "score_after": 23132
+ },
+ {
+  "function": "func_8013BB54",
+  "text": "Best candidate compiled once: score 23132 (77.9%), 1012 insns vs target 1050. Structure is right: a switch on p->unk7CC for the first block, then two timer blocks (D_6FAF0[16] == 7 and == 2) that spawn effects with func_800DE41C and loops with __sinf/__cosf. Remaining diff: the target saves 5 more callee-saved regs (sw $ra at 0x6c, then fp/s7/s6/s5); the candidate spills $s4 first. Target computes `(idx_calc) * 0x10`-style offsets with sll/addu chains for D_80167FB0[p->unk4] and the D_8011F2F0 indexing, which suggests the loop index and the p->unk4 index are computed differently than in the draft (the candidate uses andi $v1,$s4,0xffff with a separate move $s4,$a0). Also the switch on p->unk7CC is compiled as a jump table in the target (jr with an lbl_ table). The candidate has no jump table, so the switch needs to be rewritten as a dense case list. Also note: func_800DE41C's last six args were ordered per the target's float loads; not yet verified. Next: restore the jump-table switch for p->unk7CC (cases 10..45 with dense values), then fix the register layout.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794761702.432031,
+  "score_before": 23132,
+  "score_after": 23132
+ },
+ {
+  "function": "func_8013BB54",
+  "text": "Best candidate revision 14eb22cc1da1af71df39, score 23132 (77.9%), 1012 vs 1050 insns. Structure (switch on p->unk7CC: cases 10/11/12, 20, 30, 45; early return for 31/33/35/37/39/44; two D_8006FAF0[16] branches with 5-iteration and 4-iteration loops calling func_800DE41C) is right, but the target has 38 more instructions. Known diffs: (1) target does `move $s3,$a0` and computes arg0*100 (sll 1/addu/sll 3/addu/sll 2) early, saves regs ra/fp/s7/s6/s5/s4/s3, while ours copies arg0 to $s4 and saves one fewer reg; (2) target loads p->unk770 (lwc1 0x770) before the 20.0f lui, ours after; (3) target has cvt.d.s after lwc1 0x864 for the `p->unk864 < 0.5` double compare; ours lacks it. Tried (double)p->unk864 < 0.5: no score change (f615fda2a2da914dc6f8). Tried s16 unk2 (signedness family): worse, 24932. Untried: caching &D_8011F2F0[arg0] in a local for the loops, to see if the 38 extra insns are from recomputed indexing; and -O1. Next session should start with the arg0 indexing/caching, since that accounts for the early sll chains and the register order.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794764770.175967,
+  "score_before": 23132,
+  "score_after": 23132
+ },
+ {
+  "function": "func_8013BB54",
+  "text": "func_8013BB54 (4200 bytes, 1050 insns, score 23132, 77.9%). Source: Racer struct (unk770 speed-like float, unk7CC type byte switched on at 10/11/12/20/30/45, unk860 flag, unk778 bits, unk4 index), Effect struct (16-entry stride 0x68ish, unk60 Racer*), D_8011F2F0 effect pool, four func_800DE41C spawn calls. The switch on p->unk7CC needs a jump table; the first diff is the prologue: target saves $ra at 0x6c and s5/s6/s7/fp at 0x5c..0x68, so the frame is larger than mine (I save s4 at 0x58 with no ra first). Next: fix the frame size/saved set (more live locals across the spawn loops: arg0, p, i, x, z), then check the 2nd switch (31..44 return) and the .rodata jump-table references (rodata+0x0,+0x90,+0x98,+0xD0,+0xD8 unmatched). Not tried: separate per-case helper for the repeated spawn-setup block.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794764805.224981,
+  "score_before": 23132,
+  "score_after": 23132
  }
 ]
