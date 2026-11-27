@@ -4008,14 +4008,6 @@
   "score_after": 4720
  },
  {
-  "function": "func_80148B44",
-  "text": "Deep permuter: score 7910 \u2192 6905; 2 improvements; 98 candidates tested; 115 cached skips; 0 rejected; 7205s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935398",
-  "created_at": 1794356288.4209821,
-  "score_before": 7910,
-  "score_after": 6905
- },
- {
   "function": "n_alCSPNew",
   "text": "Deep permuter: score 1600 \u2192 1390; 2 improvements; 100 candidates tested; 32 cached skips; 0 rejected; 7203s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934844",
@@ -6126,14 +6118,6 @@
   "created_at": 1794709973.2715561,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_80148B44",
-  "text": "Not matched. Saved historical best 4170 (m2c draft, not rechecked here). Rewrites tried this session: index-based for-loops with continue (8076), do-while with goto into the inner block and pointer t1 (11346, worse; pointer-to-u16 arithmetic from D_8018D140 mis-scales the second table). Target facts: frame is 0x10 (only ra-less leaf, no spills); loop bounds 0x96 (150 entries) for both tables D_8018D140 and D_8018D26C; the 0x3FFF/0x2FFF/0x4FFF constants are held in t6/t5/t4 registers across loops; the inner compare loop stores into the outer element via the index in t1 and compares (u16 & 0xFFF) of D_8018D26C[j] against it; the count loops use D_80189CB8 (unsigned byte load, signed slt) and D_80189CB9/D_80189CC1 bytes; final loop writes w|0x1000 when (w & 0x700)==0 with stride 0x12C per arg0. Next: keep the m2c draft's goto structure (it is closer to the asm), fix the leaf frame (no locals on stack) and retry with pointer t1 typed as u16 *.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794710324.845324,
-  "score_before": 4170,
-  "score_after": 4170
  },
  {
   "function": "__vsPan",
@@ -8430,14 +8414,6 @@
   "created_at": 1794725875.781461,
   "score_before": 15,
   "score_after": 15
- },
- {
-  "function": "func_80148B44",
-  "text": "Not matched. Best this session 9380 (v1: plain globals D_8018D140/D_8018D26C as u16 arrays, indexed loops, the `p = &D_80189CB9; p[-1]` pattern for the count guard). Pointer-variable version (pa/pb/pi) scored 9400, worse. Target structure: four near-identical blocks: (A) for i<0x96 over T1=D_8018D140 skipping v==0x3FFF, v==0x2FFF (<0x4000 side) or v==0x4FFF; inner j<0x96 compares (T2[j]&0xFFF)==(T1[i]&0xFFF) and sets |0x1000; (B) count loop over T1 with (&0xF000)==0 incrementing D_80189CB9, guarded by D_80189CB9[-1]>0 and bounded by D_80189CB8; (C),(D) same as A/B with T1/T2 swapped and CC1/CC0; (E) if ((arg1&0xFF)==1) row = T1 + (arg0&0xFF)*0x96, loop with (v&0x700)==0 -> |0x1000. Target keeps base pointers in $t2 (T1) and $t3 (T2) across the inner loop, and reloads the T1 element via lhu from the same temp pointer each inner iteration (no CSE). Ours puts the 0x3FFF/0x2FFF/0x4FFF constants in the wrong registers and emits extra lui/addiu pairs for the table bases. Next idea: write the inner loop so the temp pointer temp_t1=&T1[i] is computed in the outer body and the inner compare uses a3 index on T2 (base t3 hoisted), and check whether the first branch order needs `if (v==0x3FFF) skip` as a goto-like structure instead of continue.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794725897.1708002,
-  "score_before": 4170,
-  "score_after": 4170
  },
  {
   "function": "func_801E2E48",
@@ -10870,14 +10846,6 @@
   "created_at": 1794739735.600872,
   "score_before": 1629,
   "score_after": 1629
- },
- {
-  "function": "func_80148B44",
-  "text": "Releasing as stuck at this effort level: the control flow is recovered (see prior notes), but the remaining gap is code generation of pointer-indexed loops and a frame of -0x10 with no saves, which needs a structural rewrite (explicit u16 pointer increments) that I did not get to. Start from revision 02bfdc3ce339ffedaa31.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794739857.487521,
-  "score_before": 4170,
-  "score_after": 4170
  },
  {
   "function": "func_80139F14",
@@ -14064,14 +14032,6 @@
   "score_after": 9
  },
  {
-  "function": "func_80148B44",
-  "text": "Not matched. Best stays the saved draft-based 4170. My clean rewrite (u16 arrays D_8018D140/D_8018D26C indexed by i, 0x96 iterations, u8 counters D_80189CB9/D_80189CC1) scored 10215 (35%), far worse, so the draft's pointer/offset-style codegen is closer. Semantics as read from the target: (1) for each i<150 with A=D_8018D140[i] not 0x3FFF and not (0x2FFF below 0x4000 / 0x4FFF at or above), for each j<150 if (B[j]&0xFFF)==(A[i]&0xFFF) set A[i]|=0x1000 (B=D_8018D26C); (2) CB9=0, count k<CB8 with !(A[k]&0xF000); (3) same as (1) with A and B swapped; (4) CC1 counts k<CC0 of B[k] with !(B[k]&0xF000); (5) if (arg1&0xFF)==1, for a<150 at row (arg0&0xFF)*0x12C (300 bytes = 150 u16), if !(v&0x700) then v|=0x1000. Target keeps indices as sll-by-1 with a moving base pointer (addu v0,v0,t2), so start from the draft's pointer form. Not tried: the draft's var/goto layout for the inner loops.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794754348.941119,
-  "score_before": 4170,
-  "score_after": 4170
- },
- {
   "function": "func_80029890",
   "text": "20 trials no improvement from verified9. Same nine stack offset mismatches as297E8; reversed Msg/mq declarations and explicit struct aggregate produce556 with extra saved register. Local repairs declarations/types/arity/guards exhausted current round without gain. Need message at sp10 queue28 while retaining s0 reuse after m.f20 store.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -14718,14 +14678,6 @@
   "created_at": 1794756776.3060591,
   "score_before": 625,
   "score_after": 625
- },
- {
-  "function": "func_80148B44",
-  "text": "Not matched. Structure is right (logic verified against asm): 4 loops over 0x96 u16 entries. Loop 1 over A=D_8018D140: v=A[i]; if (v!=0x3FFF && (v<0x4000 ? v!=0x2FFF : v!=0x4FFF)) for j<0x96: if ((B[j]&0xFFF)==(A[i]&0xFFF)) A[i]|=0x1000. Then D_80189CB9=0; if (D_80189CB8>0) for j<CB8: if ((A[j]&0xF000)==0) CB9++. Loop 3 is the same with A and B swapped (CC1/CC0 use B). Last block: if ((arg1&0xFF)==1) row=(u16*)((u8*)A + (arg0&0xFF)*0x12C), for j<0x96 if !(row[j]&0x700) row[j]|=0x1000. Needed: v must be s32 (signed slti compare, not sltiu); parenthesise the ternary. Remaining diffs: the compiler strength-reduces to pointer induction (addiu t2,2) where the target keeps sll v0,t0,1 / addu index form; the target hoists 0x3FFF/0x2FFF/0x4FFF into registers; the final block computes 300*x via sll/addu/subu (x*300) and then uses the row base. Best score here is 9825 (index form), still worse than the saved 4170. Untried: a single shared index for both outer loops, and a while-loop shape instead of for.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794756787.112897,
-  "score_before": 4170,
-  "score_after": 4170
  },
  {
   "function": "func_80211F14",
@@ -18006,14 +17958,6 @@
   "created_at": 1794765488.682584,
   "score_before": 255,
   "score_after": 255
- },
- {
-  "function": "func_80148B44",
-  "text": "Not matched; releasing because I am stopping this session. Best saved score here is 4170 (from an earlier attempt, not the machine draft). My clean rewrite (revision 530dd5b9d0cbf80d074a, 13805, 12.6%) is far off: I merged the draft's three nested cases into two plain loops and dropped the 0x2FFF/0x3FFF/0x4FFF test structure and the 0x12C-stride lookup. The target (158 insns) has two 0x96-entry loops over D_8018D140 and D_8018D26C with separate tests against 0x3FFF/0x2FFF/0x4FFF, each loop body using the other table's entry, plus a third block over D_80189CB8/CB9/CC0/CC1 flags and an arg0*0x12C indexed loop that only runs when arg1&0xFF == 1. Next step: take the machine draft (goto version) as the structure, get_assembly for the exact branch layout, and match the three blocks one at a time. Do not reuse the flat-loop rewrite.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794765685.794538,
-  "score_before": 4170,
-  "score_after": 4170
  },
  {
   "function": "pennyReadSequenceByte",
@@ -41426,5 +41370,61 @@
   "score_before": 5140,
   "score_after": 4449,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:7bfd995a1ea30cbd4a5343c0b6168b1d1e61451487a874b873404ad88bb2fc56"
+ },
+ {
+  "function": "func_80148B44",
+  "text": "Deep permuter: score 7910 \u2192 6905; 2 improvements; 98 candidates tested; 115 cached skips; 0 rejected; 7205s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935398",
+  "created_at": 1794356288.4209821,
+  "score_before": 7910,
+  "score_after": 6905
+ },
+ {
+  "function": "func_80148B44",
+  "text": "Not matched. Saved historical best 4170 (m2c draft, not rechecked here). Rewrites tried this session: index-based for-loops with continue (8076), do-while with goto into the inner block and pointer t1 (11346, worse; pointer-to-u16 arithmetic from D_8018D140 mis-scales the second table). Target facts: frame is 0x10 (only ra-less leaf, no spills); loop bounds 0x96 (150 entries) for both tables D_8018D140 and D_8018D26C; the 0x3FFF/0x2FFF/0x4FFF constants are held in t6/t5/t4 registers across loops; the inner compare loop stores into the outer element via the index in t1 and compares (u16 & 0xFFF) of D_8018D26C[j] against it; the count loops use D_80189CB8 (unsigned byte load, signed slt) and D_80189CB9/D_80189CC1 bytes; final loop writes w|0x1000 when (w & 0x700)==0 with stride 0x12C per arg0. Next: keep the m2c draft's goto structure (it is closer to the asm), fix the leaf frame (no locals on stack) and retry with pointer t1 typed as u16 *.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794710324.845324,
+  "score_before": 4170,
+  "score_after": 4170
+ },
+ {
+  "function": "func_80148B44",
+  "text": "Not matched. Best this session 9380 (v1: plain globals D_8018D140/D_8018D26C as u16 arrays, indexed loops, the `p = &D_80189CB9; p[-1]` pattern for the count guard). Pointer-variable version (pa/pb/pi) scored 9400, worse. Target structure: four near-identical blocks: (A) for i<0x96 over T1=D_8018D140 skipping v==0x3FFF, v==0x2FFF (<0x4000 side) or v==0x4FFF; inner j<0x96 compares (T2[j]&0xFFF)==(T1[i]&0xFFF) and sets |0x1000; (B) count loop over T1 with (&0xF000)==0 incrementing D_80189CB9, guarded by D_80189CB9[-1]>0 and bounded by D_80189CB8; (C),(D) same as A/B with T1/T2 swapped and CC1/CC0; (E) if ((arg1&0xFF)==1) row = T1 + (arg0&0xFF)*0x96, loop with (v&0x700)==0 -> |0x1000. Target keeps base pointers in $t2 (T1) and $t3 (T2) across the inner loop, and reloads the T1 element via lhu from the same temp pointer each inner iteration (no CSE). Ours puts the 0x3FFF/0x2FFF/0x4FFF constants in the wrong registers and emits extra lui/addiu pairs for the table bases. Next idea: write the inner loop so the temp pointer temp_t1=&T1[i] is computed in the outer body and the inner compare uses a3 index on T2 (base t3 hoisted), and check whether the first branch order needs `if (v==0x3FFF) skip` as a goto-like structure instead of continue.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794725897.1708002,
+  "score_before": 4170,
+  "score_after": 4170
+ },
+ {
+  "function": "func_80148B44",
+  "text": "Releasing as stuck at this effort level: the control flow is recovered (see prior notes), but the remaining gap is code generation of pointer-indexed loops and a frame of -0x10 with no saves, which needs a structural rewrite (explicit u16 pointer increments) that I did not get to. Start from revision 02bfdc3ce339ffedaa31.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794739857.487521,
+  "score_before": 4170,
+  "score_after": 4170
+ },
+ {
+  "function": "func_80148B44",
+  "text": "Not matched. Best stays the saved draft-based 4170. My clean rewrite (u16 arrays D_8018D140/D_8018D26C indexed by i, 0x96 iterations, u8 counters D_80189CB9/D_80189CC1) scored 10215 (35%), far worse, so the draft's pointer/offset-style codegen is closer. Semantics as read from the target: (1) for each i<150 with A=D_8018D140[i] not 0x3FFF and not (0x2FFF below 0x4000 / 0x4FFF at or above), for each j<150 if (B[j]&0xFFF)==(A[i]&0xFFF) set A[i]|=0x1000 (B=D_8018D26C); (2) CB9=0, count k<CB8 with !(A[k]&0xF000); (3) same as (1) with A and B swapped; (4) CC1 counts k<CC0 of B[k] with !(B[k]&0xF000); (5) if (arg1&0xFF)==1, for a<150 at row (arg0&0xFF)*0x12C (300 bytes = 150 u16), if !(v&0x700) then v|=0x1000. Target keeps indices as sll-by-1 with a moving base pointer (addu v0,v0,t2), so start from the draft's pointer form. Not tried: the draft's var/goto layout for the inner loops.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794754348.941119,
+  "score_before": 4170,
+  "score_after": 4170
+ },
+ {
+  "function": "func_80148B44",
+  "text": "Not matched. Structure is right (logic verified against asm): 4 loops over 0x96 u16 entries. Loop 1 over A=D_8018D140: v=A[i]; if (v!=0x3FFF && (v<0x4000 ? v!=0x2FFF : v!=0x4FFF)) for j<0x96: if ((B[j]&0xFFF)==(A[i]&0xFFF)) A[i]|=0x1000. Then D_80189CB9=0; if (D_80189CB8>0) for j<CB8: if ((A[j]&0xF000)==0) CB9++. Loop 3 is the same with A and B swapped (CC1/CC0 use B). Last block: if ((arg1&0xFF)==1) row=(u16*)((u8*)A + (arg0&0xFF)*0x12C), for j<0x96 if !(row[j]&0x700) row[j]|=0x1000. Needed: v must be s32 (signed slti compare, not sltiu); parenthesise the ternary. Remaining diffs: the compiler strength-reduces to pointer induction (addiu t2,2) where the target keeps sll v0,t0,1 / addu index form; the target hoists 0x3FFF/0x2FFF/0x4FFF into registers; the final block computes 300*x via sll/addu/subu (x*300) and then uses the row base. Best score here is 9825 (index form), still worse than the saved 4170. Untried: a single shared index for both outer loops, and a while-loop shape instead of for.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794756787.112897,
+  "score_before": 4170,
+  "score_after": 4170
+ },
+ {
+  "function": "func_80148B44",
+  "text": "Not matched; releasing because I am stopping this session. Best saved score here is 4170 (from an earlier attempt, not the machine draft). My clean rewrite (revision 530dd5b9d0cbf80d074a, 13805, 12.6%) is far off: I merged the draft's three nested cases into two plain loops and dropped the 0x2FFF/0x3FFF/0x4FFF test structure and the 0x12C-stride lookup. The target (158 insns) has two 0x96-entry loops over D_8018D140 and D_8018D26C with separate tests against 0x3FFF/0x2FFF/0x4FFF, each loop body using the other table's entry, plus a third block over D_80189CB8/CB9/CC0/CC1 flags and an arg0*0x12C indexed loop that only runs when arg1&0xFF == 1. Next step: take the machine draft (goto version) as the structure, get_assembly for the exact branch layout, and match the three blocks one at a time. Do not reuse the flat-loop rewrite.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794765685.794538,
+  "score_before": 4170,
+  "score_after": 4170
  }
 ]
