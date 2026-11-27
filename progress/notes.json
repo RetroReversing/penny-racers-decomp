@@ -6544,14 +6544,6 @@
   "score_after": 50
  },
  {
-  "function": "func_80231E30",
-  "text": "Not attempted, no C written. 1328 B, 332 insns, has a jump table: m2c failed with \"Unable to determine jump table for jr\" (line 194 of the .s). Frame 0x58; first calls pass 0x7F, 0, 0 as stack args to func_80233ED0. Uses about 17 data symbols in 0x80232F54..0x80233048 (spaced 0x18 apart, a table of 0x18-byte records) plus D_8006FAF0+0x20 (bss). Next agent: start by declaring a struct for the 0x18-byte records near 0x80232F54, then write the jump-table switch with an explicit `switch` over the selector and check the jump table compiles to the jr pattern. Too large for a blind first attempt at this effort level.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794718305.287711,
-  "score_before": null,
-  "score_after": null
- },
- {
   "function": "func_80233ED0",
   "text": "Best 11179 (69.3%), target 365 insns vs 347. Structure now looks right (Racer struct with 0x8F0 stride, Digit[10] at 0x562, f594, five s16/u8 7-entry arrays at D_80237058/D_8023760E/D_80237600/D_80237632/D_80237694, D_80236ED4 digit table, D_8011F32E 0x64-stride state word). Remaining diffs: target has `andi $v1,$a1,0xffff` x8 and `sll $v0,$v1,1` x7 \u2014 i.e. the loop index is kept as a 32-bit value that is masked to u16 at every use rather than being an u16 local; candidate instead emits `bnez $a0`/`addiu $s2,$s2,1` and folds masks away. Also stack frame target -0x40 vs candidate -0x48 and the loop is a rotated do/while in the target with `j func_80233ED0+0x58c` x5 (five shared tail jumps) implying a different join structure (single loop tail with goto/continue rather than if/else chain). Next experiment: make the loop counter a `s32 i` but index every array via `(u16)i` (or `((u16)i)` casts inside each subscript) so the andi is re-materialized, and lower the frame by removing one live pointer (drop the st/cur/prev aliases and index the globals directly, keeping only D_80237058 as a base if needed). Remaining repair families recorded: record_slot_table=1, record_layout_sequence=4, shared_store_constant=3, branch_orientation=1, 22 more; 89 distinct proposals pending.",
   "by": "api-route-llm-code-1",
@@ -10136,14 +10128,6 @@
   "score_after": 3081
  },
  {
-  "function": "func_80231E30",
-  "text": "Saved candidate (score 18804) has the right structure: 8 calls to func_800DE41C(4 reg args, then 14 stack words: s32 0x7F/0x80/0x40, 0, 0, ptr, 0, f32 x3 at 0x24-0x2C, 0 x6), then func_8003DE60(str), then if (func_80148230()) switch on u16 at D_8006FAF0+0x20, cases 1-9 (table D_80233048 confirms the order). Most of the remaining diff is that the target stores all stack args BEFORE setting a0-a3 (also seen in func_801E3640 with func_801DD938), and it keeps 0x7F in s1 and 0x40 in s0 across calls. Untested: an unprototyped `extern void func_800DE41C();` (the floats would then be promoted to double, so they may need to be passed some other way), or locals holding 0x7F/0x40.",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794737943.117314,
-  "score_before": 18804,
-  "score_after": 18804
- },
- {
   "function": "func_800424C0",
   "text": "Best 8710 (2.1%), revision c4a0c68e9e55444a8256. The target is 89 instructions and not a plain s64 wrapper. It has no frame at the start (first ops are `lui $t0,0x8000`, then `move $v1,$a0`, `xor $v1,$v1,$a2`, `and $t9,$t0,$a0`, `beqz $t9`), so the sign tests are done by mask arithmetic on the high words rather than by `a < 0` branches, and the negation `~a+1` is done inline in both words with `addiu $t1,$zero,-1` as the carry mask. The two calls to func_800422F8 / func_800423F4 are at the bottom. My C produces a 0x18 frame with ra saved, which the target does not have. Next: write the sign handling as explicit 32-bit word ops on the (hi,lo) pairs (`u32 hi = a >> 32` style, with `(s32)` carry math), and let the calls be tail-like; expect a complete rewrite rather than tuning. Note `func_80042630` is a branch target the m2c draft could not resolve, so check its boundary before relying on the candidate's extent.",
   "by": "claude-haiku-5-5-23",
@@ -10878,14 +10862,6 @@
   "created_at": 1794741879.750108,
   "score_before": 350,
   "score_after": 350
- },
- {
-  "function": "func_80231E30",
-  "text": "Not matched. Best 18804 (43.3%) at rev bbf204897b285d245fde; the draft C is a straight sequence of nine func_800DE41C calls (18 args: 4 in regs, 14 on stack as sw $zero/constants) plus a 9-case switch on *(u16*)(D_8006FAF0+0x20) after func_80148230(). Target frame is 0x58 and matches the frame size; mine also 0x58.\nMismatch: target fills the stack args (0x10..0x44) for each call BEFORE setting a0..a3 (the reg args come last, a3 in the jal delay slot); mine reorders them, which accounts for most of the 245 reordered rows. Target also keeps 0x7F in $s1 and 0x40/0x80 in $s0 across the calls, and the function-pointer args come from lui/addiu %lo pairs per call.\nInstruction counts: target 332, mine 360. The 28 extra are likely the reg-arg moves being emitted per call instead of once. Untried: write each call's stack args as separate statements (a local struct or temporaries) so GCC keeps the sw order; or try the 0x7F/0x40/0x80 constants as locals.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794741910.8935392,
-  "score_before": 18804,
-  "score_after": 18804
  },
  {
   "function": "func_80143600",
@@ -12158,14 +12134,6 @@
   "created_at": 1794751360.143379,
   "score_before": 7727,
   "score_after": 7727
- },
- {
-  "function": "func_80231E30",
-  "text": "Best 14069 (57.6%), revision eb3fdb888e9e9462ba20. Shape that helped (18804 -> 14069): k7f=0x7F and k40=0x40 locals (target keeps 0x7F in $s1 and 0x40 in $s0 across the calls); the switch assigns a void *fn plus float locals fx/fy/fz in each arm and one common func_800DE41C call after the switch. Remaining diff: the target has no float locals; its case 4 and case 6 arms store the float args directly (lui/mtc1/swc1 to 0x24/0x2C) and jump to a second tail, while ours keeps fx/fy/fz live (sdc1 f20-f24 saves, 0x70 frame vs target 0x58). Tried and worse: calling directly from case 4/6 with return (18055); per-arm full calls (19380). Untried: arms that set only fn, with the float stores placed in the fn-set arms of case 4/6 via a separate tail. Target prologue saves s1 at 0x4c and s0 at 0x48, frame 0x58.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794751372.6692271,
-  "score_before": 18804,
-  "score_after": 14069
  },
  {
   "function": "func_80143600",
@@ -15040,14 +15008,6 @@
   "score_after": 19054
  },
  {
-  "function": "func_80231E30",
-  "text": "Best saved 18055 is from an earlier source; my draft-based source scored 18794 (43.3%, frame -0x58 vs ours -0x58 too, stack-arg layout differs). The function is a long run of func_800DE41C(...) calls (18 args, 14 on the stack) with constants 0x7F/0x80/0x40/0xFF in the 5th argument, then a func_8003DE60(string) print, then a 9-case switch on *(u16*)(D_8006FAF0+0x20) choosing a function pointer, with two early returns (cases 4 and 6, which call func_800DE41C with float args -610/0/350 and -1199/-20/615). Target keeps the constant 0x7F in $s1 and stores it at 0x4c($sp) for each call; the draft passes literals. Next: make the 5th argument a local s32 k = 0x7F that stays in $s1 across calls, and check the stack-arg slots (target stores at 0x10..0x4c, i.e. the prototype may take more stack args than 14, or several are f32). The switch must be a real jump table: write case labels in source order 1..9 with the default return, not if-chains. Ruled out so far: the default-return placement, the fn-variable form (it calls func_800DE41C after the switch; the target looks the same).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794759449.820201,
-  "score_before": 14069,
-  "score_after": 14069
- },
- {
   "function": "func_80206770",
   "text": "Exact source/profile bundle verified and suggested at O1; staged s32 size=D_3EACF0-D_3EA210 using u8 arrays restores move a0,a2 and exact scheduling. Saved old m2c pointer diff divides by4 erroneously. Current O2 candidate843 not exact; apply supplied O1 bundle rather than further tuning.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -16294,14 +16254,6 @@
   "created_at": 1794762131.01261,
   "score_before": 10236,
   "score_after": 10236
- },
- {
-  "function": "func_80231E30",
-  "text": "Best saved score 18055 (45.6%, 327 vs 332 insns). Structure is a sequence of nine func_800DE41C calls, then a func_80148230() check and a switch on *(u16*)(D_8006FAF0+0x20) with cases 1..9 (cases 4 and 6 return after their own call with fixed float offsets -610.0f,0,350.0f and -1199,-20,615). m2c could not resolve the jump table (no jtbl), so the case order and the switch lowering are unverified. Main mismatch: the target keeps the 0x7F constant in s1 across calls (addiu s1,$zero,0x7f x9) and saves s1/s0 at 0x4c/0x48 in the prologue, while ours re-materialises zeros into a0-a3 and stores k7f at 0x10. Untested idea: the first-argument group order may differ (target loads s1 once and reuses it). Need the switch jump-table shape from get_assembly around the jr before trying case-order changes. func_800DE41C prototype used here is the best-attempt one (18 args; args 12-17 are f32) and may be wrong for the call sites.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794762147.437999,
-  "score_before": 14069,
-  "score_after": 14069
  },
  {
   "function": "func_80233ED0",
@@ -41522,5 +41474,53 @@
   "score_before": null,
   "score_after": null,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:d204731cdea9cd325a66be831394001339979444b764af5f38394f03ab6532eb"
+ },
+ {
+  "function": "func_80231E30",
+  "text": "Not attempted, no C written. 1328 B, 332 insns, has a jump table: m2c failed with \"Unable to determine jump table for jr\" (line 194 of the .s). Frame 0x58; first calls pass 0x7F, 0, 0 as stack args to func_80233ED0. Uses about 17 data symbols in 0x80232F54..0x80233048 (spaced 0x18 apart, a table of 0x18-byte records) plus D_8006FAF0+0x20 (bss). Next agent: start by declaring a struct for the 0x18-byte records near 0x80232F54, then write the jump-table switch with an explicit `switch` over the selector and check the jump table compiles to the jr pattern. Too large for a blind first attempt at this effort level.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794718305.287711,
+  "score_before": null,
+  "score_after": null
+ },
+ {
+  "function": "func_80231E30",
+  "text": "Saved candidate (score 18804) has the right structure: 8 calls to func_800DE41C(4 reg args, then 14 stack words: s32 0x7F/0x80/0x40, 0, 0, ptr, 0, f32 x3 at 0x24-0x2C, 0 x6), then func_8003DE60(str), then if (func_80148230()) switch on u16 at D_8006FAF0+0x20, cases 1-9 (table D_80233048 confirms the order). Most of the remaining diff is that the target stores all stack args BEFORE setting a0-a3 (also seen in func_801E3640 with func_801DD938), and it keeps 0x7F in s1 and 0x40 in s0 across calls. Untested: an unprototyped `extern void func_800DE41C();` (the floats would then be promoted to double, so they may need to be passed some other way), or locals holding 0x7F/0x40.",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794737943.117314,
+  "score_before": 18804,
+  "score_after": 18804
+ },
+ {
+  "function": "func_80231E30",
+  "text": "Not matched. Best 18804 (43.3%) at rev bbf204897b285d245fde; the draft C is a straight sequence of nine func_800DE41C calls (18 args: 4 in regs, 14 on stack as sw $zero/constants) plus a 9-case switch on *(u16*)(D_8006FAF0+0x20) after func_80148230(). Target frame is 0x58 and matches the frame size; mine also 0x58.\nMismatch: target fills the stack args (0x10..0x44) for each call BEFORE setting a0..a3 (the reg args come last, a3 in the jal delay slot); mine reorders them, which accounts for most of the 245 reordered rows. Target also keeps 0x7F in $s1 and 0x40/0x80 in $s0 across the calls, and the function-pointer args come from lui/addiu %lo pairs per call.\nInstruction counts: target 332, mine 360. The 28 extra are likely the reg-arg moves being emitted per call instead of once. Untried: write each call's stack args as separate statements (a local struct or temporaries) so GCC keeps the sw order; or try the 0x7F/0x40/0x80 constants as locals.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794741910.8935392,
+  "score_before": 18804,
+  "score_after": 18804
+ },
+ {
+  "function": "func_80231E30",
+  "text": "Best 14069 (57.6%), revision eb3fdb888e9e9462ba20. Shape that helped (18804 -> 14069): k7f=0x7F and k40=0x40 locals (target keeps 0x7F in $s1 and 0x40 in $s0 across the calls); the switch assigns a void *fn plus float locals fx/fy/fz in each arm and one common func_800DE41C call after the switch. Remaining diff: the target has no float locals; its case 4 and case 6 arms store the float args directly (lui/mtc1/swc1 to 0x24/0x2C) and jump to a second tail, while ours keeps fx/fy/fz live (sdc1 f20-f24 saves, 0x70 frame vs target 0x58). Tried and worse: calling directly from case 4/6 with return (18055); per-arm full calls (19380). Untried: arms that set only fn, with the float stores placed in the fn-set arms of case 4/6 via a separate tail. Target prologue saves s1 at 0x4c and s0 at 0x48, frame 0x58.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794751372.6692271,
+  "score_before": 18804,
+  "score_after": 14069
+ },
+ {
+  "function": "func_80231E30",
+  "text": "Best saved 18055 is from an earlier source; my draft-based source scored 18794 (43.3%, frame -0x58 vs ours -0x58 too, stack-arg layout differs). The function is a long run of func_800DE41C(...) calls (18 args, 14 on the stack) with constants 0x7F/0x80/0x40/0xFF in the 5th argument, then a func_8003DE60(string) print, then a 9-case switch on *(u16*)(D_8006FAF0+0x20) choosing a function pointer, with two early returns (cases 4 and 6, which call func_800DE41C with float args -610/0/350 and -1199/-20/615). Target keeps the constant 0x7F in $s1 and stores it at 0x4c($sp) for each call; the draft passes literals. Next: make the 5th argument a local s32 k = 0x7F that stays in $s1 across calls, and check the stack-arg slots (target stores at 0x10..0x4c, i.e. the prototype may take more stack args than 14, or several are f32). The switch must be a real jump table: write case labels in source order 1..9 with the default return, not if-chains. Ruled out so far: the default-return placement, the fn-variable form (it calls func_800DE41C after the switch; the target looks the same).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794759449.820201,
+  "score_before": 14069,
+  "score_after": 14069
+ },
+ {
+  "function": "func_80231E30",
+  "text": "Best saved score 18055 (45.6%, 327 vs 332 insns). Structure is a sequence of nine func_800DE41C calls, then a func_80148230() check and a switch on *(u16*)(D_8006FAF0+0x20) with cases 1..9 (cases 4 and 6 return after their own call with fixed float offsets -610.0f,0,350.0f and -1199,-20,615). m2c could not resolve the jump table (no jtbl), so the case order and the switch lowering are unverified. Main mismatch: the target keeps the 0x7F constant in s1 across calls (addiu s1,$zero,0x7f x9) and saves s1/s0 at 0x4c/0x48 in the prologue, while ours re-materialises zeros into a0-a3 and stores k7f at 0x10. Untested idea: the first-argument group order may differ (target loads s1 once and reuses it). Need the switch jump-table shape from get_assembly around the jr before trying case-order changes. func_800DE41C prototype used here is the best-attempt one (18 args; args 12-17 are f32) and may be wrong for the call sites.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794762147.437999,
+  "score_before": 14069,
+  "score_after": 14069
  }
 ]
