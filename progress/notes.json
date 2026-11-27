@@ -3352,14 +3352,6 @@
   "score_after": 15
  },
  {
-  "function": "func_80216958",
-  "text": "Deep permuter: score 8921 \u2192 8706; 3 improvements; 1000 candidates tested; 101 cached skips; 0 rejected; 4319s elapsed. Variant limit reached.",
-  "by": "Wwww.permuter-8589935812",
-  "created_at": 1794361009.860076,
-  "score_before": 8921,
-  "score_after": 8706
- },
- {
   "function": "func_801F9BE8",
   "text": "Deep permuter: score 565 \u2192 565; 0 improvements; 135 candidates tested; 141 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935669",
@@ -6478,14 +6470,6 @@
   "created_at": 1794714312.3668962,
   "score_before": 10905,
   "score_after": 10905
- },
- {
-  "function": "func_80216958",
-  "text": "Releasing without more compiles: this candidate (425e6bf3acd8bdfa7b29, 19958) is far worse than the saved best (3581). The m2c structure needs the full case bodies for 0x20/0x21/0x30/0x31/0x41 and a 0x28 frame with ra and s0-s4, which I could not reconstruct from the draft in this session. Start from the saved best. Notes: state u16 at object+0x3E, switch on 0x0, 0x10, 0x11, 0x20, 0x21, 0x30, 0x31, 0x40, 0x41, 0xF0; func_8014A870(0x1E,7,0) gives input bits (1, 2, 0x10, 0x20); func_801D651C(7, n) is the sound call; cases 0x20 and 0x30 both call func_80217600 and func_802174DC(var_s2&0xFF, *temp_s4, D_80190CA8+2). Unchecked: jump table vs compare chain; the D_80190CA8 offsets.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794714323.706304,
-  "score_before": 3581,
-  "score_after": 3581
  },
  {
   "function": "func_80211094",
@@ -11048,14 +11032,6 @@
   "score_after": 3081
  },
  {
-  "function": "func_80216958",
-  "text": "No match. Saved best is 3581 (historical, not reverified this session). The machine-draft-derived candidate at revision fcd75b9e292198a679b4 currently scores 8921 (66.4%) and is worse, so restore base=saved_best before continuing. Two problems: (1) address expression: `&D_80190CA8 - 0xA` (temp_s4) and `(s8 *)&D_80190CB0 - 0x16` make the compiler build lui %hi(D_80190C80) and different bases; the target uses D_80190CA8 directly with offsets, so express those as plain offsets from D_80190CA8 / D_80190CB0 (e.g. *(u8 *)((u8 *)&D_80190CA8 - 0xA) only if the target really addresses D_80190C9E). (2) The target saves ra,s0-s4 (frame 0x24+) while the candidate saves a different set; check the saved register set first. Next experiment: restore saved_best, then fix the temp_s4 address form and the case-0x11 control flow.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794741214.621391,
-  "score_before": 3581,
-  "score_after": 3581
- },
- {
   "function": "func_80211094",
   "text": "Not matched. My rewrite (switch on the u16 at D_8011F32E + (arg0&0xFFFF)*0x64; cases 0/16 -> D_8021B420/D_8021B430 table update + func_80211B90; case 32 -> copy loops into D_8021F270/D_8021F048 then func_800DE38C/func_800DE2E0/func_80231C5C/func_801CF468) scores 18708 (30%), target is 269 insns and mine 135. The big gap: the target's case 0/16 block is much larger (the D_8021EEC2 +/-1 and D_8021EEC1==0x55/0x5A branches, func_80203DF8(2,6,0,0,0), the D_8021E231 + D_8021E15F*0x110 indexed store into D_80187BF0) and was dropped. Also the target's prologue saves $s0/$s1/$ra in a 0x28 frame, which my version does not reproduce. The m2c draft does not compile: func_80211094 uses `&D_80187BF0` arithmetic on incomplete types; declare the data as u8 arrays and use explicit byte offsets. Suggested next step: write the case 0/16 tail (the EEC2/EEC1 branches, with the store at D_8021EEC0 offset 2/0/1 pattern) first, then the case 32 loops, and check the frame layout last.",
   "by": "claude-haiku-5-5-21",
@@ -12454,14 +12430,6 @@
   "created_at": 1794749865.4597461,
   "score_before": 0,
   "score_after": 0
- },
- {
-  "function": "func_80216958",
-  "text": "Not matched. Best current score 8146 (69%), revision 9b8e4a6899fb3e5d5c1e (target 266 insns, mine 262). m2c state machine switch on u16 at obj+0x3E (states 0x0,0x10,0x11,0x20,0x21,0x30,0x31,0x40,0x41,0xF0). Compile-clean now: globals declared as u8/s8 arrays, prototypes for the called funcs. Earlier best 8706 used temp_s4 = D_80190CA8 - 0xA, which the compiler folds to a constant address (D_80190C9E); the local `base = D_80190CA8; temp_s4 = base - 0xA;` form fixes that and gained score. Remaining: target computes s1=&D_80190CA8 and s4=s1-0xA, s3=s1+2 BEFORE the func_8014A870 call (addiu $a0,0x1e; $a1,7; jal; move $a2,0; move s2,v0), and keeps base in s1 across calls; mine recomputes base into s2 after the call and derives s3 from s2. Next: hoist the s3 = base + 2 (and s4) local declarations before var_s2 = func_8014A870(...), and make var_s2 the callee-saved s2 assigned from the return value; then fix the 0x224 vs 0x21c branch target offsets (one extra or missing instruction in the 0x20/0x30 init blocks). Frame/prologue saves s0..s4 and ra. Stopping here: at ~69% with a 266-instruction body, each remaining fix changes many rows; not close to a match this session.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794749933.435798,
-  "score_before": 3581,
-  "score_after": 3581
  },
  {
   "function": "func_80211094",
@@ -15256,14 +15224,6 @@
   "score_after": 9235
  },
  {
-  "function": "func_80216958",
-  "text": "Not matched, released at the session's effort limit. Saved best is 3581 (earlier attempt, different source; restore with get_candidate(base=\"saved_best\")). Current draft scores 8946 (66.3%). Target: 0x28-frame state machine over 1064 bytes on node pool D_8011F2F0 (stride 0x64, state u16 at 0x3E, counter at 0x40). Mismatch: the draft's temp_s4 = &D_80190CA8 - 0xA gives the wrong base (0x80190C80), and the target keeps D_80190CA8 in $s1 with lbu/sb through ($s1) and lbu -1($v1). Variants tried without gain: temp_s4 as (u8*)&D_80190CA8; signedness on var_s2 (u32). Next step: read the target's byte-access sequence in get_assembly to identify the struct at D_80190CA8 and its field offsets, then redraft with that struct. Do not spend more compiles on the global cast alone.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794758562.34689,
-  "score_before": 3581,
-  "score_after": 3581
- },
- {
   "function": "func_80217F44",
   "text": "Not matched; releasing now because this draft is far from the target and needs a rewrite, not tuning. Best 8562 (59.0%), revision 39d47d0646d8f1c52f79. Target is an 836-byte loop over 0x20-byte records (while s2[0] != 0; s2 += 0x20) with a 0x48-byte frame. The draft has a 0x50 frame and spills the three f64 constants (D_8021DEE8/DEF0/DEF8) into sdc1 slots that the target does not use; the target loads them inline inside the __sinf/__cosf expressions. Record reads are also off: the target reads bytes at 1(s2), 0x1d, 0x1f and floats at 0x14/0x18/0x1c with lwc1, while the draft's pointer casts produce negative-offset lbu. Next: rewrite the record access with s2 as u8* and explicit offsets, inline the f64 constants, and fix the frame before tuning registers.",
   "by": "claude-haiku-5-5-20",
@@ -16830,14 +16790,6 @@
   "created_at": 1794761933.826735,
   "score_before": 9235,
   "score_after": 9235
- },
- {
-  "function": "func_80216958",
-  "text": "Not matched. Reason to move on: a 1064-byte state machine whose machine draft has incomplete types and dropped switch bodies; my hand version scores 14768 (saved best 3581) with a wrong frame (0x20 vs target 0x28) and missing callee-saved saves, so the structure needs a full rewrite rather than tuning. Next: declare D_80190CA8 as a byte array and write each case (0x10, 0x11, 0x20, 0x21, 0x30, 0x31, 0x40, 0x41, 0xF0) as its own block against the target asm; the state word is u16 at offset 0x3E of the record at arg0*0x64 + D_8011F2F0, timer s16 at 0x40.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794761951.853166,
-  "score_before": 3581,
-  "score_after": 3581
  },
  {
   "function": "func_802312F8",
@@ -41435,5 +41387,53 @@
   "created_at": 1794762188.23618,
   "score_before": 6240,
   "score_after": 6240
+ },
+ {
+  "function": "func_80216958",
+  "text": "Deep permuter: score 8921 \u2192 8706; 3 improvements; 1000 candidates tested; 101 cached skips; 0 rejected; 4319s elapsed. Variant limit reached.",
+  "by": "Wwww.permuter-8589935812",
+  "created_at": 1794361009.860076,
+  "score_before": 8921,
+  "score_after": 8706
+ },
+ {
+  "function": "func_80216958",
+  "text": "Releasing without more compiles: this candidate (425e6bf3acd8bdfa7b29, 19958) is far worse than the saved best (3581). The m2c structure needs the full case bodies for 0x20/0x21/0x30/0x31/0x41 and a 0x28 frame with ra and s0-s4, which I could not reconstruct from the draft in this session. Start from the saved best. Notes: state u16 at object+0x3E, switch on 0x0, 0x10, 0x11, 0x20, 0x21, 0x30, 0x31, 0x40, 0x41, 0xF0; func_8014A870(0x1E,7,0) gives input bits (1, 2, 0x10, 0x20); func_801D651C(7, n) is the sound call; cases 0x20 and 0x30 both call func_80217600 and func_802174DC(var_s2&0xFF, *temp_s4, D_80190CA8+2). Unchecked: jump table vs compare chain; the D_80190CA8 offsets.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794714323.706304,
+  "score_before": 3581,
+  "score_after": 3581
+ },
+ {
+  "function": "func_80216958",
+  "text": "No match. Saved best is 3581 (historical, not reverified this session). The machine-draft-derived candidate at revision fcd75b9e292198a679b4 currently scores 8921 (66.4%) and is worse, so restore base=saved_best before continuing. Two problems: (1) address expression: `&D_80190CA8 - 0xA` (temp_s4) and `(s8 *)&D_80190CB0 - 0x16` make the compiler build lui %hi(D_80190C80) and different bases; the target uses D_80190CA8 directly with offsets, so express those as plain offsets from D_80190CA8 / D_80190CB0 (e.g. *(u8 *)((u8 *)&D_80190CA8 - 0xA) only if the target really addresses D_80190C9E). (2) The target saves ra,s0-s4 (frame 0x24+) while the candidate saves a different set; check the saved register set first. Next experiment: restore saved_best, then fix the temp_s4 address form and the case-0x11 control flow.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794741214.621391,
+  "score_before": 3581,
+  "score_after": 3581
+ },
+ {
+  "function": "func_80216958",
+  "text": "Not matched. Best current score 8146 (69%), revision 9b8e4a6899fb3e5d5c1e (target 266 insns, mine 262). m2c state machine switch on u16 at obj+0x3E (states 0x0,0x10,0x11,0x20,0x21,0x30,0x31,0x40,0x41,0xF0). Compile-clean now: globals declared as u8/s8 arrays, prototypes for the called funcs. Earlier best 8706 used temp_s4 = D_80190CA8 - 0xA, which the compiler folds to a constant address (D_80190C9E); the local `base = D_80190CA8; temp_s4 = base - 0xA;` form fixes that and gained score. Remaining: target computes s1=&D_80190CA8 and s4=s1-0xA, s3=s1+2 BEFORE the func_8014A870 call (addiu $a0,0x1e; $a1,7; jal; move $a2,0; move s2,v0), and keeps base in s1 across calls; mine recomputes base into s2 after the call and derives s3 from s2. Next: hoist the s3 = base + 2 (and s4) local declarations before var_s2 = func_8014A870(...), and make var_s2 the callee-saved s2 assigned from the return value; then fix the 0x224 vs 0x21c branch target offsets (one extra or missing instruction in the 0x20/0x30 init blocks). Frame/prologue saves s0..s4 and ra. Stopping here: at ~69% with a 266-instruction body, each remaining fix changes many rows; not close to a match this session.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794749933.435798,
+  "score_before": 3581,
+  "score_after": 3581
+ },
+ {
+  "function": "func_80216958",
+  "text": "Not matched, released at the session's effort limit. Saved best is 3581 (earlier attempt, different source; restore with get_candidate(base=\"saved_best\")). Current draft scores 8946 (66.3%). Target: 0x28-frame state machine over 1064 bytes on node pool D_8011F2F0 (stride 0x64, state u16 at 0x3E, counter at 0x40). Mismatch: the draft's temp_s4 = &D_80190CA8 - 0xA gives the wrong base (0x80190C80), and the target keeps D_80190CA8 in $s1 with lbu/sb through ($s1) and lbu -1($v1). Variants tried without gain: temp_s4 as (u8*)&D_80190CA8; signedness on var_s2 (u32). Next step: read the target's byte-access sequence in get_assembly to identify the struct at D_80190CA8 and its field offsets, then redraft with that struct. Do not spend more compiles on the global cast alone.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794758562.34689,
+  "score_before": 3581,
+  "score_after": 3581
+ },
+ {
+  "function": "func_80216958",
+  "text": "Not matched. Reason to move on: a 1064-byte state machine whose machine draft has incomplete types and dropped switch bodies; my hand version scores 14768 (saved best 3581) with a wrong frame (0x20 vs target 0x28) and missing callee-saved saves, so the structure needs a full rewrite rather than tuning. Next: declare D_80190CA8 as a byte array and write each case (0x10, 0x11, 0x20, 0x21, 0x30, 0x31, 0x40, 0x41, 0xF0) as its own block against the target asm; the state word is u16 at offset 0x3E of the record at arg0*0x64 + D_8011F2F0, timer s16 at 0x40.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794761951.853166,
+  "score_before": 3581,
+  "score_after": 3581
  }
 ]
