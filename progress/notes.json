@@ -6296,14 +6296,6 @@
   "score_after": null
  },
  {
-  "function": "func_8015BD20",
-  "text": "Not matched; no compiling C yet. The m2c draft (candidate 436cba202d1f5cb1964d) does not compile: arithmetic on pointers to incomplete types (declare the arrays as u8[] and index by byte offsets), plus undeclared D_8011F2FB/D_8011F334/D_8011F338/D_8011F33C/D_8018D66A/D_8022A770 and func_8015C838/func_8015C8A4 used as data. Structure from the draft: idx = (arg0&0xFFFF)*0x64 is the per-slot stride over D_8011F2F0 (u8 slot id s1), D_8011F32E (u16 state), D_8011F334 (f32 timers), D_8011F338, D_8011F33C, D_8011F2FB. Dispatch is a switch on the u16 state (case 0 init, case 1 the active path; more cases not yet read). Case 0 writes 4 records at D_80189970 (stride 0x10, base slot*0x40) and a 4x4 loop of 0x40-stride records in D_8018B530..D_8018B560 (slot*0x100), then zeroes D_8018D66A[slot] and sets state=1. Case 1 compares f32 timers against D_80183950/D_80183958/D_80183960, and reads f32 fields of the struct at D_8022A770 + slot*0x8F0 (offsets 0x72C..0x740, 0x860, 0x864, 0x8A1). Next agent: read get_assembly for the remaining switch cases and the func_800DE41C call (args include &func_8015C838 and &func_8015C8A4), then rewrite with byte-offset access before any tuning.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794719449.663332,
-  "score_before": 34051,
-  "score_after": 34051
- },
- {
   "function": "func_801E0F10",
   "text": "func_801E0F10 (2300 B, 575 insns) not matched; no compile done this session. Best prior 28935 (6 attempts). The m2c draft is a goto/state-machine mess (void-pointer dereferences, block_34/loop_32 labels) and is not a usable base. Facts from reading assembly lines 0-252 of 601: (1) the arg is masked to u16 and used as index with stride 0x64 (x*100 is computed as ((x*2+x)*8+x)*4), for D_8011F2FC (u8 state), D_8011F32E (u16 state, switch var) and D_8011F350 slots; (2) D_8022AFE9/AFEB/AFEC/B000/B004/B008/B00C are indexed by D_801E87E5 with stride 0x8F0 (x*2288: ((x*9)*16-x)*16); (3) D_801F1880 is a u32 per-slot array indexed by D_801E87E5*4 and advanced by +=2; (4) D_801F18E0/E1 are byte buffers; the state-2 branch builds a 4-bit flag word a1 (bits 1,2,4,8 from B000/B004/B008/B00C nonzero, bit 0 from AFEC < -0x20). Unread: lines 252-601 (the func_800DE41C 18-arg calls, the 0x178-stride copy loop, the 0x7AFA limit, and the state-3 tail). Next step: read remaining assembly in pages, then write the switch as a real switch with the flag computation and copy loop, and compare with a single compile_and_diff.",
   "by": "claude-haiku-5-5-21",
@@ -10152,14 +10144,6 @@
   "score_after": 915
  },
  {
-  "function": "func_8015BD20",
-  "text": "Blocked on types, not on code. The 528-insn body needs named record structs (0x64-byte records in D_8011F2F0, 0x8F0-byte cars in D_8022A770, 0x100/0x40-stride sub-tables at D_80189970/D_80189990/D_8018B530..B560) before any C can be compared meaningfully; the m2c draft's pointer arithmetic on void* does not compile in its current form. Notes: frame 0x78; switch on u16 at &D_8011F32E + idx*0x64; case 0 init loop writes fields at +6,+8,+0xA,+0xC..+0xF. Next pass: edit_context the record and table structs, then rewrite case 0 as the first compile target.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794742524.587853,
-  "score_before": 34051,
-  "score_after": 34051
- },
- {
   "function": "func_80128880",
   "text": "No score yet: the draft does not compile. One compile_patch (revision 5ce26a493292202eb4c3, fixing the line-61 pointer chain) still fails: func.c:132 invalid unary `*`, func.c:142 int-to-pointer assignment, and undeclared sp34, sp38, sp44, sp48 at line 186 (the func_80127030 call uses stack words that the draft never declares). Also remaining from the original draft: unary `*` error at line 250 and the goto-based block_14/block_25/block_33 structure. Next agent: rebuild the body from get_assembly rather than patching. Declare the stack temporaries as an f32/s32 array or the struct that func_80127030 writes, fix the pointer-chain casts at lines 132 and 142, and confirm the float constants (30.0f, -32000.0f, D_8012AA30 divisor) against rodata. Arg0 is an output record (writes at +0x0 to +0x40); the outer loop walks a zero-terminated list at stride 0xC.",
   "by": "claude-haiku-5-5-24",
@@ -11238,14 +11222,6 @@
   "created_at": 1794752282.170269,
   "score_before": 23601,
   "score_after": 23601
- },
- {
-  "function": "func_8015BD20",
-  "text": "Not matched. This pass only reviewed the brief and first 52 target instructions; the candidate is still the 1-line placeholder (machine draft fails to compile on incomplete-type pointer arithmetic). Target is 528 instructions with ~17 unknown-size globals (D_8011F2F0/F2FB/F32E/F334/F338/F33C, D_80183950/58/60, D_80189970/90, D_8018B530/40/50/60, D_8018D66A, D_8022A770). Visible structure: prologue saves ra/s0-s2 (0x78 frame); arg0 masked to u16; index = x*0x64 into a 0x64-stride table at D_8022A770; a per-slot byte at D_8011F2F0[idx*4] selects a dispatch (beqz / beq 1 / else jump to .L8015C548); then a block zeroes 16-bit/byte fields of a 0x40-stride record at D_80189970. Next steps: map each global's element type and stride (guess_struct/get_class), write the record layouts, then draft the dispatch before filling case bodies.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794752294.3330739,
-  "score_before": 34051,
-  "score_after": 34051
  },
  {
   "function": "guMtxXFML",
@@ -14144,14 +14120,6 @@
   "score_after": 1825
  },
  {
-  "function": "func_8015BD20",
-  "text": "Not matched. Best candidate be245b62db0c03d67ca8 scores 49757 (121 of 528 target insns; only the state-0 init path is written). Frame is 0x78 with ra,s0,s1,s2 saved and calls func_800DE41C (17 args: 4 regs + 13 stack words, incl. 3 float 1.0f at 0x3C..0x44) and takes &func_8015C838 / &func_8015C8A4 as stack words, so the candidate's 8-byte frame and missing calls are the main gap.\n\nDecoded layout (verified against asm):\n- idx = arg0 & 0xFFFF; rec = D_8011F2F0 + idx*100 (100-byte stride, computed as ((3*idx)<<3 + idx)<<2).\n- rec[0] (u8) = s1 slot id. rec+0x0B u8 set to 0x0E in one path. rec+0x3E u16 = state: 0 -> init path (writes blocks, sets state=1), 1 -> main path at .L8015BF60, else -> epilogue. rec+0x44/0x48/0x4C are f32 (D_8011F334/338/33C).\n- s0 = D_8022A770 + s1*2288 (struct per slot): f32 at 0x864 (compared as double against D_80183950/58/60), u8 at 0x860 (gate), u8 at 0x8A1 (must != 4), f32 at 0x72C,0x730,0x734,0x738,0x73C,0x740 (copied to sp 0x48..0x60, trunc to s16 into block).\n- D_80189970 + s1*64: 4 entries of 16 bytes, Ent16 {u8 p0[6]; u16 a(+6); u16 b(+8); u16 c(+A); u8 d(+C); u8 e(+D)=0x7F; u8 f(+E); u8 g(+F)=0xFF}. Entry0 b=0,c=0; entry1 b=0x800; entry2 c=0x40; entry3 b=0x800,c=0x40 (the init path writes these, which my candidate does).\n- D_8018B530/540/550/560 + s1*256 + i*64 for i=0..3: 4 Ent16-like records with the same b/c pattern (0,0x800,0x40,0x800+0x40 as in the loop). D_8018D66A[s1] = 0 in init.\n- D_80189990 - 0x20 / +0x10 / -0x10 : further Ent16 copies, gated on D_8018D66A[s1] < 3 (increment) else reset to 0.\n- The main path uses the rounded-float block writes and a float-zero test on rec+0x44 (c.eq.s with 0.0 and 10.0f). It writes D_8011F2FB[idx]=0x0E and D_8011F334 = (float)s1, D_8011F338 = (float)D_8018D66A[s1], D_8011F33C = s0->f864.\n\nStill needed: the main path (lines ~200-380 of get_assembly), the calls to func_800DE41C and the callbacks, and the stack-frame prologue. Not attempted beyond the init path; 3 compile budget was left at release. Not a verdict on the C: this is not yet a full body.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794761593.894207,
-  "score_before": 34051,
-  "score_after": 34051
- },
- {
   "function": "func_801496B0",
   "text": "Exact C/compiler pair submitted via suggest; automatic compiler changes off. Trial 2a74f0d6ec138a315984 exactly matches at -G0 -mips3 -mgp32 -mfp32 -O1. Exact source in suggestion: revision 5943133222f7adb51368 with row=D_8018D140;row+=(arg0&255)*150; replaced by i=arg0&255;row=D_8018D140;row+=i*150;. Reuse j in clear loop, u16 arg1 overwritten by mask, unused u8[8] frame required. Apply suggestion to save. No further O2 tuning warranted.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -14846,14 +14814,6 @@
   "created_at": 1794764475.509591,
   "score_before": 2115,
   "score_after": 2115
- },
- {
-  "function": "func_8015BD20",
-  "text": "Not attempted to completion. 528 insns; the saved best (49757, 16 prior attempts) only covers the state==0 init branch (4 Ent16 records at D_80189970 with stride 64, then a 4x loop writing D_8018B530/40/50/60 at s1<<8 + i<<6, then D_8018D66A[s1]=0 and state=1). The non-zero-state branch is not written. Frame is 0x78 with ra/s0-s2 saved. Next step: read the remaining assembly pages (get_assembly start=52) and write the state!=0 path before tuning the init loop, which is probably where the mismatch is.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794764510.314796,
-  "score_before": 34051,
-  "score_after": 34051
  },
  {
   "function": "func_8013AE60",
@@ -41899,5 +41859,45 @@
   "score_before": 20485,
   "score_after": 15377,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:2bcf5c14bdd3432889b40b7f2c56738b5a4d634472759ff9ab7822ad644e3e35"
+ },
+ {
+  "function": "func_8015BD20",
+  "text": "Not matched; no compiling C yet. The m2c draft (candidate 436cba202d1f5cb1964d) does not compile: arithmetic on pointers to incomplete types (declare the arrays as u8[] and index by byte offsets), plus undeclared D_8011F2FB/D_8011F334/D_8011F338/D_8011F33C/D_8018D66A/D_8022A770 and func_8015C838/func_8015C8A4 used as data. Structure from the draft: idx = (arg0&0xFFFF)*0x64 is the per-slot stride over D_8011F2F0 (u8 slot id s1), D_8011F32E (u16 state), D_8011F334 (f32 timers), D_8011F338, D_8011F33C, D_8011F2FB. Dispatch is a switch on the u16 state (case 0 init, case 1 the active path; more cases not yet read). Case 0 writes 4 records at D_80189970 (stride 0x10, base slot*0x40) and a 4x4 loop of 0x40-stride records in D_8018B530..D_8018B560 (slot*0x100), then zeroes D_8018D66A[slot] and sets state=1. Case 1 compares f32 timers against D_80183950/D_80183958/D_80183960, and reads f32 fields of the struct at D_8022A770 + slot*0x8F0 (offsets 0x72C..0x740, 0x860, 0x864, 0x8A1). Next agent: read get_assembly for the remaining switch cases and the func_800DE41C call (args include &func_8015C838 and &func_8015C8A4), then rewrite with byte-offset access before any tuning.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794719449.663332,
+  "score_before": 34051,
+  "score_after": 34051
+ },
+ {
+  "function": "func_8015BD20",
+  "text": "Blocked on types, not on code. The 528-insn body needs named record structs (0x64-byte records in D_8011F2F0, 0x8F0-byte cars in D_8022A770, 0x100/0x40-stride sub-tables at D_80189970/D_80189990/D_8018B530..B560) before any C can be compared meaningfully; the m2c draft's pointer arithmetic on void* does not compile in its current form. Notes: frame 0x78; switch on u16 at &D_8011F32E + idx*0x64; case 0 init loop writes fields at +6,+8,+0xA,+0xC..+0xF. Next pass: edit_context the record and table structs, then rewrite case 0 as the first compile target.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794742524.587853,
+  "score_before": 34051,
+  "score_after": 34051
+ },
+ {
+  "function": "func_8015BD20",
+  "text": "Not matched. This pass only reviewed the brief and first 52 target instructions; the candidate is still the 1-line placeholder (machine draft fails to compile on incomplete-type pointer arithmetic). Target is 528 instructions with ~17 unknown-size globals (D_8011F2F0/F2FB/F32E/F334/F338/F33C, D_80183950/58/60, D_80189970/90, D_8018B530/40/50/60, D_8018D66A, D_8022A770). Visible structure: prologue saves ra/s0-s2 (0x78 frame); arg0 masked to u16; index = x*0x64 into a 0x64-stride table at D_8022A770; a per-slot byte at D_8011F2F0[idx*4] selects a dispatch (beqz / beq 1 / else jump to .L8015C548); then a block zeroes 16-bit/byte fields of a 0x40-stride record at D_80189970. Next steps: map each global's element type and stride (guess_struct/get_class), write the record layouts, then draft the dispatch before filling case bodies.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794752294.3330739,
+  "score_before": 34051,
+  "score_after": 34051
+ },
+ {
+  "function": "func_8015BD20",
+  "text": "Not matched. Best candidate be245b62db0c03d67ca8 scores 49757 (121 of 528 target insns; only the state-0 init path is written). Frame is 0x78 with ra,s0,s1,s2 saved and calls func_800DE41C (17 args: 4 regs + 13 stack words, incl. 3 float 1.0f at 0x3C..0x44) and takes &func_8015C838 / &func_8015C8A4 as stack words, so the candidate's 8-byte frame and missing calls are the main gap.\n\nDecoded layout (verified against asm):\n- idx = arg0 & 0xFFFF; rec = D_8011F2F0 + idx*100 (100-byte stride, computed as ((3*idx)<<3 + idx)<<2).\n- rec[0] (u8) = s1 slot id. rec+0x0B u8 set to 0x0E in one path. rec+0x3E u16 = state: 0 -> init path (writes blocks, sets state=1), 1 -> main path at .L8015BF60, else -> epilogue. rec+0x44/0x48/0x4C are f32 (D_8011F334/338/33C).\n- s0 = D_8022A770 + s1*2288 (struct per slot): f32 at 0x864 (compared as double against D_80183950/58/60), u8 at 0x860 (gate), u8 at 0x8A1 (must != 4), f32 at 0x72C,0x730,0x734,0x738,0x73C,0x740 (copied to sp 0x48..0x60, trunc to s16 into block).\n- D_80189970 + s1*64: 4 entries of 16 bytes, Ent16 {u8 p0[6]; u16 a(+6); u16 b(+8); u16 c(+A); u8 d(+C); u8 e(+D)=0x7F; u8 f(+E); u8 g(+F)=0xFF}. Entry0 b=0,c=0; entry1 b=0x800; entry2 c=0x40; entry3 b=0x800,c=0x40 (the init path writes these, which my candidate does).\n- D_8018B530/540/550/560 + s1*256 + i*64 for i=0..3: 4 Ent16-like records with the same b/c pattern (0,0x800,0x40,0x800+0x40 as in the loop). D_8018D66A[s1] = 0 in init.\n- D_80189990 - 0x20 / +0x10 / -0x10 : further Ent16 copies, gated on D_8018D66A[s1] < 3 (increment) else reset to 0.\n- The main path uses the rounded-float block writes and a float-zero test on rec+0x44 (c.eq.s with 0.0 and 10.0f). It writes D_8011F2FB[idx]=0x0E and D_8011F334 = (float)s1, D_8011F338 = (float)D_8018D66A[s1], D_8011F33C = s0->f864.\n\nStill needed: the main path (lines ~200-380 of get_assembly), the calls to func_800DE41C and the callbacks, and the stack-frame prologue. Not attempted beyond the init path; 3 compile budget was left at release. Not a verdict on the C: this is not yet a full body.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794761593.894207,
+  "score_before": 34051,
+  "score_after": 34051
+ },
+ {
+  "function": "func_8015BD20",
+  "text": "Not attempted to completion. 528 insns; the saved best (49757, 16 prior attempts) only covers the state==0 init branch (4 Ent16 records at D_80189970 with stride 64, then a 4x loop writing D_8018B530/40/50/60 at s1<<8 + i<<6, then D_8018D66A[s1]=0 and state=1). The non-zero-state branch is not written. Frame is 0x78 with ra/s0-s2 saved. Next step: read the remaining assembly pages (get_assembly start=52) and write the state!=0 path before tuning the init loop, which is probably where the mismatch is.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794764510.314796,
+  "score_before": 34051,
+  "score_after": 34051
  }
 ]
