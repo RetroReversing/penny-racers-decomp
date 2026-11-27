@@ -6168,14 +6168,6 @@
   "score_after": 51512
  },
  {
-  "function": "func_801E2020",
-  "text": "Not started in C; no compiling draft (m2c failed: jump table for jr not found). Target 2204 bytes, 551 insns, frame 0x48, saves ra and s0-s5. Structure read so far: s0 = a0 & 0xFFFF; s1 = s0*100 (0x64 stride, from ((s0*2+s0)*8+s0)*4); calls func_800DEFF8 and func_800DF138 (three times, with args s0, D_801E9B32, D_801E979C halfwords); reads D_8011F32E[s1] halfword and dispatches as an if-chain on values 0,2,3..4,0xC8,0x384 (beq/slti tree, leading to .L801E22CC, .L801E2580, .L801E2514, .L801E2820, .L801E2898, .L801E20E8). Needs a jump table or switch reconstruction before tuning. Next agent: read get_assembly pages 52-584 to map the dispatch tree first, then write the dispatch as nested ifs and only then fill in the arms.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794719438.698045,
-  "score_before": null,
-  "score_after": null
- },
- {
   "function": "func_80128880",
   "text": "Not compiled. The m2c draft (candidate b847960b4da617f25e52) does not compile: syntax error at func.c:61 (`M2C_FIELD(...)` on a non-lvalue/arg), invalid unary * at lines 147 and 250, and int/pointer assignment warnings. Its control flow is a nested loop over a table of records from arg1 (+0x50 -> +4 -> +4 -> per-record arrays at +0x50/+0x40/+0x54/+0x44 as s16 bounds with +0x18/+0x20 float offsets from arg1), a per-record inner loop filling D_8012AB98/9C/A0 (stride 0xC), then func_80127870 and func_801271A0 gating, sqrtf normalisation, and a result struct written into arg0 (offsets 0,1,2,8..0x40) when a float compare beats var_fs1 (-32000.0f). Needs: a clean rewrite of the tuple/record struct types, removal of the goto-into-else, and the real float ordering from the assembly. Function is 2236 bytes, so expect many compiles. Released at low effort without a compile.",
   "by": "claude-haiku-5-5-20",
@@ -9304,14 +9296,6 @@
   "score_after": 2210
  },
  {
-  "function": "func_801E2020",
-  "text": "Inspected all 551 instructions. No saved C; m2c originally failed on jr260. Renamed confirmed nine-entry D_801E9560 to jtbl_801E9560, redrafted with extern const unsigned int jtbl_801E9560[9]; extern unsigned char D_801F1888;. Now m2c explicitly says imported overlay table bytes absent; add memory_regions.json. Second table D_801E9588 (8 entries) also required. Without mappings reconstructing error dispatch would be speculative. Function is Controller Pak open/check UI state machine: Entry stride100, state halfword offset62; first byte port index; D_801F1898 per-port 16-byte records, error at+8, status at+12. Outer states 0,2,3,4,900. State0 opens selected physical port, retries func_801DDCDC(mode1) if initial result1; state2 nuContPakCodeSet/FileOpenJis; state4 dispatches eight operation modes and can read four 32-byte save headers at 0x3340+i*1024, sets bitmask D_80190CB2 using D_8021B690[i] if header word nonzero. State900 sets entry+13=2 for id and D_801E9B32/D_801E979C, then func_800DF094. Setup suggestion filed; defer tuning until switch data available.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794738407.7320802,
-  "score_before": null,
-  "score_after": null
- },
- {
   "function": "__CSPRepostEvent",
   "text": "Best saved is 630: loop with `if (var!=0)` wrapper, alLink in the two break paths. Target shares ONE alLink call site reached from both the a2==0 path and the a0<v1 path, then jumps to the func_800339C0 epilogue. Target loop: a2=*a1; beqz a2->link; a0=arg1+8; v1=a2+8; slt; beqz v0->else (arg1+8 = a0-v1; a1=*a1; bnez a1 loop). Tried goto-linked layout (780) and reversed-compare layout (1241); both worse. Unresolved: call-site sharing and load ordering.",
   "by": "claude-haiku-5-5-22",
@@ -9384,14 +9368,6 @@
   "score_after": 0
  },
  {
-  "function": "func_801E2020",
-  "text": "Restart reacquired function despite previous release. Fresh redraft confirms same missing-overlay-data failure: jtbl_801E9560 nine-entry switch mapping absent in imported data; second eight-entry table D_801E9588 also required. Prior assembly analysis notes remain relevant. Cannot reconstruct case-to-block mapping reliably from code alone. No new compile; defer until table data is imported.",
-  "by": "codex-gpt-6.1-sol-medium-4",
-  "created_at": 1794738659.8772879,
-  "score_before": null,
-  "score_after": null
- },
- {
   "function": "func_8014998C",
   "text": "Not matched. Best saved 1295 (revision c5fb8fadd4657d77ddea). This session's variant with do-while loops scored 1345 (cad951946ec539e80826). Findings: (1) the first loop (0xFF fill of D_8018BC35[0..5]) must stay unsigned (u32 i); s32 i makes GCC reverse the loop and scores 3190. (2) The second loop's target uses slti (signed compare), not sltiu, and forms the index as sll v0,v1,1 / addu v0,v0,a0 / lbu 1(v0), i.e. address p+2*i+1 with the pointer kept in a0. The sltiu from u32 i gives 1345. Untried: make only the second loop's bound signed, e.g. `(s32)i < 6`, with the first loop unchanged. Remaining diffs are in that loop and in the switch's s16 compare form.",
   "by": "claude-haiku-5-5-20",
@@ -9438,14 +9414,6 @@
   "created_at": 1794738857.220823,
   "score_before": 595,
   "score_after": 595
- },
- {
-  "function": "func_801E2020",
-  "text": "A hand-decoded rewrite scored 23256 (57.7%), but the claim ended right after the compile, so the source may not be saved. Structure: u8 flags=D_801F1888; u8 port=D_8011F2F0[arg0].unk0 (100-byte struct; unk3E = state, unkD); func_800DEFF8(); func_800DF138(arg0/D_801E9B32/D_801E979C); switch(state){case 0: find the controller index from the D_801E4420 bitmask, nuContPakOpen(&D_801F1898[port] (16-byte struct: error@8, unkC@0xC), cnt), r=func_801DDCDC(port,0); if r==1 open again plus msg(22,port,11); r==2 \u2192 msg(0x1C,6: 23,13); r==3 or unkC!=1 \u2192 msg(20,10); else state=2; otherwise state=900. case 2: nuContPakCodeSet(D_801E87A0[0],[1]); nuContPakFileOpenJis(pak,D_801E87A8,D_801E87BC,0,0x4400); err==5: if !(flags&1) {D_801E9766=0; state=3} else if flags!=7 msg(22,port,22); err==0: D_801E9766=1, state=4; else switch(err) over cases 1..9 (table jtbl_801E9560 not in the ROM data: msgs 10,11,19,20,21, default 12). case 3: msg(25,port,17), state 4. case 4: if D_801E9766, switch(flags) 0..7 (table D_801E9588: msgs 28..33, plus a loop of 4 nuContPakFileReadWrite(pak,(i<<10)+0x3340,0x20,D_801F18E0,0)); then state=900. case 900: unkD=2 for all three, func_800DF094()}. msg = func_801DD938(0x10,0x4C,10,2,200,180,18,a,port,b). The main remaining diff: the target stores the stack args before a0-a3 (the same pattern as func_801E3640).",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794738909.950115,
-  "score_before": 23256,
-  "score_after": 23256
  },
  {
   "function": "func_80127AB0",
@@ -9894,14 +9862,6 @@
   "created_at": 1794742476.7968261,
   "score_before": 51512,
   "score_after": 51512
- },
- {
-  "function": "func_801E2020",
-  "text": "Blocked, not a C-side problem. The switch on D_8011F2F0[arg0].unk3E lowers to a jr through a jump table at .rodata that is absent from the imported game data (m2c refuses to draft; the candidate's table references .rodata+0x0 and +0x28 have no ROM counterpart). Without the table bytes and address the switch layout can't be checked, so further C tuning can't close the gap. Best candidate d502c750f5438c8dd1dc scores 23256 (57.7%). Next step for whoever picks this up: add the jump table to memory_regions/data for the overlay, then re-run the diff; remaining register/order differences (arg0 kept in $s5 in target, $s6 in candidate; flags load placed before andi in target) are secondary.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794742500.400961,
-  "score_before": 23256,
-  "score_after": 23256
  },
  {
   "function": "func_8002B534",
@@ -13680,14 +13640,6 @@
   "score_after": 330
  },
  {
-  "function": "func_801E2020",
-  "text": "Saved best 23256 (57.7%), revision d502c750f5438c8dd1dc; restore it with get_candidate(base=\"saved_best\"). Tried 2 structural variants: (a) original inner switch(r)/switch(flags) -> 23256; (b) both converted to if-chains -> 33161 (worse). So the switch-lowering guess was wrong. Remaining differences are structural: target frame saves $ra,$s5..$s0 at 0x40..0x28 and computes the record index with sll 2 + addu (D_8011F2F0 base at %lo) on the unk3E load, while mine loads D_801F1888 first and uses different temps. Next: restore best, then try reordering the top-level setup (flags/port load after the func_800DF138 calls) and the record-index expression as ((arg0 & 0xFFFF) << 2) + arg0 to get the sll-2/addu pattern. Only 3 compiles so far; the no-improvement budget is not spent.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794761395.315531,
-  "score_before": 23256,
-  "score_after": 23256
- },
- {
   "function": "func_8015E484",
   "text": "Fresh -O1 exact proof, corrected u8 byte arrays and offset arg1*100; two GfxW command pointers. Checked function-only suggestion filed. Saved660 wrong scalar-index source must not supersede exact bundle. Await profile application.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -14142,14 +14094,6 @@
   "created_at": 1794762882.096603,
   "score_before": 70,
   "score_after": 70
- },
- {
-  "function": "func_801E2020",
-  "text": "Candidate (rev 37d24acc5125a5613e86) scores 23256 (57.7%). Target 551 insns, ours 540. Machine draft impossible: jr at line 260 of the .s has no jump table bytes; the table must be added (memory_regions.json / rodata) before the switch case order can be verified. Main diff: target prologue saves ra and s0-s5 (sw $ra 0x40($sp), s5 0x3c, s4 0x38, s3 0x34, s2 0x30, s1 0x2c, s0 0x28); ours saves s6 and spills differently. Target keeps arg0 in s5 (move $s5,$a0) and computes andi $s0,$s5,0xffff; ours uses s6 and orders differently, so the allocation of arg0/port/flags across the many func_801DD938 calls is wrong. Target loads flags (lui/lbu D_801F1888) earlier. Untested idea: keep flags, port and arg0 live across all calls (more locals, or declare flags later). Rodata refs .rodata+0x0 and +0x28 are unexplained in our build (likely the jump table plus a literal). Needs the jump table before the switch structure can be checked.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794762882.372222,
-  "score_before": 23256,
-  "score_after": 23256
  },
  {
   "function": "func_8014BA14",
@@ -14686,14 +14630,6 @@
   "created_at": 1794765841.113369,
   "score_before": 75,
   "score_after": 75
- },
- {
-  "function": "func_801E2020",
-  "text": "Blocked, not matched. Best 23256 (57.7%). The machine draft failed because the jr jump table (switch on D_8011F2F0[arg0].unk3E, cases 0/2/3/4/900) has no bytes in the imported data; the compile also reports unresolved .rodata+0x0 and +0x28. The C in the candidate is a hand-written attempt. Structure differs from the first instructions: the target saves 0x40-byte frame regs in a different order, loads D_801F1888 before the switch, and keeps port in $s0 with the index reloaded as sll $s1,$s0,1. Next: add the jump table to memory data (or report its address) so the switch lowers the same way, then retune the register/save order.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794765881.290462,
-  "score_before": 23256,
-  "score_after": 23256
  },
  {
   "function": "alEvtqPostEvent",
@@ -41970,5 +41906,69 @@
   "score_before": 25688,
   "score_after": 20944,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a9e541057e626465c5a67e1b0c0f4444953ccd429c9f20fc00ce69044aa6065f"
+ },
+ {
+  "function": "func_801E2020",
+  "text": "Not started in C; no compiling draft (m2c failed: jump table for jr not found). Target 2204 bytes, 551 insns, frame 0x48, saves ra and s0-s5. Structure read so far: s0 = a0 & 0xFFFF; s1 = s0*100 (0x64 stride, from ((s0*2+s0)*8+s0)*4); calls func_800DEFF8 and func_800DF138 (three times, with args s0, D_801E9B32, D_801E979C halfwords); reads D_8011F32E[s1] halfword and dispatches as an if-chain on values 0,2,3..4,0xC8,0x384 (beq/slti tree, leading to .L801E22CC, .L801E2580, .L801E2514, .L801E2820, .L801E2898, .L801E20E8). Needs a jump table or switch reconstruction before tuning. Next agent: read get_assembly pages 52-584 to map the dispatch tree first, then write the dispatch as nested ifs and only then fill in the arms.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794719438.698045,
+  "score_before": null,
+  "score_after": null
+ },
+ {
+  "function": "func_801E2020",
+  "text": "Inspected all 551 instructions. No saved C; m2c originally failed on jr260. Renamed confirmed nine-entry D_801E9560 to jtbl_801E9560, redrafted with extern const unsigned int jtbl_801E9560[9]; extern unsigned char D_801F1888;. Now m2c explicitly says imported overlay table bytes absent; add memory_regions.json. Second table D_801E9588 (8 entries) also required. Without mappings reconstructing error dispatch would be speculative. Function is Controller Pak open/check UI state machine: Entry stride100, state halfword offset62; first byte port index; D_801F1898 per-port 16-byte records, error at+8, status at+12. Outer states 0,2,3,4,900. State0 opens selected physical port, retries func_801DDCDC(mode1) if initial result1; state2 nuContPakCodeSet/FileOpenJis; state4 dispatches eight operation modes and can read four 32-byte save headers at 0x3340+i*1024, sets bitmask D_80190CB2 using D_8021B690[i] if header word nonzero. State900 sets entry+13=2 for id and D_801E9B32/D_801E979C, then func_800DF094. Setup suggestion filed; defer tuning until switch data available.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794738407.7320802,
+  "score_before": null,
+  "score_after": null
+ },
+ {
+  "function": "func_801E2020",
+  "text": "Restart reacquired function despite previous release. Fresh redraft confirms same missing-overlay-data failure: jtbl_801E9560 nine-entry switch mapping absent in imported data; second eight-entry table D_801E9588 also required. Prior assembly analysis notes remain relevant. Cannot reconstruct case-to-block mapping reliably from code alone. No new compile; defer until table data is imported.",
+  "by": "codex-gpt-6.1-sol-medium-4",
+  "created_at": 1794738659.8772879,
+  "score_before": null,
+  "score_after": null
+ },
+ {
+  "function": "func_801E2020",
+  "text": "A hand-decoded rewrite scored 23256 (57.7%), but the claim ended right after the compile, so the source may not be saved. Structure: u8 flags=D_801F1888; u8 port=D_8011F2F0[arg0].unk0 (100-byte struct; unk3E = state, unkD); func_800DEFF8(); func_800DF138(arg0/D_801E9B32/D_801E979C); switch(state){case 0: find the controller index from the D_801E4420 bitmask, nuContPakOpen(&D_801F1898[port] (16-byte struct: error@8, unkC@0xC), cnt), r=func_801DDCDC(port,0); if r==1 open again plus msg(22,port,11); r==2 \u2192 msg(0x1C,6: 23,13); r==3 or unkC!=1 \u2192 msg(20,10); else state=2; otherwise state=900. case 2: nuContPakCodeSet(D_801E87A0[0],[1]); nuContPakFileOpenJis(pak,D_801E87A8,D_801E87BC,0,0x4400); err==5: if !(flags&1) {D_801E9766=0; state=3} else if flags!=7 msg(22,port,22); err==0: D_801E9766=1, state=4; else switch(err) over cases 1..9 (table jtbl_801E9560 not in the ROM data: msgs 10,11,19,20,21, default 12). case 3: msg(25,port,17), state 4. case 4: if D_801E9766, switch(flags) 0..7 (table D_801E9588: msgs 28..33, plus a loop of 4 nuContPakFileReadWrite(pak,(i<<10)+0x3340,0x20,D_801F18E0,0)); then state=900. case 900: unkD=2 for all three, func_800DF094()}. msg = func_801DD938(0x10,0x4C,10,2,200,180,18,a,port,b). The main remaining diff: the target stores the stack args before a0-a3 (the same pattern as func_801E3640).",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794738909.950115,
+  "score_before": 23256,
+  "score_after": 23256
+ },
+ {
+  "function": "func_801E2020",
+  "text": "Blocked, not a C-side problem. The switch on D_8011F2F0[arg0].unk3E lowers to a jr through a jump table at .rodata that is absent from the imported game data (m2c refuses to draft; the candidate's table references .rodata+0x0 and +0x28 have no ROM counterpart). Without the table bytes and address the switch layout can't be checked, so further C tuning can't close the gap. Best candidate d502c750f5438c8dd1dc scores 23256 (57.7%). Next step for whoever picks this up: add the jump table to memory_regions/data for the overlay, then re-run the diff; remaining register/order differences (arg0 kept in $s5 in target, $s6 in candidate; flags load placed before andi in target) are secondary.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794742500.400961,
+  "score_before": 23256,
+  "score_after": 23256
+ },
+ {
+  "function": "func_801E2020",
+  "text": "Saved best 23256 (57.7%), revision d502c750f5438c8dd1dc; restore it with get_candidate(base=\"saved_best\"). Tried 2 structural variants: (a) original inner switch(r)/switch(flags) -> 23256; (b) both converted to if-chains -> 33161 (worse). So the switch-lowering guess was wrong. Remaining differences are structural: target frame saves $ra,$s5..$s0 at 0x40..0x28 and computes the record index with sll 2 + addu (D_8011F2F0 base at %lo) on the unk3E load, while mine loads D_801F1888 first and uses different temps. Next: restore best, then try reordering the top-level setup (flags/port load after the func_800DF138 calls) and the record-index expression as ((arg0 & 0xFFFF) << 2) + arg0 to get the sll-2/addu pattern. Only 3 compiles so far; the no-improvement budget is not spent.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794761395.315531,
+  "score_before": 23256,
+  "score_after": 23256
+ },
+ {
+  "function": "func_801E2020",
+  "text": "Candidate (rev 37d24acc5125a5613e86) scores 23256 (57.7%). Target 551 insns, ours 540. Machine draft impossible: jr at line 260 of the .s has no jump table bytes; the table must be added (memory_regions.json / rodata) before the switch case order can be verified. Main diff: target prologue saves ra and s0-s5 (sw $ra 0x40($sp), s5 0x3c, s4 0x38, s3 0x34, s2 0x30, s1 0x2c, s0 0x28); ours saves s6 and spills differently. Target keeps arg0 in s5 (move $s5,$a0) and computes andi $s0,$s5,0xffff; ours uses s6 and orders differently, so the allocation of arg0/port/flags across the many func_801DD938 calls is wrong. Target loads flags (lui/lbu D_801F1888) earlier. Untested idea: keep flags, port and arg0 live across all calls (more locals, or declare flags later). Rodata refs .rodata+0x0 and +0x28 are unexplained in our build (likely the jump table plus a literal). Needs the jump table before the switch structure can be checked.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794762882.372222,
+  "score_before": 23256,
+  "score_after": 23256
+ },
+ {
+  "function": "func_801E2020",
+  "text": "Blocked, not matched. Best 23256 (57.7%). The machine draft failed because the jr jump table (switch on D_8011F2F0[arg0].unk3E, cases 0/2/3/4/900) has no bytes in the imported data; the compile also reports unresolved .rodata+0x0 and +0x28. The C in the candidate is a hand-written attempt. Structure differs from the first instructions: the target saves 0x40-byte frame regs in a different order, loads D_801F1888 before the switch, and keeps port in $s0 with the index reloaded as sll $s1,$s0,1. Next: add the jump table to memory data (or report its address) so the switch lowers the same way, then retune the register/save order.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794765881.290462,
+  "score_before": 23256,
+  "score_after": 23256
  }
 ]
