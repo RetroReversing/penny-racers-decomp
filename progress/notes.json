@@ -6328,14 +6328,6 @@
   "score_after": 1295
  },
  {
-  "function": "func_802306F0",
-  "text": "Not matched. Best this session 7856 (49.6%), revision c222892d94315d07d44f: correct control flow per asm, but register/stack layout differs (mine saves s0-s4 with frame 0x38; target saves ra,s3,s2,s1,s0 at 0x30..0x20 and keeps only s0-s3). Facts from asm: entry stride is 0x178 (i*47*8), u16 id at +0, flag u8 at +0x25; used[14] at sp+0x10 zeroed with a forward loop from 0; D_8021E1A6 switch (0..3) picks D_80232D04/D10/1C/28 before the clear loop; the wrap is n = (n<13)?n:0 applied at the top of each loop iteration in case 1 (n = id+1 first), and in case 2/3 the while-used loop does n++ then wrap. Loop 2 (i=2,3) flags 0, loop 3 (i=4,5) flags 1. Remaining work: reduce live values (the target keeps only i and n live across calls, so avoid separate index vars), and check whether func_8003DE60 takes a second argument in the first call only (a1 = arg0&0xFFFF there, not in the others). Candidate draft currently 0x20-slot saves, so try a single loop index with n as the only other live variable. Saved best 2907 is from another source and not reverified.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794710606.102677,
-  "score_before": 2907,
-  "score_after": 2907
- },
- {
   "function": "func_802191E4",
   "text": "Not attempted beyond reading the preamble; no compiles. Structure: idx=(u16)a0; s1 = &D_8011F2F0 + idx*100; kind = lhu(s1+0x3E); if kind >= 0x33 goes to the default at .L80219474 (returns 0 path); else jr through jump table at D_8021DF10[kind] (51 cases, 0..0x32). Case bodies seen so far: case A calls alSeqpStop(&D_8006FB38) then returns 1; case B reads D_8018BC3C (u16 idx) times 100 into D_8011F350 entry, lbu at +0 test, then func_801D65BC(8), sh 0xA8C to D_80190CA6, sb 0 to D_80190CA4, returns 0x10; case C reads D_801E9990 == 1 then D_80190CA4 increments. m2c failed on the jump table (needs a jtbl symbol or the jump-table contents read from the ROM). Next: read D_8021DF10 entries to name every case target, then write one case per block. Expect a long, many-case function; budget several claims.",
   "by": "claude-haiku-5-5-20",
@@ -8822,14 +8814,6 @@
   "created_at": 1794725029.082626,
   "score_before": 1215,
   "score_after": 1215
- },
- {
-  "function": "func_802306F0",
-  "text": "Best saved remains 2837 (permuter draft, revision starting from the old draft). My cleaned, artifact-free version (plain `i++;` in place of the `/*__repair_loop_weight*/do{}while(0)` artifact) scores 2897 (81.4%). Blocking gap: the target has a 0x38 frame and saves four callee-saved regs ($s0..$s3, plus $ra), while every version I compiled has 0x30 with only $s0/$s1. So the target keeps two more values live across the calls to func_8003DE60 / func_80230BC4. Adding unused locals (k,m,p) or a `Ent *e` pointer changes nothing: GCC drops them. The fix needs a real variable that is live across calls (a loop-invariant such as &D_800DA260[i] or a hoisted D_800DA260[0].id/[1].id used after the calls), or a different loop/switch structure, not register tuning. Next step: write case 2 so the second id load (D_800DA260[1].id) is hoisted into a local live across func_80230BC4, then check whether the frame becomes 0x38.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794725112.03338,
-  "score_before": 2837,
-  "score_after": 2837
  },
  {
   "function": "func_80216128",
@@ -11406,14 +11390,6 @@
   "created_at": 1794739444.543694,
   "score_before": 4200,
   "score_after": 4200
- },
- {
-  "function": "func_802306F0",
-  "text": "Not attempted: 624-byte function (156 insns, over the 48-insn batch limit) and the m2c draft does not compile (invalid operands to binary +, incompatible pointer assignments, D_800DA260 declaration mismatch). Needs a hand-written structure pass: a switch on arg0&0xFFFF with cases 1,2 (loops over a 0xD-wrapped index into the sp10[0xE] array, stride 0x178 into D_800DA26A+0x1B) and a prelude that calls func_8003DE60 on one of four D_80232Dxx addresses by D_8021E1A6. Start by reading get_assembly and fixing the prototypes.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794739452.3736708,
-  "score_before": 2607,
-  "score_after": 2607
  },
  {
   "function": "func_802191E4",
@@ -15176,14 +15152,6 @@
   "score_after": 4960
  },
  {
-  "function": "func_802306F0",
-  "text": "Not matched. Best 9041 at revision 7379013f306427cf63e9 (the one with `sp10[k]` loops; 42%). Structure of the target: frame 0x38 saves ra, s3, s2, s1, s0 with s0 = arg0 saved first. Calls: func_8003DE60(&D_80232CF8, arg0&0xFFFF), then a0 chosen from D_8021E1A6 (0->D232D04, 1->D232D10, 2->D232D1C, 3->D232D28, else no call) and func_8003DE60(a0). Then clear sp10[14] with a counter loop. switch(arg0&0xFFFF): case 1: k=D_800DA260+2, i=1, do { k clamp (k<13?k:0); func_80230BC4(i,k); D_800DA26A[0x1B+i*0x178]=0; i++; k++ } while(i<6). case 2: sp10[D260]=1, sp10[*(u16*)(D260+0x178)]=1; loop A (i=2..3, mark 0) and loop B (i=4..5, mark 1), each with a find-free while (sp10[k] -> k++ clamp). Remaining diffs: frame/register order (my version uses s4/s5 and a 0x40 frame; target only uses s0-s3). Replacing the global with a `u16 *pp` local made it worse (9408), so keep the direct globals. Next: make arg0 the s0 value saved first, and reduce loop variables to s0..s3.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794754321.804225,
-  "score_before": 2607,
-  "score_after": 2607
- },
- {
   "function": "func_8015A728",
   "text": "Best 4855 (65.3%), revision eca0b50ba934ed6f07fe. Key: struct array Rec { u8 type; u8 pad0; u16 flags; u8 pad1[0x0C]; u16 next; u8 pad2[0x2C]; u16 state; u8 pad3[0x24]; } (size 0x64; state at 0x3E, next at 0x10) indexed D_8011F2F0[idx].state; plus byte-offset reads of D_801E99C0/D_801E9994 at +0,+0x70,+0xE0,+0x150. Scores: u8-base form 6545; struct with wrong next offset 5720; struct with fixed offsets 4855. No gain from: a local base pointer; an s32 idx (5440); a typed s32 base array with [off/4] indexing (4855, same). The arithmetic for idx*100 already matches (sll/addu chain). Remaining diff is register allocation and the first st==1 branch layout (target: andi $v0 then $v1 chain; target keeps idx in $v0, mine swaps). Untried: write the idx*100 product explicitly as a u8 pointer offset, and check the st==1 / st==2 branch sense with a switch.",
   "by": "claude-haiku-5-5-21",
@@ -15710,14 +15678,6 @@
   "created_at": 1794756084.566484,
   "score_before": 8381,
   "score_after": 8381
- },
- {
-  "function": "func_802306F0",
-  "text": "Best 9041 (42.0%, revision 7379013f306427cf63e9, the claimed source). Target 156 insns vs ours 144. Frame: target is 0x30 with ra, s3, s2, s1, s0 saved (no s4); ours is 0x34 with s4 added, so the sp10 pointer (s4) is the main structural difference. The target's first action is the func_8003DE60(&D_80232CF8, arg0 & 0xFFFF) call, then the switch on D_8021E1A6 with the lui/addiu of D_80232CF8 used as the first arg. The 0x178 stride (i*376) is built with sll/subu/addu chains in the target, not a multiply. Next: replace the sp10 pointer with an index into sp10, check whether the second case-2 loop reuses k from the first, and try the stride as shifts. Not matched. Released with move_on because I was not able to get closer in the budget used.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794756181.542881,
-  "score_before": 2607,
-  "score_after": 2607
  },
  {
   "function": "func_80026D40",
@@ -19648,14 +19608,6 @@
   "score_after": 8675
  },
  {
-  "function": "func_802306F0",
-  "text": "Not matched. Best saved score 9041 (42%), revision 7379013f306427cf63e9 (case-by-case switch with local pointer `a`). Blocker: the frame needs 4 saved regs (s0-s3) plus ra at 0x30, frame 0x38; my candidates keep a 5th (s4) and the prologue order differs. Dropping `a` (revision 94e8676918a146433da3) changed the switch lowering (extra beq/nop shapes) and scored 9181; u32 i (signedness family) scored 9761. Target facts: arg0 stays in s0 across the first call; the second call sets only a0 (a1 is stale, so declare it unprototyped); D_800DA260+0x178 == D_800DA26A+0x16E; byte field at D_800DA26A + i*0x178 + 0x1B. Untested next steps: try -O1 for this switch; or restructure the sp10 clear so the loop index starts at 0 in each switch arm delay slot.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794765384.814949,
-  "score_before": 2607,
-  "score_after": 2607
- },
- {
   "function": "func_8020FC20",
   "text": "Not matched. Saved best 2665 (the claimed draft, rev 21d3b620bdcd801c33ed) re-scored at 7036 in my compile, so the saved number is not comparable; treat the draft as far off. Target frame is 0x40 (saves ra,s0,s1,s2 plus locals); the draft's frame is 0x28, so the draft is missing a real local/struct area. Target reads D_8021EEA7 at +0 and +1/+6/+7/+8 with byte loads, and the raw MIPS addresses in the diff suggest D_8021EEA7 and D_8021F048 are mis-sized or mis-placed externs (0x8021EEA7 vs 0x8021EEAD; 0x8021F048 vs 0x8021F0A0). Next: re-derive the extern layouts from the assembly (get_assembly, focusing the lbu sequence at the start of case 16), then fix the frame size before tuning calls.",
   "by": "claude-haiku-5-5-20",
@@ -20166,14 +20118,6 @@
   "created_at": 1794767396.740708,
   "score_before": 0,
   "score_after": 0
- },
- {
-  "function": "func_802306F0",
-  "text": "Not matched. Best 9041 (42.0%) at revision 21bc1c2d1393e9f330e1, a rough first draft. Main suspect: the data base. The target addresses 0x800DA260 directly (diff rows 102/103) while ours reaches 0x800DA3D8, so D_800DA26A is probably the wrong symbol. Its stride 0x178 with offsets 0x1B, 0x16E suggests one struct array based at D_800DA260 (per-entry 0x178 bytes; the u16 at +0x16E is the entry's list index). Redeclare as one base array and reference fields by offset. Also the draft's stack frame is one slot too large (ours sw ra at 0x34, target at 0x30), and the 14-byte sp10 array is probably 16 bytes or two arrays. Not tested. Machine draft had pointer-type warnings for D_800DA260 (u16 vs array); fix those first.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794767465.815788,
-  "score_before": 2607,
-  "score_after": 2607
  },
  {
   "function": "func_802191E4",
@@ -41111,5 +41055,79 @@
   "score_before": 5080,
   "score_after": 3465,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a9eaec4faef19dae320f1193247b1f34f08286d1e1d85fe3376294453b8dfe5f"
+ },
+ {
+  "function": "func_802306F0",
+  "text": "Not matched. Best this session 7856 (49.6%), revision c222892d94315d07d44f: correct control flow per asm, but register/stack layout differs (mine saves s0-s4 with frame 0x38; target saves ra,s3,s2,s1,s0 at 0x30..0x20 and keeps only s0-s3). Facts from asm: entry stride is 0x178 (i*47*8), u16 id at +0, flag u8 at +0x25; used[14] at sp+0x10 zeroed with a forward loop from 0; D_8021E1A6 switch (0..3) picks D_80232D04/D10/1C/28 before the clear loop; the wrap is n = (n<13)?n:0 applied at the top of each loop iteration in case 1 (n = id+1 first), and in case 2/3 the while-used loop does n++ then wrap. Loop 2 (i=2,3) flags 0, loop 3 (i=4,5) flags 1. Remaining work: reduce live values (the target keeps only i and n live across calls, so avoid separate index vars), and check whether func_8003DE60 takes a second argument in the first call only (a1 = arg0&0xFFFF there, not in the others). Candidate draft currently 0x20-slot saves, so try a single loop index with n as the only other live variable. Saved best 2907 is from another source and not reverified.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794710606.102677,
+  "score_before": 2907,
+  "score_after": 2907
+ },
+ {
+  "function": "func_802306F0",
+  "text": "Best saved remains 2837 (permuter draft, revision starting from the old draft). My cleaned, artifact-free version (plain `i++;` in place of the `/*__repair_loop_weight*/do{}while(0)` artifact) scores 2897 (81.4%). Blocking gap: the target has a 0x38 frame and saves four callee-saved regs ($s0..$s3, plus $ra), while every version I compiled has 0x30 with only $s0/$s1. So the target keeps two more values live across the calls to func_8003DE60 / func_80230BC4. Adding unused locals (k,m,p) or a `Ent *e` pointer changes nothing: GCC drops them. The fix needs a real variable that is live across calls (a loop-invariant such as &D_800DA260[i] or a hoisted D_800DA260[0].id/[1].id used after the calls), or a different loop/switch structure, not register tuning. Next step: write case 2 so the second id load (D_800DA260[1].id) is hoisted into a local live across func_80230BC4, then check whether the frame becomes 0x38.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794725112.03338,
+  "score_before": 2837,
+  "score_after": 2837
+ },
+ {
+  "function": "func_802306F0",
+  "text": "Not attempted: 624-byte function (156 insns, over the 48-insn batch limit) and the m2c draft does not compile (invalid operands to binary +, incompatible pointer assignments, D_800DA260 declaration mismatch). Needs a hand-written structure pass: a switch on arg0&0xFFFF with cases 1,2 (loops over a 0xD-wrapped index into the sp10[0xE] array, stride 0x178 into D_800DA26A+0x1B) and a prelude that calls func_8003DE60 on one of four D_80232Dxx addresses by D_8021E1A6. Start by reading get_assembly and fixing the prototypes.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794739452.3736708,
+  "score_before": 2607,
+  "score_after": 2607
+ },
+ {
+  "function": "func_802306F0",
+  "text": "Not matched. Best 9041 at revision 7379013f306427cf63e9 (the one with `sp10[k]` loops; 42%). Structure of the target: frame 0x38 saves ra, s3, s2, s1, s0 with s0 = arg0 saved first. Calls: func_8003DE60(&D_80232CF8, arg0&0xFFFF), then a0 chosen from D_8021E1A6 (0->D232D04, 1->D232D10, 2->D232D1C, 3->D232D28, else no call) and func_8003DE60(a0). Then clear sp10[14] with a counter loop. switch(arg0&0xFFFF): case 1: k=D_800DA260+2, i=1, do { k clamp (k<13?k:0); func_80230BC4(i,k); D_800DA26A[0x1B+i*0x178]=0; i++; k++ } while(i<6). case 2: sp10[D260]=1, sp10[*(u16*)(D260+0x178)]=1; loop A (i=2..3, mark 0) and loop B (i=4..5, mark 1), each with a find-free while (sp10[k] -> k++ clamp). Remaining diffs: frame/register order (my version uses s4/s5 and a 0x40 frame; target only uses s0-s3). Replacing the global with a `u16 *pp` local made it worse (9408), so keep the direct globals. Next: make arg0 the s0 value saved first, and reduce loop variables to s0..s3.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794754321.804225,
+  "score_before": 2607,
+  "score_after": 2607
+ },
+ {
+  "function": "func_802306F0",
+  "text": "Best 9041 (42.0%, revision 7379013f306427cf63e9, the claimed source). Target 156 insns vs ours 144. Frame: target is 0x30 with ra, s3, s2, s1, s0 saved (no s4); ours is 0x34 with s4 added, so the sp10 pointer (s4) is the main structural difference. The target's first action is the func_8003DE60(&D_80232CF8, arg0 & 0xFFFF) call, then the switch on D_8021E1A6 with the lui/addiu of D_80232CF8 used as the first arg. The 0x178 stride (i*376) is built with sll/subu/addu chains in the target, not a multiply. Next: replace the sp10 pointer with an index into sp10, check whether the second case-2 loop reuses k from the first, and try the stride as shifts. Not matched. Released with move_on because I was not able to get closer in the budget used.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794756181.542881,
+  "score_before": 2607,
+  "score_after": 2607
+ },
+ {
+  "function": "func_802306F0",
+  "text": "Not matched. Best saved score 9041 (42%), revision 7379013f306427cf63e9 (case-by-case switch with local pointer `a`). Blocker: the frame needs 4 saved regs (s0-s3) plus ra at 0x30, frame 0x38; my candidates keep a 5th (s4) and the prologue order differs. Dropping `a` (revision 94e8676918a146433da3) changed the switch lowering (extra beq/nop shapes) and scored 9181; u32 i (signedness family) scored 9761. Target facts: arg0 stays in s0 across the first call; the second call sets only a0 (a1 is stale, so declare it unprototyped); D_800DA260+0x178 == D_800DA26A+0x16E; byte field at D_800DA26A + i*0x178 + 0x1B. Untested next steps: try -O1 for this switch; or restructure the sp10 clear so the loop index starts at 0 in each switch arm delay slot.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794765384.814949,
+  "score_before": 2607,
+  "score_after": 2607
+ },
+ {
+  "function": "func_802306F0",
+  "text": "Not matched. Best 9041 (42.0%) at revision 21bc1c2d1393e9f330e1, a rough first draft. Main suspect: the data base. The target addresses 0x800DA260 directly (diff rows 102/103) while ours reaches 0x800DA3D8, so D_800DA26A is probably the wrong symbol. Its stride 0x178 with offsets 0x1B, 0x16E suggests one struct array based at D_800DA260 (per-entry 0x178 bytes; the u16 at +0x16E is the entry's list index). Redeclare as one base array and reference fields by offset. Also the draft's stack frame is one slot too large (ours sw ra at 0x34, target at 0x30), and the 14-byte sp10 array is probably 16 bytes or two arrays. Not tested. Machine draft had pointer-type warnings for D_800DA260 (u16 vs array); fix those first.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794767465.815788,
+  "score_before": 2607,
+  "score_after": 2607
+ },
+ {
+  "function": "func_802306F0",
+  "text": "Small-model attempt at func_802306F0: 12 tries.\n  best 1700 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 3095 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3136 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 9613 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 11878 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries, no match. Best 1700 under -O1 (profile 1); own profile stayed far worse (10251 vs saved 3080). Helped: nested dispatch as switch on D_8021E1A6, u16 masks on call args, inline_fn2 multiply for D_800DA26A index (1896 to 1700 range). Still differs: case-1 k init folds to addiu +2 (target has two +1), case-2 base address reloaded in target, extra s4/ra save in ours from an extra live register, if(a) guard vs target's shared call block.",
+  "by": "manual-a0dcd87aedff4ce6",
+  "created_at": 1795719444.323411,
+  "score_before": 10251,
+  "score_after": 10251,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:022c5a7c1b60aaa45c57ca26b806589358ca34927dfb7462fe5a1f800112cab8"
+ },
+ {
+  "function": "func_802306F0",
+  "text": "Small-model attempt at func_802306F0: 12 tries.\n  best 1700 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 3095 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 3136 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 9613 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 11878 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n12 tries, no match; best 1700 under -O1 (profile 1).",
+  "by": "manual-a0dcd87aedff4ce6",
+  "created_at": 1795719479.7469609,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:022c5a7c1b60aaa45c57ca26b806589358ca34927dfb7462fe5a1f800112cab8"
  }
 ]
