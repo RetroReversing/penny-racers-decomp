@@ -4230,28 +4230,28 @@ s32 _timeToSamples(ALSynth *synth, s32 micros);
 
 
 
-void alSynNew(ALSynth *drvr, ALSynConfig *c)
+/* Initialises the audio synth: sets up the buses, the free list of physical voices with their decoder, resampler and envelope mixer chains, and the parameter update list. */ void alSynNew(ALSynth *drvr, ALSynConfig *config)
 {
     s32         i;
     ALVoice     *vv;
     PVoice      *pv;
     ALVoice     *vvoices;
     PVoice      *pvoices;
-    ALHeap      *hp = c->heap;
+    ALHeap      *heap = config->heap;
     ALSave      *save;
     ALFilter    *sources;
     ALParam     *params;
-    ALParam     *paramPtr;
+    ALParam     *param;
 
     drvr->head            = 0 ;
-    drvr->numPVoices      = c->maxPVoices;
+    drvr->numPVoices      = config->maxPVoices;
     drvr->curSamples      = 0;
     drvr->paramSamples    = 0;
-    drvr->outputRate      = c->outputRate;
+    drvr->outputRate      = config->outputRate;
     drvr->maxOutSamples   = 160 ;
-    drvr->dma             = (ALDMANew) c->dmaproc;
+    drvr->dma             = (ALDMANew) config->dmaproc;
 
-    save = alHeapDBAlloc(0, 0,( hp ),(  1 ),(  sizeof(ALSave) )) ;
+    save = alHeapDBAlloc(0, 0,( heap ),(  1 ),(  sizeof(ALSave) )) ;
     alSaveNew(save);
     drvr->outputFilter = (ALFilter *)save;
 
@@ -4259,25 +4259,24 @@ void alSynNew(ALSynth *drvr, ALSynConfig *c)
 
 
 
-    drvr->auxBus = alHeapDBAlloc(0, 0,( hp ),(  1 ),(  sizeof(ALAuxBus) )) ;
+    drvr->auxBus = alHeapDBAlloc(0, 0,( heap ),(  1 ),(  sizeof(ALAuxBus) )) ;
     drvr->maxAuxBusses = 1;
-    sources = alHeapDBAlloc(0, 0,( hp ),(  c->maxPVoices ),(  sizeof(ALFilter *) )) ;
-    alAuxBusNew(drvr->auxBus, sources, c->maxPVoices);
+    sources = alHeapDBAlloc(0, 0,( heap ),(  config->maxPVoices ),(  sizeof(ALFilter *) )) ;
+    alAuxBusNew(drvr->auxBus, sources, config->maxPVoices);
 
      
 
 
-    drvr->mainBus = alHeapDBAlloc(0, 0,( hp ),(  1 ),(  sizeof(ALMainBus) )) ;
-    sources = alHeapDBAlloc(0, 0,( hp ),(  c->maxPVoices ),(  sizeof(ALFilter *) )) ;
-    alMainBusNew(drvr->mainBus, sources, c->maxPVoices);
+    drvr->mainBus = alHeapDBAlloc(0, 0,( heap ),(  1 ),(  sizeof(ALMainBus) )) ;
+    sources = alHeapDBAlloc(0, 0,( heap ),(  config->maxPVoices ),(  sizeof(ALFilter *) )) ;
+    alMainBusNew(drvr->mainBus, sources, config->maxPVoices);
 
-    if (c->fxType != 0 ){
+    if (config->fxType != 0 ){
          
 
 
-        alSynAllocFX(drvr, 0, c, hp);
+        alSynAllocFX(drvr, 0, config, heap);
     } else
-         
 
 
     	func_80036C70(drvr->mainBus, AL_FILTER_ADD_SOURCE, &drvr->auxBus[0]);
@@ -4292,19 +4291,19 @@ void alSynNew(ALSynth *drvr, ALSynConfig *c)
     drvr->pAllocList.next = 0;
     drvr->pAllocList.prev = 0;
 
-    pvoices = alHeapDBAlloc(0, 0,( hp ),(  c->maxPVoices ),(  sizeof(PVoice) )) ;
-    for (i = 0; i < c->maxPVoices; i++) {
+    pvoices = alHeapDBAlloc(0, 0,( heap ),(  config->maxPVoices ),(  sizeof(PVoice) )) ;
+    for (i = 0; i < config->maxPVoices; i++) {
         pv = &pvoices[i];
         alLink((ALLink *)pv, &drvr->pFreeList);
         pv->vvoice = 0;
 
-        alLoadNew(&pv->decoder, drvr->dma, hp);
+        alLoadNew(&pv->decoder, drvr->dma, heap);
         alLoadParam(&pv->decoder, AL_FILTER_SET_SOURCE, 0);
 
-        alResampleNew(&pv->resampler, hp);
+        alResampleNew(&pv->resampler, heap);
         alResampleParam(&pv->resampler, AL_FILTER_SET_SOURCE, &pv->decoder);
 
-        alEnvmixerNew(&pv->envmixer, hp);
+        alEnvmixerNew(&pv->envmixer, heap);
         alEnvmixerParam(&pv->envmixer, AL_FILTER_SET_SOURCE, &pv->resampler);
 
         func_80035ADC(drvr->auxBus, AL_FILTER_ADD_SOURCE, &pv->envmixer);
@@ -4317,13 +4316,13 @@ void alSynNew(ALSynth *drvr, ALSynConfig *c)
      
 
 
-    params = alHeapDBAlloc(0, 0,( hp ),(  c->maxUpdates ),(  sizeof(ALParam) )) ;
+    params = alHeapDBAlloc(0, 0,( heap ),(  config->maxUpdates ),(  sizeof(ALParam) )) ;
     drvr->paramList = 0;
-    for (i = 0; i < c->maxUpdates; i++) {
-        paramPtr= &params[i];
-        paramPtr->next = drvr->paramList;
-        drvr->paramList = paramPtr;
+    for (i = 0; i < config->maxUpdates; i++) {
+        param= &params[i];
+        param->next = drvr->paramList;
+        drvr->paramList = param;
     }
 
-    drvr->heap = hp;
+    drvr->heap = heap;
 }

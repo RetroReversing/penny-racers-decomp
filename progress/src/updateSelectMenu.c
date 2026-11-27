@@ -1,13 +1,13 @@
 typedef struct { u8 f0; u8 pad1[0x3D]; u16 f3E; u16 f40; u8 pad42[0x22]; } Rec;
 typedef struct { u16 timer; u8 pad2[2]; u8 page; u8 pad5[9]; u8 cur; u8 padF; u8 sel; u8 pad11; u8 kind; u8 pad13[3]; u8 f16; u8 pad17; u8 f18; } State;
 extern Rec D_8011F2F0[];
-extern State D_80190C9A;
+extern State sMenuState;
 extern u8 D_801C5E9C[];
 extern u8 D_801C5EA0;
 extern u8 D_801C5EA2;
 extern u8 D_801E9B34;
 extern s32 D_8021DEB4;
-s32 func_8014A870(s32, s32, s32);
+s32 getMenuNavMask(s32, s32, s32);
 void playStageSound(s32, s32);
 void func_801E1EEC(s32, s32);
 void func_80217600(void);
@@ -19,10 +19,10 @@ void debugPrintf(void *, s32);
  * moves on; cancel steps back. Sounds are on stage channel 7. */
 void updateSelectMenu(u16 id) {
     Rec *rec = &D_8011F2F0[id];
-    u8 *cur = &D_80190C9A.cur;
-    u8 *page = &D_80190C9A.page;
-    u8 *sel = &D_80190C9A.sel;
-    s32 keys = func_8014A870(0x1E, 7, 0);
+    u8 *cur = &sMenuState.cur;
+    u8 *page = &sMenuState.page;
+    u8 *sel = &sMenuState.sel;
+    s32 keys = getMenuNavMask(0x1E, 7, 0);
 
     switch (rec->f3E) {
     case 0:
@@ -56,12 +56,12 @@ void updateSelectMenu(u16 id) {
             switch (*cur) {
             case 0:
                 rec->f3E = 0x20;
-                D_80190C9A.f18 = 0;
+                sMenuState.f18 = 0;
                 func_801E1EEC(7, 0);
                 break;
             case 1:
                 rec->f3E = 0x30;
-                D_80190C9A.f18 = 0;
+                sMenuState.f18 = 0;
                 func_801E1EEC(7, 0);
                 break;
             }
@@ -72,7 +72,7 @@ void updateSelectMenu(u16 id) {
         }
         break;
     case 0x20:
-        D_80190C9A.kind = 0xC;
+        sMenuState.kind = 0xC;
         func_80217600();
         *page = 0;
         *sel = 0;
@@ -102,7 +102,7 @@ void updateSelectMenu(u16 id) {
         }
         break;
     case 0x30:
-        D_80190C9A.kind = 4;
+        sMenuState.kind = 4;
         func_80217600();
         *page = 0;
         *sel = 0;
@@ -140,8 +140,8 @@ void updateSelectMenu(u16 id) {
         }
         break;
     case 0xF0:
-        D_80190C9A.f16 = 0;
-        D_80190C9A.timer = 0x10;
+        sMenuState.f16 = 0;
+        sMenuState.timer = 0x10;
         rec->f40 = 1;
         D_801C5EA2 = 5;
         break;

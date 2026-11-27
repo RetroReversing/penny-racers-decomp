@@ -37,10 +37,10 @@ typedef struct { u8 pad0[0x21]; u8 course; } Setup;
 typedef struct { u16 type; u8 pad[0x176]; } Car;
 typedef struct { u8 c[6]; } Colors;
 typedef struct { u8 a[8]; u8 l[16]; } Lights1;
-extern SlotP D_8011F340[];
+extern SlotP sNodeTable[];
 extern SlotO D_8011F350[];
 extern Setup D_8006FAF0;
-extern Car D_800DA260[];
+extern Car sCarSlots[];
 extern Colors D_80168118[];
 extern Lights1 D_8018B478[];
 extern u8 D_800E1852;
@@ -57,7 +57,7 @@ void drawCarLighting(Gfx **gfxp, u16 id) {
     Obj *obj;
     u8 colorSet;
 
-    if (*D_8011F340[id].flag == 0) {
+    if (*sNodeTable[id].flag == 0) {
         obj = D_8011F350[id].obj;
         colorSet = D_8006FAF0.course;
         switch (obj->kind) {
@@ -80,19 +80,19 @@ void drawCarLighting(Gfx **gfxp, u16 id) {
         case 43:
         case 45:
             colorSet = 1;
-            if (D_800DA260[obj->car].type == 13) {
+            if (sCarSlots[obj->car].type == 13) {
                 colorSet = 12;
             }
             setCarLight(&D_8018B478[obj->car], C(0), C(1), C(2), C(3), C(4), C(5), -73, 73, 73);
             break;
         default:
-            colorSet = (D_800DA260[obj->car].type == 13) ? 11 : 10;
+            colorSet = (sCarSlots[obj->car].type == 13) ? 11 : 10;
             setCarLight(&D_8018B478[obj->car], C(0), C(1), C(2), C(3), C(4), C(5), -73, 73, 73);
             break;
         }
         D_800E1852 = 1;
         gSPSetLights1((*gfxp)++, D_8018B478[obj->car]);
-        if (D_800DA260[obj->car].type == 13) {
+        if (sCarSlots[obj->car].type == 13) {
             gDPLoadTextureBlock16((*gfxp)++, D_80183BE0[viewIndex][D_80168166], 0, 32, 32, 0, 0, 0, 5, 5, 0, 0);
         }
     }

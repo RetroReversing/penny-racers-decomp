@@ -61,13 +61,13 @@ extern s32 D_80203AC4;
 extern s16 D_802038DE;
 extern s16 D_802038E4;
 extern Rec D_802038E8[];
-extern u8 D_801D4FC0[];
+extern u8 fontPalette[];
 typedef struct { u8 *p; } Name; extern Name D_80202580[];
 extern u8 D_80203744[], D_80203760[], D_8020376C[], D_80203774[], D_8020377C[], D_80203784[], D_8020378C[], D_80203794[], D_8020379C[], D_802037A4[];
 void gfxSetup2DState(Gfx **);
 void gfxSetPrimAlpha(Gfx **, s32);
-void func_801CB74C();
-void func_801CBF48();
+void drawText();
+void drawNumber();
 #define W(w0v, w1v) gDma((*gfxp)++, w0v, w1v)
 #define gDPSetFillColor(pkt, c) gDma(pkt, _S(0xf7, 24, 8), c)
 #define gDPFillRectangle(pkt, ulx, uly, lrx, lry) gDma(pkt, _S(0xf6, 24, 8) | _S(lrx, 14, 10) | _S(lry, 2, 10), _S(ulx, 14, 10) | _S(uly, 2, 10))
@@ -131,42 +131,42 @@ void func_801FDA44(Gfx **gfxp) {
     gfxSetup2DState(gfxp);
     gfxSetPrimAlpha(gfxp, 0xFF);
     if (D_80202624 & 0x10) {
-        func_801CB74C(gfxp, 0x38, 0x28, 8, D_801D4FC0, D_80203744);
+        drawText(gfxp, 0x38, 0x28, 8, fontPalette, D_80203744);
     }
-    func_801CB74C(gfxp, 0x28, 0x38, 8, D_801D4FC0, D_80203760);
+    drawText(gfxp, 0x28, 0x38, 8, fontPalette, D_80203760);
     for (i = 0; i < 5; i++) {
         row = i + D_80203ACE;
         if (row < 26) {
             y = (i + 7) * 8;
-            func_801CBF48(gfxp, 0x88, y, 8, D_801D4FC0, 2, (s16)row);
-            func_801CB74C(gfxp, 0xA0, y, 8, D_801D4FC0, D_80202580[row].p);
+            drawNumber(gfxp, 0x88, y, 8, fontPalette, 2, (s16)row);
+            drawText(gfxp, 0xA0, y, 8, fontPalette, D_80202580[row].p);
         }
     }
-    func_801CB74C(gfxp, 0x28, 0x68, 8, D_801D4FC0, D_80203760);
+    drawText(gfxp, 0x28, 0x68, 8, fontPalette, D_80203760);
     if (D_80203AC4 != -1) {
-        func_801CBF48(gfxp, 0x88, 0x68, 8, D_801D4FC0, 2, (s16)D_80203AC4);
-        func_801CB74C(gfxp, 0xA0, 0x68, 8, D_801D4FC0, D_80202580[D_80203AC4].p);
+        drawNumber(gfxp, 0x88, 0x68, 8, fontPalette, 2, (s16)D_80203AC4);
+        drawText(gfxp, 0xA0, 0x68, 8, fontPalette, D_80202580[D_80203AC4].p);
     }
-    func_801CB74C(gfxp, 0x28, 0x78, 8, D_801D4FC0, D_8020376C);
-    func_801CBF48(gfxp, 0x70, 0x78, 8, D_801D4FC0, 5, D_802038DE);
-    func_801CB74C(gfxp, 0x28, 0x80, 8, D_801D4FC0, D_80203774);
-    func_801CBF48(gfxp, 0x70, 0x80, 8, D_801D4FC0, 5, D_802038E4);
-    func_801CB74C(gfxp, 0x28, 0x90, 8, D_801D4FC0, D_8020377C);
-    func_801CB74C(gfxp, 0x28, 0x98, 8, D_801D4FC0, D_80203784);
-    func_801CB74C(gfxp, 0x28, 0xA0, 8, D_801D4FC0, D_8020378C);
-    func_801CB74C(gfxp, 0x28, 0xA8, 8, D_801D4FC0, D_80203794);
-    func_801CB74C(gfxp, 0x28, 0xB0, 8, D_801D4FC0, D_8020379C);
-    func_801CB74C(gfxp, 0x28, 0xB8, 8, D_801D4FC0, D_802037A4);
+    drawText(gfxp, 0x28, 0x78, 8, fontPalette, D_8020376C);
+    drawNumber(gfxp, 0x70, 0x78, 8, fontPalette, 5, D_802038DE);
+    drawText(gfxp, 0x28, 0x80, 8, fontPalette, D_80203774);
+    drawNumber(gfxp, 0x70, 0x80, 8, fontPalette, 5, D_802038E4);
+    drawText(gfxp, 0x28, 0x90, 8, fontPalette, D_8020377C);
+    drawText(gfxp, 0x28, 0x98, 8, fontPalette, D_80203784);
+    drawText(gfxp, 0x28, 0xA0, 8, fontPalette, D_8020378C);
+    drawText(gfxp, 0x28, 0xA8, 8, fontPalette, D_80203794);
+    drawText(gfxp, 0x28, 0xB0, 8, fontPalette, D_8020379C);
+    drawText(gfxp, 0x28, 0xB8, 8, fontPalette, D_802037A4);
     for (i = 0; i < 5; i++) {
         row = i + D_80203AB6;
         if (row < 16) {
             x = i * 40 + 0x48;
-            func_801CBF48(gfxp, x, 0x90, 8, D_801D4FC0, 5, (s16)row);
-            func_801CBF48(gfxp, x, 0x98, 8, D_801D4FC0, 5, D_802038E8[row].f6);
-            func_801CBF48(gfxp, x, 0xA0, 8, D_801D4FC0, 5, D_802038E8[row].f1);
-            func_801CBF48(gfxp, x, 0xA8, 8, D_801D4FC0, 5, D_802038E8[row].f0);
-            func_801CBF48(gfxp, x, 0xB0, 8, D_801D4FC0, 5, D_802038E8[row].f8);
-            func_801CBF48(gfxp, x, 0xB8, 8, D_801D4FC0, 5, D_802038E8[row].f9);
+            drawNumber(gfxp, x, 0x90, 8, fontPalette, 5, (s16)row);
+            drawNumber(gfxp, x, 0x98, 8, fontPalette, 5, D_802038E8[row].f6);
+            drawNumber(gfxp, x, 0xA0, 8, fontPalette, 5, D_802038E8[row].f1);
+            drawNumber(gfxp, x, 0xA8, 8, fontPalette, 5, D_802038E8[row].f0);
+            drawNumber(gfxp, x, 0xB0, 8, fontPalette, 5, D_802038E8[row].f8);
+            drawNumber(gfxp, x, 0xB8, 8, fontPalette, 5, D_802038E8[row].f9);
         }
     }
 }

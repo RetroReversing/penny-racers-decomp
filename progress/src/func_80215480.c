@@ -1,5 +1,5 @@
 extern u8 D_8011F308[];
-extern u8 D_8011F30C[];
+extern u8 sPrimColorG[];
 extern u8 D_8011F320[];
 extern u8 D_8011F324[];
 extern f64 D_8021DE90;
@@ -21,7 +21,7 @@ void func_80215480(s32 arg0) {
     b = *(f32 *)(D_8011F308 + t);
     *(f32 *)(D_8011F320 + t) = a + b;
     a = *(f32 *)(D_8011F324 + t);
-    b = *(f32 *)(D_8011F30C + t);
+    b = *(f32 *)(sPrimColorG + t);
     *(f32 *)(D_8011F324 + t) = a + b;
     temp_fv1 = (f64) *(f32 *)(D_8011F320 + t);
     if ((D_8021DE90 <= temp_fv1) || (temp_fv1 <= D_8021DE98)) {

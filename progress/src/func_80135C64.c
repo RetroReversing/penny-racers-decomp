@@ -29,7 +29,7 @@ extern u16 D_8018A26E[];
 extern W375 D_8022AFE9[];
 void objCreate();
 void func_801375A0();
-void func_80137F60();
+void drawNameListPanel();
 void func_801CF468();
 void func_80028100();
 void func_802319E8();
@@ -93,7 +93,7 @@ void func_80135C64(u16 arg0)
           {
             if (D_8018A250[i][3] == 0xFF && D_80167E66 == 0)
             {
-              objCreate(0, 0, 3, 0, 0x80, 0, 0, func_801375A0, func_80137F60, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+              objCreate(0, 0, 3, 0, 0x80, 0, 0, func_801375A0, drawNameListPanel, 0, 0, 0, 0, 0, 0, 0, 0, 0);
               for (k = 0; k < sRowBoard.count; k++)
               {
                 D_8011F2F0[D_8018A26E[k]].timer = 4;

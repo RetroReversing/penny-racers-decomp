@@ -3,7 +3,7 @@ typedef struct { s16 count; u8 pad[0x26]; } View;
 typedef struct { u8 pad[0x2108]; View view[4]; } Cfg;
 
 extern u16 D_8006FB10;
-extern u8 viewIndex;
+extern struct { u8 value; } viewIndex;
 extern Cfg sRowBoard;
 
 #define SET(pkt, a, b) { Cmd *_g = (Cmd *) (pkt); _g->w0 = (a); _g->w1 = (b); }
@@ -27,8 +27,8 @@ void func_80138CC0(Cmd **gfx)
     switch (D_8006FB10) {
     case 0:
         r0 = 50.0f;
-        g0 = 100.0f;
         b0 = 250.0f;
+        g0 = 100.0f;
         g1 = 255.0f;
         r1 = 255.0f;
         b1 = 255.0f;
@@ -82,9 +82,9 @@ void func_80138CC0(Cmd **gfx)
         break;
     case 8:
         r0 = 50.0f;
-        g0 = 100.0f;
         b0 = 250.0f;
         g1 = 255.0f;
+        g0 = 100.0f;
         r1 = 255.0f;
         b1 = 255.0f;
         fr = fg = fb = 0xFF;
@@ -111,9 +111,8 @@ void func_80138CC0(Cmd **gfx)
     SET((*gfx)++, 0xE7000000, 0);
     SET((*gfx)++, 0xBA001402, 0x300000);
     COLOR(r0, g0, b0);
-    if (sRowBoard.view[viewIndex].count == 1) {
-        do { x = 16.0f; } while (0);
-        y = 12.0f;
+    if (sRowBoard.view[viewIndex.value].count == 1) {
+        do { x = 16.0f; y = 12.0f; } while (0);
         w = 288.0f;
         h = scale * 216.0f;
         for (i = 0; i < h; i++) {
@@ -125,8 +124,8 @@ void func_80138CC0(Cmd **gfx)
         }
         FILL((*gfx)++, x, y + i, x + w - 1.0f, 227);
     } else {
-        x = 16.0f;
         y = 12.0f;
+        x = 16.0f;
         w = 288.0f;
         h = scale * 108.0f;
         for (i = 0; i < h; i++) {

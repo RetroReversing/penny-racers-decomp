@@ -68,7 +68,7 @@ typedef struct { u8 v; u8 pad[4]; } B5;
 typedef struct { B5 t[4]; u8 pad[0x8F0 - 20]; } PB5;
 extern Rec D_8011F2F0[];
 extern Big sRowBoard;
-extern u8 viewIndex, D_80189CC8, D_801E9738, D_801E9740;
+extern u8 viewIndex, D_80189CC8, newTotalRecord, newLapRecord;
 extern u16 D_80167FA0[], D_80167FA8[];
 extern u8 *D_80167F68[], *D_80167F84[];
 extern u8 D_80183BA4[], D_8018A250[][5], D_8018A254[][5], D_8018A452[];
@@ -145,10 +145,10 @@ void func_80136A28(Gfx **gfxp, u16 id) {
             show = 1;
             if (D_80189CC8 == 0 || (D_80189CC8 == 2 && sRowBoard.views == 1)) {
                 if (D_8022AFE9[car].v != 5 && D_8018A452[car] >= 0x11) {
-                    if (D_801E9738 == 1 && i == 3) {
+                    if (newTotalRecord == 1 && i == 3) {
                         show = 0;
                     }
-                    if (D_801E9740 == i + 1) {
+                    if (newLapRecord == i + 1) {
                         show = 0;
                     }
                 }

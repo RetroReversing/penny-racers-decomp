@@ -6,7 +6,7 @@ extern u8 D_80189C9A[];
 extern u16 D_80189CC6[];
 extern u8 D_8018A276;
 extern u8 D_8018A277[];
-s32 func_8014A870(s32, s32, u8);
+s32 getMenuNavMask(s32, s32, u8);
 void playMenuSound(s32);
 
 void func_8014674C(u16 arg0)
@@ -18,7 +18,7 @@ void func_8014674C(u16 arg0)
 
     p = &D_8011F2F0[arg0];
     if (D_80189CC6[0] & 0x800) {
-        flags = func_8014A870(0x14, 3, ((u8 *)D_80189CC6)[-8]);
+        flags = getMenuNavMask(0x14, 3, ((u8 *)D_80189CC6)[-8]);
         if (flags & 1) {
             if (((u8 *)D_80189CC6)[-0x2C] != 0) {
                 changed = 1;

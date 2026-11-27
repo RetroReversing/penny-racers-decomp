@@ -38,7 +38,7 @@ extern u16 D_8018A44A[];
 extern u8 D_80183630[], D_80183644[];
 extern State D_80189C9A;
 extern u16 D_80189C9E[], D_80189CAA[];
-extern s32 D_8018A3B8[][8], D_8018D3A0[][8];
+extern s32 D_8018A3B8[][8], randomMasks[][8];
 extern Part D_8018F5D0[][8];
 extern Part D_80238EC0[];
 extern u16 D_80190CB4;
@@ -48,7 +48,7 @@ void dmaRomToRam(void *, void *, s32);
 void func_8021FCA4();
 u8 func_80148230();
 void func_8014998C();
-u16 func_8014B108();
+u16 computeUnlockFlags();
 u16 func_8014BB30(s32);
 void debugPrintf();
 void func_801D5A90(), func_80138B1C(), gfxSetViewViewport(), func_8022026C(), func_80149A80(), func_80144808(), func_80145A6C(), func_8013DD2C();
@@ -93,7 +93,7 @@ void func_801D5A90(), func_80138B1C(), gfxSetViewViewport(), func_8022026C(), fu
         D_8018D678 = 0;
     }
     func_8014998C();
-    D_8018A27C = func_8014B108();
+    D_8018A27C = computeUnlockFlags();
     D_8018A43A = func_8014BB30(0);
     D_8018A27C &= ~D_8018A43A;
     debugPrintf(D_80183630, D_8018A44A[D_8021E1A6]);
@@ -108,7 +108,7 @@ void func_801D5A90(), func_80138B1C(), gfxSetViewViewport(), func_8022026C(), fu
     }
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 8; j++) {
-            D_8018A3B8[i][j] = D_8018D3A0[i][j];
+            D_8018A3B8[i][j] = randomMasks[i][j];
         }
     }
     for (j = 0; j < 14; j++) {

@@ -5,7 +5,7 @@ extern Obj D_8011F2F0[];
 extern Slot sCars[];
 extern Param D_80168844[];
 extern u8 D_80239818[];
-extern void func_80141818(), func_80141BC4();
+extern void updateBallWithTrail(), drawSmokePuff();
 u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, s32, s32, s32, f32, f32, f32);
 u16 raceAllocSlot(void);
 void func_8013E958(u16, s32, s16, f32, f32, f32, u16);
@@ -65,7 +65,7 @@ void updateRoadSpawner(u16 index)
             }
             z2 = nextRandom() % 827 + 59.0f;
             nearCar = nextRandom() & 7;
-            e = objCreate(0, 0, 1, 0, 0x5B, 0xC8, D_80239818, func_80141818, func_80141BC4, x, y, z, 0, 0, 0, 5.0f, 5.0f, 5.0f);
+            e = objCreate(0, 0, 1, 0, 0x5B, 0xC8, D_80239818, updateBallWithTrail, drawSmokePuff, x, y, z, 0, 0, 0, 5.0f, 5.0f, 5.0f);
             if ((u16) (e + 2) >= 2U) {
                 func_8013E958(id, e, 0x40, (x2 - x) * D_80168844[nearCar].c, D_80168844[nearCar].a, (z2 - z) * D_80168844[nearCar].c, D_80168844[nearCar].d);
                 D_8011F2F0[e].f48 = D_80168844[nearCar].b;

@@ -17,7 +17,7 @@ extern u8 D_801C6B2B;
 extern u8 D_801C6B2C;
 extern u16 D_801C6B2E;
 extern u16 D_801C7ABA;
-extern u16 D_801C7D18;
+extern u16 boardCursorObj;
 extern s8 cursorY;
 extern s8 cursorX;
 extern u8 D_803156C4[];
@@ -29,13 +29,13 @@ void func_801B41D8();
 void func_801B42C8();
 void func_801B4B6C();
 void drawRaceStatusPanel();
-void func_801973D0();
-void func_8019F7C0();
+void initCursorObjects();
+void updateBoardCamera();
 u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 
 /* Spawns the menu's sprite objects the first time it runs, then moves the cursor sprite to follow the menu cursor. */ void updateMenuObjects(u16 arg0)
 {
-    func_8019F7C0(arg0);
+    updateBoardCamera(arg0);
     if (D_801C6B28 == 0) {
         D_801C6B2E = objCreate(0, 0, 1, 0, 0x52, 0xFF, D_803156C4, 0, 0,
                                    0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f);
@@ -43,12 +43,12 @@ u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f3
         D_801C6B28 = 1;
     }
     if (D_801C6B29 == 0) {
-        func_801973D0();
-        D_801C7D18 = objCreate(0, 0, 3, 0, 0x54, 0xF0, 0, func_801B3E18, func_801B3CB0,
+        initCursorObjects();
+        boardCursorObj = objCreate(0, 0, 3, 0, 0x54, 0xF0, 0, func_801B3E18, func_801B3CB0,
                                    cursorX * 400.0f * 0.5f, 0.0f, cursorY * 400.0f * 0.5f,
                                    0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f);
-        D_8011F2F0[D_801C7D18].flags |= 0x20;
-        D_8011F2F0[D_801C7D18].layer = 0xC;
+        D_8011F2F0[boardCursorObj].flags |= 0x20;
+        D_8011F2F0[boardCursorObj].layer = 0xC;
         D_801C6B29 = 1;
     }
     if (D_801C6B2A == 0) {
@@ -67,7 +67,7 @@ u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f3
         D_8011F2F0[D_801C7ABA].flags |= 0x20;
         D_801C6B2C = 1;
     }
-    D_8011F2F0[D_801C7D18].x = cursorX * 400.0f * 0.5f;
-    D_8011F2F0[D_801C7D18].y = 0.0f;
-    D_8011F2F0[D_801C7D18].z = cursorY * 400.0f * 0.5f;
+    D_8011F2F0[boardCursorObj].x = cursorX * 400.0f * 0.5f;
+    D_8011F2F0[boardCursorObj].y = 0.0f;
+    D_8011F2F0[boardCursorObj].z = cursorY * 400.0f * 0.5f;
 }

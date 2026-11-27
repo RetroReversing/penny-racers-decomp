@@ -20,18 +20,18 @@ typedef struct {
 } Slot;
 extern Obj D_8011F2F0[];
 extern u16 D_8018BC3C;
-extern u16 D_80190C9A;
+extern u16 sMenuState;
 extern s32 D_8021AFDC;
 extern u8 D_8021E15C;
 extern u8 D_8021E200;
 extern Slot D_8021E22F[][8];
 extern Menu selectionMenu;
 extern s32 D_80168BB0;
-s32 func_8014A870(u32, s32, s32);
+s32 getMenuNavMask(u32, s32, s32);
 void func_80211C7C(s32);
 u8 func_8020FFD0(s32, s32, s32);
 void playMenuSound(s32);
-void func_80203DF8(s32, s32, s32, s32, s32);
+void setScreenTransition(s32, s32, s32, s32, s32);
 void func_800DE38C(void);
 void func_800DE2E0(void);
 void func_80231C5C(void);
@@ -40,13 +40,13 @@ void func_801CF468(s32, s32, s32, s32);
 /* Runs the selection menu: moves the cursor, adjusts per-slot values and handles confirm or cancel. */ void updateSelectionMenu(u16 arg0)
 {
     Obj *obj = &D_8011F2F0[arg0];
-    u16 *screenMode = &D_80190C9A;
+    u16 *screenMode = &sMenuState;
     u8 changed = 0;
     s32 input;
     u8 max;
     s32 i;
 
-    input = func_8014A870(0x14, 7, selectionMenu.player);
+    input = getMenuNavMask(0x14, 7, selectionMenu.player);
     func_80211C7C(0xA);
     switch (obj->state) {
     case 0:
@@ -137,7 +137,7 @@ void func_801CF468(s32, s32, s32, s32);
         }
         break;
     case 0x30:
-        func_80203DF8(2, 6, 0, 0, 0);
+        setScreenTransition(2, 6, 0, 0, 0);
         obj->state = 0x31;
         break;
     case 0x31:

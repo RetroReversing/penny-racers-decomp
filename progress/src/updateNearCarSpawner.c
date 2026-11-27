@@ -3,7 +3,7 @@ typedef struct { u8 pad0[2]; u16 idx; u8 pad4[0x8EC]; } Slot;
 typedef struct { f32 f0; u8 pad[0x78]; } Rec;
 extern Obj D_8011F2F0[];
 extern Slot sCars[];
-extern Rec D_8018D730[];
+extern Rec slotRadius[];
 extern u8 D_8023977C[];
 extern u8 D_80239950[];
 extern void func_8014081C(), func_80140A0C(), func_80140A38(), func_80138304();
@@ -57,7 +57,7 @@ f32 sqrtf(f32);
 
                 func_8013E818(slotId, objIdx, 0x40, (targetX - x) * 0.008f * speed, height, (targetZ - z) * 0.008f * speed, 0xC8);
                 D_8011F2F0[objIdx].f48 = 0;
-                D_8018D730[slotId].f0 = 25.0f;
+                slotRadius[slotId].f0 = 25.0f;
                 partnerIdx = objCreate(0, 0, 1, 0, 0x52, 0x9B, D_80239950, func_80140A38, func_80138304, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0.2f, 0.2f, 0.2f);
                 if ((u16) (partnerIdx + 2) >= 2U) {
                     D_8011F2F0[partnerIdx].f44 = objIdx;

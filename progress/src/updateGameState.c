@@ -34,7 +34,7 @@ extern void func_800341C0(u64);
       (*(u8 *)&D_80046830) = 0;
       for (carIndex = 0; carIndex < 7; carIndex++)
       {
-        func_8022132C(sCars[carIndex]);
+        resetCar(sCars[carIndex]);
       }
       gameState = 8;
       D_80072BDC = gameState;
@@ -100,7 +100,7 @@ extern void func_800341C0(u64);
       break;
 
     case 0x1A:
-      func_80232480();
+      initRaceStage();
       gameState = 0x1B;
       break;
 

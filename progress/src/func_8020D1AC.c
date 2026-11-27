@@ -5,7 +5,7 @@ extern u8 D_801C5EA0, D_801C5E9C, D_801E87E1, D_8021B068;
 extern u16 D_8021B30A[];
 extern f32 D_8021B30C;
 extern u8 D_8021B310[], D_8021B311[], D_8021B324[], D_8021B325[], D_8021B326[], D_8021B327[], D_8021B328[], D_8021B37A[];
-extern u8 D_802E66D8[], D_802F92E0[], D_801D51C8[], D_801D5470[], D_801D4390[], D_801CF4C8[];
+extern u8 menuBgTex[], menuBgTlut[], D_801D51C8[], D_801D5470[], D_801D4390[], D_801CF4C8[];
 extern u8 sSaveData[], D_801E97A1[], D_801E97A2[], D_801E97A3[], D_801E97A4[], D_801E97A5[];
 typedef struct { u8 b[0x30]; } B30;
 extern B30 D_801E97A6[];
@@ -48,7 +48,7 @@ void func_8020D1AC(void *arg0)
     off = (D_8021E18C.n >= 9) ? 0xC : 0;
     gfxSetup2DState(arg0);
     gfxSetPrimColor(arg0, 0x78, 0x78, 0x78, 0xFF);
-    gfxDrawClippedTex8b(arg0, 0, 0, 0, 0, 0x140, 0xF0, 0x140, 0xF0, 0x40, 0x20, 0, 0, 0x13F, 0xEF, D_802E66D8, D_802F92E0);
+    gfxDrawClippedTex8b(arg0, 0, 0, 0, 0, 0x140, 0xF0, 0x140, 0xF0, 0x40, 0x20, 0, 0, 0x13F, 0xEF, menuBgTex, menuBgTlut);
     gfxSetPrimColor(arg0, 0xFF, 0xFF, 0xFF, 0xFF);
     gfxSetPrimColor(arg0, 0, 0, 0, 0x64);
     gfxDrawSprite(arg0, 0x32, 0x19, 0xB, 0x2E);

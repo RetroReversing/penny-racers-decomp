@@ -6,14 +6,14 @@ typedef struct { f32 v; u8 pad[0x78]; } HitF;
 extern Trail D_8018A460[][3];
 extern Cam D_8011F2F0[];
 extern Row hitSlots[];
-extern Hit D_8018D727[];
-extern HitF D_8018D730[];
+extern Hit slotHitFlags[];
+extern HitF slotRadius[];
 extern f32 D_8022E620[][6];
 extern u8 D_8022A720[][6];
 extern u8 sCars[];
 extern void func_80162460(void), func_80162BB0(void), func_8016221C(void);
 s32 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
-void func_8013E640(s32, s32, void *, s32, f32, f32, f32, f32, f32, f32, s32);
+void launchBall(s32, s32, void *, s32, f32, f32, f32, f32, f32, f32, s32);
 void queueObjEvent(s32, s32);
 void func_8003DF6C(void *, f32, f32, f32, f32 *, f32 *, f32 *);
 
@@ -60,7 +60,7 @@ void func_80161BE0(u8 *car) {
                     if (D_8022E620[*(u16 *) (car + 4)][i] < 2000.0f) {
                         other = sCars + D_8022A720[*(u16 *) (car + 4)][i] * 0x8F0;
                         oc = &D_8011F2F0[*(u16 *) (other + 2)];
-                        d = rec->angle - (f32) (u16) func_801F9D8C((s32) (oc->z - rec->z), (s32) (oc->x - rec->x));
+                        d = rec->angle - (f32) (u16) angleFromDelta((s32) (oc->z - rec->z), (s32) (oc->x - rec->x));
                         d = d > 0.0f ? d : -d;
                         if (other[0x879] == 0) {
                             if (d < 50.0f && other[0x8A1] != 4 && other[0x8D0] == 0) {
@@ -78,10 +78,10 @@ void func_80161BE0(u8 *car) {
             } else {
                 func_8003DF6C(car + 0x6D4, (f32) (car[0x778] & 0x1F) - 20.0f, 15.0f, *(f32 *) (car + 0x774) * 0.3f + -20.0f, &v[0], &v[1], &v[2]);
             }
-            func_8013E640(id & 0xFFFF, (u16) o, car, 0x40, 0.0f, 0.0f, 0.0f, v[0], v[1], v[2], 0x12C);
+            launchBall(id & 0xFFFF, (u16) o, car, 0x40, 0.0f, 0.0f, 0.0f, v[0], v[1], v[2], 0x12C);
             hitSlots[(u16) id].owner = car;
-            D_8018D727[(u16) id].v[*(u16 *) (car + 4)] = 1;
-            D_8018D730[(u16) id].v = 30.0f;
+            slotHitFlags[(u16) id].v[*(u16 *) (car + 4)] = 1;
+            slotRadius[(u16) id].v = 30.0f;
             hitSlots[(u16) id].unk16 = 0;
             for (i = 0; i < 8; i++) {
                 t->x[i] = rec->x;

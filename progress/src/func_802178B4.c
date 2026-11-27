@@ -19,7 +19,7 @@ extern s32 D_80168BB0;
 extern s32 D_8021AFDC;
 extern s16 gameState;
 extern u8 D_8021E144;
-void func_80203DF8(s32, s32, s32, s32, s32);
+void setScreenTransition(s32, s32, s32, s32, s32);
 void func_80211C7C(s32);
 void alSeqpStop(void *);
 void func_802319E8(void);
@@ -43,7 +43,7 @@ void func_802178B4(u16 id) {
         if (D_8021C116 >= 0x14) {
             D_8011F2F0[id].f3E = 5;
             D_8021C116 = 0;
-            func_80203DF8(1, 0x3C, 0xFF, 0xFF, 0xFF);
+            setScreenTransition(1, 0x3C, 0xFF, 0xFF, 0xFF);
         }
         break;
     case 5:
@@ -57,7 +57,7 @@ void func_802178B4(u16 id) {
             D_8011F2F0[id].f44 = 4.0f;
             D_8011F2F0[id].f48 = 0.0f;
             D_8011F2F0[id].f4C = 4.0f;
-            func_80203DF8(2, 0x3C, 0xFF, 0xFF, 0xFF);
+            setScreenTransition(2, 0x3C, 0xFF, 0xFF, 0xFF);
             D_8011F2F0[id].f3E = 2;
             if (D_801E99C0 == 1) {
                 D_8021C110 = 2;

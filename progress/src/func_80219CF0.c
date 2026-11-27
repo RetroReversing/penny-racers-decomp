@@ -1,7 +1,7 @@
 int nextRandom(void *);
 extern u8 D_8011F2F0[];
 extern f32 D_8021CA3C[];
-extern u8 D_8021E19E;
+extern u8 menuArrowAlpha;
 extern u8 D_80239984[];
 extern u8 func_80219E28[];
 extern u8 func_8021A050[];
@@ -15,11 +15,11 @@ void func_80219CF0(s32 arg0)
   switch (*((u16 *) (p + 0x3E)))
   {
     case 0:
-      D_8021E19E = 0;
+      menuArrowAlpha = 0;
       *((u16 *) (p + 0x3E)) = 1;
       return;
     case 1:
-      flag = &D_8021E19E;
+      flag = &menuArrowAlpha;
       *flag += 1;
       if ((*flag) >= 6)
       {

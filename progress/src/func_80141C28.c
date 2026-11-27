@@ -3,7 +3,7 @@ typedef struct { u8 pad0[2]; u16 idx; u8 pad4[0x7B0]; f32 f7B4; u8 pad7B8[4]; f3
 typedef struct { f32 f0; u8 pad[0x78]; } Rec;
 extern Obj D_8011F2F0[];
 extern Slot sCars[];
-extern Rec D_8018D730[];
+extern Rec slotRadius[];
 extern u8 D_8018A448;
 extern u8 D_8023984C[];
 extern u8 sprayDef[];
@@ -42,7 +42,7 @@ void func_80141C28(u16 arg0)
                     e = objCreate(0, 0, 1, 0, 0x51, 0xFF, D_8023984C, updateBouncingBall, func_8014297C, x, 200.0f, z, 0, 0, 0, 1.0f, 1.0f, 1.0f);
                     if ((u16) (e + 2) >= 2U) {
                         func_8013E818(id, e, 0x40, 0.0f, 0.0f, 0.0f, 0x12C);
-                        D_8018D730[id].f0 = 40.0f;
+                        slotRadius[id].f0 = 40.0f;
                         D_8018A448++;
                         for (i = 0; i < 5; i++) {
                             e = objCreate(0, 0, 1, 0, 0x5B, (u8) (i * 10 - 0x80), sprayDef, func_80142894, 0, x, 200.0f, 1570.0f, 0, 0, 0, 3.0f, 3.0f, 3.0f);

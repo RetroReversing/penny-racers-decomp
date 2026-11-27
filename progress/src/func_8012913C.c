@@ -4,9 +4,9 @@ typedef struct { s32 pad0; PrNodeB *b; } PrNodeA;
 typedef struct { s32 pad0; PrNodeA *a; u8 pad8[2]; u16 next; u8 padC[2]; u16 prev; } PrNode;
 typedef struct { PrNode *node; u8 pad4[96]; } PrNodeSlot;
 typedef struct { f32 v; u8 pad4[96]; } PrFloatSlot;
-extern PrNodeSlot D_8011F340[];
+extern PrNodeSlot sNodeTable[];
 extern PrFloatSlot D_8011F308[];
-extern PrFloatSlot D_8011F310[];
+extern PrFloatSlot sPrimColorB[];
 extern u8 D_8012AA38[];
 void debugPrintf();
 
@@ -19,23 +19,23 @@ s32 func_8012913C(u16 arg0, f32 x, f32 y, f32 z)
     start = arg0;
     flag = 0;
     for (;;) {
-        box = D_8011F340[arg0].node->a->b->box;
+        box = sNodeTable[arg0].node->a->b->box;
         if (x < box->minX + D_8011F308[arg0].v && box->maxX + D_8011F308[arg0].v < x &&
-            z < box->minZ + D_8011F310[arg0].v && box->maxZ + D_8011F310[arg0].v < z) {
+            z < box->minZ + sPrimColorB[arg0].v && box->maxZ + sPrimColorB[arg0].v < z) {
             goto done;
         }
         if (flag == 0) {
-            if (D_8011F340[arg0].node->next != 0xFFFF) {
-                arg0 = D_8011F340[arg0].node->next;
+            if (sNodeTable[arg0].node->next != 0xFFFF) {
+                arg0 = sNodeTable[arg0].node->next;
             } else {
-                arg0 = D_8011F340[arg0].node->prev;
+                arg0 = sNodeTable[arg0].node->prev;
                 flag = 1;
             }
         } else {
-            if (D_8011F340[arg0].node->prev != 0xFFFF) {
-                arg0 = D_8011F340[arg0].node->prev;
+            if (sNodeTable[arg0].node->prev != 0xFFFF) {
+                arg0 = sNodeTable[arg0].node->prev;
             } else {
-                arg0 = D_8011F340[arg0].node->next;
+                arg0 = sNodeTable[arg0].node->next;
                 flag = 0;
             }
         }

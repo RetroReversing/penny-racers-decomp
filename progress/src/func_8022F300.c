@@ -3,7 +3,7 @@ extern s32 D_801E99A4;
 extern s32 D_801E99A8;
 extern s32 D_801E99AC;
 extern s32 D_801E99C0;
-extern u16 D_802330A0;
+extern u16 creditsCursor;
 extern u16 gameState;
 extern u16 D_8006FB10;
 extern u16 D_8006FE58;
@@ -16,16 +16,16 @@ void func_8022F300(void)
 
     {
         s32 *p = &D_801E99A0;
-        if (*p == 1 && D_802330A0 != 0) {
+        if (*p == 1 && creditsCursor != 0) {
             *p = 2;
-            D_802330A0 -= 1;
+            creditsCursor -= 1;
         }
     }
     {
         s32 *p = &D_801E99A4;
-        if (*p == 1 && D_802330A0 < 9) {
+        if (*p == 1 && creditsCursor < 9) {
             *p = 2;
-            D_802330A0 += 1;
+            creditsCursor += 1;
         }
     }
     if (D_801E99AC == 1) {
@@ -44,7 +44,7 @@ void func_8022F300(void)
         s32 *p = &D_801E99C0;
         if (*p != 0) {
             *p += 1;
-            switch (D_802330A0) {
+            switch (creditsCursor) {
             case 0: v = 0x1A; gameState = v; break;
             case 1: v = 0x16; gameState = v; break;
             case 2: v = 0x2; gameState = v; break;

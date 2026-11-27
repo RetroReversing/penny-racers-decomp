@@ -2,8 +2,8 @@ typedef struct { u16 pad0[4]; u16 unk8; u16 unkA; u16 unkC; u16 unkE; } N88;
 typedef struct { u16 pad0[2]; u16 unk4; u16 unk6; } A88;
 typedef struct { u16 f[50]; } F88;
 typedef struct { N88 *p; u8 pad[96]; } P88;
-extern F88 D_8011F2F2[];
-extern P88 D_8011F340[];
+extern F88 sNodeFlags[];
+extern P88 sNodeTable[];
 typedef struct { u8 pad0[2]; u8 unk2; } G88;
 extern u16 D_80233EC0;
 extern G88 *trackInfo;
@@ -18,28 +18,28 @@ extern G88 *trackInfo;
   reversed = racer->unk6;
   do
   {
-    D_8011F2F2[node].f[slot] |= 8;
+    sNodeFlags[node].f[slot] |= 8;
     if (reversed == 0)
     {
-      if (D_8011F340[node].p->unkA != 0xFFFF)
+      if (sNodeTable[node].p->unkA != 0xFFFF)
       {
-        node = D_8011F340[node].p->unkA;
+        node = sNodeTable[node].p->unkA;
       }
       else
       {
-        node = D_8011F340[node].p->unkE;
+        node = sNodeTable[node].p->unkE;
         reversed = 1;
       }
     }
     else
     {
-      if (D_8011F340[node].p->unkE != 0xFFFF)
+      if (sNodeTable[node].p->unkE != 0xFFFF)
       {
-        node = D_8011F340[node].p->unkE;
+        node = sNodeTable[node].p->unkE;
       }
       else
       {
-        node = D_8011F340[node].p->unkA;
+        node = sNodeTable[node].p->unkA;
         reversed = 0;
       }
     }
@@ -51,32 +51,32 @@ extern G88 *trackInfo;
   count = 0;
   do
   {
-    D_8011F2F2[node].f[slot] &= 0xFFF7;
+    sNodeFlags[node].f[slot] &= 0xFFF7;
     if (node == D_80233EC0 + trackInfo->unk2 - 1)
     {
       break;
     }
     if (reversed == 0)
     {
-      if (D_8011F340[node].p->unkA != 0xFFFF)
+      if (sNodeTable[node].p->unkA != 0xFFFF)
       {
-        node = D_8011F340[node].p->unkA;
+        node = sNodeTable[node].p->unkA;
       }
       else
       {
-        node = D_8011F340[node].p->unkE;
+        node = sNodeTable[node].p->unkE;
         reversed = 1;
       }
     }
     else
     {
-      if (D_8011F340[node].p->unkE != 0xFFFF)
+      if (sNodeTable[node].p->unkE != 0xFFFF)
       {
-        node = D_8011F340[node].p->unkE;
+        node = sNodeTable[node].p->unkE;
       }
       else
       {
-        node = D_8011F340[node].p->unkA;
+        node = sNodeTable[node].p->unkA;
         reversed = 0;
       }
     }
@@ -89,32 +89,32 @@ extern G88 *trackInfo;
   count = 0;
   do
   {
-    D_8011F2F2[node].f[slot] &= 0xFFF7;
+    sNodeFlags[node].f[slot] &= 0xFFF7;
     if (node == D_80233EC0)
     {
       break;
     }
     if (reversed == 0)
     {
-      if (D_8011F340[node].p->unk8 != 0xFFFF)
+      if (sNodeTable[node].p->unk8 != 0xFFFF)
       {
-        node = D_8011F340[node].p->unk8;
+        node = sNodeTable[node].p->unk8;
       }
       else
       {
-        node = D_8011F340[node].p->unkC;
+        node = sNodeTable[node].p->unkC;
         reversed = 1;
       }
     }
     else
     {
-      if (D_8011F340[node].p->unkC != 0xFFFF)
+      if (sNodeTable[node].p->unkC != 0xFFFF)
       {
-        node = D_8011F340[node].p->unkC;
+        node = sNodeTable[node].p->unkC;
       }
       else
       {
-        node = D_8011F340[node].p->unk8;
+        node = sNodeTable[node].p->unk8;
         reversed = 0;
       }
     }

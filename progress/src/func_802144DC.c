@@ -1,11 +1,11 @@
-extern unsigned char D_8021E19E;
+extern unsigned char menuArrowAlpha;
 
 void func_802144DC(void)
 {
     unsigned char *p;
     unsigned char v;
 
-    p = &D_8021E19E;
+    p = &menuArrowAlpha;
     if (*p >= 0xFF) {
         v = 0xFF;
     } else {

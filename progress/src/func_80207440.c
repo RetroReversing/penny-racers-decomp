@@ -60,12 +60,12 @@ typedef struct { u8 pad0[0x40]; u16 state; u8 pad42[0x22]; } Ob14;
 typedef struct { u8 alpha; u8 pad; s16 row; s16 a; s16 b; s16 c; s16 d; s16 e; s16 f; } Menu;
 extern Ob14 D_8011F2F0[];
 extern u8 D_8021E189;
-extern Menu D_8021E19E;
+extern Menu menuArrowAlpha;
 extern s16 D_8021E1A0[];
-extern s16 D_8021E1A2;
+extern s16 skipFirstRowFlag;
 extern s16 D_8021E1A4;
 extern s16 D_8021E1A6;
-extern u8 D_802E66D8[], D_802F92E0[], D_802D92A0[], D_802D6898[];
+extern u8 menuBgTex[], menuBgTlut[], D_802D92A0[], D_802D6898[];
 extern u8 D_8021F260[];
 extern u16 *D_8021B0D0[], *D_8021B0E0[], *D_8021B0F0[], *D_8021B0F8[], *D_8021B100[];
 void gfxSetup2DState(Gfx **);
@@ -79,7 +79,7 @@ void gfxDrawText(Gfx **, s32, s32, s32, u8 *, u16 *, s32, u8 *, s32, s32, s32, s
 #define SEL(k) \
     if (D_8021E1A0[0] == k) { gfxSetPrimColor(gfxp, 0xFF, 0xFF, 0xFF, 0xFF); } else { gfxSetPrimColor(gfxp, 0x64, 0x64, 0x64, 0xFF); }
 #define HI(k) \
-    if (D_8021E19E.row == k) { gfxSetPrimColor(gfxp, D_8021F260[0], D_8021F260[1], D_8021F260[2], D_8021F260[3]); } else { gfxSetPrimColor(gfxp, 0x64, 0x64, 0x64, 0xFF); }
+    if (menuArrowAlpha.row == k) { gfxSetPrimColor(gfxp, D_8021F260[0], D_8021F260[1], D_8021F260[2], D_8021F260[3]); } else { gfxSetPrimColor(gfxp, 0x64, 0x64, 0x64, 0xFF); }
 #define ROW(y) \
     D(0x48, y, 5); \
     for (i = 0; i < 5; i++) { D(i * 32 + 0x50, y, 6); } \
@@ -97,7 +97,7 @@ void func_80207440(Gfx **gfxp, u16 id) {
     case 1:
         gfxSetup2DState(gfxp);
         gfxSetPrimColor(gfxp, 0x78, 0x78, 0x78, 0xFF);
-        gfxDrawClippedTex8b(gfxp, 0, 0, 0, 0, 320, 240, 320, 240, 64, 32, 0, 0, 319, 239, D_802E66D8, D_802F92E0);
+        gfxDrawClippedTex8b(gfxp, 0, 0, 0, 0, 320, 240, 320, 240, 64, 32, 0, 0, 319, 239, menuBgTex, menuBgTlut);
         gfxSetPrimColor(gfxp, 0, 0, 0, 0x64);
         gfxDrawSprite(gfxp, 0x4C, 0x4B, 0xB, 0x30);
         gfxDrawSprite(gfxp, 0x4C, 0x7B, 0xB, 0x30);
@@ -115,33 +115,33 @@ void func_80207440(Gfx **gfxp, u16 id) {
         D(0x5D, 0x22, 0);
         D(0x43, 0x24, 1);
         D(0xEA, 0x24, 1);
-        switch (D_8021E19E.row) {
+        switch (menuArrowAlpha.row) {
         case 3:
             HI(3);
-            n = textWidth(D_8021B0D0[D_8021E19E.c], 0xF);
-            T(n, 0xB4, D_8021B0D0[D_8021E19E.c]);
+            n = textWidth(D_8021B0D0[menuArrowAlpha.c], 0xF);
+            T(n, 0xB4, D_8021B0D0[menuArrowAlpha.c]);
         case 2:
             HI(2);
-            n = textWidth(D_8021B0F0[D_8021E19E.b], 0xF);
-            if (D_8021E19E.a == 0) {
-                T(n, 0x84, D_8021B0F0[D_8021E19E.b]);
+            n = textWidth(D_8021B0F0[menuArrowAlpha.b], 0xF);
+            if (menuArrowAlpha.a == 0) {
+                T(n, 0x84, D_8021B0F0[menuArrowAlpha.b]);
             }
-            n = textWidth(D_8021B0F8[D_8021E19E.b], 0xF);
-            if (D_8021E19E.a == 1) {
-                T(n, 0x84, D_8021B0F8[D_8021E19E.b]);
+            n = textWidth(D_8021B0F8[menuArrowAlpha.b], 0xF);
+            if (menuArrowAlpha.a == 1) {
+                T(n, 0x84, D_8021B0F8[menuArrowAlpha.b]);
             }
-            n = textWidth(D_8021B100[D_8021E19E.b], 0xF);
-            if (D_8021E19E.a >= 2 && D_8021E19E.a <= 3) {
-                T(n, 0x84, D_8021B100[D_8021E19E.b]);
+            n = textWidth(D_8021B100[menuArrowAlpha.b], 0xF);
+            if (menuArrowAlpha.a >= 2 && menuArrowAlpha.a <= 3) {
+                T(n, 0x84, D_8021B100[menuArrowAlpha.b]);
             }
         case 1:
             HI(1);
-            n = textWidth(D_8021B0E0[D_8021E19E.a], 0xF);
-            T(n, 0x54, D_8021B0E0[D_8021E19E.a]);
+            n = textWidth(D_8021B0E0[menuArrowAlpha.a], 0xF);
+            T(n, 0x54, D_8021B0E0[menuArrowAlpha.a]);
             break;
         }
-        gfxSetPrimColor(gfxp, 0xFF, 0xFF, 0xFF, D_8021E19E.alpha);
-        if ((D_8021E19E.row != 1 || D_8021E19E.d != 0) && (D_8021E1A0[0] != 2 || D_8021E1A0[1] < 2) && (D_8021E1A0[0] != 3 || D_8021E1A0[6] != 0)) {
+        gfxSetPrimColor(gfxp, 0xFF, 0xFF, 0xFF, menuArrowAlpha.alpha);
+        if ((menuArrowAlpha.row != 1 || menuArrowAlpha.d != 0) && (D_8021E1A0[0] != 2 || D_8021E1A0[1] < 2) && (D_8021E1A0[0] != 3 || D_8021E1A0[6] != 0)) {
             gfxDrawSprite(gfxp, 0x37, (s16)(D_8021E1A0[0] * 48 + 0x25), 3, 8);
             gfxDrawSprite(gfxp, 0xF9, (s16)(D_8021E1A0[0] * 48 + 0x25), 3, 9);
         }

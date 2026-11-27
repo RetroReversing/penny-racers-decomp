@@ -46,7 +46,7 @@ extern u8 D_8006FB14[];
 int abs(int);
 void func_8013EC80();
 s32 func_80148230();
-void func_8015E8E4(Car *);
+void addCarEffectObjects(Car *);
 
 void func_80222A84(Car *c)
 {
@@ -81,7 +81,7 @@ void func_80222A84(Car *c)
                     if (c->f748 > 2800.0f && c->f748 < 3200.0f) {
                         c->f74C = 4;
                         if (c->f748 > 2900.0f && c->f748 < 3100.0f) {
-                            func_8015E8E4(c);
+                            addCarEffectObjects(c);
                         }
                         c->f748 = 5000.0f;
                     } else {
@@ -91,7 +91,7 @@ void func_80222A84(Car *c)
                     if (c->f748 > 2800.0f && c->f748 < 3200.0f) {
                         c->f74C = 4;
                         if (c->f748 > 2900.0f && c->f748 < 3100.0f) {
-                            func_8015E8E4(c);
+                            addCarEffectObjects(c);
                         }
                         c->f748 = 7000.0f;
                     } else {
@@ -110,7 +110,7 @@ void func_80222A84(Car *c)
                     if (c->f748 > 2800.0f && c->f748 < 3200.0f) {
                         c->f74C = 4;
                         if (c->f748 > 2900.0f && c->f748 < 3100.0f) {
-                            func_8015E8E4(c);
+                            addCarEffectObjects(c);
                         }
                         c->f748 = 7000.0f;
                     } else {

@@ -1,6 +1,6 @@
 extern u8 D_80189B34;
 extern u8 D_8018BC35[];
-extern s16 D_8021E1A2;
+extern s16 skipFirstRowFlag;
 extern u8 D_80237632[];
 extern u8 D_8018BC36;
 extern u8 D_8018BC37;
@@ -26,7 +26,7 @@ void func_8014998C(void) {
         }
     }
     if (D_80189B34 == 1) {
-        switch (D_8021E1A2) {
+        switch (skipFirstRowFlag) {
         case 3:
             D_8018BC38 = D_80237639;
         case 2:

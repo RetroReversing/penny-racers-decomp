@@ -58,10 +58,10 @@ typedef struct { s32 m[16]; } Mtx;
 #define gDPPipeSyncP(pkt) gDPPipeSync(pkt)
 typedef struct { u8 pad0[2]; u16 flags[4]; u8 padA[0x36]; u16 state; u8 pad42[0x22]; } Ob7;
 extern Ob7 D_8011F2F0[];
-extern s16 D_8021E1A2[];
+extern s16 skipFirstRowFlag[];
 extern u16 D_8021AFE6;
-extern u8 D_802E66D8[];
-extern u8 D_802F92E0[];
+extern u8 menuBgTex[];
+extern u8 menuBgTlut[];
 void gfxSetup2DState(Gfx **);
 void gfxSetPrimColor(Gfx **, s32, s32, s32, s32);
 void gfxDrawClippedTex8b(Gfx **, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *);
@@ -78,14 +78,14 @@ void gfxDrawSprite(Gfx **, s16, s16, s32, s32);
         do { } while (0);
         gfxSetup2DState(gfxp);
         gfxSetPrimColor(gfxp, 0x78, 0x78, 0x78, 0xFF);
-        gfxDrawClippedTex8b(gfxp, 0, 0, 0, 0, 320, 240, 320, 240, 64, 32, 0, 0, 319, 239, D_802E66D8, D_802F92E0);
-        if (D_8021E1A2[0] != 0) {
+        gfxDrawClippedTex8b(gfxp, 0, 0, 0, 0, 320, 240, 320, 240, 64, 32, 0, 0, 319, 239, menuBgTex, menuBgTlut);
+        if (skipFirstRowFlag[0] != 0) {
             gfxSetPrimColor(gfxp, 0xFF, 0xFF, 0xFF, 0xFF);
             gfxDrawSprite(gfxp, 0xC4, 0x12, 0xB, 0x42);
-            gfxDrawSprite(gfxp, 0xDC, 0x11, 0xB, D_8021E1A2[2] + 0x43);
+            gfxDrawSprite(gfxp, 0xDC, 0x11, 0xB, skipFirstRowFlag[2] + 0x43);
             gfxDrawSprite(gfxp, 0x2B, 0xD, 5, 0);
             gfxSetPrimColor(gfxp, 0, 0, 0, 0xAA);
-            switch (D_8021E1A2[0]) {
+            switch (skipFirstRowFlag[0]) {
             case 3:
                 gfxDrawSprite(gfxp, 0xA7, D_8021AFE6 + 0x90, 0xB, 0x32);
             case 2:
@@ -117,7 +117,7 @@ void gfxDrawSprite(Gfx **, s16, s16, s32, s32);
             }
             gfxDrawSprite(gfxp, 0x4D, 0x10, 5, 0);
             gfxDrawSprite(gfxp, 0x99, 0x2E, 0xB, 0x42);
-            gfxDrawSprite(gfxp, 0xB1, 0x2D, 0xB, D_8021E1A2[2] + 0x43);
+            gfxDrawSprite(gfxp, 0xB1, 0x2D, 0xB, skipFirstRowFlag[2] + 0x43);
         }
         break;
     case 0:

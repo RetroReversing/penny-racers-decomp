@@ -60,13 +60,13 @@ typedef struct { u8 kind; u8 pad1[0x3F]; u16 state; u8 pad42[0x22]; } Ob8;
 typedef struct { s16 x; s16 y; s16 id; } Pos3;
 typedef struct { u16 x; u16 y; } Pos2;
 extern Ob8 D_8011F2F0[];
-extern s16 D_8021E1A2[];
+extern s16 skipFirstRowFlag[];
 extern u16 D_8021AFE6;
 extern Pos3 D_8021B110[];
 extern s32 D_8021B128;
 extern u8 D_8021B014[];
 extern Pos2 D_8021B1A4[];
-extern u8 D_8021E19E;
+extern u8 menuArrowAlpha;
 extern s32 D_8021B1A0;
 extern s16 D_8021E18C;
 extern s32 D_8021B12C[];
@@ -88,10 +88,10 @@ void func_80209310(Gfx **gfxp, u16 id) {
         do { } while (0);
         gfxSetup2DState(gfxp);
         gfxSetPrimColor(gfxp, 0xFF, 0xFF, 0xFF, 0xFF);
-        if (D_8021E1A2[0] != 0) {
+        if (skipFirstRowFlag[0] != 0) {
             gfxDrawSprite(gfxp, D_8021B110[D_8011F2F0[id].kind].x, (s16)(D_8021B110[D_8011F2F0[id].kind].y + D_8021AFE6), 0xB, D_8021B110[D_8011F2F0[id].kind].id);
         }
-        if (D_8021E1A2[0] == 0) {
+        if (skipFirstRowFlag[0] == 0) {
             xo = 0x55;
             yo = 0x2A;
             if (D_8021B128 == 1) {
@@ -101,12 +101,12 @@ void func_80209310(Gfx **gfxp, u16 id) {
             xo = 0;
             yo = 0;
         }
-        for (i = 0; i <= D_8021E1A2[0]; i++) {
+        for (i = 0; i <= skipFirstRowFlag[0]; i++) {
             if (D_8021B014[i] == 1) {
                 gfxDrawSprite(gfxp, (s16)(D_8021B1A4[i].x + xo), (s16)(D_8021B1A4[i].y + yo + D_8021AFE6), 0xB, 0x56);
             }
         }
-        if (D_8021B128 == 1 && D_8011F2F0[id].kind == D_8021E1A2[0]) {
+        if (D_8021B128 == 1 && D_8011F2F0[id].kind == skipFirstRowFlag[0]) {
             if (D_8011F2F0[id].kind == 0) {
                 xo = 0x34;
                 yo = 0x14;
@@ -126,7 +126,7 @@ void func_80209310(Gfx **gfxp, u16 id) {
                 gfxDrawSprite(gfxp, xo + 0xE0, yo + 0x59, 0xB, 0x4D);
                 gfxDrawSprite(gfxp, xo + 0xE0, yo + 0x91, 0xB, 0x4E);
             }
-            gfxSetPrimColor(gfxp, 0xFF, 0xFF, 0xFF, D_8021E19E);
+            gfxSetPrimColor(gfxp, 0xFF, 0xFF, 0xFF, menuArrowAlpha);
             if (D_8021B1A0 > 0) {
                 gfxDrawSprite(gfxp, xo + 0x5B, yo + 0x62, 0xB, 0x23);
                 gfxDrawSprite(gfxp, xo + 0xD2, yo + 0x62, 0xB, 0x24);

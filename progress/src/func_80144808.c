@@ -50,7 +50,7 @@ extern u8 D_8006FB38[];
 extern u16 D_8018BC3C;
 extern u8 D_8018BC35[];
 extern Cars D_8018A274;
-extern Car D_800DA260[];
+extern Car sCarSlots[];
 extern u8 D_8018FC50[];
 extern Pal D_80237DC0[];
 extern u8 D_8021F120[];
@@ -63,13 +63,13 @@ extern s32 D_80168BB0;
 extern void func_80211C7C();
 extern void func_8002C410();
 extern void func_8014843C();
-extern void func_80148DBC();
-extern void func_8014BCD8();
+extern void buildRandomMasks();
+extern void applyRandomMaskBits();
 extern void func_8014981C();
-extern void func_80203DF8();
+extern void setScreenTransition();
 extern void func_801D65BC();
 extern s32 func_80149778();
-extern void func_801493F0();
+extern void updateRacerProfile();
 extern s32 func_80149110();
 extern u16 func_80149B38(s32, s32, f32, f32);
 extern void func_8012AD20();
@@ -79,7 +79,7 @@ extern s32 func_80148260();
 extern void func_80148B44();
 extern u16 func_80149220();
 extern s32 func_8014BAC0();
-extern s32 func_8014A870();
+extern s32 getMenuNavMask();
 extern void playMenuSound();
 extern void func_8014BFFC();
 extern void func_8014B410();
@@ -128,14 +128,14 @@ void func_80144808(u16 arg0)
         D_80189C98.flags.all |= 0x100;
         D_80189C98.car = 0;
         func_8014843C();
-        func_80148DBC(D_8021E1A7);
-        func_8014BCD8();
+        buildRandomMasks(D_8021E1A7);
+        applyRandomMaskBits();
         if ((D_80189B34.mode == 1 || D_80189B34.mode == 2) && (D_80189B34.flags & 0x80)) {
             D_80189C98.flags.all |= 0x200;
             obj->next = 0x20;
         }
         func_8014981C(D_8018BC35[0]);
-        func_80203DF8(1, 0x32, 0, 0, 0);
+        setScreenTransition(1, 0x32, 0, 0, 0);
         obj->state = 1;
         break;
     case 1:
@@ -156,7 +156,7 @@ void func_80144808(u16 arg0)
             D_80189C98.flags.all &= 0xBFFF;
         }
         if (!(D_80189C98.flags.all & 0x800)) {
-            func_801493F0(D_80189C98.pl[1].id);
+            updateRacerProfile(D_80189C98.pl[1].id);
         }
         func_8014981C(D_80189C98.pl[1].id);
         D_80189C98.unk4 = func_80149110();
@@ -167,12 +167,12 @@ void func_80144808(u16 arg0)
             f -= 2.05;
         }
         if (D_80189C98.flags.all & 0x2000) {
-            i = D_800DA260[D_80189C98.pl[1].id].unk0;
+            i = sCarSlots[D_80189C98.pl[1].id].unk0;
             b = i & 0xFF;
             *id2 = objCreate(0, b, 1, 0, 0x54, 0xFF, D_8018FC50, func_8014ABD8, func_8020FED8,
                                  -2.259998f, -3.009998f, 0.0f, 0.0f, 360.0f, 0.0f, 0.04f, 0.04f, 0.04f);
             ((ObjB *) &D_8011F2F0[D_8011F2F0[*id2].child])->unk50->unk4 = D_80237DC0[i].b;
-            func_8012AD20(D_8011F2F0[*id2].child, D_8021F120, b, D_800DA260[D_80189C98.pl[1].id].unk16A[i]);
+            func_8012AD20(D_8011F2F0[*id2].child, D_8021F120, b, sCarSlots[D_80189C98.pl[1].id].unk16A[i]);
             D_80189C98.flags.all &= 0xDFFF;
         }
         D_8011F2F0[*id2].unk18 = -2.259998f;
@@ -277,7 +277,7 @@ void func_80144808(u16 arg0)
     case 0x46:
         b = 0x10;
         if (D_80189C98.flags.all & 0x800) {
-            b = func_8014A870(0x14, 3, D_80189C98.pl[1].id);
+            b = getMenuNavMask(0x14, 3, D_80189C98.pl[1].id);
         }
         if (b & 0x10) {
             b = 0;
@@ -339,7 +339,7 @@ void func_80144808(u16 arg0)
         break;
     case 0x200:
         func_80028100(0, 0x1E);
-        func_80203DF8(2, 0x28, 0, 0, 0);
+        setScreenTransition(2, 0x28, 0, 0, 0);
         obj->state = 0x201;
         break;
     case 0x201:
@@ -361,7 +361,7 @@ void func_80144808(u16 arg0)
         break;
     case 0x210:
         func_80028100(0, 0x32);
-        func_80203DF8(2, 0x3C, 0, 0, 0);
+        setScreenTransition(2, 0x3C, 0, 0, 0);
         obj->state = 0x211;
         break;
     case 0x211:

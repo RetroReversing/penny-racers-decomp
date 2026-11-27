@@ -40,73 +40,74 @@ extern s16 D_80047290[];
 extern u8 D_8004A710[];
 extern u8 D_8004A714[];
 
+/* Writes the RSP mixer commands for one sub-frame of an envelope mixer: runs the source filter, then the volume-ramp and dry/wet commands (extra ramp setup on the first frame). */
 Acmd *_pullSubFrame(void *filter, s16 *inp, s16 *outp, s32 outCount, s32 sampleOffset, Acmd *p)
 {
-    ALEnvMixer *e = (ALEnvMixer *)filter;
-    ALFilter *source = e->filter.source;
-    Acmd *ptr = p;
+    ALEnvMixer *mixer = (ALEnvMixer *)filter;
+    ALFilter *source = mixer->filter.source;
+    Acmd *cmd = p;
 
-    if (e->motion != 1 || !outCount) {
-        return ptr;
+    if (mixer->motion != 1 || !outCount) {
+        return cmd;
     }
     if (!source) {
         func_800346B0(D_8004A710, D_8004A714, 0x16F);
     }
-    ptr = (*(Acmd *(*)(void *, s16 *, s32, s32, Acmd *))source->handler)(source, inp, outCount, sampleOffset, ptr);
+    cmd = (*(Acmd *(*)(void *, s16 *, s32, s32, Acmd *))source->handler)(source, inp, outCount, sampleOffset, cmd);
 
     {
-        Acmd *c = ptr++;
+        Acmd *c = cmd++;
         c->w0 = 0x08000000 | (u16)*inp;
         c->w1 = ((u32)(*outp + 0x440) << 16) | ((outCount << 1) & 0xFFFF);
     }
     {
-        Acmd *c = ptr++;
+        Acmd *c = cmd++;
         c->w0 = 0x08080000 | ((*outp + 0x580) & 0xFFFF);
         c->w1 = ((u32)(*outp + 0x6C0) << 16) | ((*outp + 0x800) & 0xFFFF);
     }
 
-    if (e->first) {
-        e->first = 0;
-        e->ltgt = (e->volume * D_80047290[e->pan]) >> 15;
-        e->lratm = _getRate((f64)e->cvolL, (f64)e->ltgt, e->segEnd, &e->lratl);
-        e->rtgt = (e->volume * D_80047290[128 - e->pan - 1]) >> 15;
-        e->rratm = _getRate((f64)e->cvolR, (f64)e->rtgt, e->segEnd, &e->rratl);
+    if (mixer->first) {
+        mixer->first = 0;
+        mixer->ltgt = (mixer->volume * D_80047290[mixer->pan]) >> 15;
+        mixer->lratm = _getRate((f64)mixer->cvolL, (f64)mixer->ltgt, mixer->segEnd, &mixer->lratl);
+        mixer->rtgt = (mixer->volume * D_80047290[128 - mixer->pan - 1]) >> 15;
+        mixer->rratm = _getRate((f64)mixer->cvolR, (f64)mixer->rtgt, mixer->segEnd, &mixer->rratl);
         {
-            Acmd *c = ptr++;
-            c->w0 = 0x09060000 | (u16)e->cvolL;
+            Acmd *c = cmd++;
+            c->w0 = 0x09060000 | (u16)mixer->cvolL;
             c->w1 = 0;
         }
         {
-            Acmd *c = ptr++;
-            c->w0 = 0x09040000 | (u16)e->cvolR;
+            Acmd *c = cmd++;
+            c->w0 = 0x09040000 | (u16)mixer->cvolR;
             c->w1 = 0;
         }
         {
-            Acmd *c = ptr++;
-            c->w0 = 0x09020000 | (u16)e->ltgt;
-            c->w1 = ((u32)(u16)e->lratm << 16) | e->lratl;
+            Acmd *c = cmd++;
+            c->w0 = 0x09020000 | (u16)mixer->ltgt;
+            c->w1 = ((u32)(u16)mixer->lratm << 16) | mixer->lratl;
         }
         {
-            Acmd *c = ptr++;
-            c->w0 = 0x09000000 | (u16)e->rtgt;
-            c->w1 = ((u32)(u16)e->rratm << 16) | e->rratl;
+            Acmd *c = cmd++;
+            c->w0 = 0x09000000 | (u16)mixer->rtgt;
+            c->w1 = ((u32)(u16)mixer->rratm << 16) | mixer->rratl;
         }
         {
-            Acmd *c = ptr++;
-            c->w0 = 0x09080000 | (u16)e->dryamt;
-            c->w1 = (u16)e->wetamt;
+            Acmd *c = cmd++;
+            c->w0 = 0x09080000 | (u16)mixer->dryamt;
+            c->w1 = (u16)mixer->wetamt;
         }
         {
-            Acmd *c = ptr++;
+            Acmd *c = cmd++;
             c->w0 = 0x03090000;
-            c->w1 = osVirtualToPhysical(e->state);
+            c->w1 = osVirtualToPhysical(mixer->state);
         }
     } else {
-        Acmd *c = ptr++;
+        Acmd *c = cmd++;
         c->w0 = 0x03080000;
-        c->w1 = osVirtualToPhysical(e->state);
+        c->w1 = osVirtualToPhysical(mixer->state);
     }
     *inp += outCount << 1;
-    e->delta += outCount;
-    return ptr;
+    mixer->delta += outCount;
+    return cmd;
 }

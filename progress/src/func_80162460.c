@@ -14,7 +14,7 @@ void ballMoveCollide(Ball *, f32, f32, f32, f32, f32, f32);
 u8 func_8013F050(u16, void *);
 void spawnCameraFly(u16, f32, void *, u16);
 void queueObjEvent(u16, s16);
-u16 func_801F9D8C(s32, s32);
+u16 angleFromDelta(s32, s32);
 s32 func_8013E49C(u16);
 void func_80162460(u16 arg0)
 {
@@ -101,8 +101,8 @@ void func_80162460(u16 arg0)
             fx = dist * data->vx;
             fy = dist * data->vy;
             fz = dist * data->vz;
-            tr->yaw[7] = func_801F9D8C(fy, fz);
-            tr->pitch[7] = -func_801F9D8C(fy, fx);
+            tr->yaw[7] = angleFromDelta(fy, fz);
+            tr->pitch[7] = -angleFromDelta(fy, fx);
         }
         if (--data->timer == 0 || o->y < D_80168574[D_8006FB10] || (*(u32 *) &data->ball & 0xFFFF00) || func_8013F050(arg0, data)) {
             spawnCameraFly(arg0, 0.4f, data->owner, data->owner->kind);

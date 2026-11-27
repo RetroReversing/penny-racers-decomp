@@ -11,7 +11,7 @@ f32 __sinf(f32);
 f32 __cosf(f32);
 f32 sqrtf(f32);
 f32 func_801F9C8C(f32, f32);
-void func_80129C88(void *, s32, u8);
+void updateRouteFlags(void *, s32, u8);
 void guRotateF(f32 mf[4][4], f32 a, f32 x, f32 y, f32 z);
 void guMtxCatF(f32 a[4][4], f32 b[4][4], f32 c[4][4]);
 void guMtxXFMF(f32 mf[4][4], f32 x, f32 y, f32 z, f32 *ox, f32 *oy, f32 *oz);
@@ -66,7 +66,7 @@ void func_8012FFF0(u16 id) {
     D_80221080[n].at[0] = px;
     D_80221080[n].at[1] = py + 10.0f;
     D_80221080[n].at[2] = pz;
-    func_80129C88(sCars[car].x7CC, 4, car);
+    updateRouteFlags(sCars[car].x7CC, 4, car);
     rx = D_8011F2F0[obj].rot[0];
     ry = D_8011F2F0[obj].rot[1];
     rz = D_8011F2F0[obj].rot[2];

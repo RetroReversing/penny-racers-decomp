@@ -18,18 +18,18 @@ extern u8 D_801C7AB8;
 extern u16 D_801C7ABA;
 extern u8 D_801C7ABD;
 extern u8 D_801C7AD0;
-extern u16 D_801C7D18;
+extern u16 boardCursorObj;
 extern u8 D_801CA130;
 void func_801AEC94(void);
 void updateMenuObjects(u16);
 void initTrackObjects(void);
-void func_8019F7C0(u16);
-u8 func_80192B34(u16);
+void updateBoardCamera(u16);
+u8 handleBoardPlacement(u16);
 u8 func_80193160(u16);
 u8 placePieceAtCursor(u16);
 u8 func_80194024(u16);
 void func_801953F0(u16);
-void func_801AF8CC(void);
+void initBoardEditor(void);
 u8 func_801C3418(void);
 void func_801C1DC0(u16);
 void func_801B77F8(void);
@@ -37,7 +37,7 @@ void playMenuSound(s32);
 u8 func_8019A5A0(void);
 #define ME D_8011F2F0[arg0]
 #define NEXT D_8011F2F0[D_801C7ABA]
-#define VEC D_8011F2F0[D_801C7D18]
+#define VEC D_8011F2F0[boardCursorObj]
 void func_80196448(u16 arg0)
 {
     u16 player;
@@ -80,7 +80,7 @@ void func_80196448(u16 arg0)
         }
         break;
     case 4:
-        func_8019F7C0(0);
+        updateBoardCamera(0);
         {
          
         D_801C5EA4++;
@@ -93,7 +93,7 @@ void func_80196448(u16 arg0)
         break;
     case 5:
         
-        ME.st = func_80192B34(player);
+        ME.st = handleBoardPlacement(player);
         if (D_801E9990[player].push == 1) {
             func_801B77F8();
             ME.unk0 = ME.st;
@@ -105,7 +105,7 @@ void func_80196448(u16 arg0)
         }
         break;
     case 6:
-        func_8019F7C0(0);
+        updateBoardCamera(0);
         VEC.x = (s8)cursorX * 400.0f * 0.5f;
         VEC.y = 0;
         VEC.z = cursorY * 400.0f * 0.5f;
@@ -146,7 +146,7 @@ void func_80196448(u16 arg0)
         }
         break;
     case 9:
-        func_8019F7C0(0);
+        updateBoardCamera(0);
         VEC.x = (s8)cursorX * 400.0f * 0.5f;
         VEC.y = 0;
         VEC.z = cursorY * 400.0f * 0.5f;
@@ -174,7 +174,7 @@ void func_80196448(u16 arg0)
         }
         break;
     case 11:
-        func_8019F7C0(0);
+        updateBoardCamera(0);
         {
          
         D_801C5EA4++;
@@ -210,13 +210,13 @@ void func_80196448(u16 arg0)
         }
         break;
     case 14:
-        func_8019F7C0(0);
-        func_801AF8CC();
+        updateBoardCamera(0);
+        initBoardEditor();
         D_801C5EA4 = 0;
         ME.st = 0xF;
         break;
     case 15:
-        func_8019F7C0(0);
+        updateBoardCamera(0);
         VEC.x = (s8)cursorX * 400.0f * 0.5f;
         VEC.y = 0;
         VEC.z = cursorY * 400.0f * 0.5f;
@@ -300,7 +300,7 @@ void func_80196448(u16 arg0)
         }
         break;
     case 20:
-        func_8019F7C0(0);
+        updateBoardCamera(0);
         break;
     }
 }

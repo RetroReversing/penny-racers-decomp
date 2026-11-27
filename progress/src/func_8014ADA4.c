@@ -3,7 +3,7 @@ extern void gfxSetPrimAlpha(s32, s32);
 extern void gfxSetPrimColor(s32, s32, s32, s32, s32);
 extern void gfxDrawSprite(s32, s32, s32, s32, s32);
 extern u8 D_8011F330[];
-extern f32 D_8011F30C[];
+extern f32 sPrimColorG[];
 extern f32 D_8011F308[];
 extern u8 D_80189C9A;
 extern u16 D_80190CB4;
@@ -36,7 +36,7 @@ void func_8014ADA4(s32 arg0, u32 arg1)
         temp = *(u16 *)(D_8011F330 + D_80190CB4 * 100);
         if (temp == 0x40 || temp == 0x50) {
             gfxSetPrimColor(arg0, 0xE2, 0x38, 0x73, 0xFF);
-            gfxDrawSprite(arg0, (s16)D_8011F30C[(arg1 & 0xFFFF) * 25], 0x8E, 7, 0x1B);
+            gfxDrawSprite(arg0, (s16)sPrimColorG[(arg1 & 0xFFFF) * 25], 0x8E, 7, 0x1B);
             a1 = 0x71;
             a2 = 0;
             a3 = 0x38;

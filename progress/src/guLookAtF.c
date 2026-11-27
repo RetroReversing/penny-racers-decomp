@@ -1,5 +1,5 @@
 /* identical to guLookAtF in mariogolf64 (local match library) (matched), with its names changed by decompdecomp */
-void guLookAtF(float mf[4][4], float xEye, float yEye, float zEye, float xAt,
+/* Builds a column-major look-at matrix from an eye point, a target and an up vector. */ void guLookAtF(float mf[4][4], float xEye, float yEye, float zEye, float xAt,
                float yAt, float zAt, float xUp, float yUp, float zUp) {
   float len;
   float xLook;

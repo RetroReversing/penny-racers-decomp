@@ -23,9 +23,9 @@ extern f32 D_80235C60[];
 extern f32 D_80235300[];
 extern f32 D_80235620[];
 extern f32 D_80235940[];
-void func_8022132C(Car *);
+void resetCar(Car *);
 void func_8013E188(void);
-s32 func_801F9D8C(s32, s32);
+s32 angleFromDelta(s32, s32);
 void debugPrintf();
 f32 sqrtf(f32);
 
@@ -80,7 +80,7 @@ void func_802312F8(void) {
         }
     }
     for (i = 0; i < 7; i++) {
-        func_8022132C(&sCars[i]);
+        resetCar(&sCars[i]);
     }
     for (i = 0; i < 0x100; i++) {
         D_80229B20[i].a = 50.0f;
@@ -134,7 +134,7 @@ void func_802312F8(void) {
         if ((dx == 0.0f) & (dy == 0.0f)) {
             dx = dy = 1.0f;
         }
-        D_80235C60[i] = (u16) func_801F9D8C(dy, dx);
+        D_80235C60[i] = (u16) angleFromDelta(dy, dx);
         D_80235300[i] = 100.0f / sqrtf(dx * dx + dy * dy) / (D_802352F4[D_8006FAF0.id] + 1);
         D_80235620[i] = 100.0f / (D_802352F4[D_8006FAF0.id] + 1) * i;
         D_80235940[i] = sqrtf(dx * dx + dy * dy);

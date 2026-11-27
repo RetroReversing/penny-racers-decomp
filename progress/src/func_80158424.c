@@ -16,7 +16,7 @@ void func_80157A54();
 void func_80157BBC();
 void func_80157CF4();
 void func_80157E30();
-void func_801580F4();
+void spawnPeriodicObjects();
 void func_80158424(void)
 {
     objCreate(0, 2, 2, 0, 0x54, 0x96, D_8016D748[0], func_801574DC, func_80157568, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
@@ -51,5 +51,5 @@ void func_80158424(void)
     objCreate(0, 14, 2, 0, 0x51, 0xff, D_8023991C, liftCopyFlags, 0, -2685.2900390625f, -103.16000366210938f, -2083.050048828125f, 0.0f, 45.0f, 0.0f, 2.0f, 2.0f, 1.0f);
     objCreate(0, 23, 2, 0, 0x51, 0xff, D_8023991C, liftCopyFlags, 0, 232.1199951171875f, 200.0f, -1947.0f, 0.0f, 178.27000427246094f, 0.0f, 2.0f, 2.0f, 1.0f);
     objCreate(0, 0, 3, 0, 0x40, 0xff, 0, func_80152720, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    objCreate(0, 0, 3, 0, 0x40, 0xff, 0, func_801580F4, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+    objCreate(0, 0, 3, 0, 0x40, 0xff, 0, spawnPeriodicObjects, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 }

@@ -20,6 +20,7 @@ extern u8 D_8021F02A;
 
 extern const char D_8004A270[];
 extern char D_8004A274[];
+struct __rows_temp_a0_4 { char pad[0xc]; struct { s32 m0; } e[1]; };
 void func_8002B534(void *arg0, void *arg1) {
     s32 temp_v0_7_a1;
     s32 unksp29;
@@ -216,7 +217,7 @@ block_41:
                 temp_a0 = (*(s16 **)((s8 *)arg0 + 0x20));
                 temp_v1_2 = temp_fp & 0xFF;
                 if (temp_v1_2 < *temp_a0) {
-                    __setInstChanState(arg0, (*(s32 *)((s8 *)((temp_v1_2 * 4) + temp_a0) + 0xC)), temp_s5);
+                    __setInstChanState(arg0, ((((struct __rows_temp_a0_4 *)temp_a0)->e[temp_v1_2].m0)), temp_s5);
                 }
             } else {
                 if (temp_v1 != 0xE0) {

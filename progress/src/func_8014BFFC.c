@@ -1,6 +1,6 @@
 extern u32 D_8018A3B8[];
-extern u32 D_8018D3A0[];
-extern s16 D_8021E1A2;
+extern u32 randomMasks[];
+extern s16 skipFirstRowFlag;
 
 void func_8014BFFC(void) {
     s32 i;
@@ -8,12 +8,12 @@ void func_8014BFFC(void) {
     u32 *src;
     u32 *dst;
 
-    i = D_8021E1A2 + 1;
+    i = skipFirstRowFlag + 1;
     if (i != 4) {
         if (i < 4) {
             do {
                 j = 0;
-                dst = (u32 *)((u8 *)D_8018D3A0 + (i << 5));
+                dst = (u32 *)((u8 *)randomMasks + (i << 5));
                 src = (u32 *)((u8 *)D_8018A3B8 + (i << 5));
                 do {
                     dst[j] = src[j];

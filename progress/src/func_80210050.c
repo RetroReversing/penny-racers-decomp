@@ -11,7 +11,7 @@ extern u8 D_41CF00[];
 extern u8 D_8030BD90[];
 extern Menu D_8021EEC0;
 extern u8 D_8021EEA8;
-extern Pad D_8021E15F;
+extern Pad menuInputLock;
 extern u8 D_8021E230[][0x110];
 extern s8 D_8021E231[];
 extern Colour D_8021F260;
@@ -42,9 +42,9 @@ void func_8021078C(void);
 void drawCourseSelectOverlay(void);
 void func_80210D88(void);
 void func_80210F70(void);
-void func_802114C8(void);
+void drawSelectMenuOverlay(void);
 void func_8013DD2C(void);
-void func_80203DF8(s32, s32, s32, s32, s32);
+void setScreenTransition(s32, s32, s32, s32, s32);
 
 void func_80210050(void) {
     s32 i;
@@ -53,7 +53,7 @@ void func_80210050(void) {
     dmaRomToRam(D_419270, D_8030BD90, D_41CF00 - D_419270);
     D_8021EEC0.sel = D_8021EEA8;
     D_8021EEC0.x = D_8021EEC0.sel * 2.5;
-    D_8021EEC0.count = D_8021E230[D_8021E15F.v][0];
+    D_8021EEC0.count = D_8021E230[menuInputLock.v][0];
     D_8021EEC0.flags &= ~0x8000;
     D_8021EEC0.flags &= ~0x4000;
     D_8021EEC0.flags &= ~0x2000;
@@ -69,10 +69,10 @@ void func_80210050(void) {
     func_80211C08();
     for (j = 0; j < 14; j++) {
         for (i = 0; i < 8; i++) {
-            D_80187BF0[j][i] = D_8021F270[D_8021E15F.v][j][i];
+            D_80187BF0[j][i] = D_8021F270[menuInputLock.v][j][i];
         }
         D_80187BF0[j][8] = 0xFFFF;
-        D_8021F036[j] = D_8021F048[D_8021E15F.v][j];
+        D_8021F036[j] = D_8021F048[menuInputLock.v][j];
     }
     for (i = 0; i < 4; i++) {
         D_80221080[i].a = 0;
@@ -92,12 +92,12 @@ void func_80210050(void) {
         }
     }
     for (i = 0; i < D_8021EEC0.count; i++) {
-        j = D_8021E231[D_8021E15F.v * 0x110 + i];
+        j = D_8021E231[menuInputLock.v * 0x110 + i];
 
         D_80190C98[j].v = objCreate(0, i & 0xFF, 1, 0, 0x54, 0xFF, &D_8018F5D0[j], func_80210D88, func_80210F70, 2.5f, 3.19996309f, 0, -17.3999176f, 333.0f, 3.39999294f, 0.025f, 0.025f, 0.025f);
         *(Anim **) (D_8011F2F0[D_8011F2F0[D_80190C98[j].v].link].f50 + 4) = &D_80237DC0[j];
     }
-    objCreate(0, 0, 3, 0, 0x59, 0, 0, 0, func_802114C8, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0x59, 0, 0, 0, drawSelectMenuOverlay, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     objCreate(0, 0, 3, 0, 0xA1, 0xFF, 0, 0, func_8013DD2C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    func_80203DF8(1, 6, 0, 0, 0);
+    setScreenTransition(1, 6, 0, 0, 0);
 }

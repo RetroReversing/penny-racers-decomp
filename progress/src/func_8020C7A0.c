@@ -12,7 +12,7 @@ extern s8 D_8021F260[];
 void dmaRomToRam();
 s16 objCreate();
 void func_80143DCC();
-void func_80203DF8();
+void setScreenTransition();
 void func_8020E788();
 void func_8020E7AC();
 void func_8020CAF4();
@@ -38,7 +38,7 @@ void func_8020C7A0(void)
     if (D_8021AFDC == 0x18) {
         D_8021B068 = 0;
     }
-    func_80203DF8(1, 6, 0, 0, 0);
+    setScreenTransition(1, 6, 0, 0, 0);
     objCreate(0, 0, 3, 0, 0x40, 0, 0, func_8020CAF4, func_8020D1AC, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     D_8021E110 = objCreate(0, 0, 3, 0, 0x41, 0, 0, func_8020C994, func_8020C9DC, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     D_8021F260[0] = 0;

@@ -6,10 +6,10 @@ extern s32 D_80168BB0;
 extern u16 D_8018BC3C;
 extern s32 D_801E99C0;
 extern s32 D_8021AFDC;
-extern s32 D_8021B060;
+extern s32 menuChoice;
 extern s8 D_8021B079;
 extern u8 D_8021B0B0;
-extern s8 D_8021B0C0;
+extern s8 menuCursor;
 extern f32 D_8021E140;
 extern volatile s32 D_8021E168;
 extern u8 D_8021E678;
@@ -20,7 +20,7 @@ void func_800DE2E0(void);
 void func_800DE38C(void);
 void playMenuSound(s32);
 void func_801CF468(u16, s32, s32, s32);
-void func_80203DF8(s32, s32, s32, s32, s32);
+void setScreenTransition(s32, s32, s32, s32, s32);
 void func_80205EBC(f32 *, s32, f32, s32, s32);
 void func_80231C5C(void);
 
@@ -28,7 +28,7 @@ void func_80231C5C(void);
 {
   switch (playerSlots[entryIdx].f0) {
   case 0:
-    D_8021B0C0 = 0;
+    menuCursor = 0;
     if (D_8011F350[D_8018BC3C].p[0] == 0) {
       playerSlots[entryIdx].f0 = 1;
     }
@@ -42,8 +42,8 @@ void func_80231C5C(void);
     if (*state == 1) {
       if (D_8021E678 == 2) {
         playMenuSound(0x3D);
-        func_80203DF8(2, 6, 0, 0, 0);
-        D_8021B060 = 2;
+        setScreenTransition(2, 6, 0, 0, 0);
+        menuChoice = 2;
         playerSlots[entryIdx].f0 = 2;
         if (*(u16 *) ((u8 *) state - 0x68) == 0x3404) {
           D_8021B079 = 1;
@@ -71,8 +71,8 @@ void func_80231C5C(void);
     }
     D_8021F02C++;
     if (D_8021F02C >= 0x259) {
-      func_80203DF8(2, 0x3C, 0xFF, 0xFF, 0xFF);
-      D_8021B060 = 0x2C;
+      setScreenTransition(2, 0x3C, 0xFF, 0xFF, 0xFF);
+      menuChoice = 0x2C;
       playerSlots[entryIdx].f0 = 2;
     }
     break;
@@ -84,7 +84,7 @@ void func_80231C5C(void);
       func_80231C5C();
       func_801CF468(D_8018BC3C, 0, 0, 0);
       D_8021AFDC = 0;
-      D_80168BB0 = D_8021B060;
+      D_80168BB0 = menuChoice;
     }
     break;
   }

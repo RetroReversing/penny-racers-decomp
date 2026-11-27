@@ -60,9 +60,9 @@ extern void func_801B0B60(s32);
 extern void placeEdgeObjects(s32, void *, s32, f32, f32);
 extern void func_801B7970(void *, s32);
 extern void linkTrackPieces(s32);
-extern void func_8022132C(void *);
+extern void resetCar(void *);
 extern void func_8013E188(void);
-extern u16 func_801F9D8C(s32, s32);
+extern u16 angleFromDelta(s32, s32);
 extern u32 nextRandom(void);
 extern void debugPrintf();
 extern void func_8022FE50(u8, u8, u8, s32);
@@ -73,7 +73,7 @@ extern s16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *,
                          f32, f32, f32, f32, f32, f32, f32, f32, f32);
 extern void func_8012AD9C();
 extern void func_80159230();
-extern void func_8015A414();
+extern void drawPlayerStatusBars();
 extern void func_8013DD2C();
 
 #define SPAWN(a, b) objCreate(0, 0, 3, 0, a, b, 0, func_8012AD9C, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
@@ -109,7 +109,7 @@ void func_801AFB94(s32 arg0, u8 arg1)
         }
     }
     for (i = 0; i < 7; i++) {
-        func_8022132C(&sCars[i]);
+        resetCar(&sCars[i]);
         sCars[i].unk8DC = D_8031EA70;
     }
     D_8006FB14.unk4 = 0;
@@ -146,7 +146,7 @@ void func_801AFB94(s32 arg0, u8 arg1)
             if ((dx == 0.0f) & (dz == 0.0f)) {
                 dx = dz = 1.0f;
             }
-            D_80235C60[i] = func_801F9D8C(dz, dx);
+            D_80235C60[i] = angleFromDelta(dz, dx);
             D_80235300[i] = 100.0f / sqrtf(dx * dx + dz * dz) / (D_802352F4[D_8006FAF0.unk20] + 1);
             D_80235620[i] = 100.0f / (D_802352F4[D_8006FAF0.unk20] + 1) * i;
             D_80235940[i] = sqrtf(dx * dx + dz * dz);
@@ -168,7 +168,7 @@ void func_801AFB94(s32 arg0, u8 arg1)
             if ((dx == 0.0f) & (dz == 0.0f)) {
                 dx = dz = 1.0f;
             }
-            D_80235C60[i] = func_801F9D8C(dz, dx);
+            D_80235C60[i] = angleFromDelta(dz, dx);
             if (i == 0) {
                 D_80235300[i] = 0.0f;
                 D_80235620[i] = 200.0f;
@@ -222,7 +222,7 @@ void func_801AFB94(s32 arg0, u8 arg1)
         break;
     }
     func_8013ADA8();
-    D_8018A438 = objCreate(0, 0, 3, 0, 0xA1, 0xFF, 0, func_80159230, func_8015A414,
+    D_8018A438 = objCreate(0, 0, 3, 0, 0xA1, 0xFF, 0, func_80159230, drawPlayerStatusBars,
                                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     objCreate(0, 0, 3, 0, 0xA1, 0xFF, 0, 0, func_8013DD2C,
                   0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);

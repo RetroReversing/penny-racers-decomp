@@ -23,7 +23,7 @@ void func_8021A334(void);
 void objCreate(s32, s32, s32, s32, s32, s32, s32, void *, void *, f32, f32, s32, s32, s32, s32, s32, s32, s32);
 void func_801D65BC(s32);
 void func_80028100(s32, s32);
-void func_80203DF8(s32, s32, s32, s32, s32);
+void setScreenTransition(s32, s32, s32, s32, s32);
 void func_8021AF20(u16);
 void func_800DE38C(void);
 void func_800DE2E0(void);
@@ -116,7 +116,7 @@ void func_801CF468(u16, s32, s32, s32);
         break;
     case 0x30:
         func_80028100(0, 0x64);
-        func_80203DF8(2, 0x5A, 0xFF, 0xFF, 0xFF);
+        setScreenTransition(2, 0x5A, 0xFF, 0xFF, 0xFF);
         scriptObj->f3E = 0x31;
         break;
     case 0x31:

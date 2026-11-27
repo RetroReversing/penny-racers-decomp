@@ -59,7 +59,7 @@ typedef struct { s32 m[16]; } Mtx;
 typedef struct { s16 id; u8 pad2[0xA]; f32 f; u16 name; s16 h; u8 b; u8 c; u8 pad16[0xC]; u8 d; u8 pad23[9]; } Rec;
 typedef struct { u8 *str; u8 pad4[8]; } Str;
 extern s32 D_80202628;
-extern u8 D_801D4FC0[];
+extern u8 fontPalette[];
 extern u8 D_802037AC[], D_802037C4[], D_802037D8[], D_802037EC[], D_802037FC[], D_8020380C[], D_80203820[], D_80203838[], D_8020377C[], D_80203844[], D_8020378C[], D_80203794[], D_8020384C[], D_8020379C[], D_802037A4[], D_80203854[];
 extern s16 D_80203ABA;
 extern s32 D_80203AB8;
@@ -70,9 +70,9 @@ extern Str D_802025E8[];
 extern Rec D_801D7DF4[];
 void gfxSetup2DState(Gfx **);
 void gfxSetPrimAlpha(Gfx **, s32);
-void func_801CB74C(Gfx **, s32, u16, s32, u8 *, u8 *);
-void func_801CBF48(Gfx **, u16, u16, u16, u8 *, u8, s16);
-#define T(x, y, s) func_801CB74C(gfxp, x, y, 8, D_801D4FC0, s)
+void drawText(Gfx **, s32, u16, s32, u8 *, u8 *);
+void drawNumber(Gfx **, u16, u16, u16, u8 *, u8, s16);
+#define T(x, y, s) drawText(gfxp, x, y, 8, fontPalette, s)
 
 /* Draws the high score screen each frame: the title, a blinking prompt (on for
  * the high bit of the frame counter), then up to four table rows of 48-pixel
@@ -94,7 +94,7 @@ void drawHighScoreScreen(Gfx **gfxp) {
     T(0x1E, 0x46, D_8020380C);
     T(0x1E, 0x50, D_80203820);
     T(0x1E, 0x64, D_80203838);
-    func_801CBF48(gfxp, 0x6E, 0x64, 8, D_801D4FC0, 2, D_80203ABA);
+    drawNumber(gfxp, 0x6E, 0x64, 8, fontPalette, 2, D_80203ABA);
     T(0x8C, 0x64, D_801D75E0[D_80203AB8].str);
     T(0x1E, 0x6E, D_802025E8[D_80203ACA].str);
     T(0x28, 0x8C, D_8020377C);
@@ -107,17 +107,17 @@ void drawHighScoreScreen(Gfx **gfxp) {
     for (row = 0; row < 4; row++) {
         entry = row + D_80203ABE;
         if (entry < 8) {
-            func_801CBF48(gfxp, (row + 2) * 48, 0x8C, 8, D_801D4FC0, 5, row + D_80203ABE);
+            drawNumber(gfxp, (row + 2) * 48, 0x8C, 8, fontPalette, 5, row + D_80203ABE);
             if (D_801D7DF4[entry].id == -1) {
                 T((u16)((row + 2) * 48), 0x96, D_80203854);
             } else {
                 T((u16)((row + 2) * 48), 0x96, D_801D75E0[D_801D7DF4[entry].name].str);
             }
-            func_801CBF48(gfxp, (row + 2) * 48, 0xA0, 8, D_801D4FC0, 5, D_801D7DF4[entry].h);
-            func_801CBF48(gfxp, (row + 2) * 48, 0xAA, 8, D_801D4FC0, 5, D_801D7DF4[entry].b);
-            func_801CBF48(gfxp, (row + 2) * 48, 0xB4, 8, D_801D4FC0, 5, (s16)D_801D7DF4[entry].f);
-            func_801CBF48(gfxp, (row + 2) * 48, 0xBE, 8, D_801D4FC0, 5, D_801D7DF4[entry].c);
-            func_801CBF48(gfxp, (row + 2) * 48, 0xC8, 8, D_801D4FC0, 5, D_801D7DF4[entry].d);
+            drawNumber(gfxp, (row + 2) * 48, 0xA0, 8, fontPalette, 5, D_801D7DF4[entry].h);
+            drawNumber(gfxp, (row + 2) * 48, 0xAA, 8, fontPalette, 5, D_801D7DF4[entry].b);
+            drawNumber(gfxp, (row + 2) * 48, 0xB4, 8, fontPalette, 5, (s16)D_801D7DF4[entry].f);
+            drawNumber(gfxp, (row + 2) * 48, 0xBE, 8, fontPalette, 5, D_801D7DF4[entry].c);
+            drawNumber(gfxp, (row + 2) * 48, 0xC8, 8, fontPalette, 5, D_801D7DF4[entry].d);
         }
     }
 }

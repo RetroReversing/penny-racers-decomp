@@ -39,7 +39,7 @@ extern u8 D_801E9B1C;
 extern Entry D_801E9D38;
 extern u16 D_80072BDC;
 extern u16 gameState;
-extern void func_801CE928();
+extern void updatePlayerFade();
 extern void func_801CEC2C();
 extern void func_80028EB0();
 extern void func_80029340();
@@ -90,7 +90,7 @@ void func_801DDD8C(u16 arg0)
         D_801E8790[2] = D_801E8730;
         D_80046832 = 1;
         D_8011F2F0[arg0].state = 1;
-        D_801E9764 = objCreate(0, 0, 3, 0, 0x81, 0xFF, 0, func_801CE928, func_801CEC2C,
+        D_801E9764 = objCreate(0, 0, 3, 0, 0x81, 0xFF, 0, updatePlayerFade, func_801CEC2C,
                                    0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
         D_8011F2F0[D_801E9764].unk60 = (u8 *) &D_801D59B2;
         MENU->unk0 = 0;

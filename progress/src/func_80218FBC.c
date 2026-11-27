@@ -1,7 +1,7 @@
 extern s32 objCreate(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
 extern void func_8021A994(void);
-extern void func_8021AC64(s32, s32, s32, s32, s32);
-extern void func_80203DF8(s8, s16, s8, s8, u8);
+extern void spawnRowBoardEntry(s32, s32, s32, s32, s32);
+extern void setScreenTransition(s8, s16, s8, s8, u8);
 extern void func_8013DD2C(void);
 extern void runSpawnScript(void);
 extern void func_801D5A90(void);
@@ -9,7 +9,7 @@ extern s8 D_80046832;
 extern s8 D_80190CAA;
 extern s8 D_8021EEB2;
 extern u16 D_8018D140[];
-extern u32 D_8018D3A0[];
+extern u32 randomMasks[];
 extern u8 D_8021CA28[];
 
 void func_80218FBC(void)
@@ -28,7 +28,7 @@ void func_80218FBC(void)
     idx = 0;
     for (i = 0; i < 8; i++)
     {
-        bits = D_8018D3A0[i];
+        bits = randomMasks[i];
         for (j = 0; j < D_8021CA28[i]; j++)
         {
             if (bits & 1)
@@ -49,8 +49,8 @@ void func_80218FBC(void)
     D_80046832 = 0;
     objCreate(0, 0xFF, 3, 0, 0x7F, 0, 0, func_801D5A90, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     func_8021A994();
-    func_8021AC64(0x87, 0x52, 0, 0x80, 0x83);
+    spawnRowBoardEntry(0x87, 0x52, 0, 0x80, 0x83);
     objCreate(0, 0, 3, 0, 0xA1, 0xFF, 0, 0, func_8013DD2C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     objCreate(0, 0, 3, 0, 0x7A, 0, 0, runSpawnScript, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    func_80203DF8(1, 0x3C, 0, 0, 0);
+    setScreenTransition(1, 0x3C, 0, 0, 0);
 }

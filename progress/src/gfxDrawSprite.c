@@ -62,10 +62,10 @@ extern Spr *D_80202484[];
 extern Sheet D_80200300[];
 void gfxDrawClippedTex4b(Gfx **, s16, s16, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *);
 void gfxDrawClippedTex8b(Gfx **, s16, s16, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *);
-void func_801CE3A0(Gfx **, s16, s16, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *, u16, u16, u16, u16);
-void func_801CDDB8(Gfx **, s16, s16, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *, u16, u16, u16, u16);
+void gfxDrawTexRect4b(Gfx **, s16, s16, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *, u16, u16, u16, u16);
+void gfxDrawSpriteCI8(Gfx **, s16, s16, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *, u16, u16, u16, u16);
 
-void gfxDrawSprite(Gfx **gfxp, s16 x, s16 y, s32 set, s32 id) {
+/* Draws one sprite from a sprite sheet: uses the clipped 4-bit or 8-bit texture path for unsized entries and the sized path otherwise. */ void gfxDrawSprite(Gfx **gfxp, s16 x, s16 y, s32 set, s32 id) {
     Gfx *gfx;
     Spr *s;
     Sheet *t;
@@ -81,9 +81,9 @@ void gfxDrawSprite(Gfx **gfxp, s16 x, s16 y, s32 set, s32 id) {
         }
     } else {
         if (set == 13) {
-            func_801CE3A0(&gfx, x, y, s->w, s->h, s->a, s->b, s->c, s->d, t->a, t->b, t->tex, t->tlut, s->i, s->j, s->k, s->l);
+            gfxDrawTexRect4b(&gfx, x, y, s->w, s->h, s->a, s->b, s->c, s->d, t->a, t->b, t->tex, t->tlut, s->i, s->j, s->k, s->l);
         } else {
-            func_801CDDB8(&gfx, x, y, s->w, s->h, s->a, s->b, s->c, s->d, t->a, t->b, t->tex, t->tlut, s->i, s->j, s->k, s->l);
+            gfxDrawSpriteCI8(&gfx, x, y, s->w, s->h, s->a, s->b, s->c, s->d, t->a, t->b, t->tex, t->tlut, s->i, s->j, s->k, s->l);
         }
     }
     *gfxp = gfx;

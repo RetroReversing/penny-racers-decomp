@@ -8,8 +8,8 @@ typedef struct { f32 *tbl; u8 pad[8]; } Tbl;
 extern Obj D_8011F2F0[];
 extern Tbl D_802CF134[];
 extern char D_8011F308[];
-extern char D_8011F30C[];
-extern char D_8011F310[];
+extern char sPrimColorG[];
+extern char sPrimColorB[];
 extern char D_8011F31C[];
 void followTrackPath(Car *);
 void func_80222988(Car *);
@@ -26,7 +26,7 @@ void func_80224508(Car *);
 void func_80224694(Car *, f32);
 void func_80224784(Car *, f32, f32, s32);
 void carWallCollide(Car *);
-void func_80225FDC(Car *);
+void updateCarAnimation(Car *);
 f32 func_801F9BE8(f32, f32);
 f32 __sinf(f32);
 f32 __cosf(f32);
@@ -79,7 +79,7 @@ void func_80221AD0(Car *car) {
     car->x778++;
     func_80224784(car, spd, rot, n);
     carWallCollide(car);
-    func_80225FDC(car);
+    updateCarAnimation(car);
     if (car->x7CD != 0 && car->x770 != 0.0f) {
         switch (car->mode) {
         case 0:
@@ -163,15 +163,15 @@ void func_80221AD0(Car *car) {
     if (car->mode == 2 || car->mode == 6 || car->mode == 7) {
         if (car->mode == 2) {
             { s32 k = o->x14; n = k << 1; n += k; n <<= 3; n += k; n <<= 2; }
-            *(f32 *) (D_8011F310 + n) = __sinf(car->x8B4 * 3.14f / 180.0f) * 40.0f;
+            *(f32 *) (sPrimColorB + n) = __sinf(car->x8B4 * 3.14f / 180.0f) * 40.0f;
         }
         { s32 k = o->x14; n = k << 1; n += k; n <<= 3; n += k; n <<= 2; }
-        *(f32 *) (D_8011F30C + n) = 40.0f - __cosf((f32) (car->x8B4 * 3.14 / 180.0)) * 40.0f;
+        *(f32 *) (sPrimColorG + n) = 40.0f - __cosf((f32) (car->x8B4 * 3.14 / 180.0)) * 40.0f;
     } else {
         { s32 k = o->x14; n = k << 1; n += k; n <<= 3; n += k; n <<= 2; }
         *(f32 *) (D_8011F308 + n) = __sinf(*(f32 *) (D_8011F31C + n) * 3.14f / 180.0f) * 20.0f;
         { s32 k = o->x14; n = k << 1; n += k; n <<= 3; n += k; n <<= 2; }
-        *(f32 *) (D_8011F30C + n) = 28.0f - __cosf(*(f32 *) (D_8011F31C + n) * 3.14f / 180.0f) * 25.0f;
+        *(f32 *) (sPrimColorG + n) = 28.0f - __cosf(*(f32 *) (D_8011F31C + n) * 3.14f / 180.0f) * 25.0f;
         D_8011F2F0[o->x14].pz = 0.0f;
     }
     func_8013BB54(car->obj);

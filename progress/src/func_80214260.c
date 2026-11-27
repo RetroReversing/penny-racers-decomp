@@ -35,7 +35,7 @@ extern u8 D_8021B064[];
 extern s8 D_8021B079;
 extern u16 D_8021EEB8;
 extern u8 D_8030BD90[];
-void func_802040C4(void);
+void addPrimColorCmds(void);
 void func_80214504(void);
 void func_8021473C(void);
 
@@ -60,7 +60,7 @@ void func_80214260(void)
     }
     D_8021B079 = 0;
     func_80143DCC();
-    D_8021EEB8 = objCreate(0, 0, 3, 0, 0, 0xFF, 0, 0, &func_802040C4, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    D_8021EEB8 = objCreate(0, 0, 3, 0, 0, 0xFF, 0, 0, &addPrimColorCmds, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
     D_8011F2F0[D_8021EEB8].flags4 |= 0x20;
     D_8011F2F0[D_8021EEB8].flags6 |= 0x20;

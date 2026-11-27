@@ -4,9 +4,9 @@ extern void func_800DE2E0();
 extern void func_800DE38C();
 extern void func_801D87FC();
 extern void func_8021F5F0();
-extern void func_8022132C(void *);
+extern void resetCar(void *);
 extern u8 sCars[];
-extern u8 D_800DA260[];
+extern u8 sCarSlots[];
 extern s16 D_8018A44A[];
 extern s16 D_80189C94;
 extern s8 D_8018A43C;
@@ -26,17 +26,17 @@ void func_80025C50(void)
     func_800DE38C();
     func_800DE2E0();
     for (i = 0; i < 7; i++) {
-        func_8022132C(sCars + i * 2288);
+        resetCar(sCars + i * 2288);
     }
     for (i = 0; i < 8; i++) {
         off = i * 376;
-        func_80025DBC(D_800DA260 + off);
-        *(s16 *)(D_800DA260 + off) = i;
-        *(s16 *)(D_800DA260 + off + 2) = i;
-        *(s16 *)(D_800DA260 + off + 4) = i;
-        *(s16 *)(D_800DA260 + off + 6) = i;
-        *(s16 *)(D_800DA260 + off + 8) = i;
-        *(s16 *)(D_800DA260 + off + 10) = i;
+        func_80025DBC(sCarSlots + off);
+        *(s16 *)(sCarSlots + off) = i;
+        *(s16 *)(sCarSlots + off + 2) = i;
+        *(s16 *)(sCarSlots + off + 4) = i;
+        *(s16 *)(sCarSlots + off + 6) = i;
+        *(s16 *)(sCarSlots + off + 8) = i;
+        *(s16 *)(sCarSlots + off + 10) = i;
     }
     D_8021F028[0] = 0x15;
     D_8021F028[1] = 0x15;

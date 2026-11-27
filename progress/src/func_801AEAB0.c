@@ -1,6 +1,6 @@
 u16 objCreate(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
 s32 dmaRomToRam(void *, void *, s32);
-void func_80203DF8(s32, s32, s32, s32, s32);
+void setScreenTransition(s32, s32, s32, s32, s32);
 extern u8 D_1B0E50[];
 extern u8 D_1F9030[];
 extern u8 D_8006FAF0[];
@@ -27,5 +27,5 @@ void func_801AEAB0(void) {
     D_801C7AD0 = 0;
     objCreate(0, 0, 3, 0, 0x7F, 0, 0, D_801D5A90, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     dmaRomToRam(D_1B0E50, D_802D6890, D_1F9030 - D_1B0E50);
-    func_80203DF8(1, 0x1E, 0, 0, 0);
+    setScreenTransition(1, 0x1E, 0, 0, 0);
 }

@@ -57,7 +57,7 @@ typedef struct { u8 pad0[0x20]; u16 course; } Setup;
 extern SlotF D_8011F334[];
 extern SlotF D_8011F33C[];
 extern SlotF D_8011F308[];
-extern SlotF D_8011F310[];
+extern SlotF sPrimColorB[];
 extern Car sCars[];
 extern Setup D_8006FAF0;
 extern Gfx D_80220ED8[];
@@ -72,10 +72,10 @@ extern u8 *D_802002D0[];
 extern u8 D_802002DC[];
 extern u8 D_80203554[];
 extern u8 D_80203558[];
-extern u8 D_801D4FC0[];
+extern u8 fontPalette[];
 void gfxSetup2DState(Gfx **);
 void gfxSetPrimAlpha(Gfx **, u16);
-void func_801CB74C(Gfx **, u16, u16, s32, u8 *, u8 *);
+void drawText(Gfx **, u16, u16, s32, u8 *, u8 *);
 void func_801CBDE8(Gfx **, u16, u16, s32, u8 *, s32, u16);
 #define gSPDisplayList(pkt, dl) gDma(pkt, _S(0x06, 24, 8), dl)
 #define PULSE(v, dir, step, top) \
@@ -92,12 +92,12 @@ void func_801CBDE8(Gfx **, u16, u16, s32, u8 *, s32, u16);
     }
     gfxSetPrimAlpha(gfxp, 0x64);
     for (i = 0; i < D_80232840[D_8006FAF0.course]; i++) {
-        func_801CB74C(gfxp, (u32)(D_8011F334[D_80233EC0 + i].v / 30.0f + 160.0f), (u32)(D_8011F33C[D_80233EC0 + i].v / 30.0f + 120.0f), 8, D_802002DC, D_80203554);
+        drawText(gfxp, (u32)(D_8011F334[D_80233EC0 + i].v / 30.0f + 160.0f), (u32)(D_8011F33C[D_80233EC0 + i].v / 30.0f + 120.0f), 8, D_802002DC, D_80203554);
     }
     gfxSetPrimAlpha(gfxp, D_802002F0);
     for (i = 0; i < 6; i++) {
-        func_801CBDE8(gfxp, (u32)(D_8011F308[sCars[i].slot].v / 30.0f + 160.0f), (u32)(D_8011F310[sCars[i].slot].v / 30.0f + 120.0f), 8, D_802002D0[sCars[i].kind], 1, i + 1);
+        func_801CBDE8(gfxp, (u32)(D_8011F308[sCars[i].slot].v / 30.0f + 160.0f), (u32)(sPrimColorB[sCars[i].slot].v / 30.0f + 120.0f), 8, D_802002D0[sCars[i].kind], 1, i + 1);
     }
     gfxSetPrimAlpha(gfxp, D_802002EC);
-    func_801CB74C(gfxp, 0x18, 0x10, 8, D_801D4FC0, D_80203558);
+    drawText(gfxp, 0x18, 0x10, 8, fontPalette, D_80203558);
 }

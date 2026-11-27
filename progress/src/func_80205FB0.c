@@ -13,7 +13,7 @@ void dmaRomToRam();
 void objCreate();
 void func_80143DCC();
 void func_80203AD0();
-void func_80203DF8();
+void setScreenTransition();
 void func_80214204();
 void updateTitleSequence();
 void func_8020653C();
@@ -37,7 +37,7 @@ void func_80205FB0(void)
         D_8021E168 = -0xAA;
         D_8021E678 = 0;
     }
-    func_80203DF8(1, 0x3C, 0, 0, 0);
+    setScreenTransition(1, 0x3C, 0, 0, 0);
     objCreate(0, 0, 3, 0, 0x40, 0, 0, updateTitleSequence, func_8020653C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     D_8021B084 = 0;
 }

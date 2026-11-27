@@ -3,8 +3,8 @@ typedef struct {
     u8 pad[98];
 } Slot;
 
-extern Slot D_8011F2F2[];
+extern Slot sNodeFlags[];
 
 void func_800DF100(s32 arg0) {
-    D_8011F2F2[arg0 & 0xFFFF].flags |= 0x10;
+    sNodeFlags[arg0 & 0xFFFF].flags |= 0x10;
 }

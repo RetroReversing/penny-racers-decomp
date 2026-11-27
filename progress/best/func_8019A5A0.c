@@ -7,19 +7,19 @@ extern char D_8011F2FD[];
 extern u8 cursorY;
 extern char D_801C6BE0[];
 extern u8 cursorX;
-extern unsigned char trackPoints[];
+extern unsigned char trackPointTable[];
 extern char glyphLine[];
 extern char D_801C7082[];
 extern char D_801C7083[];
 extern unsigned char glyphCode[];
-extern u8 blockFootprint;
-extern char D_801C7470[];
+extern u8 blockDirection;
+extern char trackPointLinks[];
 extern u8 *trackInfo;
-extern u8 D_801C7AB6;
-extern unsigned char D_801C7AD8[];
+extern u8 trackPointEntryCount;
+extern unsigned char trackPointIndexByCell[];
 inline static u8 inline_fn(s32 arg0)
 {
-  return (u8) (*(trackPoints + arg0));
+  return (u8) (*(trackPointTable + arg0));
 }
 
 inline static int inline_fn2(s32 arg0, int arg1)
@@ -356,7 +356,7 @@ u8 func_8019A5A0(void)
     var_s1_2 += 1;
   }
   while (((u32) inline_fn2(var_s1_2, 0xFFFF)) < 0xC8U);
-  var_s3 = *(D_801C7AD8 + ((D_801C6BB1 * 0x18) + blockPos));
+  var_s3 = *(trackPointIndexByCell + ((D_801C6BB1 * 0x18) + blockPos));
   if ((*((u8 *) (((s8 *) trackInfo) + 0))) == 3)
   {
     var_a2 = *(glyphCode + ((var_s3 & 0xFF) * 5));
@@ -367,7 +367,7 @@ u8 func_8019A5A0(void)
   }
   if ((*((u8 *) (((s8 *) trackInfo) + 1))) == 5)
   {
-    switch (blockFootprint)
+    switch (blockDirection)
     {
       if (((u32) ((var_a2 - 5) & 0xFF)) < 5U)
       {
@@ -406,7 +406,7 @@ u8 func_8019A5A0(void)
   else
     if ((*((u8 *) (((s8 *) trackInfo) + 1))) == 6)
   {
-    switch (blockFootprint)
+    switch (blockDirection)
     {
       var_v1 = var_s3 & 0xFF;
       if (((s8) var_a2) == 0x2B)
@@ -465,7 +465,7 @@ u8 func_8019A5A0(void)
     {
       spC8C = sp890;
       loop_40:
-      temp_s5 = *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + D_801C7AD8));
+      temp_s5 = *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + trackPointIndexByCell));
 
       if ((*((u8 *) (((s8 *) temp_a1) + 0))) == 3)
       {
@@ -489,7 +489,7 @@ u8 func_8019A5A0(void)
         }
       }
       temp_a0 = var_v0_7 * 5;
-      if ((*(trackPoints + temp_a0)) == 0)
+      if ((*(trackPointTable + temp_a0)) == 0)
       {
         if (((*(D_801C7082 + temp_a0)) == (*(D_801C7082 + (inline_fn2(temp_s5, 0xFF) * 5)))) && ((*(D_801C7083 + temp_a0)) == ((*(D_801C7083 + (inline_fn2(temp_s5, 0xFF) * 5))) + 1)))
         {
@@ -550,7 +550,7 @@ u8 func_8019A5A0(void)
                     updateTrackDirection(temp_s0, inline_fn2(temp_s5, 0xFF), &spC78, &spC79);
                     temp_a0_3 = ((var_s4 & 0xFF) * 5) + sp10;
                     temp_v1_3 = temp_s0 * 5;
-                    *((u8 *) (((s8 *) temp_a0_3) + 0x880)) = (u8) (*(trackPoints + temp_v1_3));
+                    *((u8 *) (((s8 *) temp_a0_3) + 0x880)) = (u8) (*(trackPointTable + temp_v1_3));
                     *((u8 *) (((s8 *) temp_a0_3) + 0x881)) = (u8) (*(glyphLine + temp_v1_3));
                     *((u8 *) (((s8 *) temp_a0_3) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_3));
                     *((u8 *) (((s8 *) temp_a0_3) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_3));
@@ -560,7 +560,7 @@ u8 func_8019A5A0(void)
                     loop_goto_1:
                     {
                       temp_v0_7 = var_v0_10 * 2;
-                      *((s32 *) (temp_v0_7 + (((inline_fn2(var_s4, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_7 + ((inline_fn2(var_s3, 0xFF) * 8) + D_801C7470)));
+                      *((s32 *) (temp_v0_7 + (((inline_fn2(var_s4, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_7 + ((inline_fn2(var_s3, 0xFF) * 8) + trackPointLinks)));
                       var_a1_2 += 1;
                       var_v0_10 = var_a1_2 & 0xFF;
                     }
@@ -571,12 +571,12 @@ u8 func_8019A5A0(void)
                     }
                     temp_v0_8 = (void *) ((inline_fn2(var_s4, 0xFF) * 5) + ((s32) spC8C));
                     *(sp10 + (((*((s8 *) (((s8 *) temp_v0_8) + 3))) * 0x18) + (*((s8 *) (((s8 *) temp_v0_8) + 2))))) = var_s4;
-                    var_s4_2 = var_s4 + 1;
                     temp_a0_29 = temp_s5 & 0xFF;
-                    updateTrackDirection(temp_a0_29, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + D_801C7AD8)), &spC78, &spC79);
+                    var_s4_2 = var_s4 + 1;
+                    updateTrackDirection(temp_a0_29, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + trackPointIndexByCell)), &spC78, &spC79);
                     temp_a0_4 = ((var_s4_2 & 0xFF) * 5) + sp10;
                     temp_v1_4 = temp_a0_29 * 5;
-                    *((u8 *) (((s8 *) temp_a0_4) + 0x880)) = (u8) (*(trackPoints + temp_v1_4));
+                    *((u8 *) (((s8 *) temp_a0_4) + 0x880)) = (u8) (*(trackPointTable + temp_v1_4));
                     *((u8 *) (((s8 *) temp_a0_4) + 0x881)) = (u8) (*(glyphLine + temp_v1_4));
                     *((u8 *) (((s8 *) temp_a0_4) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_4));
                     *((u8 *) (((s8 *) temp_a0_4) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_4));
@@ -586,7 +586,7 @@ u8 func_8019A5A0(void)
                     do
                     {
                       temp_v0_9 = var_v0_11 * 2;
-                      *((s32 *) (temp_v0_9 + (((inline_fn2(var_s4_2, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_9 + ((temp_s5 * 8) + D_801C7470)));
+                      *((s32 *) (temp_v0_9 + (((inline_fn2(var_s4_2, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_9 + ((temp_s5 * 8) + trackPointLinks)));
                       var_a1_3 += 1;
                       var_v0_11 = inline_fn2(var_a1_3, 0xFF);
                     }
@@ -618,7 +618,7 @@ u8 func_8019A5A0(void)
                       updateTrackDirection(var_v0_11, inline_fn2(temp_s5, 0xFF), &spC78, &spC79);
                       temp_a0_5 = ((var_s4 & 0xFF) * 5) + sp10;
                       temp_v1_5 = var_v0_11 * 5;
-                      *((u8 *) (((s8 *) temp_a0_5) + 0x880)) = (u8) (*(trackPoints + temp_v1_5));
+                      *((u8 *) (((s8 *) temp_a0_5) + 0x880)) = (u8) (*(trackPointTable + temp_v1_5));
                       *((u8 *) (((s8 *) temp_a0_5) + 0x881)) = (u8) (*(glyphLine + temp_v1_5));
                       *((u8 *) (((s8 *) temp_a0_5) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_5));
                       *((u8 *) (((s8 *) temp_a0_5) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_5));
@@ -628,7 +628,7 @@ u8 func_8019A5A0(void)
                       do
                       {
                         temp_v0_10 = var_v0_12 * 2;
-                        *((s32 *) (temp_v0_10 + (((inline_fn2(var_s4, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_10 + ((inline_fn2(var_s3, 0xFF) * 8) + D_801C7470)));
+                        *((s32 *) (temp_v0_10 + (((inline_fn2(var_s4, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_10 + ((inline_fn2(var_s3, 0xFF) * 8) + trackPointLinks)));
                         var_a1_4 += 1;
                         var_v0_12 = var_a1_4 & 0xFF;
                       }
@@ -636,11 +636,11 @@ u8 func_8019A5A0(void)
                       temp_v0_11 = (void *) ((inline_fn2(var_s4, 0xFF) * 5) + ((s32) spC8C));
                       *(sp10 + (((*((s8 *) (((s8 *) temp_v0_11) + 3))) * 0x18) + (*((s8 *) (((s8 *) temp_v0_11) + 2))))) = var_s4;
                       temp_s0_5 = temp_s5 & 0xFF;
-                      updateTrackDirection(temp_s0_5, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + D_801C7AD8)), &spC78, &spC79);
+                      updateTrackDirection(temp_s0_5, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + trackPointIndexByCell)), &spC78, &spC79);
                       temp_v1_6 = temp_s0_5 * 5;
                       var_s4_2 = var_s4 + 1;
                       temp_a0_6 = ((var_s4_2 & 0xFF) * 5) + sp10;
-                      *((u8 *) (((s8 *) temp_a0_6) + 0x880)) = (u8) (*(trackPoints + temp_v1_6));
+                      *((u8 *) (((s8 *) temp_a0_6) + 0x880)) = (u8) (*(trackPointTable + temp_v1_6));
                       *((u8 *) (((s8 *) temp_a0_6) + 0x881)) = (u8) (*(glyphLine + temp_v1_6));
                       *((u8 *) (((s8 *) temp_a0_6) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_6));
                       *((u8 *) (((s8 *) temp_a0_6) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_6));
@@ -650,7 +650,7 @@ u8 func_8019A5A0(void)
                       do
                       {
                         temp_v0_12 = var_v0_13 * 2;
-                        *((s32 *) (temp_v0_12 + (((inline_fn2(var_s4_2, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_12 + ((temp_s5 * 8) + D_801C7470)));
+                        *((s32 *) (temp_v0_12 + (((inline_fn2(var_s4_2, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_12 + ((temp_s5 * 8) + trackPointLinks)));
                         var_a1_5 += 1;
                         var_v0_13 = inline_fn2(var_a1_5, 0xFF);
                       }
@@ -669,7 +669,7 @@ u8 func_8019A5A0(void)
 
                 temp_a0_7 = (inline_fn2(var_s4, 0xFF) * 5) + sp10;
                 temp_v1_7 = temp_s0_3 * 5;
-                *((u8 *) (((s8 *) temp_a0_7) + 0x880)) = (u8) (*(trackPoints + temp_v1_7));
+                *((u8 *) (((s8 *) temp_a0_7) + 0x880)) = (u8) (*(trackPointTable + temp_v1_7));
                 *((u8 *) (((s8 *) temp_a0_7) + 0x881)) = (u8) (*(glyphLine + temp_v1_7));
                 *((u8 *) (((s8 *) temp_a0_7) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_7));
                 *((u8 *) (((s8 *) temp_a0_7) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_7));
@@ -679,7 +679,7 @@ u8 func_8019A5A0(void)
                 do
                 {
                   temp_v0_13 = var_v0_14 * 2;
-                  *((s32 *) (temp_v0_13 + ((((var_s4 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_13 + ((inline_fn2(var_s3, 0xFF) * 8) + D_801C7470)));
+                  *((s32 *) (temp_v0_13 + ((((var_s4 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_13 + ((inline_fn2(var_s3, 0xFF) * 8) + trackPointLinks)));
                   var_a1_6 += 1;
                   var_v0_14 = inline_fn2(var_a1_6, 0xFF);
                 }
@@ -688,11 +688,11 @@ u8 func_8019A5A0(void)
                 temp_v0_14 = (void *) ((var_s4_2 * 5) + ((s32) spC8C));
                 *(sp10 + (((*((s8 *) (((s8 *) temp_v0_14) + 3))) * 0x18) + (*((s8 *) (((s8 *) temp_v0_14) + 2))))) = var_s4;
                 var_s4_2 = var_s4 + 1;
-                temp_s0_6 = inline_fn2(temp_s5, 0xFF);
-                updateTrackDirection(temp_s0_6, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + D_801C7AD8)), &spC78, &spC79);
+                var_v0_13 = inline_fn2(temp_s5, 0xFF);
+                updateTrackDirection(var_v0_13, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + trackPointIndexByCell)), &spC78, &spC79);
                 temp_a0_8 = (inline_fn2(var_s4_2, 0xFF) * 5) + sp10;
-                temp_v1_8 = temp_s0_6 * 5;
-                *((u8 *) (((s8 *) temp_a0_8) + 0x880)) = (u8) (*(trackPoints + temp_v1_8));
+                temp_v1_8 = var_v0_13 * 5;
+                *((u8 *) (((s8 *) temp_a0_8) + 0x880)) = (u8) (*(trackPointTable + temp_v1_8));
                 *((u8 *) (((s8 *) temp_a0_8) + 0x881)) = (u8) (*(glyphLine + temp_v1_8));
                 *((u8 *) (((s8 *) temp_a0_8) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_8));
                 *((u8 *) (((s8 *) temp_a0_8) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_8));
@@ -702,7 +702,7 @@ u8 func_8019A5A0(void)
                 do
                 {
                   temp_v0_15 = var_v0_15 * 2;
-                  *((s32 *) (temp_v0_15 + (((inline_fn2(var_s4_2, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_15 + ((temp_s5 * 8) + D_801C7470)));
+                  *((s32 *) (temp_v0_15 + (((inline_fn2(var_s4_2, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_15 + ((temp_s5 * 8) + trackPointLinks)));
                   var_a1_7 += 1;
                   var_v0_15 = inline_fn2(var_a1_7, 0xFF);
                 }
@@ -827,7 +827,7 @@ u8 func_8019A5A0(void)
         goto block_397;
       }
       temp_a1_3 = inline_fn2(var_s3, 0xFF) * 5;
-      if ((*(trackPoints + temp_a1_3)) == 1)
+      if ((*(trackPointTable + temp_a1_3)) == 1)
       {
         if (((*(D_801C7082 + temp_a1_3)) == ((*(D_801C7082 + (inline_fn2(temp_s5, 0xFF) * 5))) + 1)) && ((*(D_801C7083 + temp_a1_3)) == (*(D_801C7083 + ((temp_s5 & 0xFF) * 5)))))
         {
@@ -888,7 +888,7 @@ u8 func_8019A5A0(void)
                     updateTrackDirection(var_v0_15, temp_s5 & 0xFF, &spC78, &spC79);
                     temp_a0_12 = ((var_s4 & 0xFF) * 5) + sp10;
                     temp_v1_10 = var_v0_15 * 5;
-                    *((u8 *) (((s8 *) temp_a0_12) + 0x880)) = (u8) (*(trackPoints + temp_v1_10));
+                    *((u8 *) (((s8 *) temp_a0_12) + 0x880)) = (u8) (*(trackPointTable + temp_v1_10));
                     *((u8 *) (((s8 *) temp_a0_12) + 0x881)) = (u8) (*(glyphLine + temp_v1_10));
                     *((u8 *) (((s8 *) temp_a0_12) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_10));
                     *((u8 *) (((s8 *) temp_a0_12) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_10));
@@ -898,7 +898,7 @@ u8 func_8019A5A0(void)
                     do
                     {
                       temp_v0_18 = var_v0_22 * 2;
-                      *((s32 *) (temp_v0_18 + ((((var_s4 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_18 + (((var_s3 & 0xFF) * 8) + D_801C7470)));
+                      *((s32 *) (temp_v0_18 + ((((var_s4 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_18 + (((var_s3 & 0xFF) * 8) + trackPointLinks)));
                       var_a1_8 += 1;
                       var_v0_22 = inline_fn2(var_a1_8, 0xFF);
                     }
@@ -907,10 +907,10 @@ u8 func_8019A5A0(void)
                     *(sp10 + (((*((s8 *) (((s8 *) temp_v0_19) + 3))) * 0x18) + (*((s8 *) (((s8 *) temp_v0_19) + 2))))) = var_s4;
                     var_s4_2 = var_s4 + 1;
                     var_v0_22 = inline_fn2(temp_s5, 0xFF);
-                    updateTrackDirection(var_v0_22, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + D_801C7AD8)), &spC78, &spC79);
+                    updateTrackDirection(var_v0_22, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + trackPointIndexByCell)), &spC78, &spC79);
                     temp_a0_13 = (inline_fn2(var_s4_2, 0xFF) * 5) + sp10;
                     temp_v1_11 = var_v0_22 * 5;
-                    *((u8 *) (((s8 *) temp_a0_13) + 0x880)) = (u8) (*(trackPoints + temp_v1_11));
+                    *((u8 *) (((s8 *) temp_a0_13) + 0x880)) = (u8) (*(trackPointTable + temp_v1_11));
                     *((u8 *) (((s8 *) temp_a0_13) + 0x881)) = (u8) (*(glyphLine + temp_v1_11));
                     *((u8 *) (((s8 *) temp_a0_13) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_11));
                     *((u8 *) (((s8 *) temp_a0_13) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_11));
@@ -920,7 +920,7 @@ u8 func_8019A5A0(void)
                     do
                     {
                       temp_v0_20 = var_v0_23 * 2;
-                      *((s32 *) (temp_v0_20 + (((inline_fn2(var_s4_2, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_20 + ((temp_s5 * 8) + D_801C7470)));
+                      *((s32 *) (temp_v0_20 + (((inline_fn2(var_s4_2, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_20 + ((temp_s5 * 8) + trackPointLinks)));
                       var_a1_9 += 1;
                       var_v0_23 = inline_fn2(var_a1_9, 0xFF);
                     }
@@ -955,7 +955,7 @@ u8 func_8019A5A0(void)
                         updateTrackDirection(temp_s0_10, temp_s5 & 0xFF, &spC78, &spC79);
                         temp_a0_14 = (inline_fn2(var_s4, 0xFF) * 5) + sp10;
                         temp_v1_12 = temp_s0_10 * 5;
-                        *((u8 *) (((s8 *) temp_a0_14) + 0x880)) = (u8) (*(trackPoints + temp_v1_12));
+                        *((u8 *) (((s8 *) temp_a0_14) + 0x880)) = (u8) (*(trackPointTable + temp_v1_12));
                         *((u8 *) (((s8 *) temp_a0_14) + 0x881)) = (u8) (*(glyphLine + temp_v1_12));
                         *((u8 *) (((s8 *) temp_a0_14) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_12));
                         *((u8 *) (((s8 *) temp_a0_14) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_12));
@@ -965,7 +965,7 @@ u8 func_8019A5A0(void)
                         do
                         {
                           temp_v0_21 = var_v0_24 * 2;
-                          *((s32 *) (temp_v0_21 + (((inline_fn2(var_s4, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_21 + ((inline_fn2(var_s3, 0xFF) * 8) + D_801C7470)));
+                          *((s32 *) (temp_v0_21 + (((inline_fn2(var_s4, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_21 + ((inline_fn2(var_s3, 0xFF) * 8) + trackPointLinks)));
                           var_a1_11 += 1;
                           var_v0_24 = var_a1_11 & 0xFF;
                         }
@@ -974,10 +974,10 @@ u8 func_8019A5A0(void)
                         *(sp10 + (((*((s8 *) (((s8 *) temp_v0_22) + 3))) * 0x18) + (*((s8 *) (((s8 *) temp_v0_22) + 2))))) = var_s4;
                         var_s4_2 = var_s4 + 1;
                         temp_v0_57 = inline_fn2(temp_s5, 0xFF);
-                        updateTrackDirection(temp_v0_57, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + D_801C7AD8)), &spC78, &spC79);
-                        temp_v1_13 = temp_v0_57 * 5;
+                        updateTrackDirection(temp_v0_57, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + trackPointIndexByCell)), &spC78, &spC79);
                         temp_a0_15 = ((var_s4_2 & 0xFF) * 5) + sp10;
-                        *((u8 *) (((s8 *) temp_a0_15) + 0x880)) = (u8) (*(trackPoints + temp_v1_13));
+                        temp_v1_13 = temp_v0_57 * 5;
+                        *((u8 *) (((s8 *) temp_a0_15) + 0x880)) = (u8) (*(trackPointTable + temp_v1_13));
                         *((u8 *) (((s8 *) temp_a0_15) + 0x881)) = (u8) (*(glyphLine + temp_v1_13));
                         *((u8 *) (((s8 *) temp_a0_15) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_13));
                         *((u8 *) (((s8 *) temp_a0_15) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_13));
@@ -987,7 +987,7 @@ u8 func_8019A5A0(void)
                         do
                         {
                           temp_v0_23 = var_v0_25 * 2;
-                          *((s32 *) (temp_v0_23 + ((((var_s4_2 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_23 + ((temp_s5 * 8) + D_801C7470)));
+                          *((s32 *) (temp_v0_23 + ((((var_s4_2 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_23 + ((temp_s5 * 8) + trackPointLinks)));
                           var_a1_12 += 1;
                           var_v0_25 = inline_fn2(var_a1_12, 0xFF);
                         }
@@ -1011,7 +1011,7 @@ u8 func_8019A5A0(void)
 
                 temp_a0_16 = (inline_fn2(var_s4, 0xFF) * 5) + sp10;
                 temp_v1_14 = temp_s0_9 * 5;
-                *((u8 *) (((s8 *) temp_a0_16) + 0x880)) = (u8) (*(trackPoints + temp_v1_14));
+                *((u8 *) (((s8 *) temp_a0_16) + 0x880)) = (u8) (*(trackPointTable + temp_v1_14));
                 *((u8 *) (((s8 *) temp_a0_16) + 0x881)) = (u8) (*(glyphLine + temp_v1_14));
                 *((u8 *) (((s8 *) temp_a0_16) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_14));
                 *((u8 *) (((s8 *) temp_a0_16) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_14));
@@ -1021,7 +1021,7 @@ u8 func_8019A5A0(void)
                 do
                 {
                   temp_v0_24 = var_v0_26 * 2;
-                  *((s32 *) (temp_v0_24 + (((inline_fn2(var_s4, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_24 + ((inline_fn2(var_s3, 0xFF) * 8) + D_801C7470)));
+                  *((s32 *) (temp_v0_24 + (((inline_fn2(var_s4, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_24 + ((inline_fn2(var_s3, 0xFF) * 8) + trackPointLinks)));
                   var_a1_13 += 1;
                   var_v0_26 = inline_fn2(var_a1_13, 0xFF);
                 }
@@ -1030,10 +1030,10 @@ u8 func_8019A5A0(void)
                 *(sp10 + (((*((s8 *) (((s8 *) temp_v0_25) + 3))) * 0x18) + (*((s8 *) (((s8 *) temp_v0_25) + 2))))) = var_s4;
                 var_s4_2 = var_s4 + 1;
                 temp_s0_12 = temp_s5 & 0xFF;
-                updateTrackDirection(temp_s0_12, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + D_801C7AD8)), &spC78, &spC79);
+                updateTrackDirection(temp_s0_12, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + trackPointIndexByCell)), &spC78, &spC79);
                 temp_a0_17 = ((var_s4_2 & 0xFF) * 5) + sp10;
                 temp_v1_15 = temp_s0_12 * 5;
-                *((u8 *) (((s8 *) temp_a0_17) + 0x880)) = (u8) (*(trackPoints + temp_v1_15));
+                *((u8 *) (((s8 *) temp_a0_17) + 0x880)) = (u8) (*(trackPointTable + temp_v1_15));
                 *((u8 *) (((s8 *) temp_a0_17) + 0x881)) = (u8) (*(glyphLine + temp_v1_15));
                 *((u8 *) (((s8 *) temp_a0_17) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_15));
                 *((u8 *) (((s8 *) temp_a0_17) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_15));
@@ -1043,7 +1043,7 @@ u8 func_8019A5A0(void)
                 do
                 {
                   temp_v0_26 = var_v0_27 * 2;
-                  *((s32 *) (temp_v0_26 + (((inline_fn2(var_s4_2, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_26 + ((temp_s5 * 8) + D_801C7470)));
+                  *((s32 *) (temp_v0_26 + (((inline_fn2(var_s4_2, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_26 + ((temp_s5 * 8) + trackPointLinks)));
                   var_a1_14 += 1;
                   var_v0_27 = inline_fn2(var_a1_14, 0xFF);
                 }
@@ -1192,7 +1192,7 @@ u8 func_8019A5A0(void)
         goto block_397;
       }
       temp_a1_4 = (var_s3 & 0xFF) * 5;
-      if ((*(trackPoints + temp_a1_4)) == 2)
+      if ((*(trackPointTable + temp_a1_4)) == 2)
       {
         if (((*(D_801C7082 + temp_a1_4)) == (*(D_801C7082 + (inline_fn2(temp_s5, 0xFF) * 5)))) && ((*(D_801C7083 + temp_a1_4)) == ((*(D_801C7083 + (inline_fn2(temp_s5, 0xFF) * 5))) - 1)))
         {
@@ -1253,7 +1253,7 @@ u8 func_8019A5A0(void)
                     updateTrackDirection(temp_s0_13, inline_fn2(temp_s5, 0xFF), &spC78, &spC79);
                     temp_a0_21 = (inline_fn2(var_s4, 0xFF) * 5) + sp10;
                     temp_v1_17 = temp_s0_13 * 5;
-                    *((u8 *) (((s8 *) temp_a0_21) + 0x880)) = (u8) (*(trackPoints + temp_v1_17));
+                    *((u8 *) (((s8 *) temp_a0_21) + 0x880)) = (u8) (*(trackPointTable + temp_v1_17));
                     *((u8 *) (((s8 *) temp_a0_21) + 0x881)) = (u8) (*(glyphLine + temp_v1_17));
                     *((u8 *) (((s8 *) temp_a0_21) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_17));
                     *((u8 *) (((s8 *) temp_a0_21) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_17));
@@ -1263,7 +1263,7 @@ u8 func_8019A5A0(void)
                     do
                     {
                       temp_v0_29 = var_v0_31 * 2;
-                      *((s32 *) (temp_v0_29 + (((inline_fn2(var_s4, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_29 + (((var_s3 & 0xFF) * 8) + D_801C7470)));
+                      *((s32 *) (temp_v0_29 + (((inline_fn2(var_s4, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_29 + (((var_s3 & 0xFF) * 8) + trackPointLinks)));
                       var_a1_15 += 1;
                       var_v0_31 = var_a1_15 & 0xFF;
                     }
@@ -1272,10 +1272,10 @@ u8 func_8019A5A0(void)
                     *(sp10 + (((*((s8 *) (((s8 *) temp_v0_30) + 3))) * 0x18) + (*((s8 *) (((s8 *) temp_v0_30) + 2))))) = var_s4;
                     var_s4_2 = var_s4 + 1;
                     temp_v0_57 = temp_s5 & 0xFF;
-                    updateTrackDirection(temp_v0_57, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + D_801C7AD8)), &spC78, &spC79);
+                    updateTrackDirection(temp_v0_57, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + trackPointIndexByCell)), &spC78, &spC79);
                     temp_a0_22 = (inline_fn2(var_s4_2, 0xFF) * 5) + sp10;
                     temp_v1_18 = temp_v0_57 * 5;
-                    *((u8 *) (((s8 *) temp_a0_22) + 0x880)) = (u8) (*(trackPoints + temp_v1_18));
+                    *((u8 *) (((s8 *) temp_a0_22) + 0x880)) = (u8) (*(trackPointTable + temp_v1_18));
                     *((u8 *) (((s8 *) temp_a0_22) + 0x881)) = (u8) (*(glyphLine + temp_v1_18));
                     *((u8 *) (((s8 *) temp_a0_22) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_18));
                     *((u8 *) (((s8 *) temp_a0_22) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_18));
@@ -1285,7 +1285,7 @@ u8 func_8019A5A0(void)
                     do
                     {
                       temp_v0_31 = var_v0_32 * 2;
-                      *((s32 *) (temp_v0_31 + ((((var_s4_2 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_31 + ((temp_s5 * 8) + D_801C7470)));
+                      *((s32 *) (temp_v0_31 + ((((var_s4_2 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_31 + ((temp_s5 * 8) + trackPointLinks)));
                       var_a1_16 += 1;
                       var_v0_32 = var_a1_16 & 0xFF;
                     }
@@ -1317,7 +1317,7 @@ u8 func_8019A5A0(void)
                       updateTrackDirection(temp_s0_16, temp_s5 & 0xFF, &spC78, &spC79);
                       temp_a0_23 = ((var_s4 & 0xFF) * 5) + sp10;
                       temp_v1_19 = temp_s0_16 * 5;
-                      *((u8 *) (((s8 *) temp_a0_23) + 0x880)) = (u8) (*(trackPoints + temp_v1_19));
+                      *((u8 *) (((s8 *) temp_a0_23) + 0x880)) = (u8) (*(trackPointTable + temp_v1_19));
                       *((u8 *) (((s8 *) temp_a0_23) + 0x881)) = (u8) (*(glyphLine + temp_v1_19));
                       *((u8 *) (((s8 *) temp_a0_23) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_19));
                       *((u8 *) (((s8 *) temp_a0_23) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_19));
@@ -1327,7 +1327,7 @@ u8 func_8019A5A0(void)
                       do
                       {
                         temp_v0_32 = var_v0_33 * 2;
-                        *((s32 *) (temp_v0_32 + ((((var_s4 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_32 + (((var_s3 & 0xFF) * 8) + D_801C7470)));
+                        *((s32 *) (temp_v0_32 + ((((var_s4 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_32 + (((var_s3 & 0xFF) * 8) + trackPointLinks)));
                         var_a1_17 += 1;
                         var_v0_33 = inline_fn2(var_a1_17, 0xFF);
                       }
@@ -1336,10 +1336,10 @@ u8 func_8019A5A0(void)
                       *(sp10 + (((*((s8 *) (((s8 *) temp_v0_33) + 3))) * 0x18) + (*((s8 *) (((s8 *) temp_v0_33) + 2))))) = var_s4;
                       var_s4_2 = var_s4 + 1;
                       var_s4 = inline_fn2(temp_s5, 0xFF);
-                      updateTrackDirection(var_s4, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + D_801C7AD8)), &spC78, &spC79);
+                      updateTrackDirection(var_s4, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + trackPointIndexByCell)), &spC78, &spC79);
                       temp_a0_24 = (inline_fn2(var_s4_2, 0xFF) * 5) + sp10;
                       temp_v1_20 = var_s4 * 5;
-                      *((u8 *) (((s8 *) temp_a0_24) + 0x880)) = (u8) (*(trackPoints + temp_v1_20));
+                      *((u8 *) (((s8 *) temp_a0_24) + 0x880)) = (u8) (*(trackPointTable + temp_v1_20));
                       *((u8 *) (((s8 *) temp_a0_24) + 0x881)) = (u8) (*(glyphLine + temp_v1_20));
                       *((u8 *) (((s8 *) temp_a0_24) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_20));
                       *((u8 *) (((s8 *) temp_a0_24) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_20));
@@ -1349,7 +1349,7 @@ u8 func_8019A5A0(void)
                       do
                       {
                         temp_v0_34 = var_v0_34 * 2;
-                        *((s32 *) (temp_v0_34 + ((((var_s4_2 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_34 + ((temp_s5 * 8) + D_801C7470)));
+                        *((s32 *) (temp_v0_34 + ((((var_s4_2 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_34 + ((temp_s5 * 8) + trackPointLinks)));
                         var_a1_18 += 1;
                         var_v0_34 = var_a1_18 & 0xFF;
                       }
@@ -1368,7 +1368,7 @@ u8 func_8019A5A0(void)
 
                 temp_a0_25 = (inline_fn2(var_s4, 0xFF) * 5) + sp10;
                 temp_v1_21 = temp_s0_15 * 5;
-                *((u8 *) (((s8 *) temp_a0_25) + 0x880)) = (u8) (*(trackPoints + temp_v1_21));
+                *((u8 *) (((s8 *) temp_a0_25) + 0x880)) = (u8) (*(trackPointTable + temp_v1_21));
                 *((u8 *) (((s8 *) temp_a0_25) + 0x881)) = (u8) (*(glyphLine + temp_v1_21));
                 *((u8 *) (((s8 *) temp_a0_25) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_21));
                 *((u8 *) (((s8 *) temp_a0_25) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_21));
@@ -1378,7 +1378,7 @@ u8 func_8019A5A0(void)
                 do
                 {
                   temp_v0_35 = var_v0_35 * 2;
-                  *((s32 *) (temp_v0_35 + (((inline_fn2(var_s4, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_35 + ((inline_fn2(var_s3, 0xFF) * 8) + D_801C7470)));
+                  *((s32 *) (temp_v0_35 + (((inline_fn2(var_s4, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_35 + ((inline_fn2(var_s3, 0xFF) * 8) + trackPointLinks)));
                   var_a1_19 += 1;
                   var_v0_35 = inline_fn2(var_a1_19, 0xFF);
                 }
@@ -1387,7 +1387,7 @@ u8 func_8019A5A0(void)
                 *(sp10 + (((*((s8 *) (((s8 *) temp_v0_36) + 3))) * 0x18) + (*((s8 *) (((s8 *) temp_v0_36) + 2))))) = var_s4;
                 var_s4_2 = var_s4 + 1;
                 temp_s0_18 = temp_s5 & 0xFF;
-                updateTrackDirection(temp_s0_18, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + D_801C7AD8)), &spC78, &spC79);
+                updateTrackDirection(temp_s0_18, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + trackPointIndexByCell)), &spC78, &spC79);
                 temp_a0_26 = ((unsigned char) ((var_s4_2 & 0xFF) * 5)) + sp10;
                 temp_v1_22 = temp_s0_18 * 5;
                 *((u8 *) (((s8 *) temp_a0_26) + 0x880)) = inline_fn(temp_v1_22);
@@ -1400,7 +1400,7 @@ u8 func_8019A5A0(void)
                 do
                 {
                   temp_v0_37 = var_v0_36 * 2;
-                  *((s32 *) (temp_v0_37 + (((inline_fn2(var_s4_2, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_37 + ((temp_s5 * 8) + D_801C7470)));
+                  *((s32 *) (temp_v0_37 + (((inline_fn2(var_s4_2, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_37 + ((temp_s5 * 8) + trackPointLinks)));
                   var_a1_20 += 1;
                   var_v0_36 = inline_fn2(var_a1_20, 0xFF);
                 }
@@ -1534,7 +1534,7 @@ u8 func_8019A5A0(void)
         goto block_397;
       }
       temp_a1_5 = (var_s3 & 0xFF) * 5;
-      if ((*(trackPoints + temp_a1_5)) == 3)
+      if ((*(trackPointTable + temp_a1_5)) == 3)
       {
         if (((*(D_801C7082 + temp_a1_5)) == ((*(D_801C7082 + (inline_fn2(temp_s5, 0xFF) * 5))) - 1)) && ((*(D_801C7083 + temp_a1_5)) == (*(D_801C7083 + ((temp_s5 & 0xFF) * 5)))))
         {
@@ -1595,7 +1595,7 @@ u8 func_8019A5A0(void)
                     updateTrackDirection(temp_s0_19, temp_s5 & 0xFF, &spC78, &spC79);
                     temp_a0_30 = (inline_fn2(var_s4, 0xFF) * 5) + sp10;
                     temp_v1_24 = temp_s0_19 * 5;
-                    *((u8 *) (((s8 *) temp_a0_30) + 0x880)) = (u8) (*(trackPoints + temp_v1_24));
+                    *((u8 *) (((s8 *) temp_a0_30) + 0x880)) = (u8) (*(trackPointTable + temp_v1_24));
                     *((u8 *) (((s8 *) temp_a0_30) + 0x881)) = (u8) (*(glyphLine + temp_v1_24));
                     *((u8 *) (((s8 *) temp_a0_30) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_24));
                     *((u8 *) (((s8 *) temp_a0_30) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_24));
@@ -1605,7 +1605,7 @@ u8 func_8019A5A0(void)
                     do
                     {
                       temp_v0_40 = var_v0_40 * 2;
-                      *((s32 *) (temp_v0_40 + ((((var_s4 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_40 + (((var_s3 & 0xFF) * 8) + D_801C7470)));
+                      *((s32 *) (temp_v0_40 + ((((var_s4 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_40 + (((var_s3 & 0xFF) * 8) + trackPointLinks)));
                       var_a1_21 += 1;
                       var_v0_40 = var_a1_21 & 0xFF;
                     }
@@ -1614,10 +1614,10 @@ u8 func_8019A5A0(void)
                     *(sp10 + (((*((s8 *) (((s8 *) temp_v0_41) + 3))) * 0x18) + (*((s8 *) (((s8 *) temp_v0_41) + 2))))) = var_s4;
                     var_s4_2 = var_s4 + 1;
                     var_s4 = temp_s5 & 0xFF;
-                    updateTrackDirection(var_s4, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + D_801C7AD8)), &spC78, &spC79);
+                    updateTrackDirection(var_s4, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + trackPointIndexByCell)), &spC78, &spC79);
                     temp_a0_31 = ((var_s4_2 & 0xFF) * 5) + sp10;
                     temp_v1_25 = var_s4 * 5;
-                    *((u8 *) (((s8 *) temp_a0_31) + 0x880)) = (u8) (*(trackPoints + temp_v1_25));
+                    *((u8 *) (((s8 *) temp_a0_31) + 0x880)) = (u8) (*(trackPointTable + temp_v1_25));
                     *((u8 *) (((s8 *) temp_a0_31) + 0x881)) = (u8) (*(glyphLine + temp_v1_25));
                     *((u8 *) (((s8 *) temp_a0_31) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_25));
                     *((u8 *) (((s8 *) temp_a0_31) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_25));
@@ -1627,7 +1627,7 @@ u8 func_8019A5A0(void)
                     do
                     {
                       temp_v0_42 = var_v0_41 * 2;
-                      *((s32 *) (temp_v0_42 + ((((var_s4_2 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_42 + ((temp_s5 * 8) + D_801C7470)));
+                      *((s32 *) (temp_v0_42 + ((((var_s4_2 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_42 + ((temp_s5 * 8) + trackPointLinks)));
                       var_a1_22 += 1;
                       var_v0_41 = var_a1_22 & 0xFF;
                     }
@@ -1662,7 +1662,7 @@ u8 func_8019A5A0(void)
                         updateTrackDirection(temp_s0_22, temp_s5 & 0xFF, &spC78, &spC79);
                         temp_a0_32 = ((var_s4 & 0xFF) * 5) + sp10;
                         temp_v1_26 = temp_s0_22 * 5;
-                        *((u8 *) (((s8 *) temp_a0_32) + 0x880)) = (u8) (*(trackPoints + temp_v1_26));
+                        *((u8 *) (((s8 *) temp_a0_32) + 0x880)) = (u8) (*(trackPointTable + temp_v1_26));
                         *((u8 *) (((s8 *) temp_a0_32) + 0x881)) = (u8) (*(glyphLine + temp_v1_26));
                         *((u8 *) (((s8 *) temp_a0_32) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_26));
                         *((u8 *) (((s8 *) temp_a0_32) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_26));
@@ -1672,7 +1672,7 @@ u8 func_8019A5A0(void)
                         do
                         {
                           temp_v0_43 = var_v0_42 * 2;
-                          *((s32 *) (temp_v0_43 + ((((var_s4 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_43 + (((var_s3 & 0xFF) * 8) + D_801C7470)));
+                          *((s32 *) (temp_v0_43 + ((((var_s4 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_43 + (((var_s3 & 0xFF) * 8) + trackPointLinks)));
                           var_a1_24 += 1;
                           var_v0_42 = inline_fn2(var_a1_24, 0xFF);
                         }
@@ -1681,10 +1681,10 @@ u8 func_8019A5A0(void)
                         *(sp10 + (((*((s8 *) (((s8 *) temp_v0_44) + 3))) * 0x18) + (*((s8 *) (((s8 *) temp_v0_44) + 2))))) = var_s4;
                         var_s4_2 = var_s4 + 1;
                         var_s4 = inline_fn2(temp_s5, 0xFF);
-                        updateTrackDirection(var_s4, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + D_801C7AD8)), &spC78, &spC79);
+                        updateTrackDirection(var_s4, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + trackPointIndexByCell)), &spC78, &spC79);
                         temp_a0_33 = ((var_s4_2 & 0xFF) * 5) + sp10;
                         temp_v1_27 = var_s4 * 5;
-                        *((u8 *) (((s8 *) temp_a0_33) + 0x880)) = (u8) (*(trackPoints + temp_v1_27));
+                        *((u8 *) (((s8 *) temp_a0_33) + 0x880)) = (u8) (*(trackPointTable + temp_v1_27));
                         *((u8 *) (((s8 *) temp_a0_33) + 0x881)) = (u8) (*(glyphLine + temp_v1_27));
                         *((u8 *) (((s8 *) temp_a0_33) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_27));
                         *((u8 *) (((s8 *) temp_a0_33) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_27));
@@ -1694,7 +1694,7 @@ u8 func_8019A5A0(void)
                         do
                         {
                           temp_v0_45 = var_v0_43 * 2;
-                          *((s32 *) (temp_v0_45 + (((inline_fn2(var_s4_2, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_45 + ((temp_s5 * 8) + D_801C7470)));
+                          *((s32 *) (temp_v0_45 + (((inline_fn2(var_s4_2, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_45 + ((temp_s5 * 8) + trackPointLinks)));
                           var_a1_25 += 1;
                           var_v0_43 = inline_fn2(var_a1_25, 0xFF);
                         }
@@ -1718,7 +1718,7 @@ u8 func_8019A5A0(void)
 
                 temp_a0_34 = ((var_s4 & 0xFF) * 5) + sp10;
                 temp_v1_28 = temp_s0_21 * 5;
-                *((u8 *) (((s8 *) temp_a0_34) + 0x880)) = (u8) (*(trackPoints + temp_v1_28));
+                *((u8 *) (((s8 *) temp_a0_34) + 0x880)) = (u8) (*(trackPointTable + temp_v1_28));
                 *((u8 *) (((s8 *) temp_a0_34) + 0x881)) = (u8) (*(glyphLine + temp_v1_28));
                 *((u8 *) (((s8 *) temp_a0_34) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_28));
                 *((u8 *) (((s8 *) temp_a0_34) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_28));
@@ -1728,7 +1728,7 @@ u8 func_8019A5A0(void)
                 do
                 {
                   temp_v0_46 = var_v0_44 * 2;
-                  *((s32 *) (temp_v0_46 + (((inline_fn2(var_s4, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_46 + (((var_s3 & 0xFF) * 8) + D_801C7470)));
+                  *((s32 *) (temp_v0_46 + (((inline_fn2(var_s4, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_46 + (((var_s3 & 0xFF) * 8) + trackPointLinks)));
                   var_a1_26 += 1;
                   var_v0_44 = var_a1_26 & 0xFF;
                 }
@@ -1737,10 +1737,10 @@ u8 func_8019A5A0(void)
                 *(sp10 + (((*((s8 *) (((s8 *) temp_v0_47) + 3))) * 0x18) + (*((s8 *) (((s8 *) temp_v0_47) + 2))))) = var_s4;
                 var_s4_2 = var_s4 + 1;
                 var_s4 = inline_fn2(temp_s5, 0xFF);
-                updateTrackDirection(var_s4, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + D_801C7AD8)), &spC78, &spC79);
+                updateTrackDirection(var_s4, *((s32 *) (((spC79 * 0x18) + ((s8) spC78)) + trackPointIndexByCell)), &spC78, &spC79);
                 temp_a0_35 = (inline_fn2(var_s4_2, 0xFF) * 5) + sp10;
                 temp_v1_29 = var_s4 * 5;
-                *((u8 *) (((s8 *) temp_a0_35) + 0x880)) = (u8) (*(trackPoints + temp_v1_29));
+                *((u8 *) (((s8 *) temp_a0_35) + 0x880)) = (u8) (*(trackPointTable + temp_v1_29));
                 *((u8 *) (((s8 *) temp_a0_35) + 0x881)) = (u8) (*(glyphLine + temp_v1_29));
                 *((u8 *) (((s8 *) temp_a0_35) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_29));
                 *((u8 *) (((s8 *) temp_a0_35) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_29));
@@ -1750,7 +1750,7 @@ u8 func_8019A5A0(void)
                 do
                 {
                   temp_v0_48 = var_v0_45 * 2;
-                  *((s32 *) (temp_v0_48 + ((((var_s4_2 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_48 + ((temp_s5 * 8) + D_801C7470)));
+                  *((s32 *) (temp_v0_48 + ((((var_s4_2 & 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_48 + ((temp_s5 * 8) + trackPointLinks)));
                   var_a1_27 += 1;
                   var_v0_45 = inline_fn2(var_a1_27, 0xFF);
                 }
@@ -1914,7 +1914,7 @@ u8 func_8019A5A0(void)
         updateTrackDirection(temp_s0_25, inline_fn2(temp_s5, 0xFF), &spC78, &spC79);
         temp_a0_37 = (inline_fn2(var_s4, 0xFF) * 5) + sp10;
         temp_v1_30 = temp_s0_25 * 5;
-        *((u8 *) (((s8 *) temp_a0_37) + 0x880)) = (u8) (*(trackPoints + temp_v1_30));
+        *((u8 *) (((s8 *) temp_a0_37) + 0x880)) = (u8) (*(trackPointTable + temp_v1_30));
         *((u8 *) (((s8 *) temp_a0_37) + 0x881)) = (u8) (*(glyphLine + temp_v1_30));
         *((u8 *) (((s8 *) temp_a0_37) + 0x882)) = (u8) (*(D_801C7082 + temp_v1_30));
         *((u8 *) (((s8 *) temp_a0_37) + 0x883)) = (u8) (*(D_801C7083 + temp_v1_30));
@@ -1924,7 +1924,7 @@ u8 func_8019A5A0(void)
         do
         {
           temp_v0_51 = var_v0_48 * 2;
-          *((s32 *) (temp_v0_51 + (((inline_fn2(var_s4, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_51 + (((var_s3 & 0xFF) * 8) + D_801C7470)));
+          *((s32 *) (temp_v0_51 + (((inline_fn2(var_s4, 0xFF) * 8) + sp10) + 0x240))) = *((s32 *) (temp_v0_51 + (((var_s3 & 0xFF) * 8) + trackPointLinks)));
           var_a1_28 += 1;
           var_v0_48 = var_a1_28 & 0xFF;
         }
@@ -1946,7 +1946,7 @@ u8 func_8019A5A0(void)
       goto block_446;
     }
     block_405:
-    temp_s3 = *(D_801C7AD8 + ((D_801C7063 * 0x18) + finishPos));
+    temp_s3 = *(trackPointIndexByCell + ((D_801C7063 * 0x18) + finishPos));
 
     if ((*((u8 *) (((s8 *) trackInfo) + 0))) == 3)
     {
@@ -1960,7 +1960,7 @@ u8 func_8019A5A0(void)
     if ((*((u8 *) (((s8 *) trackInfo) + 1))) == 5)
     {
       temp_a0_39 = temp_v0_53 * 5;
-      if ((((*(trackPoints + temp_a0_39)) == 0) | ((*(trackPoints + temp_a0_39)) == 2)) != 0)
+      if ((((*(trackPointTable + temp_a0_39)) == 0) | ((*(trackPointTable + temp_a0_39)) == 2)) != 0)
       {
         if (((u32) inline_fn2(var_a2_2 - 5, 0xFF)) >= 5U)
         {
@@ -1974,7 +1974,7 @@ u8 func_8019A5A0(void)
         goto block_415;
       }
       temp_a0_40 = (temp_s3 & 0xFF) * 5;
-      if (((((*(trackPoints + temp_a0_40)) == 1) | ((*(trackPoints + temp_a0_40)) == 3)) != 0) && (((u32) inline_fn2(var_a2_2, 0xFF)) >= 5U))
+      if (((((*(trackPointTable + temp_a0_40)) == 1) | ((*(trackPointTable + temp_a0_40)) == 3)) != 0) && (((u32) inline_fn2(var_a2_2, 0xFF)) >= 5U))
       {
         cursorX = *(D_801C7082 + temp_a0_40);
         var_v0_8 = *(D_801C7083 + temp_a0_40);
@@ -1984,7 +1984,7 @@ u8 func_8019A5A0(void)
         }
       }
       block_415:
-      switch (blockFootprint)
+      switch (blockDirection)
       {
         var_v1 = inline_fn2(temp_s3, 0xFF);
         if (blockPos == finishPos)
@@ -1997,7 +1997,7 @@ u8 func_8019A5A0(void)
           block_431:
           temp_a0_41 = inline_fn2(temp_s3, 0xFF) * 5;
 
-          if ((*((u16 *) (glyphLine + temp_a0_41))) != (*((u16 *) (glyphLine + (((*(D_801C7AD8 + ((D_801C6BB1 * 0x18) + blockPos))) & 0xFF) * 5)))))
+          if ((*((u16 *) (glyphLine + temp_a0_41))) != (*((u16 *) (glyphLine + (((*(trackPointIndexByCell + ((D_801C6BB1 * 0x18) + blockPos))) & 0xFF) * 5)))))
           {
             cursorX = *(D_801C7082 + temp_a0_41);
             var_v0_8 = *(D_801C7083 + temp_a0_41);
@@ -2050,7 +2050,7 @@ u8 func_8019A5A0(void)
     else
     {
       temp_a0_42 = temp_v0_53 * 5;
-      if ((*(trackPoints + temp_a0_42)) == 0)
+      if ((*(trackPointTable + temp_a0_42)) == 0)
       {
         if (((s8) var_a2_2) != 0x2A)
         {
@@ -2064,7 +2064,7 @@ u8 func_8019A5A0(void)
         goto block_448;
       }
       temp_a0_43 = inline_fn2(temp_s3, 0xFF) * 5;
-      if ((*(trackPoints + temp_a0_43)) == 1)
+      if ((*(trackPointTable + temp_a0_43)) == 1)
       {
         if (((s8) var_a2_2) != 0x2C)
         {
@@ -2078,7 +2078,7 @@ u8 func_8019A5A0(void)
         goto block_448;
       }
       temp_a0_44 = inline_fn2(temp_s3, 0xFF) * 5;
-      if ((*(trackPoints + temp_a0_44)) == 2)
+      if ((*(trackPointTable + temp_a0_44)) == 2)
       {
         if (((s8) var_a2_2) != 0x2B)
         {
@@ -2092,7 +2092,7 @@ u8 func_8019A5A0(void)
         goto block_448;
       }
       temp_a0_45 = inline_fn2(temp_s3, 0xFF) * 5;
-      if (((*(trackPoints + temp_a0_45)) == 3) && (((s8) var_a2_2) != 0x2D))
+      if (((*(trackPointTable + temp_a0_45)) == 3) && (((s8) var_a2_2) != 0x2D))
       {
         cursorX = *(D_801C7082 + temp_a0_45);
         var_v0_8 = *(D_801C7083 + temp_a0_45);
@@ -2104,7 +2104,7 @@ u8 func_8019A5A0(void)
       {
         temp_a0_46 = (inline_fn2(var_s4, 0xFF) * 5) + sp10;
         temp_v0_57 = inline_fn2(temp_s3, 0xFF) * 5;
-        *((u8 *) (((s8 *) temp_a0_46) + 0x880)) = (u8) (*(trackPoints + temp_v0_57));
+        *((u8 *) (((s8 *) temp_a0_46) + 0x880)) = (u8) (*(trackPointTable + temp_v0_57));
         *((u8 *) (((s8 *) temp_a0_46) + 0x881)) = (u8) (*(glyphLine + temp_v0_57));
         *((u8 *) (((s8 *) temp_a0_46) + 0x882)) = (u8) (*(D_801C7082 + temp_v0_57));
         *((u8 *) (((s8 *) temp_a0_46) + 0x883)) = (u8) (*(D_801C7083 + temp_v0_57));
@@ -2114,7 +2114,7 @@ u8 func_8019A5A0(void)
         do
         {
           temp_v0_58 = var_v0_50 * 2;
-          *((s32 *) (temp_v0_58 + ((sp + ((var_s4 & 0xFF) * 8)) + 0x250))) = *((s32 *) (temp_v0_58 + (((temp_s3 & 0xFF) * 8) + D_801C7470)));
+          *((s32 *) (temp_v0_58 + ((sp + ((var_s4 & 0xFF) * 8)) + 0x250))) = *((s32 *) (temp_v0_58 + (((temp_s3 & 0xFF) * 8) + trackPointLinks)));
           var_a1_29 += 1;
           var_v0_50 = var_a1_29 & 0xFF;
         }
@@ -2142,18 +2142,18 @@ u8 func_8019A5A0(void)
           {
             *(D_8011F2FD + (temp_v1_31 * 0x64)) = 2;
             *temp_a2 = 0xFFFF;
-            D_801C7AB6 -= 1;
+            trackPointEntryCount -= 1;
             var_a2_3 = 0;
             temp_t0 = temp_a3 & 0xFFFF;
             do
             {
               temp_v1_32 = inline_fn2(var_a2_3, 0xFF) * 2;
-              temp_a0_48 = *((u16 *) (temp_v1_32 + (((*(D_801C7AD8 + temp_t0)) * 8) + D_801C7470)));
+              temp_a0_48 = *((u16 *) (temp_v1_32 + (((*(trackPointIndexByCell + temp_t0)) * 8) + trackPointLinks)));
               if (temp_a0_48 != 0xFFFF)
               {
                 *(D_8011F2FD + (temp_a0_48 * 0x64)) = 2;
-                *((s32 *) (temp_v1_32 + (((*(D_801C7AD8 + temp_t0)) * 8) + D_801C7470))) = 0xFFFF;
-                D_801C7AB6 -= 1;
+                *((s32 *) (temp_v1_32 + (((*(trackPointIndexByCell + temp_t0)) * 8) + trackPointLinks))) = 0xFFFF;
+                trackPointEntryCount -= 1;
               }
               var_a2_3 += 1;
             }
@@ -2167,7 +2167,7 @@ u8 func_8019A5A0(void)
           var_v0_52 = inline_fn2(temp_a3, 0xFFFF);
 
         }
-        *(D_801C7AD8 + var_v0_52) = 0xFF;
+        *(trackPointIndexByCell + var_v0_52) = 0xFF;
         var_a1_30 += 1;
         var_v0_51 = inline_fn2(var_a1_30, 0xFF);
         if (((u32) inline_fn2(var_a1_30, 0xFF)) < 0x18U)
@@ -2184,7 +2184,7 @@ u8 func_8019A5A0(void)
         do
         {
           temp_v1_33 = var_v0_53 * 5;
-          temp_a0_49 = temp_v1_33 + trackPoints;
+          temp_a0_49 = temp_v1_33 + trackPointTable;
           temp_v1_34 = sp890 + temp_v1_33;
           *((u8 *) (((s8 *) temp_a0_49) + 0)) = (u8) (*((u8 *) (((s8 *) temp_v1_34) + 0)));
           *((u8 *) (((s8 *) temp_a0_49) + 1)) = (u8) (*((u8 *) (((s8 *) temp_v1_34) + 1)));
@@ -2197,7 +2197,7 @@ u8 func_8019A5A0(void)
           loop_466:
           temp_v0_61 = var_v0_54 * 2;
 
-          *((s32 *) (temp_v0_61 + (temp_v0_60 + D_801C7470))) = *((s32 *) (temp_v0_61 + ((temp_v0_60 + sp10) + 0x240)));
+          *((s32 *) (temp_v0_61 + (temp_v0_60 + trackPointLinks))) = *((s32 *) (temp_v0_61 + ((temp_v0_60 + sp10) + 0x240)));
           var_a1_31 += 1;
           var_v0_54 = var_a1_31 & 0xFF;
           if (((u32) (var_a1_31 & 0xFF)) < 4U)
@@ -2205,7 +2205,7 @@ u8 func_8019A5A0(void)
             goto loop_466;
           }
           temp_v1_35 = (var_s1_5 & 0xFFFF) * 5;
-          *(D_801C7AD8 + ((((s8) (*(D_801C7082 + temp_v1_35))) + ((*(D_801C7083 + temp_v1_35)) * 0x18)) & 0xFFFF)) = var_s1_5;
+          *(trackPointIndexByCell + ((((s8) (*(D_801C7082 + temp_v1_35))) + ((*(D_801C7083 + temp_v1_35)) * 0x18)) & 0xFFFF)) = var_s1_5;
           var_s1_5 += 1;
           var_v0_53 = inline_fn2(var_s1_5, 0xFFFF);
         }
@@ -2218,7 +2218,7 @@ u8 func_8019A5A0(void)
       {
         do
         {
-          temp_v0_63 = (var_v0_55 + var_v1_4) + trackPoints;
+          temp_v0_63 = (var_v0_55 + var_v1_4) + trackPointTable;
           *((s8 *) (((s8 *) temp_v0_63) + 0)) = 4;
           *((s8 *) (((s8 *) temp_v0_63) + 1)) = 0;
           *((s8 *) (((s8 *) temp_v0_63) + 2)) = -1;
@@ -2227,7 +2227,7 @@ u8 func_8019A5A0(void)
           var_a1_32 = 0;
           var_v0_56 = 0 & 0xFF;
           loop_471:
-          *((s32 *) ((var_v0_56 * 2) + ((inline_fn2(var_s1_5, 0xFFFF) * 8) + D_801C7470))) = 0xFFFF;
+          *((s32 *) ((var_v0_56 * 2) + ((inline_fn2(var_s1_5, 0xFFFF) * 8) + trackPointLinks))) = 0xFFFF;
 
           var_a1_32 += 1;
           var_v0_56 = var_a1_32 & 0xFF;

@@ -56,15 +56,15 @@ typedef struct { u8 pad0[2]; u16 obj; u16 player; u8 pad6[0x558]; s16 ammo; u16 
 typedef struct { u8 v[0x7C]; } Hit;
 typedef struct { f32 v; u8 pad[0x78]; } HitF;
 typedef struct { Car *v; u8 pad[0x78]; } HitP;
-extern SlotF D_8011F308[], D_8011F30C[], D_8011F310[], D_8011F318[], D_8011F320[], D_8011F324[], D_8011F328[];
+extern SlotF D_8011F308[], sPrimColorG[], sPrimColorB[], D_8011F318[], D_8011F320[], D_8011F324[], D_8011F328[];
 extern u8 D_80239408[];
-extern Hit D_8018D727[];
-extern HitF D_8018D730[];
-extern HitP D_8018D6C4[];
+extern Hit slotHitFlags[];
+extern HitF slotRadius[];
+extern HitP slotOwner[];
 void func_801619B4(void);
 void queueObjEvent(u16, s32);
 s32 objCreate(s32, s32, s32, s32, s32, s32, u8 *, void (*)(void), s32, f32, f32, f32, f32, f32, f32, f32, f32, f32);
-void func_8013E640(u16, u16, Car *, f32, f32, f32, f32, f32, f32, f32, s32);
+void launchBall(u16, u16, Car *, f32, f32, f32, f32, f32, f32, f32, s32);
 
 void func_801616C0(Car *car) {
     u16 slot;
@@ -75,15 +75,15 @@ void func_801616C0(Car *car) {
     if (car->state == 1 && (f = car->flags, !(f & 8)) && (f & 7) < 7) {
         slot = raceAllocSlot();
         if (slot != 0xFFFF) {
-            n = objCreate(0, 0, 1, 0, 0x51, 0xFF, D_80239408, func_801619B4, 0, D_8011F308[car->obj].v, D_8011F30C[car->obj].v + 15.0f, D_8011F310[car->obj].v, 0.0f, D_8011F318[car->obj].v, 0.0f, D_8011F320[car->obj].v * 2.0f, D_8011F324[car->obj].v * 2.0f, D_8011F328[car->obj].v * 2.0f);
+            n = objCreate(0, 0, 1, 0, 0x51, 0xFF, D_80239408, func_801619B4, 0, D_8011F308[car->obj].v, sPrimColorG[car->obj].v + 15.0f, sPrimColorB[car->obj].v, 0.0f, D_8011F318[car->obj].v, 0.0f, D_8011F320[car->obj].v * 2.0f, D_8011F324[car->obj].v * 2.0f, D_8011F328[car->obj].v * 2.0f);
             if ((u16)(n + 2) < 2) {
                 func_8013E49C(slot);
             } else {
                 n2 = car->flags & 7; car->flags = (car->flags & 0xF8) | (n2 + 1);
-                func_8013E640(slot, n, car, 0.0f, 0.0f, 15.0f, 0.0f, 0.0f, -0.1f, 0.0f, 0x3C);
-                D_8018D727[slot].v[car->player] = 1;
-                D_8018D730[slot].v = 20.0f;
-                D_8018D6C4[slot].v = car;
+                launchBall(slot, n, car, 0.0f, 0.0f, 15.0f, 0.0f, 0.0f, -0.1f, 0.0f, 0x3C);
+                slotHitFlags[slot].v[car->player] = 1;
+                slotRadius[slot].v = 20.0f;
+                slotOwner[slot].v = car;
                 queueObjEvent(n, 0x2B);
                 if (car->ammo > 0) {
                     car->ammo--;

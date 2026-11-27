@@ -14,7 +14,7 @@ void createStageObjects(void);
 void func_8022F780(u16);
 void func_800E067C(void);
 void func_802312F8(s32);
-void func_80217F44(s32);
+void placeCarsFromSteps(s32);
 void initRowTable(s32);
 void objCreate(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
 void func_8013ADA8(void);
@@ -34,7 +34,7 @@ void func_80217660(void) {
     func_8022F780(*(u16 *)(D_8006FAF0 + 0x20));
     func_800E067C();
     func_802312F8(0);
-    func_80217F44((s32)D_8021C0F8[D_8021C112]);
+    placeCarsFromSteps((s32)D_8021C0F8[D_8021C112]);
     initRowTable(1);
     *(s8 *)(D_8006FAF0 + 0x28) = 1;
     objCreate(0, 0, 3, 0, 0x80, 1, 0, updateChaseCamera, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);

@@ -2,11 +2,11 @@ extern u8 D_8011F2F0[];
 extern u8 D_8011F304[];
 extern u8 D_8011F308[];
 extern u8 D_8011F318[];
-extern u8 D_8011F340[];
+extern u8 sNodeTable[];
 extern u8 D_80190C98[];
 extern f64 D_8021DDB0;
 extern f64 D_8021DDB8;
-extern s8 D_8021E15F;
+extern s8 menuInputLock;
 extern s8 D_8021E231[];
 extern u8 D_8021EECC[];
 extern u8 D_8021F036[];
@@ -21,9 +21,9 @@ void func_80210D88(s32 arg0)
     s8 a3;
     u16 w;
 
-    if (*(u8 *)(*(u8 **)(D_8011F340 + off)) == 0) {
+    if (*(u8 *)(*(u8 **)(sNodeTable + off)) == 0) {
         *(f32 *)(D_8011F308 + off) = (f32)((f64)D_8011F2F0[off] * D_8021DDB0 + D_8021DDB8 - (f64)*(f32 *)D_8021EECC);
-        v = D_8021E15F;
+        v = menuInputLock;
         a3 = D_8021E231[(((v << 4) + v) << 4) + D_8011F2F0[off]];
         w = *(u16 *)(D_80190C98 + (a3 << 1));
         func_8012AD20(*(u16 *)(D_8011F304 + w * 100), D_8021F0A0 + (a3 << 5), a3 & 0xFF, D_8021F036[a3]);

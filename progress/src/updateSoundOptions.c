@@ -9,11 +9,11 @@ extern u8 D_8006FB38[];
 extern s32 D_8021AFDC;
 extern s32 D_8021AFE0;
 extern s32 D_80168BB0;
-s32 func_8014A870(s32, s32, s32);
+s32 getMenuNavMask(s32, s32, s32);
 void playMenuSound(s32);
 void alSeqpSetVol(void *, s16);
 void func_801D65BC(s32);
-void func_80203DF8(s32, s32, s32, s32, s32);
+void setScreenTransition(s32, s32, s32, s32, s32);
 void func_801E1EEC(s32, s32);
 void func_800DE38C(void);
 void func_800DE2E0(void);
@@ -35,7 +35,7 @@ void updateSoundOptions(u16 id) {
         }
         break;
     case 0x10:
-        keys = func_8014A870(0x1E, 3, 0);
+        keys = getMenuNavMask(0x1E, 3, 0);
         D_80190C98.col = D_8021F028.vol[0];
         if (keys & 1) {
             if (D_80190C98.row != 0) {
@@ -98,14 +98,14 @@ void updateSoundOptions(u16 id) {
         if (keys & 0x10) {
             if (D_80190C98.row == 3) {
                 playMenuSound(0x3D);
-                func_80203DF8(2, 6, 0, 0, 0);
+                setScreenTransition(2, 6, 0, 0, 0);
                 func_801E1EEC(9, 0);
                 rec->f3E = 0x20;
             }
         }
         if (keys & 0x20) {
             playMenuSound(0x3D);
-            func_80203DF8(2, 6, 0, 0, 0);
+            setScreenTransition(2, 6, 0, 0, 0);
             func_801E1EEC(9, 0);
             rec->f3E = 0x20;
         }

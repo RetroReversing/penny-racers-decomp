@@ -4,7 +4,7 @@ extern u8 D_801CA130;
 extern s8 cursorY;
 extern u8 glyphCode[];
 extern u8 glyphLine[];
-extern u8 D_8011F30C[];
+extern u8 sPrimColorG[];
 s32 func_80198F1C(s32 arg0)
 {
   s32 var_a1;
@@ -32,7 +32,7 @@ s32 __repair_branch_var_v1_0;
         s32 off_1;
         off_1 = temp_v0 * 100;
         __repair_branch_var_v1_0 = 0x3C; __repair_branch_var_v1_0 += glyphLine[D_801CA130 * 5];
-        *((f32 *) (D_8011F30C + off_1)) = ((f32) __repair_branch_var_v1_0) * 0.5f;
+        *((f32 *) (sPrimColorG + off_1)) = ((f32) __repair_branch_var_v1_0) * 0.5f;
       }
       else
       {
@@ -41,7 +41,7 @@ s32 __repair_branch_var_v1_1;
         s32 off_2;
         off_2 = temp_v0 * 100;
         __repair_branch_var_v1_1 = glyphLine[D_801CA130 * 5];
-        *((f32 *) (D_8011F30C + off_2)) = ((f32) __repair_branch_var_v1_1) * 0.5f;
+        *((f32 *) (sPrimColorG + off_2)) = ((f32) __repair_branch_var_v1_1) * 0.5f;
       }
     }
     var_a1 = 1;

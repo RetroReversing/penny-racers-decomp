@@ -1,5 +1,5 @@
 void func_80149CC4(s32, s32);
-extern s32 D_8018D3A0;
+extern s32 randomMasks;
 extern s32 D_8018D3A4;
 extern s32 D_8018D3A8;
 extern s32 D_8018D3AC;
@@ -12,7 +12,7 @@ void func_80203CB0(s32 arg0) {
     s32 temp_v1;
 
     temp_v1 = arg0 << 5;
-    *(s32 *)((u8 *)&D_8018D3A0 + temp_v1) = 0x1FFF;
+    *(s32 *)((u8 *)&randomMasks + temp_v1) = 0x1FFF;
     *(s32 *)((u8 *)&D_8018D3A4 + temp_v1) = 0x01FFFFFF;
     *(s32 *)((u8 *)&D_8018D3A8 + temp_v1) = 0xFFF;
     *(s32 *)((u8 *)&D_8018D3AC + temp_v1) = 0x1FF;

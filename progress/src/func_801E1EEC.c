@@ -5,7 +5,7 @@ s32 func_801DDA5C();
 extern u8 D_801F1888;
 extern s32 func_801E2020;
 extern s32 func_801E3640;
-extern s32 func_801E3AE4;
+extern s32 updateSaveCheckState;
 
 void func_801E1EEC(u8 arg0, u8 arg1)
 {
@@ -19,7 +19,7 @@ void func_801E1EEC(u8 arg0, u8 arg1)
     if (arg0 == 6) {
         objCreate(0, arg1, 3, 0, 0, 0xFF, 0, (s32) &func_801E3640, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     } else if (arg0 == 9) {
-        objCreate(0, arg1, 3, 0, 0, 0xFF, 0, (s32) &func_801E3AE4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        objCreate(0, arg1, 3, 0, 0, 0xFF, 0, (s32) &updateSaveCheckState, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     } else {
         objCreate(0, arg1, 3, 0, 0, 0xFF, 0, (s32) &func_801E2020, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }

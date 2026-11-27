@@ -24,7 +24,7 @@ extern Obj D_8011F2F0[];
 extern Point *D_801687EC[];
 extern Car sCars[];
 extern f32 sqrtf(f32);
-extern void func_8015E8E4(Car *);
+extern void addCarEffectObjects(Car *);
 
 void func_8013DF90(void)
 {
@@ -47,7 +47,7 @@ void func_8013DF90(void)
                         dy = obj->y - p->y;
                         dz = obj->z - p->z;
                         if (sqrtf(dx * dx + dy * dy + dz * dz) < 26.0f) {
-                            func_8015E8E4(&sCars[i]);
+                            addCarEffectObjects(&sCars[i]);
                             sCars[i].flags |= 4;
                         }
                     }

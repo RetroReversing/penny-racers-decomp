@@ -28,7 +28,7 @@ void func_80129BAC(void *, f32, f32, f32, f32, f32, f32);
 M2C_UNK func_801D7028(u16, M2C_UNK);                /* extern */
 f32 func_801F9AC0(f32);                             /* extern */
 f32 func_801F9BE8(f32, f32);                        /* extern */
-s32 func_801F9D8C(s32, s32);                        /* extern */
+s32 angleFromDelta(s32, s32);                        /* extern */
 extern M2C_UNK D_8011F2F0;
 extern M2C_UNK D_8011F31C;
 extern M2C_UNK D_802D2B94;
@@ -392,8 +392,8 @@ vertical_done:;
             }
             break;
         }
-        M2C_FIELD(arg0, f32 *, 0x8A8) = (f32) (func_801F9D8C((s32) (M2C_FIELD(arg0, f32 *, 0x7E4) * 100.0f), (s32) (M2C_FIELD(arg0, f32 *, 0x7E8) * 100.0f)) & 0xFFFF);
-        temp_fa1 = (f32) -(func_801F9D8C((s32) (M2C_FIELD(arg0, f32 *, 0x7E4) * 100.0f), (s32) (M2C_FIELD(arg0, f32 *, 0x7E0) * 100.0f)) & 0xFFFF);
+        M2C_FIELD(arg0, f32 *, 0x8A8) = (f32) (angleFromDelta((s32) (M2C_FIELD(arg0, f32 *, 0x7E4) * 100.0f), (s32) (M2C_FIELD(arg0, f32 *, 0x7E8) * 100.0f)) & 0xFFFF);
+        temp_fa1 = (f32) -(angleFromDelta((s32) (M2C_FIELD(arg0, f32 *, 0x7E4) * 100.0f), (s32) (M2C_FIELD(arg0, f32 *, 0x7E0) * 100.0f)) & 0xFFFF);
         M2C_FIELD(arg0, f32 *, 0x8B0) = temp_fa1;
         M2C_FIELD(temp_s4, f32 *, 0x2C) = (f32) ((func_801F9BE8(M2C_FIELD(temp_s4, f32 *, 0x2C), temp_fa1) * 0.5f) + M2C_FIELD(temp_s4, f32 *, 0x2C));
         M2C_FIELD(temp_s4, f32 *, 0x24) = (f32) ((func_801F9BE8(M2C_FIELD(temp_s4, f32 *, 0x24), M2C_FIELD(arg0, f32 *, 0x8A8)) * 0.5f) + M2C_FIELD(temp_s4, f32 *, 0x24));

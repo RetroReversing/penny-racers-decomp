@@ -44,7 +44,7 @@ extern Audio D_8006FAF0;
 extern Game sRowBoard;
 extern FadeSlot D_8011F350[];
 extern u16 D_8018BC3C;
-extern u16 D_80301BE0;
+extern u16 menuPanelTlut;
 void dmaRomToRam(void *, void *, s32);
 u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 void func_801DDA5C(void);
@@ -62,7 +62,7 @@ void updateSaveDataSync();
     s32 vtxIdx;
 
     dmaRomToRam(D_3B7C00, D_802D6890, D_3E4880 - D_3B7C00);
-    D_80301BE0 = 0xFFFF;
+    menuPanelTlut = 0xFFFF;
     func_80231A0C();
     D_802210C8[0] = 170.0f;
     D_802210C8[1] = -100.0f;

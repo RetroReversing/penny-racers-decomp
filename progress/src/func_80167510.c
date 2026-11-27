@@ -5,8 +5,8 @@ typedef struct { f32 f0; u8 pad[0x78]; } Rec;
 typedef struct { void *p; u8 pad[0x78]; } Rec2;
 typedef struct { u8 pad0[0x774]; f32 speed; u8 pad778[0x48]; f32 vx; f32 vy; f32 vz; u8 pad7CC[0x124]; } Slot;
 extern Obj D_8011F2F0[];
-extern Rec D_8018D730[];
-extern Rec2 D_8018D6C4[];
+extern Rec slotRadius[];
+extern Rec2 slotOwner[];
 extern Slot sCars[];
 extern u16 D_8018D672;
 extern u16 D_80233EC0;
@@ -41,8 +41,8 @@ void func_80167510(u16 arg0)
         }
         func_8013E818(id, arg0, 0, 0.0f, 0.0f, 0.0f, 4);
         o->state = 2;
-        D_8018D730[id].f0 = 15.0f;
-        D_8018D6C4[id].p = sCars;
+        slotRadius[id].f0 = 15.0f;
+        slotOwner[id].p = sCars;
         o->f44 = o->x;
         o->f48 = o->y;
         o->f4C = o->z;

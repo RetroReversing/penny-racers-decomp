@@ -13,16 +13,16 @@ typedef s32 M2C_UNK32;
 #endif
 
 extern M2C_UNK D_8021E148;
-extern M2C_UNK func_80204410;
-extern M2C_UNK func_80204760;
-extern M2C_UNK func_80204AC8;
-extern M2C_UNK func_80204E30;
-extern M2C_UNK func_80205198;
+extern M2C_UNK drawMenuFocusArrows;
+extern M2C_UNK drawMenuIcons;
+extern M2C_UNK drawOptionIcons;
+extern M2C_UNK drawMenuIconSet3;
+extern M2C_UNK drawMenuArrows;
 
 void func_802054D0(void) {
-    M2C_FIELD(&D_8021E148, M2C_UNK **, 0) = &func_80204410;
-    M2C_FIELD(&D_8021E148, M2C_UNK **, 4) = &func_80204760;
-    M2C_FIELD(&D_8021E148, M2C_UNK **, 8) = &func_80204AC8;
-    M2C_FIELD(&D_8021E148, M2C_UNK **, 0xC) = &func_80204E30;
-    M2C_FIELD(&D_8021E148, M2C_UNK **, 0x10) = &func_80205198;
+    M2C_FIELD(&D_8021E148, M2C_UNK **, 0) = &drawMenuFocusArrows;
+    M2C_FIELD(&D_8021E148, M2C_UNK **, 4) = &drawMenuIcons;
+    M2C_FIELD(&D_8021E148, M2C_UNK **, 8) = &drawOptionIcons;
+    M2C_FIELD(&D_8021E148, M2C_UNK **, 0xC) = &drawMenuIconSet3;
+    M2C_FIELD(&D_8021E148, M2C_UNK **, 0x10) = &drawMenuArrows;
 }

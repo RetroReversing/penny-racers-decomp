@@ -13,8 +13,8 @@ extern Slot D_8011F2F0[];
 extern u8 D_80190C9E;
 extern u8 D_801C5EA0;
 extern s32 D_802030B0[];
-extern u16 D_8021E19C;
-extern u8 D_8021E19E;
+extern u16 sFadeLevel;
+extern u8 menuArrowAlpha;
 extern s32 D_802D6898;
 extern s32 D_802D92A0;
 
@@ -23,7 +23,7 @@ void func_80216128(s32 arg0, s32 arg1) {
 
     slot = &D_8011F2F0[arg1 & 0xFFFF];
     gfxSetup2DState(arg0, arg1 & 0xFFFF);
-    gfxSetPrimAlpha(arg0, D_8021E19C);
+    gfxSetPrimAlpha(arg0, sFadeLevel);
     switch (slot->state) {
     case 0:
         slot->state = (u32)0x10;
@@ -39,7 +39,7 @@ void func_80216128(s32 arg0, s32 arg1) {
             gfxDrawText(arg0, 0x6B, 0x99, 0xD, &D_802D92A0, D_802030B0[3], 0, &D_802D6898, 0xE, 0x10, 0xE0, 0x60);
         }
         if (slot->state != (u32)0x20) {
-            gfxSetPrimAlpha(arg0, D_8021E19E);
+            gfxSetPrimAlpha(arg0, menuArrowAlpha);
             do { gfxDrawSprite(arg0, 0x58, (D_80190C9E * 0x18) + 0x66, 0xA, 0x15); } while (0);
             gfxDrawSprite(arg0, 0xD5, (D_80190C9E * 0x18) + 0x66, 0xA, 0x16);
         }

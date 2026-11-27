@@ -39,7 +39,7 @@ extern u8 D_8021B00C[];
 extern u8 D_8021B064[];
 extern u8 D_8021B070[];
 extern u8 D_8021B690[];
-extern s8 D_8021E15F;
+extern s8 menuInputLock;
 void func_800DEFF8(void);
 void func_800DF094(void);
 void func_800DF138(u16);
@@ -51,8 +51,8 @@ void func_801B7584(s32, s32);
 void playStageSound(s32, s32);
 void func_801DD938(s32, s32, s32, s32, s32, s32, s32, s32, s32, s32);
 s32 func_801DDCDC(s32, s32);
-u8 func_801E189C(void);
-void func_801E1C38(void);
+u8 compressDataTable(void);
+void unpressPairTable(void);
 u32 func_801E2BA4(void);
 void func_801E2BFC(void);
 void func_801E2D18(void);
@@ -299,7 +299,7 @@ D_8011F2F0[arg0].f3E = 0x13;
 if ((u16) D_8011F2F0[arg0].f48 == 60) {
 switch (mode) {
 case 0:
-D_801E87E4 = func_801E189C();
+D_801E87E4 = compressDataTable();
 nuContPakFileReadWrite(&D_801F1898[id], 0, 0x3200, D_801F18E0, 1);
 if ((D_801F1898[id].error != 0) || (D_801F1898[id].type != 1)) {
 func_801DD938(0x10, 0x4C, 0xA, 2, 0xC8, 0xb4, 0x12, 0x16, (u8) id, 0xc);
@@ -343,7 +343,7 @@ if (D_801E973C == 0 && sum == 0) {
 func_801DD938(0x10, 0x4C, 0xA, 2, 0xC8, 0xb4, 0x12, 0x16, (u8) id, 0x24);
 return;
 }
-func_801E1C38();
+unpressPairTable();
 func_801DD938(0x10, 0x4C, 0xA, 2, 0xC8, 0xb4, 0x12, 0x14, (u8) id, 0x2b);
 break;
 case 2:
@@ -393,7 +393,7 @@ return;
 }
 func_8014B714((u8) id);
 {
-s8 *p = &D_8021E15F;
+s8 *p = &menuInputLock;
 D_8021B064[*p] = 1;
 D_8021B00C[*p] = 1;
 }

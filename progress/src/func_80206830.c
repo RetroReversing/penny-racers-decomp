@@ -1,9 +1,9 @@
-extern u8 D_8021E19E;
+extern u8 menuArrowAlpha;
 
 void func_80206830(void) {
     s32 temp_v0;
 
-    temp_v0 = D_8021E19E;
+    temp_v0 = menuArrowAlpha;
     temp_v0 -= 8;
-    D_8021E19E = temp_v0;
+    menuArrowAlpha = temp_v0;
 }

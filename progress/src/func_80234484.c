@@ -22,7 +22,7 @@ extern u8 D_80236F50;
 extern u8 D_80236F51;
 extern u8 sRowBoard[];
 void func_80235074(u16, u16);
-void func_801E3FE8(void);
+void updateRaceRecords(void);
 u8 func_801E435C(u8, u8);
 void debugPrintf();
 void func_801E43A0(u8, u8, u8);
@@ -146,7 +146,7 @@ void func_80234484(u16 arg0)
                 if (MODE == D_80236F50) {
                     if (D_80189CC8 == 0 || (D_80189CC8 == 2 && MODE == 1)) {
                         if (PANE(r).f879 != 5) {
-                            func_801E3FE8();
+                            updateRaceRecords();
                         }
                     }
                     if (MODE == 1 && D_80189CC8 == 2 && PANE(r).f879 == 0) {

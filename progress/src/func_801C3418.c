@@ -5,12 +5,12 @@ extern s8 cursorX;
 extern u16 D_801C7078;
 extern Ent D_801C7082[];
 extern Hdr *trackInfo;
-extern u8 D_801C7AD8[];
+extern u8 trackPointIndexByCell[];
 
 u8 func_801C3418(void) {
     u8 i;
 
-    if (D_801C7AD8[D_801C7078] == 0xFF) {
+    if (trackPointIndexByCell[D_801C7078] == 0xFF) {
         return trackInfo->count;
     }
     for (i = 0; i < trackInfo->count; i++) {

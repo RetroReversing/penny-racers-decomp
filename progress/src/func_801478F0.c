@@ -60,14 +60,14 @@ typedef struct { u8 kind; u8 pad1[0x1B]; f32 y; u8 pad20[0x14]; f32 fade; u8 pad
 typedef struct { u16 timer; u8 alpha; } Timer;
 typedef struct { u8 pad0[0x6E]; u16 name[14][9]; u8 pad[14]; } Car;
 extern Ob13 D_8011F2F0[];
-extern Timer D_8021E19C;
+extern Timer sFadeLevel;
 extern u16 D_80190CA4;
 extern u8 D_802D92A0[], D_802D6898[], D_801D4390[], D_801CF4C8[];
 extern u16 *D_80203408[];
 extern u8 D_8018BC35[];
 extern u16 D_80189C9E[][6];
 extern u16 *D_80203080[];
-extern Car D_800DA260[];
+extern Car sCarSlots[];
 extern s8 D_80189C9D[];
 extern u8 D_80168CEC[][3];
 void gfxSetup2DState(Gfx **);
@@ -95,12 +95,12 @@ void func_801478F0(Gfx **gfxp, u16 id) {
         break;
     case 0x10:
     case 0x20:
-        gfxSetPrimColor(gfxp, 0, 0, 0, D_8021E19C.timer);
+        gfxSetPrimColor(gfxp, 0, 0, 0, sFadeLevel.timer);
         for (i = 0; i < 6; i++) {
             D(0x34, (s16)(i * 22 + 0x39), 0xB, 0x5D);
         }
-        gfxSetPrimAlpha(gfxp, D_8021E19C.timer);
-        gfxSetPrimColor(gfxp, D_80190CA4, D_80190CA4, D_80190CA4, D_8021E19C.timer);
+        gfxSetPrimAlpha(gfxp, sFadeLevel.timer);
+        gfxSetPrimColor(gfxp, D_80190CA4, D_80190CA4, D_80190CA4, sFadeLevel.timer);
         T(0x5F, 0x26, D_80203408[0]);
         T(0xBA, 0x26, D_80203408[1]);
         for (i = 0; i < 6; i++) {
@@ -118,13 +118,13 @@ void func_801478F0(Gfx **gfxp, u16 id) {
                         str = D_80203080[n];
                     } else {
                         n = D_80189C9E[j][D_8018BC35[i]] & 0x1F;
-                        str = D_800DA260[D_8018BC35[i]].name[n];
+                        str = sCarSlots[D_8018BC35[i]].name[n];
                     }
                     gfxDrawText(gfxp, (u16)(j * 91 + 0x5F), i * 22 + 0x3B, 0xA, D_801D4390, str, 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC);
                 }
             }
         }
-        gfxSetPrimColor(gfxp, 0xF6, 0x70, 0x33, D_8021E19C.timer);
+        gfxSetPrimColor(gfxp, 0xF6, 0x70, 0x33, sFadeLevel.timer);
         T(0x3D, (u32)D_8011F2F0[id].y, D_80203408[2]);
         gfxSetPrimAlpha(gfxp, 0xFF);
         if (D_8011F2F0[id].state == 0x20) {
@@ -138,7 +138,7 @@ void func_801478F0(Gfx **gfxp, u16 id) {
             D(0xE0, 0x5C, 0xB, 0x4D);
             D(0xE0, 0x94, 0xB, 0x4E);
             if (i == 0xC0) {
-                gfxSetPrimAlpha(gfxp, D_8021E19C.alpha);
+                gfxSetPrimAlpha(gfxp, sFadeLevel.alpha);
                 D(0x5B, D_80189C9D[0] * 20 + 0x66, 0xB, 0x23);
                 D(0xD2, D_80189C9D[0] * 20 + 0x66, 0xB, 0x24);
             }
@@ -156,7 +156,7 @@ void func_801478F0(Gfx **gfxp, u16 id) {
         }
         break;
     case 0x30:
-        i = D_8021E19C.timer;
+        i = sFadeLevel.timer;
         if (i > 0xC0) {
             i = 0xC0;
         }
@@ -170,11 +170,11 @@ void func_801478F0(Gfx **gfxp, u16 id) {
         c[2] = 0x80;
         c[D_80189C9D[0]] = 0xFF;
         for (i = 0; i < 3; i++) {
-            gfxSetPrimColor(gfxp, c[i], c[i], c[i], D_8021E19C.timer);
+            gfxSetPrimColor(gfxp, c[i], c[i], c[i], sFadeLevel.timer);
             D(D_80168CEC[i][0], D_80168CEC[i][1], 0xB, D_80168CEC[i][2]);
         }
-        if (D_8021E19C.timer == 0xFF) {
-            gfxSetPrimAlpha(gfxp, D_8021E19C.alpha);
+        if (sFadeLevel.timer == 0xFF) {
+            gfxSetPrimAlpha(gfxp, sFadeLevel.alpha);
             D(0x5B, D_80189C9D[0] * 20 + 0x63, 0xB, 0x23);
             D(0xD2, D_80189C9D[0] * 20 + 0x63, 0xB, 0x24);
             gfxSetPrimAlpha(gfxp, 0xFF);

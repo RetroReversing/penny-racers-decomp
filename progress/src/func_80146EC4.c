@@ -8,7 +8,7 @@ extern u8 D_80189CB6;
 extern u8 D_80189CBE;
 extern u16 D_80189CC6[];
 extern u16 D_80190CA0[];
-s32 func_8014A870(s32, s32, u8);
+s32 getMenuNavMask(s32, s32, u8);
 void playMenuSound(s32);
 s32 func_8014BAC0(void);
 void swapCarState(u8, u8);
@@ -21,7 +21,7 @@ void func_80146EC4(u16 arg0)
 
     p = &D_8011F2F0[arg0];
     if (D_80189CC6[0] & 0x800) {
-        flags = func_8014A870(0x14, 3, ((u8 *)D_80189CC6)[-8]);
+        flags = getMenuNavMask(0x14, 3, ((u8 *)D_80189CC6)[-8]);
         if (flags & 8) {
             if (!(D_80189CC6[0] & 0x8000)) {
                 D_80189CC6[0] |= 0x8000;

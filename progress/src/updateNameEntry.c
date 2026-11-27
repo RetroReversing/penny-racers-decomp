@@ -4,7 +4,7 @@ extern Rec D_8011F2F0[];
 extern Menu D_8021EEC0;
 extern u16 D_8018BC3C;
 typedef struct { s8 v; } Pad;
-extern Pad D_8021E15F;
+extern Pad menuInputLock;
 extern s8 D_8021E231[];
 extern u8 D_8021B420[];
 extern u8 D_8021B430[];
@@ -14,10 +14,10 @@ extern u8 D_8021F048[][14];
 extern u8 D_8021F036[];
 extern s32 D_8021AFDC;
 extern s32 D_80168BB0;
-s32 func_8014A870(s32, s32, s32);
+s32 getMenuNavMask(s32, s32, s32);
 void playMenuSound(s32);
 void func_80211B90(void);
-void func_80203DF8(s32, s32, s32, s32, s32);
+void setScreenTransition(s32, s32, s32, s32, s32);
 void func_800DE38C(void);
 void func_800DE2E0(void);
 void func_80231C5C(void);
@@ -27,7 +27,7 @@ void func_801CF468(u16, s32, s32, s32);
  * character writes it into the name and advances the digit. Ok leaves the screen;
  * when the transition finishes, the names are saved and the next screen is set. */
 void updateNameEntry(u16 id) {
-    s32 keys = func_8014A870(0x14, 3, D_8021E15F.v);
+    s32 keys = getMenuNavMask(0x14, 3, menuInputLock.v);
     s32 i;
     s32 j;
 
@@ -61,11 +61,11 @@ void updateNameEntry(u16 id) {
             playMenuSound(0x3D);
             switch (D_8021EEC0.cur) {
             case 0x5A:
-                func_80203DF8(2, 6, 0, 0, 0);
+                setScreenTransition(2, 6, 0, 0, 0);
                 D_8011F2F0[id].f3E = 0x20;
                 break;
             case 0x55: {
-                s32 row = D_8021E15F.v * 0x110;
+                s32 row = menuInputLock.v * 0x110;
 
                 j = D_8021E231[row + D_8021EEC0.sel];
 
@@ -76,7 +76,7 @@ void updateNameEntry(u16 id) {
                 break;
             }
             default: {
-                s32 row = D_8021E15F.v * 0x110;
+                s32 row = menuInputLock.v * 0x110;
 
                 j = D_8021E231[row + D_8021EEC0.sel];
 
@@ -98,9 +98,9 @@ void updateNameEntry(u16 id) {
         if (*D_8011F2F0[D_8018BC3C].f60 == 0) {
             for (i = 0; i < 14; i++) {
                 for (j = 0; j < 8; j++) {
-                    D_8021F270[D_8021E15F.v][i][j] = D_80187BF0[i][j];
+                    D_8021F270[menuInputLock.v][i][j] = D_80187BF0[i][j];
                 }
-                D_8021F048[D_8021E15F.v][i] = D_8021F036[i];
+                D_8021F048[menuInputLock.v][i] = D_8021F036[i];
             }
             func_800DE38C();
             func_800DE2E0();

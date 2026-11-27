@@ -1,10 +1,10 @@
 typedef struct { u8 pad0[0x6E]; u16 rows[14][9]; u8 sel[14]; } Car;
-extern Car D_800DA260[];
+extern Car sCarSlots[];
 extern u16 D_80189CBC;
 extern u8 D_80189CBD;
 extern u16 D_80189CC4;
 extern u8 D_80189CC5;
-extern void *D_8018D3A0[][8];
+extern void *randomMasks[][8];
 extern u16 D_80189C9E[];
 extern u8 D_8021F048[][14];
 extern u16 D_8021F270[][14][8];
@@ -24,15 +24,15 @@ u8 slotB;
     s32 i;
     s32 j;
 
-    carB = &D_800DA260[slotB];
-    carA = &D_800DA260[slotA];
+    carB = &sCarSlots[slotB];
+    carA = &sCarSlots[slotA];
     flagsA = D_80189CBC >> 8;
     if (!(flagsA & 8)) {
         row = flagsA & 0xF;
         column = D_80189CBD;
         column &= 0x1F;
-        D_8018D3A0[slotA][row] = func_8014A030(D_8018D3A0[slotA][row], column, 0);
-        D_8018D3A0[slotB][row] = func_8014A030(D_8018D3A0[slotB][row], column, 1);
+        randomMasks[slotA][row] = func_8014A030(randomMasks[slotA][row], column, 0);
+        randomMasks[slotB][row] = func_8014A030(randomMasks[slotB][row], column, 1);
         if (!(flagsA & 7)) {
             carB->sel[column] = carA->sel[column];
             for (i = 0; i < 9; i++) {
@@ -45,8 +45,8 @@ u8 slotB;
         row = flagsB & 0xF;
         column = D_80189CC5;
         column &= 0x1F;
-        D_8018D3A0[slotA][row] = func_8014A030(D_8018D3A0[slotA][row], column, 1);
-        D_8018D3A0[slotB][row] = func_8014A030(D_8018D3A0[slotB][row], column, 0);
+        randomMasks[slotA][row] = func_8014A030(randomMasks[slotA][row], column, 1);
+        randomMasks[slotB][row] = func_8014A030(randomMasks[slotB][row], column, 0);
         if (!(flagsB & 7)) {
             carA->sel[column] = carB->sel[column];
             for (i = 0; i < 8; i++) {

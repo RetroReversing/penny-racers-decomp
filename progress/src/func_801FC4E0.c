@@ -64,7 +64,7 @@ extern u8 D_801FFD30[];
 extern u8 *D_801FFD40[];
 void gfxSetup2DState(Gfx **);
 void gfxSetPrimAlpha(Gfx **, u16);
-void func_801CB74C(Gfx **, s32, s32, s32, u8 *, u8 *);
+void drawText(Gfx **, s32, s32, s32, u8 *, u8 *);
 #define gSPDisplayList(pkt, dl) gDma(pkt, _S(0x06, 24, 8), dl)
 
 void func_801FC4E0(Gfx **gfxp, u16 id) {
@@ -107,7 +107,7 @@ void func_801FC4E0(Gfx **gfxp, u16 id) {
         gfxSetup2DState(gfxp);
         gSPDisplayList((*gfxp)++, D_80220ED8);
         gfxSetPrimAlpha(gfxp, D_802038C4);
-        func_801CB74C(gfxp, 0x64, 0xA0, 8, D_801FFD30, D_801FFD40[0]);
-        func_801CB74C(gfxp, 0x64, 0x6E, 8, D_801FFD30, D_801FFD40[D_8006FAF0.lang]);
+        drawText(gfxp, 0x64, 0xA0, 8, D_801FFD30, D_801FFD40[0]);
+        drawText(gfxp, 0x64, 0x6E, 8, D_801FFD30, D_801FFD40[D_8006FAF0.lang]);
     }
 }

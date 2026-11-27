@@ -20,7 +20,7 @@ extern f64 D_8012AA30;
 f32 func_80127000(Vec3 *, Vec3 *);
 Vec3 vec3Cross(Vec3, Vec3);
 Vec3 vec3Sub(Vec3 *, Vec3 *);
-s32 func_801271A0(void);
+s32 segmentCrossesQuad(void);
 void func_80127870(Vec3 *, Vec3 *, Vec3 *, Vec3 *, Vec3 *);
 f32 sqrtf(f32);
 
@@ -101,7 +101,7 @@ void func_80128880(Result *res, Obj *obj, f32 x, f32 y, f32 z, f32 dx, f32 dy, f
                         }
                     }
                     if (inside) {
-                        if ((u8) func_801271A0() == 1) {
+                        if ((u8) segmentCrossesQuad() == 1) {
                             a = vec3Sub(&D_8012AB4C, &D_8012AB64);
                             b = vec3Sub(&D_8012AB7C, &D_8012AB64);
                             n = vec3Cross(a, b);

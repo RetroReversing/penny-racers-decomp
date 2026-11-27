@@ -67,7 +67,7 @@ void gfxSetup2DState(Gfx **);
 void gfxSetPrimAlpha(Gfx **, s32);
 void gfxSetPrimColor(Gfx **, s32, s32, s32, s32);
 void gfxDrawSprite(Gfx **, s32, s32, s32, s32);
-void func_801D8BD0(Gfx **, s32, s32, s32, s32, u8 *, u8 *);
+void drawPanelFrame(Gfx **, s32, s32, s32, s32, u8 *, u8 *);
 void gfxDrawText(Gfx **, s32, s32, s32, u8 *, u8 *, s32, u8 *, s32, s32, s32, s32);
 #define D(x, y, id) gfxDrawSprite(gfxp, x, y, 0xA, id)
 
@@ -170,7 +170,7 @@ void func_80216D80(Gfx **gfxp, u16 id) {
         gfxSetPrimAlpha(gfxp, 0xFF);
     }
     if (obj->model == 0x41) {
-        func_801D8BD0(gfxp, 0x10, 0x4C, 0xA, 2, D_801E6B68, D_801E7470);
+        drawPanelFrame(gfxp, 0x10, 0x4C, 0xA, 2, D_801E6B68, D_801E7470);
         gfxDrawText(gfxp, 0x28, 0x64, 0xA, D_801D4390, D_802036BC, 0, D_801CF4C8, 0xA, 0xE, 0xA0, 0xFC);
     }
 }

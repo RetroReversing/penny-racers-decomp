@@ -9,14 +9,14 @@ extern u8 D_801C5EA1;
 extern u8 cursorY;
 extern u16 D_801C6BE0[];
 extern u8 cursorX;
-extern Rec5 trackPoints[];
+extern Rec5 trackPointTable[];
 extern Pair D_801C7082[];
-extern u8 blockFootprint;
-extern u16 D_801C7470[][4];
+extern u8 blockDirection;
+extern u16 trackPointLinks[][4];
 extern void *trackInfo;
-extern u8 D_801C7AB6;
+extern u8 trackPointEntryCount;
 extern u8 D_801C7AB8;
-extern u8 D_801C7AD8[];
+extern u8 trackPointIndexByCell[];
 extern void objCreate();
 
 void func_801AEC94(void)
@@ -25,7 +25,7 @@ void func_801AEC94(void)
     u8 j;
 
     D_801C7AB8 = 4;
-    blockFootprint = 4;
+    blockDirection = 4;
     if (D_801C5EA1 == 0) {
         cursorY = 0xB;
         cursorX = 0xB;
@@ -41,17 +41,17 @@ void func_801AEC94(void)
         cursorY = *p;
     }
     trackInfo = D_801C5E9C;
-    D_801C7AB6 = 0;
+    trackPointEntryCount = 0;
     for (i = 0; i < 0x240; i++) {
         D_801C6BE0[i] = 0xFFFF;
-        D_801C7AD8[i] = 0xFF;
+        trackPointIndexByCell[i] = 0xFF;
     }
     for (i = 0; i < 0xC8; i++) {
         for (j = 0; j < 4; j++) {
-            D_801C7470[i][j] = 0xFFFF;
+            trackPointLinks[i][j] = 0xFFFF;
         }
         if (D_801C5EA1 == 0) {
-            Rec5 *t = trackPoints;
+            Rec5 *t = trackPointTable;
             Rec5 *r = &t[i];
             r->a = 4;
             r->b = 0;
@@ -63,7 +63,7 @@ void func_801AEC94(void)
     func_801D65BC(7);
     func_8021F5F0();
     func_801AEEE8();
-    func_801AEFBC();
+    setBoardCameras();
     objCreate(0, 0, 3, 0, 0x42, 0xFF, 0, 0, D_8019E400, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     objCreate(0, 0, 3, 0, 0x50, 0xFF, 0, 0, D_8019E4B8, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 }

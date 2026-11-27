@@ -1,8 +1,8 @@
 extern char D_8011F2FC[];
 extern char D_8011F2FD[];
 extern char D_8011F308[];
-extern char D_8011F30C[];
-extern char D_8011F310[];
+extern char sPrimColorG[];
+extern char sPrimColorB[];
 extern char D_8011F320[];
 extern char D_8011F324[];
 extern char D_8011F328[];
@@ -20,8 +20,8 @@ void func_8013AF08(s32 arg0)
     F(D_8011F328, i) = F(D_8011F328, i) + 0.01f;
     *(u8 *)(D_8011F2FC + i) = *(u8 *)(D_8011F2FC + i) - 8;
     F(D_8011F308, i) = F(D_8011F308, i) + F(D_8011F334, i);
-    F(D_8011F30C, i) = F(D_8011F30C, i) + F(D_8011F338, i);
-    F(D_8011F310, i) = F(D_8011F310, i) + F(D_8011F33C, i);
+    F(sPrimColorG, i) = F(sPrimColorG, i) + F(D_8011F338, i);
+    F(sPrimColorB, i) = F(sPrimColorB, i) + F(D_8011F33C, i);
     F(D_8011F334, i) = F(D_8011F334, i) * 0.95f;
     F(D_8011F338, i) = F(D_8011F338, i) * 0.6f;
     F(D_8011F33C, i) = F(D_8011F33C, i) * 0.95f;

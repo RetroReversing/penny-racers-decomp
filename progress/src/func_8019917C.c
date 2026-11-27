@@ -5,7 +5,7 @@ extern R D_8011F2F0[];
 extern u8 D_801C6B30;
 extern u16 hudSlotIndex;
 extern u8 hudVisible;
-extern u8 blockFootprint;
+extern u8 blockDirection;
 extern u8 D_801C7AB8;
 
 #define SETCOLOR(op, color) { Cmd *c = (*gdl)++; c->w0 = (op); c->w1 = (color); }
@@ -18,9 +18,9 @@ void func_8019917C(Cmd **gdl, u16 idx)
         break;
     case 1:
         if (D_8011F2F0[hudSlotIndex].kind == 7 || D_8011F2F0[hudSlotIndex].kind == 8 || D_8011F2F0[hudSlotIndex].kind == 6) {
-            if (blockFootprint == 4) {
+            if (blockDirection == 4) {
                 SETCOLOR(0xFA000000, D_8011F2F0[idx].alpha | 0xFF00);
-            } else if (blockFootprint == 0) {
+            } else if (blockDirection == 0) {
                 SETCOLOR(0xFA000000, D_8011F2F0[idx].alpha | 0xFF00);
             } else if (D_801C6B30 == 0) {
                 SETCOLOR(0xFA000000, D_8011F2F0[idx].alpha | 0xFF00);

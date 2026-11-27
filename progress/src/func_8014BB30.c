@@ -1,4 +1,4 @@
-extern u8 D_8018D3A0[];
+extern u8 randomMasks[];
 extern u8 D_8018D3A4[];
 extern u8 D_8018D3B0[];
 extern u8 D_8018D3B4[];
@@ -9,7 +9,7 @@ u16 func_8014BB30(u8 arg0)
 {
     u32 flags = 0;
 
-    if (*(u32 *)(D_8018D3A0 + ((arg0 & 0xFF) << 5)) & 0x2000) {
+    if (*(u32 *)(randomMasks + ((arg0 & 0xFF) << 5)) & 0x2000) {
         flags |= 0x800;
     }
     if (*(u32 *)(D_8018D3A4 + ((arg0 & 0xFF) << 5)) & 0x200000) {

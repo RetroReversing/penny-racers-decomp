@@ -17,14 +17,14 @@ s32 gfxSetup2DState();
 s32 gfxSetPrimAlpha();
 s32 gfxSetPrimColor();
 s32 gfxDrawClippedTex8b();
-extern char D_802E66D8[];
-extern char D_802F92E0[];
+extern char menuBgTex[];
+extern char menuBgTlut[];
 
 void func_80215CCC(s32 arg0) {
     gfxSetup2DState();
     gfxSetPrimAlpha(arg0, 0xFF);
     gfxSetPrimColor(arg0, 0x78, 0x78, 0x78, 0xFF);
-    gfxDrawClippedTex8b(arg0, 0, 0, 0, 0, 0x140, 0xF0, 0x140, 0xF0, 0x40, 0x20, 0, 0, 0x13F, 0xEF, &D_802E66D8, &D_802F92E0);
+    gfxDrawClippedTex8b(arg0, 0, 0, 0, 0, 0x140, 0xF0, 0x140, 0xF0, 0x40, 0x20, 0, 0, 0x13F, 0xEF, &menuBgTex, &menuBgTlut);
     gfxSetPrimColor(arg0, 0xFF, 0xFF, 0xFF, 0xFF);
     gfxDrawSprite(arg0, 0x50, 0x18, 0xA, 0x1F);
     gfxDrawSprite(arg0, 0x61, 0x1A, 0xA, 6);

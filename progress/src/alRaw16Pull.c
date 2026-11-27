@@ -7910,145 +7910,106 @@ Acmd *_decodeChunk(Acmd *ptr, ALLoadFilter *f, s32 tsam, s32 nbytes, s16 outp, s
 
 
 
-Acmd *alRaw16Pull(void *filter, s16 *outp, s32 outCount, s32 sampleOffset, Acmd *p)
+/* Queues the DMA and resample commands that pull outCount samples from a looping sample, zero-filling past the table end. */ Acmd *alRaw16Pull(void *filter, s16 *outp, s32 outCount, s32 sampleOffset, Acmd *p)
 {
-    Acmd        *ptr = p;
-    s32         nbytes;
-    s32         dramLoc;
-    s32         dramAlign;
-    s32         dmemAlign;
-    s32         overFlow;
-    s32         startZero;
-    s32         nSam;
-    s32         op;
+    Acmd        *cmd = p;
+    s32         byteCount;
+    s32         dramAddr;
+    s32         dramPad;
+    s32         dmemPad;
+    s32         overflowBytes;
+    s32         zeroStart;
+    s32         sampleCount;
+    s32         dmemOut;
 
-    ALLoadFilter *f = (ALLoadFilter *)filter;
+    ALLoadFilter *loadFilter = (ALLoadFilter *)filter;
     ALFilter *a = (ALFilter *) filter;
 
     if (outCount == 0)
-        return ptr;
+        return cmd;
 
-    if ((outCount + f->sample > f->loop.end) && (f->loop.count != 0)){
+    if ((outCount + loadFilter->sample > loadFilter->loop.end) && (loadFilter->loop.count != 0)){
 
-        nSam = f->loop.end - f->sample;
-        nbytes = nSam<<1;
-        if (nSam > 0){
-            dramLoc = (f->dma)(f->memin, nbytes, f->dmaState);
-
-             
-
-
-
-            dramAlign = dramLoc & 0x7;
-            nbytes += dramAlign;
-            {	Acmd *_a = (Acmd *) ptr++ ;	_a->words.w0 = (((unsigned int) (((unsigned int)( 8  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   0  ) & ((0x01 << (  8 )) - 1)) << (  16 )))  |	((unsigned int) (((unsigned int)(   *outp  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ); _a->words.w1 = ((unsigned int) (((unsigned int)(   0  ) & ((0x01 << (  16 )) - 1)) << (  16 )))  | ((unsigned int) (((unsigned int)(   nbytes + 8 - (nbytes & 0x7)  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ;	} ;
-            {	Acmd *_a = (Acmd *) ptr++ ;	_a->words.w0 = ((unsigned int) (((unsigned int)( 4  ) & ((0x01 << (  8 )) - 1)) << (  24 ))) ;	_a->words.w1 = (unsigned int)(  dramLoc - dramAlign );	} ;
+        sampleCount = loadFilter->loop.end - loadFilter->sample;
+        byteCount = sampleCount<<1;
+        if (sampleCount > 0){
+            dramAddr = (loadFilter->dma)(loadFilter->memin, byteCount, loadFilter->dmaState);
+            dramPad = dramAddr & 0x7;
+            byteCount += dramPad;
+            {	Acmd *_a = (Acmd *) cmd++ ;	_a->words.w0 = (((unsigned int) (((unsigned int)( 8  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   0  ) & ((0x01 << (  8 )) - 1)) << (  16 )))  |	((unsigned int) (((unsigned int)(   *outp  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ); _a->words.w1 = ((unsigned int) (((unsigned int)(   0  ) & ((0x01 << (  16 )) - 1)) << (  16 )))  | ((unsigned int) (((unsigned int)(   byteCount + 8 - (byteCount & 0x7)  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ;	} ;
+            {	Acmd *_a = (Acmd *) cmd++ ;	_a->words.w0 = ((unsigned int) (((unsigned int)( 4  ) & ((0x01 << (  8 )) - 1)) << (  24 ))) ;	_a->words.w1 = (unsigned int)(  dramAddr - dramPad );	} ;
         } else
-            dramAlign = 0;
+            dramPad = 0;
 
-         
+        *outp += dramPad;
 
+        loadFilter->memin = (s32) loadFilter->table->base + (loadFilter->loop.start<<1);
+        loadFilter->sample = loadFilter->loop.start;
+        dmemOut = *outp;
 
-        *outp += dramAlign;
+        while (outCount > sampleCount){
 
-        f->memin = (s32) f->table->base + (f->loop.start<<1);
-        f->sample = f->loop.start;
-        op = *outp;
+            dmemOut += (sampleCount<<1);
+            outCount -= sampleCount;
 
-        while (outCount > nSam){
+            if ((loadFilter->loop.count != -1) && (loadFilter->loop.count != 0))
+                loadFilter->loop.count--;
 
-            op += (nSam<<1);
-            outCount -= nSam;
-             
+            sampleCount = (( outCount ) < (  loadFilter->loop.end - loadFilter->loop.start ) ? ( outCount ) : (  loadFilter->loop.end - loadFilter->loop.start )) ;
+            byteCount = sampleCount<<1;
 
-
-            if ((f->loop.count != -1) && (f->loop.count != 0))
-                f->loop.count--;
-
-             
-
-
-            nSam = (( outCount ) < (  f->loop.end - f->loop.start ) ? ( outCount ) : (  f->loop.end - f->loop.start )) ;
-            nbytes = nSam<<1;
-
-             
-
-
-            dramLoc = (f->dma)(f->memin, nbytes, f->dmaState);
-
-             
-
-
-
-            dramAlign = dramLoc & 0x7;
-            nbytes += dramAlign;
-            if (op & 0x7)
-                dmemAlign = 8 - (op & 0x7);
+            dramAddr = (loadFilter->dma)(loadFilter->memin, byteCount, loadFilter->dmaState);
+            dramPad = dramAddr & 0x7;
+            byteCount += dramPad;
+            if (dmemOut & 0x7)
+                dmemPad = 8 - (dmemOut & 0x7);
             else
-                dmemAlign = 0;
+                dmemPad = 0;
 
-            {	Acmd *_a = (Acmd *) ptr++ ;	_a->words.w0 = (((unsigned int) (((unsigned int)( 8  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   0  ) & ((0x01 << (  8 )) - 1)) << (  16 )))  |	((unsigned int) (((unsigned int)(   op + dmemAlign  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ); _a->words.w1 = ((unsigned int) (((unsigned int)(   0  ) & ((0x01 << (  16 )) - 1)) << (  16 )))  | ((unsigned int) (((unsigned int)(   nbytes + 8 - (nbytes & 0x7)  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ;	} ;
-            {	Acmd *_a = (Acmd *) ptr++ ;	_a->words.w0 = ((unsigned int) (((unsigned int)( 4  ) & ((0x01 << (  8 )) - 1)) << (  24 ))) ;	_a->words.w1 = (unsigned int)(  dramLoc - dramAlign );	} ;
+            {	Acmd *_a = (Acmd *) cmd++ ;	_a->words.w0 = (((unsigned int) (((unsigned int)( 8  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   0  ) & ((0x01 << (  8 )) - 1)) << (  16 )))  |	((unsigned int) (((unsigned int)(   dmemOut + dmemPad  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ); _a->words.w1 = ((unsigned int) (((unsigned int)(   0  ) & ((0x01 << (  16 )) - 1)) << (  16 )))  | ((unsigned int) (((unsigned int)(   byteCount + 8 - (byteCount & 0x7)  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ;	} ;
+            {	Acmd *_a = (Acmd *) cmd++ ;	_a->words.w0 = ((unsigned int) (((unsigned int)( 4  ) & ((0x01 << (  8 )) - 1)) << (  24 ))) ;	_a->words.w1 = (unsigned int)(  dramAddr - dramPad );	} ;
 
-             
-
-
-            if (dramAlign || dmemAlign)
-                {	Acmd *_a = (Acmd *) ptr++ ;	_a->words.w0 = ((unsigned int) (((unsigned int)( 10  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   op+dramAlign+dmemAlign  ) & ((0x01 << (  24 )) - 1)) << (  0 ))) ;	_a->words.w1 = ((unsigned int) (((unsigned int)(   op  ) & ((0x01 << (  16 )) - 1)) << (  16 )))  | ((unsigned int) (((unsigned int)(   nSam<<1  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ;	} ;
+            if (dramPad || dmemPad)
+                {	Acmd *_a = (Acmd *) cmd++ ;	_a->words.w0 = ((unsigned int) (((unsigned int)( 10  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   dmemOut+dramPad+dmemPad  ) & ((0x01 << (  24 )) - 1)) << (  0 ))) ;	_a->words.w1 = ((unsigned int) (((unsigned int)(   dmemOut  ) & ((0x01 << (  16 )) - 1)) << (  16 )))  | ((unsigned int) (((unsigned int)(   sampleCount<<1  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ;	} ;
 
         }
 
-        f->sample += outCount;
-        f->memin += (outCount<<1);
+        loadFilter->sample += outCount;
+        loadFilter->memin += (outCount<<1);
 
-        return ptr;
+        return cmd;
     }
 
-     
+    byteCount = outCount<<1;
+    overflowBytes = loadFilter->memin + byteCount - ((s32) loadFilter->table->base + loadFilter->table->len);
+    if (overflowBytes < 0)
+        overflowBytes = 0;
+    if (overflowBytes > byteCount)
+        overflowBytes = byteCount;
 
-
-
-
-
-
-    nbytes = outCount<<1;
-    overFlow = f->memin + nbytes - ((s32) f->table->base + f->table->len);
-    if (overFlow < 0)
-        overFlow = 0;
-    if (overFlow > nbytes)
-        overFlow = nbytes;
-
-    if (overFlow < nbytes){
+    if (overflowBytes < byteCount){
         if (outCount > 0){
-            nbytes -= overFlow;
-            dramLoc = (f->dma)(f->memin, nbytes, f->dmaState);
-
-             
-
-
-
-            dramAlign = dramLoc & 0x7;
-            nbytes += dramAlign;
-            {	Acmd *_a = (Acmd *) ptr++ ;	_a->words.w0 = (((unsigned int) (((unsigned int)( 8  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   0  ) & ((0x01 << (  8 )) - 1)) << (  16 )))  |	((unsigned int) (((unsigned int)(   *outp  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ); _a->words.w1 = ((unsigned int) (((unsigned int)(   0  ) & ((0x01 << (  16 )) - 1)) << (  16 )))  | ((unsigned int) (((unsigned int)(   nbytes + 8 - (nbytes & 0x7)  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ;	} ;
-            {	Acmd *_a = (Acmd *) ptr++ ;	_a->words.w0 = ((unsigned int) (((unsigned int)( 4  ) & ((0x01 << (  8 )) - 1)) << (  24 ))) ;	_a->words.w1 = (unsigned int)(  dramLoc - dramAlign );	} ;
+            byteCount -= overflowBytes;
+            dramAddr = (loadFilter->dma)(loadFilter->memin, byteCount, loadFilter->dmaState);
+            dramPad = dramAddr & 0x7;
+            byteCount += dramPad;
+            {	Acmd *_a = (Acmd *) cmd++ ;	_a->words.w0 = (((unsigned int) (((unsigned int)( 8  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   0  ) & ((0x01 << (  8 )) - 1)) << (  16 )))  |	((unsigned int) (((unsigned int)(   *outp  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ); _a->words.w1 = ((unsigned int) (((unsigned int)(   0  ) & ((0x01 << (  16 )) - 1)) << (  16 )))  | ((unsigned int) (((unsigned int)(   byteCount + 8 - (byteCount & 0x7)  ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ;	} ;
+            {	Acmd *_a = (Acmd *) cmd++ ;	_a->words.w0 = ((unsigned int) (((unsigned int)( 4  ) & ((0x01 << (  8 )) - 1)) << (  24 ))) ;	_a->words.w1 = (unsigned int)(  dramAddr - dramPad );	} ;
         } else
-            dramAlign = 0;
-        *outp += dramAlign;
+            dramPad = 0;
+        *outp += dramPad;
 
-        f->sample += outCount;
-        f->memin += outCount<<1;
+        loadFilter->sample += outCount;
+        loadFilter->memin += outCount<<1;
     } else {
-        f->memin += outCount<<1;
+        loadFilter->memin += outCount<<1;
     }
 
-     
-
-
-    if (overFlow){
-        startZero = (outCount<<1) - overFlow;
-        if (startZero < 0)
-            startZero = 0;
-        {	Acmd *_a = (Acmd *) ptr++ ;	_a->words.w0 = ((unsigned int) (((unsigned int)( 2  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   startZero + *outp  ) & ((0x01 << (  24 )) - 1)) << (  0 ))) ;	_a->words.w1 = (unsigned int)(  overFlow );	} ;
+    if (overflowBytes){
+        zeroStart = (outCount<<1) - overflowBytes;
+        if (zeroStart < 0)
+            zeroStart = 0;
+        {	Acmd *_a = (Acmd *) cmd++ ;	_a->words.w0 = ((unsigned int) (((unsigned int)( 2  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   zeroStart + *outp  ) & ((0x01 << (  24 )) - 1)) << (  0 ))) ;	_a->words.w1 = (unsigned int)(  overflowBytes );	} ;
     }
-    return ptr;
+    return cmd;
 }

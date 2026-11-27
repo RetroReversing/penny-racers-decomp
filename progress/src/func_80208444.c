@@ -3,7 +3,7 @@ typedef struct { s32 state; s32 choice; } Prompt;
 typedef struct { s16 v; } Half;
 extern Rec D_8011F2F0[];
 extern u16 D_8018BC3C;
-extern Half D_8021E1A2;
+extern Half skipFirstRowFlag;
 extern s16 D_8021E18C;
 extern s16 D_8021E100;
 extern s16 D_8021E102;
@@ -26,16 +26,16 @@ extern u16 D_8021F270[][14][8];
 extern u8 D_80046832;
 extern s32 D_801E9990;
 extern s32 D_801E9994;
-extern s32 D_8021B060;
+extern s32 menuChoice;
 extern s32 D_8021AFDC;
 extern s32 D_8021AFE0;
 extern s32 D_80168BB0;
-s32 func_8014A870(s32, s32, s32);
+s32 getMenuNavMask(s32, s32, s32);
 void playMenuSound(s32);
 u8 func_80148230(void);
 void func_80205C00(void);
 void func_80203BDC(s32);
-void func_80203DF8(s32, s32, s32, s32, s32);
+void setScreenTransition(s32, s32, s32, s32, s32);
 void func_801E1EEC(s32, s32);
 void func_800DE38C(void);
 void func_800DE2E0(void);
@@ -54,12 +54,12 @@ void func_80208444(u16 id) {
     switch (D_8011F2F0[id].f3E) {
     case 1:
         count = 0;
-        for (i = 0; i <= D_8021E1A2.v; i++) {
+        for (i = 0; i <= skipFirstRowFlag.v; i++) {
             count += D_8021E20B[i][0];
         }
         if (D_8021B128.state == 1 && D_8021B1A0 == 0) {
             if (*D_8011F2F0[D_8018BC3C].f60 == 0) {
-                keys = func_8014A870(0x14, 7, 0);
+                keys = getMenuNavMask(0x14, 7, 0);
             }
             if (keys & 2) {
                 D_8021B128.choice++;
@@ -85,7 +85,7 @@ void func_80208444(u16 id) {
             }
         }
         D_8021B1A0 = 0;
-        for (i = 0; i <= D_8021E1A2.v; i++) {
+        for (i = 0; i <= skipFirstRowFlag.v; i++) {
             if (D_8021AFEC[i] == 1 || D_8021B014[i] == 1) {
                 D_8021B1A0 = 1;
                 D_8021B128.choice = 1;
@@ -100,12 +100,12 @@ void func_80208444(u16 id) {
                 if (D_8021B128.choice == 2) {
                     D_8011F2F0[id].f3E = 3;
                 } else {
-                    func_80203DF8(2, 6, 0, 0, 0);
+                    setScreenTransition(2, 6, 0, 0, 0);
                     D_8011F2F0[id].f3E = 2;
                 }
             }
         }
-        if (count >= D_8021E1A2.v + 1) {
+        if (count >= skipFirstRowFlag.v + 1) {
             D_8021B128.state = 1;
         } else {
             D_8021B128.state = 0;
@@ -114,7 +114,7 @@ void func_80208444(u16 id) {
         D_8021E100 = 0;
         D_8021E102 = 0;
         D_8021B1B5 = 0;
-        for (i = 0; i <= D_8021E1A2.v; i++) {
+        for (i = 0; i <= skipFirstRowFlag.v; i++) {
             if (D_8021E20C[i][0] == 1) {
                 D_8021E100 = 1;
             }
@@ -125,15 +125,15 @@ void func_80208444(u16 id) {
         if (D_801E9994 == 1 && *D_8011F2F0[D_8018BC3C].f60 == 0) {
             D_8021B1B5 = 1;
         }
-        if (D_8021E1A2.v == 0) {
+        if (skipFirstRowFlag.v == 0) {
             if (D_8021E100 > 0) {
-                func_80203DF8(2, 6, 0, 0, 0);
+                setScreenTransition(2, 6, 0, 0, 0);
                 D_8011F2F0[id].f3E = 4;
             }
         } else if (D_8021E102 == 0) {
             if (D_8021B1B4 == 1 && D_8021B1B5 == 1) {
                 playMenuSound(0x3A);
-                func_80203DF8(2, 6, 0, 0, 0);
+                setScreenTransition(2, 6, 0, 0, 0);
                 D_8011F2F0[id].f3E = 4;
                 D_8021B1B4 = 0;
             }
@@ -155,10 +155,10 @@ void func_80208444(u16 id) {
     case 2:
         if (*D_8011F2F0[D_8018BC3C].f60 == 0) {
             if (D_8021B128.choice == 1) {
-                D_8021B060 = 0x1C;
+                menuChoice = 0x1C;
                 D_8021AFDC = 6;
                 D_8021AFE0 = 6;
-                for (i = 0; i <= D_8021E1A2.v; i++) {
+                for (i = 0; i <= skipFirstRowFlag.v; i++) {
                     if (D_8021B00C[i] == 0) {
                         func_80203BDC(i);
                         for (j = 0; j < 8; j++) {
@@ -171,23 +171,23 @@ void func_80208444(u16 id) {
                         D_8021AFEC[i] = 0;
                         D_8021B00C[i] = 1;
                     }
-                    if (D_8021E1A2.v != 0) {
+                    if (skipFirstRowFlag.v != 0) {
                         D_8021E20B[i][0] = 0;
                     }
                 }
             } else if (D_8021B128.choice == 0) {
                 D_80046832 = 0;
                 D_8021AFDC = 0x16;
-                D_8021B060 = 0x16;
+                menuChoice = 0x16;
                 D_8021B01A = 1;
-                for (i = 0; i <= D_8021E1A2.v; i++) {
+                for (i = 0; i <= skipFirstRowFlag.v; i++) {
                     if (D_8021B00C[i] == 0) {
                         func_80203BDC(i);
                         D_8021B064[i] = 1;
                         D_8021AFEC[i] = 0;
                         D_8021B00C[i] = 1;
                     }
-                    if (D_8021E1A2.v != 0) {
+                    if (skipFirstRowFlag.v != 0) {
                         D_8021E20B[i][0] = 0;
                     }
                 }
@@ -196,7 +196,7 @@ void func_80208444(u16 id) {
             func_800DE2E0();
             func_80231C5C();
             func_801CF468(D_8018BC3C, 0, 0, 0);
-            D_80168BB0 = D_8021B060;
+            D_80168BB0 = menuChoice;
         }
         break;
     case 3:

@@ -61,8 +61,8 @@ extern s32 D_80046834;
 extern Vtx D_80187D00[][14][16];
 extern Lights1 D_80189928;
 extern Gfx D_800E18A0[];
-extern u16 D_80301BE0[];
-extern u8 D_802F94E8[];
+extern u16 menuPanelTlut[];
+extern u8 menuPanelTex[];
 #define gSPDisplayList(pkt, dl) gDma(pkt, _S(0x06, 24, 8), dl)
 #define gDPSetRenderMode(pkt, mode) gDma(pkt, _S(0xb9, 24, 8) | _S(3, 8, 8) | _S(29, 0, 8), mode)
 #define gSPClearGeometryMode(pkt, mode) gDma(pkt, _S(0xb6, 24, 8), mode)
@@ -87,19 +87,19 @@ extern u8 D_802F94E8[];
         gDPSetRenderMode((*gfxp)++, 0x00552048);
         gSPClearGeometryMode((*gfxp)++, 0x2001);
         gSPSetLights1(D_800DE0E4++, D_80189928);
-        gDPLoadTLUT_pal256((*gfxp)++, D_80301BE0);
+        gDPLoadTLUT_pal256((*gfxp)++, menuPanelTlut);
         for (i = 0; i < 13; i++) {
             gSPVertex((*gfxp)++, &D_80187D00[D_80046834][i][0], 32, 0);
             for (j = 0; j < 15; j++) {
                 if (j == 0 || j == 14 || i == 0 || i == 12) {
-                    gDPLoadTextureTile_8b((*gfxp)++, D_802F94E8, 2, 272, 143, 0, 0, 19, 10, 0, 2, 2, 0, 0, 0, 0);
+                    gDPLoadTextureTile_8b((*gfxp)++, menuPanelTex, 2, 272, 143, 0, 0, 19, 10, 0, 2, 2, 0, 0, 0, 0);
                     gSP2Triangles((*gfxp)++, j, j + 16, j + 1, 0, j + 1, j + 16, j + 17, 0);
                 } else {
                     t = (i - 1) * 11;
                     b = t + 10;
                     e = (j - 1) * 20 + 19;
                     s = (j - 1) * 20;
-                    gDPLoadTextureTile_8b((*gfxp)++, D_802F94E8, 2, 272, 143, s, t, e, b, 0, 2, 2, 0, 0, 0, 0);
+                    gDPLoadTextureTile_8b((*gfxp)++, menuPanelTex, 2, 272, 143, s, t, e, b, 0, 2, 2, 0, 0, 0, 0);
                     gSP2Triangles((*gfxp)++, j, j + 16, j + 1, 0, j + 1, j + 16, j + 17, 0);
                 }
             }

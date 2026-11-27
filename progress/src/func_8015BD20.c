@@ -10,7 +10,7 @@ extern Vtx D_80189970[][4];
 extern Vtx D_8018B530[][16];
 extern u8 D_8018D66A[];
 extern void func_8015C838();
-extern void func_8015C8A4();
+extern void drawSkidMarkQuad();
 extern s16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *,
                          f32, f32, f32, f32, f32, f32, f32, f32, f32);
 
@@ -123,7 +123,7 @@ void func_8015BD20(u16 arg0)
                 v->ob[2] = b[2];
             }
             if (D_8011F2F0[arg0].vx == 10.0f || car->grip > 0.95 || !car->ground || car->mode == 4) {
-                id = objCreate(0, 0, 3, 0, 0x52, 0xAA, 0, func_8015C838, func_8015C8A4,
+                id = objCreate(0, 0, 3, 0, 0x52, 0xAA, 0, func_8015C838, drawSkidMarkQuad,
                                    0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
                 D_8011F2F0[id].unkB = 0xE;
                 D_8011F2F0[id].vx = p;

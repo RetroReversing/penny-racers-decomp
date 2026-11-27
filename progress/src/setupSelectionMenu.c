@@ -36,7 +36,7 @@ extern u8 D_404F10[];
 extern u8 D_40A890[];
 extern u8 D_8030BD90[];
 extern s32 D_8021AFDC;
-extern s8 D_8021E15F[];
+extern s8 menuInputLock[];
 extern u8 D_8021E22F[][8][34];
 extern s8 D_8021E231[];
 extern Pick selectionMenu;
@@ -44,13 +44,13 @@ extern u8 D_8021F260[];
 extern f32 D_80220E40;
 extern Part D_8018F5D0[][8];
 extern Part D_80238EC0[];
-extern u16 D_8021E120;
+extern u16 previewObjIndex;
 void func_80203B04();
 void dmaRomToRam(void *, void *, s32);
 u8 func_8020FFD0(u8, u8, u8);
 void func_8021FCA4();
 void func_802153C4(s32, s32, f32, s32, s32, s32);
-void func_80203DF8(s32, s32, s32, s32, s32);
+void setScreenTransition(s32, s32, s32, s32, s32);
 u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 void gfxSetViewViewport();
 void func_8022026C();
@@ -58,7 +58,7 @@ void func_80149A80();
 void func_801D5A90();
 void updateSelectionMenu();
 void func_8020F354();
-void func_8020FC20();
+void updateCarPreview();
 void func_8020FED8();
 void func_8020FAFC();
 void func_8020FBA8();
@@ -82,13 +82,13 @@ void func_8013DD2C();
     dmaRomToRam(D_404F10, D_8030BD90, D_40A890 - D_404F10);
     if (D_8021AFDC == 0x1C) {
         for (index = 0; index < 8; index++) {
-            selectionMenu.list[index] = D_8021E22F[D_8021E15F[0]][index][0];
+            selectionMenu.list[index] = D_8021E22F[menuInputLock[0]][index][0];
         }
         selectionMenu.f0 = 0;
         selectionMenu.fC = 1;
         selectionMenu.f1 = 1;
     }
-    selectionMenu.sel = D_8021E15F[0];
+    selectionMenu.sel = menuInputLock[0];
     selectionMenu.fD &= 0x3F;
     selectionMenu.total = 0;
     for (index = 0; index < 8; index++) {
@@ -116,8 +116,8 @@ void func_8013DD2C();
     s32 k = selectionMenu.list[0];
     index = D_8021E231[row + k];
     }
-    D_8021E120 = objCreate(0, 0, 1, 0, 0x54, 0xFF, D_8018F5D0[index], func_8020FC20, func_8020FED8, -2.7999989986419678f, 0.3499999940395355f, 0.0f, 0.0f, 360.0f, 0.0f, 0.029999999329447746f, 0.029999999329447746f, 0.029999999329447746f);
+    previewObjIndex = objCreate(0, 0, 1, 0, 0x54, 0xFF, D_8018F5D0[index], updateCarPreview, func_8020FED8, -2.7999989986419678f, 0.3499999940395355f, 0.0f, 0.0f, 360.0f, 0.0f, 0.029999999329447746f, 0.029999999329447746f, 0.029999999329447746f);
     objCreate(0, 0, 3, 0, 0x54, 0, 0, func_8020FAFC, func_8020FBA8, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     objCreate(0, 0, 3, 0, 0xA1, 0xFF, 0, 0, func_8013DD2C, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-    func_80203DF8(1, 6, 0, 0, 0);
+    setScreenTransition(1, 6, 0, 0, 0);
 }

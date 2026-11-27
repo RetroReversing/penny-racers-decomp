@@ -1,7 +1,7 @@
 extern u8 D_80189CC9[];
 extern u8 D_8018A276;
 extern u8 D_8018A277[];
-extern u32 D_8018D3A0[][8];
+extern u32 randomMasks[][8];
 
 void func_8014981C(u8 arg0)
 {
@@ -22,8 +22,8 @@ void func_8014981C(u8 arg0)
             row = D_8018A277[i] & 0xF;
             for (j = 0; j < 8; j++) {
                 mask = 1;
-                bits = D_8018D3A0[row][j];
-                bits &= ~D_8018D3A0[arg0][j];
+                bits = randomMasks[row][j];
+                bits &= ~randomMasks[arg0][j];
                 for (k = 0; k < 32; k++) {
                     if (bits & mask) {
                         count++;
@@ -33,7 +33,7 @@ void func_8014981C(u8 arg0)
             }
             k = 0;
             mask = 1;
-            bits = D_8018D3A0[row][0];
+            bits = randomMasks[row][0];
             for (j = 0; j < 32; j++) {
                 if (bits & mask) {
                     k++;
@@ -41,7 +41,7 @@ void func_8014981C(u8 arg0)
                 mask <<= 1;
             }
             if (k == 1) {
-                if (!(bits & D_8018D3A0[arg0][0]) && count != 0) {
+                if (!(bits & randomMasks[arg0][0]) && count != 0) {
                     count--;
                 }
             }

@@ -1,5 +1,5 @@
 extern u8 D_801C5E9C[];
-extern u8 trackPoints[];
+extern u8 trackPointTable[];
 extern u8 D_801F18E4[];
 extern u8 D_801F18F8[];
 extern u8 D_801F18F9[];
@@ -24,10 +24,10 @@ void func_801E2D18(void) {
     b4 = (u32)D_801F18FC;
     for (; i < 200; i++) {
         off = i * 5;
-        trackPoints[off + 0] = *(u8 *)(off + b0);
-        trackPoints[off + 1] = *(u8 *)(off + b1);
-        trackPoints[off + 2] = *(u8 *)(off + b2);
-        trackPoints[off + 3] = *(u8 *)(off + b3);
-        trackPoints[off + 4] = *(u8 *)(off + b4);
+        trackPointTable[off + 0] = *(u8 *)(off + b0);
+        trackPointTable[off + 1] = *(u8 *)(off + b1);
+        trackPointTable[off + 2] = *(u8 *)(off + b2);
+        trackPointTable[off + 3] = *(u8 *)(off + b3);
+        trackPointTable[off + 4] = *(u8 *)(off + b4);
     }
 }

@@ -1,6 +1,6 @@
 typedef struct { f32 x; char pad[96]; } CC4Rec;
 typedef struct { u8 b0; u8 b1; u8 b2; } CC4Mode;
-extern CC4Rec D_8011F30C[];
+extern CC4Rec sPrimColorG[];
 extern s8 cursorY;
 extern u8 glyphLine[];
 extern u8 glyphCode[];
@@ -18,9 +18,9 @@ u8 func_80198CC4(u16 arg0)
   if (cursorY != 0) {
     if (D_801CA130 != trackInfo->b2) {
       if ((u8)(v - 0x16) < 0x14) {
-        D_8011F30C[arg0].x = (glyphLine[D_801CA130 * 5] + 0x3C) * 0.5f;
+        sPrimColorG[arg0].x = (glyphLine[D_801CA130 * 5] + 0x3C) * 0.5f;
       } else {
-        D_8011F30C[arg0].x = glyphLine[D_801CA130 * 5] * 0.5f;
+        sPrimColorG[arg0].x = glyphLine[D_801CA130 * 5] * 0.5f;
       }
     }
     r = 1;

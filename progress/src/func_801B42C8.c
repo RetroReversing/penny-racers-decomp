@@ -66,7 +66,7 @@ extern u8 *trackInfo;
 extern u8 D_801CA130;
 extern R5 glyphCode[];
 extern R5 glyphLine[];
-extern u8 D_801C7AB6;
+extern u8 trackPointEntryCount;
 extern u16 *D_801C5B3C[];
 extern u16 *D_801C586C[];
 extern u8 D_801D4390[], D_801CF4C8[];
@@ -134,7 +134,7 @@ void func_801B42C8(Gfx **gfxp, u16 id) {
     D(0xF2, 0x73, 0x24);
     D(0xF2, 0x6B, 7);
     D(0x10E, 0x6D, 0x14);
-    t = 200 - D_801C7AB6;
+    t = 200 - trackPointEntryCount;
     h = t / 100;
     m = t % 100 / 10;
     o = t % 10;

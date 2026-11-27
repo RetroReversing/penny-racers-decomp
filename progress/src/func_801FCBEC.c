@@ -1,2 +1,2 @@
-typedef struct {u32 w0,w1;} G; extern u8 *D_8011F340[]; extern u8 *D_8011F060; extern u8 viewIndex; extern u32 D_80200220[];
-void func_801FCBEC(G **p,u16 n){if(D_8011F340[n*25][0]==1){G*g=(*p)++;g->w0=0x06000000;g->w1=(u32)D_80200220;{G*g=(*p)++;s32 i=viewIndex;u32 base=(u32)D_8011F060;u8 *c=(u8*)(i*48+base);g->w0=0xF2000000|((*(s32*)(c+0x798)&0xFFF)<<12)|(*(s32*)(c+0x79C)&0xFFF);g->w1=0x01000000|(((*(s32*)(c+0x798)+124)&0xFFF)<<12)|((*(s32*)(c+0x79C)+124)&0xFFF);}}}
+typedef struct {u32 w0,w1;} G; extern u8 *sNodeTable[]; extern u8 *D_8011F060; extern u8 viewIndex; extern u32 D_80200220[];
+void func_801FCBEC(G **p,u16 n){if(sNodeTable[n*25][0]==1){G*g=(*p)++;g->w0=0x06000000;g->w1=(u32)D_80200220;{G*g=(*p)++;s32 i=viewIndex;u32 base=(u32)D_8011F060;u8 *c=(u8*)(i*48+base);g->w0=0xF2000000|((*(s32*)(c+0x798)&0xFFF)<<12)|(*(s32*)(c+0x79C)&0xFFF);g->w1=0x01000000|(((*(s32*)(c+0x798)+124)&0xFFF)<<12)|((*(s32*)(c+0x79C)+124)&0xFFF);}}}

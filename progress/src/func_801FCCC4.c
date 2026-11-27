@@ -1,4 +1,4 @@
-s32 func_800DECCC();
+s32 freeObject();
 extern u8 D_8011F2FC[];
 
 void func_801FCCC4(void **arg0, s32 arg1)
@@ -16,5 +16,5 @@ void func_801FCCC4(void **arg0, s32 arg1)
     *((s32 *)(((char *)temp_a0) + 4)) = (s32)((*(D_8011F2FC + temp_v1)) | 0xC8C8C800);
     return;
   }
-  func_800DECCC(arg1 & 0xFFFF);
+  freeObject(arg1 & 0xFFFF);
 }

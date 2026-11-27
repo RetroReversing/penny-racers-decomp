@@ -21,7 +21,7 @@ extern Obj3F638 D_8011F2F0[];
 extern Car3F638 sCars[];
 extern u8 D_80183408[];
 extern u8 D_801833F0[];
-void func_80230960(void *);
+void setCarPartSprites(void *);
 void debugPrintf(void *, s32);
 void func_8013F638(u16 arg0)
 {
@@ -113,7 +113,7 @@ void func_8013F638(u16 arg0)
             }
         }
         if (car->unk55E != 0) {
-            func_80230960(car);
+            setCarPartSprites(car);
         }
         D_8011F2F0[arg0].unkD = 2;
         obj->unk3E = 2;

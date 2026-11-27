@@ -1,4 +1,4 @@
-s32 func_8014A870(s32, s32, s32);
+s32 getMenuNavMask(s32, s32, s32);
 void playStageSound(s32, s32);
 typedef struct { u8 pad0[0x3E]; u16 state; u8 pad40[0x24]; } Obj;
 extern Obj D_8011F2F0[];
@@ -14,7 +14,7 @@ void func_802163B0(u16 arg0)
     u16 *fade = &D_80190CA0;
     u8 *a = (u8 *) fade + 2;
     u8 *b = (u8 *) fade + 4;
-    s32 input = func_8014A870(0x1E, 7, 0);
+    s32 input = getMenuNavMask(0x1E, 7, 0);
     s16 *temp;
 
     switch (obj->state) {

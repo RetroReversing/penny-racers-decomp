@@ -41,7 +41,7 @@ extern s8 D_8021E160;
 extern s32 D_80071F70;
 extern s32 D_8021AFDC;
 extern s32 D_8021AFE0;
-extern s32 D_8021B060;
+extern s32 menuChoice;
 extern u8 D_8021B064[];
 extern s8 D_8021B068;
 extern s8 D_8021B06B;
@@ -55,7 +55,7 @@ extern u8 D_8021B675;
 extern u8 D_8021B676;
 extern u8 D_8021B677;
 extern u8 D_8021B678;
-extern s16 D_8021E1A2;
+extern s16 skipFirstRowFlag;
 extern s16 D_8021E1A6[];
 extern s8 D_8021E20B;
 extern u8 D_8021E251[][0x110];
@@ -78,12 +78,12 @@ void func_800DF100(s32);
 void func_800DF138(s32);
 void func_80149FA8(s32);
 s32 func_8014A030(s32, s32, s32);
-s32 func_8014A870(u32, s32, s32);
+s32 getMenuNavMask(u32, s32, s32);
 void playMenuSound(s32);
 void func_801CF468(s32, s32, s32, s32);
 void func_801E1EEC(u8, u8);
 void func_80203BDC(s32);
-void func_80203DF8(s8, s16, s8, s8, u8);
+void setScreenTransition(s8, s16, s8, s8, u8);
 void func_80207DC8(void);
 void func_80211E9C(s32);
 void func_80214230(s8 *, s32);
@@ -102,7 +102,7 @@ void func_80212500(u16 arg0)
             D_8021B660[4] = D_80071F70 - 1;
         }
         if (D_8021AFDC == 6 || D_8021AFDC == 0x18) {
-            D_8021B660[4] = D_8021E1A2;
+            D_8021B660[4] = skipFirstRowFlag;
         }
         sMenu.f11 = 0;
         sMenu.f12 = 0;
@@ -120,7 +120,7 @@ void func_80212500(u16 arg0)
             D_8021B676 = 3;
             if (sMenu.f11 == 0) {
                 for (i = 0; i <= D_8021B660[4]; i++) {
-                    flags = func_8014A870(0x14, 3, i);
+                    flags = getMenuNavMask(0x14, 3, i);
                     if ((flags & 0xE) ? 1 : (flags & 1)) {
                         sMenu.f11 = 0xA;
                         if (flags & 8) {
@@ -176,14 +176,14 @@ void func_80212500(u16 arg0)
             }
             if (sMenu.f0 == 2 && D_8021E15C.f0 == 0) {
                 D_8021AFDC = 0x1C;
-                D_8021B060 = D_8021AFE0;
-                func_80203DF8(2, 6, 0, 0, 0);
+                menuChoice = D_8021AFE0;
+                setScreenTransition(2, 6, 0, 0, 0);
                 D_8021B068 = 0;
                 STATE = 2;
             }
         } else {
             if (D_8021E15C.f3 != 4 && D_8021E15C.f4 == 0) {
-                flags = func_8014A870(0xA, 7, D_8021E15C.f3);
+                flags = getMenuNavMask(0xA, 7, D_8021E15C.f3);
                 if (D_8021B674 != 0) {
                     flags &= 0x30;
                 }
@@ -214,8 +214,8 @@ void func_80212500(u16 arg0)
                             sMenu.f80 = 0;
                             playMenuSound(0x3D);
                             D_8021AFDC = 0x1C;
-                            D_8021B060 = 0x10;
-                            func_80203DF8(2, 6, 0, 0, 0);
+                            menuChoice = 0x10;
+                            setScreenTransition(2, 6, 0, 0, 0);
                             STATE = 2;
                         } else {
                             playMenuSound(0x3E);
@@ -240,14 +240,14 @@ void func_80212500(u16 arg0)
                     }
                 } else if (sMenu.f0 == 2 && D_8021E15C.f0 == 0) {
                     D_8021AFDC = 0x1C;
-                    D_8021B060 = D_8021AFE0;
-                    func_80203DF8(2, 6, 0, 0, 0);
+                    menuChoice = D_8021AFE0;
+                    setScreenTransition(2, 6, 0, 0, 0);
                     D_8021B068 = 0;
                     STATE = 2;
                 }
             } else {
                 if (!(D_8021E190 & 0xFFFF00) && D_8021E160 == 0) {
-                    flags = func_8014A870(0xA, 7, D_8021B677);
+                    flags = getMenuNavMask(0xA, 7, D_8021B677);
                     if (flags & 2) {
                         playMenuSound(0x3B);
                         D_8021E15C.f6 ^= 1;
@@ -339,11 +339,11 @@ void func_80212500(u16 arg0)
             func_800DE2E0();
             func_80231C5C();
             func_801CF468(D_8018BC3C, 0, 0, 0);
-            D_80168BB0 = D_8021B060;
+            D_80168BB0 = menuChoice;
         }
         break;
     case 3:
-        flags = func_8014A870(0x1E, 7, D_8021B677);
+        flags = getMenuNavMask(0x1E, 7, D_8021B677);
         if (flags & 2) {
             D_8021B06D++;
             playMenuSound(0x3B);
@@ -393,7 +393,7 @@ void func_80212500(u16 arg0)
         }
         break;
     case 4:
-        flags = func_8014A870(0x1E, 7, D_8021B677);
+        flags = getMenuNavMask(0x1E, 7, D_8021B677);
         if (flags & 2) {
             SEL++;
             if (D_8021B660[1] == 1) {

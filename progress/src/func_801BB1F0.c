@@ -1,9 +1,9 @@
 typedef struct { u8 pad0[4]; u16 unk4; u8 pad6[0x5E]; } R931;
 typedef struct { u8 a; u8 b; s8 c; s8 d; s8 e; } E931;
 extern R931 D_8011F2F0[];
-extern E931 trackPoints[];
-extern u16 D_801C7470[][4];
-extern u8 D_801C7AB6;
+extern E931 trackPointTable[];
+extern u16 trackPointLinks[][4];
+extern u8 trackPointEntryCount;
 u16 objCreate(s32, s32, s32, s32, s32, s32, void *, s32, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 extern u8 D_803157A0[];
 extern u8 D_803157D4[];
@@ -34,11 +34,11 @@ void func_801BB1F0(u8 arg0)
     }
     n = (u16) (arg0 * 5);
     alpha = 0x5B;
-    x = ((E931 *) ((u8 *) trackPoints + n))->c * 400.0f;
-    y = ((E931 *) ((u8 *) trackPoints + n))->b;
-    z = ((E931 *) ((u8 *) trackPoints + n))->d * 400.0f;
+    x = ((E931 *) ((u8 *) trackPointTable + n))->c * 400.0f;
+    y = ((E931 *) ((u8 *) trackPointTable + n))->b;
+    z = ((E931 *) ((u8 *) trackPointTable + n))->d * 400.0f;
     sx = sy = sz = 0.5f;
-    type = ((E931 *) ((u8 *) trackPoints + n))->e;
+    type = ((E931 *) ((u8 *) trackPointTable + n))->e;
     if (type == 0x2 || type == 0x30) {
         ids[0] = objCreate(0, arg0, 0x1, 0, 0x5B, 0xFF, D_803158A4, 0, func_801C1C04, (x + 0.0f) * sz, (y + 0.0f) * sz, (z + 0.0f) * sz, 0.0f, 0.0f, 0.0f, sz, sz, sz);
     } else if (type == 0x3) {
@@ -137,9 +137,9 @@ void func_801BB1F0(u8 arg0)
     }
     for (i = 0; i < 4; i++) {
         if (ids[i] != 0xFFFF) {
-            D_801C7470[arg0][i] = ids[i];
+            trackPointLinks[arg0][i] = ids[i];
             D_8011F2F0[ids[i]].unk4 |= 0x28;
-            D_801C7AB6++;
+            trackPointEntryCount++;
         }
     }
 }

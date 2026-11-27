@@ -34,7 +34,7 @@ extern f32 D_802210A4, D_802210A8, D_802210AC, D_802210B0, D_802210B4, D_802210B
 extern u16 D_8022B062;
 extern u8 D_8022AF3C[];
 extern Camera D_80221080[];
-void func_80129C88(void *, s32, s32);
+void updateRouteFlags(void *, s32, s32);
 void guRotateF(f32 [4][4], f32, f32, f32, f32);
 void guMtxCatF(f32 [4][4], f32 [4][4], f32 [4][4]);
 void guMtxXFMF(f32 [4][4], f32, f32, f32, f32 *, f32 *, f32 *);
@@ -78,7 +78,7 @@ f32 func_801F9C8C(f32, f32);
     D_802210BC = zero;
     D_802210C0 = 1.0f;
     D_802210C4 = zero;
-    func_80129C88(D_8022AF3C, 4, 0);
+    updateRouteFlags(D_8022AF3C, 4, 0);
     n = D_8011F2F0[id].slot;
     lead = D_8022A772[n / 3].sprite;
     zero = D_8011F2F0[lead].rotX;

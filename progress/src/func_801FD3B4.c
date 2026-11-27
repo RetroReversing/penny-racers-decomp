@@ -17,7 +17,7 @@ extern s32 D_802038D4;
 extern s32 D_80203AB0;
 extern s8 D_8022AFE9;
 extern s32 func_8012AD9C;
-extern s32 func_8015A414;
+extern s32 drawPlayerStatusBars;
 
 void func_801FD3B4(void) {
     s32 var_s0;
@@ -40,5 +40,5 @@ void func_801FD3B4(void) {
     D_8022AFE9 = 0;
     objCreate(0, 0, 3, 0, 0x20, 1, 0, &func_8012AD9C, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     func_8013ADA8();
-    D_8018A438 = objCreate(0, 0, 3, 0, 0xA1, 0xFF, 0, &D_80159230, &func_8015A414, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    D_8018A438 = objCreate(0, 0, 3, 0, 0xA1, 0xFF, 0, &D_80159230, &drawPlayerStatusBars, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 }

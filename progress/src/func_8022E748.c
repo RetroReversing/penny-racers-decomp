@@ -30,7 +30,7 @@ void func_8022FE50(u8, u8, u8, s32);
 void func_801E0F10();
 void func_8012AD9C();
 void func_80159230();
-void func_8015A414();
+void drawPlayerStatusBars();
 void func_8013DD2C();
 s32 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 void initRowTable(u8);
@@ -157,6 +157,6 @@ void func_8022E748(void)
     }
     func_8013ADA8();
     func_801DDA5C();
-    D_8018A438 = SPAWN(0, 0, 3, 0, 0xA1, 0xFF, 0, func_80159230, func_8015A414);
+    D_8018A438 = SPAWN(0, 0, 3, 0, 0xA1, 0xFF, 0, func_80159230, drawPlayerStatusBars);
     SPAWN(0, 0, 3, 0, 0xA1, 0xFF, 0, 0, func_8013DD2C);
 }

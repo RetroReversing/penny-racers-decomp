@@ -1,6 +1,6 @@
 extern u16 objListHead;
 extern u8 D_8011F2F0[];
-void func_800DECCC(s32);
+void freeObject(s32);
 
 void func_800E1510(void)
 {
@@ -15,7 +15,7 @@ void func_800E1510(void)
         if (ent[0xD] != 0) {
             ent[0xD] = ent[0xD] - 1;
             if (ent[0xD] == 0) {
-                func_800DECCC(idx);
+                freeObject(idx);
                 flag = 1;
             }
         }

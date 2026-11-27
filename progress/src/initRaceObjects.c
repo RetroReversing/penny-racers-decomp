@@ -22,7 +22,7 @@ void initRowTable(s32);
 void func_80138B1C();
 void func_801FD9F8();
 void func_801FE908();
-void func_801FF978();
+void snapshotSoundDriverState();
 void func_8021FAA4();
 void func_80220A50();
 
@@ -40,7 +40,7 @@ void func_80220A50();
     objCreate(0, 0, 3, 0, 4, 0xFF, 0, 0, func_80220A50, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     objCreate(0, 0, 3, 0, 0xC8, 0, 0, 0, func_801FD9F8, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     objCreate(0, 0, 3, 0, 0, 0, 0, func_801FE908, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    objCreate(0, 0, 3, 0, 0, 0, 0, func_801FF978, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 0, 0, 0, snapshotSoundDriverState, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     initRowTable(1);
     alSeqpStop(D_8006FB38);
     D_80203ACC = 0;

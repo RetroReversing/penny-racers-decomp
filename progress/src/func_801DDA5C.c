@@ -8,14 +8,14 @@ extern u16 D_801E979C;
 extern u8 D_801E9748[];
 extern u16 objCreate(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
 extern void func_800DF170(u16);
-extern u8 func_801CE928[];
+extern u8 updatePlayerFade[];
 extern u8 func_801CEC2C[];
 extern u8 func_801D8EF0[];
 extern u8 func_801DAD68[];
 
 void func_801DDA5C(void)
 {
-    D_801E9B32 = objCreate(0, 0, 3, 0, 0xE1, 0xFF, 0, func_801CE928, func_801CEC2C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    D_801E9B32 = objCreate(0, 0, 3, 0, 0xE1, 0xFF, 0, updatePlayerFade, func_801CEC2C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     D_8011F350[D_801E9B32].p = D_801E9748;
     func_800DF170(D_801E9B32);
     D_8011F350[D_801E9B32].p[0] = 0;

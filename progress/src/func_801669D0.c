@@ -2,10 +2,10 @@ typedef struct { u8 pad0[2]; u16 obj; u8 pad4; u8 b5; u8 pad6[0x558]; s16 ammo; 
 typedef struct { f32 v; u8 pad[0x60]; } SlotF;
 typedef struct { void *v; u8 pad[0x78]; } HitP;
 extern Car sCars[];
-extern SlotF D_8011F308[], D_8011F30C[], D_8011F310[], D_8011F320[];
-extern HitP D_8018D6C4[];
+extern SlotF D_8011F308[], sPrimColorG[], sPrimColorB[], D_8011F320[];
+extern HitP slotOwner[];
 extern u8 D_80239540[];
-void func_80166DC0(void);
+void updateCarOutroAnim(void);
 void updateHomingMissile(void);
 s32 objCreate(s32, s32, s32, s32, s32, s32, u8 *, void (*)(void), s32, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 void func_8013E818(u16, u16, s32, s32, f32, f32, s32);
@@ -21,13 +21,13 @@ void func_801669D0(Car *car) {
     if (state == 1 && !(car->flags & 0x4F)) {
         slot = raceAllocSlot();
         if (slot != 0xFFFF) {
-            n = objCreate(0, 0, 3, 0, 0x20, state, 0, func_80166DC0, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+            n = objCreate(0, 0, 3, 0, 0x20, state, 0, updateCarOutroAnim, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
             if ((u16)(n + 2) < 2) {
                 func_8013E49C(slot);
                 return;
             }
             func_8013E818(slot, n, 0, 0, 0.0f, 0.0f, 0x136);
-            D_8018D6C4[slot].v = car;
+            slotOwner[slot].v = car;
             car->flags |= 0x40;
             if (car->ammo > 0) {
                 car->ammo--;
@@ -39,7 +39,7 @@ void func_801669D0(Car *car) {
                         return;
                     }
                     n = objCreate(0, car->b5, 1, 0, 0x51, 0xFF, D_80239540, updateHomingMissile, 0,
-                                      D_8011F308[sCars[i].obj].v, D_8011F30C[sCars[i].obj].v + 200.0f, D_8011F310[sCars[i].obj].v,
+                                      D_8011F308[sCars[i].obj].v, sPrimColorG[sCars[i].obj].v + 200.0f, sPrimColorB[sCars[i].obj].v,
                                       0.0f, i * 60, 0.0f, 1.0f, 1.0f, 1.0f);
                     if ((u16)(n + 2) < 2) {
                         func_8013E49C(slot);
@@ -49,7 +49,7 @@ void func_801669D0(Car *car) {
                     sCars[i].f760 += 30000.0f;
                     queueObjEvent(n, 0x36);
                     func_8013E818(slot, n, 0, 0, 200.0f, D_8011F320[sCars[i].obj].v, 0x12C);
-                    D_8018D6C4[slot].v = &sCars[i];
+                    slotOwner[slot].v = &sCars[i];
                 }
             }
         }

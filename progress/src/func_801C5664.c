@@ -1,6 +1,6 @@
-extern u8 blockFootprint;
+extern u8 blockDirection;
 extern void *trackInfo;
-extern u8 D_801C7AD8[];
+extern u8 trackPointIndexByCell[];
 
 u8 func_801C5664(u8 *arg0, u8 *arg1, s32 arg2)
 {
@@ -8,8 +8,8 @@ u8 func_801C5664(u8 *arg0, u8 *arg1, s32 arg2)
     s8 a0 = 0;
     s32 r;
     u8 tmp;
-    if (blockFootprint == (arg2 & 0xFF)) {
-        if (blockFootprint == 0) {
+    if (blockDirection == (arg2 & 0xFF)) {
+        if (blockDirection == 0) {
             tmp = *arg0;
             a0 = tmp;
             tmp = *arg1;
@@ -49,10 +49,10 @@ u8 func_801C5664(u8 *arg0, u8 *arg1, s32 arg2)
             a3 = *arg1;
         }
     }
-    if (D_801C7AD8[a0 + 24 * a3] == 0xFF) {
+    if (trackPointIndexByCell[a0 + 24 * a3] == 0xFF) {
         *arg0 = 0x7F;
         *arg1 = 0x7F;
         return *((u8 *)trackInfo + 2);
     }
-    return D_801C7AD8[a0 + 24 * a3];
+    return trackPointIndexByCell[a0 + 24 * a3];
 }

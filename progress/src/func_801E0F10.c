@@ -9,7 +9,7 @@ typedef struct { u8 unk0; u8 unk1; u16 unk2; u16 unk4; u8 unk6; u8 unk7; u8 unk8
 
 extern Obj D_8011F2F0[];
 extern Car sCars[];
-extern Info D_800DA260[];
+extern Info sCarSlots[];
 extern Sel D_8006FAF0;
 extern u8 D_801E87E0;
 extern u8 D_801E87E1;
@@ -28,7 +28,7 @@ extern void debugPrintf();
 extern void func_80232360();
 extern void func_801E28BC();
 extern void func_801E2ABC();
-extern void func_801CE928();
+extern void updatePlayerFade();
 extern void func_801CEC2C();
 extern s16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *,
                          f32, f32, f32, f32, f32, f32, f32, f32, f32);
@@ -95,7 +95,7 @@ void func_801E0F10(u16 arg0)
                     D_801F1880[D_801E87E5] = 0;
                     D_801E87E3 = 1;
                     D_801E87E1 = track;
-                    D_800DA260[7] = D_800DA260[D_801E87E5];
+                    sCarSlots[7] = sCarSlots[D_801E87E5];
                     while (1) {
                         D_801E9D80[D_801F1880[D_801E87E5]] = D_801F18E0[D_801F1880[D_801E87E5]];
                         D_801E9D81[D_801F1880[D_801E87E5]] = D_801F18E1[D_801F1880[D_801E87E5]];
@@ -109,7 +109,7 @@ void func_801E0F10(u16 arg0)
                 }
             } else {
                 SPAWN(0x9F, func_801E28BC, func_801E2ABC);
-                D_801E87E6 = SPAWN(0x9E, func_801CE928, func_801CEC2C);
+                D_801E87E6 = SPAWN(0x9E, updatePlayerFade, func_801CEC2C);
                 D_8011F2F0[D_801E87E6].unk60 = (u8 *) &D_801D59C4;
                 MENU->unk0 = 0;
                 MENU->unk2 = 0x14;

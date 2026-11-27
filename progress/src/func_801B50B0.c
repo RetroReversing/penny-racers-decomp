@@ -22,7 +22,7 @@ extern u16 D_801C6B58;
 extern u16 hudSlotIndex;
 extern u8 D_801C7AB8;
 void playMenuSound(s32);
-void func_80203DF8(s32, s32, s32, s32, s32);
+void setScreenTransition(s32, s32, s32, s32, s32);
 void func_802319E8(void);
 void func_80231C5C(void);
 void func_801CF468(u16, s32, s32, s32);
@@ -33,7 +33,7 @@ void func_801D65BC(s32);
 #define HIT(t) ((t)[player].v % 15 == 1)
 #define SET(a, b) D_801C5EA2 = a; ME.unk0 = b
 #define GO(next) \
-    func_80203DF8(4, 0x14, 0, 0, 0); \
+    setScreenTransition(4, 0x14, 0, 0, 0); \
     *(u16 *)(D_8011F2F0[D_8018BC3C].p + 4) = 0xC; \
     D_801C6B58 = 0; \
     D_801C6B56 = 6; \

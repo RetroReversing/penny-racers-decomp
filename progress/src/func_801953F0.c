@@ -8,7 +8,7 @@ typedef struct { u8 unk0; u8 unk1; u8 unk2; } H931;
 typedef struct { s8 x; s8 z; s8 w; s8 pad3; u16 sel; } S931;
 extern R931 D_8011F2F0[];
 extern Q931 D_801E9990[];
-extern E931 trackPoints[];
+extern E931 trackPointTable[];
 extern M931 D_801C7D30[];
 extern u8 D_8031445C[][8];
 extern H931 *trackInfo;
@@ -16,11 +16,11 @@ extern u16 hudSlotIndex;
 extern S931 blockPos;
 extern u16 D_801C6BB6;
 extern u16 D_801C6BE0[];
-extern u16 D_801C7470[];
-extern u8 D_801C7AD8[];
-extern u8 blockFootprint;
-extern u16 D_801C746A;
-extern u8 D_801C7AB6;
+extern u16 trackPointLinks[];
+extern u8 trackPointIndexByCell[];
+extern u8 blockDirection;
+extern u16 placedBlockObj;
+extern u8 trackPointEntryCount;
 extern u8 D_801C7AB8;
 extern u8 D_801C7064;
 extern u16 D_801C7066;
@@ -28,8 +28,8 @@ extern u8 cursorX;
 extern u8 cursorY;
 extern u8 D_801C6B20;
 extern u8 D_801C6B21;
-extern u8 D_801C6B22;
-extern u8 D_801C6B23;
+extern u8 trackStepX;
+extern u8 trackStepY;
 extern u8 D_801C6B24;
 extern u8 D_801C6B25;
 extern u8 D_801C6B26;
@@ -38,12 +38,12 @@ extern u16 D_801C7078;
 extern u16 D_801C5EA4;
 u16 objCreate(s32, s32, s32, s32, s32, s32, void *, s32, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 void playMenuSound(s32);
-void func_8019F7C0(u16);
+void updateBoardCamera(u16);
 u8 getCursorDirection(u16);
-void func_801948E0(u8 *);
-void func_80194B98(u8 *);
-void func_80194E60(u8 *);
-void func_80195124(u8 *);
+void checkBlockPlacement(u8 *);
+void beginLeftTrackStep(u8 *);
+void beginDownTrackStep(u8 *);
+void beginRightTrackStep(u8 *);
 void func_801BFA1C(u8, u8);
 
 #define MAP(t) \
@@ -55,12 +55,12 @@ void func_801BFA1C(u8, u8);
                          0, 0, 0, 0.5f, 0.5f, 0.5f); \
       D_8011F2F0[id].unk4 |= 8; \
       D_801C6BE0[D_801C7078] = id; \
-      D_801C7AD8[D_801C7078] = trackInfo->unk2; \
-      trackPoints[trackInfo->unk2].a = D_801C7AB8; \
-      trackPoints[trackInfo->unk2].b = 0; \
-      trackPoints[trackInfo->unk2].c = cursorX; \
-      trackPoints[trackInfo->unk2].d = cursorY; \
-      trackPoints[trackInfo->unk2].e = t;
+      trackPointIndexByCell[D_801C7078] = trackInfo->unk2; \
+      trackPointTable[trackInfo->unk2].a = D_801C7AB8; \
+      trackPointTable[trackInfo->unk2].b = 0; \
+      trackPointTable[trackInfo->unk2].c = cursorX; \
+      trackPointTable[trackInfo->unk2].d = cursorY; \
+      trackPointTable[trackInfo->unk2].e = t;
 
 #define ERR \
       playMenuSound(0x3E); \
@@ -71,7 +71,7 @@ void func_801BFA1C(u8, u8);
 #define DONE \
       D_801C6B27 = trackInfo->unk2; \
       trackInfo->unk2++; \
-      D_801C7AB6++; \
+      trackPointEntryCount++; \
       D_801C6B25 = D_801C7AB8; \
       D_801C7AB8 = 4; \
       sel = 4; \
@@ -83,16 +83,16 @@ void func_801953F0(u16 arg0)
   u16 id;
   u8 i;
 
-  func_8019F7C0(arg0);
+  updateBoardCamera(arg0);
   sel = getCursorDirection(arg0);
   if (sel == 0) {
-    func_801948E0(&sel);
+    checkBlockPlacement(&sel);
   } else if (sel == 1) {
-    func_80194B98(&sel);
+    beginLeftTrackStep(&sel);
   } else if (sel == 2) {
-    func_80194E60(&sel);
+    beginDownTrackStep(&sel);
   } else if (sel == 3) {
-    func_80195124(&sel);
+    beginRightTrackStep(&sel);
   }
   if (D_801C6B24 != 0) {
     u8 unused[0xA0];
@@ -101,20 +101,20 @@ void func_801953F0(u16 arg0)
       D_801C7D30[D_801C7078].unk0 = 0;
       D_801C7D30[D_801C7078].unk1 = 1;
       D_801C7D30[D_801C7078].unk4 = D_8031445C[(s8)D_801C6B20];
-      trackPoints[D_801C6B27].a = D_801C7AB8;
-      trackPoints[D_801C6B27].b = 0;
-      trackPoints[D_801C6B27].c = cursorX;
-      trackPoints[D_801C6B27].d = cursorY;
-      trackPoints[D_801C6B27].e = D_801C6B20;
+      trackPointTable[D_801C6B27].a = D_801C7AB8;
+      trackPointTable[D_801C6B27].b = 0;
+      trackPointTable[D_801C6B27].c = cursorX;
+      trackPointTable[D_801C6B27].d = cursorY;
+      trackPointTable[D_801C6B27].e = D_801C6B20;
     }
     if (D_801E9990[arg0].unk0 == 1 && D_801E9990[arg0].unk4 == 0) {
-      D_801C7078 = ((s8) cursorX + (s8) D_801C6B22) + ((s8) cursorY + (s8) D_801C6B23) * 0x18;
+      D_801C7078 = ((s8) cursorX + (s8) trackStepX) + ((s8) cursorY + (s8) trackStepY) * 0x18;
       if (D_801C7078 == D_801C7066) {
-        if (D_801C7AB6 + 1 > 200) {
+        if (trackPointEntryCount + 1 > 200) {
           ERR
         } else {
-          cursorX += D_801C6B22;
-          cursorY += D_801C6B23;
+          cursorX += trackStepX;
+          cursorY += trackStepY;
           if (trackInfo->unk1 == 6) {
             if (D_801C7AB8 == 0) {
               D_801C6B21 = 0x2A;
@@ -131,22 +131,22 @@ void func_801953F0(u16 arg0)
             D_801C7064 = D_801C6B21;
           }
           MAP(D_801C6B21)
-          D_801C7AB6 -= 4;
+          trackPointEntryCount -= 4;
           func_801BFA1C(trackInfo->unk2, 1);
           DONE
-          D_8011F2F0[D_801C746A].unkA = 0x5B;
-          D_8011F2F0[D_801C746A].unkC = 0x64;
+          D_8011F2F0[placedBlockObj].unkA = 0x5B;
+          D_8011F2F0[placedBlockObj].unkC = 0x64;
           D_8011F2F0[D_801C6BB6].unkA = 0x5B;
           D_8011F2F0[D_801C6BB6].unkC = 0x64;
           D_8011F2F0[hudSlotIndex].st = 0xE;
           playMenuSound(0x40);
         }
       } else {
-        if (D_801C7AB6 == 200) {
+        if (trackPointEntryCount == 200) {
           ERR
         } else {
-          cursorX += D_801C6B22;
-          cursorY += D_801C6B23;
+          cursorX += trackStepX;
+          cursorY += trackStepY;
           MAP(D_801C6B21)
           DONE
           playMenuSound(0x40);
@@ -158,24 +158,24 @@ void func_801953F0(u16 arg0)
     if (D_801C6BE0[D_801C7078] != 0xFFFF) {
       D_8011F2F0[D_801C6BE0[D_801C7078]].unkD = 2;
       D_801C6BE0[D_801C7078] = 0xFFFF;
-      D_801C7AD8[D_801C7078] = 0xFF;
+      trackPointIndexByCell[D_801C7078] = 0xFF;
       trackInfo->unk2--;
-      D_801C7AB6--;
-      trackPoints[trackInfo->unk2].a = 4;
-      trackPoints[trackInfo->unk2].b = 0;
-      trackPoints[trackInfo->unk2].c = -1;
-      trackPoints[trackInfo->unk2].d = -1;
-      trackPoints[trackInfo->unk2].e = -1;
+      trackPointEntryCount--;
+      trackPointTable[trackInfo->unk2].a = 4;
+      trackPointTable[trackInfo->unk2].b = 0;
+      trackPointTable[trackInfo->unk2].c = -1;
+      trackPointTable[trackInfo->unk2].d = -1;
+      trackPointTable[trackInfo->unk2].e = -1;
       D_801C6B27--;
-      cursorX = trackPoints[D_801C6B27].c;
-      cursorY = trackPoints[D_801C6B27].d;
+      cursorX = trackPointTable[D_801C6B27].c;
+      cursorY = trackPointTable[D_801C6B27].d;
       D_801C7078 = (s8) cursorX + (s8) cursorY * 0x18;
       D_801C7AB8 = 4;
       sel = 4;
       if (D_801C6B27 == 0) {
-        D_801C6B25 = blockFootprint;
+        D_801C6B25 = blockDirection;
       } else {
-        D_801C6B25 = trackPoints[D_801C6B27 - 1].a;
+        D_801C6B25 = trackPointTable[D_801C6B27 - 1].a;
       }
       if (D_801C6B25 == 0 || D_801C6B25 == 2) {
         D_801C6B20 = 5;
@@ -185,33 +185,33 @@ void func_801953F0(u16 arg0)
       if (trackInfo->unk0 == 4) {
         D_801C6B20 += 0x2E;
       }
-      D_801C7D30[(u16)(trackPoints[D_801C6B27].c + trackPoints[D_801C6B27].d * 0x18)].unk4 = D_8031445C[(s8)D_801C6B20];
-      trackPoints[D_801C6B27].e = D_801C6B20;
+      D_801C7D30[(u16)(trackPointTable[D_801C6B27].c + trackPointTable[D_801C6B27].d * 0x18)].unk4 = D_8031445C[(s8)D_801C6B20];
+      trackPointTable[D_801C6B27].e = D_801C6B20;
       D_801C6B24 = 0;
       D_801C6B26 = 4;
     }
     if (D_801C7078 == blockPos.sel) {
-      D_8011F2F0[D_801C746A].unkD = 2;
+      D_8011F2F0[placedBlockObj].unkD = 2;
       D_8011F2F0[D_801C6BB6].unkD = 2;
       D_8011F2F0[D_801C6BE0[blockPos.sel]].unkD = 2;
       if (trackInfo->unk1 != 5) {
         for (i = 0; i < 4; i++) {
-          if (D_801C7470[i] != 0xFFFF) {
-            D_8011F2F0[D_801C7470[i]].unkD = 2;
-            D_801C7470[i] = 0xFFFF;
+          if (trackPointLinks[i] != 0xFFFF) {
+            D_8011F2F0[trackPointLinks[i]].unkD = 2;
+            trackPointLinks[i] = 0xFFFF;
           }
         }
       }
       D_801C6BE0[blockPos.sel] = 0xFFFF;
-      D_801C7AD8[blockPos.sel] = 0xFF;
-      blockFootprint = 4;
+      trackPointIndexByCell[blockPos.sel] = 0xFF;
+      blockDirection = 4;
       trackInfo->unk2 = 0;
-      D_801C7AB6 = 0;
-      trackPoints[trackInfo->unk2].a = 4;
-      trackPoints[trackInfo->unk2].b = 0;
-      trackPoints[trackInfo->unk2].c = -1;
-      trackPoints[trackInfo->unk2].d = -1;
-      trackPoints[trackInfo->unk2].e = -1;
+      trackPointEntryCount = 0;
+      trackPointTable[trackInfo->unk2].a = 4;
+      trackPointTable[trackInfo->unk2].b = 0;
+      trackPointTable[trackInfo->unk2].c = -1;
+      trackPointTable[trackInfo->unk2].d = -1;
+      trackPointTable[trackInfo->unk2].e = -1;
       cursorX = blockPos.x;
       cursorY = blockPos.z;
       D_801C7078 = blockPos.sel;

@@ -1,5 +1,5 @@
 extern u8 D_8021E22F[][8][34];
-extern u32 D_8018D3A0[][8];
+extern u32 randomMasks[][8];
 extern u8 D_8021E1A7;
 
 void func_80149CC4(s32 id, u8 flag)
@@ -20,7 +20,7 @@ void func_80149CC4(s32 id, u8 flag)
         mask = 1;
         start = i < 5 ? 2 : 3;
         for (j = 0; j < 0x1F; j++) {
-            if (mask & D_8018D3A0[id][i]) {
+            if (mask & randomMasks[id][i]) {
                 D_8021E22F[id][i][count + start] = j;
                 count++;
             }

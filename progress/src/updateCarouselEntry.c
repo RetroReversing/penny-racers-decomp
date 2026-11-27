@@ -5,7 +5,7 @@ extern u16 D_8021E146;
 extern u16 D_8021F024;
 extern u16 D_8021F026;
 extern u16 D_8021EFF8;
-extern s16 D_8021E1A2;
+extern s16 skipFirstRowFlag;
 extern s8 D_8021E20B[][9];
 extern u8 D_8021B00C[];
 extern f32 carouselX[];
@@ -24,7 +24,7 @@ void updateCarousel(void);
 
     switch (entry->f0) {
     case 0:
-        if (D_8021E1A2 == 0) {
+        if (skipFirstRowFlag == 0) {
             if (D_8021E20B[entry->f0][0] == 1) {
                 if (*entry->f50 != 0) {
                     goto flags;

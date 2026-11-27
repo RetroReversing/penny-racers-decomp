@@ -19,7 +19,7 @@ extern f32 m2c_fbits;
 f32 __cosf(f32);                                    /* extern */
 f32 __sinf();                     /* extern */
 u16 objCreate(M2C_UNK, s32, M2C_UNK, M2C_UNK);  /* extern */
-M2C_UNK func_80129C88(void *, M2C_UNK, s32);        /* extern */
+M2C_UNK updateRouteFlags(void *, M2C_UNK, s32);        /* extern */
 M2C_UNK racerUpdateTrackWindow(void *, M2C_UNK, s32);        /* extern */
 M2C_UNK func_801D65BC(M2C_UNK);                     /* extern */
 M2C_UNK stopStageSound(s16);                         /* extern */
@@ -30,13 +30,13 @@ M2C_UNK guRotateF(M2C_UNK *, f32, f32 *, f32 *);    /* extern */
 f32 sqrtf(f32);                                     /* extern */
 extern M2C_UNK D_8006FAF0;
 extern M2C_UNK sRowBoard;
-extern M2C_UNK D_8011F2F2;
+extern M2C_UNK sNodeFlags;
 extern M2C_UNK D_8011F2FC;
 extern M2C_UNK D_8011F2FD;
 extern M2C_UNK D_8011F304;
 extern M2C_UNK D_8011F308;
-extern M2C_UNK D_8011F30C;
-extern M2C_UNK D_8011F310;
+extern M2C_UNK sPrimColorG;
+extern M2C_UNK sPrimColorB;
 extern M2C_UNK D_8011F314;
 extern M2C_UNK D_8011F318;
 extern M2C_UNK D_8011F31C;
@@ -301,13 +301,13 @@ void func_8012C4F4(u16 arg0) {
     if (*(&playerSlots + temp_v1) != 0) {
         temp_v0 = sp19E * 0x64;
         var_fp = *(&D_8011F308 + temp_v0);
-        var_s4 = *(&D_8011F30C + temp_v0) + *(&D_80183AE0 + (temp_a0 * 4));
-        var_s7 = *(&D_8011F310 + temp_v0);
+        var_s4 = *(&sPrimColorG + temp_v0) + *(&D_80183AE0 + (temp_a0 * 4));
+        var_s7 = *(&sPrimColorB + temp_v0);
         sp194 = *(&D_8011F318 + temp_v0);
     }
     if ((*(&D_8022AFE0 + (temp_a1 * 0x8F0)) == 1) && (*(&D_8018B520 + temp_a1) == 0)) {
         *(&D_80189B30 + temp_a1) = 1;
-        temp_v1_2 = (temp_a1 * 2) + (((sp19E + 1) * 0x64) + &D_8011F2F2);
+        temp_v1_2 = (temp_a1 * 2) + (((sp19E + 1) * 0x64) + &sNodeFlags);
         *temp_v1_2 &= 0xFFF7;
         *(&playerSlots + (sp18E * 0x64)) = 1;
     }
@@ -317,7 +317,7 @@ void func_8012C4F4(u16 arg0) {
         *(&D_80183A90 + temp_v0_2) = 1.0f;
         *(&D_80183AA0 + temp_v0_2) = 1.0f;
         if (*(&D_8018B520 + temp_a1_2) == 0) {
-            temp_v1_3 = (temp_a1_2 * 2) + (((sp19E + 1) * 0x64) + &D_8011F2F2);
+            temp_v1_3 = (temp_a1_2 * 2) + (((sp19E + 1) * 0x64) + &sNodeFlags);
             *temp_v1_3 |= 8;
             *(&D_80189B30 + temp_a1_2) = 0;
             *(&playerSlots + (sp18E * 0x64)) = 2;
@@ -586,20 +586,20 @@ block_37:
     if ((M2C_FIELD(&D_8006FAF0, u16 *, 0x20) == 0) && (var_v0 = temp_s5 & 0xFFFF, (M2C_FIELD(trackInfo, u8 *, 1) == 6))) {
         racerUpdateTrackWindow((var_v0 * 0x8F0) + &D_8022AF3C, 4, temp_s5 & 0xFF);
     } else {
-        func_80129C88((var_v0 * 0x8F0) + &D_8022AF3C, 4, temp_s5 & 0xFF);
+        updateRouteFlags((var_v0 * 0x8F0) + &D_8022AF3C, 4, temp_s5 & 0xFF);
     }
     temp_s2_2 = temp_s5 & 0xFFFF;
     if (sp1A6 != 0) {
         if (*(&D_8022AFE0 + (temp_s2_2 * 0x8F0)) == 0) {
             if (*(&D_801E99A0 + (temp_s2_2 * 0x70)) == 1) {
                 temp_a0_5 = temp_s2_2 * 4;
-                if ((*(&D_80189B30 + temp_s2_2) == 0) || (temp_v0_14 = *(&D_80189B30 + temp_s2_2) - 1, *(&D_80189B30 + temp_s2_2) = temp_v0_14, *(&D_8018B520 + temp_s2_2) = temp_v0_14, temp_a1_3 = temp_a0_5 + &D_80183AE0, *temp_a1_3 = *(&D_80167E80 + (*(&D_80189B30 + temp_s2_2) * 4)), temp_s0_4 = temp_a0_5 + &D_80183AB0, *temp_s0_4 = *(&D_80167E68 + (*(&D_80189B30 + temp_s2_2) * 4)), temp_s1_4 = temp_a0_5 + &D_80183AD0, *temp_s1_4 = *(&D_80167E74 + (*(&D_80189B30 + temp_s2_2) * 4)), *(&D_80183A90 + temp_a0_5) = 1.0f, *(&D_80183AA0 + temp_a0_5) = 1.0f, temp_s4 = *(&D_8011F30C + (sp19E * 0x64)) + *temp_a1_3, temp_fa0_4 = sp194 + *(&D_80183AC0 + temp_a0_5), D_80183A88 = temp_fa0_4, temp_fs5_3 = __sinf((temp_fa0_4 * 3.14f) / 180.0f, temp_a0_5, (s32) temp_a1_3) * *temp_s0_4, temp_fs0_10 = __sinf((D_80183A88 * 3.14f) / 180.0f), temp_fs5_4 = (temp_fs5_3 - (temp_fs0_10 * __sinf((*temp_s1_4 * 3.14f) / 180.0f) * *temp_s0_4)) + var_fp, temp_fs4_2 = (__sinf((*temp_s1_4 * 3.14f) / 180.0f) * *temp_s0_4) + temp_s4, temp_fs3_3 = __cosf((D_80183A88 * 3.14f) / 180.0f) * *temp_s0_4, temp_fs0_11 = __cosf((D_80183A88 * 3.14f) / 180.0f), temp_fs3_4 = (temp_fs3_3 - (temp_fs0_11 * __sinf((*temp_s1_4 * 3.14f) / 180.0f) * *temp_s0_4)) + var_s7, temp_v0_15 = (temp_s6 & 0xFFFF) * 0x24, *(&D_80221080 + temp_v0_15) = temp_fs5_4, *(&D_80221084 + temp_v0_15) = temp_fs4_2, *(&D_80221088 + temp_v0_15) = temp_fs3_4, *(&D_8022108C + temp_v0_15) = var_fp, *(&D_80221090 + temp_v0_15) = temp_s4, *(&D_80221094 + temp_v0_15) = var_s7, (*(&D_80189B30 + temp_s2_2) == 0))) {
-                    temp_v1_12 = ((temp_s5 & 0xFFFF) * 2) + (((sp19E + 1) * 0x64) + &D_8011F2F2);
+                if ((*(&D_80189B30 + temp_s2_2) == 0) || (temp_v0_14 = *(&D_80189B30 + temp_s2_2) - 1, *(&D_80189B30 + temp_s2_2) = temp_v0_14, *(&D_8018B520 + temp_s2_2) = temp_v0_14, temp_a1_3 = temp_a0_5 + &D_80183AE0, *temp_a1_3 = *(&D_80167E80 + (*(&D_80189B30 + temp_s2_2) * 4)), temp_s0_4 = temp_a0_5 + &D_80183AB0, *temp_s0_4 = *(&D_80167E68 + (*(&D_80189B30 + temp_s2_2) * 4)), temp_s1_4 = temp_a0_5 + &D_80183AD0, *temp_s1_4 = *(&D_80167E74 + (*(&D_80189B30 + temp_s2_2) * 4)), *(&D_80183A90 + temp_a0_5) = 1.0f, *(&D_80183AA0 + temp_a0_5) = 1.0f, temp_s4 = *(&sPrimColorG + (sp19E * 0x64)) + *temp_a1_3, temp_fa0_4 = sp194 + *(&D_80183AC0 + temp_a0_5), D_80183A88 = temp_fa0_4, temp_fs5_3 = __sinf((temp_fa0_4 * 3.14f) / 180.0f, temp_a0_5, (s32) temp_a1_3) * *temp_s0_4, temp_fs0_10 = __sinf((D_80183A88 * 3.14f) / 180.0f), temp_fs5_4 = (temp_fs5_3 - (temp_fs0_10 * __sinf((*temp_s1_4 * 3.14f) / 180.0f) * *temp_s0_4)) + var_fp, temp_fs4_2 = (__sinf((*temp_s1_4 * 3.14f) / 180.0f) * *temp_s0_4) + temp_s4, temp_fs3_3 = __cosf((D_80183A88 * 3.14f) / 180.0f) * *temp_s0_4, temp_fs0_11 = __cosf((D_80183A88 * 3.14f) / 180.0f), temp_fs3_4 = (temp_fs3_3 - (temp_fs0_11 * __sinf((*temp_s1_4 * 3.14f) / 180.0f) * *temp_s0_4)) + var_s7, temp_v0_15 = (temp_s6 & 0xFFFF) * 0x24, *(&D_80221080 + temp_v0_15) = temp_fs5_4, *(&D_80221084 + temp_v0_15) = temp_fs4_2, *(&D_80221088 + temp_v0_15) = temp_fs3_4, *(&D_8022108C + temp_v0_15) = var_fp, *(&D_80221090 + temp_v0_15) = temp_s4, *(&D_80221094 + temp_v0_15) = var_s7, (*(&D_80189B30 + temp_s2_2) == 0))) {
+                    temp_v1_12 = ((temp_s5 & 0xFFFF) * 2) + (((sp19E + 1) * 0x64) + &sNodeFlags);
                     *temp_v1_12 |= 8;
                     var_v0_2 = sp18E * 0x64;
                     var_v1_3 = 2;
                 } else {
-                    temp_v1_13 = ((temp_s5 & 0xFFFF) * 2) + (((sp19E + 1) * 0x64) + &D_8011F2F2);
+                    temp_v1_13 = ((temp_s5 & 0xFFFF) * 2) + (((sp19E + 1) * 0x64) + &sNodeFlags);
                     *temp_v1_13 &= 0xFFF7;
                     var_v0_2 = sp18E * 0x64;
                     var_v1_3 = 1;
@@ -621,7 +621,7 @@ block_37:
                     *temp_s1_5 = *(&D_80167E74 + (*(&D_80189B30 + temp_a2) * 4));
                     *(&D_80183A90 + temp_a0_6) = 1.0f;
                     *(&D_80183AA0 + temp_a0_6) = 1.0f;
-                    temp_s4_2 = *(&D_8011F30C + (sp19E * 0x64)) + *temp_a1_4;
+                    temp_s4_2 = *(&sPrimColorG + (sp19E * 0x64)) + *temp_a1_4;
                     temp_fa0_5 = sp194 + *(&D_80183AC0 + temp_a0_6);
                     D_80183A88 = temp_fa0_5;
                     temp_fs5_5 = __sinf((temp_fa0_5 * 3.14f) / 180.0f, temp_a0_6, (s32) temp_a1_4, temp_a2) * *temp_s0_5;
@@ -641,12 +641,12 @@ block_37:
                 }
                 temp_a1_5 = temp_s5 & 0xFFFF;
                 if (*(&D_80189B30 + temp_a1_5) == 0) {
-                    temp_v1_14 = (temp_a1_5 * 2) + (((sp19E + 1) * 0x64) + &D_8011F2F2);
+                    temp_v1_14 = (temp_a1_5 * 2) + (((sp19E + 1) * 0x64) + &sNodeFlags);
                     *temp_v1_14 |= 8;
                     var_v0_3 = sp18E * 0x64;
                     var_v1_4 = 2;
                 } else {
-                    temp_v1_15 = ((temp_s5 & 0xFFFF) * 2) + (((sp19E + 1) * 0x64) + &D_8011F2F2);
+                    temp_v1_15 = ((temp_s5 & 0xFFFF) * 2) + (((sp19E + 1) * 0x64) + &sNodeFlags);
                     *temp_v1_15 &= 0xFFF7;
                     var_v0_3 = sp18E * 0x64;
                     var_v1_4 = 1;
@@ -661,12 +661,12 @@ block_37:
                 if (*(&D_801E99A8 + ((temp_s5 & 0xFFFF) * 0x70)) == M2C_FIELD(&sRowBoard, s16 *, 0x2108)) {
                     if (D_8018BC33 == 0) {
                         temp_v0_18 = D_8018BC30 * 0x64;
-                        *(&D_8011F2F2 + temp_v0_18) = *(&D_8011F2F2 + temp_v0_18) | 8;
+                        *(&sNodeFlags + temp_v0_18) = *(&sNodeFlags + temp_v0_18) | 8;
                         D_8018BC33 = 1;
                         var_v0_4 = temp_s5 & 0xFFFF;
                     } else {
                         temp_v1_16 = D_8018BC30 * 0x64;
-                        *(&D_8011F2F2 + temp_v1_16) = *(&D_8011F2F2 + temp_v1_16) & 0xFFF7;
+                        *(&sNodeFlags + temp_v1_16) = *(&sNodeFlags + temp_v1_16) & 0xFFF7;
                         D_8018BC33 = 0;
                         goto block_76;
                     }
@@ -686,7 +686,7 @@ block_76:
                 D_80167E62 += 1;
             }
             *(&D_8018A264 + temp_a0_8) = 0;
-            temp_a0_9 = (temp_a0_8 * 2) + (((sp19E + 1) * 0x64) + &D_8011F2F2);
+            temp_a0_9 = (temp_a0_8 * 2) + (((sp19E + 1) * 0x64) + &sNodeFlags);
             *temp_a0_9 &= 0xFFF7;
             if (M2C_FIELD(&sRowBoard, s16 *, 0x2108) == 1) {
                 *(&D_8011F2FD + (D_8018BC30 * 0x64)) = 2;

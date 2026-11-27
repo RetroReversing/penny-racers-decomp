@@ -32,7 +32,7 @@ M2C_UNK setupSelectionMenu();                            /* extern */
 M2C_UNK func_8020EE10();                            /* extern */
 M2C_UNK func_80210050();                            /* extern */
 M2C_UNK func_80210784();                            /* extern */
-M2C_UNK func_80211FD0();                            /* extern */
+M2C_UNK commitRacerPicks();                            /* extern */
 M2C_UNK func_80212350();                            /* extern */
 M2C_UNK func_80212360();                            /* extern */
 M2C_UNK func_802124B0();                            /* extern */
@@ -107,7 +107,7 @@ void func_80143F68(void) {
         func_8020EE10();
         break;
     case 0x16:
-        func_80211FD0();
+        commitRacerPicks();
         gameState = 0x14;
         break;
     case 0x17:

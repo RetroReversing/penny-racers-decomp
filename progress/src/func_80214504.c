@@ -11,7 +11,7 @@ extern s8 D_8021E189;
 void func_800DE2E0(void);
 void func_800DE38C(void);
 void func_801CF468(s32, s8, s8, s8);
-void func_80203DF8();
+void setScreenTransition();
 void func_80231C5C(void);
 
 void func_80214504(u16 arg0)
@@ -23,15 +23,15 @@ void func_80214504(u16 arg0)
         D_8021E130 = 0;
         D_8021E189 = 0;
         playerSlots[arg0].st = 1;
-        func_80203DF8(1, 0x78, 0xFF, 0xFF, 0xFF);
+        setScreenTransition(1, 0x78, 0xFF, 0xFF, 0xFF);
         break;
     case 1:
         pressed = 0;
         if (D_8021E130 == 0x10E) {
-            func_80203DF8(2, 0x78, 0, 0, 0);
+            setScreenTransition(2, 0x78, 0, 0, 0);
         }
         if (D_8021E130 >= 0x186 || (pressed & 0x10)) {
-            func_80203DF8(1, 0x78, 0xFF, 0xFF, 0xFF);
+            setScreenTransition(1, 0x78, 0xFF, 0xFF, 0xFF);
             playerSlots[arg0].st = 3;
         }
         D_8021E130++;
@@ -39,7 +39,7 @@ void func_80214504(u16 arg0)
     case 3:
         pressed = 0;
         if (D_8021E130 == 0x24E) {
-            func_80203DF8(2, 0x78, 0, 0, 0);
+            setScreenTransition(2, 0x78, 0, 0, 0);
         }
         if (D_8021E130 >= 0x2D0 || (pressed & 0x10)) {
             playerSlots[arg0].st = 2;

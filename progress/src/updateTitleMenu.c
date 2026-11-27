@@ -1,14 +1,14 @@
 typedef struct { u8 timer; u8 pad1[0x17]; f32 vx; f32 vy; u8 pad20[0x14]; f32 f34; u8 pad38[6]; u16 state; u16 f40; u8 pad42[0x22]; } Rec;
 typedef struct { u16 f0; u8 f2; u8 f3; } Fade;
 extern Rec D_8011F2F0[];
-extern volatile u16 D_8021E19C;
-extern volatile u8 D_8021E19E;
+extern volatile u16 sFadeLevel;
+extern volatile u8 menuArrowAlpha;
 extern volatile u16 D_80190CA4;
 extern u8 D_80189B34, D_801E87E3;
 extern volatile u8 D_80189B36;
 extern s8 D_80189C9D[];
 extern u16 D_8006FAF0[];
-extern s16 D_8021E1A2, D_8021E1A6;
+extern s16 skipFirstRowFlag, D_8021E1A6;
 extern u16 D_8018A44A[];
 s32 func_8014BAC0(u16);
 void objCreate();
@@ -28,8 +28,8 @@ void func_801DD938(s32, s32, s32, s32, s32, s32, s32, s32, s32, s32);
     buttons = func_8014BAC0(playerId);
     switch (self->state) {
     case 0:
-        (*(volatile u8 *)&D_8021E19E) = 0;
-        *(volatile u16 *)(&D_8021E19E - 2) = 0;
+        (*(volatile u8 *)&menuArrowAlpha) = 0;
+        *(volatile u16 *)(&menuArrowAlpha - 2) = 0;
         D_80190CA4 = 0xFF;
         switch (D_80189B34) {
         case 0:
@@ -49,7 +49,7 @@ void func_801DD938(s32, s32, s32, s32, s32, s32, s32, s32, s32, s32);
                 self->state = 0x10;
                 break;
             }
-            if (D_8021E1A2 == 0) {
+            if (skipFirstRowFlag == 0) {
                 objCreate(0, 0, 3, 0, 0x4F, 0xFF, 0, func_8014B890, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
             }
             break;
@@ -60,7 +60,7 @@ void func_801DD938(s32, s32, s32, s32, s32, s32, s32, s32, s32, s32);
         break;
     case 0x10:
         self->f40 = 0x10;
-        p = &D_8021E19C;
+        p = &sFadeLevel;
         (*p) += 4;
         if ((*p) >= 0x100) {
             (*p) = 0xFF;
@@ -136,9 +136,9 @@ void func_801DD938(s32, s32, s32, s32, s32, s32, s32, s32, s32, s32);
         break;
     case 0x30:
         self->f40 = 0x30;
-        (*(volatile u16 *)&D_8021E19C) += 8;
-        if ((*(volatile u16 *)&D_8021E19C) >= 0x100) {
-            (*(volatile u16 *)&D_8021E19C) = 0xFF;
+        (*(volatile u16 *)&sFadeLevel) += 8;
+        if ((*(volatile u16 *)&sFadeLevel) >= 0x100) {
+            (*(volatile u16 *)&sFadeLevel) = 0xFF;
             self->state = 0x31;
         }
         break;
@@ -175,5 +175,5 @@ if (D_80189C9D[0] == 0) { D_80189C9D[0] = 2; } else { D_80189C9D[0] -= 1; }
         (*(volatile u8 *)&D_80189B36) &= 0xEF;
         break;
     }
-    (*(volatile u8 *)&D_8021E19E) -= 8;
+    (*(volatile u8 *)&menuArrowAlpha) -= 8;
 }

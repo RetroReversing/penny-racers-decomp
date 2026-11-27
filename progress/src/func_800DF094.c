@@ -1,4 +1,4 @@
-extern u8 D_8011F2F2;
+extern u8 sNodeFlags;
 extern u8 D_8011F300;
 extern u16 objListHead;
 
@@ -10,7 +10,7 @@ void func_800DF094(void)
     cur = objListHead;
     while (cur != 0xFFFF) {
         off = cur * 0x64;
-        *(u16 *)(&D_8011F2F2 + off) = *(u16 *)(&D_8011F2F2 + off) & 0xFFEF;
+        *(u16 *)(&sNodeFlags + off) = *(u16 *)(&sNodeFlags + off) & 0xFFEF;
         cur = *(u16 *)(&D_8011F300 + off);
     }
 }

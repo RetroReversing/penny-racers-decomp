@@ -6,11 +6,11 @@ extern u16 D_8018BC3C;
 extern s32 D_801E9990;
 extern s32 D_801E9994;
 extern s32 D_8021AFDC;
-extern s32 D_8021B060;
+extern s32 menuChoice;
 extern s32 D_80168BB0;
-s32 func_8014A870(s32, s32, s32);
+s32 getMenuNavMask(s32, s32, s32);
 void playMenuSound(s32);
-void func_80203DF8(s32, s32, s32, s32, s32);
+void setScreenTransition(s32, s32, s32, s32, s32);
 void func_800DE38C(void);
 void func_800DE2E0(void);
 void func_80231C5C(void);
@@ -28,7 +28,7 @@ void func_801CF468(u16, s32, s32, s32);
         break;
     case 1:
         sMenu.flag = 0;
-        buttons = func_8014A870(0x14, 7, 0);
+        buttons = getMenuNavMask(0x14, 7, 0);
         if (D_801E9990 == 1) {
             playMenuSound(0x3D);
             sMenu.flag = 1;
@@ -57,17 +57,17 @@ void func_801CF468(u16, s32, s32, s32);
             sMenu.pos[0]++;
             if (sMenu.pos[0] >= 4) {
                 sMenu.pos[0] = 3;
-                func_80203DF8(2, 6, 0, 0, 0);
+                setScreenTransition(2, 6, 0, 0, 0);
                 D_8021AFDC = 4;
-                D_8021B060 = 0xC;
+                menuChoice = 0xC;
                 D_8011F2F0[playerId].f3E = 3;
             }
         }
         if (sMenu.pos[0] <= 0) {
             sMenu.pos[0] = 1;
-            func_80203DF8(2, 6, 0, 0, 0);
+            setScreenTransition(2, 6, 0, 0, 0);
             D_8021AFDC = 4;
-            D_8021B060 = 2;
+            menuChoice = 2;
             D_8011F2F0[playerId].f3E = 3;
         }
         break;
@@ -80,7 +80,7 @@ void func_801CF468(u16, s32, s32, s32);
             func_800DE2E0();
             func_80231C5C();
             func_801CF468(D_8018BC3C, 0, 0, 0);
-            D_80168BB0 = D_8021B060;
+            D_80168BB0 = menuChoice;
         }
         break;
     }

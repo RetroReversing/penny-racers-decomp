@@ -10,7 +10,7 @@ typedef struct {
 extern Src80189B38 D_80189B38;
 extern u8 D_8021F048[][14];
 extern u16 D_8021F270[][14][8];
-extern s32 D_8018D3A0[][8];
+extern s32 randomMasks[][8];
 extern u8 D_8021E22F[][8][0x22];
 
 u8 func_8014B714(u8 arg0)
@@ -30,7 +30,7 @@ u8 func_8014B714(u8 arg0)
             }
         }
         for (i = 0; i < 8; i++) {
-            D_8018D3A0[arg0][i] = src->d[i];
+            randomMasks[arg0][i] = src->d[i];
             D_8021E22F[arg0][i][0] = src->b[i];
         }
         func_80149CC4(arg0, 1);

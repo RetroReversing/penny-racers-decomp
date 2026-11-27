@@ -24,7 +24,7 @@ extern u16 D_80183B4C[];
 extern u16 D_80183B50;
 extern u16 D_8018A26E[];
 extern u16 D_80190C90;
-extern void func_801348C8();
+extern void updateSlideOutBanner();
 extern void drawRacerIcon();
 extern void func_80135C64();
 extern void func_80136A28();
@@ -33,7 +33,7 @@ extern void func_801D65BC();
 extern s16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *,
                          f32, f32, f32, f32, f32, f32, f32, f32, f32);
 
-#define SPAWN(z) objCreate(0, D_8011F2F0[arg0].player, 3, 0, 0x82, 0, 0, func_801348C8, drawRacerIcon, \
+#define SPAWN(z) objCreate(0, D_8011F2F0[arg0].player, 3, 0, 0x82, 0, 0, updateSlideOutBanner, drawRacerIcon, \
                                0.0f, 0.0f, z, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
 
 void func_80135544(u16 arg0)

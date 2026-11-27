@@ -13,7 +13,7 @@ typedef struct { u8 pad0[0x2108]; s16 a; u8 pad[0x26]; s16 b; } Mode;
 extern Mode sRowBoard;
 extern PadS D_801E9990[];
 extern PadS D_801E9994[];
-extern Slot trackPoints[];
+extern Slot trackPointTable[];
 extern MenuState *trackInfo;
 extern u8 D_801C5EA0;
 extern u16 D_801C5EA4;
@@ -28,23 +28,23 @@ extern u16 hudSlotIndex;
 extern u16 D_801C7078;
 extern u8 hudVisible;
 extern u8 D_801C7468;
-extern u16 D_801C7470[][4];
+extern u16 trackPointLinks[][4];
 extern u8 hudGlyph;
 extern s8 D_801C7AB5;
-extern u8 D_801C7AB6;
+extern u8 trackPointEntryCount;
 extern u8 D_801C7AB8;
 extern u8 D_801C7ABC;
 extern Row *D_801C7AC4;
-extern u8 D_801C7AD8[];
-extern u16 D_801C7D18;
+extern u8 trackPointIndexByCell[];
+extern u16 boardCursorObj;
 extern u16 D_801C7D1A[];
 extern u16 D_801C7D24;
 extern Part D_801C7D30[];
 extern u8 D_801CA130;
 extern s8 D_801CA138;
 extern Row D_8031445C[];
-void func_8019F7C0(u16);
-void func_8019E734(s32);
+void updateBoardCamera(u16);
+void moveBoardCursor(s32);
 void func_8019E814(u16);
 void func_801A03F4(u16);
 u8 func_801C3418(void);
@@ -56,10 +56,10 @@ void func_801A5610(void);
 void playMenuSound(s32);
 u8 func_801A0590(void);
 void func_801BD7E8(void);
-void func_801B727C(u8);
+void compactTrackPoints(u8);
 
-#define SLOT trackPoints[D_801CA130]
-#define VEC D_8011F2F0[D_801C7D18]
+#define SLOT trackPointTable[D_801CA130]
+#define VEC D_8011F2F0[boardCursorObj]
 #define FX ((f32)(s8)cursorX * 400.0f * 0.5f)
 #define FZ ((f32)cursorY * 400.0f * 0.5f)
 #define OTHERS (D_801C7078 != D_801C6BB4 && D_801C7078 != D_801C7066)
@@ -72,10 +72,10 @@ void func_801B727C(u8);
     }
 #define CLEAR_SLOT() \
     for (i = 0; i < 4; i++) { \
-        if (D_801C7470[D_801CA130][i] != 0xFFFF) { \
-            D_8011F2F0[D_801C7470[D_801CA130][i]].unkD = 2; \
-            D_801C7470[D_801CA130][i] = 0xFFFF; \
-            D_801C7AB6--; \
+        if (trackPointLinks[D_801CA130][i] != 0xFFFF) { \
+            D_8011F2F0[trackPointLinks[D_801CA130][i]].unkD = 2; \
+            trackPointLinks[D_801CA130][i] = 0xFFFF; \
+            trackPointEntryCount--; \
         } \
     }
 #define FULL() \
@@ -116,8 +116,8 @@ void func_801C1DC0(u16 arg0)
     if (hudVisible == 0) {
         sRowBoard.a = 1;
         sRowBoard.b = 1;
-        func_8019F7C0(arg0);
-        func_8019E734(arg0);
+        updateBoardCamera(arg0);
+        moveBoardCursor(arg0);
         D_8011F2F0[D_801C7D24].x = 0.0f;
         D_8011F2F0[D_801C7D24].y = 10000.0f;
         D_8011F2F0[D_801C7D24].z = 0.0f;
@@ -148,7 +148,7 @@ void func_801C1DC0(u16 arg0)
         if (D_801CA138 != 0) {
             next = func_801C1CA4(hudGlyph);
             if (D_801CA130 == trackInfo->unk2) {
-                if (D_801C7AB6 + next + 1 < 0xC9) {
+                if (trackPointEntryCount + next + 1 < 0xC9) {
                     D_801C7D30[D_801C7078].f0 = 0;
                     D_801C7D30[D_801C7078].f1 = 1;
                     D_801C7D30[D_801C7078].f4 = &D_8031445C[(s8)hudGlyph];
@@ -156,13 +156,13 @@ void func_801C1DC0(u16 arg0)
                                       FX, 0.0f, FZ, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f);
                     D_8011F2F0[e].unk4 |= 8;
                     D_801C6BE0[D_801C7078] = e;
-                    D_801C7AD8[D_801C7078] = trackInfo->unk2;
+                    trackPointIndexByCell[D_801C7078] = trackInfo->unk2;
                     D_8011F2F0[e].y = (f32)func_80190D40(hudGlyph) * 0.5f;
                     (&SLOT)->unk0 = D_801C7AB8;
                     (&SLOT)->unk1 = (u8)D_8011F2F0[D_801C6BE0[D_801C7078]].y * 2;
                     FINISH();
                     trackInfo->unk2++;
-                    D_801C7AB6++;
+                    trackPointEntryCount++;
                     DONE();
                 } else {
                     FULL();
@@ -176,7 +176,7 @@ void func_801C1DC0(u16 arg0)
                     }
                     D_801C7AB5 = 0;
                     TAIL();
-                } else if (D_801C7AB6 - cost + next >= 0xC9) {
+                } else if (trackPointEntryCount - cost + next >= 0xC9) {
                     FULL();
                 } else {
                     if (OTHERS) {
@@ -190,7 +190,7 @@ void func_801C1DC0(u16 arg0)
         }
         if (D_801E9990[arg0].v == 1 && D_801E9994[arg0].v == 0) {
             if (D_801CA130 == trackInfo->unk2) {
-                if (D_801C7AB6 >= 0xC8) {
+                if (trackPointEntryCount >= 0xC8) {
                     FULL();
                 } else {
                     playMenuSound(0x3D);
@@ -221,8 +221,8 @@ void func_801C1DC0(u16 arg0)
                     D_8011F2F0[D_801C6BE0[D_801C7078]].unkD = 2;
                 }
                 D_801C6BE0[D_801C7078] = 0xFFFF;
-                D_801C7AD8[D_801C7078] = 0xFF;
-                func_801B727C(D_801CA130);
+                trackPointIndexByCell[D_801C7078] = 0xFF;
+                compactTrackPoints(D_801CA130);
                 playMenuSound(0x3F);
                 trackInfo->unk3 = 0;
                 D_801C5EA0 = 0;

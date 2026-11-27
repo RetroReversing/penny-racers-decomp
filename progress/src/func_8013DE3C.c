@@ -1,5 +1,5 @@
 s32 func_8012AD20(u16, void *, u8, u8);
-extern u8 D_800DA260[];
+extern u8 sCarSlots[];
 extern u8 D_8011F2F0[];
 extern u8 D_8011F304[];
 extern u8 D_80238D24[];
@@ -20,7 +20,7 @@ void func_8013DE3C(void *arg0)
     u16 temp_v1_16;
     s32 off;
 
-    temp_v1 = D_800DA260 + *(u16 *)((u8 *)arg0 + 4) * 0x178;
+    temp_v1 = sCarSlots + *(u16 *)((u8 *)arg0 + 4) * 0x178;
     *(u16 *)temp_v1 = 6;
     temp_v1[0x170] = 0;
     temp_v1_16 = *(u16 *)temp_v1;

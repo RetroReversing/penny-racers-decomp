@@ -6,7 +6,7 @@ extern Obj D_801E9958[];
 extern u8 D_80046832;
 extern s32 D_80046834;
 extern s32 D_80168BB0;
-extern s16 D_80301BE0;
+extern s16 menuPanelTlut;
 extern f32 D_80183BB0;
 extern f32 D_80183BB4;
 extern f32 D_80183BB8;
@@ -80,7 +80,7 @@ void func_8015A9CC(u16 arg0)
             func_80231C5C();
             func_80143D70();
             D_80168BB0 = 0;
-            D_80301BE0 = 0;
+            menuPanelTlut = 0;
         }
         {
             pos = &D_802210D0;
