@@ -2816,14 +2816,6 @@
   "score_after": 6439
  },
  {
-  "function": "func_80030E28",
-  "text": "Deep permuter: score 51897 \u2192 51712; 1 improvements; 46 candidates tested; 0 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589934933",
-  "created_at": 1794348213.8184829,
-  "score_before": 51897,
-  "score_after": 51712
- },
- {
   "function": "drawWaterStrips",
   "text": "Deep permuter: score 11535 \u2192 8790; 2 improvements; 196 candidates tested; 155 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935326",
@@ -10278,14 +10270,6 @@
   "created_at": 1794719424.018749,
   "score_before": 23352,
   "score_after": 23352
- },
- {
-  "function": "func_80030E28",
-  "text": "Compiled stub scores 51512 (3.5%): target 534 insns vs 22 here. The stub only covers the first guard. The target has a 0x70 frame, saves s0-s7 and f20, moves arg1 into s0 and calls func_800346B0 about 30 times, so it is a long function with many branches. Needs the whole body read from assembly (get_assembly pages) and a real draft. Also the target references .rodata+0x0 and +0x4 (float constants) that the stub does not have. Not solved in this session.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794719429.983819,
-  "score_before": 51512,
-  "score_after": 51512
  },
  {
   "function": "func_801E2020",
@@ -20208,14 +20192,6 @@
   "score_after": 28785
  },
  {
-  "function": "func_80030E28",
-  "text": "Compiled twice; only a fragment written (score 51847, 16 of 534 insns). Not a real attempt yet. Findings: the helper externs compile once declared as: `extern char D_8004A4B0[]; extern char D_8004A4B4[];` (assert strings, passed to func_800346B0 with line 0x179); plus prototypes for __mapVoice, __lookupVoice, func_800319F4, func_8002FFD0, alCents2Ratio, alEvtqPostEvent, __vsPan, __vsVol, func_80030540, func_80031B94, n_alSynSetVol, n_alSynSetPan, __n_seqpReleaseVoice (argument counts are guesses from call sites). Frame is 0x70 bytes, saves s0-s7, ra, and f20. Structure: range check on *(u16*)arg1 (status-1 < 2) guards the assert; the status byte at +8 is split into channel (low nibble, kept in s5) and command (0xF0 nibble); a voice table at arg0+0x60 indexed (channel<<4), seq list at +0x64, callback fn at +0x70; the command dispatch is a binary-search tree of slti/beq over 0x80..0xE0, 0x07/0x0A/0x10, 0x40/0x5B. Next step: write the full dispatch tree with every leaf body, then tune. Too large for the current move-on budget: it needs a full rewrite, not tuning.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794742476.7968261,
-  "score_before": 51512,
-  "score_after": 51512
- },
- {
   "function": "func_8022FE50",
   "text": "Blocked, not failed: the target needs two jump tables (jr at .s line 101) that the m2c draft and my stub cannot express until the table contents are read with read_data. The full body is roughly 550 instructions over a 0x90 frame with an 18-argument spawn call, so one pass won't get it near a match. Stub score 54542 (7/552 insns) is not a meaningful intermediate. Next step for whoever picks it up: read_data on the two jump tables, then write the whole body from the notes in the previous release (the earlier notes are kept), then tune the switch order.",
   "by": "claude-haiku-5-5-21",
@@ -22414,14 +22390,6 @@
   "created_at": 1794752539.314739,
   "score_before": 1510,
   "score_after": 1510
- },
- {
-  "function": "func_80030E28",
-  "text": "Not attempted this session; released unworked to end the session cleanly. Saved m2c draft does not compile (func.c:127 invalid unary * on an integer-typed field access; func.c:160 pointer-from-integer). Its switch structure (case 0x80/0x90 fallthrough via a bare else-block, goto loops over the voice list at arg0+0x64, loop_46/loop_63/loop_69/loop_77/loop_91 are all do-while list walks with next pointer at offset 0) is a reasonable skeleton, but the field types need settling first: arg0 is the seqplayer (voice list head at 0x64, 0x60 is per-channel array of 0x10 entries, 0x1C is a time/tick base, 0x20 an instrument table pointer, 0x2C a flag, 0x48 the event queue, 0x70 a callback), arg1 is the event with u16 type at 0 and fields at 8/9/0xA/0xB. Start by writing the voice struct layout (0x20 pointer, 0x28 f32 ratio, 0x2C f32 gain, 0x31 channel, 0x33/0x34/0x35 state, 0x37 flags), then rebuild the 0x90 note-on path and tune.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794752541.166229,
-  "score_before": 51512,
-  "score_after": 51512
  },
  {
   "function": "func_801552C4",
@@ -28960,14 +28928,6 @@
   "score_after": 4030
  },
  {
-  "function": "func_80030E28",
-  "text": "Best candidate revision 677591f718802f065a86, score 14955 (71.9%), a restructured version of the m2c draft (switch on the 0xF0 command nibble, with the 0x90 note-on path completed, including the two vtable callbacks at struct offset 0x70 via a local `u8 *vs` view of the 0x60 table entry). Not matched. Remaining differences: (1) the frame is -0x70 in the target, mine is -0x60, and the target saves s0..s7, ra and f20 at 0x40..0x68 while mine uses fp at 0x50 and saves ra at 0x54. The 16-byte difference suggests more 8-byte stack slots or the sp20/sp24/sp28/sp2C/sp30/sp34/sp38/sp3C block being laid out differently; check whether the target keeps sp3C as f32 and sp38 as s32 in separate slots. (2) Register allocation for the s-regs in the 0x90 path. (3) The 0xB0 switch case 0x40 and the default/7/10/16 block still have differing branch targets. Next steps: fix the frame size first (try declaring the 0x20-byte local block as a struct or adding the missing slot), then fix the s-register order, then the switch arms. Note that __vsPan/__vsVol have caller prototypes that disagree with the matched definitions (s32 vs s16 return), so verify those before tuning arithmetic.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794761188.215623,
-  "score_before": 18339,
-  "score_after": 14955
- },
- {
   "function": "func_802153C4",
   "text": "Exact match verified with try_compiler: gcc-2.7.2-kmc -O1 -fforce-addr (source: Sub struct {s16,s16,s8,u8,u8} at &D_8021F02C[1], p=... after call, 5 field stores). Suggested function-only bundle. Not reproducible at -O2 (1631) or plain -O1 (555; gcc folds address into each store). Nothing left on the C side.",
   "by": "claude-opus-medium-1",
@@ -30470,14 +30430,6 @@
   "created_at": 1794762731.0709372,
   "score_before": 1640,
   "score_after": 1640
- },
- {
-  "function": "func_80030E28",
-  "text": "Not matched. Restored saved_best (revision 677591f718802f065a86, historical score 14955). The claim's initial draft (m2c-style, with M2C_FIELD macros) fails to compile with \"invalid type argument of unary *\" at ~line 127; the saved_best compiles, so start from get_candidate(base=\"saved_best\"), not from the draft in the brief. I did not run a fresh compile this session, so the current score is unverified. Ideas not yet tried: (1) the stack frame is 0x70 and the sp20..sp3C locals must be checked against the alEvtqPostEvent event struct layout (s16 type, void* ptr, s32 value, u8 ch); (2) the temp_s0 / temp_s0_4 / temp_s4_2 / temp_s4_3 lifetimes may need to be split as the draft hints say; (3) the prototypes for __lookupVoice, __mapVoice and __setInstChanState disagree with the caller declarations (see get_function brief for the prototype review); validate jointly before changing them. The function is large (534 insns, 9 switch arms); work it one switch arm at a time, starting with case 0xE0 (smallest arm) and case 0xA0, then 0xD0, before 0x90 (largest).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794762738.2350001,
-  "score_before": 14955,
-  "score_after": 14955
  },
  {
   "function": "func_800389E4",
@@ -42044,22 +41996,6 @@
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:c5d0619b7b0026e37d8632a5270f65f2dd7298b24ad75ec772a6ff1297c3de49"
  },
  {
-  "function": "func_80030E28",
-  "text": "Saved best judges the same at O2 and O3 (10803) and far worse at O1. libultra sequence player MIDI handler (twin of func_8002B534, 94%); write it from the reference source.",
-  "by": "manual-31c025266ffc408b",
-  "created_at": 1795748981.726654,
-  "score_before": 10803,
-  "score_after": 10803
- },
- {
-  "function": "func_80030E28",
-  "text": "[Released without compiling it once; notes not checked by a compile.] Tried: judged the saved best under O1, O2 and O3 (O2 and O3 10803, O1 22032). It needs a rewrite of the libultra sequence-player MIDI handler from reference source; moving to a family confirmed as O1 code.",
-  "by": "manual-31c025266ffc408b",
-  "created_at": 1795748991.8261561,
-  "score_before": 10803,
-  "score_after": 10803
- },
- {
   "function": "gfxDrawClippedTex8b",
   "text": "Near match 85 under -O1 (flag/h register allocation only); full source and analysis are in the add_note on this function.",
   "by": "manual-8dc6f4287abe4b29",
@@ -43017,15 +42953,6 @@
   "score_after": 0
  },
  {
-  "function": "func_80030E28",
-  "text": "Saved best 6660 from 10803 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2. Target is a MIDI handler; missing note-off case, event record layout, oscillator state stores and instrument pointer dereference were reconstructed. decomp-repair PRs 2075, 2078 and 2082 add target-evidenced case recovery, cancelled constant cleanup and stack event records. A full control-change switch scored 7365; original two-case prototype change was unchanged. Next inspect target register roles and control dispatch. Work stopped because the user requested a different function.",
-  "by": "manual-2a894894ec3b4204",
-  "created_at": 1795806606.261794,
-  "score_before": 16462,
-  "score_after": 6660,
-  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:9b67c8a138ad0978a13e74bec93e1c18c475281a46fa59af59990224c5e7d5a5"
- },
- {
   "function": "func_801FF37C",
   "text": "Profile probe: the machine draft (get_function section=draft) scores 6937 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (10 of its 12 nearest matched neighbours were built with it), 12332 under its own settings (the saved C: 3877); not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
   "by": "permuter-30064771669",
@@ -43232,24 +43159,6 @@
   "created_at": 1795809386.845029,
   "score_before": 281736,
   "score_after": 289974
- },
- {
-  "function": "func_80030E28",
-  "text": "The permuter-saved 2635 candidate (attempt 30064802402, declaration_scope_hoist) is unfaithful: it deletes the required zero store to voice offset 0x37, present in the target at 0x80031034. The family removed an entire line containing a declaration plus executable statements. decomp-repair PR 2108 fixes the rewrite; restore the store before continuing from that saved candidate. Earlier faithful agent candidate scored 2745.",
-  "by": "manual-c71e655f51da421d",
-  "created_at": 1795809464.708898,
-  "score_before": 6660,
-  "score_after": 2745,
-  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:9b67c8a138ad0978a13e74bec93e1c18c475281a46fa59af59990224c5e7d5a5"
- },
- {
-  "function": "func_80030E28",
-  "text": "Correction to my prior note: the required zero store to voice offset 0x37 is at 0x80031020, not 0x80031034.",
-  "by": "manual-c71e655f51da421d",
-  "created_at": 1795809489.566158,
-  "score_before": null,
-  "score_after": null,
-  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:9b67c8a138ad0978a13e74bec93e1c18c475281a46fa59af59990224c5e7d5a5"
  },
  {
   "function": "func_8015FEC0",
@@ -43634,5 +43543,96 @@
   "created_at": 1795814208.8884559,
   "score_before": 0,
   "score_after": 0
+ },
+ {
+  "function": "func_80030E28",
+  "text": "Deep permuter: score 51897 \u2192 51712; 1 improvements; 46 candidates tested; 0 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589934933",
+  "created_at": 1794348213.8184829,
+  "score_before": 51897,
+  "score_after": 51712
+ },
+ {
+  "function": "func_80030E28",
+  "text": "Compiled stub scores 51512 (3.5%): target 534 insns vs 22 here. The stub only covers the first guard. The target has a 0x70 frame, saves s0-s7 and f20, moves arg1 into s0 and calls func_800346B0 about 30 times, so it is a long function with many branches. Needs the whole body read from assembly (get_assembly pages) and a real draft. Also the target references .rodata+0x0 and +0x4 (float constants) that the stub does not have. Not solved in this session.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794719429.983819,
+  "score_before": 51512,
+  "score_after": 51512
+ },
+ {
+  "function": "func_80030E28",
+  "text": "Compiled twice; only a fragment written (score 51847, 16 of 534 insns). Not a real attempt yet. Findings: the helper externs compile once declared as: `extern char D_8004A4B0[]; extern char D_8004A4B4[];` (assert strings, passed to func_800346B0 with line 0x179); plus prototypes for __mapVoice, __lookupVoice, func_800319F4, func_8002FFD0, alCents2Ratio, alEvtqPostEvent, __vsPan, __vsVol, func_80030540, func_80031B94, n_alSynSetVol, n_alSynSetPan, __n_seqpReleaseVoice (argument counts are guesses from call sites). Frame is 0x70 bytes, saves s0-s7, ra, and f20. Structure: range check on *(u16*)arg1 (status-1 < 2) guards the assert; the status byte at +8 is split into channel (low nibble, kept in s5) and command (0xF0 nibble); a voice table at arg0+0x60 indexed (channel<<4), seq list at +0x64, callback fn at +0x70; the command dispatch is a binary-search tree of slti/beq over 0x80..0xE0, 0x07/0x0A/0x10, 0x40/0x5B. Next step: write the full dispatch tree with every leaf body, then tune. Too large for the current move-on budget: it needs a full rewrite, not tuning.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794742476.7968261,
+  "score_before": 51512,
+  "score_after": 51512
+ },
+ {
+  "function": "func_80030E28",
+  "text": "Not attempted this session; released unworked to end the session cleanly. Saved m2c draft does not compile (func.c:127 invalid unary * on an integer-typed field access; func.c:160 pointer-from-integer). Its switch structure (case 0x80/0x90 fallthrough via a bare else-block, goto loops over the voice list at arg0+0x64, loop_46/loop_63/loop_69/loop_77/loop_91 are all do-while list walks with next pointer at offset 0) is a reasonable skeleton, but the field types need settling first: arg0 is the seqplayer (voice list head at 0x64, 0x60 is per-channel array of 0x10 entries, 0x1C is a time/tick base, 0x20 an instrument table pointer, 0x2C a flag, 0x48 the event queue, 0x70 a callback), arg1 is the event with u16 type at 0 and fields at 8/9/0xA/0xB. Start by writing the voice struct layout (0x20 pointer, 0x28 f32 ratio, 0x2C f32 gain, 0x31 channel, 0x33/0x34/0x35 state, 0x37 flags), then rebuild the 0x90 note-on path and tune.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794752541.166229,
+  "score_before": 51512,
+  "score_after": 51512
+ },
+ {
+  "function": "func_80030E28",
+  "text": "Best candidate revision 677591f718802f065a86, score 14955 (71.9%), a restructured version of the m2c draft (switch on the 0xF0 command nibble, with the 0x90 note-on path completed, including the two vtable callbacks at struct offset 0x70 via a local `u8 *vs` view of the 0x60 table entry). Not matched. Remaining differences: (1) the frame is -0x70 in the target, mine is -0x60, and the target saves s0..s7, ra and f20 at 0x40..0x68 while mine uses fp at 0x50 and saves ra at 0x54. The 16-byte difference suggests more 8-byte stack slots or the sp20/sp24/sp28/sp2C/sp30/sp34/sp38/sp3C block being laid out differently; check whether the target keeps sp3C as f32 and sp38 as s32 in separate slots. (2) Register allocation for the s-regs in the 0x90 path. (3) The 0xB0 switch case 0x40 and the default/7/10/16 block still have differing branch targets. Next steps: fix the frame size first (try declaring the 0x20-byte local block as a struct or adding the missing slot), then fix the s-register order, then the switch arms. Note that __vsPan/__vsVol have caller prototypes that disagree with the matched definitions (s32 vs s16 return), so verify those before tuning arithmetic.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794761188.215623,
+  "score_before": 18339,
+  "score_after": 14955
+ },
+ {
+  "function": "func_80030E28",
+  "text": "Not matched. Restored saved_best (revision 677591f718802f065a86, historical score 14955). The claim's initial draft (m2c-style, with M2C_FIELD macros) fails to compile with \"invalid type argument of unary *\" at ~line 127; the saved_best compiles, so start from get_candidate(base=\"saved_best\"), not from the draft in the brief. I did not run a fresh compile this session, so the current score is unverified. Ideas not yet tried: (1) the stack frame is 0x70 and the sp20..sp3C locals must be checked against the alEvtqPostEvent event struct layout (s16 type, void* ptr, s32 value, u8 ch); (2) the temp_s0 / temp_s0_4 / temp_s4_2 / temp_s4_3 lifetimes may need to be split as the draft hints say; (3) the prototypes for __lookupVoice, __mapVoice and __setInstChanState disagree with the caller declarations (see get_function brief for the prototype review); validate jointly before changing them. The function is large (534 insns, 9 switch arms); work it one switch arm at a time, starting with case 0xE0 (smallest arm) and case 0xA0, then 0xD0, before 0x90 (largest).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794762738.2350001,
+  "score_before": 14955,
+  "score_after": 14955
+ },
+ {
+  "function": "func_80030E28",
+  "text": "Saved best judges the same at O2 and O3 (10803) and far worse at O1. libultra sequence player MIDI handler (twin of func_8002B534, 94%); write it from the reference source.",
+  "by": "manual-31c025266ffc408b",
+  "created_at": 1795748981.726654,
+  "score_before": 10803,
+  "score_after": 10803
+ },
+ {
+  "function": "func_80030E28",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Tried: judged the saved best under O1, O2 and O3 (O2 and O3 10803, O1 22032). It needs a rewrite of the libultra sequence-player MIDI handler from reference source; moving to a family confirmed as O1 code.",
+  "by": "manual-31c025266ffc408b",
+  "created_at": 1795748991.8261561,
+  "score_before": 10803,
+  "score_after": 10803
+ },
+ {
+  "function": "func_80030E28",
+  "text": "Saved best 6660 from 10803 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2. Target is a MIDI handler; missing note-off case, event record layout, oscillator state stores and instrument pointer dereference were reconstructed. decomp-repair PRs 2075, 2078 and 2082 add target-evidenced case recovery, cancelled constant cleanup and stack event records. A full control-change switch scored 7365; original two-case prototype change was unchanged. Next inspect target register roles and control dispatch. Work stopped because the user requested a different function.",
+  "by": "manual-2a894894ec3b4204",
+  "created_at": 1795806606.261794,
+  "score_before": 16462,
+  "score_after": 6660,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:9b67c8a138ad0978a13e74bec93e1c18c475281a46fa59af59990224c5e7d5a5"
+ },
+ {
+  "function": "func_80030E28",
+  "text": "The permuter-saved 2635 candidate (attempt 30064802402, declaration_scope_hoist) is unfaithful: it deletes the required zero store to voice offset 0x37, present in the target at 0x80031034. The family removed an entire line containing a declaration plus executable statements. decomp-repair PR 2108 fixes the rewrite; restore the store before continuing from that saved candidate. Earlier faithful agent candidate scored 2745.",
+  "by": "manual-c71e655f51da421d",
+  "created_at": 1795809464.708898,
+  "score_before": 6660,
+  "score_after": 2745,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:9b67c8a138ad0978a13e74bec93e1c18c475281a46fa59af59990224c5e7d5a5"
+ },
+ {
+  "function": "func_80030E28",
+  "text": "Correction to my prior note: the required zero store to voice offset 0x37 is at 0x80031020, not 0x80031034.",
+  "by": "manual-c71e655f51da421d",
+  "created_at": 1795809489.566158,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:9b67c8a138ad0978a13e74bec93e1c18c475281a46fa59af59990224c5e7d5a5"
  }
 ]
