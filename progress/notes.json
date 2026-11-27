@@ -6504,14 +6504,6 @@
   "score_after": 125309
  },
  {
-  "function": "func_8015657C",
-  "text": "Not matched. Saved best 95732 (m2c-style draft). The full draft of 36 func_800DE41C calls scores 102411 (worse; 814 insns vs 962 target). Findings: (1) the 9th-11th args (0x44AE8000, 0x42680000, 0xC4958000 etc.) are float bit patterns that the target builds with lui/ori then mtc1 ($at -> $f0) and stores with swc1 to the outgoing arg area; the draft passes them as plain ints, so the callee prototype is wrong. Declare func_800DE41C with f32 params in the right slots (18-arg signature: s32 x4, ptr x3, s32..., f32 x3 at the end) and check how the target spills them. (2) Several calls have 1.5f/2.0f constants; the 0x3F80 lui at target is 1.0f. (3) Frame is 0x90 in target, with ra at 0x68(sp), so the function likely has a large stack-array for the call args. (4) The compiler keeps the call-site constants in .rodata in my build, which the target never references, so the target uses immediates only; use f32 literals or union-based constants, not bare int literals. Next: fix the prototype first, then compare one call group before moving to the rest.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794719759.7961972,
-  "score_before": 89053,
-  "score_after": 89053
- },
- {
   "function": "func_80144808",
   "text": "Baseline candidate revision cb5c24737bfba3792f3e scores 57373 (1012 differing rows). Not close to matching. The target frame is addiu $sp,-0x88 with sw $ra at 0x70 and sw $s5 at 0x6c; the candidate frame is -0x78, so the locals/saved-register set is wrong first. Fix order: (1) get the frame and saved registers right (target saves ra, s0-s5 and fs0), which means the struct-pointer local temp_s2 and the D_80190C9E/s1 base usage must match the target's s1/s2/s4/s5 register picks; (2) the first switch on temp_v1 at +0x3E is a binary-search dispatch (slti/beqz tree, cases 0,1,0x20,0x22,0x23,0x30,0x32,0x33,0x40,0x41,0x42,0x43,0x44,0x46,0x50,0x51,0x52,0x100,0x105,0x200,0x201,0x210,0x211); the candidate's fallthrough/goto layout does not reproduce it; (3) the float tail on D_80190CAA (88.0f, -2.0f, 0.3f, return) comes after the switch. Signedness variant (s32 -> u32 on var_s1_3) changed nothing. Note the candidate's goto labels (__repair_rows, block_102, block_116) should be rewritten as loops and fallthrough. Expect many sessions; start with the frame.",
   "by": "claude-haiku-5-5-24",
@@ -11680,14 +11672,6 @@
   "score_after": 1629
  },
  {
-  "function": "func_8015657C",
-  "text": "Not attempted this session. 962 instructions (3848 bytes), 0x90-byte frame saving s0-s7 and fs3, many float-constant calls. The saved candidate is a single-call stub (best 94207). A full structured body is needed and was out of reach at this effort. Next session: read the assembly in chunks with get_assembly, map the call sites and loop/branch structure, then write the body from the top.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794752535.055317,
-  "score_before": 89053,
-  "score_after": 89053
- },
- {
   "function": "n_alSndpAllocate",
   "text": "Rewrote using s16 for-loop index and cached state-array base before loop: verified score improved 1760 to 5. Sole difference addu a1,v0,t1 versus a1,t1,v0. Swapping pointer addition source order had no effect. Claim automatically ceased after judge; no held work. Next try integer-address addition ((s32)base + index*0x30) or indexed struct allocation.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -11878,14 +11862,6 @@
   "created_at": 1794752952.413847,
   "score_before": 57183,
   "score_after": 57183
- },
- {
-  "function": "func_8015657C",
-  "text": "Not matched. 3848-byte function; the saved candidate is a one-line stub calling func_800DE41C with 18 args, which is not the real body. Compiling it fails: D_8016D588 and func_8013AE60 are undeclared in context.h. Next agent needs: the real control flow from get_assembly (this is a large function, likely multiple loops/switches), declarations for D_8016D588 (array) and func_8013AE60 / func_80152720 / func_80155F30 etc. (function pointers or callbacks) added via edit_context, and a split into sub-functions first (split_function). Not a candidate for a single pass.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794752956.283156,
-  "score_before": 89053,
-  "score_after": 89053
  },
  {
   "function": "func_8012AD9C",
@@ -14752,14 +14728,6 @@
   "score_after": 58449
  },
  {
-  "function": "func_8015657C",
-  "text": "Not attempted to completion. 962 instructions, frame 0x90, saves s0-s7 and fs0-fs3. Prologue builds the 18-argument call to func_800DE41C: stack args at 0x10..0x40 (0x51, 0xFF, &D_8016D588, &func_8013AE60, 0, float consts 0x44AE8000 / 0x42680000 / 0xC4958000 / 1.0f loaded via lui/ori/mtc1 into fv0/fs2/fs1/fs0), then a0-a2 zero/zero/2. The existing stub only covers this first call; the body continues for ~900 more instructions with calls to func_80152720, func_80155F30/7C/A0, func_8015601C, func_80156180, func_801561FC, func_80156338 (all declared extern in the candidate). Needs: the rest of the body read via get_assembly paging (start=52 onward), a check that the stack-arg ordering matches, and callee signatures. Best score 94207 is only the first call. Too large for the move-on budget without splitting; a split_function or boundary review could make the pieces tractable.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794761680.213117,
-  "score_before": 89053,
-  "score_after": 89053
- },
- {
   "function": "func_801AFB94",
   "text": "Move-on, no match. The machine draft did not compile and its repair artifacts are not real code. I compiled a stub with the visible calls (score 89537 / 2.5%, saved best 87698), which is not a real attempt: the target is 919 insns with a 0xA0 frame saving ra, s0-s7 and fs0-fs3 (sdc1 at 0x78..0x90). The stub's calls cover only the first few lines of the body. The target's first 52 lines are: copy 8 bytes of D_801C6A38 to sp+0x48 via lwl/lwr/swl/swr, zero the halfword at D_8006FAF0+0x20, then calls func_80231A0C, func_80231E30, func_801B09F0, func_801B0B60, func_801B312C with 400.0f (0x43C80000), func_801B7970(D_801C7AB0, arg0), func_801B36F8, then branches on arg1&0xFF. Most of the 919 instructions are later, unseen. Next step: read get_assembly pages past line 52 and split the body into its loops/cases before compiling again. Struct types for D_801C6A38, D_80235620 and the table bases (D_8022A778, D_80235C60) are needed.",
   "by": "claude-haiku-5-5-21",
@@ -15454,14 +15422,6 @@
   "created_at": 1794764260.4427981,
   "score_before": 335,
   "score_after": 335
- },
- {
-  "function": "func_8015657C",
-  "text": "Unworked beyond a placeholder. Compiled once: rev 156161ece4038c0a2ad8 scores 94207 (2.0%): target 962 insns, ours 38. The saved source is a single func_800DE41C call, so the body of this 3848-byte function (about 31 jal func_800DE41C plus float-constant setup and per-racer loops) has not been written. Frame is 0x90 in the target. Next agent: walk the assembly in chunks, copy the call pattern and argument layout from func_801552C4 (same unit code_80153D40, same 18-arg func_800DE41C calls), and fix that prototype before writing the body.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794764303.211185,
-  "score_before": 89053,
-  "score_after": 89053
  },
  {
   "function": "func_80144808",
@@ -41739,5 +41699,53 @@
   "created_at": 1794761933.826735,
   "score_before": 9235,
   "score_after": 9235
+ },
+ {
+  "function": "func_8015657C",
+  "text": "Not matched. Saved best 95732 (m2c-style draft). The full draft of 36 func_800DE41C calls scores 102411 (worse; 814 insns vs 962 target). Findings: (1) the 9th-11th args (0x44AE8000, 0x42680000, 0xC4958000 etc.) are float bit patterns that the target builds with lui/ori then mtc1 ($at -> $f0) and stores with swc1 to the outgoing arg area; the draft passes them as plain ints, so the callee prototype is wrong. Declare func_800DE41C with f32 params in the right slots (18-arg signature: s32 x4, ptr x3, s32..., f32 x3 at the end) and check how the target spills them. (2) Several calls have 1.5f/2.0f constants; the 0x3F80 lui at target is 1.0f. (3) Frame is 0x90 in target, with ra at 0x68(sp), so the function likely has a large stack-array for the call args. (4) The compiler keeps the call-site constants in .rodata in my build, which the target never references, so the target uses immediates only; use f32 literals or union-based constants, not bare int literals. Next: fix the prototype first, then compare one call group before moving to the rest.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794719759.7961972,
+  "score_before": 89053,
+  "score_after": 89053
+ },
+ {
+  "function": "func_8015657C",
+  "text": "Not attempted this session. 962 instructions (3848 bytes), 0x90-byte frame saving s0-s7 and fs3, many float-constant calls. The saved candidate is a single-call stub (best 94207). A full structured body is needed and was out of reach at this effort. Next session: read the assembly in chunks with get_assembly, map the call sites and loop/branch structure, then write the body from the top.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794752535.055317,
+  "score_before": 89053,
+  "score_after": 89053
+ },
+ {
+  "function": "func_8015657C",
+  "text": "Not matched. 3848-byte function; the saved candidate is a one-line stub calling func_800DE41C with 18 args, which is not the real body. Compiling it fails: D_8016D588 and func_8013AE60 are undeclared in context.h. Next agent needs: the real control flow from get_assembly (this is a large function, likely multiple loops/switches), declarations for D_8016D588 (array) and func_8013AE60 / func_80152720 / func_80155F30 etc. (function pointers or callbacks) added via edit_context, and a split into sub-functions first (split_function). Not a candidate for a single pass.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794752956.283156,
+  "score_before": 89053,
+  "score_after": 89053
+ },
+ {
+  "function": "func_8015657C",
+  "text": "Not attempted to completion. 962 instructions, frame 0x90, saves s0-s7 and fs0-fs3. Prologue builds the 18-argument call to func_800DE41C: stack args at 0x10..0x40 (0x51, 0xFF, &D_8016D588, &func_8013AE60, 0, float consts 0x44AE8000 / 0x42680000 / 0xC4958000 / 1.0f loaded via lui/ori/mtc1 into fv0/fs2/fs1/fs0), then a0-a2 zero/zero/2. The existing stub only covers this first call; the body continues for ~900 more instructions with calls to func_80152720, func_80155F30/7C/A0, func_8015601C, func_80156180, func_801561FC, func_80156338 (all declared extern in the candidate). Needs: the rest of the body read via get_assembly paging (start=52 onward), a check that the stack-arg ordering matches, and callee signatures. Best score 94207 is only the first call. Too large for the move-on budget without splitting; a split_function or boundary review could make the pieces tractable.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794761680.213117,
+  "score_before": 89053,
+  "score_after": 89053
+ },
+ {
+  "function": "func_8015657C",
+  "text": "Unworked beyond a placeholder. Compiled once: rev 156161ece4038c0a2ad8 scores 94207 (2.0%): target 962 insns, ours 38. The saved source is a single func_800DE41C call, so the body of this 3848-byte function (about 31 jal func_800DE41C plus float-constant setup and per-racer loops) has not been written. Frame is 0x90 in the target. Next agent: walk the assembly in chunks, copy the call pattern and argument layout from func_801552C4 (same unit code_80153D40, same 18-arg func_800DE41C calls), and fix that prototype before writing the body.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794764303.211185,
+  "score_before": 89053,
+  "score_after": 89053
+ },
+ {
+  "function": "func_8015657C",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 38907 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (321 functions of this project were built with it), the saved C scores 81742 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721386.062925,
+  "score_before": 81742,
+  "score_after": 38907
  }
 ]
