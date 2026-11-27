@@ -4568,14 +4568,6 @@
   "score_after": 1
  },
  {
-  "function": "func_80165BDC",
-  "text": "Deep permuter: score 9703 \u2192 8085; 4 improvements; 252 candidates tested; 73 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935573",
-  "created_at": 1794359524.2188,
-  "score_before": 9703,
-  "score_after": 8085
- },
- {
   "function": "func_80207440",
   "text": "Deep permuter: score 60432 \u2192 60432; 0 improvements; 87 candidates tested; 120 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935740",
@@ -7094,14 +7086,6 @@
   "created_at": 1794714323.706304,
   "score_before": 3581,
   "score_after": 3581
- },
- {
-  "function": "func_80165BDC",
-  "text": "Best verified candidate: revision ad71df79f8ce2d54f950 (score 8583, 71.3%, 267 vs 300 insns). Verified facts: all data arrays are indexed in BYTES with stride 0x64 (idx*100 = idx*25<<2), so write (char*)&D_X + (arg0&0xFFFF)*0x64; s32* pointer arithmetic gives ~26k scores. Remaining diff is structural: target frame is 0x28 saving ra,s2,s1,s0 with arg0 kept in s2 and re-masked (andi 0xffff) per use. My build spills an extra s3 and uses a 0x30 frame, because &D_8011F32E+idx*100 is CSE'd across calls and held in s3 (sh $v0,($s3)). Tried: storing with ((u16)arg0)*0x64 for the stores (worse, 10238); inlining the j local for D_8011F318 (better, 8583). Next: find a source form that stops the address CSE across the func_ calls so the store recomputes from arg0; check u8 vs u16 for D_8011F2FD; then register order. Saved historical 4260 candidate does not reproduce under current baseline.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794714332.993283,
-  "score_before": 4260,
-  "score_after": 4260
  },
  {
   "function": "func_80211094",
@@ -12752,14 +12736,6 @@
   "score_after": 9235
  },
  {
-  "function": "func_80165BDC",
-  "text": "Only one compile, a stub, scoring 29110 (saved best 4260), so no real progress. The m2c draft does not compile as given: undeclared D_8011F4E4, D_802378CC, D_80237914, D_8011F32E, D_8011F318, D_8011F2FD, plus invalid pointer casts through `*((&D_8011F350) + ...)`. Target is 300 insns and 1200 bytes with several struct layouts: an object at D_8011F350 (+0x4 pointer, +0x14 s16 counter, +0x50 pointer, +0x8/+0xC f32 pair, +0x0 u16); a per-slot float block at D_8011F318 indexed by inline_fn(u16)=idx*0x64; a second struct at +0x8A1/+0x8A4/+0x8D0/+0x8D4/+0x8D8/+0x55E reached through the pointer at +0x4. Next step: declare these as typed structs with those offsets, use the draft's switch on D_8011F32E (cases 0-3) for control flow, and redraft. Not not_c: nothing here looks hand-written assembly.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794741463.3830159,
-  "score_before": 4260,
-  "score_after": 4260
- },
- {
   "function": "func_801497AC",
   "text": "Best 405 (85.5%) at rev 85af02f5f1182a06e82e; the 345 (87.6%) revision 8da746234cdd57b7b9cc was scored under a different source, so compare by rechecking. Current C: u8 var_a1=0xFF; if ((u8)arg0 != 0xFF) { arg0 &= 7; if (D_80189B34==2) { if (D_8021E1A2==1) var_a1=D_80168D28[(u8)arg0]; else var_a1=D_80168D20[(u8)arg0]; } else var_a1=D_80168D30[(u8)arg0]; } return var_a1 & 0xFF. Remaining diff is 3 rows: the target has a plain `bne $v1,$v0` in the D_8021E1A2 test (delay slot holds `andi $v0,$a0,0xff`), but ours emits `bnel` with the index computed after the branch; and the return keeps `andi $v0,$a1,0xff` where ours emits `move`. Tried: return (u8)var_a1 (no effect), s32 var_a1 (855, worse), u8 vs s32 index temp (680, worse). Next: compile_family(branch_orientation) on rev 85af02f5f1182a06e82e, or move the index computation into the else arm so the delay slot holds it.",
   "by": "claude-haiku-5-5-22",
@@ -14822,14 +14798,6 @@
   "created_at": 1794752042.689525,
   "score_before": 27543,
   "score_after": 27543
- },
- {
-  "function": "func_80165BDC",
-  "text": "Best this session: 7892 (revision 89c64c0ba10c0376f59d), up from the rechecked saved 9703 but far from the historical 4260. Structure is now believed correct and complete: 300 target insns vs my 286-296.\n\nConfirmed facts (keep these):\n- All the per-slot tables are byte-strided by 0x64: write (u8*)&SYM + (arg0 & 0xFFFF) * 0x64 (s32* arithmetic gives ~26k).\n- Declare D_8011F32E as a scalar `extern u16 D_8011F32E;` and access via `*(u16 *)((u8 *)&D_8011F32E + idx * 0x64)`. That was the single biggest win (9402 -> 8755). `(u32)&SYM` casts, u8 externs, and u16[] arrays all score worse.\n- The switch on D_8011F32E must have cases 0..3 with explicit `return;` in each and a shared `store3:` label for the =3 store; target uses a compare chain (beq/slti/beql), not a jump table.\n- Case 0 float chain order confirmed by target: lhu ($s0) -> scale -> lwc1 %lo(D_8011F318)(at) -> lwc1 8($s0) -> add.s -> swc1; then reload lhu ($s0) and re-scale before the 359.0f compare (two separate `off = *(u16 *)s0 * 0x64;` statements, do not CSE into one local).\n- Case 3 order: 1.0f stores to +0x34 then +0x30, then `lhu 0x560 / andi 0xF8 / sh`, then jal func_8013E49C(lhu 0x76($s0)), then sb 2 to D_8011F2FD+off, then the 0x55E test selecting &D_802378CC vs NULL.\n\nRemaining gap (all register/stack, no structural difference left):\n- Target frame 0x28 saving ra,s2,s1,s0 and keeps arg0 in s2, re-masking `andi $v0,$s2,0xffff` before every scaled store. My build uses a 0x30 frame with an extra s3 holding &D_8011F32E (CSE across the two calls). The variant that fixed the stores (using (arg0 & 0xFFFF) inline instead of a local `id`) reached 7892 but still spills s3. Next idea: eliminate the local `id` entirely (use arg0 everywhere, including the switch) so arg0 itself stays live in s2; and make the store address recompute per store rather than being hoisted.\n- Also untested: declaring the three D_8011F32E stores through a `u8 *` base local obtained fresh at each store site.\n\nNot not_c; nothing suggests hand-written assembly.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794752043.133722,
-  "score_before": 4260,
-  "score_after": 4260
  },
  {
   "function": "func_80142288",
@@ -17888,14 +17856,6 @@
   "score_after": 1647
  },
  {
-  "function": "func_80165BDC",
-  "text": "Unmatched. Historical saved best 4260 (revision d2d8d5371571fde7c74c) did not reproduce here: its rechecked baseline is 11173 via my cleaned version, and the one-line change `*((&D_8011F32E) + inline_fn(arg0 & 0xFFFF)) = 3` at block_27 (instead of inline_fn(var_v0)) gives 9498 (revision 177d5c26de7f93a60896), the current best this session. Remaining differences: target uses `sll $v0,$v0,2` (x9) for the 0x64 index, my build uses `sll ...,4` (x8), so inline_fn is being lowered as a 0x64 multiply by a different shift sequence; target loads lh 0x14(s0) before the beqz and keeps s0 in $s0 at 0x18(sp), while mine stores s2 first. Frame target 0x28 (ra 0x24, s2 0x20, s1 0x1c, s0 0x18), mine 0x30. Next: reconcile the 0x64 multiply form (try a literal `* 100` on the u16 vs inline_fn), and the 0x3E99999A/0x3ECCCCCD constant placement (target sees 0.3f first at row 258).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794758412.238375,
-  "score_before": 4260,
-  "score_after": 4260
- },
- {
   "function": "func_80129FD4",
   "text": "Unstarted: claimed and released in the same session without a compile. The machine draft has __repair_rows/goto artifacts and undeclared data: D_8011F2F2 (u16 flags, |=8 / &=0xFFF7 on a 0x64-stride index plus (arg2&0xFF)*2), D_8011F340 (pointer table, 0x64 stride, u16 link fields at +0x8/+0xA/+0xC/+0xE), D_80233EC0 (u16), D_801C7AB0 (pointer, byte +2 used). Start by writing the two loops from the asm, not from the draft.",
   "by": "claude-haiku-5-5-20",
@@ -18718,14 +18678,6 @@
   "created_at": 1794759872.12597,
   "score_before": 14097,
   "score_after": 14097
- },
- {
-  "function": "func_80165BDC",
-  "text": "Not matched. The machine draft (m2c) is only a rough shape: it has raw pointer casts everywhere and the bulk (300-insn target, frame 0x28, saves ra, s0-s2) is untouched. Best saved is 4260 (historical, different source); my partial rewrite of the first block (the D_8011F350 record lookup, the D_8011F4E4 index, the state field at +0x14 with switch on (t&3)>>1 setting *(s1+4) to D_802378CC/D_80237914) scored 26246 (12.5%) and is not better, so do not reuse it. Verified from target asm: index used for D_8011F350 and D_8011F32E and D_8011F318 is arg0&0xFFFF times 0x64 (the 25x*4 pattern). Second switch (on D_8011F32E[idx], cases 0..3) and the float updates at +0x30/+0x34 (0.4f lerp toward 3.0f/0.3f/1.0f, threshold 2.8f) need full reconstruction. Also D_8011F2FD[idx*0x64] is set to 2 in case 3, and func_8013E49C(u16 at s0+0x76) is called there. Callees func_8013E49C and func_801D7028 not verified. Needs a fresh careful reconstruction from the assembly, not patching the draft.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794759883.030862,
-  "score_before": 4260,
-  "score_after": 4260
  },
  {
   "function": "func_80141268",
@@ -20238,14 +20190,6 @@
   "created_at": 1794762188.274208,
   "score_before": 4620,
   "score_after": 4620
- },
- {
-  "function": "func_80165BDC",
-  "text": "Not matched. Best current candidate is revision 2bf6bc350291ac42b667 (8323, byte-offset access, uses s3 in 0x30 frame). Target keeps idx in s2 (move $s2,$a0; andi $v1,$s2,0xffff) and saves only ra,s0,s1,s2 in 0x28 frame; target loads entity base into s0 via lui/addu/lw from D_8011F350 each time. Tried dropping the s3 local and using s1 = *(s3+0x50) recomputed inline (revision a90738d8b404ce2a1c40): worse, 9838. Remaining work: restructure so idx is held in s2 across the function and the D_8011F350 entity pointer is recomputed per use with lui/addu/lw; also the 0.3f/0.4f constant order (diff rows 246/251) is swapped in the multiply terms. Not tried: an explicit idx-as-s2 local with (u16) cast, or a float local to reach the 0x28 frame.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794762196.8253498,
-  "score_before": 4260,
-  "score_after": 4260
  },
  {
   "function": "func_8014998C",
@@ -40859,5 +40803,61 @@
   "created_at": 1794762420.286612,
   "score_before": 3855,
   "score_after": 3855
+ },
+ {
+  "function": "func_80165BDC",
+  "text": "Deep permuter: score 9703 \u2192 8085; 4 improvements; 252 candidates tested; 73 cached skips; 0 rejected; 7201s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935573",
+  "created_at": 1794359524.2188,
+  "score_before": 9703,
+  "score_after": 8085
+ },
+ {
+  "function": "func_80165BDC",
+  "text": "Best verified candidate: revision ad71df79f8ce2d54f950 (score 8583, 71.3%, 267 vs 300 insns). Verified facts: all data arrays are indexed in BYTES with stride 0x64 (idx*100 = idx*25<<2), so write (char*)&D_X + (arg0&0xFFFF)*0x64; s32* pointer arithmetic gives ~26k scores. Remaining diff is structural: target frame is 0x28 saving ra,s2,s1,s0 with arg0 kept in s2 and re-masked (andi 0xffff) per use. My build spills an extra s3 and uses a 0x30 frame, because &D_8011F32E+idx*100 is CSE'd across calls and held in s3 (sh $v0,($s3)). Tried: storing with ((u16)arg0)*0x64 for the stores (worse, 10238); inlining the j local for D_8011F318 (better, 8583). Next: find a source form that stops the address CSE across the func_ calls so the store recomputes from arg0; check u8 vs u16 for D_8011F2FD; then register order. Saved historical 4260 candidate does not reproduce under current baseline.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794714332.993283,
+  "score_before": 4260,
+  "score_after": 4260
+ },
+ {
+  "function": "func_80165BDC",
+  "text": "Only one compile, a stub, scoring 29110 (saved best 4260), so no real progress. The m2c draft does not compile as given: undeclared D_8011F4E4, D_802378CC, D_80237914, D_8011F32E, D_8011F318, D_8011F2FD, plus invalid pointer casts through `*((&D_8011F350) + ...)`. Target is 300 insns and 1200 bytes with several struct layouts: an object at D_8011F350 (+0x4 pointer, +0x14 s16 counter, +0x50 pointer, +0x8/+0xC f32 pair, +0x0 u16); a per-slot float block at D_8011F318 indexed by inline_fn(u16)=idx*0x64; a second struct at +0x8A1/+0x8A4/+0x8D0/+0x8D4/+0x8D8/+0x55E reached through the pointer at +0x4. Next step: declare these as typed structs with those offsets, use the draft's switch on D_8011F32E (cases 0-3) for control flow, and redraft. Not not_c: nothing here looks hand-written assembly.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794741463.3830159,
+  "score_before": 4260,
+  "score_after": 4260
+ },
+ {
+  "function": "func_80165BDC",
+  "text": "Best this session: 7892 (revision 89c64c0ba10c0376f59d), up from the rechecked saved 9703 but far from the historical 4260. Structure is now believed correct and complete: 300 target insns vs my 286-296.\n\nConfirmed facts (keep these):\n- All the per-slot tables are byte-strided by 0x64: write (u8*)&SYM + (arg0 & 0xFFFF) * 0x64 (s32* arithmetic gives ~26k).\n- Declare D_8011F32E as a scalar `extern u16 D_8011F32E;` and access via `*(u16 *)((u8 *)&D_8011F32E + idx * 0x64)`. That was the single biggest win (9402 -> 8755). `(u32)&SYM` casts, u8 externs, and u16[] arrays all score worse.\n- The switch on D_8011F32E must have cases 0..3 with explicit `return;` in each and a shared `store3:` label for the =3 store; target uses a compare chain (beq/slti/beql), not a jump table.\n- Case 0 float chain order confirmed by target: lhu ($s0) -> scale -> lwc1 %lo(D_8011F318)(at) -> lwc1 8($s0) -> add.s -> swc1; then reload lhu ($s0) and re-scale before the 359.0f compare (two separate `off = *(u16 *)s0 * 0x64;` statements, do not CSE into one local).\n- Case 3 order: 1.0f stores to +0x34 then +0x30, then `lhu 0x560 / andi 0xF8 / sh`, then jal func_8013E49C(lhu 0x76($s0)), then sb 2 to D_8011F2FD+off, then the 0x55E test selecting &D_802378CC vs NULL.\n\nRemaining gap (all register/stack, no structural difference left):\n- Target frame 0x28 saving ra,s2,s1,s0 and keeps arg0 in s2, re-masking `andi $v0,$s2,0xffff` before every scaled store. My build uses a 0x30 frame with an extra s3 holding &D_8011F32E (CSE across the two calls). The variant that fixed the stores (using (arg0 & 0xFFFF) inline instead of a local `id`) reached 7892 but still spills s3. Next idea: eliminate the local `id` entirely (use arg0 everywhere, including the switch) so arg0 itself stays live in s2; and make the store address recompute per store rather than being hoisted.\n- Also untested: declaring the three D_8011F32E stores through a `u8 *` base local obtained fresh at each store site.\n\nNot not_c; nothing suggests hand-written assembly.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794752043.133722,
+  "score_before": 4260,
+  "score_after": 4260
+ },
+ {
+  "function": "func_80165BDC",
+  "text": "Unmatched. Historical saved best 4260 (revision d2d8d5371571fde7c74c) did not reproduce here: its rechecked baseline is 11173 via my cleaned version, and the one-line change `*((&D_8011F32E) + inline_fn(arg0 & 0xFFFF)) = 3` at block_27 (instead of inline_fn(var_v0)) gives 9498 (revision 177d5c26de7f93a60896), the current best this session. Remaining differences: target uses `sll $v0,$v0,2` (x9) for the 0x64 index, my build uses `sll ...,4` (x8), so inline_fn is being lowered as a 0x64 multiply by a different shift sequence; target loads lh 0x14(s0) before the beqz and keeps s0 in $s0 at 0x18(sp), while mine stores s2 first. Frame target 0x28 (ra 0x24, s2 0x20, s1 0x1c, s0 0x18), mine 0x30. Next: reconcile the 0x64 multiply form (try a literal `* 100` on the u16 vs inline_fn), and the 0x3E99999A/0x3ECCCCCD constant placement (target sees 0.3f first at row 258).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794758412.238375,
+  "score_before": 4260,
+  "score_after": 4260
+ },
+ {
+  "function": "func_80165BDC",
+  "text": "Not matched. The machine draft (m2c) is only a rough shape: it has raw pointer casts everywhere and the bulk (300-insn target, frame 0x28, saves ra, s0-s2) is untouched. Best saved is 4260 (historical, different source); my partial rewrite of the first block (the D_8011F350 record lookup, the D_8011F4E4 index, the state field at +0x14 with switch on (t&3)>>1 setting *(s1+4) to D_802378CC/D_80237914) scored 26246 (12.5%) and is not better, so do not reuse it. Verified from target asm: index used for D_8011F350 and D_8011F32E and D_8011F318 is arg0&0xFFFF times 0x64 (the 25x*4 pattern). Second switch (on D_8011F32E[idx], cases 0..3) and the float updates at +0x30/+0x34 (0.4f lerp toward 3.0f/0.3f/1.0f, threshold 2.8f) need full reconstruction. Also D_8011F2FD[idx*0x64] is set to 2 in case 3, and func_8013E49C(u16 at s0+0x76) is called there. Callees func_8013E49C and func_801D7028 not verified. Needs a fresh careful reconstruction from the assembly, not patching the draft.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794759883.030862,
+  "score_before": 4260,
+  "score_after": 4260
+ },
+ {
+  "function": "func_80165BDC",
+  "text": "Not matched. Best current candidate is revision 2bf6bc350291ac42b667 (8323, byte-offset access, uses s3 in 0x30 frame). Target keeps idx in s2 (move $s2,$a0; andi $v1,$s2,0xffff) and saves only ra,s0,s1,s2 in 0x28 frame; target loads entity base into s0 via lui/addu/lw from D_8011F350 each time. Tried dropping the s3 local and using s1 = *(s3+0x50) recomputed inline (revision a90738d8b404ce2a1c40): worse, 9838. Remaining work: restructure so idx is held in s2 across the function and the D_8011F350 entity pointer is recomputed per use with lui/addu/lw; also the 0.3f/0.4f constant order (diff rows 246/251) is swapped in the multiply terms. Not tried: an explicit idx-as-s2 local with (u16) cast, or a float local to reach the 0x28 frame.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794762196.8253498,
+  "score_before": 4260,
+  "score_after": 4260
  }
 ]
