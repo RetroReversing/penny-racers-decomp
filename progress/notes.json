@@ -7568,14 +7568,6 @@
   "score_after": null
  },
  {
-  "function": "func_801337B0",
-  "text": "Not matched. Best 26479 (45.8%), revision 2cef718a08e865f19b5c. Why it can't get closer in this pass: the frame, register assignment and load ordering all differ at once (target frame -0x88 with a saved s5 to s7 set, mine -0x98 with an extra s6 save), and fixing the frame changes every later register and stack offset, so these diffs can't be tuned one at a time from here. Next person: first match the target's live-pointer set (remove the s6 local, use one arg pointer), then the frame size, then load order. Registers last. Check the last argument of func_801CC150 and func_801CB9EC against the target (my constants are placeholders).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794719422.231012,
-  "score_before": 26479,
-  "score_after": 26479
- },
- {
   "function": "func_80210050",
   "text": "Not matched. Best saved score 23352 (rev 47f0aa0bbda8, a messy repair-artifact candidate); current c4bacbb07555 scores 38510 (clean m2c-style draft, 165 insns vs 461 target). Target frame is 0x70 and saves $ra and $s3; the draft has 0x50 and no loop structure matching the target. Target needs: (1) a loop over 14 entries that copies 8 halfwords from D_8021F270 + D_8021E15F*0xE0 + i*0x10 into D_80187BF0 + i*0x12, then stores 0xFFFF at +0x10 and copies one byte from D_8021F048 to D_8021F036; (2) a clear loop over 4 words in D_80221080/D_8022108C; (3) two func_800DE41C calls with non-NULL pointer args (D_801D5A90, D_8021FE04, D_8022026C, &func_80149A80, &func_8021078C/&func_802109DC) and a 0x41F00000/0x42480000 float pair; (4) a nested copy loop of 4-word blocks from D_80238EC0 into D_8018F5D0 (stride 0x1A0 per outer index, 0x10 per inner) with a trailing word store; (5) a conditional loop over D_8021EEC3 calling func_800DE41C with D_8018F5D0 + t1*0x1A0 and writing through D_8011F340 indirect. Also the D_80190C98 / D_8011F304 (stride 0x64 table) indirection. Restoring saved best 47f0aa0bbda8 as the starting point is advisable. Unfinished; the next agent should begin from the saved best and model the loop nest before tuning registers.",
   "by": "claude-haiku-5-5-24",
@@ -13048,14 +13040,6 @@
   "score_after": 26528
  },
  {
-  "function": "func_801337B0",
-  "text": "Not attempted to compile. The m2c draft does not build: `unksp56` is undeclared (used as the last arg of func_801CB9EC in the block after the D_80173050 path; it is a stack local the target reads, so declare it as a s32 local and recheck). Also the switch on temp_fp (case 0/3/1/2, with goto block_17 from case 2) needs checking against the target's jump table. Record stride 0x64 (D_8011F2F0/D_8011F2FC/D_8011F330 at idx*0x64) and a second per-entry table of stride 0x8F0 (D_8022AD04/AFE9/AD05/ACD3/ACD4/ACD6/ACAA/ACCE, temp_fp*0x8F0). Next: fix the undeclared local, get a baseline score, then fix the switch and arg types.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794742429.500125,
-  "score_before": 26479,
-  "score_after": 26479
- },
- {
   "function": "func_80135544",
   "text": "Best score 22557 (50.5%) at revision 71abe02bf66f6a39bf12, from the m2c draft with declarations added for the undeclared symbols. Not matched. The target is 456 insns against my 331, so the structure is wrong, not just registers. The target has many `lui $at,%hi(D_8011F32E)` and `addu $at,$at,$v1` accesses, which means the per-object flags and state are global-array indexed with stride 0x64 (the same `D_8011F32E`/`D_8011F2F0` pattern as func_80162460), and my O(arg0) macro hides that. Target frame is 0x60 with ra, s2..s0 saved, mine is 0x70 with s5/s4/s3 saved, so I have too many live locals. Next step: write the array accesses explicitly as `D_8011F32E[id*0x64]` style byte indexing, cut the spurious locals, and then compare the switch dispatch.",
   "by": "claude-haiku-5-5-22",
@@ -14630,14 +14614,6 @@
   "created_at": 1794752159.117686,
   "score_before": 605,
   "score_after": 0
- },
- {
-  "function": "func_801337B0",
-  "text": "Claimed func_801337B0 (1956 bytes, gcc-2.7.2-kmc -O2). Not compiled this session. The m2c draft has an undeclared `unksp56` (the 8th-to-last argument of func_801CB9EC is a stack slot that needs a real local), a pointer-type warning at line 103, and a switch whose case order (0, 3, 1, 2 with a goto into case 3's block) is probably a misreading of the jump table. Next steps: read the jump table and the stack-slot loads from the asm first, then type the extern calls (func_801CAF18, func_801CB9EC, func_801CC150) with their argument counts, then compile the switch and the call sequence. Too large for a low-effort pass without that setup.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794752168.6533709,
-  "score_before": 26479,
-  "score_after": 26479
  },
  {
   "function": "func_8020F354",
@@ -19056,14 +19032,6 @@
   "score_after": 7649
  },
  {
-  "function": "func_801337B0",
-  "text": "Cannot get closer with the current approach. Best 25388 (48.0%), the u16 arg1 version (revision 7772775c80eefd5f3f20). s16 arg1 gave 26518 (worse). Target 489 insns, frame 0x88, saves ra/fp/s7-s4 plus more; mine is 0x98, so the live set across the calls is wrong. Target loads the state byte D_8011F2F0[arg1*0x64] with lbu into fp via lui fp / addu fp (not at), and keeps a u16 copy of arg1 at 0x4e($sp) that it reloads with lhu. Mine stores the byte to 0x67($sp). Next: keep a u16 copy of arg1 as a local that is stored to the stack and reloaded, read the state byte once into a u8 local, and check which of the (x & 0xFFFF) argument forms are masked in the target. Helper arg counts: func_801CC150 takes 17 args (declared unprototyped), func_801CB9EC 14, func_801CAF18 11.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794761395.0192819,
-  "score_before": 26479,
-  "score_after": 25388
- },
- {
   "function": "func_801E2020",
   "text": "Saved best 23256 (57.7%), revision d502c750f5438c8dd1dc; restore it with get_candidate(base=\"saved_best\"). Tried 2 structural variants: (a) original inner switch(r)/switch(flags) -> 23256; (b) both converted to if-chains -> 33161 (worse). So the switch-lowering guess was wrong. Remaining differences are structural: target frame saves $ra,$s5..$s0 at 0x40..0x28 and computes the record index with sll 2 + addu (D_8011F2F0 base at %lo) on the unk3E load, while mine loads D_801F1888 first and uses different temps. Next: restore best, then try reordering the top-level setup (flags/port load after the func_800DF138 calls) and the record-index expression as ((arg0 & 0xFFFF) << 2) + arg0 to get the sll-2/addu pattern. Only 3 compiles so far; the no-improvement budget is not spent.",
   "by": "claude-haiku-5-5-22",
@@ -20078,14 +20046,6 @@
   "created_at": 1794762677.313866,
   "score_before": 22805,
   "score_after": 22805
- },
- {
-  "function": "func_801337B0",
-  "text": "Early release, reason: this session's effort budget is low and the body (1956 B / 489 insns, display-list builder with a dozen calls and table lookups) is not written, so it cannot get closer in this session. Saved best 25388 (historical, different source); my partial candidate (44614) is worse, so restore with get_candidate(base=\"saved_best\"). Target frame 0x88, saves ra, fp, s0-s7. Structure: gate on D_80126FF6 == (s16)D_800DB1B8[0x2108] - 1; entity state byte D_8011F2F0[idx*0x64] selects var_s6 (0/0x90) and sp5C (0/0x6C) via a 4-way switch; D_8011F330 first-time init sets D_80183BA4[0..3]=1; then func_801CAF18 / func_801CB9EC / func_801CC150 calls with tables D_8022ACD3/4/6, D_8022AD06, D_8022ACAA, D_8022ACCE indexed by temp_fp*0x8F0 and a branch on D_80183BA4[temp_fp]==4. Next step: write the remaining calls from the assembly, then frame and registers.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794762688.350469,
-  "score_before": 25388,
-  "score_after": 25388
  },
  {
   "function": "func_8014730C",
@@ -40935,5 +40895,53 @@
   "created_at": 1795719151.6556108,
   "score_before": 2455,
   "score_after": 2455
+ },
+ {
+  "function": "func_801337B0",
+  "text": "Not matched. Best 26479 (45.8%), revision 2cef718a08e865f19b5c. Why it can't get closer in this pass: the frame, register assignment and load ordering all differ at once (target frame -0x88 with a saved s5 to s7 set, mine -0x98 with an extra s6 save), and fixing the frame changes every later register and stack offset, so these diffs can't be tuned one at a time from here. Next person: first match the target's live-pointer set (remove the s6 local, use one arg pointer), then the frame size, then load order. Registers last. Check the last argument of func_801CC150 and func_801CB9EC against the target (my constants are placeholders).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794719422.231012,
+  "score_before": 26479,
+  "score_after": 26479
+ },
+ {
+  "function": "func_801337B0",
+  "text": "Not attempted to compile. The m2c draft does not build: `unksp56` is undeclared (used as the last arg of func_801CB9EC in the block after the D_80173050 path; it is a stack local the target reads, so declare it as a s32 local and recheck). Also the switch on temp_fp (case 0/3/1/2, with goto block_17 from case 2) needs checking against the target's jump table. Record stride 0x64 (D_8011F2F0/D_8011F2FC/D_8011F330 at idx*0x64) and a second per-entry table of stride 0x8F0 (D_8022AD04/AFE9/AD05/ACD3/ACD4/ACD6/ACAA/ACCE, temp_fp*0x8F0). Next: fix the undeclared local, get a baseline score, then fix the switch and arg types.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794742429.500125,
+  "score_before": 26479,
+  "score_after": 26479
+ },
+ {
+  "function": "func_801337B0",
+  "text": "Claimed func_801337B0 (1956 bytes, gcc-2.7.2-kmc -O2). Not compiled this session. The m2c draft has an undeclared `unksp56` (the 8th-to-last argument of func_801CB9EC is a stack slot that needs a real local), a pointer-type warning at line 103, and a switch whose case order (0, 3, 1, 2 with a goto into case 3's block) is probably a misreading of the jump table. Next steps: read the jump table and the stack-slot loads from the asm first, then type the extern calls (func_801CAF18, func_801CB9EC, func_801CC150) with their argument counts, then compile the switch and the call sequence. Too large for a low-effort pass without that setup.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794752168.6533709,
+  "score_before": 26479,
+  "score_after": 26479
+ },
+ {
+  "function": "func_801337B0",
+  "text": "Cannot get closer with the current approach. Best 25388 (48.0%), the u16 arg1 version (revision 7772775c80eefd5f3f20). s16 arg1 gave 26518 (worse). Target 489 insns, frame 0x88, saves ra/fp/s7-s4 plus more; mine is 0x98, so the live set across the calls is wrong. Target loads the state byte D_8011F2F0[arg1*0x64] with lbu into fp via lui fp / addu fp (not at), and keeps a u16 copy of arg1 at 0x4e($sp) that it reloads with lhu. Mine stores the byte to 0x67($sp). Next: keep a u16 copy of arg1 as a local that is stored to the stack and reloaded, read the state byte once into a u8 local, and check which of the (x & 0xFFFF) argument forms are masked in the target. Helper arg counts: func_801CC150 takes 17 args (declared unprototyped), func_801CB9EC 14, func_801CAF18 11.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794761395.0192819,
+  "score_before": 26479,
+  "score_after": 25388
+ },
+ {
+  "function": "func_801337B0",
+  "text": "Early release, reason: this session's effort budget is low and the body (1956 B / 489 insns, display-list builder with a dozen calls and table lookups) is not written, so it cannot get closer in this session. Saved best 25388 (historical, different source); my partial candidate (44614) is worse, so restore with get_candidate(base=\"saved_best\"). Target frame 0x88, saves ra, fp, s0-s7. Structure: gate on D_80126FF6 == (s16)D_800DB1B8[0x2108] - 1; entity state byte D_8011F2F0[idx*0x64] selects var_s6 (0/0x90) and sp5C (0/0x6C) via a 4-way switch; D_8011F330 first-time init sets D_80183BA4[0..3]=1; then func_801CAF18 / func_801CB9EC / func_801CC150 calls with tables D_8022ACD3/4/6, D_8022AD06, D_8022ACAA, D_8022ACCE indexed by temp_fp*0x8F0 and a branch on D_80183BA4[temp_fp]==4. Next step: write the remaining calls from the assembly, then frame and registers.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794762688.350469,
+  "score_before": 25388,
+  "score_after": 25388
+ },
+ {
+  "function": "func_801337B0",
+  "text": "Profile probe: this saved C scores 9196 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (3 of its 4 nearest matched neighbours were built with it), 18147 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721320.435663,
+  "score_before": 18147,
+  "score_after": 9196
  }
 ]
