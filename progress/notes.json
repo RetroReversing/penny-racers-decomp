@@ -6200,14 +6200,6 @@
   "score_after": 10325
  },
  {
-  "function": "func_801AF334",
-  "text": "Not compiled this session; no score change. Released at start: 1432 B / 358 insns, and the m2c draft is not usable as-is. The main loop is garbled (nested do{}while(0) wrappers around temp_a1_2 = var_s2*5, and goto block_8/block_9 with a __repair_loop_weight stub). Extern types are wrong: D_801C7081 is treated as u8 and then as f32*, and D_801C7D31 is an array of 16-byte structs indexed by temp_s0. Start from the prologue: D_801C5E9C/D_801C7080 pointer copies, 0x5B/0x64 args to func_800DE41C with float args, then the *0x64 table writes to D_8011F2F4 (|0x20 and =0xC). Loop body: struct index ((s8)a + b*0x18) & 0xFFFF with stride 5 over D_801C7082/83/84, then *0x10 indexing into D_801C7D30. Best prior score 26669 is far off. Needs a clean rewrite from the full assembly (lines 52-367 not yet read).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794719143.364169,
-  "score_before": 26669,
-  "score_after": 26669
- },
- {
   "function": "func_801B312C",
   "text": "Best score 24425 (34%, 383 vs target 371 insns) using the m2c draft with the M2C_DEFINES preamble and extern D_801C7AB0 (candidate rev de7402a9c63efcb5c96e). Compile errors came from omitting the preamble and misdeclared temps, now fixed. Remaining diff: target keeps the lwc1 of arg4 (0x10($sp)) and the mtc1 of arg3 earlier; the switch arms are compiled as jump-table-free compare chains (target has bne $a3 chains x13) rather than a switch; my version uses j to shared blocks. Next ideas: rewrite the 4 switch(temp_a3) blocks as if/else chains on temp_a3 (==1,==2,==3,==4) so GCC emits bne chains; keep the single loop with arg2&0xFF bound; try var names matching target register use. Not tried: search_flags, struct for the 0x10-byte records (arg1 is written at +0,+4,+8,+0xC as f32/u8).",
   "by": "claude-haiku-5-5-23",
@@ -9984,14 +9976,6 @@
   "score_after": 19859
  },
  {
-  "function": "func_801AF334",
-  "text": "Not matched. Saved best is 26644 (from an earlier attempt, from the machine draft). My partial rewrite (dropped the do-while loop over D_801C5E9E rows, flattened the two func_800DE41C calls) scored 35286 and is worse; do not reuse it. The draft has undeclared externals (func_801B4070, D_801C7AB6, D_801C7D30, D_801C7D31 as a struct array, D_801C6BE0, D_801C7AD8) and nested do-while junk, so start from a clean rewrite. Structure: two func_800DE41C calls at the head (with 0.5f scaled float args and 0x5B/0x64 ids), then a loop over rows 0..D_801C5E9E-1 with stride 5 that calls func_800DE41C with 0x5A/0xFF and calls func_801BFA1C/func_801BB1F0 depending on D_801C5E9D==5 and row index. Target is 358 insns with s0..s3 and ra saved, frame 0x58+. Lots of float conversions to verify.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794742184.196096,
-  "score_before": 26644,
-  "score_after": 26644
- },
- {
   "function": "func_8012A384",
   "text": "Claimed but not worked. The machine draft failed to compile (incomplete types D_8012AB4C/D_8012AB7C/D_8012AB64, Vec3 vs float mismatches at lines 126-155, and a pointer-vs-float misuse). The function is 1484 bytes with debug printf calls (func_8003DE60) and a triangle-degeneracy check over mesh tris; the draft's struct layouts (Group/Mesh/V16) are unverified guesses. Start by reading get_assembly and fixing the Vec3 globals' types before any compile.",
   "by": "claude-haiku-5-5-20",
@@ -11110,14 +11094,6 @@
   "created_at": 1794752025.6037881,
   "score_before": 10325,
   "score_after": 10325
- },
- {
-  "function": "func_801AF334",
-  "text": "Not matched. Saved best remains 26644 (m2c-style draft, 10 attempts). My clean rewrites scored 30928 and 32578 (worse). Confirmed structure from asm (1432 bytes, frame 0x70, saves ra,s0-s3, fs0/fs1): base=&D_801C5E9C (count = base[2], also symbol D_801C5E9E; flag D_801C5E9D = base[3]); rec array at D_801C7080 with stride 5: f1=u8 at +1, f2 s8 at +2, f3 s8 at +3, f4 s8 at +4. First block copies rec[0] -> D_801C7469 (u8), D_801C706C=&rec, rec[2..4] -> D_801C6BB0..2, s16 at D_801C6BB4 = (s8)rec[2] + (s8)rec[3]*24. Then call func_800DE41C(0,0,3,0,0x5B,0x64,0,0,&func_801B3F08, (s8)D_801C6BB0*400*0.5, (u8)rec[1]*0.5, (s8)D_801C6BB1*400*0.5, 0,0,0, .5,.5,.5); result u16 -> D_801C746A; flags at D_8011F2F4+idx*100 |=0x20, D_8011F2FB+idx*100=0xC. Same for last record (count-1): Sel at D_801C7062 (+0..2 bytes, s16 at +4 -> D_801C7066) and call with func_801B4070 -> D_801C6BB6. D_801C7AB6=count. Loop i=0..count-1 (u8): k=((s8)rec[i].f2 + (s8)rec[i].f3*24)&0xFFFF; D_801C7D30[k*16]=0; D_801C7D31[k*16]=1; word at D_801C7D34[k*16] = (s8)f4*8 + D_8031445C; res=func_800DE41C(0,0,2,0,0x5A,0xFF,D_801C7D30+k*16,0,0,(s8)f2*400*0.5,(u8)f1*0.5,(s8)f3*400*0.5,0,0,0,.5,.5,.5); flags at D_8011F2F4+(res&0xFFFF)*100 |= 8; D_801C6BE0[k] (u16)=res; D_801C7AD8[k]=i; then: if D_801C5E9D==5 {i==count-1 ? BFA1C(i,1) : BB1F0(i)} else if i==0 BFA1C(0,0) else if i==count-1 BFA1C(i,1) else BB1F0(i). Loop while i<count. Mismatch: target keeps the rec base pointer in a register for the first block (lbu 2(a1)) and reloads per-symbol for loop indices; my versions reload from symbols after stores, giving different order and an extra s4/s5/fp set. Next step: write the first-block reads straight from a rec pointer (no reload), match the saved-register set (ra,s0-s3) and frame 0x70, then fix order of float constant setup (fs1=400 loaded before fs0=0.5).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794752029.859873,
-  "score_before": 26644,
-  "score_after": 26644
  },
  {
   "function": "func_801B312C",
@@ -13672,14 +13648,6 @@
   "score_after": 336
  },
  {
-  "function": "func_801AF334",
-  "text": "No compile in this claim. The machine draft is not usable: it has broken do/while nesting and __repair_ artifacts, and it reads D_801C7082/7083/7084 as struct bytes with stride 5 (index = (D_801C5E9E-1) for the first set, and a loop variable s2 with (s2*5) for the second). Structure from asm (367 insns, frame 0x70, saves $s0-$s3, $ra, $fs0/$fs1): two func_800DE41C calls at the start (params: 0x5B/0x64, callback &func_801B3F08 and then &func_801B4070, floats scaled by 400.0f*0.5f and 0.5f), then a loop over s1 (0..D_801C5E9E) that calls func_800DE41C(\u2026,0x5A,0xFF,\u2026) per entry, writes D_8011F2F4 u16 |= 8, D_801C6BE0[idx]=result, D_801C7AD8[idx]=s1, and branches to func_801BFA1C(s1,1) when s1 == count-1 or to func_801BB1F0(s1) otherwise, with a special case when D_801C5E9D == 5. Use the 0x5 stride from the asm lines 130-330 to set up the struct. Start by writing the first 130 lines (the two func_800DE41C calls) as C and compile them alone, then add the loop.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794760234.687424,
-  "score_before": 26644,
-  "score_after": 26644
- },
- {
   "function": "func_80207DC8",
   "text": "Fresh independent O1 exact proof; exact source re-submitted via suggest. Current O2 improved340->330 revision9a90a936880b97a4a6db by explicit s32 n set after j=0 before p and count; pending profile, no further source tuning necessary.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -14550,14 +14518,6 @@
   "created_at": 1794762882.477113,
   "score_before": 1570,
   "score_after": 1570
- },
- {
-  "function": "func_801AF334",
-  "text": "Not worked on; no matching attempt made. The machine draft (m2c) does not compile: it references undeclared symbols (func_801B4070, D_801C7AB6, D_801C7D30, D_801C7D31, D_801C7D34, D_8031445C, D_801C6BE0, D_801C7AD8), and its body has repair-phase junk (__repair_phase_temp_a0_2, do{}while(0) wrappers, goto block_8/block_9). Don't reuse that candidate as is. The function is a loop over D_801C5E9E entries: it fills D_801C7D31 slots (14-byte stride, u16 f0 at +0), calls func_800DE41C twice up front and once per iteration, then branches between func_801BFA1C(idx,1) and func_801BB1F0(idx) based on D_801C5E9D==5 and the last index. Next step: read the assembly and rewrite from scratch with declared externs for every symbol above, then fix the loop structure.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794762915.977439,
-  "score_before": 26644,
-  "score_after": 26644
  },
  {
   "function": "func_801485C8",
@@ -41908,5 +41868,54 @@
   "created_at": 1794762915.9063702,
   "score_before": 18918,
   "score_after": 18918
+ },
+ {
+  "function": "func_801AF334",
+  "text": "Not compiled this session; no score change. Released at start: 1432 B / 358 insns, and the m2c draft is not usable as-is. The main loop is garbled (nested do{}while(0) wrappers around temp_a1_2 = var_s2*5, and goto block_8/block_9 with a __repair_loop_weight stub). Extern types are wrong: D_801C7081 is treated as u8 and then as f32*, and D_801C7D31 is an array of 16-byte structs indexed by temp_s0. Start from the prologue: D_801C5E9C/D_801C7080 pointer copies, 0x5B/0x64 args to func_800DE41C with float args, then the *0x64 table writes to D_8011F2F4 (|0x20 and =0xC). Loop body: struct index ((s8)a + b*0x18) & 0xFFFF with stride 5 over D_801C7082/83/84, then *0x10 indexing into D_801C7D30. Best prior score 26669 is far off. Needs a clean rewrite from the full assembly (lines 52-367 not yet read).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794719143.364169,
+  "score_before": 26669,
+  "score_after": 26669
+ },
+ {
+  "function": "func_801AF334",
+  "text": "Not matched. Saved best is 26644 (from an earlier attempt, from the machine draft). My partial rewrite (dropped the do-while loop over D_801C5E9E rows, flattened the two func_800DE41C calls) scored 35286 and is worse; do not reuse it. The draft has undeclared externals (func_801B4070, D_801C7AB6, D_801C7D30, D_801C7D31 as a struct array, D_801C6BE0, D_801C7AD8) and nested do-while junk, so start from a clean rewrite. Structure: two func_800DE41C calls at the head (with 0.5f scaled float args and 0x5B/0x64 ids), then a loop over rows 0..D_801C5E9E-1 with stride 5 that calls func_800DE41C with 0x5A/0xFF and calls func_801BFA1C/func_801BB1F0 depending on D_801C5E9D==5 and row index. Target is 358 insns with s0..s3 and ra saved, frame 0x58+. Lots of float conversions to verify.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794742184.196096,
+  "score_before": 26644,
+  "score_after": 26644
+ },
+ {
+  "function": "func_801AF334",
+  "text": "Not matched. Saved best remains 26644 (m2c-style draft, 10 attempts). My clean rewrites scored 30928 and 32578 (worse). Confirmed structure from asm (1432 bytes, frame 0x70, saves ra,s0-s3, fs0/fs1): base=&D_801C5E9C (count = base[2], also symbol D_801C5E9E; flag D_801C5E9D = base[3]); rec array at D_801C7080 with stride 5: f1=u8 at +1, f2 s8 at +2, f3 s8 at +3, f4 s8 at +4. First block copies rec[0] -> D_801C7469 (u8), D_801C706C=&rec, rec[2..4] -> D_801C6BB0..2, s16 at D_801C6BB4 = (s8)rec[2] + (s8)rec[3]*24. Then call func_800DE41C(0,0,3,0,0x5B,0x64,0,0,&func_801B3F08, (s8)D_801C6BB0*400*0.5, (u8)rec[1]*0.5, (s8)D_801C6BB1*400*0.5, 0,0,0, .5,.5,.5); result u16 -> D_801C746A; flags at D_8011F2F4+idx*100 |=0x20, D_8011F2FB+idx*100=0xC. Same for last record (count-1): Sel at D_801C7062 (+0..2 bytes, s16 at +4 -> D_801C7066) and call with func_801B4070 -> D_801C6BB6. D_801C7AB6=count. Loop i=0..count-1 (u8): k=((s8)rec[i].f2 + (s8)rec[i].f3*24)&0xFFFF; D_801C7D30[k*16]=0; D_801C7D31[k*16]=1; word at D_801C7D34[k*16] = (s8)f4*8 + D_8031445C; res=func_800DE41C(0,0,2,0,0x5A,0xFF,D_801C7D30+k*16,0,0,(s8)f2*400*0.5,(u8)f1*0.5,(s8)f3*400*0.5,0,0,0,.5,.5,.5); flags at D_8011F2F4+(res&0xFFFF)*100 |= 8; D_801C6BE0[k] (u16)=res; D_801C7AD8[k]=i; then: if D_801C5E9D==5 {i==count-1 ? BFA1C(i,1) : BB1F0(i)} else if i==0 BFA1C(0,0) else if i==count-1 BFA1C(i,1) else BB1F0(i). Loop while i<count. Mismatch: target keeps the rec base pointer in a register for the first block (lbu 2(a1)) and reloads per-symbol for loop indices; my versions reload from symbols after stores, giving different order and an extra s4/s5/fp set. Next step: write the first-block reads straight from a rec pointer (no reload), match the saved-register set (ra,s0-s3) and frame 0x70, then fix order of float constant setup (fs1=400 loaded before fs0=0.5).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794752029.859873,
+  "score_before": 26644,
+  "score_after": 26644
+ },
+ {
+  "function": "func_801AF334",
+  "text": "No compile in this claim. The machine draft is not usable: it has broken do/while nesting and __repair_ artifacts, and it reads D_801C7082/7083/7084 as struct bytes with stride 5 (index = (D_801C5E9E-1) for the first set, and a loop variable s2 with (s2*5) for the second). Structure from asm (367 insns, frame 0x70, saves $s0-$s3, $ra, $fs0/$fs1): two func_800DE41C calls at the start (params: 0x5B/0x64, callback &func_801B3F08 and then &func_801B4070, floats scaled by 400.0f*0.5f and 0.5f), then a loop over s1 (0..D_801C5E9E) that calls func_800DE41C(\u2026,0x5A,0xFF,\u2026) per entry, writes D_8011F2F4 u16 |= 8, D_801C6BE0[idx]=result, D_801C7AD8[idx]=s1, and branches to func_801BFA1C(s1,1) when s1 == count-1 or to func_801BB1F0(s1) otherwise, with a special case when D_801C5E9D == 5. Use the 0x5 stride from the asm lines 130-330 to set up the struct. Start by writing the first 130 lines (the two func_800DE41C calls) as C and compile them alone, then add the loop.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794760234.687424,
+  "score_before": 26644,
+  "score_after": 26644
+ },
+ {
+  "function": "func_801AF334",
+  "text": "Not worked on; no matching attempt made. The machine draft (m2c) does not compile: it references undeclared symbols (func_801B4070, D_801C7AB6, D_801C7D30, D_801C7D31, D_801C7D34, D_8031445C, D_801C6BE0, D_801C7AD8), and its body has repair-phase junk (__repair_phase_temp_a0_2, do{}while(0) wrappers, goto block_8/block_9). Don't reuse that candidate as is. The function is a loop over D_801C5E9E entries: it fills D_801C7D31 slots (14-byte stride, u16 f0 at +0), calls func_800DE41C twice up front and once per iteration, then branches between func_801BFA1C(idx,1) and func_801BB1F0(idx) based on D_801C5E9D==5 and the last index. Next step: read the assembly and rewrite from scratch with declared externs for every symbol above, then fix the loop structure.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794762915.977439,
+  "score_before": 26644,
+  "score_after": 26644
+ },
+ {
+  "function": "func_801AF334",
+  "text": "Profile probe: this saved C scores 14751 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (321 functions of this project were built with it), 20321 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721291.184591,
+  "score_before": 20321,
+  "score_after": 14751,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:9a2604388dacb32692f4b82c43443027ff5a722f85395f30542aa1f39e2a05d4"
  }
 ]
