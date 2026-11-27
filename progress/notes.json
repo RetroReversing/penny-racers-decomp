@@ -6176,14 +6176,6 @@
   "score_after": 50
  },
  {
-  "function": "func_80233ED0",
-  "text": "Best 11179 (69.3%), target 365 insns vs 347. Structure now looks right (Racer struct with 0x8F0 stride, Digit[10] at 0x562, f594, five s16/u8 7-entry arrays at D_80237058/D_8023760E/D_80237600/D_80237632/D_80237694, D_80236ED4 digit table, D_8011F32E 0x64-stride state word). Remaining diffs: target has `andi $v1,$a1,0xffff` x8 and `sll $v0,$v1,1` x7 \u2014 i.e. the loop index is kept as a 32-bit value that is masked to u16 at every use rather than being an u16 local; candidate instead emits `bnez $a0`/`addiu $s2,$s2,1` and folds masks away. Also stack frame target -0x40 vs candidate -0x48 and the loop is a rotated do/while in the target with `j func_80233ED0+0x58c` x5 (five shared tail jumps) implying a different join structure (single loop tail with goto/continue rather than if/else chain). Next experiment: make the loop counter a `s32 i` but index every array via `(u16)i` (or `((u16)i)` casts inside each subscript) so the andi is re-materialized, and lower the frame by removing one live pointer (drop the st/cur/prev aliases and index the globals directly, keeping only D_80237058 as a base if needed). Remaining repair families recorded: record_slot_table=1, record_layout_sequence=4, shared_store_constant=3, branch_orientation=1, 22 more; 89 distinct proposals pending.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794719092.840344,
-  "score_before": 17788,
-  "score_after": 11179
- },
- {
   "function": "func_8012A384",
   "text": "Not attempted. 1484 bytes. m2c draft has type errors (D_8012AB4C/D_8012AB7C/_8012AB64 incomplete types; the Vec3 globals are declared as structs but used as floats in places). Structure: loops over a Group array from arg0+0x50 -> +4 -> +4 pointer chain, per-mesh vertex transform into D_8012AB98[] with offsets arg0+0x18/0x1C/0x20 (floats), then a triangle-degenerate check printing via func_8003DE60 with format strings D_8012AA48..D_8012AB20. Fix the globals' types first (Vec3 D_8012AB4C etc.) and check the draft's float compares against the asm.",
   "by": "claude-haiku-5-5-24",
@@ -7702,14 +7694,6 @@
   "created_at": 1794728637.4706838,
   "score_before": 60,
   "score_after": 60
- },
- {
-  "function": "func_80233ED0",
-  "text": "Not matched. Best: 11035 (69.7%) at revision 9d47179abefab368b33d (globals D_80237058/D_8023760E/D_80237600 used directly; the st/cur/prev pointer version scored 11179 with frame 0x48). Target frame is 0x40 (ra 0x3c, s6 0x38, s5 0x34, s4 0x30, ...); ours is 0x48. Remaining diffs are control-flow ordering, not local tweaks: the target does `move $a1,$a0` late (row 16) and recomputes `andi $v1,$a1,0xffff` per use, while ours moves it first (row 1). The target loads the three global bases into saved regs first (lui s6=D_80237058, s2=D_8023760E, s5=D_80237600, plus `addiu $s3,$zero,1`), and its loop head is `beqz $v1,0x64`, which we do not reproduce. Tried with no score change: removing the `t` local, `&` vs `&&` in the record/bound test, `(arg0 & 0xFFFF)` vs `(u16)arg0` for the record index. Untried: splitting the v==0 clear loop from the v==1 loop into separate functions' worth of code, and `i = 0; do ... while (++i < 7)` for the clear loop. Prototypes func_8003DE60 and func_80230EFC are unverified guesses; confirm from find_similar.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794728668.283097,
-  "score_before": 11179,
-  "score_after": 11035
  },
  {
   "function": "func_80038010",
@@ -9950,22 +9934,6 @@
   "created_at": 1794741879.750108,
   "score_before": 350,
   "score_after": 350
- },
- {
-  "function": "func_80233ED0",
-  "text": "Not attempted in this session beyond reading the machine draft. The draft (revision 36e3b34125a561435629) is a goto-heavy m2c output over 1460 bytes: it has a 7-iteration loop over a 0x8F0-byte per-voice table at D_8022A770, with nested 0x3C/0x64 carry loops and D_8023760E/D_80237600/D_80237058 arrays. Next agent: get_assembly in pages, then rewrite the loop body as structured C first (the goto loop_37/loop_40/loop_43 carries are plain while loops), and only then tune registers.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794742000.104672,
-  "score_before": 10092,
-  "score_after": 10092
- },
- {
-  "function": "func_80233ED0",
-  "text": "Not matched. Best 12940 (64.5%) at rev 54bc1dc80f81b5793817 (355 vs 365 insns). Full structure is now in C: init path (v==0: zero 7 entries of D_80237058/D_8023760E/D_80237600/D_80237694/D_80237632, clear D_80236F50/D_8023761C/D_80167E62, set record to 1); process path (v==1) loops i 0..6 over records at D_8022A770 + i*0x8F0 with `u16 i` (u16 index matters: switching s32->u16 gave 26228->21955).\nKey finding: re-deriving the byte address each field access (CR(o)/DR(o) macros that recompute rec + D_8023760E[i]*5) instead of caching rc gave 21955->12940. Keep it.\nRemaining mismatches: (1) the flags path picks D_80236F10 vs D_80236F20 in the other order (target branch layout differs); (2) the counter block's branch layout: target tests 0x562 and the 0x565 reset via separate j-branches; (3) the final `D_80237600[i] = D_8023760E[i]` store and the post-loop j labels. Next: try writing the 0x565 counter as `if (CR(0x565)+1 >= 0x3C)` form, or split the 0x562 `!= 0` check into its own if-block after the else.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794742059.863157,
-  "score_before": 10092,
-  "score_after": 10092
  },
  {
   "function": "func_80142C6C",
@@ -13376,14 +13344,6 @@
   "score_after": 60
  },
  {
-  "function": "func_80233ED0",
-  "text": "Not yet scored by an agent-written source: only the m2c draft exists. The draft is valid C with M2C_FIELD macros and many goto labels (block_24, block_44, block_46, loop_37/40/43) that are m2c's reconstruction of byte-field carry chains (u8 fields at +0x562..0x566 in 5-byte records at stride 0x8F0 per index, D_8023760E / D_80237600 / D_80237058 u16 tables of 7 entries). Next: rewrite the carry chains as explicit `u8` field helpers (cascading x>=0x3C / x>=0x64 wraps for +0x562 to +0x566) and remove the goto labels, then compile_and_diff. Known shape: outer for over var_s1 0..6 with a cond on D_80237058[i]; the else branch zeros four tables and D_80236F50, D_8023761C, D_80167E62 and sets D_8011F32E[state*0x64] = 1 for state 1.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794759552.326647,
-  "score_before": 10092,
-  "score_after": 10092
- },
- {
   "function": "func_800DF1E0",
   "text": "Byte-exact with KMC -O1 (suggested): an if(n) do-while loop, plus an unused s32[2] local for the 8-byte stack frame.",
   "by": "claude-opus-medium-1",
@@ -14294,14 +14254,6 @@
   "created_at": 1794762122.768533,
   "score_before": 55,
   "score_after": 55
- },
- {
-  "function": "func_80233ED0",
-  "text": "Not attempted beyond reading; no compile made, so no score beyond the saved machine draft. Structure from the m2c draft and assembly: arg0 selects a record in D_8011F32E (stride 0x64). If that state is 0 it zeroes 7 entries of D_80237058/D_8023760E/D_80237600/D_80237632 plus D_80237694 bytes, clears D_80236F50, D_8023761C, D_80167E62 and sets the state to 1. If state == 1 it walks 7 records of stride 0x8F0 from D_8022A770 (only index<6 and halfword +2 != 0xFFFF). The per-record logic updates byte counters at +0x562..+0x566 with base-60/base-100 carry (the carry loops at the end of the draft), flags at +6 (bits 0x8, 0x40), and calls func_8003DE60 with D_80236F10/D_80236F20 and func_80230EFC. The m2c gotos (block_24, block_44, loop_37/40/43) are likely a shared-tail pattern and should become loops. Next step: rewrite the record loop with a struct pointer, then compile against the draft. Large function (365 insns); needs several iterations.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794762163.447136,
-  "score_before": 10092,
-  "score_after": 10092
  },
  {
   "function": "func_8014B048",
@@ -41917,5 +41869,62 @@
   "score_before": 20321,
   "score_after": 14751,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:9a2604388dacb32692f4b82c43443027ff5a722f85395f30542aa1f39e2a05d4"
+ },
+ {
+  "function": "func_80233ED0",
+  "text": "Best 11179 (69.3%), target 365 insns vs 347. Structure now looks right (Racer struct with 0x8F0 stride, Digit[10] at 0x562, f594, five s16/u8 7-entry arrays at D_80237058/D_8023760E/D_80237600/D_80237632/D_80237694, D_80236ED4 digit table, D_8011F32E 0x64-stride state word). Remaining diffs: target has `andi $v1,$a1,0xffff` x8 and `sll $v0,$v1,1` x7 \u2014 i.e. the loop index is kept as a 32-bit value that is masked to u16 at every use rather than being an u16 local; candidate instead emits `bnez $a0`/`addiu $s2,$s2,1` and folds masks away. Also stack frame target -0x40 vs candidate -0x48 and the loop is a rotated do/while in the target with `j func_80233ED0+0x58c` x5 (five shared tail jumps) implying a different join structure (single loop tail with goto/continue rather than if/else chain). Next experiment: make the loop counter a `s32 i` but index every array via `(u16)i` (or `((u16)i)` casts inside each subscript) so the andi is re-materialized, and lower the frame by removing one live pointer (drop the st/cur/prev aliases and index the globals directly, keeping only D_80237058 as a base if needed). Remaining repair families recorded: record_slot_table=1, record_layout_sequence=4, shared_store_constant=3, branch_orientation=1, 22 more; 89 distinct proposals pending.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794719092.840344,
+  "score_before": 17788,
+  "score_after": 11179
+ },
+ {
+  "function": "func_80233ED0",
+  "text": "Not matched. Best: 11035 (69.7%) at revision 9d47179abefab368b33d (globals D_80237058/D_8023760E/D_80237600 used directly; the st/cur/prev pointer version scored 11179 with frame 0x48). Target frame is 0x40 (ra 0x3c, s6 0x38, s5 0x34, s4 0x30, ...); ours is 0x48. Remaining diffs are control-flow ordering, not local tweaks: the target does `move $a1,$a0` late (row 16) and recomputes `andi $v1,$a1,0xffff` per use, while ours moves it first (row 1). The target loads the three global bases into saved regs first (lui s6=D_80237058, s2=D_8023760E, s5=D_80237600, plus `addiu $s3,$zero,1`), and its loop head is `beqz $v1,0x64`, which we do not reproduce. Tried with no score change: removing the `t` local, `&` vs `&&` in the record/bound test, `(arg0 & 0xFFFF)` vs `(u16)arg0` for the record index. Untried: splitting the v==0 clear loop from the v==1 loop into separate functions' worth of code, and `i = 0; do ... while (++i < 7)` for the clear loop. Prototypes func_8003DE60 and func_80230EFC are unverified guesses; confirm from find_similar.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794728668.283097,
+  "score_before": 11179,
+  "score_after": 11035
+ },
+ {
+  "function": "func_80233ED0",
+  "text": "Not attempted in this session beyond reading the machine draft. The draft (revision 36e3b34125a561435629) is a goto-heavy m2c output over 1460 bytes: it has a 7-iteration loop over a 0x8F0-byte per-voice table at D_8022A770, with nested 0x3C/0x64 carry loops and D_8023760E/D_80237600/D_80237058 arrays. Next agent: get_assembly in pages, then rewrite the loop body as structured C first (the goto loop_37/loop_40/loop_43 carries are plain while loops), and only then tune registers.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794742000.104672,
+  "score_before": 10092,
+  "score_after": 10092
+ },
+ {
+  "function": "func_80233ED0",
+  "text": "Not matched. Best 12940 (64.5%) at rev 54bc1dc80f81b5793817 (355 vs 365 insns). Full structure is now in C: init path (v==0: zero 7 entries of D_80237058/D_8023760E/D_80237600/D_80237694/D_80237632, clear D_80236F50/D_8023761C/D_80167E62, set record to 1); process path (v==1) loops i 0..6 over records at D_8022A770 + i*0x8F0 with `u16 i` (u16 index matters: switching s32->u16 gave 26228->21955).\nKey finding: re-deriving the byte address each field access (CR(o)/DR(o) macros that recompute rec + D_8023760E[i]*5) instead of caching rc gave 21955->12940. Keep it.\nRemaining mismatches: (1) the flags path picks D_80236F10 vs D_80236F20 in the other order (target branch layout differs); (2) the counter block's branch layout: target tests 0x562 and the 0x565 reset via separate j-branches; (3) the final `D_80237600[i] = D_8023760E[i]` store and the post-loop j labels. Next: try writing the 0x565 counter as `if (CR(0x565)+1 >= 0x3C)` form, or split the 0x562 `!= 0` check into its own if-block after the else.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794742059.863157,
+  "score_before": 10092,
+  "score_after": 10092
+ },
+ {
+  "function": "func_80233ED0",
+  "text": "Not yet scored by an agent-written source: only the m2c draft exists. The draft is valid C with M2C_FIELD macros and many goto labels (block_24, block_44, block_46, loop_37/40/43) that are m2c's reconstruction of byte-field carry chains (u8 fields at +0x562..0x566 in 5-byte records at stride 0x8F0 per index, D_8023760E / D_80237600 / D_80237058 u16 tables of 7 entries). Next: rewrite the carry chains as explicit `u8` field helpers (cascading x>=0x3C / x>=0x64 wraps for +0x562 to +0x566) and remove the goto labels, then compile_and_diff. Known shape: outer for over var_s1 0..6 with a cond on D_80237058[i]; the else branch zeros four tables and D_80236F50, D_8023761C, D_80167E62 and sets D_8011F32E[state*0x64] = 1 for state 1.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794759552.326647,
+  "score_before": 10092,
+  "score_after": 10092
+ },
+ {
+  "function": "func_80233ED0",
+  "text": "Not attempted beyond reading; no compile made, so no score beyond the saved machine draft. Structure from the m2c draft and assembly: arg0 selects a record in D_8011F32E (stride 0x64). If that state is 0 it zeroes 7 entries of D_80237058/D_8023760E/D_80237600/D_80237632 plus D_80237694 bytes, clears D_80236F50, D_8023761C, D_80167E62 and sets the state to 1. If state == 1 it walks 7 records of stride 0x8F0 from D_8022A770 (only index<6 and halfword +2 != 0xFFFF). The per-record logic updates byte counters at +0x562..+0x566 with base-60/base-100 carry (the carry loops at the end of the draft), flags at +6 (bits 0x8, 0x40), and calls func_8003DE60 with D_80236F10/D_80236F20 and func_80230EFC. The m2c gotos (block_24, block_44, loop_37/40/43) are likely a shared-tail pattern and should become loops. Next step: rewrite the record loop with a struct pointer, then compile against the draft. Large function (365 insns); needs several iterations.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794762163.447136,
+  "score_before": 10092,
+  "score_after": 10092
+ },
+ {
+  "function": "func_80233ED0",
+  "text": "Profile probe: this saved C scores 9933 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (4 of its 6 nearest matched neighbours were built with it), 11795 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721299.001515,
+  "score_before": 11795,
+  "score_after": 9933,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:f4b58ea619b03da6ab501bd3edf47214af402dadf9518087e5ee1ba733c53950"
  }
 ]
