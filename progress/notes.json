@@ -7176,14 +7176,6 @@
   "score_after": 13956
  },
  {
-  "function": "func_80163588",
-  "text": "Not attempted beyond reading the machine draft. The draft has parse errors and goto (block_16); it has float constants (0.9f, 0.11f, 0.08f) and a 0x1C-based sub-struct call to func_80129918 with 7 args, plus a func_800DE41C call with stack args. Start by reading the assembly in pages, pin the float constants via read_data, and write the control flow from the asm before compiling.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794711333.466026,
-  "score_before": 22386,
-  "score_after": 22386
- },
- {
   "function": "func_8015CFD8",
   "text": "Best verified attempt this session: revision 3c853506f96af042f58f, score 10825 (52.5%). It declares the 0x64-stride tables as struct arrays (Row16{st;pad[0x62]}, RowP{p;pad[0x60]}, RowF{v;pad[0x60]}) indexed by the u16 arg0, so GCC folds %lo into lhu/lw/lwc1/lbu and reuses one stride multiply; that fixed ~45 target rows vs the byte-index form (12948/16163). Restore it with get_candidate(base=\"saved_best\") if the saved best is not it, and keep that base.\n\nRemaining diffs on 3c853506 (target 228 insns, ours 214):\n1) Stride recomputation: target recomputes `andi $v0,$s0,0xffff; sll/addu x3; sll 2` in each case body (5 sites); ours CSEs the byte index into $s2 once. Re-masking per use did not change it; try reading arg0 again after each call (calls should clobber the CSE) or separate per-case locals.\n2) func_8013EB20 call shape: target does `sw $zero,0x10($sp); move a0,s0; lw $a2,0x10($sp); lui/ori a3,-0.1f; jal; move a1,s1`, i.e. 3rd arg 0.0f via the outgoing stack slot, 5th arg 0.0f. Ours passes integer 0 and materialises 0.0f with mtc1/mfc1 plus a store. Prototype func_8013EB20 as (u16, f32 *, f32, f32, f32) and call with 0.0f, -0.1f, 0.0f (and 0.0f, -0.15f, 0.0f in case 2).\n3) func_8013EC48 shows cvt.d.s / mfc1 $a3,$f6 in ours: with an unprototyped declaration the float arg is promoted to double. Retry `void func_8013EC48(s32, f32);` alone on 3c853506.\n4) `*(u16*)(p+0x14) -= 1; if (*(u16*)(p+0x14) & 0x8000)` yields `andi 0x8000; beqz`; target uses `sll $v0,$v0,0x10; bgez`, i.e. a signed test. Write `if ((s16)*(u16*)(p+0x14) < 0)` or keep an s16 local and test `< 0`.\n5) Case 2 tail: target reloads D_8011F2FC twice with `lui/addu/lbu %lo` (no addiu of the base); ours hoists `addiu $v1,%lo(D_8011F2FC)`. Keep the two separate indexed expressions, no pointer local, with the fresh stride index.\n6) Frame: target -0x28 with only s0/s1 saved; ours also saves s2 because of the CSE'd byte index \u2014 fixing (1) should remove it.",
   "by": "api-route-llm-code-2",
@@ -10488,14 +10480,6 @@
   "score_after": 12148
  },
  {
-  "function": "func_80163588",
-  "text": "Best 4180 (82.7%, 240 vs 243 insns), saved as revision 99b0202bd5398fc18d3f. Context fix: func_8013E49C is already declared in context.h as s32, so no local prototype; the draft's void one conflicts. Tried `for (i = 0; i < 7; i++)` in the clear loop: worse (4660). The target's clear loop is bottom-tested (slti/bnez) and recomputes `addu $v0,$s0,$v1` twice; mine uses bne. Remaining diffs: target branches `bc1t .Le4` where mine uses bc1f, so the 0.0f if/else shape is probably inverted. Prologue save order also differs (target saves $ra at 0x60). Untried: restructuring the 0.0f test as an early-branch form, and f32 locals for the x/y/z temporaries. Released after 3 non-improving compiles, since the remaining diffs are control-flow shape rather than register choice.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794727984.702823,
-  "score_before": 4180,
-  "score_after": 4180
- },
- {
   "function": "func_8015CFD8",
   "text": "Not matched. Best candidate: revision cd67fbb681a2b5a64e7a (score 10818, 52.5%), using a local `u32 off = (u16)arg0 * 0x64;` for all table indexes. Revision e278b147cb6871a0d6e3 (12948) and the inlined `(u16)arg0 * 0x64` form (12948) are worse. Target: frame 0x28, saves ra/s0/s1 only, no s2. The index is recomputed from s0 after each call (andi $v0,$s0,0xffff then sll/addu chain for *100), not held in a callee-saved register. Any local that lives across calls (off, or CSE of arg0*0x64) pulls in s2 and a 0x30/0x38 frame. Next: find a form where the multiply is recomputed per use and not kept live, and get the lui/addu/lw pointer load for D_8011F350 into s1. The target loads the D_8011F32E state through lui $at. Stopping here: the remaining gap is the frame and register allocation, not the control flow.",
   "by": "claude-haiku-5-5-22",
@@ -13646,14 +13630,6 @@
   "created_at": 1794740966.3113291,
   "score_before": 11483,
   "score_after": 11483
- },
- {
-  "function": "func_80163588",
-  "text": "Not matched. Best 4180 (82.7%) is revision 3f459ef3412376a3b298, which has the hoisted declarations and no func_8013E49C prototype (context.h declares it differently). Use that revision as the starting point; get_candidate(base=saved_best) returns an older text with mid-block declarations that does not compile. Frame 0x70; target saves ra 0x60, s3 0x5c, s2 0x58, s1 0x54, s0 0x50, and sdc1 $f20 at 0x68 (a float is held across the func_80129918 call; mine has no f20 save). Remaining diffs: first branch is bc1t .Le4 in the target (the f==0 test); clear loop keeps `i != 7` (i<7 gave 4660, do-while 4875); swapping the if sense without moving the loop body gave 4585 but dropped the loop, so the swap is untested fairly. Next: test the sense swap with the loop kept in the else arm, then track the f20 live float.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794740975.914358,
-  "score_before": 4180,
-  "score_after": 4180
  },
  {
   "function": "func_801485C8",
@@ -18792,14 +18768,6 @@
   "score_after": 4300
  },
  {
-  "function": "func_80163588",
-  "text": "Best candidate revision 59ca22029512d4bd1372 scores 3870 (84.0%). Win: first branch written as `if (obj[0xC] != 0.0f) { hit path } else { clear loop }` (else-first order was 4180). Remaining, all structural: (1) the clear loop `for (i=0;i!=7;i++) *(u8*)(obj+i+0x67)=0` compiles as a countdown/bne-a0=7 form; target is ascending with slti+bnez. Tried `i<7` (4220), `i+obj+0x67` order (no effect). (2) Frame: target saves ra at 0x60 then s3,s2,s1,s0 with 0x70 frame; ours saves s3 at 0x5c first, so the live-across-call value differs (regalloc). (3) float loads use f0 in target, f8/f2 in ours (follows from loop order). (4) The 0x560 bit-field update in the else-if block: target loads lhu once into v0; ours loads into a1 twice. Signedness family on ctl (u8->s8) gave no change. Next to try: a pointer-walking clear loop, and a single-load temp for the 0x560 update; a local `obj` re-derivation may also shift the s-register choice.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794756806.057388,
-  "score_before": 4180,
-  "score_after": 3870
- },
- {
   "function": "func_80211F14",
   "text": "Not matched; saved best 1055 is still better than all my tries (best of mine: 3795). Logic verified: arg0*0x178 (t1) hoisted; outer i=0..13 with dst row = D_800DA26A+0x64+t1+18*i (u16 array), src row = D_8021F270+arg0*0xE0+16*i; inner j=0..7 dst[j]=src[j]; then D_800DA26A+0x74+t1+18*i set to 0xFFFF. Target keeps the inner index in a1 and reset in the loop-back delay slot (bnel). Remaining diffs: the target computes dst/src row offsets in the loop and uses lui/addiu of D_800DA26A+0x64 into t2 outside the loop; my versions recompute and use a3/t0 for src differently. Untried: separate hoisted row bases with a single index variable, and a helper that emits the 0xFFFF store via the same dst pointer.",
   "by": "claude-haiku-5-5-23",
@@ -20942,14 +20910,6 @@
   "created_at": 1794760195.6676311,
   "score_before": 336,
   "score_after": 336
- },
- {
-  "function": "func_80163588",
-  "text": "Best saved 3870 (84.0%, 239 vs 243 insns) is the `f32 f = *(f32*)(obj+0xC)` version with `for (i = 0; i != 7; i++)`. Two later compiles were worse: `i < 7` makes the compiler emit a reversed loop (addiu $v1,$zero,6 / addiu -1), and dropping the f local moves the c.eq.s/float loads into f8/f2 and changes the register set. Remaining gap is frame/register allocation: target -0x68 with sw $ra first and no sdc1 $f20, mine keeps f20 live for the 0.0f compare. Not closer in this session without a different structure for the float-compare block; the per-branch float locals (x/y/z) are the likely cause. Release for another pass, starting from the saved best.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794760210.196948,
-  "score_before": 3870,
-  "score_after": 3870
  },
  {
   "function": "func_80164FC0",
@@ -40501,5 +40461,45 @@
   "score_before": 1550,
   "score_after": 1550,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:0457e65fc84b4a25442386795c4ba9d21fabf114f728dc2755daa8af959b3f21"
+ },
+ {
+  "function": "func_80163588",
+  "text": "Not attempted beyond reading the machine draft. The draft has parse errors and goto (block_16); it has float constants (0.9f, 0.11f, 0.08f) and a 0x1C-based sub-struct call to func_80129918 with 7 args, plus a func_800DE41C call with stack args. Start by reading the assembly in pages, pin the float constants via read_data, and write the control flow from the asm before compiling.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794711333.466026,
+  "score_before": 22386,
+  "score_after": 22386
+ },
+ {
+  "function": "func_80163588",
+  "text": "Best 4180 (82.7%, 240 vs 243 insns), saved as revision 99b0202bd5398fc18d3f. Context fix: func_8013E49C is already declared in context.h as s32, so no local prototype; the draft's void one conflicts. Tried `for (i = 0; i < 7; i++)` in the clear loop: worse (4660). The target's clear loop is bottom-tested (slti/bnez) and recomputes `addu $v0,$s0,$v1` twice; mine uses bne. Remaining diffs: target branches `bc1t .Le4` where mine uses bc1f, so the 0.0f if/else shape is probably inverted. Prologue save order also differs (target saves $ra at 0x60). Untried: restructuring the 0.0f test as an early-branch form, and f32 locals for the x/y/z temporaries. Released after 3 non-improving compiles, since the remaining diffs are control-flow shape rather than register choice.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794727984.702823,
+  "score_before": 4180,
+  "score_after": 4180
+ },
+ {
+  "function": "func_80163588",
+  "text": "Not matched. Best 4180 (82.7%) is revision 3f459ef3412376a3b298, which has the hoisted declarations and no func_8013E49C prototype (context.h declares it differently). Use that revision as the starting point; get_candidate(base=saved_best) returns an older text with mid-block declarations that does not compile. Frame 0x70; target saves ra 0x60, s3 0x5c, s2 0x58, s1 0x54, s0 0x50, and sdc1 $f20 at 0x68 (a float is held across the func_80129918 call; mine has no f20 save). Remaining diffs: first branch is bc1t .Le4 in the target (the f==0 test); clear loop keeps `i != 7` (i<7 gave 4660, do-while 4875); swapping the if sense without moving the loop body gave 4585 but dropped the loop, so the swap is untested fairly. Next: test the sense swap with the loop kept in the else arm, then track the f20 live float.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794740975.914358,
+  "score_before": 4180,
+  "score_after": 4180
+ },
+ {
+  "function": "func_80163588",
+  "text": "Best candidate revision 59ca22029512d4bd1372 scores 3870 (84.0%). Win: first branch written as `if (obj[0xC] != 0.0f) { hit path } else { clear loop }` (else-first order was 4180). Remaining, all structural: (1) the clear loop `for (i=0;i!=7;i++) *(u8*)(obj+i+0x67)=0` compiles as a countdown/bne-a0=7 form; target is ascending with slti+bnez. Tried `i<7` (4220), `i+obj+0x67` order (no effect). (2) Frame: target saves ra at 0x60 then s3,s2,s1,s0 with 0x70 frame; ours saves s3 at 0x5c first, so the live-across-call value differs (regalloc). (3) float loads use f0 in target, f8/f2 in ours (follows from loop order). (4) The 0x560 bit-field update in the else-if block: target loads lhu once into v0; ours loads into a1 twice. Signedness family on ctl (u8->s8) gave no change. Next to try: a pointer-walking clear loop, and a single-load temp for the 0x560 update; a local `obj` re-derivation may also shift the s-register choice.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794756806.057388,
+  "score_before": 4180,
+  "score_after": 3870
+ },
+ {
+  "function": "func_80163588",
+  "text": "Best saved 3870 (84.0%, 239 vs 243 insns) is the `f32 f = *(f32*)(obj+0xC)` version with `for (i = 0; i != 7; i++)`. Two later compiles were worse: `i < 7` makes the compiler emit a reversed loop (addiu $v1,$zero,6 / addiu -1), and dropping the f local moves the c.eq.s/float loads into f8/f2 and changes the register set. Remaining gap is frame/register allocation: target -0x68 with sw $ra first and no sdc1 $f20, mine keeps f20 live for the 0.0f compare. Not closer in this session without a different structure for the float-compare block; the per-branch float locals (x/y/z) are the likely cause. Release for another pass, starting from the saved best.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794760210.196948,
+  "score_before": 3870,
+  "score_after": 3870
  }
 ]
