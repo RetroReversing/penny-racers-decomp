@@ -6912,14 +6912,6 @@
   "score_after": 65
  },
  {
-  "function": "func_80230960",
-  "text": "Best current candidate is revision 73819cdfcdfd457ba2fd at 2025 (86.7%). Saved best 1185 is still lower, so restore saved_best first if you need its source. Leaf function, no frame. Found: the table base D_802387D8 must be a local pointer `u8 *tbl = D_802387D8;` so it is materialized with lui/addiu and not folded into the load (2175 -> 2025). Moving `p` ahead of `a` made it worse (2265), so keep the original order. Remaining diffs are register choice for the table base (lui $t0 here vs $v1 in the target) and the position of the `addu` for the D_8011F4E4 base, which sits after beqz in the target. Next step: try separate pointer locals for each D_8011F4E4/F548/F5AC base so the register allocator reuses $v1 as the target does. Stopped at 4 compiles with no improvement after the tbl change, since the rest looks like scheduling I could not steer with source edits.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794710619.9523861,
-  "score_before": 1185,
-  "score_after": 1185
- },
- {
   "function": "func_8020FC20",
   "text": "Not matched. Best this session 7036 (59.5%), revision 21d3b620bdcd801c33ed (the candidate C as given, compiled once). Historical saved best 2665 is listed as the same source; not reproduced here. Mismatches: target frame is 0x40 with saves ra/s2/s1/s0 at 0x3C..0x30; my build uses frame 0x28 with saves at 0x24..0x18, so the function needs more live locals (the f32 `f`, a0, a2 and the struct base s2 and s0 spill). Target preamble: s2 = &D_8011F2F0 + (u16)a0*100; switch on lhu(s2+0x3E): case 0 sets s2+2 |= 0x8000 and writes 0x10 to s2+0x3E; case 0x10 is the main body. Case 0x10 reads D_8021EEA7[0..8] many times; the target reloads lbu D_8021EEA7 for each index (no CSE across calls), so the struct index expression must be written per use, not cached. Next: give the function a larger frame by making the locals live across calls (e.g. keep D_8021EEA7[0] in a separate variable reloaded after each call), and compare the f32 path at the end (f < 0.0f adds 360.0f).",
   "by": "claude-haiku-5-5-20",
@@ -9990,14 +9982,6 @@
   "created_at": 1794725112.03338,
   "score_before": 2837,
   "score_after": 2837
- },
- {
-  "function": "func_80230960",
-  "text": "Best current 2175 (85.7%) at revision a291313041464f1aca1b (saved best 1185 exists, source not confirmed to be the same). Structure: three nearly identical blocks, each: a = table[ arg0->0x53A / 0x538 / 0x534 ] (u16 tables D_80232880, D_802328A0, D_802328CC); p = base + arg0->2 * 0x64 (bases D_8011F4E4, D_8011F548, D_8011F5AC); if a != 0 store *(p+0x50)->+4 = D_80237740 + a*0xC, t = D_802387D8[a*16 + arg0->0x230] * 16, four f32 copies from D_80237FC8/CC/D0/D4 + t into p+0x18..0x24; else store 0. Remaining: the target loads the p base (lui/addiu D_8011F4E4) before the arg0 field loads, and the array index for D_802387D8 is computed in $v1 with the base addiu; ours uses lui into $at. Swapping p and a first made it worse (2205). Untried: write each block as a helper macro/inline function so the compiler orders loads per block the same way.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794725119.933077,
-  "score_before": 1185,
-  "score_after": 1185
  },
  {
   "function": "func_80216128",
@@ -13142,14 +13126,6 @@
   "created_at": 1794739520.805731,
   "score_before": 65,
   "score_after": 65
- },
- {
-  "function": "func_80230960",
-  "text": "Best rechecked: 2175 (85.7%) at revision a291313041464f1aca1b (the claimed candidate; the historical saved 1185 did not reproduce, so use this as the base). Structure: three identical blocks for D_8011F4E4 / D_8011F548 / D_8011F5AC, each `a = D_802328xx[idx]; p = base + arg0[2]*0x64; if (a) { p[0x50]->+4 = D_80237740 + a*12; t = D_802387D8[a*16 + arg0[0x230]]*16; four f32 copies from D_80237FC8..D_80237FD4 + t } else p[0x50]->+4 = 0`. Target order (checked in the opening): `lhu a0,0x53A(a3); sll a0,1` for the index, then `lhu v1,2(a3)`, then the p base is computed before the branch (a1 = p) and the `lw a0,0x50(a1)` load follows. Tried, no gain: local-repair families (none beat 2175; 'if (a==0)' inversion worse at 5580); a `u16 idx = arg0[2]` local computing p before the a lookup (2205, slightly worse; the reordering is right in principle but gcc keeps the lhu for arg0+0x53A first). Untried: keep p computed before the lookup but with arg0[0x53A] read into a local before p too; or use s16 for the array element.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794739520.9911838,
-  "score_before": 1185,
-  "score_after": 1185
  },
  {
   "function": "func_8020FC20",
@@ -17848,14 +17824,6 @@
   "score_after": 65
  },
  {
-  "function": "func_80230960",
-  "text": "Not matched. Best saved 1185 (historical, same-ish source; current rechecked 2175). Structure is right: three identical blocks (a = table[u16 at arg0+0x53A/0x538/0x534]; p = base + u16(arg0+2)*100; if a: write ptr at *(p+0x50)+4 = D_80237740 + a*12, t = D_802387D8[a*16 + u16(arg0+0x230)]*16, four f32 copies from D_80237FC8/CC/D0/D4 + t into p+0x18..0x24; else write 0). Remaining diff (first row 2): target copies arg0 to $a3 first and issues the three lhu before any compare; candidate reorders the lhu/lui. Persistent mismatch: target materialises D_802387D8 as a register base (lui+addiu %lo into $v1, then addu with index, then lbu 0($v0)); candidate folds it into lbu %lo($at). Tried: direct D[expr], pointer-temp tb=D_802387D8, D+(expr) form; all still fold. Local repairs 6 variants: 5580/2775/2175/2370 (no gain). Untried: a different declaration of D_802387D8 (e.g. as a function-local pointer loaded from a struct field, or an extern with a different element type/size) to stop %lo folding; try declaring the three f32 tables as one struct base. Next: fix D_802387D8 base materialisation first, then the leading arg0 copy / lhu order.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794754202.342617,
-  "score_before": 1185,
-  "score_after": 1185
- },
- {
   "function": "func_802117AC",
   "text": "Not attempted in this session: I stopped here. Starting points: the m2c draft in the claim is structurally plausible (conditional calls to func_800DE41C with a float argument computed from D_8021EEC0+0xC and D_8021DDC0/D_8021DDC8, and the -0.5f/0.5f float stack arg). Check the float-argument order and the stack layout with get_assembly before compiling. Its pointer types for D_8021EEC0 (u8 at +0, +3, s32 at +0xE0) and the D_8021F036 byte table indexed by temp_a0 need fixing.",
   "by": "claude-haiku-5-5-21",
@@ -18758,14 +18726,6 @@
   "created_at": 1794756399.203905,
   "score_before": 6450,
   "score_after": 6450
- },
- {
-  "function": "func_80230960",
-  "text": "Move-on budget exhausted (13/8 compiles without improvement). Best real attempt is revision 55b374f6e5505349d32b, score 1815 (rechecked baseline for the inherited \"saved best\" a291313041464f1aca1b is 2175 with today's header, so the historical 1185 is NOT comparable \u2014 ignore it). Restore with get_candidate(base=\"current\") only after recompiling that source; the 1815 source is: u16 a; u16 i; u8 *p; u8 *q; int t; with `i = *(u16*)(arg0+0x53A); a = D_80232880[i]; p = D_8011F4E4 + *(u16*)(arg0+2)*0x64;` then `if (a != 0) { *(u8**)(*(u8**)(p+0x50)+4) = D_80237740 + a*0xC; q = D_802387D8 + a*0x10; t = q[*(u16*)(arg0+0x230)]*0x10; ...4 float copies... } else { ...=0; }` repeated three times for 0x538/D_802328A0/D_8011F548 and 0x534/D_802328CC/D_8011F5AC.\n\nStructure is confirmed correct: three identical blocks, each `lhu` index, scale-2 array load of the id, `p = base + *(u16*)(arg0+2)*0x64`, `beqz` on the id, then id*0xC into D_80237740 stored to `*(p+0x50)+4`, `D_802387D8 + id*0x10` byte-indexed by `*(u16*)(arg0+0x230)` then <<4 as the float table offset, four lwc1/swc1 to p+0x18/0x1C/0x20/0x24; else store 0. Function is 153 insns, no frame, uses only a0-a3/v0/v1/at/fv0.\n\nRemaining differences (all scheduling/regalloc, ~42 rows):\n1. Target emits `lhu $a0,0x53A($a3)` + `sll $a0,$a0,1` BEFORE `lhu $v1,2($a3)`; the id load must be scheduled first and the scaled index kept in a0 across the p computation. Declaring the index as a separate u16 local and putting its statement first helped (2175\u21921905\u21921815) but gcc still sinks the `lhu` after the 0x64 scaling.\n2. Target orders the p base as `lui $v1,%hi(D_8011F4E4); addiu $v1,$v1,%lo(...)` placed before the `lui $a2,%hi(D_80232880)` id load; mine emits the id load's lui first.\n3. Target does `lw $a0,0x50($a1)` BEFORE the `beqz` and uses `sw $v0,4($a0)`; my `u8 **h = *(u8**)(p+0x50)` hoist produced `lw` after the branch and an extra `sll` (score 2460, worse). Reverting is required; the target's `lw` is simply the branch-delay-slot fill of the `*(p+0x50)` load, so write the nested `*(u8**)(*(u8**)(p+0x50)+4)` form (as in 55b374f6) and do not hoist.\n4. Target keeps the float index in `$v0` and does `sll $v0,$a2,4; addu $v0,$v0,$v1; lhu $v1,0x230($a3); addu $v0,$v0,$v1; lbu $v0,($v0); sll $v0,$v0,4`, i.e. the 0x230 load is scheduled after the table add. My `q = D_802387D8 + a*0x10; t = q[...]` got the lbu form right (that fixed the earlier `lbu %lo(...)($at)`) but the 0x230 load moved earlier.\n5. The `$at` form for the four float tables (`lui $at,%hi / addu $at,$at,$v0 / lwc1 %lo($at)`) already matches.\n6. Score 1185 is unreachable until the above ordering matches; nothing else differs.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794756407.68367,
-  "score_before": 1185,
-  "score_after": 1185
  },
  {
   "function": "func_801632D0",
@@ -23408,14 +23368,6 @@
   "score_after": 1550
  },
  {
-  "function": "func_80230960",
-  "text": "Target 153 insns, best current 2025 (revision 73819cdfcdfd457ba2fd; saved historical 1185 not reproduced from same source). Gains came from declaring tbl = D_802387D8 as u8* and indexing tbl[a*16+arg0[0x230]] (target materializes the table address with lui/addiu into v1 then lbu 0(v0)). Still differs: target re-materializes D_8011F4E4 base (lui/addiu v1) twice more in the later blocks and its beqz target is 2 insns further (0xc4 vs 0xc0 / bytes 10c00022); mine hoists tbl into t0 (extra lui/addiu t0) in some variants. Tried and worse: p computed before a-load, tbl assigned inside if-blocks (2175), single D_802387D8 direct index (2175). Untried: per-block tbl reassign combined with 2025 p ordering, or a u8 *base pointer shared across blocks to force the D_8011F4E4 reload.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794764105.413706,
-  "score_before": 1185,
-  "score_after": 1185
- },
- {
   "function": "func_80139F14",
   "text": "Unattempted. 3732 bytes / 933 insns, switch via jr at line 34 with no jump-table bytes in imported data (jtbl_801830D8 has 0 bytes). Machine draft impossible until the table is provided (memory_regions/overlay). Hand-reading the switch is possible but the function is too large to start blind. Needs the jump table data first.",
   "by": "claude-haiku-5-5-20",
@@ -24502,14 +24454,6 @@
   "created_at": 1794767465.815788,
   "score_before": 2607,
   "score_after": 2607
- },
- {
-  "function": "func_80230960",
-  "text": "Best score 2175 (85.7%) at revision a291313041464f1aca1b (saved best 1185 has the same source text, so the saved entry was scored under a different header). Remaining differences: address materialization and ordering. The target computes the D_8011F4E4 address with lui+addiu after the index, and reads D_802387D8 through lui+addiu+lbu. Yours folds the base into lbu %lo(D_802387D8)($at) and loads D_80232880 earlier. Tried: splitting the table index into a local (t = offset + a*0x10; t = D_802387D8[t]*0x10) in the first block. That gave 2180 and 2185 (revision 6d2e4d88...), both worse than 2175, and the remaining diff reduced to addu operand order ($v0,$v0,$v1 vs $v1,$v0). Next experiment: keep the local index only in the first block and swap the addu operands via a sum written as index_base + offset in the other order, then recheck the three blocks' lbu placement. The three blocks are identical code; a shared helper or a loop over the three (base, state) pairs may fix the order.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794767475.398643,
-  "score_before": 1185,
-  "score_after": 1185
  },
  {
   "function": "func_802191E4",
@@ -40393,5 +40337,70 @@
   "created_at": 1794767310.5968692,
   "score_before": 825,
   "score_after": 825
+ },
+ {
+  "function": "func_80230960",
+  "text": "Best current candidate is revision 73819cdfcdfd457ba2fd at 2025 (86.7%). Saved best 1185 is still lower, so restore saved_best first if you need its source. Leaf function, no frame. Found: the table base D_802387D8 must be a local pointer `u8 *tbl = D_802387D8;` so it is materialized with lui/addiu and not folded into the load (2175 -> 2025). Moving `p` ahead of `a` made it worse (2265), so keep the original order. Remaining diffs are register choice for the table base (lui $t0 here vs $v1 in the target) and the position of the `addu` for the D_8011F4E4 base, which sits after beqz in the target. Next step: try separate pointer locals for each D_8011F4E4/F548/F5AC base so the register allocator reuses $v1 as the target does. Stopped at 4 compiles with no improvement after the tbl change, since the rest looks like scheduling I could not steer with source edits.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794710619.9523861,
+  "score_before": 1185,
+  "score_after": 1185
+ },
+ {
+  "function": "func_80230960",
+  "text": "Best current 2175 (85.7%) at revision a291313041464f1aca1b (saved best 1185 exists, source not confirmed to be the same). Structure: three nearly identical blocks, each: a = table[ arg0->0x53A / 0x538 / 0x534 ] (u16 tables D_80232880, D_802328A0, D_802328CC); p = base + arg0->2 * 0x64 (bases D_8011F4E4, D_8011F548, D_8011F5AC); if a != 0 store *(p+0x50)->+4 = D_80237740 + a*0xC, t = D_802387D8[a*16 + arg0->0x230] * 16, four f32 copies from D_80237FC8/CC/D0/D4 + t into p+0x18..0x24; else store 0. Remaining: the target loads the p base (lui/addiu D_8011F4E4) before the arg0 field loads, and the array index for D_802387D8 is computed in $v1 with the base addiu; ours uses lui into $at. Swapping p and a first made it worse (2205). Untried: write each block as a helper macro/inline function so the compiler orders loads per block the same way.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794725119.933077,
+  "score_before": 1185,
+  "score_after": 1185
+ },
+ {
+  "function": "func_80230960",
+  "text": "Best rechecked: 2175 (85.7%) at revision a291313041464f1aca1b (the claimed candidate; the historical saved 1185 did not reproduce, so use this as the base). Structure: three identical blocks for D_8011F4E4 / D_8011F548 / D_8011F5AC, each `a = D_802328xx[idx]; p = base + arg0[2]*0x64; if (a) { p[0x50]->+4 = D_80237740 + a*12; t = D_802387D8[a*16 + arg0[0x230]]*16; four f32 copies from D_80237FC8..D_80237FD4 + t } else p[0x50]->+4 = 0`. Target order (checked in the opening): `lhu a0,0x53A(a3); sll a0,1` for the index, then `lhu v1,2(a3)`, then the p base is computed before the branch (a1 = p) and the `lw a0,0x50(a1)` load follows. Tried, no gain: local-repair families (none beat 2175; 'if (a==0)' inversion worse at 5580); a `u16 idx = arg0[2]` local computing p before the a lookup (2205, slightly worse; the reordering is right in principle but gcc keeps the lhu for arg0+0x53A first). Untried: keep p computed before the lookup but with arg0[0x53A] read into a local before p too; or use s16 for the array element.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794739520.9911838,
+  "score_before": 1185,
+  "score_after": 1185
+ },
+ {
+  "function": "func_80230960",
+  "text": "Not matched. Best saved 1185 (historical, same-ish source; current rechecked 2175). Structure is right: three identical blocks (a = table[u16 at arg0+0x53A/0x538/0x534]; p = base + u16(arg0+2)*100; if a: write ptr at *(p+0x50)+4 = D_80237740 + a*12, t = D_802387D8[a*16 + u16(arg0+0x230)]*16, four f32 copies from D_80237FC8/CC/D0/D4 + t into p+0x18..0x24; else write 0). Remaining diff (first row 2): target copies arg0 to $a3 first and issues the three lhu before any compare; candidate reorders the lhu/lui. Persistent mismatch: target materialises D_802387D8 as a register base (lui+addiu %lo into $v1, then addu with index, then lbu 0($v0)); candidate folds it into lbu %lo($at). Tried: direct D[expr], pointer-temp tb=D_802387D8, D+(expr) form; all still fold. Local repairs 6 variants: 5580/2775/2175/2370 (no gain). Untried: a different declaration of D_802387D8 (e.g. as a function-local pointer loaded from a struct field, or an extern with a different element type/size) to stop %lo folding; try declaring the three f32 tables as one struct base. Next: fix D_802387D8 base materialisation first, then the leading arg0 copy / lhu order.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794754202.342617,
+  "score_before": 1185,
+  "score_after": 1185
+ },
+ {
+  "function": "func_80230960",
+  "text": "Move-on budget exhausted (13/8 compiles without improvement). Best real attempt is revision 55b374f6e5505349d32b, score 1815 (rechecked baseline for the inherited \"saved best\" a291313041464f1aca1b is 2175 with today's header, so the historical 1185 is NOT comparable \u2014 ignore it). Restore with get_candidate(base=\"current\") only after recompiling that source; the 1815 source is: u16 a; u16 i; u8 *p; u8 *q; int t; with `i = *(u16*)(arg0+0x53A); a = D_80232880[i]; p = D_8011F4E4 + *(u16*)(arg0+2)*0x64;` then `if (a != 0) { *(u8**)(*(u8**)(p+0x50)+4) = D_80237740 + a*0xC; q = D_802387D8 + a*0x10; t = q[*(u16*)(arg0+0x230)]*0x10; ...4 float copies... } else { ...=0; }` repeated three times for 0x538/D_802328A0/D_8011F548 and 0x534/D_802328CC/D_8011F5AC.\n\nStructure is confirmed correct: three identical blocks, each `lhu` index, scale-2 array load of the id, `p = base + *(u16*)(arg0+2)*0x64`, `beqz` on the id, then id*0xC into D_80237740 stored to `*(p+0x50)+4`, `D_802387D8 + id*0x10` byte-indexed by `*(u16*)(arg0+0x230)` then <<4 as the float table offset, four lwc1/swc1 to p+0x18/0x1C/0x20/0x24; else store 0. Function is 153 insns, no frame, uses only a0-a3/v0/v1/at/fv0.\n\nRemaining differences (all scheduling/regalloc, ~42 rows):\n1. Target emits `lhu $a0,0x53A($a3)` + `sll $a0,$a0,1` BEFORE `lhu $v1,2($a3)`; the id load must be scheduled first and the scaled index kept in a0 across the p computation. Declaring the index as a separate u16 local and putting its statement first helped (2175\u21921905\u21921815) but gcc still sinks the `lhu` after the 0x64 scaling.\n2. Target orders the p base as `lui $v1,%hi(D_8011F4E4); addiu $v1,$v1,%lo(...)` placed before the `lui $a2,%hi(D_80232880)` id load; mine emits the id load's lui first.\n3. Target does `lw $a0,0x50($a1)` BEFORE the `beqz` and uses `sw $v0,4($a0)`; my `u8 **h = *(u8**)(p+0x50)` hoist produced `lw` after the branch and an extra `sll` (score 2460, worse). Reverting is required; the target's `lw` is simply the branch-delay-slot fill of the `*(p+0x50)` load, so write the nested `*(u8**)(*(u8**)(p+0x50)+4)` form (as in 55b374f6) and do not hoist.\n4. Target keeps the float index in `$v0` and does `sll $v0,$a2,4; addu $v0,$v0,$v1; lhu $v1,0x230($a3); addu $v0,$v0,$v1; lbu $v0,($v0); sll $v0,$v0,4`, i.e. the 0x230 load is scheduled after the table add. My `q = D_802387D8 + a*0x10; t = q[...]` got the lbu form right (that fixed the earlier `lbu %lo(...)($at)`) but the 0x230 load moved earlier.\n5. The `$at` form for the four float tables (`lui $at,%hi / addu $at,$at,$v0 / lwc1 %lo($at)`) already matches.\n6. Score 1185 is unreachable until the above ordering matches; nothing else differs.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794756407.68367,
+  "score_before": 1185,
+  "score_after": 1185
+ },
+ {
+  "function": "func_80230960",
+  "text": "Target 153 insns, best current 2025 (revision 73819cdfcdfd457ba2fd; saved historical 1185 not reproduced from same source). Gains came from declaring tbl = D_802387D8 as u8* and indexing tbl[a*16+arg0[0x230]] (target materializes the table address with lui/addiu into v1 then lbu 0(v0)). Still differs: target re-materializes D_8011F4E4 base (lui/addiu v1) twice more in the later blocks and its beqz target is 2 insns further (0xc4 vs 0xc0 / bytes 10c00022); mine hoists tbl into t0 (extra lui/addiu t0) in some variants. Tried and worse: p computed before a-load, tbl assigned inside if-blocks (2175), single D_802387D8 direct index (2175). Untried: per-block tbl reassign combined with 2025 p ordering, or a u8 *base pointer shared across blocks to force the D_8011F4E4 reload.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794764105.413706,
+  "score_before": 1185,
+  "score_after": 1185
+ },
+ {
+  "function": "func_80230960",
+  "text": "Best score 2175 (85.7%) at revision a291313041464f1aca1b (saved best 1185 has the same source text, so the saved entry was scored under a different header). Remaining differences: address materialization and ordering. The target computes the D_8011F4E4 address with lui+addiu after the index, and reads D_802387D8 through lui+addiu+lbu. Yours folds the base into lbu %lo(D_802387D8)($at) and loads D_80232880 earlier. Tried: splitting the table index into a local (t = offset + a*0x10; t = D_802387D8[t]*0x10) in the first block. That gave 2180 and 2185 (revision 6d2e4d88...), both worse than 2175, and the remaining diff reduced to addu operand order ($v0,$v0,$v1 vs $v1,$v0). Next experiment: keep the local index only in the first block and swap the addu operands via a sum written as index_base + offset in the other order, then recheck the three blocks' lbu placement. The three blocks are identical code; a shared helper or a loop over the three (base, state) pairs may fix the order.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794767475.398643,
+  "score_before": 1185,
+  "score_after": 1185
+ },
+ {
+  "function": "func_80230960",
+  "text": "Small-model attempt at func_80230960: 16 tries.\n  best 45 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 90 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 1590 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n  best 1815 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 2055 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\nClean rewrite of the three 0x64-stride groups with block-local table pointer. Best: score 45 (profile -O1) with the table address computed as base then +a*16, then lhu offset. Remaining diff: register choice (addu lands in v1 instead of v0; lhu/addu operand order). Tried: block-scoped tab (no compile), explicit integer sum, shift form, offset loaded into a local: none reduced it below 45.",
+  "by": "manual-b22c9bf80e1e4371",
+  "created_at": 1795718641.1841059,
+  "score_before": 675,
+  "score_after": 675,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:2f1d8b9998c68db9713d5cc5452a63f592d74d25dd5bbbc6efd72fa391be3f1d"
  }
 ]
