@@ -3368,14 +3368,6 @@
   "score_after": 1197
  },
  {
-  "function": "func_8014730C",
-  "text": "Deep permuter: score 10524 \u2192 10444; 2 improvements; 47 candidates tested; 1 cached skips; 0 rejected; 7202s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935390",
-  "created_at": 1794349652.634623,
-  "score_before": 10524,
-  "score_after": 10444
- },
- {
   "function": "func_80027BF0",
   "text": "Deep permuter: score 1 \u2192 1; 0 improvements; 197 candidates tested; 92 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934764",
@@ -6190,14 +6182,6 @@
   "created_at": 1794718178.21399,
   "score_before": 36932,
   "score_after": 36932
- },
- {
-  "function": "func_8014730C",
-  "text": "Not compiled. 1508 bytes, a state machine on the u16 at record+0x3E (switch 1: cases 0x0, 0x10, 0x11, 0x12, 0x13, 0x20, 0x30, 0x31, 0xFF), with a nested switch on D_80189B34 (0, 1, 2) in case 0. The m2c draft is structurally plausible but its switch needs a jump-table-friendly form, and its float constants (192.0f, -2.0f, 0.3f, 8.0f, 255.0f) are unverified. Record stride is 0x64 (idx*100 into D_8011F2F0). Next: read the full assembly first, then write the switch cases in order and compile one case group at a time. Same family as func_80140E0C and func_80142C6C.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794718184.936469,
-  "score_before": 10704,
-  "score_after": 10704
  },
  {
   "function": "func_8015C838",
@@ -10024,14 +10008,6 @@
   "score_after": 10092
  },
  {
-  "function": "func_8014730C",
-  "text": "Not attempted beyond reading the machine draft (revision 2775529b5864b31f9d0e). It is a 1508-byte state machine on D_8011F2F0 (stride 0x64, state u16 at +0x3E) with two nested switches on D_80189B34 and the state, goto-heavy m2c control flow, and float state at +0x18/+0x1C/+0x34. Next agent: read the assembly in pages, write the two switches as structured C, and check the float constants (192.0f, -2.0f, 0.3f, 8.0f, 255.0f) against the literal pool order.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794742015.771996,
-  "score_before": 10574,
-  "score_after": 10574
- },
- {
   "function": "func_80233ED0",
   "text": "Not matched. Best 12940 (64.5%) at rev 54bc1dc80f81b5793817 (355 vs 365 insns). Full structure is now in C: init path (v==0: zero 7 entries of D_80237058/D_8023760E/D_80237600/D_80237694/D_80237632, clear D_80236F50/D_8023761C/D_80167E62, set record to 1); process path (v==1) loops i 0..6 over records at D_8022A770 + i*0x8F0 with `u16 i` (u16 index matters: switching s32->u16 gave 26228->21955).\nKey finding: re-deriving the byte address each field access (CR(o)/DR(o) macros that recompute rec + D_8023760E[i]*5) instead of caching rc gave 21955->12940. Keep it.\nRemaining mismatches: (1) the flags path picks D_80236F10 vs D_80236F20 in the other order (target branch layout differs); (2) the counter block's branch layout: target tests 0x562 and the 0x565 reset via separate j-branches; (3) the final `D_80237600[i] = D_8023760E[i]` store and the post-loop j labels. Next: try writing the 0x565 counter as `if (CR(0x565)+1 >= 0x3C)` form, or split the 0x562 `!= 0` check into its own if-block after the else.",
   "by": "claude-haiku-5-5-22",
@@ -11160,14 +11136,6 @@
   "score_after": 24501
  },
  {
-  "function": "func_8014730C",
-  "text": "Progress from a claim that lapsed. Best scored candidate 13e7e9c1876ce1820294 = 10869 (71.1%), from fixing the rec pointer to `(u8 *)&D_8011F2F0 + temp_a0*0x64` (the s32 extern was scaling by 4). Remaining differences: (1) frame 0x60 vs target 0x58 (target saves ra/s1/s0 at 0x50/0x4c/0x48; we get an extra 8 bytes, possibly outgoing args of the 18-arg func_800DE41C call); (2) the target materializes &D_8021E19E into a register (lui/addiu, then sb 0 and sh -2) on each use, whereas M2C_FIELD(&global) folds to %lo; (3) the switch is a binary compare tree on the u16 at rec+0x3E (matching shape); (4) a stray `addiu $v0,$zero,0xff` in ours for `D_80190CA4 = 0xFF`. Untested idea: a `u8 *p19 = (u8 *)&D_8021E19E` local for the case-0 stores to force per-use address materialization.\n\nBest scored revision 13e7e9c1876ce1820294 = 10869 (71.1%). Fix that is in it: the rec pointer is `(u8 *)&D_8011F2F0 + temp_a0*0x64` (with the s32 extern, `temp_a0*0x64 + &D_8011F2F0` scaled by 4). Tried with no effect: u16 temp_a0; a `u8 *p19 = (u8 *)&D_8021E19E` local for the case-0 stores (gcc folds to %lo again, same instructions). Remaining differences: (1) frame 0x60 vs target 0x58 (target saves ra/s1/s0 at 0x50/0x4c/0x48; the outgoing area of the 18-arg func_800DE41C call looks one word too large in ours, or a hidden 8-byte local); (2) target keeps &D_8021E19E in a register via lui/addiu and uses sb 0 / sh -2 from it on each use, which our typed globals never reproduce; (3) rec+0x3E switch is a binary compare tree in both (shape matches); (4) ours has an extra `addiu $v0,$zero,0xff` for D_80190CA4 = 0xFF. Untested: compile_family signedness; check whether the 18-argument call prototype or its arguments affect the frame. Note: the candidate revision changed during this claim (progress-judge), so re-read get_candidate before editing.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794751572.9705338,
-  "score_before": 10574,
-  "score_after": 10574
- },
- {
   "function": "func_802055F8",
   "text": "Best saved score 35038 (~9%), revision 90cb4c44f4cc16913516. Three compiles tried, none better. (1) Pointer-alias locals a/b/c/d: frame 0x38 with s1-s3, target frame 0x18 saving only ra and s0, so the target reloads absolute addresses instead of holding aliases. (2) D_8021B07E as u8 (lbu in target): 35122, worse. (3) Direct global indexing with no aliases: 40012, worse. It introduces f20/f22 double spills (frame 0x28) that the target does not have, so sqrtf/double-temporary structure is wrong. Next steps: get_assembly for the first 40 rows to check whether the target calls sqrtf at all or inlines sqrt, and whether the sqrt/double path is in the case-1 branch only. Then restructure the case-1/case-2 bodies around that. Expect a large rework; the function is 386 insns and not close.",
   "by": "claude-haiku-5-5-24",
@@ -11198,14 +11166,6 @@
   "created_at": 1794751782.033939,
   "score_before": 60,
   "score_after": 60
- },
- {
-  "function": "func_8014730C",
-  "text": "Best scored revision 13e7e9c1876ce1820294 = 10869 (71.1%); current candidate 55b305e6da94618b41a6 has the same instructions. Fix in it: rec pointer is `(u8 *)&D_8011F2F0 + temp_a0*0x64` (the s32 extern made `temp_a0*0x64 + &D_8011F2F0` scale by 4). No effect: u16 or u32 temp_a0 (signedness family); a `u8 *p19 = (u8 *)&D_8021E19E` local for the case-0 stores (gcc folds back to %lo). Remaining: (1) frame 0x60 vs target 0x58 (target saves ra/s1/s0 at 0x50/0x4c/0x48; suspect the 18-argument func_800DE41C outgoing area or a hidden local); (2) target materializes &D_8021E19E into a register (lui/addiu, then sb 0 and sh -2) per use; (3) ours has an extra `addiu $v0,$zero,0xff` for D_80190CA4 = 0xFF. Candidate changed during an earlier claim (progress-judge), so re-read the candidate before editing.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794751948.663605,
-  "score_before": 10574,
-  "score_after": 10574
  },
  {
   "function": "func_801B36F8",
@@ -13544,14 +13504,6 @@
   "score_after": 900
  },
  {
-  "function": "func_8014730C",
-  "text": "Best this session 12359 (67.2%), saved best 10869 (earlier source; restore with get_candidate base=saved_best if needed). Source is a clean switch on F16(s0,0x3E) (states 0x00,0x10,0x11,0x12,0x13,0x20,0x30,0x31,0xFF) with the inner switch on D_80189B34, wrapped by the trailing `D_8021E19E -= 8`. Target frame is -0x58 with ra/s1/s0 saved (3 regs); ours is -0x60 with an extra spill of s1 and an extra temp, so drop the unused `t` in case 0x13 and keep the s0/s1 pair only. Target loads D_8021E19E via `addiu $v0,$v0,%lo(D_8021E19E)` once and reuses the register for `sb` stores; ours re-materializes with lui/%lo each time, so use a local `u8 *eb = (u8*)&D_8021E19E;` and write through it. Ruled out: none beyond this shape. Next: the frame fix first (single local for the bits word), then the address reuse.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794759592.758208,
-  "score_before": 10574,
-  "score_after": 10574
- },
- {
   "function": "func_8020FFD0",
   "text": "Matches at KMC -O1 (exact C submitted via suggest). At the project's -O2 the best is 270 (current candidate). Waiting on the per-unit -O1 profile for code_8020E650; don't spend more compiles at -O2.",
   "by": "claude-opus-medium-1",
@@ -14598,14 +14550,6 @@
   "created_at": 1794762677.313866,
   "score_before": 22805,
   "score_after": 22805
- },
- {
-  "function": "func_8014730C",
-  "text": "Tried the m2c draft with func_8014BAC0 declared s32(s32) (declaring it (void) breaks the call). Score 10869 (71.1%), same as the saved best; no improvement. Frame: target is 0x58 with ra/s1/s0 spilled at 0x50/0x4C/0x48, candidate is 0x60 with an extra s0 spill, so the spill set and the call-argument/return handling need fixing first. Globals: target addresses the D_8021E19E block through one base register (addiu $v0,$v0,%lo(D_8021E19E) then sb/lbu at offsets), i.e. it is probably one struct at 0x8021E19C..0x8021E1A6 (D_8021E19C u16, D_8021E19E u8/s16, D_8021E1A2 s16, D_8021E1A6 s16) and D_80189B34/36/9C9D/80190CA4 are separate; candidate uses separate %hi/%lo per symbol, which is the wrong grouping. Next step: declare that 0x8021E19C block as a struct and redo the switch-case loads from it.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794762716.7267962,
-  "score_before": 10574,
-  "score_after": 10574
  },
  {
   "function": "func_80142C6C",
@@ -41881,5 +41825,70 @@
   "created_at": 1794763175.037072,
   "score_before": 22557,
   "score_after": 22557
+ },
+ {
+  "function": "func_8014730C",
+  "text": "Deep permuter: score 10524 \u2192 10444; 2 improvements; 47 candidates tested; 1 cached skips; 0 rejected; 7202s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935390",
+  "created_at": 1794349652.634623,
+  "score_before": 10524,
+  "score_after": 10444
+ },
+ {
+  "function": "func_8014730C",
+  "text": "Not compiled. 1508 bytes, a state machine on the u16 at record+0x3E (switch 1: cases 0x0, 0x10, 0x11, 0x12, 0x13, 0x20, 0x30, 0x31, 0xFF), with a nested switch on D_80189B34 (0, 1, 2) in case 0. The m2c draft is structurally plausible but its switch needs a jump-table-friendly form, and its float constants (192.0f, -2.0f, 0.3f, 8.0f, 255.0f) are unverified. Record stride is 0x64 (idx*100 into D_8011F2F0). Next: read the full assembly first, then write the switch cases in order and compile one case group at a time. Same family as func_80140E0C and func_80142C6C.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794718184.936469,
+  "score_before": 10704,
+  "score_after": 10704
+ },
+ {
+  "function": "func_8014730C",
+  "text": "Not attempted beyond reading the machine draft (revision 2775529b5864b31f9d0e). It is a 1508-byte state machine on D_8011F2F0 (stride 0x64, state u16 at +0x3E) with two nested switches on D_80189B34 and the state, goto-heavy m2c control flow, and float state at +0x18/+0x1C/+0x34. Next agent: read the assembly in pages, write the two switches as structured C, and check the float constants (192.0f, -2.0f, 0.3f, 8.0f, 255.0f) against the literal pool order.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794742015.771996,
+  "score_before": 10574,
+  "score_after": 10574
+ },
+ {
+  "function": "func_8014730C",
+  "text": "Progress from a claim that lapsed. Best scored candidate 13e7e9c1876ce1820294 = 10869 (71.1%), from fixing the rec pointer to `(u8 *)&D_8011F2F0 + temp_a0*0x64` (the s32 extern was scaling by 4). Remaining differences: (1) frame 0x60 vs target 0x58 (target saves ra/s1/s0 at 0x50/0x4c/0x48; we get an extra 8 bytes, possibly outgoing args of the 18-arg func_800DE41C call); (2) the target materializes &D_8021E19E into a register (lui/addiu, then sb 0 and sh -2) on each use, whereas M2C_FIELD(&global) folds to %lo; (3) the switch is a binary compare tree on the u16 at rec+0x3E (matching shape); (4) a stray `addiu $v0,$zero,0xff` in ours for `D_80190CA4 = 0xFF`. Untested idea: a `u8 *p19 = (u8 *)&D_8021E19E` local for the case-0 stores to force per-use address materialization.\n\nBest scored revision 13e7e9c1876ce1820294 = 10869 (71.1%). Fix that is in it: the rec pointer is `(u8 *)&D_8011F2F0 + temp_a0*0x64` (with the s32 extern, `temp_a0*0x64 + &D_8011F2F0` scaled by 4). Tried with no effect: u16 temp_a0; a `u8 *p19 = (u8 *)&D_8021E19E` local for the case-0 stores (gcc folds to %lo again, same instructions). Remaining differences: (1) frame 0x60 vs target 0x58 (target saves ra/s1/s0 at 0x50/0x4c/0x48; the outgoing area of the 18-arg func_800DE41C call looks one word too large in ours, or a hidden 8-byte local); (2) target keeps &D_8021E19E in a register via lui/addiu and uses sb 0 / sh -2 from it on each use, which our typed globals never reproduce; (3) rec+0x3E switch is a binary compare tree in both (shape matches); (4) ours has an extra `addiu $v0,$zero,0xff` for D_80190CA4 = 0xFF. Untested: compile_family signedness; check whether the 18-argument call prototype or its arguments affect the frame. Note: the candidate revision changed during this claim (progress-judge), so re-read get_candidate before editing.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794751572.9705338,
+  "score_before": 10574,
+  "score_after": 10574
+ },
+ {
+  "function": "func_8014730C",
+  "text": "Best scored revision 13e7e9c1876ce1820294 = 10869 (71.1%); current candidate 55b305e6da94618b41a6 has the same instructions. Fix in it: rec pointer is `(u8 *)&D_8011F2F0 + temp_a0*0x64` (the s32 extern made `temp_a0*0x64 + &D_8011F2F0` scale by 4). No effect: u16 or u32 temp_a0 (signedness family); a `u8 *p19 = (u8 *)&D_8021E19E` local for the case-0 stores (gcc folds back to %lo). Remaining: (1) frame 0x60 vs target 0x58 (target saves ra/s1/s0 at 0x50/0x4c/0x48; suspect the 18-argument func_800DE41C outgoing area or a hidden local); (2) target materializes &D_8021E19E into a register (lui/addiu, then sb 0 and sh -2) per use; (3) ours has an extra `addiu $v0,$zero,0xff` for D_80190CA4 = 0xFF. Candidate changed during an earlier claim (progress-judge), so re-read the candidate before editing.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794751948.663605,
+  "score_before": 10574,
+  "score_after": 10574
+ },
+ {
+  "function": "func_8014730C",
+  "text": "Best this session 12359 (67.2%), saved best 10869 (earlier source; restore with get_candidate base=saved_best if needed). Source is a clean switch on F16(s0,0x3E) (states 0x00,0x10,0x11,0x12,0x13,0x20,0x30,0x31,0xFF) with the inner switch on D_80189B34, wrapped by the trailing `D_8021E19E -= 8`. Target frame is -0x58 with ra/s1/s0 saved (3 regs); ours is -0x60 with an extra spill of s1 and an extra temp, so drop the unused `t` in case 0x13 and keep the s0/s1 pair only. Target loads D_8021E19E via `addiu $v0,$v0,%lo(D_8021E19E)` once and reuses the register for `sb` stores; ours re-materializes with lui/%lo each time, so use a local `u8 *eb = (u8*)&D_8021E19E;` and write through it. Ruled out: none beyond this shape. Next: the frame fix first (single local for the bits word), then the address reuse.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794759592.758208,
+  "score_before": 10574,
+  "score_after": 10574
+ },
+ {
+  "function": "func_8014730C",
+  "text": "Tried the m2c draft with func_8014BAC0 declared s32(s32) (declaring it (void) breaks the call). Score 10869 (71.1%), same as the saved best; no improvement. Frame: target is 0x58 with ra/s1/s0 spilled at 0x50/0x4C/0x48, candidate is 0x60 with an extra s0 spill, so the spill set and the call-argument/return handling need fixing first. Globals: target addresses the D_8021E19E block through one base register (addiu $v0,$v0,%lo(D_8021E19E) then sb/lbu at offsets), i.e. it is probably one struct at 0x8021E19C..0x8021E1A6 (D_8021E19C u16, D_8021E19E u8/s16, D_8021E1A2 s16, D_8021E1A6 s16) and D_80189B34/36/9C9D/80190CA4 are separate; candidate uses separate %hi/%lo per symbol, which is the wrong grouping. Next step: declare that 0x8021E19C block as a struct and redo the switch-case loads from it.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794762716.7267962,
+  "score_before": 10574,
+  "score_after": 10574
+ },
+ {
+  "function": "func_8014730C",
+  "text": "Profile probe: this saved C scores 6961 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (10 of its 12 nearest matched neighbours were built with it), 7990 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721309.4901462,
+  "score_before": 7990,
+  "score_after": 6961,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:008c930e7faaa14fd614d3077ef4c958b168632d6da7d0b4ae45b5a6825f77b5"
  }
 ]
