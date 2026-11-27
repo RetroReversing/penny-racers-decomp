@@ -7088,14 +7088,6 @@
   "score_after": 3125
  },
  {
-  "function": "func_801993D4",
-  "text": "Display-list emitter (arg0 = Gfx** cursor, arg1 = index; elements are 100 bytes). Logic read from asm: st=u16 at F330+idx*100; st==0 -> store 1 and return; st!=1 -> return. Else a=u16 at F32E+D_801C7074*100 selects one of three emitted pairs: F2FC-based (0xFA000000, u8 F2FC[idx]|0xFF00), 0x96969664 variant, and a final (0xF9000000, 1) that always runs last. Tried twice: structured if/goto version (score 10520, saved best 6180 is historical). Mismatch is structural: target computes idx once and keeps arg0 in a2 (move a2,a0 at entry); target's st==0 block sits at the end of the function, and the store-1 path is reached by fall-through. Ours uses different temp regs ($a3) and inverts the branches (sltiu/xori chains from the bool-valued conditions). Next step: express the three conditions as nested ifs (not gotos) so GCC emits the sltiu/bnez layout, and move the st==0 store to the bottom path.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794710879.517546,
-  "score_before": 6180,
-  "score_after": 6180
- },
- {
   "function": "func_8019961C",
   "text": "Saved best 4995 (historical; restore it with get_candidate(base=\"saved_best\") first). Current best candidate is revision 560cd2372f7819c40865 at 8830 (39.5%): nested gotos instead of || chains brought it from 11480 to 8830, and the flow now matches the target's branch chain. Remaining diff: the target recomputes each table address (`D_8011F330 + idx*0x64`, and `D_8011F32E + D_801C7074*0x64`) fresh at every test and reloads the global bytes (lbu D_801C7469, D_801C7AB8, D_801C6B32, D_801C707B) in each block, and it keeps a separate `lui $v1` per access. Ours shares those values through CSE and emits 98 insns against 146. The fix is to make each access an independent expression (for example, re-derive idx from arg1 each time, or use a helper for the table read), not a bigger restructure. Also the first compare is `beqz` on the loaded value with `move $a2,$a0` placed after it; the candidate puts the move first. Stopped after 2 compiles.",
   "by": "claude-haiku-5-5-22",
@@ -10448,14 +10440,6 @@
   "score_after": 4297
  },
  {
-  "function": "func_801993D4",
-  "text": "Not matched. Best this session: 8955 (rev 792af7f59800258d1570). Function is a Gfx display-list emitter: arg0 = u32 **dl (each emitted word pair does *dl += 2), arg1 = index. Control flow recovered: T330[idx] (u16, stride 100 bytes): ==0 -> store 1 and return; !=1 -> return; ==1 -> classify via F32E[D_801C7074*100] (u16) into block19 (0xFA000000, (u8)F2FC[idx*100]|0xFF00), block20 (0xFA000000, 0x96969664), then final (0xF9000000, 1). Findings: (1) the target's address form `lui %hi(T); addu; lhu %lo(T)(reg)` is produced by indexing a byte array `D[off]` with off=(u16)idx*100, not by `(u8*)base + off`; (2) the target recomputes off = D_801C7074*100 for each separate table read in its own block but reuses the same off register for the two reads of F32E inside the first condition (7/6 test); (3) target layout: t==0 test branches forward to the set block, t==1 falls into the big block, and the first instruction after the arg copy is `andi` for the masked index. Variants that lost ground: separate-statement conditions (9145), off-variable reuse (9145), goto-based layout (10525), array indexing (10155). Unresolved: the 146 vs 109-111 instruction gap; the layout of the set-block and the ordering of the 0x6B31/0x7469 tests. Next try: keep the array-index form for T330 only and the (u8*)base form for F32E, and reproduce the andi/sll chain with an explicit (arg1 & 0xFFFF) instead of (u16) cast.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794726981.652311,
-  "score_before": 6180,
-  "score_after": 6180
- },
- {
   "function": "func_80194E60",
   "text": "Not matched. Target has a real stack frame (addiu sp,-0x18; sw ra,0x10(sp)) because it calls func_8014B854(0x3B, arg0, D_801C6BB9); the machine draft's body was dropped in my one compile (scored 16035, 9.4%), so that candidate is useless. Facts: arg0 is u8*, result byte stored via *arg0 at end (var_v0 / var_v0_2); top test D_801C6BB9 < 0x17 (lb, slti); then D_801C7AB0[1]==5. Global reads reload with lui/lb each time between branches (D_801C7062 two bytes at +0/+1, D_801C7068, D_801C6BB9, D_801C7469 lbu). Lookup index (BB9*0x18 + D7068)*2 into a u16 table at D_801C6C10 compared with 0xFFFF. Next pass: rebuild from the target top-down, keeping the frame and the call, one branch per if with fresh global reads.",
   "by": "claude-haiku-5-5-20",
@@ -13678,14 +13662,6 @@
   "created_at": 1794740214.4389381,
   "score_before": 1485,
   "score_after": 1485
- },
- {
-  "function": "func_801993D4",
-  "text": "Not attempted this session (claimed at the end of the session budget). The m2c draft has duplicate case/goto structure and does not compile as is (duplicate case values at lines 34/37 and 53/61 are from its switch). Start from the assembly: the first branch is on the byte at D_8011F330 + (arg1&0xFFFF)*100 (0 sets it to 1 and returns; 1 proceeds; anything else returns). Then the D_801C7074 index chooses a D_8011F32E row, and the display-list words 0xFA000000 / 0x96969664 / 0xF9000000 are written through *arg0 (8-byte stores). Rebuild the goto-flow as explicit if/else from the asm before tuning.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794740217.9779022,
-  "score_before": 6180,
-  "score_after": 6180
  },
  {
   "function": "func_801271A0",
@@ -18536,14 +18512,6 @@
   "score_after": 985
  },
  {
-  "function": "func_801993D4",
-  "text": "Not matched. Saved best 6180 (draft-based, historical). My best rechecked is 9765 (33.1%, revision f1d82a698c9ba283bd59): a goto-structured rewrite of the draft's control flow: state check at D_8011F330[idx*100] (sh 1 when 0; return unless 1); cur = lhu(D_8011F32E + D_801C7074*100); branches block_19 (FA000000 + (u8)D_8011F2FC[idx*100] | 0xFF00) and block_20 (FA000000, 0x96969664); final F9000000,1. Control flow matches the asm (block order and the (u32)cur-7<2 / -9>=2 / -0xF<2 tests). Remaining diffs: the target recomputes idx*100 with a full sll/addu chain and a fresh lui $v1,%hi(sym)+addu+lhu %lo(sym)($v1) for every table access, while mine hoists the address into one register ($a2/$v1 pointer form) and CSEs it; also target keeps the D_801C6B31 test as a separate lbu. Next: spell each symbol access out inline (no shared local), and put the 0xD / (cur-9) test in the same order as the asm (the 0xD test follows the -9 test).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794755248.3031008,
-  "score_before": 6180,
-  "score_after": 6180
- },
- {
   "function": "func_801496B0",
   "text": "Move-on budget exhausted (3/3). Best reproducible: 2555 with revision 5bdc3bd6691503776062 (do-while clear loop + do-while scan loop); saved_best source 77b940766f68b825365b rechecks at 2580, so 2555 is the real baseline. What the target actually is: (1) clear loop is a rotated do-while keeping the INDEX form - `sll $v0,$a3,1` recomputed each iteration with `addu $v0,$v0,$t0` against a base in $t0, count up in $a3, `slti $v0,$a3,0x20`, and the `sll $v0,$a3,1` is duplicated into the bnez delay slot. gcc 2.7.2 refuses to emit this from `for`/`do-while` with an array subscript (it converts to a pointer increment or a downward countdown); I tried for, do-while, while, !=0x20, <=0x1F, 0x20>i, pointer local p[i], and byte-offset *(u16*)((u8*)D_8018A288+i*2) - all equal or worse. This single loop is the biggest remaining block. (2) The scan loop keeps the index in $a3 and the match count in $t0, i.e. `count` is the second induction variable and `i/j` the first - my declaration order gives count in $a3 and i in $t0 (rows 40/48/49). Swapping which variable is incremented in the store path vs the loop tail should fix rows 40-49. (3) Target materialises the row base as `lui $a0,%hi(D_8018D140); addiu $a0,$a0,%lo(D_8018D140)` BEFORE the stride math and keeps the stride product in $v1/$v0 with `sll $v1,$v0,2; addu $v1,$v1,$v0; sll $v0,$v1,4; subu $v0,$v0,$v1; sll $v0,$v0,2; addu $a0,$v0,$a0` - mine loads the base after the product (rows 20-29). Declaring the row pointer before computing the index, or writing `row = D_8018D140; row += (arg0 & 0xFF) * 150;` in two statements, may reorder it. (4) `n = arg2 & 0xFF` must stay a live variable compared with `blez $v0` (row 17) - inlining `(arg2 & 0xFF) > 0` yields `blez $a2`.",
   "by": "api-route-llm-code-1",
@@ -20150,14 +20118,6 @@
   "created_at": 1794758333.206377,
   "score_before": 13956,
   "score_after": 13956
- },
- {
-  "function": "func_801993D4",
-  "text": "Writes GBI display-list words (0xFA000000 primcolor, 0xF9000000 blendcolor) through *arg0 (8 bytes each). Node stride 0x64; state u16 at D_8011F330+idx*0x64 (0 -> set to 1 and return; !=1 -> return). Type u16 at D_8011F32E+D_801C7074*0x64, D_8011F2FC+idx*0x64 supplies the low word. Hand-written version with a use20 flag scored 11650 (worse than saved best 6180). Target reloads D_801C7074 per use and keeps arg0 in a2 via an early move; the target branch layout (beqz to the state==0 block, bne for the ty==6 / 7..8 range checks) was not reproduced. Next: try the m2c-style goto version from the saved best and tune the ty range-check order (ty-7<2 / ty==6 first) and the arg0 register move, rather than the flag form.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794758341.807661,
-  "score_before": 6180,
-  "score_after": 6180
  },
  {
   "function": "func_801604F0",
@@ -25190,14 +25150,6 @@
   "created_at": 1794767972.485607,
   "score_before": 4995,
   "score_after": 4995
- },
- {
-  "function": "func_801993D4",
-  "text": "Display-list builder (N64 gDP commands, 0x64-byte records). Tried 3 structural variants: (a) m2c draft with u8 base arithmetic (10465), (b) early st==0 store then st!=1 return (11100), (c) the draft's control flow with the st==0 test inverted (worse, ~11650). Best saved remains 6180 from the earlier agent. Remaining diffs: target computes idx=(arg1&0xFFFF)*100 once via sll/addu chain and reuses it as the base for the state load, the store and the D_8011F2FC byte load. My compiles recompute the index from scratch and use a separate lui/addiu base register, which the target does not do. Next step: write the idx chain as a single local (s32 idx = (arg1 & 0xFFFF) * 100) and reuse it in all four record accesses, then re-check the 0xF9/0xFA store order. Control flow for the kind (0x32E) tests matches the draft; the D_801C707B/D_801C7AB8 ordering around block_19/block_20 is probably right.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794767975.014849,
-  "score_before": 6180,
-  "score_after": 6180
  },
  {
   "function": "func_80032108",
@@ -40114,5 +40066,69 @@
   "created_at": 1795720589.985993,
   "score_before": 4700,
   "score_after": 4700
+ },
+ {
+  "function": "func_801993D4",
+  "text": "Display-list emitter (arg0 = Gfx** cursor, arg1 = index; elements are 100 bytes). Logic read from asm: st=u16 at F330+idx*100; st==0 -> store 1 and return; st!=1 -> return. Else a=u16 at F32E+D_801C7074*100 selects one of three emitted pairs: F2FC-based (0xFA000000, u8 F2FC[idx]|0xFF00), 0x96969664 variant, and a final (0xF9000000, 1) that always runs last. Tried twice: structured if/goto version (score 10520, saved best 6180 is historical). Mismatch is structural: target computes idx once and keeps arg0 in a2 (move a2,a0 at entry); target's st==0 block sits at the end of the function, and the store-1 path is reached by fall-through. Ours uses different temp regs ($a3) and inverts the branches (sltiu/xori chains from the bool-valued conditions). Next step: express the three conditions as nested ifs (not gotos) so GCC emits the sltiu/bnez layout, and move the st==0 store to the bottom path.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794710879.517546,
+  "score_before": 6180,
+  "score_after": 6180
+ },
+ {
+  "function": "func_801993D4",
+  "text": "Not matched. Best this session: 8955 (rev 792af7f59800258d1570). Function is a Gfx display-list emitter: arg0 = u32 **dl (each emitted word pair does *dl += 2), arg1 = index. Control flow recovered: T330[idx] (u16, stride 100 bytes): ==0 -> store 1 and return; !=1 -> return; ==1 -> classify via F32E[D_801C7074*100] (u16) into block19 (0xFA000000, (u8)F2FC[idx*100]|0xFF00), block20 (0xFA000000, 0x96969664), then final (0xF9000000, 1). Findings: (1) the target's address form `lui %hi(T); addu; lhu %lo(T)(reg)` is produced by indexing a byte array `D[off]` with off=(u16)idx*100, not by `(u8*)base + off`; (2) the target recomputes off = D_801C7074*100 for each separate table read in its own block but reuses the same off register for the two reads of F32E inside the first condition (7/6 test); (3) target layout: t==0 test branches forward to the set block, t==1 falls into the big block, and the first instruction after the arg copy is `andi` for the masked index. Variants that lost ground: separate-statement conditions (9145), off-variable reuse (9145), goto-based layout (10525), array indexing (10155). Unresolved: the 146 vs 109-111 instruction gap; the layout of the set-block and the ordering of the 0x6B31/0x7469 tests. Next try: keep the array-index form for T330 only and the (u8*)base form for F32E, and reproduce the andi/sll chain with an explicit (arg1 & 0xFFFF) instead of (u16) cast.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794726981.652311,
+  "score_before": 6180,
+  "score_after": 6180
+ },
+ {
+  "function": "func_801993D4",
+  "text": "Not attempted this session (claimed at the end of the session budget). The m2c draft has duplicate case/goto structure and does not compile as is (duplicate case values at lines 34/37 and 53/61 are from its switch). Start from the assembly: the first branch is on the byte at D_8011F330 + (arg1&0xFFFF)*100 (0 sets it to 1 and returns; 1 proceeds; anything else returns). Then the D_801C7074 index chooses a D_8011F32E row, and the display-list words 0xFA000000 / 0x96969664 / 0xF9000000 are written through *arg0 (8-byte stores). Rebuild the goto-flow as explicit if/else from the asm before tuning.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794740217.9779022,
+  "score_before": 6180,
+  "score_after": 6180
+ },
+ {
+  "function": "func_801993D4",
+  "text": "Not matched. Saved best 6180 (draft-based, historical). My best rechecked is 9765 (33.1%, revision f1d82a698c9ba283bd59): a goto-structured rewrite of the draft's control flow: state check at D_8011F330[idx*100] (sh 1 when 0; return unless 1); cur = lhu(D_8011F32E + D_801C7074*100); branches block_19 (FA000000 + (u8)D_8011F2FC[idx*100] | 0xFF00) and block_20 (FA000000, 0x96969664); final F9000000,1. Control flow matches the asm (block order and the (u32)cur-7<2 / -9>=2 / -0xF<2 tests). Remaining diffs: the target recomputes idx*100 with a full sll/addu chain and a fresh lui $v1,%hi(sym)+addu+lhu %lo(sym)($v1) for every table access, while mine hoists the address into one register ($a2/$v1 pointer form) and CSEs it; also target keeps the D_801C6B31 test as a separate lbu. Next: spell each symbol access out inline (no shared local), and put the 0xD / (cur-9) test in the same order as the asm (the 0xD test follows the -9 test).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794755248.3031008,
+  "score_before": 6180,
+  "score_after": 6180
+ },
+ {
+  "function": "func_801993D4",
+  "text": "Writes GBI display-list words (0xFA000000 primcolor, 0xF9000000 blendcolor) through *arg0 (8 bytes each). Node stride 0x64; state u16 at D_8011F330+idx*0x64 (0 -> set to 1 and return; !=1 -> return). Type u16 at D_8011F32E+D_801C7074*0x64, D_8011F2FC+idx*0x64 supplies the low word. Hand-written version with a use20 flag scored 11650 (worse than saved best 6180). Target reloads D_801C7074 per use and keeps arg0 in a2 via an early move; the target branch layout (beqz to the state==0 block, bne for the ty==6 / 7..8 range checks) was not reproduced. Next: try the m2c-style goto version from the saved best and tune the ty range-check order (ty-7<2 / ty==6 first) and the arg0 register move, rather than the flag form.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794758341.807661,
+  "score_before": 6180,
+  "score_after": 6180
+ },
+ {
+  "function": "func_801993D4",
+  "text": "Display-list builder (N64 gDP commands, 0x64-byte records). Tried 3 structural variants: (a) m2c draft with u8 base arithmetic (10465), (b) early st==0 store then st!=1 return (11100), (c) the draft's control flow with the st==0 test inverted (worse, ~11650). Best saved remains 6180 from the earlier agent. Remaining diffs: target computes idx=(arg1&0xFFFF)*100 once via sll/addu chain and reuses it as the base for the state load, the store and the D_8011F2FC byte load. My compiles recompute the index from scratch and use a separate lui/addiu base register, which the target does not do. Next step: write the idx chain as a single local (s32 idx = (arg1 & 0xFFFF) * 100) and reuse it in all four record accesses, then re-check the 0xF9/0xFA store order. Control flow for the kind (0x32E) tests matches the draft; the D_801C707B/D_801C7AB8 ordering around block_19/block_20 is probably right.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794767975.014849,
+  "score_before": 6180,
+  "score_after": 6180
+ },
+ {
+  "function": "func_801993D4",
+  "text": "Hand-off of func_801993D4: best None (0 differing rows) in work/g2.c.\n\nRemaining rows (marker | target | candidate):\n\nRegister pairs (explain_regs.py):\n  none\n\nTried (approach: score):\n  - triage only, no compile yet\n\nFindings:\nbranchy display-list writer: four guards on D_8011F330 (a 100-byte table indexed by a1, and D_8011F32E / D_801C7074 mode values), then FA set-prim-colour words written via the display-list pointer (*a2), some with a constant 0x96969664 and one with D_8011F2FC's byte OR 0xFF00. Needs the guard structure written as C with the table reads in place before any attempt",
+  "by": "manual-762503dc128b4f24",
+  "created_at": 1795715062.731192,
+  "score_before": 7545,
+  "score_after": 7545
+ },
+ {
+  "function": "func_801993D4",
+  "text": "[Released without compiling it once; notes not checked by a compile.] Triage only: four table guards and FA display-list words. See hand-off note.",
+  "by": "manual-762503dc128b4f24",
+  "created_at": 1795715063.595777,
+  "score_before": 7545,
+  "score_after": 7545
  }
 ]
