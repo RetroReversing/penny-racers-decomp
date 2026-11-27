@@ -3568,14 +3568,6 @@
   "score_after": 536
  },
  {
-  "function": "func_801669D0",
-  "text": "Deep permuter: score 11943 \u2192 11852; 1 improvements; 21 candidates tested; 104 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935578",
-  "created_at": 1794349629.828877,
-  "score_before": 11943,
-  "score_after": 11852
- },
- {
   "function": "func_8013AE60",
   "text": "Deep permuter: score 965 \u2192 965; 0 improvements; 77 candidates tested; 64 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935316",
@@ -6672,14 +6664,6 @@
   "score_after": 19039
  },
  {
-  "function": "func_801669D0",
-  "text": "Not matched. Best this claim: 17812 (29.3%), 198 vs 252 target insns. Saved best is 11483 (different source); restore it with get_candidate(base=\"saved_best\") before continuing. Why I stopped: the frame and loop shape are wrong, not just registers. Target frame is 0x80 with s0-s5 and ra saved, plus sdc1 f20/f22 at 0x70/0x78. My drafts give 0x88 with extra fp/s6/s7 saves, which means the target has fewer live values across the calls than my nested loop assumes. The loop body is also far from the target: target shows `sll $v0,$s3,3` / `addu $v0,$v0,$s3` / `sll $v0,$v0,4` index chains (about 23 addu and 10 lui of D_8022ACD0) at each access, and mine folds them away. Facts that look solid: arg0->0x898==1 and !(arg0->0x560 & 0x4F) guard; first func_8013E364() result masked to u16, skipped on 0xFFFF; func_800DE41C takes 18 args (0x20/s0 at 0x10/0x14, func_80166DC0 at 0x1C, zeros after); failure path (a1+2 &0xFFFF < 2) calls func_8013E49C; loop stride 0x8F0 on D_8022A772 / D_8022ACD0 / D_8022AED0, exits at s3>=7. Unknown: whether the loop index is a pointer walk (target has no sll of s3 in the inner loop as a multiply) or the float constants (200.0f, 30000.0f, 1.0f) are the same callee args. Next step: read the target instruction-by-instruction (get_assembly paging from offset 52) and rebuild the frame and loop from that, not from the draft. Sibling of func_80166DC0 / func_8016018C in the same unit; check their prototypes first.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794712165.037035,
-  "score_before": 11483,
-  "score_after": 11483
- },
- {
   "function": "func_8016711C",
   "text": "Best verified source is revision e67353f5e94e606e4a5b / 1ab206e2670e5a034e73 (score 7380, 70.4%). Historical 2225 on the m2c draft is NOT comparable: recompiling that exact draft under the current header scores 9280, so ignore it.\n\nWhat works (keep): struct views Obj{h2@2,h560@0x560,f760@0x760,b7D1@0x7D1}, Actor{p4@4,f8@8,fC@0xC,f10@0x10,h14@0x14,h76@0x76}, Racer{f0,f18,f1C,f20,f28,f34,f38,p60} with 0x64 stride, St{h0} for D_8011F32E; float tables indexed with `*25` (0x64 bytes) via `f32 arr[]`; `v = (1.6f - t) * o->f10;` reused for D_8011F328 and D_8011F320 (removes one duplicate mul/add chain); `k = o->p4->h2;` hoisted before the h14==0 block for the D_8011F2F0[k] stores plus D_8011F320[k*25].\n\nRemaining known diffs (151 rows, mostly scheduling/regalloc):\n1) Prologue order: target sw ra,sw s2,sw s1,sw s0 then addu s2,a0; mine emits the stores after the index computation (scheduling).\n2) First address: target keeps the scaled index in $v0 and materializes &D_8011F2F0 in $v1 (`lui v1; addiu v1; addu s1,v0,v1`); mine puts the index in $a0 and the base in $v0. Trying `u8 *rb = (u8*)D_8011F2F0 + (arg0&0xFFFF)*0x64;` and `k` as u16 changed nothing (score 7380). Not solved.\n3) Case 0: target loads o->fC once (`lwc1 ft0,0xC(s0)`) and reuses it for the (10-fC) subtraction and the final add; mine hoists an extra `lwc1 f2,0xC(s0)` above the D_8011F30C add (extra insn at row ~32). Target also emits `swc1 fv1(fv0=30.0f),0xC(s0)` before the 1.0f store; mine orders them differently.\n4) Case 1: target computes t=(fC-20)*0.04 first, then the D_8011F324 address chain (lw 4(s0)/lhu/shifts), then add.s 0.4f, lwc1 f10, mul.s, store; mine schedules the float math before the address chain. Forcing that order (address chain before the float add) is the highest-value remaining experiment.\n5) Tail: target does `lbu v0,0x7D1(v0)` before `lbu v1,%lo(D_80233EC1)`, stores sb, then `jal func_8013AE60` with `andi a0,s2,0xFFFF` in the delay slot; mine emits andi before the jal. Also target reuses $s1 for the r->f0 store.\n\nCompiler/flags untested: only gcc-2.7.2-kmc -O2 tried; try_compiler/search_flags not run.",
   "by": "api-route-llm-code-2",
@@ -9560,14 +9544,6 @@
   "score_after": 2225
  },
  {
-  "function": "func_801669D0",
-  "text": "Not matched. Saved best is 11483 (earlier attempt). My two fresh compiles scored 12601 and 13968 (worse), so the move-on budget ran out. Target: 0x80-byte frame, saves s0-s5 and fs0/fs1; 252 insns. Findings: record stride is 0x8F0 on table D_8022A770 (u16 id at +2, u16 flags at +0x560, f32 at +0x760). D_8018D6C4 is an array of 124-byte entries; the first block stores arg0 there, the loop stores the record pointer D_8022A770+off. Float tables D_8011F308/30C/310/320 are indexed by idx*100. func_800DE41C takes 18 args (float stack slots at 0x24, 0x28, 0x2C, 0x34, 0x3C, 0x40, 0x44). Main problem is register allocation: my versions used extra saved regs (s6/s7/fp) and a bigger frame. Target keeps arg0 in s4, loop index in s3, and computes the stride via sll/addu chains (((i*9)*16-i)*16). Untried: a version that keeps arg0 and i as the only long-lived locals and computes the stride explicitly.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794728125.223528,
-  "score_before": 11483,
-  "score_after": 11483
- },
- {
   "function": "func_800DECCC",
   "text": "Best 8763 (56.8%), not matched. Plateau: three rewrites (local v, explicit `(arg0&0xFFFF)*100` per access, bare u16 `arg0*100`) all give 8763 with identical instructions, so the compiler folds these forms away. Why it can't get closer from here: the target frame is 0x18 (only $ra@0x14 and $s0@0x10 saved) and recomputes `addu $v1,$v1,$v0` (the *100 index) at each of 13 accesses plus `lui $at,%hi(D_8011F304)` 9 times, i.e. no CSE across statements. Mine keeps a 0x38 frame with $s3 saved and loads the arrays through a pointer register. That points to the arrays being accessed through distinct symbols or volatile-ish types in the original, which I could not reproduce. Next agent: try declaring D_8011F2F1, D_8011F300, D_8011F302, D_8011F304 as separate distinct extern u16/u8 symbols per use site, or check whether the 0x7-slot 776-stride store pair uses a different base; try compile_family(branch_orientation) on revision 7d8600e8170b7da116bc.",
   "by": "claude-haiku-5-5-20",
@@ -12294,14 +12270,6 @@
   "created_at": 1794740939.46476,
   "score_before": 7580,
   "score_after": 7580
- },
- {
-  "function": "func_801669D0",
-  "text": "Not attempted in depth. The machine candidate does not compile: it uses undeclared D_8011F308/30C/310/320, D_8022AED0, D_8022A770, and calls func_8013E49C with 2 args (context declares 1-arg u16 form). It also contains goto labels and a loop with computed index (var_v0*8, *0x8F0 stride) that should be rewritten as a clean for-loop over 7 entries. Suggest starting from a clean draft, using the same helper prototypes as func_8015E530 (func_800DE41C with f32 slots, func_8013E818 with 7 s32 args) and the 0x7C/0x64 stride conventions.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794740966.3113291,
-  "score_before": 11483,
-  "score_after": 11483
  },
  {
   "function": "func_801485C8",
@@ -17344,14 +17312,6 @@
   "score_after": 740
  },
  {
-  "function": "func_801669D0",
-  "text": "Best so far 9216 (63.4%), same as saved. Target: 0x80 frame, saves s0-s5, sdc1 $f20/$f22 at 0x70/0x78; arg0 stays in s4 with no copy. Mine: 0x90 frame, arg0 copied to s5/s6, extra s6/s7/fp, so reg pressure is the main gap. Facts worked out: loop stride s3*0x8F0 on D_8022A772 (u16 key), D_8022ACD0 (u16 flags, &0x68 skip, |=8 on hit), D_8022AED0 (f32 += 30000.0f); D_8011F3xx f32 arrays indexed by key*0x64; D_8018D6C4 entries are 0x7C stride, stores arg0 (first call) and s0+&D_8022A770 (loop); 0x55E s16 decrement if >0; the 8013E818 zero-arg call uses sw $zero (integer), while 0x10=200.0f, 0x14=D_8011F320[key*0x64] in the loop-success call. First 800DE41C call has stack 0x20 and then 0 for all slots (integer). Control: 8013E364 result; if &0xFFFF==0xFFFF return; a1=800DE41C; if (u16)(a1+2)<2 call func_8013E49C(s2,a1) and return (shared header declares it with one arg, so call through a cast pointer). Next: try a version where arg0 is kept in one stable local and the loop index is a plain s32 without the s0 temp; check -O1 (search_flags) since the register/stack layout looks scheduling-heavy; the 0x80 frame with fs0/fs1 spill suggests the two float constants 200.0f/30000.0f are held live across the calls.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794758294.520027,
-  "score_before": 11483,
-  "score_after": 9216
- },
- {
   "function": "func_80163A38",
   "text": "Unmatched. Best score 10760 (59.3%, 258 vs 265 insns), revision 983088b086593c2f3fc2. Earlier saved best 11375 (65612265075ea236cc62) is superseded. Remaining differences: target frame is 0x80 and mine is 0xa0 (too many spilled temps across the func_800DE41C / func_8013E640 calls). Target computes the node pointer as idx + &D_8011F2F0 with `addiu $v1,$v1,%lo(D_8011F2F0)` and `addu $s3,$v0,$v1`; mine uses 0x910 folded into a different register. Target loads D_8011F350 twice (lui/addu/lw sequence) and keeps the obj pointer in $s2 across the calls; my version reloads it. Signedness change on temp_v0_5 (s16 to u16) scored worse (11870), so keep s16. Next steps: (1) restructure so `obj` is loaded once and kept live in $s2 across calls; (2) compute the node index once as u16 and derive node = pool + idx*0x64 in one expression; (3) only then tune registers. Not a struct-layout problem with the pool itself: offsets 0x18/0x1C/0x20/0x28/0x30..0x38 on the node and 0x560/0x55E/0x6D4/0x774/0x7C0..0x7C8 on obj were confirmed by the matching instructions.",
   "by": "claude-haiku-5-5-22",
@@ -18326,14 +18286,6 @@
   "created_at": 1794759904.911548,
   "score_before": 10369,
   "score_after": 10369
- },
- {
-  "function": "func_801669D0",
-  "text": "func_801669D0 (1008 bytes, unit code_8015A414), not attempted this session. The m2c draft needs many undeclared externs before it compiles: func_8016711C (a callback address, used with a cast), D_8011F308/30C/310/320, D_8022AED0, D_8022A770, and the func_8013E49C call has too many arguments (declare it as (u16, s32) in context). The func_800DE41C prototype in the draft has 18 parameters and should be checked against its matched neighbours. Start by fixing declarations, then compare the outer control flow (single do/while over 7 slots with stride 0x8F0) against the target assembly.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794759905.292618,
-  "score_before": 9216,
-  "score_after": 9216
  },
  {
   "function": "func_802153C4",
@@ -40943,5 +40895,70 @@
   "created_at": 1795721320.435663,
   "score_before": 18147,
   "score_after": 9196
+ },
+ {
+  "function": "func_801669D0",
+  "text": "Deep permuter: score 11943 \u2192 11852; 1 improvements; 21 candidates tested; 104 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935578",
+  "created_at": 1794349629.828877,
+  "score_before": 11943,
+  "score_after": 11852
+ },
+ {
+  "function": "func_801669D0",
+  "text": "Not matched. Best this claim: 17812 (29.3%), 198 vs 252 target insns. Saved best is 11483 (different source); restore it with get_candidate(base=\"saved_best\") before continuing. Why I stopped: the frame and loop shape are wrong, not just registers. Target frame is 0x80 with s0-s5 and ra saved, plus sdc1 f20/f22 at 0x70/0x78. My drafts give 0x88 with extra fp/s6/s7 saves, which means the target has fewer live values across the calls than my nested loop assumes. The loop body is also far from the target: target shows `sll $v0,$s3,3` / `addu $v0,$v0,$s3` / `sll $v0,$v0,4` index chains (about 23 addu and 10 lui of D_8022ACD0) at each access, and mine folds them away. Facts that look solid: arg0->0x898==1 and !(arg0->0x560 & 0x4F) guard; first func_8013E364() result masked to u16, skipped on 0xFFFF; func_800DE41C takes 18 args (0x20/s0 at 0x10/0x14, func_80166DC0 at 0x1C, zeros after); failure path (a1+2 &0xFFFF < 2) calls func_8013E49C; loop stride 0x8F0 on D_8022A772 / D_8022ACD0 / D_8022AED0, exits at s3>=7. Unknown: whether the loop index is a pointer walk (target has no sll of s3 in the inner loop as a multiply) or the float constants (200.0f, 30000.0f, 1.0f) are the same callee args. Next step: read the target instruction-by-instruction (get_assembly paging from offset 52) and rebuild the frame and loop from that, not from the draft. Sibling of func_80166DC0 / func_8016018C in the same unit; check their prototypes first.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794712165.037035,
+  "score_before": 11483,
+  "score_after": 11483
+ },
+ {
+  "function": "func_801669D0",
+  "text": "Not matched. Saved best is 11483 (earlier attempt). My two fresh compiles scored 12601 and 13968 (worse), so the move-on budget ran out. Target: 0x80-byte frame, saves s0-s5 and fs0/fs1; 252 insns. Findings: record stride is 0x8F0 on table D_8022A770 (u16 id at +2, u16 flags at +0x560, f32 at +0x760). D_8018D6C4 is an array of 124-byte entries; the first block stores arg0 there, the loop stores the record pointer D_8022A770+off. Float tables D_8011F308/30C/310/320 are indexed by idx*100. func_800DE41C takes 18 args (float stack slots at 0x24, 0x28, 0x2C, 0x34, 0x3C, 0x40, 0x44). Main problem is register allocation: my versions used extra saved regs (s6/s7/fp) and a bigger frame. Target keeps arg0 in s4, loop index in s3, and computes the stride via sll/addu chains (((i*9)*16-i)*16). Untried: a version that keeps arg0 and i as the only long-lived locals and computes the stride explicitly.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794728125.223528,
+  "score_before": 11483,
+  "score_after": 11483
+ },
+ {
+  "function": "func_801669D0",
+  "text": "Not attempted in depth. The machine candidate does not compile: it uses undeclared D_8011F308/30C/310/320, D_8022AED0, D_8022A770, and calls func_8013E49C with 2 args (context declares 1-arg u16 form). It also contains goto labels and a loop with computed index (var_v0*8, *0x8F0 stride) that should be rewritten as a clean for-loop over 7 entries. Suggest starting from a clean draft, using the same helper prototypes as func_8015E530 (func_800DE41C with f32 slots, func_8013E818 with 7 s32 args) and the 0x7C/0x64 stride conventions.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794740966.3113291,
+  "score_before": 11483,
+  "score_after": 11483
+ },
+ {
+  "function": "func_801669D0",
+  "text": "Best so far 9216 (63.4%), same as saved. Target: 0x80 frame, saves s0-s5, sdc1 $f20/$f22 at 0x70/0x78; arg0 stays in s4 with no copy. Mine: 0x90 frame, arg0 copied to s5/s6, extra s6/s7/fp, so reg pressure is the main gap. Facts worked out: loop stride s3*0x8F0 on D_8022A772 (u16 key), D_8022ACD0 (u16 flags, &0x68 skip, |=8 on hit), D_8022AED0 (f32 += 30000.0f); D_8011F3xx f32 arrays indexed by key*0x64; D_8018D6C4 entries are 0x7C stride, stores arg0 (first call) and s0+&D_8022A770 (loop); 0x55E s16 decrement if >0; the 8013E818 zero-arg call uses sw $zero (integer), while 0x10=200.0f, 0x14=D_8011F320[key*0x64] in the loop-success call. First 800DE41C call has stack 0x20 and then 0 for all slots (integer). Control: 8013E364 result; if &0xFFFF==0xFFFF return; a1=800DE41C; if (u16)(a1+2)<2 call func_8013E49C(s2,a1) and return (shared header declares it with one arg, so call through a cast pointer). Next: try a version where arg0 is kept in one stable local and the loop index is a plain s32 without the s0 temp; check -O1 (search_flags) since the register/stack layout looks scheduling-heavy; the 0x80 frame with fs0/fs1 spill suggests the two float constants 200.0f/30000.0f are held live across the calls.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794758294.520027,
+  "score_before": 11483,
+  "score_after": 9216
+ },
+ {
+  "function": "func_801669D0",
+  "text": "func_801669D0 (1008 bytes, unit code_8015A414), not attempted this session. The m2c draft needs many undeclared externs before it compiles: func_8016711C (a callback address, used with a cast), D_8011F308/30C/310/320, D_8022AED0, D_8022A770, and the func_8013E49C call has too many arguments (declare it as (u16, s32) in context). The func_800DE41C prototype in the draft has 18 parameters and should be checked against its matched neighbours. Start by fixing declarations, then compare the outer control flow (single do/while over 7 slots with stride 0x8F0) against the target assembly.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794759905.292618,
+  "score_before": 9216,
+  "score_after": 9216
+ },
+ {
+  "function": "func_801669D0",
+  "text": "[Released without compiling it once; notes not checked by a compile.] haiku-pr16, -O1 profile (not applied): clean rewrite with typed Slot arrays and a Obj struct stands at score 1266 (work/func_801669D0_v4.c). Remaining rows are register allocation of the loop (s1 full return vs s2 u16, loop counter, and loop.c hoisting lui D_8018D6C4 into a register the target does not use). Declaration order and a mode local (1751) did not help; an scaled store form was no better. Handed back at 11 judged attempts.",
+  "by": "manual-209d2dfa17f14ee1",
+  "created_at": 1795712830.6320808,
+  "score_before": 2704,
+  "score_after": 2704
+ },
+ {
+  "function": "func_801669D0",
+  "text": "Profile probe: this saved C scores 1230 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (6 of its 9 nearest matched neighbours were built with it), 2704 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721273.274552,
+  "score_before": 2704,
+  "score_after": 1230,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a384df111bc6cc6d4daffde0b9a46a09cf7baa2991ffc46c3a076af6350a88dc"
  }
 ]
