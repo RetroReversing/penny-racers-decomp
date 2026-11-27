@@ -2848,14 +2848,6 @@
   "score_after": 41461
  },
  {
-  "function": "func_8013FE18",
-  "text": "Deep permuter: score 11646 \u2192 11266; 3 improvements; 137 candidates tested; 0 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935356",
-  "created_at": 1794348357.462804,
-  "score_before": 11646,
-  "score_after": 11266
- },
- {
   "function": "func_80031FA0",
   "text": "Deep permuter: score 60 \u2192 60; 0 improvements; 114 candidates tested; 0 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934951",
@@ -6968,14 +6960,6 @@
   "score_after": 7086
  },
  {
-  "function": "func_8013FE18",
-  "text": "Baseline revision 040b39bb9e4154a56fce scores 7191 (target 296 insns, mine 282). Verified facts from diff:\n- Loop tables: stride is 0x8F0 (2288 = 143*16). Target emits `sll $v0,$v0,4` twice and no `addiu ...,0x8f0`, so write the index as ((i*143)<<4) style, i.e. index i*0x8F0 through a byte base but let gcc form it as sll by 4 after multiplying by 143 (D_8022A772 as u16 at i*0x8F0, D_8022AD5C as f32 at i*0x8F0).\n- switch (D_8021E1A6): target has `slti $v0,$v1,2` + `beql` + `addiu $v0,$zero,2` + `beqz $v1` shape => cases 0,1,2,3 fall to one body but gcc wants the case list written 0/1/2/3 with the store; my slti 4 came from writing 4 stacked labels. Try `if ((u32)D_8021E1A6 < 4u)` instead of the switch.\n- Target keeps `sw $zero,0x5ec($s0)` twice (two separate stores at same address, not CSE'd) \u2014 likely two distinct expressions, e.g. p->0x5EC = 0 appearing in two branches.\n- Target stack frame is 0x20, mine 0x28; target reloads D_8006F9E8 once (mine twice) => cache the u16 in a local before the switch.\n- Remaining diff is dominated by regalloc/order; structure (switch on D_8011F32E case 0/1) looks right.\n\nBest verified: revision 34e53928126ee3104839 score 7181 (target 296 insns, mine 283). Improved from 7191 by writing the D_8021E1A6 dispatch as switch with cases 0-3 sharing the 0x8E0 store plus an explicit `default:` that only stores 0x5EC (target has three `sw $zero,0x5EC($s0)` copies: two in branch delay slots, one after the body store).\n\nRemaining structural gaps, in priority order:\n1) Target keeps $s0 = &D_8022DD10 (lui/addiu once) and stores `sw $v0,0x8E0($s0)`, `sw $zero,0x5EC($s0)`, `sh $v0,0x8E4($s0)`. My C folds them to absolute `lui $at,%hi(D_8022E5F0)` / `%hi(D_8022E2FC)`. Need a base pointer gcc will not fold: try a local `u8 *p` fed through a non-constant (e.g. a struct pointer obtained from a global pointer variable, or `p = D_8022DD10 + (arg0 & 0)` style barrier), or declare D_8022DD10 as a struct and take &obj.\n2) Target reloads D_8006F9E8 exactly once (lhu/andi) \u2014 mine loads it 3x. Cache `u16 st = D_8006F9E8 & 0xFFFF;` in a local before the branch.\n3) Target stack frame 0x20 with saves $ra,0x1C/$s2,0x18/$s1,0x14/$s0,0x10; mine 0x28.\n4) D_8021E1A6: target tree is `beq v1,1,body; slti v0,v1,2; beql v0,zero,L2; addiu v0,2; beqz v1,body; j L3; sw 0x5EC; L2: beq v1,2,body; addiu v0,3; bnel v1,v0,L3; sw 0x5EC; body: sw 0x8E0; sw 0x5EC`. Mine emits an extra `bltzl $v1` (negative-range check) that the target lacks \u2014 likely the original switch value was unsigned (u16) or the tree came from a different form; try `switch ((u16)D_8021E1A6)`.\n5) Loop tables: stride 0x8F0 is right; target builds the index as sll 3 / addu / sll 4 / subu (i*0x8F0) and then `sll $a0,$v0,4` for the byte offset \u2014 mine emits `addiu $a2,$a2,0x8f0` increment form. Writing the index as `i * 0x8F0` with a fresh multiply each iteration (no induction variable) should give the sll/subu form; the extra `sll 4` suggests the two tables are indexed with a byte offset computed once (`u8 *off = (u8 *)(i*0x8F0)` then `((u16*)off)[0]` and `((f32*)off)[0]`).\n6) `p->0x5EC = 0` appears twice at the same address (two syntactic copies, not CSE'd).\nCallees used: func_8013E364, func_800DF1E0, func_8013F44C, func_801D7028, func_8022FE50 \u2014 all present in candidate.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794716115.385033,
-  "score_before": 7191,
-  "score_after": 6401
- },
- {
   "function": "func_80192680",
   "text": "Moved on after 8 trials returning previously seen scored instruction diffs. Best source retained.",
   "by": "api-route-llm-code-2",
@@ -9550,14 +9534,6 @@
   "created_at": 1794728380.6501791,
   "score_before": 10236,
   "score_after": 10236
- },
- {
-  "function": "func_8013FE18",
-  "text": "Not compiled in this session. Saved best (historical score 7101, unverified) is a large switch-on-state function: F(D_8011F32E,u16,idx*0x64) dispatch with case 0 (func_8013E364 result != 0xFFFF path) and case 1 (func_8013F44C + func_801D7028 when D_8018D674 != 0). Lots of struct stores into D_800DA26A at 0x8C6..0x8EA and loop over 7 entries of D_8018A280 (stride 0x7C). Next: compile the saved best once to get a current baseline, then check the case-0 store order and the q/p arithmetic against the assembly. Not yet examined further.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794728393.229589,
-  "score_before": 6401,
-  "score_after": 6401
  },
  {
   "function": "func_80134C68",
@@ -12382,14 +12358,6 @@
   "created_at": 1794741642.591369,
   "score_before": 8584,
   "score_after": 8584
- },
- {
-  "function": "func_8013FE18",
-  "text": "Best saved candidate scores 7101 (76%, 283 of 296 insns); start from revision 2f4858a9cf13e884b57c, not the current 6b62598e (8656, worse). Target frame is 0x20: ra, s0, s1, s2 saved, s2 = copy of arg0 saved first, and the gate `if ((D_8006F9E8 & 0xFFFF) != 5)` branches to the function end. The (x)*0x64 indexing is (x*3<<3 + x)<<2, which the draft already produces. The draft's frame is 0x28 with 4 saves, so the first fix is the extra locals (u, q, r, i) spilling. Dropping `u` and inlining the 0.4f store made it worse (8656), so do not repeat that. Still unmatched: the switch on F(D_8011F32E) must test case 0 before case 1 with beqz/beq; p = D_8022DD10 belongs in s0 loaded after the jal; the 7-iteration loop with the 0x67/0x60 stores. Not tried: keeping p in a register with the Rec64 pad struct removed. Reason for release: two further compiles made it worse and the remaining differences are structural (frame and call order), so further local tuning is unlikely to close it.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794741673.794823,
-  "score_before": 6401,
-  "score_after": 6401
  },
  {
   "function": "func_801341C0",
@@ -17320,14 +17288,6 @@
   "score_after": 440
  },
  {
-  "function": "func_8013FE18",
-  "text": "Best 7101 (76%), rev 2f4858a9cf13e884b57c; rev 10c7d6bb8df92361e7eb is equal score. Fixed the two pointer-type warnings (F(p, u8 **, ...) expands to u8***; changed to u8 *). Score unchanged, so this is not the codegen gap. Remaining: target frame 0x20 (saves ra,s2,s1,s0) vs ours 0x28; target computes p=D_8022DD10 before the sh stores to D_800DA26A+0x8c6/0x8c8; target has beqz at 0x68 vs our 0x64. Signedness family on q: no change. Next: restructure the 0x8F0-stride loop (i*0x8F0 indexing) and the switch on D_8021E1A6 to match the target's branch layout; or ask for a second opinion on the first switch's case-fallthrough shape.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794758679.761211,
-  "score_before": 6401,
-  "score_after": 6401
- },
- {
   "function": "func_8014B108",
   "text": "Not matched. Best saved score 5220 (historical, different source). This session's drafts scored 6695-6700 (65.4%) and the signedness family (u32 i) made it worse (7300). Findings: (1) target keeps D_8021E1A2 as a pointer (addiu into $s1, then lh at offsets 0/2/4, plus negative offsets -0xB/-0xD), not repeated indexed global reads; (2) target loads D_80189B34 right after the four register saves, and forms the D_8022A770 base later than my drafts do; (3) target has 6 `sll $v0,$a0,2` index computations and 3 `lb 0x596` reads that the current drafts do not reproduce, so the loop/index shape is wrong, not just registers. The held draft carries leftover __repair_* scaffolding; do not reuse it. Next agent: start from the target assembly (get_assembly) and write the pointer-based form from scratch. Budget note: 4 no-improvement compiles so far, so the move-on limit is not yet reached.",
   "by": "claude-haiku-5-5-20",
@@ -19248,14 +19208,6 @@
   "score_after": 10
  },
  {
-  "function": "func_8013FE18",
-  "text": "Best 7101 (76%), same as the saved attempt; one further compile gave no improvement. The target has a 0x20-byte frame saving ra,s2,s1,s0 and a leading `!= 5` test, while the C produces a 0x28 frame with an extra s2 spill and reloads D_8006F9E8 three times. Likely cause: the first switch on D_8011F32E gets split differently, and the early return path reuses the `r` value across the big block. Next step: restructure so the `!= 5` check and the case-0 path share one load of D_8006F9E8, drop the redundant pointer copy `q`, then fix stack layout before arithmetic. The sequence of F() stores in the case-0 block is not yet verified against the target.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794762024.5348742,
-  "score_before": 6401,
-  "score_after": 6401
- },
- {
   "function": "func_8012745C",
   "text": "1044-byte function, target 261 insns, frame 0xe0 with ra/fp/s0-s7 saved. The m2c draft is unusable as written: it uses a fake union frame (m2c_initial_frame) with sp-offset views, and several view offsets are invented. Real structure visible in asm: arg1 scales the 3 floats at arg0 into a temp vector; three vectors are built from D_8012AB64, D_8012AB4C and the D_8012AB7C/80/84 constants plus that temp; then a sequence of func_80127148(out, a, b) and func_80127030 / func_801270B0 calls with comparisons on the returned value (-1, 1, and equality with a saved temp). Needs a proper local layout of vectors and an accurate call-argument mapping before tuning. A quick stub gave 25493 (not meaningful). Not attempted further this session; recommend a fresh pass that reads the assembly in pages (get_assembly start=52, limit=40, focus=page) and writes the three vector temps as f32[3] locals.",
   "by": "claude-haiku-5-5-24",
@@ -19534,14 +19486,6 @@
   "created_at": 1794762483.5831199,
   "score_before": 336,
   "score_after": 336
- },
- {
-  "function": "func_8013FE18",
-  "text": "Handing back: this session is ending and I could not get closer than the saved best 7101. My stripped rewrite (f30426e528ae59ded59d, 19811) omits most of the target's stores (the D_800DA26A field block at 0x8C6..0x8EA, the D_8011F340[].p pointer stores, the float doubling on the D_8011F2F0 record, the 7-iteration D_8018A280 loop, the 30.0f store at 0x70). Next step for whoever picks this up: restore those stores in F(base, type, off) form and check the loop and the Rec64 stride against the asm before scoring. Check whether the D_8021E1A6 switch is a jump table.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794762489.700931,
-  "score_before": 6401,
-  "score_after": 6401
  },
  {
   "function": "func_8015EC58",
@@ -41004,5 +40948,61 @@
   "created_at": 1794764299.8869069,
   "score_before": 60612,
   "score_after": 56617
+ },
+ {
+  "function": "func_8013FE18",
+  "text": "Deep permuter: score 11646 \u2192 11266; 3 improvements; 137 candidates tested; 0 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935356",
+  "created_at": 1794348357.462804,
+  "score_before": 11646,
+  "score_after": 11266
+ },
+ {
+  "function": "func_8013FE18",
+  "text": "Baseline revision 040b39bb9e4154a56fce scores 7191 (target 296 insns, mine 282). Verified facts from diff:\n- Loop tables: stride is 0x8F0 (2288 = 143*16). Target emits `sll $v0,$v0,4` twice and no `addiu ...,0x8f0`, so write the index as ((i*143)<<4) style, i.e. index i*0x8F0 through a byte base but let gcc form it as sll by 4 after multiplying by 143 (D_8022A772 as u16 at i*0x8F0, D_8022AD5C as f32 at i*0x8F0).\n- switch (D_8021E1A6): target has `slti $v0,$v1,2` + `beql` + `addiu $v0,$zero,2` + `beqz $v1` shape => cases 0,1,2,3 fall to one body but gcc wants the case list written 0/1/2/3 with the store; my slti 4 came from writing 4 stacked labels. Try `if ((u32)D_8021E1A6 < 4u)` instead of the switch.\n- Target keeps `sw $zero,0x5ec($s0)` twice (two separate stores at same address, not CSE'd) \u2014 likely two distinct expressions, e.g. p->0x5EC = 0 appearing in two branches.\n- Target stack frame is 0x20, mine 0x28; target reloads D_8006F9E8 once (mine twice) => cache the u16 in a local before the switch.\n- Remaining diff is dominated by regalloc/order; structure (switch on D_8011F32E case 0/1) looks right.\n\nBest verified: revision 34e53928126ee3104839 score 7181 (target 296 insns, mine 283). Improved from 7191 by writing the D_8021E1A6 dispatch as switch with cases 0-3 sharing the 0x8E0 store plus an explicit `default:` that only stores 0x5EC (target has three `sw $zero,0x5EC($s0)` copies: two in branch delay slots, one after the body store).\n\nRemaining structural gaps, in priority order:\n1) Target keeps $s0 = &D_8022DD10 (lui/addiu once) and stores `sw $v0,0x8E0($s0)`, `sw $zero,0x5EC($s0)`, `sh $v0,0x8E4($s0)`. My C folds them to absolute `lui $at,%hi(D_8022E5F0)` / `%hi(D_8022E2FC)`. Need a base pointer gcc will not fold: try a local `u8 *p` fed through a non-constant (e.g. a struct pointer obtained from a global pointer variable, or `p = D_8022DD10 + (arg0 & 0)` style barrier), or declare D_8022DD10 as a struct and take &obj.\n2) Target reloads D_8006F9E8 exactly once (lhu/andi) \u2014 mine loads it 3x. Cache `u16 st = D_8006F9E8 & 0xFFFF;` in a local before the branch.\n3) Target stack frame 0x20 with saves $ra,0x1C/$s2,0x18/$s1,0x14/$s0,0x10; mine 0x28.\n4) D_8021E1A6: target tree is `beq v1,1,body; slti v0,v1,2; beql v0,zero,L2; addiu v0,2; beqz v1,body; j L3; sw 0x5EC; L2: beq v1,2,body; addiu v0,3; bnel v1,v0,L3; sw 0x5EC; body: sw 0x8E0; sw 0x5EC`. Mine emits an extra `bltzl $v1` (negative-range check) that the target lacks \u2014 likely the original switch value was unsigned (u16) or the tree came from a different form; try `switch ((u16)D_8021E1A6)`.\n5) Loop tables: stride 0x8F0 is right; target builds the index as sll 3 / addu / sll 4 / subu (i*0x8F0) and then `sll $a0,$v0,4` for the byte offset \u2014 mine emits `addiu $a2,$a2,0x8f0` increment form. Writing the index as `i * 0x8F0` with a fresh multiply each iteration (no induction variable) should give the sll/subu form; the extra `sll 4` suggests the two tables are indexed with a byte offset computed once (`u8 *off = (u8 *)(i*0x8F0)` then `((u16*)off)[0]` and `((f32*)off)[0]`).\n6) `p->0x5EC = 0` appears twice at the same address (two syntactic copies, not CSE'd).\nCallees used: func_8013E364, func_800DF1E0, func_8013F44C, func_801D7028, func_8022FE50 \u2014 all present in candidate.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794716115.385033,
+  "score_before": 7191,
+  "score_after": 6401
+ },
+ {
+  "function": "func_8013FE18",
+  "text": "Not compiled in this session. Saved best (historical score 7101, unverified) is a large switch-on-state function: F(D_8011F32E,u16,idx*0x64) dispatch with case 0 (func_8013E364 result != 0xFFFF path) and case 1 (func_8013F44C + func_801D7028 when D_8018D674 != 0). Lots of struct stores into D_800DA26A at 0x8C6..0x8EA and loop over 7 entries of D_8018A280 (stride 0x7C). Next: compile the saved best once to get a current baseline, then check the case-0 store order and the q/p arithmetic against the assembly. Not yet examined further.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794728393.229589,
+  "score_before": 6401,
+  "score_after": 6401
+ },
+ {
+  "function": "func_8013FE18",
+  "text": "Best saved candidate scores 7101 (76%, 283 of 296 insns); start from revision 2f4858a9cf13e884b57c, not the current 6b62598e (8656, worse). Target frame is 0x20: ra, s0, s1, s2 saved, s2 = copy of arg0 saved first, and the gate `if ((D_8006F9E8 & 0xFFFF) != 5)` branches to the function end. The (x)*0x64 indexing is (x*3<<3 + x)<<2, which the draft already produces. The draft's frame is 0x28 with 4 saves, so the first fix is the extra locals (u, q, r, i) spilling. Dropping `u` and inlining the 0.4f store made it worse (8656), so do not repeat that. Still unmatched: the switch on F(D_8011F32E) must test case 0 before case 1 with beqz/beq; p = D_8022DD10 belongs in s0 loaded after the jal; the 7-iteration loop with the 0x67/0x60 stores. Not tried: keeping p in a register with the Rec64 pad struct removed. Reason for release: two further compiles made it worse and the remaining differences are structural (frame and call order), so further local tuning is unlikely to close it.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794741673.794823,
+  "score_before": 6401,
+  "score_after": 6401
+ },
+ {
+  "function": "func_8013FE18",
+  "text": "Best 7101 (76%), rev 2f4858a9cf13e884b57c; rev 10c7d6bb8df92361e7eb is equal score. Fixed the two pointer-type warnings (F(p, u8 **, ...) expands to u8***; changed to u8 *). Score unchanged, so this is not the codegen gap. Remaining: target frame 0x20 (saves ra,s2,s1,s0) vs ours 0x28; target computes p=D_8022DD10 before the sh stores to D_800DA26A+0x8c6/0x8c8; target has beqz at 0x68 vs our 0x64. Signedness family on q: no change. Next: restructure the 0x8F0-stride loop (i*0x8F0 indexing) and the switch on D_8021E1A6 to match the target's branch layout; or ask for a second opinion on the first switch's case-fallthrough shape.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794758679.761211,
+  "score_before": 6401,
+  "score_after": 6401
+ },
+ {
+  "function": "func_8013FE18",
+  "text": "Best 7101 (76%), same as the saved attempt; one further compile gave no improvement. The target has a 0x20-byte frame saving ra,s2,s1,s0 and a leading `!= 5` test, while the C produces a 0x28 frame with an extra s2 spill and reloads D_8006F9E8 three times. Likely cause: the first switch on D_8011F32E gets split differently, and the early return path reuses the `r` value across the big block. Next step: restructure so the `!= 5` check and the case-0 path share one load of D_8006F9E8, drop the redundant pointer copy `q`, then fix stack layout before arithmetic. The sequence of F() stores in the case-0 block is not yet verified against the target.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794762024.5348742,
+  "score_before": 6401,
+  "score_after": 6401
+ },
+ {
+  "function": "func_8013FE18",
+  "text": "Handing back: this session is ending and I could not get closer than the saved best 7101. My stripped rewrite (f30426e528ae59ded59d, 19811) omits most of the target's stores (the D_800DA26A field block at 0x8C6..0x8EA, the D_8011F340[].p pointer stores, the float doubling on the D_8011F2F0 record, the 7-iteration D_8018A280 loop, the 30.0f store at 0x70). Next step for whoever picks this up: restore those stores in F(base, type, off) form and check the loop and the Rec64 stride against the asm before scoring. Check whether the D_8021E1A6 switch is a jump table.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794762489.700931,
+  "score_before": 6401,
+  "score_after": 6401
  }
 ]
