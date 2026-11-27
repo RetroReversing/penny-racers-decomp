@@ -3880,14 +3880,6 @@
   "score_after": 3195
  },
  {
-  "function": "func_801348C8",
-  "text": "Deep permuter: score 15395 \u2192 13145; 5 improvements; 49 candidates tested; 222 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935301",
-  "created_at": 1794356037.741038,
-  "score_before": 15395,
-  "score_after": 13145
- },
- {
   "function": "alSeqSecToTicks",
   "text": "Deep permuter: score 1020 \u2192 735; 1 improvements; 58 candidates tested; 24 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935043",
@@ -7072,14 +7064,6 @@
   "score_after": 4030
  },
  {
-  "function": "func_801348C8",
-  "text": "Not matched. The machine draft's float handling is wrong: it writes the f32 counters at D_8011F334/D_8011F308/D_8011F30C/D_8011F310 with a u32 conversion and 2.1474836e9f branches (m2c's unsigned-float pattern), which my simplified version dropped; that version scored 19895 (target is 232 insns, mine 107). Next: keep the draft's conversion code, and use the state byte at D_8011F32E (stride 100) with a single index variable. The per-state structure is: state 0 bumps the u8 at D_8011F2FC by 8 (saturating at 0xFF) and a counter at D_8011F334, then moves to state 1 when the counter \u22650x79 and D_8011F310 != 0xFF; state 1 and 2 decrement the floats at D_8011F308 (min -80) and D_8011F30C (min -36). Also note the 0x80000000 bit tricks and the \"block_38\" store of var_v0_3 at state 2 (goto target). Start from the draft, not my simplified version.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794712368.2062762,
-  "score_before": 9800,
-  "score_after": 9800
- },
- {
   "function": "func_80232480",
   "text": "Move-on budget exhausted (3/3 without improvement). Rechecked baseline with my source: 11319; saved historical best 2520 (different source/header, not comparable).\n\nTarget structure (230 insns) decoded from get_assembly, all confirmed:\n- prologue saves ra/s1/s0 at 0x50/0x4C/0x48, frame 0x58.\n- func_801FA338(0) FIRST, then D_80203AB0/D_802038D0/D_802038D4 = 0.\n- lui/addiu $s0,%hi/%lo(D_8006FB14+0x4) materialized BEFORE jal func_80231A0C; `sb $zero,($s0)` is the delay slot of that jal; `lhu $a0,-8($s0)` feeds func_8022F780 later. So the byte store at 0x8006FB18 is scheduled into the call's delay slot and the same pointer is reused for the 0x8006FAF0+0x20 lhu. My local-pointer attempts (`p = D_8006FB14 + 4;` declared before the calls, store after func_80231A0C) always produced `lui $at` + `sb %lo(...)($at)` and a separate `lhu %lo(D_8006FAF0+0x20)`, i.e. gcc did not keep the base live. Remaining idea: express the byte and the u16 as members of one local struct/union over D_8006FB14 (e.g. `u8 *p = &D_8006FB14[4];` used for BOTH the store and the load, and force the store to be emitted before func_80231A0C so gcc sinks it into the delay slot), or declare `extern u8 D_8006FAF0[]` and index `*(u16*)(D_8006FAF0+0x20)` so the two bases CSE.\n- Copy loop: target is a 0x34-byte block copy (13 words) with a 4x-unrolled 0x10 loop ending `bne $a2,$t0,.L` + `addiu $a3,$a3,0x10` and a single-word tail; dst = D_8022A778 + i*0x8F0 + j*0x34, src = D_80238EC0 + j*0x34, i<6, j<8. Hand-written 13-iteration s32 loop gave the right 13 words but a rolled 1-word loop. A `typedef struct { u8 b[0x34]; } Blob;` copy produced lwl/lwr/swl/swr misaligned paths (score 12149/12974) \u2014 gcc could not prove 4-alignment because the bases were `u8[]`. Next idea: keep Blob but declare the bases as `extern Blob D_8022A778[]; extern Blob D_80238EC0[];` AND index with `D_8022A778[i*0x8F0/0x34 + j]`-style struct indexing so alignment is known, or use `u32` arrays with a 13-word copy `for (k=0;k<13;k++) dst[k]=src[k];` but with dst/src typed `u32 *` derived from `u32` externs (that gave the correct 13-word tail but rolled loop).\n- Second loop: `func_8022FE50(i,i,i,1)` for i<6 with `andi $a2,$s0,0xFF` before the loop and `andi $a2,$s0,0xFF` in the bnez delay slot \u2014 the induction variable is a u8 promoted, loop bound compared as `sltiu $v0,$v0,6` on `andi $v0,$s0,0xFFFF`. Use `u16 i` and pass `(u8)i`.\n- Six func_800DE41C calls with 18 args; $s1 holds 0x20 across the first four (so 0x20 must be a reused local, e.g. `s32 z = 0x20;`), and $s0 holds &func_8012AD9C across four calls. The 5th call passes 0 for arg5 and &D_802282F0 as arg7; the 6th passes 0xC0/0xFF and &func_8015A728. Then func_80232360(1..5, 0).\n- Note the arg-order detail: target sets `sw $s1,0x10($sp)` etc. i.e. args 9..18 on the stack; my declaration with 18 params matched the layout.\n- Raw address diff at the last rows (target 0x8012AD9C vs 0x8015A728) is only the two different function pointers in the 4th/6th calls being compared out of order; not a real bug.\nNext agent: start from saved_best 2520 for the header/settings it used, and fix the copy loop + the D_8006FB14+4 pointer first; those two account for nearly all remaining differences.",
   "by": "api-route-llm-code-1",
@@ -10104,14 +10088,6 @@
   "score_after": 6793
  },
  {
-  "function": "func_801348C8",
-  "text": "Not matched. Float state machine over a 100-byte-stride table: state u16 at D_8011F32E+i*100 (switch 0/1/2), u8 counters at D_8011F2FC/D_8011F2FD, f32 timers at D_8011F308/30C/310/334, with i = arg0&0xFFFF. Saved best (m2c-based draft, 9800) is the one to start from. A clean rewrite with i hoisted into a local (117 insns, score 16535) is much worse: the target re-computes (arg0 & 0xFFFF)*100 separately at every access (about 25 addu/sll chains) and re-derives the float->u16 conversion inline each time, so the index must stay un-hoisted, written as (arg0 & 0xFFFF) * 0x64 at each use as in the draft. Unfinished: the u16 conversion of the f32 timer (unsigned-compare branch on 2.1474836e9f, then &0xFFFF) still differs; try writing it as the draft does, with the same var_v0/var_v0_2 split, before changing the switch shape.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794728137.929697,
-  "score_before": 9800,
-  "score_after": 9800
- },
- {
   "function": "func_80129FD4",
   "text": "Not matched. Saved best 9180 (earlier attempt, not from me). My fresh rewrite scored 18560 (21.3%, 154 vs 236 insns), so the move-on budget ran out. Structure is now clear: three do-while loops that walk a linked chain. Each loop: store to D_8011F2F2 + idx*100 + (arg2&0xFF)*2 (pass 1 |= 8; passes 2 and 3 &= 0xFFF7), then advance idx by reading a pointer p = *(void**)(D_8011F340 + idx*100) and a u16 field of p (pass 1: +0xA/+0xE, pass 2: +0xA/+0xE, pass 3: +0x8/+0xC), falling back to a second field of the same record when the first is 0xFFFF and toggling t0. Pass 2 breaks when idx == D_80233EC0 + ((u8*)D_801C7AB0)[2] - 1, pass 3 when idx == D_80233EC0; each pass exits when (u16)t1 >= (u16)arg1. Main mismatch: the target re-derives D_8011F340 + idx*100 and reloads the pointer on every use (no CSE across the branches), so the target has ~80 more instructions. Next step: write each pass as its own explicit lookup of the record (one lui/addu/lw per access) and keep arg2 in a register as sll 1.",
   "by": "claude-haiku-5-5-24",
@@ -13046,14 +13022,6 @@
   "created_at": 1794741031.446806,
   "score_before": 6793,
   "score_after": 6793
- },
- {
-  "function": "func_801348C8",
-  "text": "Not matched. Saved best 9800 (m2c-based, from earlier). My hand version (revision b4b22a5412f66c3f8335) scored 12505 (46%), 174 insns vs 232 target. Start from the saved best, not from mine.\n\nConfirmed structure (asm read in full, 251 lines): idx = (arg0&0xFFFF)*100 computed as the target's sll/addu chain (x*2+x)<<3 + x, <<2. mode = u16 at D_8011F32E+idx. Dispatch: mode==1 -> B60; mode==0 -> A; mode==2 -> BDC; else return.\n- mode 1: f=D_8011F308[idx]; if (!(f > -80.0f)) mode=2 (D_8011F32E[idx]=2); else D_8011F308[idx]=f-1.0f.\n- mode 2: f=D_8011F30C[idx]; if (f > -36.0f) D_8011F30C[idx]=f-1.0f; else mode=3 (sh).\n- mode 0: a1=D_8011F2FC[idx]+8 (lbu, addiu); sb a1 if a1<0xFF else sb 0xFF. Then f=D_8011F334[idx]; n = (f>=2^31 ? ((s32)(f-2^31)|0x80000000) : (s32)f) + 1; D_8011F334[idx] = (f32)(n & 0xFFFF). Reload f from D_8011F334[idx]; v = conv(f) & 0xFFFF (conv as above). If v < 0x79 -> return. Else w = conv(D_8011F310[idx]) & 0xFFFF; if w==0xFF {D_8011F2FD[idx]=2; mode=3; return;} else mode=1.\nThe 2^31 constant is 0x4F000000 (2147483648.0f); the branch is bc1tl taken when 2^31 <= f (c.le.s), and -80 is 0xC2A00000, -36 is 0xC2100000, 1.0 is 0x3F800000.\n\nWhy mine failed: gcc hoisted the table address into a register (`lui a0 %hi(D_8011F32E); addiu a0`, then `lhu (a0)`), while the target keeps base+index in `$at` (`lui at; addu at,at,v1; lhu %lo(D)(at)`) recomputed per access. That is the same reload/address-form issue as 8014BCD8: repeated `*(T*)((u8*)&SYM + idx)` expressions are not enough when the index is shared. Writing each access with its own (arg0&0xFFFF)*100 expression did not fix it. Also a 58-instruction gap remains, so one whole conversion or store block is missing.\n\nUntried: write the mode-0 conversions as separate inline statements per access (not a shared f), and match the m2c draft's address expressions exactly.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794741057.6786711,
-  "score_before": 9800,
-  "score_after": 9800
  },
  {
   "function": "func_80129FD4",
@@ -18608,14 +18576,6 @@
   "score_after": 1999
  },
  {
-  "function": "func_801348C8",
-  "text": "Not matched; released at the move-on budget. Best current candidate is revision 5f111114cdd4640d482d at 11075 (signedness variant: `s8 c` instead of `u8 c`), from base b52bcace59a98a3cc95f at 11410. The saved 9800 is from another source and is not reproduced here. Target is 232 insns, no stack frame: a switch on the u16 state at D_8011F32E + i*0x64 with i = arg0&0xFFFF. Each case edits the same 0x64-byte node: u8 at D_8011F2FC (+8, clamped to 0xFF), f32 at D_8011F334 (unsigned float-to-u16 conversion, +1), f32 at D_8011F310 (compared against 0xFF after conversion), f32 at D_8011F308 and D_8011F30C (decremented by 1.0 while > -80 / > -36), and u8 at D_8011F2FD. Writing (arg0&0xFFFF)*0x64 inline at every use matched the target's repeated andi/sll/addu chain better than a local idx (local idx/off regressed to 14305-14770). The F2U16 macro (unsigned conversion) is a guess and did not help. Still differing: target does the index math first and then lui %hi(D_8011F32E) with lhu %lo(...)($at), while the candidate stages the base in $a0 before the index; and the candidate's frame/spill layout is off. Next step: match the switch dispatch shape and the first-case lui/lhu order before touching the float conversion.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794758421.96721,
-  "score_before": 9800,
-  "score_after": 9800
- },
- {
   "function": "func_801B4CF8",
   "text": "Not matched; released at move-on. Best candidate is revision 80e90487b927ce50ba2a at 8880 (62.6%). Its only tried variant (s16 st) scored 9080, worse, so the u16 field stays. The draft did not compile as given (func_801CABF4 called with too few args); the candidate declares it with 12 params. Target: frame 0x38 with ra (0x34) and s0 (0x30) saved; loads D_801C7074 then indexes D_8011F32E by i*100 via shift chain. The 5-argument calls to func_8014A4C8 store the fifth arg (0x17/0x18/0x19/0xB...) to 0x10(sp) before a0..a3 are set, which the candidate orders differently; that call-sequence ordering is the main remaining difference, plus the prologue. Next step: restructure the first call block so the constant 5th arg is assigned to the outgoing slot first, then re-check the diff before touching types. Not tried: typed fifth argument on func_8014A4C8.",
   "by": "claude-haiku-5-5-24",
@@ -19214,14 +19174,6 @@
   "created_at": 1794759517.039171,
   "score_before": 9328,
   "score_after": 9328
- },
- {
-  "function": "func_801348C8",
-  "text": "Not matched. Released with the best candidate still held at 11610 (49.9%, rev 2715e235f71805c26304); the saved best 9800 is an older attempt. The signedness family (v as u32) made it worse (12075). Next: compare the float-to-u16 sequences one by one with last_diff; the target's first conversion (case 0, D_8011F334 + 1) is the likeliest source of the ~50-instruction gap.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794759517.164844,
-  "score_before": 9800,
-  "score_after": 9800
  },
  {
   "function": "func_80233ED0",
@@ -40685,5 +40637,53 @@
   "score_before": 3550,
   "score_after": 3035,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:9be03b3262bde7eb8ec0c705512a5c740519995b2f328473ad1cacd573354f44"
+ },
+ {
+  "function": "func_801348C8",
+  "text": "Deep permuter: score 15395 \u2192 13145; 5 improvements; 49 candidates tested; 222 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935301",
+  "created_at": 1794356037.741038,
+  "score_before": 15395,
+  "score_after": 13145
+ },
+ {
+  "function": "func_801348C8",
+  "text": "Not matched. The machine draft's float handling is wrong: it writes the f32 counters at D_8011F334/D_8011F308/D_8011F30C/D_8011F310 with a u32 conversion and 2.1474836e9f branches (m2c's unsigned-float pattern), which my simplified version dropped; that version scored 19895 (target is 232 insns, mine 107). Next: keep the draft's conversion code, and use the state byte at D_8011F32E (stride 100) with a single index variable. The per-state structure is: state 0 bumps the u8 at D_8011F2FC by 8 (saturating at 0xFF) and a counter at D_8011F334, then moves to state 1 when the counter \u22650x79 and D_8011F310 != 0xFF; state 1 and 2 decrement the floats at D_8011F308 (min -80) and D_8011F30C (min -36). Also note the 0x80000000 bit tricks and the \"block_38\" store of var_v0_3 at state 2 (goto target). Start from the draft, not my simplified version.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794712368.2062762,
+  "score_before": 9800,
+  "score_after": 9800
+ },
+ {
+  "function": "func_801348C8",
+  "text": "Not matched. Float state machine over a 100-byte-stride table: state u16 at D_8011F32E+i*100 (switch 0/1/2), u8 counters at D_8011F2FC/D_8011F2FD, f32 timers at D_8011F308/30C/310/334, with i = arg0&0xFFFF. Saved best (m2c-based draft, 9800) is the one to start from. A clean rewrite with i hoisted into a local (117 insns, score 16535) is much worse: the target re-computes (arg0 & 0xFFFF)*100 separately at every access (about 25 addu/sll chains) and re-derives the float->u16 conversion inline each time, so the index must stay un-hoisted, written as (arg0 & 0xFFFF) * 0x64 at each use as in the draft. Unfinished: the u16 conversion of the f32 timer (unsigned-compare branch on 2.1474836e9f, then &0xFFFF) still differs; try writing it as the draft does, with the same var_v0/var_v0_2 split, before changing the switch shape.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794728137.929697,
+  "score_before": 9800,
+  "score_after": 9800
+ },
+ {
+  "function": "func_801348C8",
+  "text": "Not matched. Saved best 9800 (m2c-based, from earlier). My hand version (revision b4b22a5412f66c3f8335) scored 12505 (46%), 174 insns vs 232 target. Start from the saved best, not from mine.\n\nConfirmed structure (asm read in full, 251 lines): idx = (arg0&0xFFFF)*100 computed as the target's sll/addu chain (x*2+x)<<3 + x, <<2. mode = u16 at D_8011F32E+idx. Dispatch: mode==1 -> B60; mode==0 -> A; mode==2 -> BDC; else return.\n- mode 1: f=D_8011F308[idx]; if (!(f > -80.0f)) mode=2 (D_8011F32E[idx]=2); else D_8011F308[idx]=f-1.0f.\n- mode 2: f=D_8011F30C[idx]; if (f > -36.0f) D_8011F30C[idx]=f-1.0f; else mode=3 (sh).\n- mode 0: a1=D_8011F2FC[idx]+8 (lbu, addiu); sb a1 if a1<0xFF else sb 0xFF. Then f=D_8011F334[idx]; n = (f>=2^31 ? ((s32)(f-2^31)|0x80000000) : (s32)f) + 1; D_8011F334[idx] = (f32)(n & 0xFFFF). Reload f from D_8011F334[idx]; v = conv(f) & 0xFFFF (conv as above). If v < 0x79 -> return. Else w = conv(D_8011F310[idx]) & 0xFFFF; if w==0xFF {D_8011F2FD[idx]=2; mode=3; return;} else mode=1.\nThe 2^31 constant is 0x4F000000 (2147483648.0f); the branch is bc1tl taken when 2^31 <= f (c.le.s), and -80 is 0xC2A00000, -36 is 0xC2100000, 1.0 is 0x3F800000.\n\nWhy mine failed: gcc hoisted the table address into a register (`lui a0 %hi(D_8011F32E); addiu a0`, then `lhu (a0)`), while the target keeps base+index in `$at` (`lui at; addu at,at,v1; lhu %lo(D)(at)`) recomputed per access. That is the same reload/address-form issue as 8014BCD8: repeated `*(T*)((u8*)&SYM + idx)` expressions are not enough when the index is shared. Writing each access with its own (arg0&0xFFFF)*100 expression did not fix it. Also a 58-instruction gap remains, so one whole conversion or store block is missing.\n\nUntried: write the mode-0 conversions as separate inline statements per access (not a shared f), and match the m2c draft's address expressions exactly.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794741057.6786711,
+  "score_before": 9800,
+  "score_after": 9800
+ },
+ {
+  "function": "func_801348C8",
+  "text": "Not matched; released at the move-on budget. Best current candidate is revision 5f111114cdd4640d482d at 11075 (signedness variant: `s8 c` instead of `u8 c`), from base b52bcace59a98a3cc95f at 11410. The saved 9800 is from another source and is not reproduced here. Target is 232 insns, no stack frame: a switch on the u16 state at D_8011F32E + i*0x64 with i = arg0&0xFFFF. Each case edits the same 0x64-byte node: u8 at D_8011F2FC (+8, clamped to 0xFF), f32 at D_8011F334 (unsigned float-to-u16 conversion, +1), f32 at D_8011F310 (compared against 0xFF after conversion), f32 at D_8011F308 and D_8011F30C (decremented by 1.0 while > -80 / > -36), and u8 at D_8011F2FD. Writing (arg0&0xFFFF)*0x64 inline at every use matched the target's repeated andi/sll/addu chain better than a local idx (local idx/off regressed to 14305-14770). The F2U16 macro (unsigned conversion) is a guess and did not help. Still differing: target does the index math first and then lui %hi(D_8011F32E) with lhu %lo(...)($at), while the candidate stages the base in $a0 before the index; and the candidate's frame/spill layout is off. Next step: match the switch dispatch shape and the first-case lui/lhu order before touching the float conversion.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794758421.96721,
+  "score_before": 9800,
+  "score_after": 9800
+ },
+ {
+  "function": "func_801348C8",
+  "text": "Not matched. Released with the best candidate still held at 11610 (49.9%, rev 2715e235f71805c26304); the saved best 9800 is an older attempt. The signedness family (v as u32) made it worse (12075). Next: compare the float-to-u16 sequences one by one with last_diff; the target's first conversion (case 0, D_8011F334 + 1) is the likeliest source of the ~50-instruction gap.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794759517.164844,
+  "score_before": 9800,
+  "score_after": 9800
  }
 ]
