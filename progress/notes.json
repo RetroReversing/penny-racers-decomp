@@ -6608,14 +6608,6 @@
   "score_after": 3506
  },
  {
-  "function": "func_801616C0",
-  "text": "Release now: best 5978 (68.3%) is the inherited draft (revision 7d58219c3cc453d213fb). Two rewrites since then scored worse (10573 with the id*25 indexing). The remaining gap is structural: the target re-loads arg0+2 per access and uses 3*id<<3<<2 index arithmetic, which needs the real array element type for D_8011F308..D_8011F328, not a guessed s32. Next step when someone has that type: fix the array element type, then the 0x7C struct stride for D_8018D6C4/D_8018D727/D_8018D730, then the early-exit branch targets.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794710515.708514,
-  "score_before": 4970,
-  "score_after": 4970
- },
- {
   "function": "func_8014A4C8",
   "text": "Not matched. Saved best 265 is the m2c-style draft (revision 18fc7fe82d5b0c735e52, uses `*(&D_80202484 + arg3*4)` with s32 externs, which is wrong pointer scaling; it is a historical number, not reverified). My typed rewrite (D_80202484 as u8*[], e = base + arg4*22, t = &D_80200300 + arg3*12, entry fields via byte offsets) scores 4520 (75.0%), revision cf011ef7a52eef372a1a. Differences: target sign-extends arg1/arg2 (sll/sra 16) once before the first branch and keeps arg0 in s0 (move s0,a0); my build repeats the sll/sra per call and reloads. Layout: target saves ra/s0 only at 0x54/0x50 and uses a 0x58 frame with 16 stack-arg slots (0x10..0x40) filled from e+0..0x14 and t+0..t+8. The first branch test is (u16)e[0xA] | (u16)e[8] == 0, then arg3<3||arg3==0xD picks func_801CC150 else func_801CCE7C; arg3==0xD (else-if) picks func_801CE3A0 with e+8/e+0xA as s16 args; else func_801CDDB8. Next steps: hoist arg1/arg2 casts into s16 locals once, and use the prototype with s16 for args 2-4 as in the saved draft; check the three callee prototypes against their own functions.",
   "by": "claude-haiku-5-5-20",
@@ -9736,14 +9728,6 @@
   "score_after": 2664
  },
  {
-  "function": "func_801616C0",
-  "text": "Best candidate 5692 (69.8%), revision 3671d43fa6063c9d7489: early-return chain on *(s32*)(arg0+0x898)==1, (u16)arg0[0x560] & 8 and (flags&7)<7; s3=func_8013E364(), s0=s3&0xFFFF, s0==0xFFFF return; v=func_800DE41C(0,0,1,0,0x51,0xFF,&D_80239408,&func_801619B4,0, five f32 table reads, with table index re-read as *(u16*)(arg0+2)*0x64 at EACH use; that re-read is required (target does lhu 2(s2) per load). Then (u16)(v+2)<2 -> func_8013E49C(s0). Else flags=(flags&0xF8)|((flags&7)+1); s1=v&0xFFFF; func_8013E640(s0,s1,arg0,0,0,15.0f,0,0,-0.1f,0,0x3C); byte D_8018D727[s0*0x7C + u16 arg0[4]]=1; D_8018D730[s0*0x7C]=20.0f; D_8018D6C4[s0*0x7C]=arg0; func_801D7028(s1,0x2B); if ((s16)arg0[0x55E]>0) arg0[0x55E]--. Remaining diffs: (1) the frame: target saves only ra,s0..s3 and no fp; mine adds f20 because 15.0f (0x41700000) is CSE'd across func_800DE41C into a callee-saved FP register, while the target reloads the constant with lui/mtc1 each time. Try a shape that prevents that CSE (e.g. the +15.0f added inline in the call args only, or the second 15.0f written in a separate statement). (2) the bne/beqz targets are a different tail (target's shared return at 0x2d8). Untried: restructure as one flat if with no early return so the function's exit is a single join.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794726216.372755,
-  "score_before": 4970,
-  "score_after": 4970
- },
- {
   "function": "func_801FA240",
   "text": "Move-on budget exhausted (3/3 without improvement). Target shape: three component diffs spilled to 0x10/0x14/0x18($sp) with swc1 right after each sub.s, squares summed in $f12 (mul.s $f12,$f12,$f12 / nop / mul.s $f14.. / add.s / mul.s $f0.. / add.s), sqrt.s $f2,$f12, then c.eq.s $f2,$f2 / bc1t over `jal sqrtf` + mov.s $f2,$f0 (i.e. sqrtf(dot) written as a plain call, not __builtin_sqrt), zero test against $f0, div.s $f14,$f14,$f2 (inv kept in $f14), then lwc1/mul.s/swc1 per component and jal func_801F9C8C with f12=d0, f14=d2. Crucially the target uses NO callee-saved float regs (no sdc1/ldc1) \u2014 all live values are stack memory, so the source must use real stack storage (f32 d[3] or sp10/sp14/sp18 locals) and the division operand must be reloaded, not kept in $f20/$f22. Tried: array form (2201, extra mov.s $f12,$f0 after jal sqrtf and different mul order), scalar locals (3131, forces sdc1 $f22 spills), m2c draft with sp10/sp14/sp18 (3131), local repair families float_call_staging/float_argument_bits/float_product_intermediate/plain_float_slots/arithmetic_operand_order/expression_placement (no untried proposals), earlier local_storage/single_use_inline/local_declaration_order all worse. Next: keep the stack-slot form but make the sqrtf argument a plain function call result stored in a local before the zero test, and write the inv scaling as three separate statements reading the slots (inv * d[i] with the slot reloaded) so gcc stays in $f0/$f12/$f14; also try declaring sqrtf as `f32 sqrtf();` (K&R, no prototype) to kill the builtin/mov.s difference.",
   "by": "api-route-llm-code-2",
@@ -12694,14 +12678,6 @@
   "created_at": 1794740055.702157,
   "score_before": 5457,
   "score_after": 5332
- },
- {
-  "function": "func_801616C0",
-  "text": "Still unmatched. Saved best 4427 (rev f34eba4f2835); current candidate 3671d43fa606 scores 5692 (69.8%). Target: frame 0x68, saves $ra,$s3,$s2,$s1,$s0 (no $f20 spill); candidate spills $f20 via sdc1/ldc1 and uses sltiu/beqz where target uses slti/beqz, so the float-argument expression (the 2.0f multiplies and +15.0f) is probably being scheduled into float regs that the target keeps out of callee-saved FPRs. Tried this session: do{}while(0) wrapper removal (no effect), compile_patch no improvement; 3/3 non-improving compiles spent. Next: try a version where the 0x64-scaled table index is computed once into a local (u16 idx) and the f32 loads reuse it; try compile_family(signedness) on rev 3671d43fa606 as suggested by the tool; try moving the s3 assignment so it doesn't need a stack slot. Only the register/stack shape is wrong; control flow matches.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794740076.266577,
-  "score_before": 4427,
-  "score_after": 4427
  },
  {
   "function": "func_80164D00",
@@ -17104,14 +17080,6 @@
   "score_after": 75
  },
  {
-  "function": "func_801616C0",
-  "text": "Not matched. Best this claim: 5692 (69.8%), saved best 4307 (historical, different source). Target 189 insns vs 181. Why release now: the mismatch is the frame and register plan (target frame 0x60 saves ra,s3,s2,s0 with no $f20; mine saves s1 for arg0 and spills a double at 0x60 via sdc1/ldc1 $f20). Fixing that needs the variable set re-derived from the target, not a one-token change. Next agent: keep arg0 in $s2 (target does move $s2,$a0 after the early checks), keep the func_8013E364 result live in s3 through the end, check whether the *2.0f scalings are promoted to double (remove any double temp), and keep the early-return chain order (0x898 != 1, 0x560 & 8, (0x560&7)<7), which already matches. The tail is the 0x55E > 0 decrement guard.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794754642.595985,
-  "score_before": 4307,
-  "score_after": 4307
- },
- {
   "function": "func_80209AEC",
   "text": "Not matched, best 665 (83.7%, 41 insns each). Loop over 12 records with a 0x24 stride. Stores: D_80221080=0, D_80221084=0, D_80221088=50.0f, D_8022108C/90/94/98=0, D_8022109C=1.0f, D_802210A0=0. Structure matches except the loop tail: target computes off=i<<3 in the bnel delay slot (branch-likely), and mine has an extra 'move $a0,$zero' and a plain bnez; register naming differs (target keeps i in $v1 and off in $v0). Declaring the loop counter before the offset did not change the score. Untried: a for-loop with the (i<<3)+i<<2 offset expression, or a branch-likely-friendly loop with the shift placed after i++.",
   "by": "claude-haiku-5-5-21",
@@ -17958,14 +17926,6 @@
   "created_at": 1794756787.112897,
   "score_before": 4170,
   "score_after": 4170
- },
- {
-  "function": "func_801616C0",
-  "text": "Stopping this session. Best current 5692 (69.8%, rev a0f12a0d2ee8af52493e); the `(flags&7)>=7` rewrite (rev dfac9c0268ed64e75ab6) had no effect. Target saves ra/s0-s3 with arg0 kept in s2 and frame 0x68 (ours saves s1 with arg0 copy, sdc1 $f20 frame slot, and the sltiu/beqz early exit). Structural gap: the target's first statements load 0x898 from s2 (arg0 not copied to s1 before the early-exit tests). Next agent: try moving the `*(s32*)(arg0+0x898)` test before any other use, and check whether the store to D_8018D727 needs a u8 pointer cast in the same expression as the s0 computation.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794756787.219168,
-  "score_before": 4307,
-  "score_after": 4307
  },
  {
   "function": "func_80211F14",
@@ -23086,14 +23046,6 @@
   "created_at": 1794767855.822549,
   "score_before": 1,
   "score_after": 0
- },
- {
-  "function": "func_801616C0",
-  "text": "Not matched. Best 4307 (77.2%), revision 4730d2fa9a1c99db9aba. Clean rewrite of the m2c draft with declarations fixed; func_8013E49C is from context, not redeclared. Target frame: ra at 0x60, s3 at 0x5c, s2 at 0x58, s1 at 0x54, s0 at 0x50, and `move $s2,$a0` after the first call (arg0 is held in s2 across calls). Ours keeps arg0 in s1 and saves a double f20 at 0x60 that the target does not have, so the double comes from a float-to-double promotion or a 2.0f/-0.1f operand that the target does not keep live. Next: try unprototyped func_8013E640 (float args as doubles) or move the `-0.1f`/15.0f literals inline, and make arg0 used through a second local so it lands in s2.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794767866.310037,
-  "score_before": 4307,
-  "score_after": 4307
  },
  {
   "function": "func_801E1C38",
@@ -40667,5 +40619,62 @@
   "created_at": 1794759696.51362,
   "score_before": 5938,
   "score_after": 5938
+ },
+ {
+  "function": "func_801616C0",
+  "text": "Release now: best 5978 (68.3%) is the inherited draft (revision 7d58219c3cc453d213fb). Two rewrites since then scored worse (10573 with the id*25 indexing). The remaining gap is structural: the target re-loads arg0+2 per access and uses 3*id<<3<<2 index arithmetic, which needs the real array element type for D_8011F308..D_8011F328, not a guessed s32. Next step when someone has that type: fix the array element type, then the 0x7C struct stride for D_8018D6C4/D_8018D727/D_8018D730, then the early-exit branch targets.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794710515.708514,
+  "score_before": 4970,
+  "score_after": 4970
+ },
+ {
+  "function": "func_801616C0",
+  "text": "Best candidate 5692 (69.8%), revision 3671d43fa6063c9d7489: early-return chain on *(s32*)(arg0+0x898)==1, (u16)arg0[0x560] & 8 and (flags&7)<7; s3=func_8013E364(), s0=s3&0xFFFF, s0==0xFFFF return; v=func_800DE41C(0,0,1,0,0x51,0xFF,&D_80239408,&func_801619B4,0, five f32 table reads, with table index re-read as *(u16*)(arg0+2)*0x64 at EACH use; that re-read is required (target does lhu 2(s2) per load). Then (u16)(v+2)<2 -> func_8013E49C(s0). Else flags=(flags&0xF8)|((flags&7)+1); s1=v&0xFFFF; func_8013E640(s0,s1,arg0,0,0,15.0f,0,0,-0.1f,0,0x3C); byte D_8018D727[s0*0x7C + u16 arg0[4]]=1; D_8018D730[s0*0x7C]=20.0f; D_8018D6C4[s0*0x7C]=arg0; func_801D7028(s1,0x2B); if ((s16)arg0[0x55E]>0) arg0[0x55E]--. Remaining diffs: (1) the frame: target saves only ra,s0..s3 and no fp; mine adds f20 because 15.0f (0x41700000) is CSE'd across func_800DE41C into a callee-saved FP register, while the target reloads the constant with lui/mtc1 each time. Try a shape that prevents that CSE (e.g. the +15.0f added inline in the call args only, or the second 15.0f written in a separate statement). (2) the bne/beqz targets are a different tail (target's shared return at 0x2d8). Untried: restructure as one flat if with no early return so the function's exit is a single join.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794726216.372755,
+  "score_before": 4970,
+  "score_after": 4970
+ },
+ {
+  "function": "func_801616C0",
+  "text": "Still unmatched. Saved best 4427 (rev f34eba4f2835); current candidate 3671d43fa606 scores 5692 (69.8%). Target: frame 0x68, saves $ra,$s3,$s2,$s1,$s0 (no $f20 spill); candidate spills $f20 via sdc1/ldc1 and uses sltiu/beqz where target uses slti/beqz, so the float-argument expression (the 2.0f multiplies and +15.0f) is probably being scheduled into float regs that the target keeps out of callee-saved FPRs. Tried this session: do{}while(0) wrapper removal (no effect), compile_patch no improvement; 3/3 non-improving compiles spent. Next: try a version where the 0x64-scaled table index is computed once into a local (u16 idx) and the f32 loads reuse it; try compile_family(signedness) on rev 3671d43fa606 as suggested by the tool; try moving the s3 assignment so it doesn't need a stack slot. Only the register/stack shape is wrong; control flow matches.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794740076.266577,
+  "score_before": 4427,
+  "score_after": 4427
+ },
+ {
+  "function": "func_801616C0",
+  "text": "Not matched. Best this claim: 5692 (69.8%), saved best 4307 (historical, different source). Target 189 insns vs 181. Why release now: the mismatch is the frame and register plan (target frame 0x60 saves ra,s3,s2,s0 with no $f20; mine saves s1 for arg0 and spills a double at 0x60 via sdc1/ldc1 $f20). Fixing that needs the variable set re-derived from the target, not a one-token change. Next agent: keep arg0 in $s2 (target does move $s2,$a0 after the early checks), keep the func_8013E364 result live in s3 through the end, check whether the *2.0f scalings are promoted to double (remove any double temp), and keep the early-return chain order (0x898 != 1, 0x560 & 8, (0x560&7)<7), which already matches. The tail is the 0x55E > 0 decrement guard.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794754642.595985,
+  "score_before": 4307,
+  "score_after": 4307
+ },
+ {
+  "function": "func_801616C0",
+  "text": "Stopping this session. Best current 5692 (69.8%, rev a0f12a0d2ee8af52493e); the `(flags&7)>=7` rewrite (rev dfac9c0268ed64e75ab6) had no effect. Target saves ra/s0-s3 with arg0 kept in s2 and frame 0x68 (ours saves s1 with arg0 copy, sdc1 $f20 frame slot, and the sltiu/beqz early exit). Structural gap: the target's first statements load 0x898 from s2 (arg0 not copied to s1 before the early-exit tests). Next agent: try moving the `*(s32*)(arg0+0x898)` test before any other use, and check whether the store to D_8018D727 needs a u8 pointer cast in the same expression as the s0 computation.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794756787.219168,
+  "score_before": 4307,
+  "score_after": 4307
+ },
+ {
+  "function": "func_801616C0",
+  "text": "Not matched. Best 4307 (77.2%), revision 4730d2fa9a1c99db9aba. Clean rewrite of the m2c draft with declarations fixed; func_8013E49C is from context, not redeclared. Target frame: ra at 0x60, s3 at 0x5c, s2 at 0x58, s1 at 0x54, s0 at 0x50, and `move $s2,$a0` after the first call (arg0 is held in s2 across calls). Ours keeps arg0 in s1 and saves a double f20 at 0x60 that the target does not have, so the double comes from a float-to-double promotion or a 2.0f/-0.1f operand that the target does not keep live. Next: try unprototyped func_8013E640 (float args as doubles) or move the `-0.1f`/15.0f literals inline, and make arg0 used through a second local so it lands in s2.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794767866.310037,
+  "score_before": 4307,
+  "score_after": 4307
+ },
+ {
+  "function": "func_801616C0",
+  "text": "Profile probe: this saved C scores 1380 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (8 of its 12 nearest matched neighbours were built with it), 2235 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721239.824893,
+  "score_before": 2235,
+  "score_after": 1380,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a7bf99eb4a625ff12b7489cbeba2483ce0850861f55a1e8c01aa3796192a999b"
  }
 ]
