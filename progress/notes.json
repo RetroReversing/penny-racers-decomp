@@ -6496,14 +6496,6 @@
   "score_after": 169542
  },
  {
-  "function": "func_801BFA1C",
-  "text": "5856-byte m2c draft, no match. Compile errors in the draft: (1) sp48 undeclared (fixed by declaring u16 sp48[4]); (2) func.c:185 \"too few arguments to func_800DE41C\": the draft's prototype has 18 params and most calls pass 18 args, but the last call `sp4E = func_800DE41C(0, var_a1_2, 2, 0);` passes 4. Either that call is a different function or the prototype is wrong; resolve with find_similar / callee declarations before tuning. Structure: loop of 4 zeroing u16 sp48[]; a table at D_801C7470-style stride 5 indexed by (arg0&0xFF)*5 with bytes D_801C7081..84 and a switch on D_801C7469 (0/1/2/3) and on a byte from that table; 4-way calls to func_800DE41C, then final loop writing D_801C7470 + idx*8 and |=0x28 into D_8011F2F4 + val*0x64. Next steps: nail the func_800DE41C signature, then split the big if-tree into the 4 variants (0x2A/0x58, 0x2B/0x59, 0x2C/0x5A, 0x2D/0x5B pairs and the 5/0x33 and 0x2E/0 branches) and match one variant at a time.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794719796.746885,
-  "score_before": null,
-  "score_after": null
- },
- {
   "function": "func_8014F5A8",
   "text": "Compiled this session: revision 075e252709bc7dedf089 scores 144443 (6.7%), worse than the saved best 59841 (use get_candidate(base=\"saved_best\") to restore that starting point). The function is 6196 bytes: a straight-line run of about 60 func_800DE41C setup calls with D_8016BAE0 offsets in 0x10 steps, plus callbacks func_8013AE60 / func_8014F3B0 / func_8014F43C / func_8014F55C. Main blocker: the draft passes float arguments as raw hex ints (0x42960000, 0xC4160000, 0x40A47AE1, ...). The target builds each one with lui $at + mtc1 into $f20/$f22 or with lui/ori into a GPR and then stores via swc1 0x28($sp), and it spills fs regs (sdc1 $f30/$f20 at 0x90/0x78). Frame is -0x98 with sw $ra at 0x60 and the target's stack args go through swc1. Next steps: (1) decode each hex word to its float value and verify the bit pattern round-trips; (2) make the float slots f32 in the prototype; (3) restore the saved_best candidate and compile the batch. Also the target's per-call stack args are floats, so the call order (sw vs swc1) follows from the prototype. Multi-session; the float decode is about 200 values and was not done.",
   "by": "claude-haiku-5-5-24",
@@ -9768,14 +9760,6 @@
   "score_after": null
  },
  {
-  "function": "func_801BFA1C",
-  "text": "Not attempted (no compile). m2c draft only fails because sp48 undeclared: declare `u16 sp48[4]` (sp4A/4C/4E are its elements [1..3]) and the draft should compile; func_800DE41C is variadic-ish (called with 4 args at the end: func_800DE41C(0, idx, 2, 0)).",
-  "by": "claude-opus-medium-1",
-  "created_at": 1794739000.3826501,
-  "score_before": null,
-  "score_after": null
- },
- {
   "function": "main",
   "text": "Matched with `s32 n = 0; if (0) { u8 buf[n]; buf[0] = 1; }` \u2014 a dead VLA block forces the 8-byte frame adjustment (addiu sp,sp,-8 / addiu sp,sp,8) that the target has. A plain VLA declaration alone or alloca() did not match.",
   "by": "api-route-llm-code-2",
@@ -11630,14 +11614,6 @@
   "created_at": 1794752620.92065,
   "score_before": 57183,
   "score_after": 57183
- },
- {
-  "function": "func_801BFA1C",
-  "text": "Not compiled in this session. The m2c draft is a 5856-byte function, and it does not compile: `sp48` is undeclared. Its local array is the four u16 values written to D_801C7470 and the 0xFFFF init loop. The body is a chain of branches on D_801C5E9D and on the byte at D_801C7084 + idx*5, each calling func_800DE41C four times with 0.5f scaled positions. Next: declare `u16 sp48[4]` and the sp4A/sp4C/sp4E slots as one array, read the assembly for the frame size and the branch order, and fix the call-argument count to 18. Do not start from the m2c goto structure; rewrite it as if/else.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794752652.035743,
-  "score_before": 125388,
-  "score_after": 125388
  },
  {
   "function": "func_80127AB0",
@@ -14696,14 +14672,6 @@
   "score_after": 57183
  },
  {
-  "function": "func_801BFA1C",
-  "text": "Stopping now: the candidate does not compile (revision e65257f4f90a7f482fa3). Fixes needed before any diff: (1) declare `u16 sp48[4];` (added in the patch, OK). (2) The 4-arg call `sp4E = func_800DE41C(0, var_a1_2, 2, 0)` at about line 185 has the wrong arity for the 18-param prototype; I have not verified its real signature. Until both are fixed there is no diff to read, so I cannot get closer within this session. Structure from the m2c draft: 4-slot 0xFFFF init loop; D_801C5E9D==5 branch with six type-code pairs (0/0x2E, 5/0x33, 0x2A/0x58, 0x2B/0x59, 0x2C/0x5A, 0x2D/0x5B) each emitting three func_800DE41C calls; final loop writes D_801C7470 and ORs 0x28 into D_8011F2F4 records. Next session: fix the call arity via the brief or find_similar, then compile_and_diff the whole function and check frame and float constants (0.5f scaling, +-196, +-116, 400.0f).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794761747.3677812,
-  "score_before": 125388,
-  "score_after": 125388
- },
- {
   "function": "func_8014F5A8",
   "text": "Not matched. The saved machine draft (revision 075e252709bc7dedf089) rechecks at score 144443, far from 0. The function is about 60 straight-line calls to func_800DE41C, each with three float-like arguments passed as hex bit patterns (e.g. 0x42960000, 0xC4160000) and trailing 1.0f/0.8f values. Those hex values sit in integer-typed slots, while the prototype declares the last three params as f32. Next step: rewrite the call table with the float slots typed as f32 and the constants as real float literals, then compile_and_diff the whole function to check the register/arg layout. Local-repair families (global_scalar_type, global_address_table, call_one_shot_scope) are untried. The function is large, so do not expect a quick match.",
   "by": "claude-haiku-5-5-22",
@@ -15272,14 +15240,6 @@
   "score_after": 35038
  },
  {
-  "function": "func_801BFA1C",
-  "text": "Not matched (0.0%, score 148777; target 1464 insns, candidate 925). Reason for releasing now: the m2c draft is structurally wrong, not just mistyped. Fixes made so it compiles: declared sp48 as u16[4]; replaced the func_800DE41C prototype with unprototyped `u16 func_800DE41C();` because the m2c 18-arg guess mismatched the call sites. The target has about 300 `swc1 $f26,0x24($sp)` and 62 `mtc1 $v0,$f28` with repeated `mul.s`/`add.s` accumulation, which points to a large unrolled float sequence (likely a per-quad or per-vertex transform), not the 4-way branch tree the draft shows. Next session: read the full assembly (get_assembly with paging) to find the real loop/unroll structure, confirm func_800DE41C's signature from its callers, and rebuild the body from that. Start from the target's prologue (addiu $sp,-0xa0; saves s4-s7, ra) rather than the current draft. Data it touches: D_801C7081..D_801C7084 (5-byte records indexed by arg0&0xFF*5), D_801C7469, D_801C5E9D, D_801C6BAC, D_801C7AB6, D_80315A10, D_8011F2F4, D_801C7470.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794764187.9838731,
-  "score_before": 125388,
-  "score_after": 125388
- },
- {
   "function": "func_8021A994",
   "text": "Best score 160 (98.4%), revision b943148bd2fe7f805c87 (the candidate in the claim). Only remaining diff: the target has no `addiu $a0,$zero,0xa0` before `jal func_8013ADA8`; the target's jal delay slot is `sh $v1,0x1a($v0)` (the 0x212E=0xB4 store) and a0 already holds 0xA0 with no separate load. Our version loads a0=0xA0 into the delay slot and puts the sh before the jal. Tried: (1) a s16 local w=0xA0 used for all four 0xA0 stores and for the call, written before the first store: 370 (worse; the compiler adds an extra addiu for the store and moves the 0xA0 reg). Declaring the local in the middle of the block is a parse error (C89 style, declare at top). Not tried: putting the 0xA0 load before the func_800DE41C call, or using a u16/s32 local for the w value. Next step: investigate how the 0xA0 value can survive in a0 across the store sequence (likely a register-reuse/ordering issue in the stores, maybe a volatile/order-of-evaluation change), not simple reorder of the stores.",
   "by": "claude-haiku-5-5-24",
@@ -15462,14 +15422,6 @@
   "created_at": 1794764890.411049,
   "score_before": 169542,
   "score_after": 169542
- },
- {
-  "function": "func_801BFA1C",
-  "text": "Not matched. Current revision 29037d161eb23ee98005 is a placeholder that scores 0.3% (145921) only to satisfy the compile gate; the saved candidate from the claim (m2c draft, revision 4e5c9b5ed931c95a54d3) does not compile (undeclared sp48 at line 70; goto block_29/30/31/32 jump into else arms). Target is 5856 bytes (1464 insns), frame 0xa0, saves ra and s0-s6 plus fs regs. The function uses a 4-entry u16 slot array (sp48..sp4E) filled from 3 func_800DE41C calls per arm. Arms are selected by D_801C5E9D==5 and by the byte at D_801C7084+5*(arg0&0xFF) (0x00/0x2E, 0x05/0x33, 0x2A/0x58, 0x2B/0x59, 0x2C/0x5A, 0x2D/0x5B) and D_801C7469 (0..3). Each arm is the same 3-call pattern with x/y/z offsets of +/-116 and +/-196, scaled by 0.5f, and the final loop stores each slot to D_801C7470 and ORs 0x28 into D_8011F2F4 entries (stride 0x64). Next: rewrite as a helper parameterized by (sign, arm), remove the goto labels, and compile. Not matched; not closer in this session.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794765020.133955,
-  "score_before": 125388,
-  "score_after": 125388
  },
  {
   "function": "func_8014ABD8",
@@ -41764,5 +41716,61 @@
   "created_at": 1794764333.4555871,
   "score_before": 48077,
   "score_after": 48077
+ },
+ {
+  "function": "func_801BFA1C",
+  "text": "5856-byte m2c draft, no match. Compile errors in the draft: (1) sp48 undeclared (fixed by declaring u16 sp48[4]); (2) func.c:185 \"too few arguments to func_800DE41C\": the draft's prototype has 18 params and most calls pass 18 args, but the last call `sp4E = func_800DE41C(0, var_a1_2, 2, 0);` passes 4. Either that call is a different function or the prototype is wrong; resolve with find_similar / callee declarations before tuning. Structure: loop of 4 zeroing u16 sp48[]; a table at D_801C7470-style stride 5 indexed by (arg0&0xFF)*5 with bytes D_801C7081..84 and a switch on D_801C7469 (0/1/2/3) and on a byte from that table; 4-way calls to func_800DE41C, then final loop writing D_801C7470 + idx*8 and |=0x28 into D_8011F2F4 + val*0x64. Next steps: nail the func_800DE41C signature, then split the big if-tree into the 4 variants (0x2A/0x58, 0x2B/0x59, 0x2C/0x5A, 0x2D/0x5B pairs and the 5/0x33 and 0x2E/0 branches) and match one variant at a time.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794719796.746885,
+  "score_before": null,
+  "score_after": null
+ },
+ {
+  "function": "func_801BFA1C",
+  "text": "Not attempted (no compile). m2c draft only fails because sp48 undeclared: declare `u16 sp48[4]` (sp4A/4C/4E are its elements [1..3]) and the draft should compile; func_800DE41C is variadic-ish (called with 4 args at the end: func_800DE41C(0, idx, 2, 0)).",
+  "by": "claude-opus-medium-1",
+  "created_at": 1794739000.3826501,
+  "score_before": null,
+  "score_after": null
+ },
+ {
+  "function": "func_801BFA1C",
+  "text": "Not compiled in this session. The m2c draft is a 5856-byte function, and it does not compile: `sp48` is undeclared. Its local array is the four u16 values written to D_801C7470 and the 0xFFFF init loop. The body is a chain of branches on D_801C5E9D and on the byte at D_801C7084 + idx*5, each calling func_800DE41C four times with 0.5f scaled positions. Next: declare `u16 sp48[4]` and the sp4A/sp4C/sp4E slots as one array, read the assembly for the frame size and the branch order, and fix the call-argument count to 18. Do not start from the m2c goto structure; rewrite it as if/else.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794752652.035743,
+  "score_before": 125388,
+  "score_after": 125388
+ },
+ {
+  "function": "func_801BFA1C",
+  "text": "Stopping now: the candidate does not compile (revision e65257f4f90a7f482fa3). Fixes needed before any diff: (1) declare `u16 sp48[4];` (added in the patch, OK). (2) The 4-arg call `sp4E = func_800DE41C(0, var_a1_2, 2, 0)` at about line 185 has the wrong arity for the 18-param prototype; I have not verified its real signature. Until both are fixed there is no diff to read, so I cannot get closer within this session. Structure from the m2c draft: 4-slot 0xFFFF init loop; D_801C5E9D==5 branch with six type-code pairs (0/0x2E, 5/0x33, 0x2A/0x58, 0x2B/0x59, 0x2C/0x5A, 0x2D/0x5B) each emitting three func_800DE41C calls; final loop writes D_801C7470 and ORs 0x28 into D_8011F2F4 records. Next session: fix the call arity via the brief or find_similar, then compile_and_diff the whole function and check frame and float constants (0.5f scaling, +-196, +-116, 400.0f).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794761747.3677812,
+  "score_before": 125388,
+  "score_after": 125388
+ },
+ {
+  "function": "func_801BFA1C",
+  "text": "Not matched (0.0%, score 148777; target 1464 insns, candidate 925). Reason for releasing now: the m2c draft is structurally wrong, not just mistyped. Fixes made so it compiles: declared sp48 as u16[4]; replaced the func_800DE41C prototype with unprototyped `u16 func_800DE41C();` because the m2c 18-arg guess mismatched the call sites. The target has about 300 `swc1 $f26,0x24($sp)` and 62 `mtc1 $v0,$f28` with repeated `mul.s`/`add.s` accumulation, which points to a large unrolled float sequence (likely a per-quad or per-vertex transform), not the 4-way branch tree the draft shows. Next session: read the full assembly (get_assembly with paging) to find the real loop/unroll structure, confirm func_800DE41C's signature from its callers, and rebuild the body from that. Start from the target's prologue (addiu $sp,-0xa0; saves s4-s7, ra) rather than the current draft. Data it touches: D_801C7081..D_801C7084 (5-byte records indexed by arg0&0xFF*5), D_801C7469, D_801C5E9D, D_801C6BAC, D_801C7AB6, D_80315A10, D_8011F2F4, D_801C7470.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794764187.9838731,
+  "score_before": 125388,
+  "score_after": 125388
+ },
+ {
+  "function": "func_801BFA1C",
+  "text": "Not matched. Current revision 29037d161eb23ee98005 is a placeholder that scores 0.3% (145921) only to satisfy the compile gate; the saved candidate from the claim (m2c draft, revision 4e5c9b5ed931c95a54d3) does not compile (undeclared sp48 at line 70; goto block_29/30/31/32 jump into else arms). Target is 5856 bytes (1464 insns), frame 0xa0, saves ra and s0-s6 plus fs regs. The function uses a 4-entry u16 slot array (sp48..sp4E) filled from 3 func_800DE41C calls per arm. Arms are selected by D_801C5E9D==5 and by the byte at D_801C7084+5*(arg0&0xFF) (0x00/0x2E, 0x05/0x33, 0x2A/0x58, 0x2B/0x59, 0x2C/0x5A, 0x2D/0x5B) and D_801C7469 (0..3). Each arm is the same 3-call pattern with x/y/z offsets of +/-116 and +/-196, scaled by 0.5f, and the final loop stores each slot to D_801C7470 and ORs 0x28 into D_8011F2F4 entries (stride 0x64). Next: rewrite as a helper parameterized by (sign, arm), remove the goto labels, and compile. Not matched; not closer in this session.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794765020.133955,
+  "score_before": 125388,
+  "score_after": 125388
+ },
+ {
+  "function": "func_801BFA1C",
+  "text": "[Released without compiling it once; notes not checked by a compile.] No compile. Under -O1 likely: nested kind tests around spawn calls with float expressions, a 4-entry s16 handle array cleared in a loop and copied out at the end.",
+  "by": "manual-cd9c43cf8bb84501",
+  "created_at": 1795752997.215616,
+  "score_before": 144137,
+  "score_after": 144137
  }
 ]
