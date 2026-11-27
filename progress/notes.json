@@ -6808,14 +6808,6 @@
   "score_after": 15255
  },
  {
-  "function": "func_8015D7F0",
-  "text": "Released at the move-on budget. Best rebuilt source is rev c272f9b7a516229c9adb (21472, 28%); the saved best (16970) is an older draft from another source, not rechecked. Key finding: the m2c draft has the first if/else backwards. The target tests the state word D_8011F32E[idx*100] with beqz (state 0 block first: func_8013EC48, store *(temp_s2+0x70), func_8013EDFC(s1,temp_s2), compare temp_s2+8 * 9.8 with the 0x30 float, then set state 1), then beq 1 (state 1 block: func_8013EC48, store, temp_s0[0xC]-=4 as a byte, if <5 call func_8013E49C(*(u16*)(temp_s2+0x76)) and D_8011F2FD[s1*100]=2). The per-state if/else chain on temp_s2[0x16] (13 values, 0..12, else default with three func_801FA30C & 0xFF) is right. Mismatch: the target frame is 0x20 with ra, s2, s1, s0 saved, and it computes temp_s0 = D_8011F2F0 + idx*100 with the index in v0 (no s3). My build keeps the index in s3 and adds s4 (frame 0x28). Also the target has more call sites than mine (move $a0,$s1 x18), so some call arguments are being materialised differently; the target uses func_801FA30C results directly as andi 0xf then +0xb4 in each case, which matches. Next: write temp_v0 = (arg0&0xFFFF)*100 as the only index and use it for both the s0 pointer and the D_8011F32E lhu, and check whether the target's calls to func_8013EA18 are per-case (block_40 in the draft) rather than one shared call.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794714298.2136462,
-  "score_before": 16970,
-  "score_after": 16970
- },
- {
   "function": "func_8015B82C",
   "text": "Init routine (1268 B, 317 target insns), unmatched. Best current 13640 (56.9%, revision f17f9c56b8180e09cfe9); saved best 10905 is from a different source. The draft compiles once the Ghidra-style types are replaced with plain externs: D_802210C8 as f32[], D_80187D00 as V16[2][224], D_8011F350 as Rec100[] (u8 *p plus pad). Remaining differences: target computes `D_3E4880 - D_3B7C00` (size arg) with the operands loaded in a different order (lui/addiu v0 for D_3E4880, then a2 for D_3B7C00 with a `subu`), and the 14x16 nested loops are written as index-scaled loops (`sll`/`addu` by 0x10 and 0x2C0 multiplies) where mine repeat `lui %hi(D_003B7C00)` per store. Try a single pointer `V16 *p = &D_80187D00[i][y*16+x]` hoisted per iteration, and reorder the initial size expression. Stopping here because the remaining gap is in loop codegen and the no-improvement budget is spent.",
   "by": "claude-haiku-5-5-23",
@@ -12040,14 +12032,6 @@
   "score_after": 10
  },
  {
-  "function": "func_8015D7F0",
-  "text": "Unmatched; releasing early at low effort. Saved best is 16970 (earlier attempt, not my last). My latest candidate scores 19097 (205 insns vs target 299). Findings: (1) target frame is 0x20, with $ra at 0x1c, $s2 at 0x18, $s1 at 0x14, $s0 at 0x10. My drafts use 0x28 with an extra $s3 save; fix that first. (2) The 13-case switch on *(u8*)(obj+0x16) calls func_801FA30C separately in each arm, and the target reloads lw $s2,0x60($s0) after the kind test, so the obj read happens later than in my draft. (3) Target tests kind==0 first (beqz near the top). Start from the saved best and keep the switch structure; the rest are register and order differences that follow from the call placement.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794741540.8233001,
-  "score_before": 16970,
-  "score_after": 16970
- },
- {
   "function": "func_8015F33C",
   "text": "Why it can't get closer now: the 303-insn target needs the D_8011F350 object typed as a struct with offsets 0x4, 0x8, 0x14, 0x76, 0x560, 0x714-0x728, 0x748, 0x784-0x7CC, 0x860, 0x890 and 0x8A1, and the redraft depends on those. Small edits to the 2-line stub score 28130 and only move on register or stack details, so more blind compiles will not help. Saved-best 2995 is still the reference. Next agent: start from the m2c draft in get_candidate (saved draft in claim brief), type the object first, then redraft and compile. Notes from the earlier attempt: the 0x748 float is +100 with clamp to 7000.0f; the 0x14 s16 is a countdown that calls func_8013E49C(*(u16*)+0x76) at zero; the two func_800DE41C blocks (args 0x5B,0x7F, &D_802390C8, &func_8013AF08, &func_8015FD04, floats from +0x714/+0x718/+0x71C and +0x720/+0x724/+0x728, then 0.08f x3) write the D_8011F2F0 table.",
   "by": "claude-haiku-5-5-23",
@@ -13566,14 +13550,6 @@
   "created_at": 1794749865.4597461,
   "score_before": 0,
   "score_after": 0
- },
- {
-  "function": "func_8015D7F0",
-  "text": "Claimed and released without compiling. This is a 1196-byte function. The m2c draft is far off (rechecked score 21457, saved best 16970). It has a 13-case switch on a u8 at offset 0x16 of the struct at D_8011F2F0 + idx*100, with a shared tail that calls func_8013EA18 with three args from func_801FA30C()&0xF + 0xB4 or 0xFF/0. Start by decoding the head (u16 state at D_8011F32E + idx*100 dispatch, struct field offsets 0x28, 0x30, 0x60, 0x70) before attempting the switch.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794749880.370995,
-  "score_before": 16970,
-  "score_after": 16970
  },
  {
   "function": "func_80216958",
@@ -16688,14 +16664,6 @@
   "score_after": 365
  },
  {
-  "function": "func_8015D7F0",
-  "text": "Unmatched; move-on. Keep saved best 16013 (46.4%, revision 8d1539bfabb0239d8048). Why it can't get closer yet: the target's 13-case switch on the byte at s2+0x16 compiles to a binary decision tree (beq for an end case, slti 8 / slti 4 splits, beqz/j to shared tails), not a jump table and not a flat if-chain. A flat compare chain (revision c6441d02bae861a3e6a3) scored 17403, worse. The original switch form (16013) is closer; the gap is the case grouping: try grouping cases by which argument is the random value (a/b/c positions) and let gcc build the tree. Frame is 0x20 in the target (ra 0x1c, s2 0x18, s1 0x14, s0 0x10); mine is 0x28. Rodata reference in target not reproduced. Untested: -O1 profile check; signedness family on best.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794758373.5597582,
-  "score_before": 16970,
-  "score_after": 16013
- },
- {
   "function": "func_800E15CC",
   "text": "Reconfirmed exact O1; source retained in function-specific suggestion. Separate D_8011F068[n]=cur; n++; statements required; D[n++]=cur yields score195, extra move and early increment. Setup remains pending apply; no O2 candidate tuning.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -18150,14 +18118,6 @@
   "created_at": 1794761399.176509,
   "score_before": 660,
   "score_after": 660
- },
- {
-  "function": "func_8015D7F0",
-  "text": "Not worked beyond one attempt. The machine draft has a 9-case switch of func_8013EA18 calls, each argument being (func_801FA30C() & 0xF) + 0xB4 or 0xFF/0. Its prototypes conflict with include/context.h: func_8013E49C and func_8013EDFC are declared there with different signatures, so do not redeclare them locally. Draft C at revision 5f1b440ca765fb3aa27c still fails to compile for that reason. Next step: take the prototypes from get_context, verify the switch case arms against get_assembly (the target likely evaluates the random-index calls in a fixed order), then compile. The data at D_8011F2F0 has records of stride 0x64 with a pointer at +0x60 (s2) and f32 fields at +0x28, +0x30, +0x70 and the u8 field at +0xC.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794761410.564018,
-  "score_before": 16013,
-  "score_after": 16013
  },
  {
   "function": "func_8014C7A0",
@@ -41093,5 +41053,45 @@
   "created_at": 1794764141.6371992,
   "score_before": 205,
   "score_after": 205
+ },
+ {
+  "function": "func_8015D7F0",
+  "text": "Released at the move-on budget. Best rebuilt source is rev c272f9b7a516229c9adb (21472, 28%); the saved best (16970) is an older draft from another source, not rechecked. Key finding: the m2c draft has the first if/else backwards. The target tests the state word D_8011F32E[idx*100] with beqz (state 0 block first: func_8013EC48, store *(temp_s2+0x70), func_8013EDFC(s1,temp_s2), compare temp_s2+8 * 9.8 with the 0x30 float, then set state 1), then beq 1 (state 1 block: func_8013EC48, store, temp_s0[0xC]-=4 as a byte, if <5 call func_8013E49C(*(u16*)(temp_s2+0x76)) and D_8011F2FD[s1*100]=2). The per-state if/else chain on temp_s2[0x16] (13 values, 0..12, else default with three func_801FA30C & 0xFF) is right. Mismatch: the target frame is 0x20 with ra, s2, s1, s0 saved, and it computes temp_s0 = D_8011F2F0 + idx*100 with the index in v0 (no s3). My build keeps the index in s3 and adds s4 (frame 0x28). Also the target has more call sites than mine (move $a0,$s1 x18), so some call arguments are being materialised differently; the target uses func_801FA30C results directly as andi 0xf then +0xb4 in each case, which matches. Next: write temp_v0 = (arg0&0xFFFF)*100 as the only index and use it for both the s0 pointer and the D_8011F32E lhu, and check whether the target's calls to func_8013EA18 are per-case (block_40 in the draft) rather than one shared call.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794714298.2136462,
+  "score_before": 16970,
+  "score_after": 16970
+ },
+ {
+  "function": "func_8015D7F0",
+  "text": "Unmatched; releasing early at low effort. Saved best is 16970 (earlier attempt, not my last). My latest candidate scores 19097 (205 insns vs target 299). Findings: (1) target frame is 0x20, with $ra at 0x1c, $s2 at 0x18, $s1 at 0x14, $s0 at 0x10. My drafts use 0x28 with an extra $s3 save; fix that first. (2) The 13-case switch on *(u8*)(obj+0x16) calls func_801FA30C separately in each arm, and the target reloads lw $s2,0x60($s0) after the kind test, so the obj read happens later than in my draft. (3) Target tests kind==0 first (beqz near the top). Start from the saved best and keep the switch structure; the rest are register and order differences that follow from the call placement.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794741540.8233001,
+  "score_before": 16970,
+  "score_after": 16970
+ },
+ {
+  "function": "func_8015D7F0",
+  "text": "Claimed and released without compiling. This is a 1196-byte function. The m2c draft is far off (rechecked score 21457, saved best 16970). It has a 13-case switch on a u8 at offset 0x16 of the struct at D_8011F2F0 + idx*100, with a shared tail that calls func_8013EA18 with three args from func_801FA30C()&0xF + 0xB4 or 0xFF/0. Start by decoding the head (u16 state at D_8011F32E + idx*100 dispatch, struct field offsets 0x28, 0x30, 0x60, 0x70) before attempting the switch.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794749880.370995,
+  "score_before": 16970,
+  "score_after": 16970
+ },
+ {
+  "function": "func_8015D7F0",
+  "text": "Unmatched; move-on. Keep saved best 16013 (46.4%, revision 8d1539bfabb0239d8048). Why it can't get closer yet: the target's 13-case switch on the byte at s2+0x16 compiles to a binary decision tree (beq for an end case, slti 8 / slti 4 splits, beqz/j to shared tails), not a jump table and not a flat if-chain. A flat compare chain (revision c6441d02bae861a3e6a3) scored 17403, worse. The original switch form (16013) is closer; the gap is the case grouping: try grouping cases by which argument is the random value (a/b/c positions) and let gcc build the tree. Frame is 0x20 in the target (ra 0x1c, s2 0x18, s1 0x14, s0 0x10); mine is 0x28. Rodata reference in target not reproduced. Untested: -O1 profile check; signedness family on best.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794758373.5597582,
+  "score_before": 16970,
+  "score_after": 16013
+ },
+ {
+  "function": "func_8015D7F0",
+  "text": "Not worked beyond one attempt. The machine draft has a 9-case switch of func_8013EA18 calls, each argument being (func_801FA30C() & 0xF) + 0xB4 or 0xFF/0. Its prototypes conflict with include/context.h: func_8013E49C and func_8013EDFC are declared there with different signatures, so do not redeclare them locally. Draft C at revision 5f1b440ca765fb3aa27c still fails to compile for that reason. Next step: take the prototypes from get_context, verify the switch case arms against get_assembly (the target likely evaluates the random-index calls in a fixed order), then compile. The data at D_8011F2F0 has records of stride 0x64 with a pointer at +0x60 (s2) and f32 fields at +0x28, +0x30, +0x70 and the u8 field at +0xC.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794761410.564018,
+  "score_before": 16013,
+  "score_after": 16013
  }
 ]
