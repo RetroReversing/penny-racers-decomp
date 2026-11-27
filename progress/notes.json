@@ -3256,14 +3256,6 @@
   "score_after": 2116
  },
  {
-  "function": "func_8020EE18",
-  "text": "Deep permuter: score 32482 \u2192 32358; 1 improvements; 67 candidates tested; 0 cached skips; 0 rejected; 7208s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935762",
-  "created_at": 1794348720.455986,
-  "score_before": 32482,
-  "score_after": 32358
- },
- {
   "function": "alBnkfNew",
   "text": "Deep permuter: score 472 \u2192 472; 0 improvements; 55 candidates tested; 17 cached skips; 0 rejected; 7209s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935012",
@@ -6560,14 +6552,6 @@
   "score_after": null
  },
  {
-  "function": "func_8020EE18",
-  "text": "Best verified 10512 (68.6%) at revision 34b7c84a5d39c1796142 (restore with get_candidate(base=\"saved_best\")). Started at 31889 (no compiling draft: m2c failed on the jump table).\n\nWhat worked, keep it:\n- Switch on `*(u16*)(s3+0x3E)` with cases 0, 0x10, 0x20, 0x30, 0x31, 0x12 plus `default`. The target's bounds check is `sltiu $v0,$v1,0x32` over the raw value, so the case set must span 0..0x31 with no `addiu -0x10` bias: an explicit `case 0: break;` first made gcc emit the raw sltiu 0x32 (10830 -> 10675). Do not subtract 0x10 from the switch value.\n- `p = D_8021EEA4;` as a single u8* base with p[0], p[1], p[2], p[3] reproduces the target's `lui/addiu $a0,D_8021EEA4` + `lbu 0x0($a0)` / `lbu 0x3($a0)` / `sb` pattern (10675 -> 10512).\n- `s4 = &D_80190C9A;` (u16*) reproduces the target's `lui/addiu $s4,%hi(D_80190C9A)` once and `sh $v0,($s4)` x3. Writing `D_80190C9A = ...` directly instead is much worse (11290) because gcc folds %lo into each store.\n- `q = D_8011F350[D_8018BC3C * 0x19]; if (*q) break;` with `extern u8 *D_8011F350[]` gives the right pointer-array load. Index must be *0x19 words (0x64 bytes). A plain `u8*` cast + byte offset was worse (10985/10965).\n- Loop forms `for (i=0;i<8;i++) D_8021EEA4[2] += func_8020FFD0(D_8021EEA7[0], i, D_8021EEA8[i]);` and the 0x30 copy loop with `i*0x22 + p[3]*0x110` are right.\n\nRemaining 229 diff rows are mostly regalloc/scheduling plus these concrete items:\n1) Stack frame: ours 0x38 with an extra $s5 save; target 0x30 with $s4. The extra callee-saved register comes from `&D_80190C9A` living across the switch; target rematerializes `lui/addiu $s4` in each of the three paths that store to it (4x `addiu $s4,$s4,%lo(D_80190C9A)` total). Try `s4` as a `u16*` assigned inside each branch (`s4 = (u16*)&D_80190C9A; *s4 = ...;`) so it is not live across the whole function.\n2) Prologue order: target saves ra,s4,s3,s2,s1,s0 then `andi $a0,$a0,0xFFFF` and the *0x64 index before the call setup; ours sinks the saves after the index computation. Target also computes `s2 = func_8014A870(0x14,7,D_8021EEA7[0])` with `lui/lbu $a2` immediately before jal and `addiu $a1,$zero,7` in the delay slot.\n3) Case 0x10/0x12 pointer chain: target uses `lui $at,%hi(D_8011F350); addu $at,$at,$v0; lw $v0,%lo(D_8011F350)($at)` (symbol folded into the load) while ours emits `lui $v0` + `addu` + `lw 0($v0)`. A `typedef struct { u8 *p; u8 pad[0x60]; } Rec64; extern Rec64 D_8011F350[];` with `D_8011F350[idx].p` should give the %lo-folded load \u2014 I could not test it because the typedef and the two use sites need one cumulative patch (compile_variants patches are independent, so it failed to compile).\n4) Case 0x20: target reads `D_8021EEA7[0]` as a fresh `lui/lbu $a2` for each of the three func_8020FFD0 calls; ours hoists it into $s0.\n\nMove-on budget was not exhausted (1/10); releasing for session capacity.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794718670.52826,
-  "score_before": 31889,
-  "score_after": 10512
- },
- {
   "function": "func_80233ED0",
   "text": "Best 11179 (69.3%), target 365 insns vs 347. Structure now looks right (Racer struct with 0x8F0 stride, Digit[10] at 0x562, f594, five s16/u8 7-entry arrays at D_80237058/D_8023760E/D_80237600/D_80237632/D_80237694, D_80236ED4 digit table, D_8011F32E 0x64-stride state word). Remaining diffs: target has `andi $v1,$a1,0xffff` x8 and `sll $v0,$v1,1` x7 \u2014 i.e. the loop index is kept as a 32-bit value that is masked to u16 at every use rather than being an u16 local; candidate instead emits `bnez $a0`/`addiu $s2,$s2,1` and folds masks away. Also stack frame target -0x40 vs candidate -0x48 and the loop is a rotated do/while in the target with `j func_80233ED0+0x58c` x5 (five shared tail jumps) implying a different join structure (single loop tail with goto/continue rather than if/else chain). Next experiment: make the loop counter a `s32 i` but index every array via `(u16)i` (or `((u16)i)` casts inside each subscript) so the andi is re-materialized, and lower the frame by removing one live pointer (drop the st/cur/prev aliases and index the globals directly, keeping only D_80237058 as a base if needed). Remaining repair families recorded: record_slot_table=1, record_layout_sequence=4, shared_store_constant=3, branch_orientation=1, 22 more; 89 distinct proposals pending.",
   "by": "api-route-llm-code-1",
@@ -8454,14 +8438,6 @@
   "created_at": 1794728500.436128,
   "score_before": 10031,
   "score_after": 10031
- },
- {
-  "function": "func_8020EE18",
-  "text": "Releasing now, early, because it cannot get closer as things stand: the switch on the state word (s3+0x3E; cases 0,0x10,0x12,0x20,0x30,0x31) lowers to a `jr` through a jump table that is not in the loaded ROM (\"Unable to determine jump table\", and the compile reports `.rodata+0x0` with no ROM address). Without the table the case-block layout cannot be recovered, so further body compiles are guesswork. Best 32222 (3.8%, 315 vs 335 insns), revision 3d1ae76fe1ab787fe1a7. Frame differs too: target 0x30 with ra at 0x2C and s4/s3 saves; mine 0x38. Target loads D_80190C9A through lui/addiu s4 rather than reloading. Recommended next step: locate the table (or confirm it is absent) before retrying; same blocker as func_801E3640.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794728530.183852,
-  "score_before": 9328,
-  "score_after": 9328
  },
  {
   "function": "func_80038010",
@@ -10902,14 +10878,6 @@
   "created_at": 1794741879.750108,
   "score_before": 350,
   "score_after": 350
- },
- {
-  "function": "func_8020EE18",
-  "text": "Not matched. Target 335 insns, 0x30 frame (saves ra, s0-s4). Saved best 9328 is the starting point. My revision 23e27a061df51ded0f5f (score 26453) is worse: it omits the case 0x20 and 0x30 bodies, so do not reuse it as-is. Structure from the draft: a 0x64-byte record at D_8011F2F0 + (u16)arg0*0x64; state at record+0x3E (u16) with cases 0, 0x10, 0x12, 0x20, 0x30, 0x31; the case-0x20 body is a cursor p[0] cycle with &7, a mask-based counter update using D_8021E230[(p[0]*0x22)+(p[3]*0x110)], then p[1]/p[2] sums via func_8020FFD0. The draft's jump-table failure is only in the decompiler; C switch should work. Next step: write the full case 0x20 and 0x30 bodies (the draft's text is correct but was dropped), then compare; s2 (input mask from func_8014A870) must stay live across calls, so s2 needs to be a local that survives func_8014B854 calls.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794741898.016046,
-  "score_before": 9328,
-  "score_after": 9328
  },
  {
   "function": "func_80231E30",
@@ -15096,14 +15064,6 @@
   "score_after": 60
  },
  {
-  "function": "func_8020EE18",
-  "text": "Best 9938 (70.3%; saved best 9328 from an earlier source, restore if needed). Source: a switch on *(u16*)(s3+0x3E) with states 0x00,0x10,0x20,0x30,0x31,0x12 (the switch is a real jump table in the target; the draft's 'Unable to determine jump table' is only about the draft's own jr). Target frame is -0x30 (saves ra,s4,s3,s0,...) and ours is -0x38 with an extra $s5 save, so the register set is wrong: keep s2 (input bitmask from func_8014A870) and s3 (the u8* state record) live, and drop the extra live local. Notable: target keeps D_8021EEA4 / D_80190C9A addresses in s4 (lui/addiu per use, 'addiu $s4,$s4,%lo(D_80190C9A)' x8), so s4 is the u16* D_80190C9A pointer, not a separate local. The `p` pointer switches between D_8021EEA4 and D_8011F350[D_8018BC3C*0x19] in cases 0x10 and 0x12. Ruled out: none tested beyond this one shape. Next: reduce live locals (i, s0, s1) and check the 0x20 case's byte ops (p[0]&=7 and the u8 compares) which generate the sb/lbu mismatches.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794759517.039171,
-  "score_before": 9328,
-  "score_after": 9328
- },
- {
   "function": "func_80233ED0",
   "text": "Not yet scored by an agent-written source: only the m2c draft exists. The draft is valid C with M2C_FIELD macros and many goto labels (block_24, block_44, block_46, loop_37/40/43) that are m2c's reconstruction of byte-field carry chains (u8 fields at +0x562..0x566 in 5-byte records at stride 0x8F0 per index, D_8023760E / D_80237600 / D_80237058 u16 tables of 7 entries). Next: rewrite the carry chains as explicit `u8` field helpers (cascading x>=0x3C / x>=0x64 wraps for +0x562 to +0x566) and remove the goto labels, then compile_and_diff. Known shape: outer for over var_s1 0..6 with a cond on D_80237058[i]; the else branch zeros four tables and D_80236F50, D_8023761C, D_80167E62 and sets D_8011F32E[state*0x64] = 1 for state 1.",
   "by": "claude-haiku-5-5-24",
@@ -16248,14 +16208,6 @@
   "score_after": 395
  },
  {
-  "function": "func_8020EE18",
-  "text": "Not matched. The machine draft failed (no jump table for the switch on *(u16*)(s3+0x3E)). My one hand-written attempt covered only cases 0, 0x10, 0x12 and default (score 27298, 18.5%); it omits cases 0x20, 0x30, 0x31 and the loops over D_8021EEA8/D_8021E22F, so most of the 335-instruction target is missing. Next step: write the full switch from the draft's case bodies (case 0x20 uses p[0..3] with offsets 0x22/0x110 and s1 from D_8021E230; case 0x30 writes D_8021E22F with stride 0x22*0x110), then check the target's stack frame (-0x30, saves ra,s0-s4) and the jump table shape before tuning registers.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794761933.6202161,
-  "score_before": 9328,
-  "score_after": 9328
- },
- {
   "function": "func_80140E0C",
   "text": "Cannot get closer in this session: the hand draft (score 23153, 17%) is structurally wrong, with 109 instructions against 279 in the target. The target saves ra and s0-s3 in a 0x28-byte frame, keeps arg0 and idx in s2/s1 across calls, and has many more call sites and loop bodies than the draft. The m2c jump table for the switch on *(u16*)(s1+0x3E) also fails to decode, so the switch shape is unverified. Next agent: read the full get_assembly, map each case's call sequence and loops, and rewrite from control flow, not from the draft. Verified: idx*100 indexing (sll/addu chain, same as func_801C1680), and the D_8011F2F0 base. Unverified: the switch jump table, the 0x3E/0x40 field semantics, and the s3 = *(u8**)(s1+0x60) pointer.",
   "by": "claude-haiku-5-5-20",
@@ -16662,14 +16614,6 @@
   "created_at": 1794762915.977439,
   "score_before": 26644,
   "score_after": 26644
- },
- {
-  "function": "func_8020EE18",
-  "text": "Best saved is 9328; the current candidate (rev bb675737b2ba66a7daab) scores 9938, worse, so restore with get_candidate(base=\"saved_best\") before any new work. Machine draft fails: the jr at func_8020EE18.s line 36 has no readable jump table (needs a jtbl/jpt_ symbol or memory_regions entry). Our build also refers to .rodata+0x0 with no target address, so the switch table is not yet modelled. Diff: target prologue is addiu sp,-0x30 with ra/s0-s4 saved at 0x2c..0x18; ours uses -0x38 and saves s3 first, and loads D_8021EEA7 into s0 early (target does not). Target keeps s4 = &D_80190C9A as a lui/addiu pair, not a register set once. Untested: restore the saved C, then fix the prologue register set before touching the case bodies. Blocked on the jump table.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794762916.033609,
-  "score_before": 9328,
-  "score_after": 9328
  },
  {
   "function": "func_800DE41C",
@@ -41504,5 +41448,79 @@
   "created_at": 1794758882.419233,
   "score_before": 11735,
   "score_after": 10342
+ },
+ {
+  "function": "func_8020EE18",
+  "text": "Deep permuter: score 32482 \u2192 32358; 1 improvements; 67 candidates tested; 0 cached skips; 0 rejected; 7208s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935762",
+  "created_at": 1794348720.455986,
+  "score_before": 32482,
+  "score_after": 32358
+ },
+ {
+  "function": "func_8020EE18",
+  "text": "Best verified 10512 (68.6%) at revision 34b7c84a5d39c1796142 (restore with get_candidate(base=\"saved_best\")). Started at 31889 (no compiling draft: m2c failed on the jump table).\n\nWhat worked, keep it:\n- Switch on `*(u16*)(s3+0x3E)` with cases 0, 0x10, 0x20, 0x30, 0x31, 0x12 plus `default`. The target's bounds check is `sltiu $v0,$v1,0x32` over the raw value, so the case set must span 0..0x31 with no `addiu -0x10` bias: an explicit `case 0: break;` first made gcc emit the raw sltiu 0x32 (10830 -> 10675). Do not subtract 0x10 from the switch value.\n- `p = D_8021EEA4;` as a single u8* base with p[0], p[1], p[2], p[3] reproduces the target's `lui/addiu $a0,D_8021EEA4` + `lbu 0x0($a0)` / `lbu 0x3($a0)` / `sb` pattern (10675 -> 10512).\n- `s4 = &D_80190C9A;` (u16*) reproduces the target's `lui/addiu $s4,%hi(D_80190C9A)` once and `sh $v0,($s4)` x3. Writing `D_80190C9A = ...` directly instead is much worse (11290) because gcc folds %lo into each store.\n- `q = D_8011F350[D_8018BC3C * 0x19]; if (*q) break;` with `extern u8 *D_8011F350[]` gives the right pointer-array load. Index must be *0x19 words (0x64 bytes). A plain `u8*` cast + byte offset was worse (10985/10965).\n- Loop forms `for (i=0;i<8;i++) D_8021EEA4[2] += func_8020FFD0(D_8021EEA7[0], i, D_8021EEA8[i]);` and the 0x30 copy loop with `i*0x22 + p[3]*0x110` are right.\n\nRemaining 229 diff rows are mostly regalloc/scheduling plus these concrete items:\n1) Stack frame: ours 0x38 with an extra $s5 save; target 0x30 with $s4. The extra callee-saved register comes from `&D_80190C9A` living across the switch; target rematerializes `lui/addiu $s4` in each of the three paths that store to it (4x `addiu $s4,$s4,%lo(D_80190C9A)` total). Try `s4` as a `u16*` assigned inside each branch (`s4 = (u16*)&D_80190C9A; *s4 = ...;`) so it is not live across the whole function.\n2) Prologue order: target saves ra,s4,s3,s2,s1,s0 then `andi $a0,$a0,0xFFFF` and the *0x64 index before the call setup; ours sinks the saves after the index computation. Target also computes `s2 = func_8014A870(0x14,7,D_8021EEA7[0])` with `lui/lbu $a2` immediately before jal and `addiu $a1,$zero,7` in the delay slot.\n3) Case 0x10/0x12 pointer chain: target uses `lui $at,%hi(D_8011F350); addu $at,$at,$v0; lw $v0,%lo(D_8011F350)($at)` (symbol folded into the load) while ours emits `lui $v0` + `addu` + `lw 0($v0)`. A `typedef struct { u8 *p; u8 pad[0x60]; } Rec64; extern Rec64 D_8011F350[];` with `D_8011F350[idx].p` should give the %lo-folded load \u2014 I could not test it because the typedef and the two use sites need one cumulative patch (compile_variants patches are independent, so it failed to compile).\n4) Case 0x20: target reads `D_8021EEA7[0]` as a fresh `lui/lbu $a2` for each of the three func_8020FFD0 calls; ours hoists it into $s0.\n\nMove-on budget was not exhausted (1/10); releasing for session capacity.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794718670.52826,
+  "score_before": 31889,
+  "score_after": 10512
+ },
+ {
+  "function": "func_8020EE18",
+  "text": "Releasing now, early, because it cannot get closer as things stand: the switch on the state word (s3+0x3E; cases 0,0x10,0x12,0x20,0x30,0x31) lowers to a `jr` through a jump table that is not in the loaded ROM (\"Unable to determine jump table\", and the compile reports `.rodata+0x0` with no ROM address). Without the table the case-block layout cannot be recovered, so further body compiles are guesswork. Best 32222 (3.8%, 315 vs 335 insns), revision 3d1ae76fe1ab787fe1a7. Frame differs too: target 0x30 with ra at 0x2C and s4/s3 saves; mine 0x38. Target loads D_80190C9A through lui/addiu s4 rather than reloading. Recommended next step: locate the table (or confirm it is absent) before retrying; same blocker as func_801E3640.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794728530.183852,
+  "score_before": 9328,
+  "score_after": 9328
+ },
+ {
+  "function": "func_8020EE18",
+  "text": "Not matched. Target 335 insns, 0x30 frame (saves ra, s0-s4). Saved best 9328 is the starting point. My revision 23e27a061df51ded0f5f (score 26453) is worse: it omits the case 0x20 and 0x30 bodies, so do not reuse it as-is. Structure from the draft: a 0x64-byte record at D_8011F2F0 + (u16)arg0*0x64; state at record+0x3E (u16) with cases 0, 0x10, 0x12, 0x20, 0x30, 0x31; the case-0x20 body is a cursor p[0] cycle with &7, a mask-based counter update using D_8021E230[(p[0]*0x22)+(p[3]*0x110)], then p[1]/p[2] sums via func_8020FFD0. The draft's jump-table failure is only in the decompiler; C switch should work. Next step: write the full case 0x20 and 0x30 bodies (the draft's text is correct but was dropped), then compare; s2 (input mask from func_8014A870) must stay live across calls, so s2 needs to be a local that survives func_8014B854 calls.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794741898.016046,
+  "score_before": 9328,
+  "score_after": 9328
+ },
+ {
+  "function": "func_8020EE18",
+  "text": "Best 9938 (70.3%; saved best 9328 from an earlier source, restore if needed). Source: a switch on *(u16*)(s3+0x3E) with states 0x00,0x10,0x20,0x30,0x31,0x12 (the switch is a real jump table in the target; the draft's 'Unable to determine jump table' is only about the draft's own jr). Target frame is -0x30 (saves ra,s4,s3,s0,...) and ours is -0x38 with an extra $s5 save, so the register set is wrong: keep s2 (input bitmask from func_8014A870) and s3 (the u8* state record) live, and drop the extra live local. Notable: target keeps D_8021EEA4 / D_80190C9A addresses in s4 (lui/addiu per use, 'addiu $s4,$s4,%lo(D_80190C9A)' x8), so s4 is the u16* D_80190C9A pointer, not a separate local. The `p` pointer switches between D_8021EEA4 and D_8011F350[D_8018BC3C*0x19] in cases 0x10 and 0x12. Ruled out: none tested beyond this one shape. Next: reduce live locals (i, s0, s1) and check the 0x20 case's byte ops (p[0]&=7 and the u8 compares) which generate the sb/lbu mismatches.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794759517.039171,
+  "score_before": 9328,
+  "score_after": 9328
+ },
+ {
+  "function": "func_8020EE18",
+  "text": "Not matched. The machine draft failed (no jump table for the switch on *(u16*)(s3+0x3E)). My one hand-written attempt covered only cases 0, 0x10, 0x12 and default (score 27298, 18.5%); it omits cases 0x20, 0x30, 0x31 and the loops over D_8021EEA8/D_8021E22F, so most of the 335-instruction target is missing. Next step: write the full switch from the draft's case bodies (case 0x20 uses p[0..3] with offsets 0x22/0x110 and s1 from D_8021E230; case 0x30 writes D_8021E22F with stride 0x22*0x110), then check the target's stack frame (-0x30, saves ra,s0-s4) and the jump table shape before tuning registers.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794761933.6202161,
+  "score_before": 9328,
+  "score_after": 9328
+ },
+ {
+  "function": "func_8020EE18",
+  "text": "Best saved is 9328; the current candidate (rev bb675737b2ba66a7daab) scores 9938, worse, so restore with get_candidate(base=\"saved_best\") before any new work. Machine draft fails: the jr at func_8020EE18.s line 36 has no readable jump table (needs a jtbl/jpt_ symbol or memory_regions entry). Our build also refers to .rodata+0x0 with no target address, so the switch table is not yet modelled. Diff: target prologue is addiu sp,-0x30 with ra/s0-s4 saved at 0x2c..0x18; ours uses -0x38 and saves s3 first, and loads D_8021EEA7 into s0 early (target does not). Target keeps s4 = &D_80190C9A as a lui/addiu pair, not a register set once. Untested: restore the saved C, then fix the prologue register set before touching the case bodies. Blocked on the jump table.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794762916.033609,
+  "score_before": 9328,
+  "score_after": 9328
+ },
+ {
+  "function": "func_8020EE18",
+  "text": "Built at -O1. Plain C is 430 under -G0 -mips3 -mgp32 -mfp32 -O1: 0x32-entry switch (cases 0, 0x10, 0x20, 0x30, 0x31), menu record at D_8021EEA4 with a 2-bit field at +0xD, rows D_8021E230[col][row] of 34 bytes. Left: before the first func_8020FFD0 call the target builds &record.col, derives the record pointer from it (addiu s0,v0,-3) and stores value/total through s0; menu = (Menu *) (pc - 3) keeps pc as the base instead.",
+  "by": "manual-e6e5a26329164357",
+  "created_at": 1795751113.0023339,
+  "score_before": 19838,
+  "score_after": 8555,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:d204731cdea9cd325a66be831394001339979444b764af5f38394f03ab6532eb"
+ },
+ {
+  "function": "func_8020EE18",
+  "text": "430 under -O1; only the record pointer derivation before the first call differs (see note).",
+  "by": "manual-e6e5a26329164357",
+  "created_at": 1795751114.120765,
+  "score_before": null,
+  "score_after": null,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:d204731cdea9cd325a66be831394001339979444b764af5f38394f03ab6532eb"
  }
 ]
