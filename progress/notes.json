@@ -2776,14 +2776,6 @@
   "score_after": 0
  },
  {
-  "function": "func_8002AF40",
-  "text": "Deep permuter: score 6954 \u2192 6439; 5 improvements; 180 candidates tested; 0 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589934845",
-  "created_at": 1794348212.377145,
-  "score_before": 6954,
-  "score_after": 6439
- },
- {
   "function": "func_80030E28",
   "text": "Deep permuter: score 51897 \u2192 51712; 1 improvements; 46 candidates tested; 0 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589934933",
@@ -6888,14 +6880,6 @@
   "score_after": 6875
  },
  {
-  "function": "func_8002AF40",
-  "text": "Best verified 3357 (revision 028c26b035b319b1616a / 29713e5ceb666c75b455, identical instruction diff). Recovered structure: do/while over switch(*(s16*)(arg0+0x38)) with 24-entry jump table (bounds sltiu 0x18), byte-offset access on arg0, cases 0,9,5,6,22,23,2/21,7,10,15,16,17,12,13,14,1/3/4, then ret=func_8002D0CC(arg0+0x48,arg0+0x38); store at +0x28; loop while ret==0; then +0x1C += ret; return +0x28. Use D_8004A270/D_8004A274 as the \"EX\"/\"n_csplayer.c\" symbols (kills the .rodata diagnostics), case 12 as u8 index *0x10 + *(arg0+0x60) with store at +8 of *(arg0+0x3D), case 22 storing (u8)sp20 into q+0x36 (that cast recovered the guarded 2^31 truncation and $f20), case 17 using an evq local only for the three func_8002D270 calls so gcc materializes arg0+0x48 in a callee-saved reg. Remaining gap: target frame 0x50 with locals sp10@0x10, sp14@0x14, sp18@0x18, sp1C@0x1c, sp20@0x20 and reg saves at 0x28; ours is 0x40 with sp20 at 0x14 because gcc overlaps the event slots with the float result (non-overlapping lifetimes). Modeling the five slots as one local struct (type/pad/p/t/idx/pad2[3]/val) removes the overlap but scored 4522-4562 and still lands 8 bytes short (frame 0x48, reg saves at 0x20); adding pad3[2] to that struct scored 4574. Next step: find a form that keeps all five slots disjoint AND makes gcc reserve 0x14 bytes (e.g. take addresses of the event slots through one base pointer, or give the struct size 0x18 with reg saves starting at 0x28). search_flags: -g3 gives 2425, -O3/-fno-strength-reduce 2605, -G8 2975 - worth a function-scoped compiler/flags suggestion if the C settles.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794717102.702883,
-  "score_before": 6076,
-  "score_after": 2605
- },
- {
   "function": "func_80026250",
   "text": "Best verified: 16963 at revision b232578b01f9d8e3c573 (single `s32 size` local reused for all 16 blocks, `p = &D_8006FB14` byte-pointer stores, m2c-style shift loop with u8 c). Move-on budget exhausted (3/3 without improvement).\n\nTarget shape confirmed: 16 identical blocks of `size = &end - &start; func_8003DE60(&str,&start,fn,size); func_800294A0(&start,fn,size);` where start/end are u8 data symbols, then the D_8006FB14 zero-fill, nuContInit, a 4-iteration bit scan writing D_801E87C0, then the init calls and two infinite loops. Target frame 0x20 with only $ra,$s1,$s0 saved; s1 holds the size, s0 the start pointer (s1 reused for both the end address and the difference).\n\nTried and worse: 16 distinct size locals t0..t15 (21023), block-scoped `{ s32 sz = ...; }` macro (20648), inline `&end - &start` at each call site (21158), struct-typed D_8006FB14 (21158), do/while bit-scan (20648). search_flags: project flags already best (all variants >= 16963; -fno-schedule-insns 17683, -g3 17253).\n\nRemaining gaps at 16963: (a) 5 `sh $zero, %lo(D_8006FB14+0x6)($at)` stores fold the symbol instead of using a base register like target `sh $zero, 0x6($s0)`; (b) register allocation gives 3 callee-saved (s0,s2,s3) and a 0x28 frame instead of 2 and 0x20; (c) the bit-scan loop emits extra `andi/beqz` and `sb $zero` instead of target's `andi $v0,$v0,1 / beql / addiu $v1` with the store only on the taken path; (d) tail sign-extension `sll/sra` pair for D_8006FE58 missing. next_experiment is anchored on the current revision eea7e117842ed8003109 and needs an S8006FB14 typedef added.",
   "by": "api-route-llm-code-1",
@@ -9398,14 +9382,6 @@
   "created_at": 1794728380.6501791,
   "score_before": 10236,
   "score_after": 10236
- },
- {
-  "function": "func_8002AF40",
-  "text": "Not attempted to a score. Revision 065fae93845927c2ef30 is a raw m2c draft (1300 bytes, n_csplayer.c-style sequencer message dispatcher): a switch on the message type at offset 0x38 with about 20 cases, several calls into n_alSyn* / __vsVol / alEvtqPostEvent, and a do/while that re-dispatches while func_8002D0CC returns 0. The draft does not compile as written: it uses M2C_FIELD on arbitrary types, has a `default:` label inside an else block, and mixes M2C_UNK pointer types with arithmetic on arg0 (arg0 + 0x48 should be a byte offset cast, not pointer arithmetic on void*). Suggested start: rewrite as a `u8 *base = arg0;` with explicit field accessors per offset (0x1C, 0x28, 0x2C, 0x38, 0x3C, 0x40, 0x44, 0x5C, 0x60, 0x64, 0x74), then fill the case bodies. The string literals \"n_csplayer.c\" lines 0x111/0x11B/0x128 are assert-style calls (func_800346B0) and should be kept in place. Not yet compiled.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794728431.176994,
-  "score_before": 2605,
-  "score_after": 2605
  },
  {
   "function": "func_80192680",
@@ -12158,22 +12134,6 @@
   "created_at": 1794741697.260531,
   "score_before": 6875,
   "score_after": 6875
- },
- {
-  "function": "func_8002AF40",
-  "text": "Target is 325 insns with a 0x50 frame (ra, s0-s6 saved, sdc1 $f20 for a float scale 0x4f00). A 40-line skeleton scored 26914 (17%); it covers only the event-dispatch loop. Next: write the full switch over the 0x38 state field from the m2c draft (revision caf9c7d7e04d2502c8c2), keep arg0 in s2 and s2+0x48 in s6, and put the float path in f20. The m2c control flow is mostly right; its types need fixing.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794741708.362327,
-  "score_before": 2605,
-  "score_after": 2605
- },
- {
-  "function": "func_8002AF40",
-  "text": "Not matched. Best is revision 22138322161de0d63045 (7719, 76.2%, 325 target insns vs 325). Gaps: (1) the target frame is -0x50 with sdc1 $f20 at 0x48 and ra at 0x44, s2 at 0x30; the candidate is -0x48 with f20 at 0x40, so the target keeps one extra 4-byte local (probably the `s32 temp` used across the alEvtqPostEvent call) and the s5/s6 roles are swapped (target: s5=1 flag, s6=arg0+0x48). (2) String literals: \"EX\"/\"n_csplayer.c\" are emitted into .rodata (the ROM has them at 0x8004A270, the candidate's data differs), so the first func_800346B0 call's string arguments need the exact literal layout checked before register work. (3) Warnings: pointer/integer casts at lines 64, 143, 149, 204, 215 are from the m2c `M2C_UNK` typedefs; type the sp14/sp18 slots and the M2C_FIELD(...) (s32 (**)(...)) call sites properly. Next: add the extra local and re-score; do not start on registers until the frame size matches.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794741733.644751,
-  "score_before": 2605,
-  "score_after": 2605
  },
  {
   "function": "func_80149A80",
@@ -17192,14 +17152,6 @@
   "score_after": 0
  },
  {
-  "function": "func_8002AF40",
-  "text": "No match. The only compile was a stub (one case plus default), score 30313, so it says nothing about the full function. The saved best is 7719 (not reverified). The m2c draft is not valid C: `goto block_50` jumps into a `default:` label inside case 10's else branch, and M2C_FIELD/M2C_UNK typedefs must become a real struct. The target is 1300 bytes (325 insns) with a 0x50 frame and saves s0..s6/ra/f20. Known fields of arg0 from the draft: +0x1C, +0x20 bank, +0x28 next-event result, +0x2C state (0/1/2), +0x32, +0x38 event type, +0x3C current voice, +0x40, +0x44, +0x48 queue head (also `s6 = arg0+0x48`), +0x60, +0x64 voice list, +0x74 callback. Next: write a proper struct, keep the do/while around the switch, and add the cases in order, compiling after each batch of 4-5 cases.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794759099.594956,
-  "score_before": 2605,
-  "score_after": 2605
- },
- {
   "function": "func_80215DE0",
   "text": "Best at project flags -O2: 8135 (61.2%), 210 target vs 208 insns. Not matched. Target loads D_8021DEB0 once (lui/addiu into $a2) then lb x3 into a stack copy tmp[0..2] at 0x10..0x12; my candidate re-materialises lui per byte and register order is wrong. search_flags: KMC GCC -O1 scores 4285 (79.6%), closer; this region is -O1 per shared tip. Remaining -O1 diffs: tmp copy still emits three separate lui/lbu of D_8021DEB0/DEB1/DEB2 instead of one base reg with lb 0,1,2; s3/s0 init order reversed relative to target; flags lives in $s2 vs target $s3. Tried: swapping s3/s0 init order at -O1 (4380, worse). Next if picked up: at -O1 try a byte-pointer copy (u8 *b = (u8 *)D_8021DEB0; tmp[i] = b[i]) to force one base register, and match declaration order of rec/s0/s3/flags to target register use.",
   "by": "claude-haiku-5-5-23",
@@ -19080,14 +19032,6 @@
   "score_after": 21665
  },
  {
-  "function": "func_8002AF40",
-  "text": "Releasing at 1 compile: the remaining gap is a frame and string-layout problem that needs a rewrite of the loop bodies, not a tweak. Best 7719 (76.2%) at revision 22138322161de0d63045. Frame: target `addiu $sp,-0x50` with `sdc1 $f20,0x48($sp)`, saves s2 at 0x30, s5 at 0x3c, s6 at 0x40, ra at 0x44, s4 at 0x38, s3 at 0x34; candidate `-0x48` with sdc1 at 0x40 and s2 at 0x20. That 8-byte gap is an extra local (f64 or a second word) that the candidate lacks, and the loop-state registers differ (target keeps `temp_s6=arg0+0x48` in $s6 and `s5=1`; candidate builds `move $s5,$s6` and `addiu $s7,$zero,1`). Data: ROM rodata at 0x8004A270 begins \"EX\\0\\0\" then \"n_csplayer.c\"; the candidate emits \"n_csplayer.c\" first, so the first use of \"EX\" must precede the first use of \"n_csplayer.c\" in source order. Next step: add the missing 8-byte local, make the first `func_800346B0(\"EX\", ...)` call appear first, then re-check the saves before registers.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794762470.284033,
-  "score_before": 2605,
-  "score_after": 2605
- },
- {
   "function": "func_80208374",
   "text": "Current default O2 rechecks saved source2311 (historical336 corresponds O1). O1 saved source336: only s0 address lifetime/frame mismatch; target keeps &D_8021E19E across calls and lh4(s0), ours folds to lh absolute D_8021E1A2. O1 register pointer, array global, s16 array index, struct layout all336; volatile halfword526, inline helper537. -fforce-addr/-fno-expensive-optimizations/-fno-gcse/-fno-schedule-insns2/-fno-defer-pop no help. O2 repair families callee width/global scalar/array/address temporary no effect; one-shot do{call80205E04;}while(0) improves default to1402 revision97facfde1cf57c9589de but not historical best. Need source or compiler handling that preserves p across calls without artificial operations. Callee matched prototypes point to f32*, and func80205EBC final arg u8; tested corrected source, no match.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -19646,14 +19590,6 @@
   "created_at": 1794764211.139005,
   "score_before": 59416,
   "score_after": 59416
- },
- {
-  "function": "func_8002AF40",
-  "text": "Unmatched, 1300 B. Best saved 7695 (76.3%, 325 target insns, 337 mine), using a Msg struct {s16 type; void *a; s32 b; u8 c} for the alEvtqPostEvent payloads (it improved 7719 to 7695). Remaining differences: (1) Frame: target is 0x50 with f20 at 0x48, ra at 0x44, s2..s6 at 0x30..0x40; mine is 0x58 with extra fp/s7 saves. Target keeps arg0 in s2 (`move $s2,$a0`) and recomputes arg0+0x48 into s6; mine keeps arg0 in s4 and computes queue pointer into s7 and a move to s6. (2) The target hoists constant 1 into s5 across the function (used by the `== 1` / `!= 1` tests on the field at 0x2C, cases 15/17/13/14); mine hoists it into fp. (3) The switch appears to be a compare chain in mine, while the target's .rodata relocations reference a jump table at jtbl_8004A4C8 (the +0x18 mismatch): check the case ordering so gcc emits the table. (4) The rodata strings: target has \"EX\" then \"n_csplayer.c\" at 0x8004A270; my build places \"n_csplayer.c\" first, giving three .rodata mismatches that are not in the code bytes. Sibling func_8003082C (best 4880, same shape) shows the target's switch, msg usage and argument order. Next steps: make arg0 the saved register s2 by copying it before the first branch, and try a switch with cases 0..17 written in ascending order so the jump table appears.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794764223.513054,
-  "score_before": 2605,
-  "score_after": 2605
  },
  {
   "function": "func_80210050",
@@ -41093,5 +41029,69 @@
   "created_at": 1794762641.2071629,
   "score_before": 17212,
   "score_after": 17212
+ },
+ {
+  "function": "func_8002AF40",
+  "text": "Deep permuter: score 6954 \u2192 6439; 5 improvements; 180 candidates tested; 0 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589934845",
+  "created_at": 1794348212.377145,
+  "score_before": 6954,
+  "score_after": 6439
+ },
+ {
+  "function": "func_8002AF40",
+  "text": "Best verified 3357 (revision 028c26b035b319b1616a / 29713e5ceb666c75b455, identical instruction diff). Recovered structure: do/while over switch(*(s16*)(arg0+0x38)) with 24-entry jump table (bounds sltiu 0x18), byte-offset access on arg0, cases 0,9,5,6,22,23,2/21,7,10,15,16,17,12,13,14,1/3/4, then ret=func_8002D0CC(arg0+0x48,arg0+0x38); store at +0x28; loop while ret==0; then +0x1C += ret; return +0x28. Use D_8004A270/D_8004A274 as the \"EX\"/\"n_csplayer.c\" symbols (kills the .rodata diagnostics), case 12 as u8 index *0x10 + *(arg0+0x60) with store at +8 of *(arg0+0x3D), case 22 storing (u8)sp20 into q+0x36 (that cast recovered the guarded 2^31 truncation and $f20), case 17 using an evq local only for the three func_8002D270 calls so gcc materializes arg0+0x48 in a callee-saved reg. Remaining gap: target frame 0x50 with locals sp10@0x10, sp14@0x14, sp18@0x18, sp1C@0x1c, sp20@0x20 and reg saves at 0x28; ours is 0x40 with sp20 at 0x14 because gcc overlaps the event slots with the float result (non-overlapping lifetimes). Modeling the five slots as one local struct (type/pad/p/t/idx/pad2[3]/val) removes the overlap but scored 4522-4562 and still lands 8 bytes short (frame 0x48, reg saves at 0x20); adding pad3[2] to that struct scored 4574. Next step: find a form that keeps all five slots disjoint AND makes gcc reserve 0x14 bytes (e.g. take addresses of the event slots through one base pointer, or give the struct size 0x18 with reg saves starting at 0x28). search_flags: -g3 gives 2425, -O3/-fno-strength-reduce 2605, -G8 2975 - worth a function-scoped compiler/flags suggestion if the C settles.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794717102.702883,
+  "score_before": 6076,
+  "score_after": 2605
+ },
+ {
+  "function": "func_8002AF40",
+  "text": "Not attempted to a score. Revision 065fae93845927c2ef30 is a raw m2c draft (1300 bytes, n_csplayer.c-style sequencer message dispatcher): a switch on the message type at offset 0x38 with about 20 cases, several calls into n_alSyn* / __vsVol / alEvtqPostEvent, and a do/while that re-dispatches while func_8002D0CC returns 0. The draft does not compile as written: it uses M2C_FIELD on arbitrary types, has a `default:` label inside an else block, and mixes M2C_UNK pointer types with arithmetic on arg0 (arg0 + 0x48 should be a byte offset cast, not pointer arithmetic on void*). Suggested start: rewrite as a `u8 *base = arg0;` with explicit field accessors per offset (0x1C, 0x28, 0x2C, 0x38, 0x3C, 0x40, 0x44, 0x5C, 0x60, 0x64, 0x74), then fill the case bodies. The string literals \"n_csplayer.c\" lines 0x111/0x11B/0x128 are assert-style calls (func_800346B0) and should be kept in place. Not yet compiled.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794728431.176994,
+  "score_before": 2605,
+  "score_after": 2605
+ },
+ {
+  "function": "func_8002AF40",
+  "text": "Target is 325 insns with a 0x50 frame (ra, s0-s6 saved, sdc1 $f20 for a float scale 0x4f00). A 40-line skeleton scored 26914 (17%); it covers only the event-dispatch loop. Next: write the full switch over the 0x38 state field from the m2c draft (revision caf9c7d7e04d2502c8c2), keep arg0 in s2 and s2+0x48 in s6, and put the float path in f20. The m2c control flow is mostly right; its types need fixing.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794741708.362327,
+  "score_before": 2605,
+  "score_after": 2605
+ },
+ {
+  "function": "func_8002AF40",
+  "text": "Not matched. Best is revision 22138322161de0d63045 (7719, 76.2%, 325 target insns vs 325). Gaps: (1) the target frame is -0x50 with sdc1 $f20 at 0x48 and ra at 0x44, s2 at 0x30; the candidate is -0x48 with f20 at 0x40, so the target keeps one extra 4-byte local (probably the `s32 temp` used across the alEvtqPostEvent call) and the s5/s6 roles are swapped (target: s5=1 flag, s6=arg0+0x48). (2) String literals: \"EX\"/\"n_csplayer.c\" are emitted into .rodata (the ROM has them at 0x8004A270, the candidate's data differs), so the first func_800346B0 call's string arguments need the exact literal layout checked before register work. (3) Warnings: pointer/integer casts at lines 64, 143, 149, 204, 215 are from the m2c `M2C_UNK` typedefs; type the sp14/sp18 slots and the M2C_FIELD(...) (s32 (**)(...)) call sites properly. Next: add the extra local and re-score; do not start on registers until the frame size matches.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794741733.644751,
+  "score_before": 2605,
+  "score_after": 2605
+ },
+ {
+  "function": "func_8002AF40",
+  "text": "No match. The only compile was a stub (one case plus default), score 30313, so it says nothing about the full function. The saved best is 7719 (not reverified). The m2c draft is not valid C: `goto block_50` jumps into a `default:` label inside case 10's else branch, and M2C_FIELD/M2C_UNK typedefs must become a real struct. The target is 1300 bytes (325 insns) with a 0x50 frame and saves s0..s6/ra/f20. Known fields of arg0 from the draft: +0x1C, +0x20 bank, +0x28 next-event result, +0x2C state (0/1/2), +0x32, +0x38 event type, +0x3C current voice, +0x40, +0x44, +0x48 queue head (also `s6 = arg0+0x48`), +0x60, +0x64 voice list, +0x74 callback. Next: write a proper struct, keep the do/while around the switch, and add the cases in order, compiling after each batch of 4-5 cases.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794759099.594956,
+  "score_before": 2605,
+  "score_after": 2605
+ },
+ {
+  "function": "func_8002AF40",
+  "text": "Releasing at 1 compile: the remaining gap is a frame and string-layout problem that needs a rewrite of the loop bodies, not a tweak. Best 7719 (76.2%) at revision 22138322161de0d63045. Frame: target `addiu $sp,-0x50` with `sdc1 $f20,0x48($sp)`, saves s2 at 0x30, s5 at 0x3c, s6 at 0x40, ra at 0x44, s4 at 0x38, s3 at 0x34; candidate `-0x48` with sdc1 at 0x40 and s2 at 0x20. That 8-byte gap is an extra local (f64 or a second word) that the candidate lacks, and the loop-state registers differ (target keeps `temp_s6=arg0+0x48` in $s6 and `s5=1`; candidate builds `move $s5,$s6` and `addiu $s7,$zero,1`). Data: ROM rodata at 0x8004A270 begins \"EX\\0\\0\" then \"n_csplayer.c\"; the candidate emits \"n_csplayer.c\" first, so the first use of \"EX\" must precede the first use of \"n_csplayer.c\" in source order. Next step: add the missing 8-byte local, make the first `func_800346B0(\"EX\", ...)` call appear first, then re-check the saves before registers.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794762470.284033,
+  "score_before": 2605,
+  "score_after": 2605
+ },
+ {
+  "function": "func_8002AF40",
+  "text": "Unmatched, 1300 B. Best saved 7695 (76.3%, 325 target insns, 337 mine), using a Msg struct {s16 type; void *a; s32 b; u8 c} for the alEvtqPostEvent payloads (it improved 7719 to 7695). Remaining differences: (1) Frame: target is 0x50 with f20 at 0x48, ra at 0x44, s2..s6 at 0x30..0x40; mine is 0x58 with extra fp/s7 saves. Target keeps arg0 in s2 (`move $s2,$a0`) and recomputes arg0+0x48 into s6; mine keeps arg0 in s4 and computes queue pointer into s7 and a move to s6. (2) The target hoists constant 1 into s5 across the function (used by the `== 1` / `!= 1` tests on the field at 0x2C, cases 15/17/13/14); mine hoists it into fp. (3) The switch appears to be a compare chain in mine, while the target's .rodata relocations reference a jump table at jtbl_8004A4C8 (the +0x18 mismatch): check the case ordering so gcc emits the table. (4) The rodata strings: target has \"EX\" then \"n_csplayer.c\" at 0x8004A270; my build places \"n_csplayer.c\" first, giving three .rodata mismatches that are not in the code bytes. Sibling func_8003082C (best 4880, same shape) shows the target's switch, msg usage and argument order. Next steps: make arg0 the saved register s2 by copying it before the first branch, and try a switch with cases 0..17 written in ascending order so the jump table appears.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794764223.513054,
+  "score_before": 2605,
+  "score_after": 2605
  }
 ]
