@@ -5968,14 +5968,6 @@
   "score_after": 12595
  },
  {
-  "function": "func_801E189C",
-  "text": "Not matched. Best 17870 (22.6%), a hand rewrite using a 4-arg extern func_8003DE60(void*, u32, u32, s32) with 0 for unknown args. The machine draft did not compile as-is: func_8003DE60 calls had too few args. Target 231 insns, mine 211. Target layout differs from my rewrite: it loads D_800DA26A+0xA3E into a pointer register (lui/addiu v1) and reads each 0xA3F/0xA41/... byte from that base with separate lui/lbu pairs, while my rewrite used direct indexing that the compiler folded. The 0xBA8 entry reads D_800DA260[D_801E87E5*0x178]. Next steps: determine the 4 args of func_8003DE60 from its callers/callee (find_similar or get_function on func_8003DE60), keep the target's pointer-base pattern for D_800DA26A, and split the three loops (outer do/while, inner cnt-loop, zero-fill and sum loops) to match the target's branch order. Released to move on.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794711019.205825,
-  "score_before": 21483,
-  "score_after": 17870
- },
- {
   "function": "func_8003E83C",
   "text": "Best 270 (85%), 18 insns both sides, structure is right; the remaining 16 rows are ENTIRELY register names, and the target's register choice cannot come from this project's compilers.\n\nTarget = sorted-list insert: t9=prev(head), t8=cur(head->next), t7=key(item->priority), t6=cur->priority; `slt $at,$t6,$t7 / bnez $at,insert / nop`; loop `t9=t8; t8=t8->next; t6=t8->priority; slt $at; beqz $at,loop / nop`; then `t8=t9->next; item->next=t8; t9->next=item; item->queue=head` (this is `item->next = prev->next; prev->next = item; item->queue = head;` \u2014 the reload of prev->next is why the target reloads from t9).\n\nBest C (revision 3dc89142d9c7c429847c, score 270 under the range's -O1 profile):\n    void func_8003E83C(Q *head, Q *item) {\n        Q *prev = head;\n        while (item->priority <= prev->next->priority) prev = prev->next;\n        item->next = prev->next;\n        prev->next = item;\n        item->queue = head;\n    }\nSame score with `while (!(prev->next->priority < item->priority))`. Explicit `Q *cur = head->next; s32 key = ...` gives 1045 (GCC turns it into a do-while, 14 insns); `for(;;)`/break forms give 665.\n\nWHY IT CANNOT MATCH HERE: the target writes the comparison result into $at and uses only $t6-$t9 for temporaries (classic IDO ugen style). gcc-2.7.2-kmc -O1 and -O2, sn-n64-272-0001 (SN64 GCC 2.7.2) -O1 and sn-n64-281 (SN64 GCC 2.8.1) -O2 all emit `slt $v0,...` / `slt $v1,...` \u2014 GCC never writes $at for slt. ido-7.1 and ido-5.3 do use `slt $at`, but their -O2 fills the branch delay slots (bnel/beql, which the target does not have: it has plain bnez/beqz + nop) and reorders the loop; ido-7.1 -O1 spills to the stack. So this function needs either a different compiler assignment for its address range or it is hand-written assembly.\n\nBest 270/85% (revision 3dc89142d9c7c429847c): the C is settled and both sides are 18 insns \u2014 all 16 remaining rows are register names. Target C: `Q *prev = head; while (item->priority <= prev->next->priority) prev = prev->next; item->next = prev->next; prev->next = item; item->queue = head;` with `typedef struct { struct Q *next; s32 priority; struct Q *queue; } Q;`. Blocked on the compiler, not the source: the target writes `slt $at,$t6,$t7` + `bnez/beqz $at`, nop delay slots, temporaries only in $t6-$t9. gcc-2.7.2-kmc -O1/-O2, sn-n64-272-0001 -O1 and sn-n64-281 -O2 all emit `slt $v0/...` (GCC never writes $at for slt); ido-7.1/-5.3 use $at but fill delay slots (bnel/beql) and reorder the loop, and ido-7.1 -O1 spills. Filed suggest(text=..., function=\"func_8003E83C\") asking for this address range's compiler to be reviewed (possible IDO build without delay-slot filling, or hand-written assembly).",
   "by": "opencode-deepseek-v4.1-flash-free-5",
@@ -7910,14 +7902,6 @@
   "created_at": 1794727150.116603,
   "score_before": 12595,
   "score_after": 12595
- },
- {
-  "function": "func_801E189C",
-  "text": "No match. Only a partial stub was compiled (prologue-era stores only, score 22195), not a real attempt; the full body is still unwritten. The m2c draft does not compile as-is: func_8003DE60 is called with 2 args in the draft but needs 4 (signature from the draft: (M2C_UNK *, u32, u32, s32)); its argument meanings are unknown. Layout facts: D_801F18E4..ED are byte stores from D_801E87E0 and bytes at D_800DA26A+0xA3E+{1,3,5,...,0xF} (stride 2 starting at 0xA3F), plus D_800DA26A[0xBA8 + D_800DA260[D_801E87E5*0x178]]. Structure: an outer do/while over a table D_801E9D80/D_801E9D81 (pairs, sentinel 0xFF), inner run-length loop, copying pairs into D_801F18E0 (stride 2, base index s1), then zeroing D_801F18E0 up to 0x3200, summing it into D_801E973C, and two more func_8003DE60 calls. Next agent: write the full loop structure from the assembly (get_assembly paged), keep the draft's control flow, and fix the call arity first.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794727232.0929432,
-  "score_before": 17857,
-  "score_after": 17857
  },
  {
   "function": "func_801FF978",
@@ -10166,14 +10150,6 @@
   "created_at": 1794740445.085979,
   "score_before": 330,
   "score_after": 330
- },
- {
-  "function": "func_801E189C",
-  "text": "Not matched; no real attempt yet. The m2c draft does not compile: func_8003DE60 is declared with 4 args but called with 2-3 args at the tail (`func_8003DE60(&D_801E94CC, var_s0_3)` and `func_8003DE60(&D_801E94EC, D_801E973C)`); check the real prototype against the other callers before redrafting. Structure from the draft: prologue saves $ra,$s1,$s0 (frame -0x28). Copies 8 bytes from D_800DA26A+0xA3F/0xA3E+3..0xF into D_801F18E5..EC, and D_801F18ED from D_800DA26A+0xBA8 indexed by D_800DA260 (+D_801E87E5*0x178). Then a do-while loop over D_801E9D80/81 byte pairs with 0xFF terminator and 0xEE filler writes into D_801F18E0 pairs, followed by a zero-fill loop to 0x3200 and a checksum-like sum loop. Next: fix the prototype, then build the structure from the asm (get_assembly pages) rather than the draft; the stub with prologue and table copies scored 22195 and is not a base to build on.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794740447.373646,
-  "score_before": 17857,
-  "score_after": 17857
  },
  {
   "function": "func_801FF978",
@@ -13328,14 +13304,6 @@
   "score_after": 0
  },
  {
-  "function": "func_801E189C",
-  "text": "Not matched. Best: 22195 (3.9%), the straight-line draft I compiled covers only the first ~53 of 231 target instructions. The target is not a plain field copy: it saves ra/s0/s1 in the prologue (addiu sp,-0x28), has `move $t2,$zero` loop setup, and uses `andi $v1,$a1,0xffff` on an argument, so the function takes parameters and loops (about 15 andi, 24 addu $at, 23 lui D_801E87E0 uses; likely a per-entry table walk, where the 8 copied bytes and the D_800DA260 index are one iteration of it). The `func_8003DE60` call-arity error in the machine draft is a sign of this. Next: read get_assembly from line 52 onward and the `andi a1` loop body to recover the signature, the loop bound, and the call to func_8003DE60, then rewrite as a loop with the real parameters before compiling again. Do not tune registers yet.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794756545.889122,
-  "score_before": 17857,
-  "score_after": 17857
- },
- {
   "function": "func_801FCBEC",
   "text": "Low progress after 24 scored trials: at most 1% score reduction over the recent window. Best source retained. Next evidence: Mismatch focus: constants / addresses; first differing row 24; 16 differing rows (8 register, 8 reordered; advisory).\nTarget: lui $v0, %hi(D_80126FF6)\nCandidate: lui $v1, %hi(D_80126FF6)\nAdvisory instruction window (normalized; exact-byte verdict unchanged):\n  = addiu $v0, $a2, 8\n  = sw $v0, ($a0)\nr T: lui $v0, %hi(D_80126FF6) | C: lui $v1, %hi(D_80126FF6)\nr T: lbu $v0, %lo(D_80126FF6)($v0) | C: lbu $v1, %lo(D_80126FF6)($v1)\nr T: lui $v1, %hi(D_8011F060) | C: lui $a1, %hi(D_8011F060)\nMore target instructions: get_assembly(focus=\"mismatch\"). Raw/paged diff: last_diff.\n\nNew best 280 (rev 122a24ed59a09313bc4a): it's gSPDisplayList + gDPSetTileSize(tile 1). Key: D_8011F060 is a POINTER to a struct with an array at +0x798 of 0x30-byte elems {s32 x; s32 y;...}, indexed by D_80126FF6: D_8011F060->cam[D_80126FF6].x/.y, written with full GBI _SHIFTL macro shape, Gfx* blocks `_g = (*arg0)++`. Remaining: addu operand order (target idx*48 + ptr, ptr loaded into v1 after idx) and 0x79C loads scheduled earlier in ours. Tried: local Cam* c pointer (690 worse), s32 k index local (no change), u32 fields (no change), cam[1] (no change). Next: try idx*0x30 computed differently (e.g. ((Cam*)((u8*)D_8011F060+0x798))[idx]) or s16 index, or different macro version (_SHIFTL without u32 casts).",
   "by": "claude-opus-medium-1",
@@ -13990,14 +13958,6 @@
   "created_at": 1794758793.138376,
   "score_before": 280,
   "score_after": 280
- },
- {
-  "function": "func_801E189C",
-  "text": "Not matched. Target is a 231-insn loop-heavy function, frame 0x28 with s0/s1/ra saved (3 regs). I rewrote the whole body from the assembly (copy prologue; if(t1||t3){ do { run-length count of matching (D9D80,D9D81) pairs from t2+2, a2 starts at 1 and is incremented in the inner loop body; if a2<4 copy a2 pairs into D18E0/D18E1 at s1 and s1+=2*a2, else write 0xEE/prev pairs, a u16 run length, s1+=6; t2+=2*a2; reload t1/t3 from D9D80/D9D81[t2] } while(t1||t3); } then trailing store, func_8003DE60 calls, zero-fill loop to 0x3200, u32 sum from index 4, call, word store to D18E0[0]). Compile gave 22969 (worse than saved 22195). Problems: compiler allocates 4 saved regs and a 0x20 frame (target 3 saved, 0x28 frame), so the locals (a3i/s0/a1/a2/t0) are too many; the copy loop got the wrong register shape. Next step: reduce locals (drop a3i, reuse t0 for s1 copy), and try the ordering where the first 'if (a0||a3)' block is a while loop with the run-length test before the inner do. Not tried: try_compiler -O1 (not checked for this region; see knowledge #339302416479 about 0x800DE2E0\u20130x800E1850 region at -O1, this function is at 0x801E189C, outside that range).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794758794.084299,
-  "score_before": 17857,
-  "score_after": 17857
  },
  {
   "function": "func_80211A84",
@@ -41712,5 +41672,54 @@
   "score_before": 96883,
   "score_after": 19502,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:c2f0ecb434975a7af0f24ed49a35368af2d5fc0e45dc9534f636d5e8598bd9e2"
+ },
+ {
+  "function": "func_801E189C",
+  "text": "Not matched. Best 17870 (22.6%), a hand rewrite using a 4-arg extern func_8003DE60(void*, u32, u32, s32) with 0 for unknown args. The machine draft did not compile as-is: func_8003DE60 calls had too few args. Target 231 insns, mine 211. Target layout differs from my rewrite: it loads D_800DA26A+0xA3E into a pointer register (lui/addiu v1) and reads each 0xA3F/0xA41/... byte from that base with separate lui/lbu pairs, while my rewrite used direct indexing that the compiler folded. The 0xBA8 entry reads D_800DA260[D_801E87E5*0x178]. Next steps: determine the 4 args of func_8003DE60 from its callers/callee (find_similar or get_function on func_8003DE60), keep the target's pointer-base pattern for D_800DA26A, and split the three loops (outer do/while, inner cnt-loop, zero-fill and sum loops) to match the target's branch order. Released to move on.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794711019.205825,
+  "score_before": 21483,
+  "score_after": 17870
+ },
+ {
+  "function": "func_801E189C",
+  "text": "No match. Only a partial stub was compiled (prologue-era stores only, score 22195), not a real attempt; the full body is still unwritten. The m2c draft does not compile as-is: func_8003DE60 is called with 2 args in the draft but needs 4 (signature from the draft: (M2C_UNK *, u32, u32, s32)); its argument meanings are unknown. Layout facts: D_801F18E4..ED are byte stores from D_801E87E0 and bytes at D_800DA26A+0xA3E+{1,3,5,...,0xF} (stride 2 starting at 0xA3F), plus D_800DA26A[0xBA8 + D_800DA260[D_801E87E5*0x178]]. Structure: an outer do/while over a table D_801E9D80/D_801E9D81 (pairs, sentinel 0xFF), inner run-length loop, copying pairs into D_801F18E0 (stride 2, base index s1), then zeroing D_801F18E0 up to 0x3200, summing it into D_801E973C, and two more func_8003DE60 calls. Next agent: write the full loop structure from the assembly (get_assembly paged), keep the draft's control flow, and fix the call arity first.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794727232.0929432,
+  "score_before": 17857,
+  "score_after": 17857
+ },
+ {
+  "function": "func_801E189C",
+  "text": "Not matched; no real attempt yet. The m2c draft does not compile: func_8003DE60 is declared with 4 args but called with 2-3 args at the tail (`func_8003DE60(&D_801E94CC, var_s0_3)` and `func_8003DE60(&D_801E94EC, D_801E973C)`); check the real prototype against the other callers before redrafting. Structure from the draft: prologue saves $ra,$s1,$s0 (frame -0x28). Copies 8 bytes from D_800DA26A+0xA3F/0xA3E+3..0xF into D_801F18E5..EC, and D_801F18ED from D_800DA26A+0xBA8 indexed by D_800DA260 (+D_801E87E5*0x178). Then a do-while loop over D_801E9D80/81 byte pairs with 0xFF terminator and 0xEE filler writes into D_801F18E0 pairs, followed by a zero-fill loop to 0x3200 and a checksum-like sum loop. Next: fix the prototype, then build the structure from the asm (get_assembly pages) rather than the draft; the stub with prologue and table copies scored 22195 and is not a base to build on.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794740447.373646,
+  "score_before": 17857,
+  "score_after": 17857
+ },
+ {
+  "function": "func_801E189C",
+  "text": "Not matched. Best: 22195 (3.9%), the straight-line draft I compiled covers only the first ~53 of 231 target instructions. The target is not a plain field copy: it saves ra/s0/s1 in the prologue (addiu sp,-0x28), has `move $t2,$zero` loop setup, and uses `andi $v1,$a1,0xffff` on an argument, so the function takes parameters and loops (about 15 andi, 24 addu $at, 23 lui D_801E87E0 uses; likely a per-entry table walk, where the 8 copied bytes and the D_800DA260 index are one iteration of it). The `func_8003DE60` call-arity error in the machine draft is a sign of this. Next: read get_assembly from line 52 onward and the `andi a1` loop body to recover the signature, the loop bound, and the call to func_8003DE60, then rewrite as a loop with the real parameters before compiling again. Do not tune registers yet.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794756545.889122,
+  "score_before": 17857,
+  "score_after": 17857
+ },
+ {
+  "function": "func_801E189C",
+  "text": "Not matched. Target is a 231-insn loop-heavy function, frame 0x28 with s0/s1/ra saved (3 regs). I rewrote the whole body from the assembly (copy prologue; if(t1||t3){ do { run-length count of matching (D9D80,D9D81) pairs from t2+2, a2 starts at 1 and is incremented in the inner loop body; if a2<4 copy a2 pairs into D18E0/D18E1 at s1 and s1+=2*a2, else write 0xEE/prev pairs, a u16 run length, s1+=6; t2+=2*a2; reload t1/t3 from D9D80/D9D81[t2] } while(t1||t3); } then trailing store, func_8003DE60 calls, zero-fill loop to 0x3200, u32 sum from index 4, call, word store to D18E0[0]). Compile gave 22969 (worse than saved 22195). Problems: compiler allocates 4 saved regs and a 0x20 frame (target 3 saved, 0x28 frame), so the locals (a3i/s0/a1/a2/t0) are too many; the copy loop got the wrong register shape. Next step: reduce locals (drop a3i, reuse t0 for s1 copy), and try the ordering where the first 'if (a0||a3)' block is a while loop with the run-length test before the inner do. Not tried: try_compiler -O1 (not checked for this region; see knowledge #339302416479 about 0x800DE2E0\u20130x800E1850 region at -O1, this function is at 0x801E189C, outside that range).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794758794.084299,
+  "score_before": 17857,
+  "score_after": 17857
+ },
+ {
+  "function": "func_801E189C",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 15888 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (11 of its 12 nearest matched neighbours were built with it), the saved C scores 19376 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721264.991074,
+  "score_before": 19376,
+  "score_after": 15888,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:e46f6650083829b60c8d47c4f50d35016eb8b621fc6fd3cde1d53a01db9da0d9"
  }
 ]
