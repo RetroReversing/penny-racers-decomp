@@ -6360,14 +6360,6 @@
   "score_after": 400
  },
  {
-  "function": "func_8014A4C8",
-  "text": "Not matched. Saved best 265 is the m2c-style draft (revision 18fc7fe82d5b0c735e52, uses `*(&D_80202484 + arg3*4)` with s32 externs, which is wrong pointer scaling; it is a historical number, not reverified). My typed rewrite (D_80202484 as u8*[], e = base + arg4*22, t = &D_80200300 + arg3*12, entry fields via byte offsets) scores 4520 (75.0%), revision cf011ef7a52eef372a1a. Differences: target sign-extends arg1/arg2 (sll/sra 16) once before the first branch and keeps arg0 in s0 (move s0,a0); my build repeats the sll/sra per call and reloads. Layout: target saves ra/s0 only at 0x54/0x50 and uses a 0x58 frame with 16 stack-arg slots (0x10..0x40) filled from e+0..0x14 and t+0..t+8. The first branch test is (u16)e[0xA] | (u16)e[8] == 0, then arg3<3||arg3==0xD picks func_801CC150 else func_801CCE7C; arg3==0xD (else-if) picks func_801CE3A0 with e+8/e+0xA as s16 args; else func_801CDDB8. Next steps: hoist arg1/arg2 casts into s16 locals once, and use the prototype with s16 for args 2-4 as in the saved draft; check the three callee prototypes against their own functions.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794710519.503231,
-  "score_before": 265,
-  "score_after": 265
- },
- {
   "function": "func_80164D00",
   "text": "Not matched. Best saved revision 9407f45b2fe5e518188f scores 3618 on fresh compile (79.4%); the saved-best 649 is historical. Target frame is 0x88 with saves of ra, s0-s3 and f20/f22/f24/f26; ours is 0x80 with s0-s2 and f20-f24. So the target keeps one more integer value (s3) and one more float (f26) live across calls, which the source does not account for. Tried: (a) idx as a local s32 (7024, worse); (b) hoisting the three D_8011F308/30C/310 float loads into locals before the func_800DE41C call (6447, worse); (c) the saved-best form with arg0 copied to temp_s2 (kept). Not yet tried: a float local for the (-x*8)+sin/cos sums computed before the func_801D7028 call, and a second s32 local for the 0x7C0/0x7C4/0x7C8 values to force an extra saved register. Next step: check get_assembly for where s3 and f26 are first written; that identifies the extra local.",
   "by": "claude-haiku-5-5-23",
@@ -9128,14 +9120,6 @@
   "score_after": 649
  },
  {
-  "function": "func_8014A4C8",
-  "text": "Dispatcher to func_801CC150/func_801CCE7C/func_801CDDB8/func_801CE3A0 with a 17-arg call, reading a table D_80202484[arg3] (pointer, 0x16 record stride in arg4) and D_80200300 (0xC stride). Best current C 3970 (78%), revision c3af39c6db2cbe163399. Key finding: the target passes arg1/arg2 without sign-extension, so the callee prototypes must take s32 for those two params (not s16) \u2014 this removed the sll/sra pairs. Remaining diff: the target keeps `arg0` (the s32* sp) and `arg4` in $s0 across calls (`move $s0,$a0` x4) and computes the `&sp48` address (`addiu $a0,$sp,0x48`) late, after loading the args; my version loads the record fields first. Also the arg3==0xD branch order: target tests `bne $a3,$v0` (0xD) before the else call. Next: compare against the historical saved 265 candidate (different source; not reverified here) and rewrite with `s32 *sp` as the first-loaded value.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794726135.020143,
-  "score_before": 265,
-  "score_after": 265
- },
- {
   "function": "func_801FA240",
   "text": "Move-on budget exhausted (3/3 without improvement). Target shape: three component diffs spilled to 0x10/0x14/0x18($sp) with swc1 right after each sub.s, squares summed in $f12 (mul.s $f12,$f12,$f12 / nop / mul.s $f14.. / add.s / mul.s $f0.. / add.s), sqrt.s $f2,$f12, then c.eq.s $f2,$f2 / bc1t over `jal sqrtf` + mov.s $f2,$f0 (i.e. sqrtf(dot) written as a plain call, not __builtin_sqrt), zero test against $f0, div.s $f14,$f14,$f2 (inv kept in $f14), then lwc1/mul.s/swc1 per component and jal func_801F9C8C with f12=d0, f14=d2. Crucially the target uses NO callee-saved float regs (no sdc1/ldc1) \u2014 all live values are stack memory, so the source must use real stack storage (f32 d[3] or sp10/sp14/sp18 locals) and the division operand must be reloaded, not kept in $f20/$f22. Tried: array form (2201, extra mov.s $f12,$f0 after jal sqrtf and different mul order), scalar locals (3131, forces sdc1 $f22 spills), m2c draft with sp10/sp14/sp18 (3131), local repair families float_call_staging/float_argument_bits/float_product_intermediate/plain_float_slots/arithmetic_operand_order/expression_placement (no untried proposals), earlier local_storage/single_use_inline/local_declaration_order all worse. Next: keep the stack-slot form but make the sqrtf argument a plain function call result stored in a local before the zero test, and write the inv scaling as three separate statements reading the slots (inv * d[i] with the slot reloaded) so gcc stays in $f0/$f12/$f14; also try declaring sqrtf as `f32 sqrtf();` (K&R, no prototype) to kill the builtin/mov.s difference.",
   "by": "api-route-llm-code-2",
@@ -11806,14 +11790,6 @@
   "created_at": 1794739869.123232,
   "score_before": null,
   "score_after": null
- },
- {
-  "function": "func_8014A4C8",
-  "text": "Not matched. Best verified this session: 4510 (75% of insns aligned; 180 vs 181 insns), with s16 params arg1/arg2 and the 17-arg calls to func_801CC150/CCE7C/DDB8/3A0 (stack args from the frame at 0x10..0x40, local sp48 = *arg0 stored back at end). Target: prologue saves $ra at 0x54 before $s0 at 0x50, copies a1/a2 to $t1/$t2 before loading arg4 from 0x68($sp), and calls with the arg1/arg2 sll/sra pairs only in the call paths. Mine saves $s0 first and does not copy the args into t1/t2. Note: the saved-best 265 claimed in notes is not reproduced: the m2c draft, recompiled, scores about 4520 with a different lhu register assignment, so treat 265 as unreliable. Open: the `temp_a0 = D_80202484[arg3] + arg4*22` and `temp_t0 = D_80200300 + arg3*12` pointer shape; try declaring the two bases as separate locals with the loads ordered like the target (lhu 8 before lhu 0xA).",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794740032.5789282,
-  "score_before": 265,
-  "score_after": 265
  },
  {
   "function": "func_80139F14",
@@ -15712,14 +15688,6 @@
   "score_after": 10
  },
  {
-  "function": "func_8014A4C8",
-  "text": "Not matched. Best current compile in this claim: 4340 (76% match, rewrite with s32 wrapper args). The saved_best m2c-style source (recorded 265) rechecks at 4870 now, so the recorded 265 is not reproduced in this environment. Target facts: frame 0x58; s0 = arg0, sp48 = *arg0 stored at 0x48 and written back at end; arg4 read from 0x68($sp); index math arg4*22 (sll1/addu/sll2/subu/sll1) and arg3*12 (sll1/addu/sll2) with D_80200300 base and D_80202484 pointer table at arg3*4; callee calls use s16 params (sll16/sra16 per arg) with 17-arg stack spill. Unresolved: prologue order (sw $ra before s0, move $s0,$a0 placement), the (arg3<3)|(arg3==0xD) branch layout, and the register allocation for temp_a0/temp_t0. Signedness variant (u32 sp48) gave no change. Next attempt should start from the 4340 rewrite and fix prologue/saved-register order first.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794754576.5259368,
-  "score_before": 265,
-  "score_after": 265
- },
- {
   "function": "func_80042630",
   "text": "Boundary report submitted real first end42648: two tail jumps complete entry, then8 alignment NOP bytes, independent entry42650 uses ra saved in t5 and returns v0/v1 assembled from scratch regs. Current96-byte extent merges24-byte first routine +72 subsequent/padding. Cannot represent disconnected second entry with one plausible C function. Compile of u64 dispatcher2880 vs historical stub2130. Await extent correction before tuning; do not label whole merged extent not-C.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -16406,14 +16374,6 @@
   "created_at": 1794756715.666958,
   "score_before": 11735,
   "score_after": 11735
- },
- {
-  "function": "func_8014A4C8",
-  "text": "Best this session 4490 (75.1%, rev 2c4d72fe494c6c73d208: s32 params, s32 externs for func_801CC150/CCE7C/DDB8/CE3A0 (17 args each), temp_a0/temp_t0 as s8* with offset loads). The saved best 265 is from another source (m2c draft with M2C macros, 'saved-progress'); it was not reverified here. Target differences: (1) target does sll a1,a1,16 / sra a1,a1,16 pairs on the arg1/arg2 values passed to the calls (s16 truncation of args), which the s32 version lacks; (2) target keeps `move $s0,$a0` (arg0 pointer saved in s0) and builds temp_a0 before the first branch; (3) target loads the u16 fields at a0+8 / a0+0xA via lh $a3 / lh $v0 from a0 (not t0), so the table pointer ordering differs. Tried: s16 params (4860), s16 cast only on first call (7825, worse). Next: keep s32 params, try explicit (s16)arg1 only in the sll/sra location matching the target's operand order, and reorder temp_a0 computation so arg0 is copied into s0 first.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794756752.215081,
-  "score_before": 265,
-  "score_after": 265
  },
  {
   "function": "func_80204760",
@@ -20958,14 +20918,6 @@
   "created_at": 1794767848.639817,
   "score_before": 649,
   "score_after": 649
- },
- {
-  "function": "func_8014A4C8",
-  "text": "Structure is clear: arg0 is an s32* handle (copied to local sp48, passed as &sp48, written back at end). Record A = D_80202484[arg3] + arg4*0x22? no: arg4*0x16 (22-byte records: s16 x0,x2,x4,x6; u16 x8,xA; u8 xC,xD; s16 xE,x10,x12,x14). Table T = D_80200300 + arg3*12 (s16 t0,t2; s32 t4,t8). Four call paths: cond (A.xA|A.x8)==0 and (arg3<3||arg3==0xD) -> func_801CC150; same cond false -> func_801CCE7C; else arg3==0xD -> func_801CE3A0 (args read as s16 x8,xA; u16 xE..x14); else func_801CDDB8. The struct-based rewrite scored 5940 (67%), worse than the inherited 265 draft. Target keeps arg1/arg2 sign-extended in t1/t2 and copies them to a1/a2 before branching; my version did not reproduce this. Next step: start from the saved 265 M2C_FIELD draft and fix the prologue order (ra at 0x54, s0 at 0x50, sp48 at 0x48) and the arg1/arg2 s16 temporaries.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794767855.728849,
-  "score_before": 265,
-  "score_after": 265
  },
  {
   "function": "alFxNew",
@@ -41021,5 +40973,62 @@
   "created_at": 1795746548.6848152,
   "score_before": 37664,
   "score_after": 0
+ },
+ {
+  "function": "func_8014A4C8",
+  "text": "Not matched. Saved best 265 is the m2c-style draft (revision 18fc7fe82d5b0c735e52, uses `*(&D_80202484 + arg3*4)` with s32 externs, which is wrong pointer scaling; it is a historical number, not reverified). My typed rewrite (D_80202484 as u8*[], e = base + arg4*22, t = &D_80200300 + arg3*12, entry fields via byte offsets) scores 4520 (75.0%), revision cf011ef7a52eef372a1a. Differences: target sign-extends arg1/arg2 (sll/sra 16) once before the first branch and keeps arg0 in s0 (move s0,a0); my build repeats the sll/sra per call and reloads. Layout: target saves ra/s0 only at 0x54/0x50 and uses a 0x58 frame with 16 stack-arg slots (0x10..0x40) filled from e+0..0x14 and t+0..t+8. The first branch test is (u16)e[0xA] | (u16)e[8] == 0, then arg3<3||arg3==0xD picks func_801CC150 else func_801CCE7C; arg3==0xD (else-if) picks func_801CE3A0 with e+8/e+0xA as s16 args; else func_801CDDB8. Next steps: hoist arg1/arg2 casts into s16 locals once, and use the prototype with s16 for args 2-4 as in the saved draft; check the three callee prototypes against their own functions.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794710519.503231,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_8014A4C8",
+  "text": "Dispatcher to func_801CC150/func_801CCE7C/func_801CDDB8/func_801CE3A0 with a 17-arg call, reading a table D_80202484[arg3] (pointer, 0x16 record stride in arg4) and D_80200300 (0xC stride). Best current C 3970 (78%), revision c3af39c6db2cbe163399. Key finding: the target passes arg1/arg2 without sign-extension, so the callee prototypes must take s32 for those two params (not s16) \u2014 this removed the sll/sra pairs. Remaining diff: the target keeps `arg0` (the s32* sp) and `arg4` in $s0 across calls (`move $s0,$a0` x4) and computes the `&sp48` address (`addiu $a0,$sp,0x48`) late, after loading the args; my version loads the record fields first. Also the arg3==0xD branch order: target tests `bne $a3,$v0` (0xD) before the else call. Next: compare against the historical saved 265 candidate (different source; not reverified here) and rewrite with `s32 *sp` as the first-loaded value.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794726135.020143,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_8014A4C8",
+  "text": "Not matched. Best verified this session: 4510 (75% of insns aligned; 180 vs 181 insns), with s16 params arg1/arg2 and the 17-arg calls to func_801CC150/CCE7C/DDB8/3A0 (stack args from the frame at 0x10..0x40, local sp48 = *arg0 stored back at end). Target: prologue saves $ra at 0x54 before $s0 at 0x50, copies a1/a2 to $t1/$t2 before loading arg4 from 0x68($sp), and calls with the arg1/arg2 sll/sra pairs only in the call paths. Mine saves $s0 first and does not copy the args into t1/t2. Note: the saved-best 265 claimed in notes is not reproduced: the m2c draft, recompiled, scores about 4520 with a different lhu register assignment, so treat 265 as unreliable. Open: the `temp_a0 = D_80202484[arg3] + arg4*22` and `temp_t0 = D_80200300 + arg3*12` pointer shape; try declaring the two bases as separate locals with the loads ordered like the target (lhu 8 before lhu 0xA).",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794740032.5789282,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_8014A4C8",
+  "text": "Not matched. Best current compile in this claim: 4340 (76% match, rewrite with s32 wrapper args). The saved_best m2c-style source (recorded 265) rechecks at 4870 now, so the recorded 265 is not reproduced in this environment. Target facts: frame 0x58; s0 = arg0, sp48 = *arg0 stored at 0x48 and written back at end; arg4 read from 0x68($sp); index math arg4*22 (sll1/addu/sll2/subu/sll1) and arg3*12 (sll1/addu/sll2) with D_80200300 base and D_80202484 pointer table at arg3*4; callee calls use s16 params (sll16/sra16 per arg) with 17-arg stack spill. Unresolved: prologue order (sw $ra before s0, move $s0,$a0 placement), the (arg3<3)|(arg3==0xD) branch layout, and the register allocation for temp_a0/temp_t0. Signedness variant (u32 sp48) gave no change. Next attempt should start from the 4340 rewrite and fix prologue/saved-register order first.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794754576.5259368,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_8014A4C8",
+  "text": "Best this session 4490 (75.1%, rev 2c4d72fe494c6c73d208: s32 params, s32 externs for func_801CC150/CCE7C/DDB8/CE3A0 (17 args each), temp_a0/temp_t0 as s8* with offset loads). The saved best 265 is from another source (m2c draft with M2C macros, 'saved-progress'); it was not reverified here. Target differences: (1) target does sll a1,a1,16 / sra a1,a1,16 pairs on the arg1/arg2 values passed to the calls (s16 truncation of args), which the s32 version lacks; (2) target keeps `move $s0,$a0` (arg0 pointer saved in s0) and builds temp_a0 before the first branch; (3) target loads the u16 fields at a0+8 / a0+0xA via lh $a3 / lh $v0 from a0 (not t0), so the table pointer ordering differs. Tried: s16 params (4860), s16 cast only on first call (7825, worse). Next: keep s32 params, try explicit (s16)arg1 only in the sll/sra location matching the target's operand order, and reorder temp_a0 computation so arg0 is copied into s0 first.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794756752.215081,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_8014A4C8",
+  "text": "Structure is clear: arg0 is an s32* handle (copied to local sp48, passed as &sp48, written back at end). Record A = D_80202484[arg3] + arg4*0x22? no: arg4*0x16 (22-byte records: s16 x0,x2,x4,x6; u16 x8,xA; u8 xC,xD; s16 xE,x10,x12,x14). Table T = D_80200300 + arg3*12 (s16 t0,t2; s32 t4,t8). Four call paths: cond (A.xA|A.x8)==0 and (arg3<3||arg3==0xD) -> func_801CC150; same cond false -> func_801CCE7C; else arg3==0xD -> func_801CE3A0 (args read as s16 x8,xA; u16 xE..x14); else func_801CDDB8. The struct-based rewrite scored 5940 (67%), worse than the inherited 265 draft. Target keeps arg1/arg2 sign-extended in t1/t2 and copies them to a1/a2 before branching; my version did not reproduce this. Next step: start from the saved 265 M2C_FIELD draft and fix the prologue order (ra at 0x54, s0 at 0x50, sp48 at 0x48) and the arg1/arg2 s16 temporaries.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794767855.728849,
+  "score_before": 265,
+  "score_after": 265
+ },
+ {
+  "function": "func_8014A4C8",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 685 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (9 of its 12 nearest matched neighbours were built with it), the saved C scores 3330 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721239.8096,
+  "score_before": 3330,
+  "score_after": 685,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a96ac42d1a9e3f53a8999b877793e4d9e2438c872d8d83bdecccb5e7059d0b2e"
  }
 ]
