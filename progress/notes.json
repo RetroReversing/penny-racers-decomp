@@ -6432,14 +6432,6 @@
   "score_after": 14855
  },
  {
-  "function": "func_801FE954",
-  "text": "Not matched (best 59701, 8.1%). Target is 650 insns; the current C skeleton emits 135. Missing pieces: (1) a 5-case switch on D_80203AAD (lbu; sltiu 5; jump table at 0x80203870, 4-byte entries, `jr`) at ~target line 325. The machine draft fails on this jump table, so the case bodies need writing by hand; read_data(0x80203870) gives the targets. (2) Lots of extra code after the switch (reads/writes of D_801E9988, D_80203AB4, D_802038F3/F4/F8, D_801E999C, ...) that the skeleton omits. (3) Loop body: 16 iterations of per-array stores with a stride of 28 (i*28 = ((i<<3)-i)<<2). gcc emits a separate `lui $at,%hi(X)` + `addu $at,$at,$v0` + `sb/sw ...%lo(X)($at)` for each array, not a shared base. Suggest this is caused by how the arrays are declared (plain arrays with a byte index); the hoisted-base shape in my candidate does not match. Next step: write the switch with its case bodies from the asm, then compare the loop shape.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794719635.514891,
-  "score_before": 59701,
-  "score_after": 59701
- },
- {
   "function": "func_80234484",
   "text": "Baseline compiles at 48077 (37%, 764 target insns vs 770 ours) at revision 211e58d689ad42e9cab3. Frame differs: target -0x60, ours -0x80 with an extra `lui/lbu` of D_8006FAF0+0x21 that the target computes differently (it is loaded inside the loops, and the target does `sll $v0,$s2,0x10` 19 times, i.e. the 16-bit index is kept as u16 shifted each time). The 12-byte slot stride is `(i*12)` built as `sll $v1,$v0,1; addu; sll 3; addu; sll 2`, i.e. (i*3)*4 with a u16 index: write the index as u16 and multiply by 0xC. Note the machine draft in the claim text does NOT compile (pointer arithmetic on incomplete types), so use the revision above, not the draft. Next: fix the stack frame by removing the extra local that causes the 0x80 frame, then the sort loops. Not matched.",
   "by": "claude-haiku-5-5-22",
@@ -10448,14 +10440,6 @@
   "score_after": 10
  },
  {
-  "function": "func_801FE954",
-  "text": "Not attempted. 2600 B function with a jr jump table that m2c cannot resolve (no jtbl/jpt_ symbol read before the jr at line 325). Same situation as func_800DF428: needs the jump table mapped and a hand-written dispatch before any scoring. Released unworked to keep the claim queue moving.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794743565.209722,
-  "score_before": 59416,
-  "score_after": 59416
- },
- {
   "function": "func_800DF094",
   "text": "Move-on budget exhausted (3/3). Rechecked baselines: my while-form source ed9f35cde52340b5a3be = 615; current s32-cur/masked variant dbac572e2768dcb041ab = 660; historical saved best 605 (permuter, different shape). Target shape: lhu D_800E1850; andi v1,a0,0xFFFF; ori v0,0xFFFF; beq exit; nop; ori a1,0xFFFF; loop at .L800DF0B0 using $v1 as u16 index (sll1/addu/sll3/addu/sll2 = *0x64); lhu/andi 0xFFEF/sh on D_8011F2F2 where the store recomputes lui $at + addu $at,$at,$v0 instead of reusing the load address; then lhu D_8011F300; andi v0,a0,0xFFFF; bne v0,a1 with delay slot andi v1,a0,0xFFFF. So the bottom test re-masks the freshly loaded value and the delay slot re-masks into the loop index register; a do-while with u16/masked cur is the untested next step (queued as next_experiment). Remaining deltas: one inserted/extra instruction at the entry test and register allocation in the address recompute; families left: record_slot_table, address_temporary, signedness, declaration_order.",
   "by": "api-route-llm-code-2",
@@ -11582,14 +11566,6 @@
   "created_at": 1794752294.3330739,
   "score_before": 34051,
   "score_after": 34051
- },
- {
-  "function": "func_801FE954",
-  "text": "Not attempted: 2600-byte function with a jump table (m2c could not resolve the jr at line 325). Released to take smaller work first. Start by reading the jump-table brief and the case count, then write the dispatch with a switch.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794752363.046384,
-  "score_before": 59416,
-  "score_after": 59416
  },
  {
   "function": "guMtxXFML",
@@ -14632,14 +14608,6 @@
   "score_after": 1825
  },
  {
-  "function": "func_801FE954",
-  "text": "Not attempted to a compile. 2600 bytes, 650 insns, no saved C; the machine draft fails on a jr jump table (name the jump table first). It touches about 40 globals in D_801E99xx and D_80203Axx, with D_801E995B as the first load (lb, then a slti/addiu clamp of -10..10). Suggested first step: declare the globals in a struct-free extern block, write the clamp at the top, and identify the jump table at line 325 of the asm before any compile.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794761592.5449018,
-  "score_before": 59416,
-  "score_after": 59416
- },
- {
   "function": "func_8015BD20",
   "text": "Not matched. Best candidate be245b62db0c03d67ca8 scores 49757 (121 of 528 target insns; only the state-0 init path is written). Frame is 0x78 with ra,s0,s1,s2 saved and calls func_800DE41C (17 args: 4 regs + 13 stack words, incl. 3 float 1.0f at 0x3C..0x44) and takes &func_8015C838 / &func_8015C8A4 as stack words, so the candidate's 8-byte frame and missing calls are the main gap.\n\nDecoded layout (verified against asm):\n- idx = arg0 & 0xFFFF; rec = D_8011F2F0 + idx*100 (100-byte stride, computed as ((3*idx)<<3 + idx)<<2).\n- rec[0] (u8) = s1 slot id. rec+0x0B u8 set to 0x0E in one path. rec+0x3E u16 = state: 0 -> init path (writes blocks, sets state=1), 1 -> main path at .L8015BF60, else -> epilogue. rec+0x44/0x48/0x4C are f32 (D_8011F334/338/33C).\n- s0 = D_8022A770 + s1*2288 (struct per slot): f32 at 0x864 (compared as double against D_80183950/58/60), u8 at 0x860 (gate), u8 at 0x8A1 (must != 4), f32 at 0x72C,0x730,0x734,0x738,0x73C,0x740 (copied to sp 0x48..0x60, trunc to s16 into block).\n- D_80189970 + s1*64: 4 entries of 16 bytes, Ent16 {u8 p0[6]; u16 a(+6); u16 b(+8); u16 c(+A); u8 d(+C); u8 e(+D)=0x7F; u8 f(+E); u8 g(+F)=0xFF}. Entry0 b=0,c=0; entry1 b=0x800; entry2 c=0x40; entry3 b=0x800,c=0x40 (the init path writes these, which my candidate does).\n- D_8018B530/540/550/560 + s1*256 + i*64 for i=0..3: 4 Ent16-like records with the same b/c pattern (0,0x800,0x40,0x800+0x40 as in the loop). D_8018D66A[s1] = 0 in init.\n- D_80189990 - 0x20 / +0x10 / -0x10 : further Ent16 copies, gated on D_8018D66A[s1] < 3 (increment) else reset to 0.\n- The main path uses the rounded-float block writes and a float-zero test on rec+0x44 (c.eq.s with 0.0 and 10.0f). It writes D_8011F2FB[idx]=0x0E and D_8011F334 = (float)s1, D_8011F338 = (float)D_8018D66A[s1], D_8011F33C = s0->f864.\n\nStill needed: the main path (lines ~200-380 of get_assembly), the calls to func_800DE41C and the callbacks, and the stack-frame prologue. Not attempted beyond the init path; 3 compile budget was left at release. Not a verdict on the C: this is not yet a full body.",
   "by": "claude-haiku-5-5-22",
@@ -15398,14 +15366,6 @@
   "created_at": 1794764204.443564,
   "score_before": 160,
   "score_after": 160
- },
- {
-  "function": "func_801FE954",
-  "text": "Moved on unworked: 2600 bytes (650 instructions), jump table (jr at line 325), ~40 globals in D_801E99xx/D_802038xx, no saved C. A full-body draft is needed before any compile means anything, and it is not feasible at this session's effort. Start from get_function(section=\"brief\") (machine draft fails at the jump table, so write the switch by hand from get_assembly), then compile the first basic block.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794764211.139005,
-  "score_before": 59416,
-  "score_after": 59416
  },
  {
   "function": "func_801270B0",
@@ -41756,5 +41716,45 @@
   "score_before": 14390,
   "score_after": 9725,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:ae0db3c6ba0d846ae4adcceabb4bf06548ce9211f451d00b185efa152b0df36d"
+ },
+ {
+  "function": "func_801FE954",
+  "text": "Not matched (best 59701, 8.1%). Target is 650 insns; the current C skeleton emits 135. Missing pieces: (1) a 5-case switch on D_80203AAD (lbu; sltiu 5; jump table at 0x80203870, 4-byte entries, `jr`) at ~target line 325. The machine draft fails on this jump table, so the case bodies need writing by hand; read_data(0x80203870) gives the targets. (2) Lots of extra code after the switch (reads/writes of D_801E9988, D_80203AB4, D_802038F3/F4/F8, D_801E999C, ...) that the skeleton omits. (3) Loop body: 16 iterations of per-array stores with a stride of 28 (i*28 = ((i<<3)-i)<<2). gcc emits a separate `lui $at,%hi(X)` + `addu $at,$at,$v0` + `sb/sw ...%lo(X)($at)` for each array, not a shared base. Suggest this is caused by how the arrays are declared (plain arrays with a byte index); the hoisted-base shape in my candidate does not match. Next step: write the switch with its case bodies from the asm, then compare the loop shape.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794719635.514891,
+  "score_before": 59701,
+  "score_after": 59701
+ },
+ {
+  "function": "func_801FE954",
+  "text": "Not attempted. 2600 B function with a jr jump table that m2c cannot resolve (no jtbl/jpt_ symbol read before the jr at line 325). Same situation as func_800DF428: needs the jump table mapped and a hand-written dispatch before any scoring. Released unworked to keep the claim queue moving.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794743565.209722,
+  "score_before": 59416,
+  "score_after": 59416
+ },
+ {
+  "function": "func_801FE954",
+  "text": "Not attempted: 2600-byte function with a jump table (m2c could not resolve the jr at line 325). Released to take smaller work first. Start by reading the jump-table brief and the case count, then write the dispatch with a switch.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794752363.046384,
+  "score_before": 59416,
+  "score_after": 59416
+ },
+ {
+  "function": "func_801FE954",
+  "text": "Not attempted to a compile. 2600 bytes, 650 insns, no saved C; the machine draft fails on a jr jump table (name the jump table first). It touches about 40 globals in D_801E99xx and D_80203Axx, with D_801E995B as the first load (lb, then a slti/addiu clamp of -10..10). Suggested first step: declare the globals in a struct-free extern block, write the clamp at the top, and identify the jump table at line 325 of the asm before any compile.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794761592.5449018,
+  "score_before": 59416,
+  "score_after": 59416
+ },
+ {
+  "function": "func_801FE954",
+  "text": "Moved on unworked: 2600 bytes (650 instructions), jump table (jr at line 325), ~40 globals in D_801E99xx/D_802038xx, no saved C. A full-body draft is needed before any compile means anything, and it is not feasible at this session's effort. Start from get_function(section=\"brief\") (machine draft fails at the jump table, so write the switch by hand from get_assembly), then compile the first basic block.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794764211.139005,
+  "score_before": 59416,
+  "score_after": 59416
  }
 ]
