@@ -7712,14 +7712,6 @@
   "score_after": 6485
  },
  {
-  "function": "func_80199EAC",
-  "text": "Best verified 10395 (rev a6ac7302e6bd06f238e6, source kept; 204 insns vs target 284). All semantics are right; remaining 151 differing rows are one structural pattern plus register allocation.\n\nEstablished facts:\n- Data types that matter: D_801E995A/D_801E995B are byte tables read with `lb` (signed) at byte offset idx = (arg0 & 0xFFFF) * 0x70. Declaring them `u8[]` and casting the address to `s8 *` scored 10395; declaring `s8[]`/`s32[]` externs with pointer arithmetic scored 19215/21000. Use `extern u8 D_X[];` + `*(s8 *)(D_X + (arg0 & 0xFFFF) * 0x70)`.\n- D_801E9980/84/88/8C are word tables at the same byte idx, read with `lw`, compared unsigned: `t = *(u32 *)(D_801E9988 + idx); if ((t / 15) * 15 == t - 1)`. Target emits multu 0x88888889 / mfhi / srl 3 (unsigned /15), sll 4, subu, addiu -1. Keep t as u32.\n- Float compare: D_801C6BCC is f32, compared against 0.0f, 90.0f (0x42B4), 180.0f (0x4334), 270.0f (0x4387) with c.eq.s + bc1tl. The target reloads D_801C6BCC before every comparison (`lui $at,%hi; lwc1 $f2`), i.e. the source reads the global each time \u2014 do NOT bind it to a local `f`.\n- Return is `andi $v0,$a1,0xFF` in the jr delay slot.\n- Case tables (var_a1 assignments), per section: (1) lb>=0x3D with D_801E9988: 0->0,180->0,90->1,270->3; (2) lb<-0x3C with D_801E998C: 0->2,180->2,90->3,270->0; (3) D_801E995A<-0x3C with D_801E9984: 0->1,180->1,90->2,270->3; (4) D_801E995A>=0x3D with D_801E9980: 0->3,180->3,90->0,270->1. Default 4.\n\nRemaining structural gap (the thing to solve): the target recomputes the byte index at every stage \u2014 `andi $v0,$a2,0xffff; sll $v1,$v0,3; subu $v1,$v1,$v0; sll $v1,$v1,4` appears 4x, and the `andi` is placed in the branch delay slot of the preceding `bnez/beqz/bnel`. Our CSE'd `idx` keeps one register instead. Also the second-level test is `bnel $v0,$a0,.Lnext` with `andi $v0,$a2,0xffff` in the delay slot, where we emit plain `bne` + `nop`. Per share #339302416415 the fix direction is two syntactically different conversions of the same argument (e.g. `(arg0 & 0xFFFF) * 0x70` for the byte load and `(u16)arg0 * 0x70` for the word load); I tried that on the word loads only and it regressed to 21000 because gcc then materialized a second `andi` in a fresh register at the top. Try instead making each of the four stages use a *distinct* spelling of the index (e.g. `(u16)arg0 * 0x70`, `(arg0 & 0xFFFF) * 0x70`, `(arg0 & 0xFFFF) * 112`, `(u16)arg0 * 112`) so no two stages share a value, and check whether the `andi` then lands in the delay slots.\nCompiler: project -O2 is best; -O1 3380, -O2 -fno-schedule-insns 5045. Do not switch compiler.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794716527.475792,
-  "score_before": 18185,
-  "score_after": 10395
- },
- {
   "function": "func_80192680",
   "text": "Moved on after 8 trials returning previously seen scored instruction diffs. Best source retained.",
   "by": "api-route-llm-code-2",
@@ -10774,14 +10766,6 @@
   "created_at": 1794728431.176994,
   "score_before": 2605,
   "score_after": 2605
- },
- {
-  "function": "func_80199EAC",
-  "text": "Not matched. Releasing now because the only compiled text (27610, 2.7%) is a stub that drops the float chain entirely; it cannot get closer by tuning, so the 10-compile budget would be spent on a dead base. Corrections for the next agent: (1) D_801C6BCC is an f32: the target does `lwc1 $f2,%lo(D_801C6BCC)` and `c.eq.s` against $f0 = 0 (mtc1 $zero) in a chain of if-tests, not a switch on bits. The m2c \"switch\" constants 0x43B40000, 0x42B40000, 0x43870000, 0x43340000 are float values (360.0f, 90.0f, 270.0f, 180.0f style). (2) The index is `(arg0&0xFFFF)*0x70` (sll 3; subu; sll 4), used for D_801E995A, D_801E995B, D_801E9980, D_801E9984, D_801E9988, D_801E998C. (3) The m2c test `((x/15)*15) == (x-1)` is a signed divide identity; keep it as written. Next: start fresh from the m2c structure: four blocks, each with a byte test (`>= 0x3D` or `< -0x3C`) on D_801E995A/995B at the index, then the float chain, one var_a1 per block. Compile once the full text is written.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794728439.866828,
-  "score_before": 10395,
-  "score_after": 10395
  },
  {
   "function": "func_800E0274",
@@ -14078,14 +14062,6 @@
   "created_at": 1794741809.71571,
   "score_before": 645,
   "score_after": 645
- },
- {
-  "function": "func_80199EAC",
-  "text": "Best revision 5363c3960e57e5515d35, score 4050 (85.7%). Key facts for next agent: (1) D_801C6BCC is float; compares are c.eq.s against 0.0/360/90/180/270 each reloaded from memory, so declare `extern volatile f32 D_801C6BCC;` and compare directly (no temp). (2) The 0x70-stride table index is `(u16)arg0 * 0x70` recomputed at each use (target has andi x6). (3) The `(x/15)*15 == x-1` test (u32 fields) compiles via multu 0x88888889 correctly; use u32 for the word fields. (4) Arms: each float case sets var_a1 and jumps to the common `return var_a1 & 0xFF`; goto-based and if/else forms both score 4050. Remaining diff: first branch is `bnez $v0,0x120` in target vs 0x100 in mine, so the target's first block is ~8 insns longer; the `addiu a0,a0,-1` (x-1) is scheduled before the bnez in target, and the switch-4 path with `addiu $a1,$zero,2` x4 (value 2 for 270.0 and maybe other arms) is missing in mine. Try compile_family(branch_orientation) and check whether the 180.0 arm in block 3/4 uses a different constant. Not tried: setting var_a1 default differently, or splitting the 90/270 arms.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794741846.884966,
-  "score_before": 7245,
-  "score_after": 4050
  },
  {
   "function": "func_80149A80",
@@ -20096,14 +20072,6 @@
   "score_after": 14870
  },
  {
-  "function": "func_80199EAC",
-  "text": "Best 1550 (94.5%), rev 348bb4a41dfd5ce1bf83. Blocks A-D decision chain on D_801C6BCC: A 0\u21920,360\u21920,90\u21921,180\u21922,270\u21923; B 0\u21922,360\u21922,90\u21923,180\u21920,270\u21921; C 0\u21921,360\u21921,90\u21922,180\u21923,270\u21920; D 0\u21923,360\u21923,90\u21920,180\u21921,270\u21922; default 4. Keep volatile f32 D_801C6BCC (non-volatile scored 4720). Not a match yet: ours has 8 more instructions (292 vs 284) from extra lui/lwc1 reloads of D_801C6BCC at block boundaries, which shifts branch offsets (target .L468 vs ours .L488). Trial branch_orientation on B and C: 6400, worse. Return (u8) var_a1 does not give the target's andi. Why it stops here: the remaining gap is the reload placement and the block ordering of the comparison loads, which needs a structural rewrite (e.g. one local f32 per block with the chain on it) rather than more single-token repairs; I did not try that rewrite. Next agent: start from 348bb4a41dfd5ce1bf83.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794759019.282076,
-  "score_before": 4050,
-  "score_after": 1550
- },
- {
   "function": "func_801FCBEC",
   "text": "Score 280 at -O2 (register/order only). Prior notes: byte-exact at -O1; a function-only flag suggestion is pending. No further C tuning needed; it is waiting on an -O1 profile for this function.",
   "by": "claude-opus-medium-1",
@@ -22256,14 +22224,6 @@
   "score_after": 13365
  },
  {
-  "function": "func_80199EAC",
-  "text": "Best 1550 (94.5%, 292 vs 284 insns), not matched; saved best revision 3e21d495fa03e460df03 (u8 var, volatile D_801C6BCC). Tried: non-volatile extern + local copy (5210, worse); branch_orientation family on the `else if (SB(D_801E995B) < -0x3C)` block (6400, worse). Findings from target asm: the first test is `lb; slti 0x3d; bnez` with the `addiu $a1,$zero,4` init in the delay slot, and the bnez target sits 2 instructions before mine (mine 0x128, target 0x120), so the false-path block layout of the outer if differs. Each float compare is `lui/lwc1 D_801C6BCC; mtc1 const; c.eq.s; bc1tl` with the assignment in the delay slot, so the 15 compares are not shared. Next: rewrite the outer if so the SB(D_801E995B)>=0x3D test is evaluated as a separate statement and the init is placed after the first compare, then re-check the bnez target offset.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794762158.919001,
-  "score_before": 1550,
-  "score_after": 1550
- },
- {
   "function": "func_80233ED0",
   "text": "Not attempted beyond reading; no compile made, so no score beyond the saved machine draft. Structure from the m2c draft and assembly: arg0 selects a record in D_8011F32E (stride 0x64). If that state is 0 it zeroes 7 entries of D_80237058/D_8023760E/D_80237600/D_80237632 plus D_80237694 bytes, clears D_80236F50, D_8023761C, D_80167E62 and sets the state to 1. If state == 1 it walks 7 records of stride 0x8F0 from D_8022A770 (only index<6 and halfword +2 != 0xFFFF). The per-record logic updates byte counters at +0x562..+0x566 with base-60/base-100 carry (the carry loops at the end of the draft), flags at +6 (bits 0x8, 0x40), and calls func_8003DE60 with D_80236F10/D_80236F20 and func_80230EFC. The m2c gotos (block_24, block_44, loop_37/40/43) are likely a shared-tail pattern and should become loops. Next step: rewrite the record loop with a struct pointer, then compile against the draft. Large function (365 insns); needs several iterations.",
   "by": "claude-haiku-5-5-20",
@@ -23102,14 +23062,6 @@
   "created_at": 1794764034.971122,
   "score_before": 12297,
   "score_after": 12297
- },
- {
-  "function": "func_80199EAC",
-  "text": "1136-byte function (func_80199EAC), no match yet. Best: 1550 (94.5%) with the current candidate (the draft with `extern volatile f32 D_801C6BCC`, SB/SW macros for the byte/word field reads, and the goto l28/l44 shape). Remaining diff: target branch structure (bnez 0x120 at insn 9; bc1tl .L468 x5 and j to +0x468) vs ours (bnez 0x128, bc1tl .L488 x4, extra lui/lwc1 pair at insns 34-35 that the target doesn't have, and return is `move $v0,$a1` instead of `andi $v0,$a1,0xff`). Tried: caching D_801C6BCC in a local (9575, worse, undo), (u8) return cast (still 1550, no change). Next steps: (1) keep the volatile reload but reshape the else-if chain so the float compare for 0 and 360 share one branch (the target seems to test 0.0f then 360.0f through the same delay slot); (2) try the return as `return var_a1 & 0xFF;` with the outer `s32 var_a1` replaced by `u8`, which should produce the andi; (3) the `% 15 == 1` tests may be a multiply-shift in the target, check the assembly around insns 22-24 before changing it.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794764083.9707131,
-  "score_before": 1550,
-  "score_after": 1550
  },
  {
   "function": "func_80139F14",
@@ -40492,5 +40444,62 @@
   "created_at": 1795715270.362636,
   "score_before": 1508,
   "score_after": 1508
+ },
+ {
+  "function": "func_80199EAC",
+  "text": "Best verified 10395 (rev a6ac7302e6bd06f238e6, source kept; 204 insns vs target 284). All semantics are right; remaining 151 differing rows are one structural pattern plus register allocation.\n\nEstablished facts:\n- Data types that matter: D_801E995A/D_801E995B are byte tables read with `lb` (signed) at byte offset idx = (arg0 & 0xFFFF) * 0x70. Declaring them `u8[]` and casting the address to `s8 *` scored 10395; declaring `s8[]`/`s32[]` externs with pointer arithmetic scored 19215/21000. Use `extern u8 D_X[];` + `*(s8 *)(D_X + (arg0 & 0xFFFF) * 0x70)`.\n- D_801E9980/84/88/8C are word tables at the same byte idx, read with `lw`, compared unsigned: `t = *(u32 *)(D_801E9988 + idx); if ((t / 15) * 15 == t - 1)`. Target emits multu 0x88888889 / mfhi / srl 3 (unsigned /15), sll 4, subu, addiu -1. Keep t as u32.\n- Float compare: D_801C6BCC is f32, compared against 0.0f, 90.0f (0x42B4), 180.0f (0x4334), 270.0f (0x4387) with c.eq.s + bc1tl. The target reloads D_801C6BCC before every comparison (`lui $at,%hi; lwc1 $f2`), i.e. the source reads the global each time \u2014 do NOT bind it to a local `f`.\n- Return is `andi $v0,$a1,0xFF` in the jr delay slot.\n- Case tables (var_a1 assignments), per section: (1) lb>=0x3D with D_801E9988: 0->0,180->0,90->1,270->3; (2) lb<-0x3C with D_801E998C: 0->2,180->2,90->3,270->0; (3) D_801E995A<-0x3C with D_801E9984: 0->1,180->1,90->2,270->3; (4) D_801E995A>=0x3D with D_801E9980: 0->3,180->3,90->0,270->1. Default 4.\n\nRemaining structural gap (the thing to solve): the target recomputes the byte index at every stage \u2014 `andi $v0,$a2,0xffff; sll $v1,$v0,3; subu $v1,$v1,$v0; sll $v1,$v1,4` appears 4x, and the `andi` is placed in the branch delay slot of the preceding `bnez/beqz/bnel`. Our CSE'd `idx` keeps one register instead. Also the second-level test is `bnel $v0,$a0,.Lnext` with `andi $v0,$a2,0xffff` in the delay slot, where we emit plain `bne` + `nop`. Per share #339302416415 the fix direction is two syntactically different conversions of the same argument (e.g. `(arg0 & 0xFFFF) * 0x70` for the byte load and `(u16)arg0 * 0x70` for the word load); I tried that on the word loads only and it regressed to 21000 because gcc then materialized a second `andi` in a fresh register at the top. Try instead making each of the four stages use a *distinct* spelling of the index (e.g. `(u16)arg0 * 0x70`, `(arg0 & 0xFFFF) * 0x70`, `(arg0 & 0xFFFF) * 112`, `(u16)arg0 * 112`) so no two stages share a value, and check whether the `andi` then lands in the delay slots.\nCompiler: project -O2 is best; -O1 3380, -O2 -fno-schedule-insns 5045. Do not switch compiler.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794716527.475792,
+  "score_before": 18185,
+  "score_after": 10395
+ },
+ {
+  "function": "func_80199EAC",
+  "text": "Not matched. Releasing now because the only compiled text (27610, 2.7%) is a stub that drops the float chain entirely; it cannot get closer by tuning, so the 10-compile budget would be spent on a dead base. Corrections for the next agent: (1) D_801C6BCC is an f32: the target does `lwc1 $f2,%lo(D_801C6BCC)` and `c.eq.s` against $f0 = 0 (mtc1 $zero) in a chain of if-tests, not a switch on bits. The m2c \"switch\" constants 0x43B40000, 0x42B40000, 0x43870000, 0x43340000 are float values (360.0f, 90.0f, 270.0f, 180.0f style). (2) The index is `(arg0&0xFFFF)*0x70` (sll 3; subu; sll 4), used for D_801E995A, D_801E995B, D_801E9980, D_801E9984, D_801E9988, D_801E998C. (3) The m2c test `((x/15)*15) == (x-1)` is a signed divide identity; keep it as written. Next: start fresh from the m2c structure: four blocks, each with a byte test (`>= 0x3D` or `< -0x3C`) on D_801E995A/995B at the index, then the float chain, one var_a1 per block. Compile once the full text is written.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794728439.866828,
+  "score_before": 10395,
+  "score_after": 10395
+ },
+ {
+  "function": "func_80199EAC",
+  "text": "Best revision 5363c3960e57e5515d35, score 4050 (85.7%). Key facts for next agent: (1) D_801C6BCC is float; compares are c.eq.s against 0.0/360/90/180/270 each reloaded from memory, so declare `extern volatile f32 D_801C6BCC;` and compare directly (no temp). (2) The 0x70-stride table index is `(u16)arg0 * 0x70` recomputed at each use (target has andi x6). (3) The `(x/15)*15 == x-1` test (u32 fields) compiles via multu 0x88888889 correctly; use u32 for the word fields. (4) Arms: each float case sets var_a1 and jumps to the common `return var_a1 & 0xFF`; goto-based and if/else forms both score 4050. Remaining diff: first branch is `bnez $v0,0x120` in target vs 0x100 in mine, so the target's first block is ~8 insns longer; the `addiu a0,a0,-1` (x-1) is scheduled before the bnez in target, and the switch-4 path with `addiu $a1,$zero,2` x4 (value 2 for 270.0 and maybe other arms) is missing in mine. Try compile_family(branch_orientation) and check whether the 180.0 arm in block 3/4 uses a different constant. Not tried: setting var_a1 default differently, or splitting the 90/270 arms.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794741846.884966,
+  "score_before": 7245,
+  "score_after": 4050
+ },
+ {
+  "function": "func_80199EAC",
+  "text": "Best 1550 (94.5%), rev 348bb4a41dfd5ce1bf83. Blocks A-D decision chain on D_801C6BCC: A 0\u21920,360\u21920,90\u21921,180\u21922,270\u21923; B 0\u21922,360\u21922,90\u21923,180\u21920,270\u21921; C 0\u21921,360\u21921,90\u21922,180\u21923,270\u21920; D 0\u21923,360\u21923,90\u21920,180\u21921,270\u21922; default 4. Keep volatile f32 D_801C6BCC (non-volatile scored 4720). Not a match yet: ours has 8 more instructions (292 vs 284) from extra lui/lwc1 reloads of D_801C6BCC at block boundaries, which shifts branch offsets (target .L468 vs ours .L488). Trial branch_orientation on B and C: 6400, worse. Return (u8) var_a1 does not give the target's andi. Why it stops here: the remaining gap is the reload placement and the block ordering of the comparison loads, which needs a structural rewrite (e.g. one local f32 per block with the chain on it) rather than more single-token repairs; I did not try that rewrite. Next agent: start from 348bb4a41dfd5ce1bf83.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794759019.282076,
+  "score_before": 4050,
+  "score_after": 1550
+ },
+ {
+  "function": "func_80199EAC",
+  "text": "Best 1550 (94.5%, 292 vs 284 insns), not matched; saved best revision 3e21d495fa03e460df03 (u8 var, volatile D_801C6BCC). Tried: non-volatile extern + local copy (5210, worse); branch_orientation family on the `else if (SB(D_801E995B) < -0x3C)` block (6400, worse). Findings from target asm: the first test is `lb; slti 0x3d; bnez` with the `addiu $a1,$zero,4` init in the delay slot, and the bnez target sits 2 instructions before mine (mine 0x128, target 0x120), so the false-path block layout of the outer if differs. Each float compare is `lui/lwc1 D_801C6BCC; mtc1 const; c.eq.s; bc1tl` with the assignment in the delay slot, so the 15 compares are not shared. Next: rewrite the outer if so the SB(D_801E995B)>=0x3D test is evaluated as a separate statement and the init is placed after the first compare, then re-check the bnez target offset.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794762158.919001,
+  "score_before": 1550,
+  "score_after": 1550
+ },
+ {
+  "function": "func_80199EAC",
+  "text": "1136-byte function (func_80199EAC), no match yet. Best: 1550 (94.5%) with the current candidate (the draft with `extern volatile f32 D_801C6BCC`, SB/SW macros for the byte/word field reads, and the goto l28/l44 shape). Remaining diff: target branch structure (bnez 0x120 at insn 9; bc1tl .L468 x5 and j to +0x468) vs ours (bnez 0x128, bc1tl .L488 x4, extra lui/lwc1 pair at insns 34-35 that the target doesn't have, and return is `move $v0,$a1` instead of `andi $v0,$a1,0xff`). Tried: caching D_801C6BCC in a local (9575, worse, undo), (u8) return cast (still 1550, no change). Next steps: (1) keep the volatile reload but reshape the else-if chain so the float compare for 0 and 360 share one branch (the target seems to test 0.0f then 360.0f through the same delay slot); (2) try the return as `return var_a1 & 0xFF;` with the outer `s32 var_a1` replaced by `u8`, which should produce the andi; (3) the `% 15 == 1` tests may be a multiply-shift in the target, check the assembly around insns 22-24 before changing it.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794764083.9707131,
+  "score_before": 1550,
+  "score_after": 1550
+ },
+ {
+  "function": "func_80199EAC",
+  "text": "Small-model attempt at func_80199EAC: 5 tries.\n  best 1490 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 -fschedule-insns -fschedule-insns2\n  best 1550 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1\n  best 5040 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O2\n  best 12010 under sn-n64-272-0001 -G0 -mips3 -O1 -mgas -meb -mhard-float\n  best 13660 under gcc-2.8.1-pm-sn-as -G0 -mips3 -mgp32 -mfp32 -O2\n5 tries, no MATCHED. Best app score 1550 (profile -O1, same as saved). Tried: clean rewrite of saved C (1550), local f32 angle per block (4600, worse), shared offset local (3700, worse), u8 return (1550), (x-1)==(x/15)*15 instead of %15==1 (2150, worse). Remaining diff under -O1 -fschedule profile: target computes x-1 after the mulhi/sll/subu chain (addiu after subu), and the target reuses one lwc1 of D_801C6BCC across the angle chain while ours reloads it. Sibling func_80199AB0 is INCLUDE_ASM in src/code_801953F0.c (no matched C in source to copy from).",
+  "by": "manual-9fd4cc0cbba74f5f",
+  "created_at": 1795717413.480681,
+  "score_before": 1550,
+  "score_after": 1550,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:0457e65fc84b4a25442386795c4ba9d21fabf114f728dc2755daa8af959b3f21"
  }
 ]
