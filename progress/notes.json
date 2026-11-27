@@ -6304,14 +6304,6 @@
   "score_after": 14679
  },
  {
-  "function": "func_8013F884",
-  "text": "Draft as given scores 25695 (23.2%), revision e8ed1451d9415e36c465. Not a real attempt yet: the m2c draft is goto-heavy and its control flow is wrong (the target starts with sw ra/s1/s0 frame saves and a switch on the u16 at +0x3E of the 0x64-byte table entry at D_8011F2F0 + n*0x64; ours uses sltiu/bnez where the target uses slti and a beq chain). Element stride should be byte-offset (char*) arithmetic, as in func_8015EC58: (arg0&0xFFFF)*0x64 bytes, not s32 pointer scaling. The 0x80189900 / D_8022AFE9 / D_8022A770 loops use 0x10/0x8 strides and need checking against the assembly. Rewrite the whole function as structured C from the assembly, not from this draft; set the table types (u16 at +2, +0x3E, +0x560; s16 at +0x594; u8 at +0x879) first.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794719356.5043972,
-  "score_before": 15345,
-  "score_after": 15345
- },
- {
   "function": "func_80135544",
   "text": "Releasing as blocked on structure, not on registers. Best 22557 (50.5%) at revision 49eb801971bc7b9ce95a. The target is 456 insns and the candidate is 331, so about 125 insns of the state machine are absent: the switch dispatch (lhu from D_8011F32E indexed by <<2, jump on 0..3), the per-state checks on D_8022AFE9 and D_80183B4C, and extra paths in case 0/1. Frame is 0x60 with s0-s4 saved, candidate is 0x70 with s0-s6. The candidate also contains __repair_constant and a do{break}while(0) hack that must be removed. Next session: read get_assembly from start=52 in pages, rewrite the whole switch from the assembly rather than tuning the existing draft, and only then tune registers.",
   "by": "claude-haiku-5-5-20",
@@ -6390,14 +6382,6 @@
   "created_at": 1794719544.434528,
   "score_before": 57822,
   "score_after": 57822
- },
- {
-  "function": "func_8013F884",
-  "text": "Best revision 494bcd56392a0db76bb1 (score 14855, from base 7e8e047b26df62ab30c8 at 15075) came from making D_8022AFE9 volatile: `extern volatile u8 D_8022AFE9;`. The 7-iteration init loop `D_80189900[i] = D_8022AFE9;` is otherwise re-read as a constant. Remaining diff is dominated by reordering (121 rows) and branch targets: target prologue is `addiu $sp,-0x20; sw $ra,0x18; sw $s1,0x14; sw $s0,0x10` and candidate has no matching save order yet. Next: try -O1 via search_flags (per knowledge #339302416414) and try splitting the two near-identical 7-iteration scan loops into one shared helper-shaped body so gcc emits the same loop twice.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794719578.218015,
-  "score_before": 26452,
-  "score_after": 14855
  },
  {
   "function": "func_80127AB0",
@@ -11232,14 +11216,6 @@
   "score_after": 14679
  },
  {
-  "function": "func_8013F884",
-  "text": "Not attempted: 335-instruction function whose saved best (25745) is the m2c goto-structured draft. It needs a structured rewrite of two loops over the 0x64/0x10-stride table at D_8022A770 (entries with u16 at +2 != 0xFFFF; fields s16 at +0x594, u16 at +0x560 with bit 0x20, u8 at +0x879 compared to 0 and 5), plus the state machine on the byte at D_8011F2F0+0x3E (values 0,1,2 selecting the two loops). Writing it as structured loops with the same counters (D_8018A244, D_80189920, D_80183BD8, D_80189C8C, D_80189C90, D_80189900[7]) is the next step; the goto-heavy draft is unlikely to match exactly.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794751508.451317,
-  "score_before": 14855,
-  "score_after": 14855
- },
- {
   "function": "func_8013B1BC",
   "text": "Not attempted to a match: 338 instructions, no saved C. Structure from assembly: per-entry state at stride 0x64 (index = (arg0 & 0xFFFF)*0x64 via sll/addu chain of x*100), byte D_8011F2FC[entry] and halfword D_8011F32E[entry] drive a switch: first sltiu 0x33 on byte D_8011F2FC (jump to .L8013B6D8 when it is >= 0x33), then a jump table at D_80183108 on (D_8011F32E[entry] - 0xB) with 35 cases (sltiu 0x23). Case bodies are float updates on the global float arrays D_8011F320, D_8011F324, D_8011F328, D_8011F30C (read-modify-write of entry-stride floats, adds of literals such as 0x3CF5C28F, 0x3D4CCCCD, 0x3BA3D70A, 0x3951B717, 0x399D4952, 0x3BC49BA6), a read of float field 0x770 of a2=D_8011F350[entry] struct, and byte updates (-3, -2) on D_8011F2FC[entry]. Several cases share tails (j to .L8013B410 and .L8013B5D4). Next step: a structured switch over the 35 cases with a shared float helper per tail; the exact literal bits and the order of loads and stores must match.",
   "by": "claude-haiku-5-5-21",
@@ -13824,14 +13800,6 @@
   "score_after": 19859
  },
  {
-  "function": "func_8013F884",
-  "text": "Claimed at the end of a low-effort session and released without any compile. Target is 1340 bytes. The machine draft (revision 5ab54916d60e87c8c491) is m2c output with many gotos, undeclared/incompatible pointer types (warnings at lines 114, 124, 207), a call with too few args to func_8022FDF0 (line 142), and an unresolved block structure around the two-loop body over the 0x8F0-stride record table at D_8022A770 and the flag array D_80189900. Start by re-deriving the two loops (the record stride is (idx*0x10 - idx)*0x10 + base, i.e. idx*0xF0, check against the asm), typing the globals (D_8018A244, D_80189920, D_80183BD8, D_80189C8C, D_80189C90 as s32), and replacing the goto web with a switch on the 0x3E state. No candidate score is recorded for this revision yet.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794759961.460063,
-  "score_before": 14855,
-  "score_after": 14855
- },
- {
   "function": "func_80219B58",
   "text": "Fresh exact O1 source/profile submitted. Separate type shift and c multiply, distinct p/q command pointers. Current O2 score1360; no C work remains pending profile.",
   "by": "codex-gpt-6.1-sol-medium-4",
@@ -14806,14 +14774,6 @@
   "created_at": 1794762774.4205499,
   "score_before": 18888,
   "score_after": 18888
- },
- {
-  "function": "func_8013F884",
-  "text": "Not matched. Saved best (5ab54916d60e87c8c491, score 25745) is the m2c draft with goto-heavy control flow; poor starting point for a 335-instruction state machine. A quick clean rewrite (2d3e7bbac562c439a9cb) was a placeholder that dropped the loops over D_8022A770 and scored 30150; discarded. Next step: rewrite from the assembly with explicit loops over 7 entries of D_8022A770 (index computed as ((var+i)*0x10 - i)*0x10, i.e. stride 0xF0 per step) and three state branches: state 0 (call func_8022FDF0 with D_8006FAF0+0x20, fill D_80189900[0..6] from D_8022AFE9), state 1 (reset D_8018A244/D_80189920/D_80183BD8, scan entries), state >=2 (scan, then alSeqpStop or func_801D65BC). Field offsets used: 0x2 (!=0xFFFF sentinel), 0x560 (&0x20 flag), 0x594 (s16 count), 0x879 (u8 kind, compared to 0 and 5). Stride derivation is unverified.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794762775.499507,
-  "score_before": 14855,
-  "score_after": 14855
  },
  {
   "function": "func_8013835C",
@@ -41863,5 +41823,45 @@
   "created_at": 1794764805.224981,
   "score_before": 23132,
   "score_after": 23132
+ },
+ {
+  "function": "func_8013F884",
+  "text": "Draft as given scores 25695 (23.2%), revision e8ed1451d9415e36c465. Not a real attempt yet: the m2c draft is goto-heavy and its control flow is wrong (the target starts with sw ra/s1/s0 frame saves and a switch on the u16 at +0x3E of the 0x64-byte table entry at D_8011F2F0 + n*0x64; ours uses sltiu/bnez where the target uses slti and a beq chain). Element stride should be byte-offset (char*) arithmetic, as in func_8015EC58: (arg0&0xFFFF)*0x64 bytes, not s32 pointer scaling. The 0x80189900 / D_8022AFE9 / D_8022A770 loops use 0x10/0x8 strides and need checking against the assembly. Rewrite the whole function as structured C from the assembly, not from this draft; set the table types (u16 at +2, +0x3E, +0x560; s16 at +0x594; u8 at +0x879) first.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794719356.5043972,
+  "score_before": 15345,
+  "score_after": 15345
+ },
+ {
+  "function": "func_8013F884",
+  "text": "Best revision 494bcd56392a0db76bb1 (score 14855, from base 7e8e047b26df62ab30c8 at 15075) came from making D_8022AFE9 volatile: `extern volatile u8 D_8022AFE9;`. The 7-iteration init loop `D_80189900[i] = D_8022AFE9;` is otherwise re-read as a constant. Remaining diff is dominated by reordering (121 rows) and branch targets: target prologue is `addiu $sp,-0x20; sw $ra,0x18; sw $s1,0x14; sw $s0,0x10` and candidate has no matching save order yet. Next: try -O1 via search_flags (per knowledge #339302416414) and try splitting the two near-identical 7-iteration scan loops into one shared helper-shaped body so gcc emits the same loop twice.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794719578.218015,
+  "score_before": 26452,
+  "score_after": 14855
+ },
+ {
+  "function": "func_8013F884",
+  "text": "Not attempted: 335-instruction function whose saved best (25745) is the m2c goto-structured draft. It needs a structured rewrite of two loops over the 0x64/0x10-stride table at D_8022A770 (entries with u16 at +2 != 0xFFFF; fields s16 at +0x594, u16 at +0x560 with bit 0x20, u8 at +0x879 compared to 0 and 5), plus the state machine on the byte at D_8011F2F0+0x3E (values 0,1,2 selecting the two loops). Writing it as structured loops with the same counters (D_8018A244, D_80189920, D_80183BD8, D_80189C8C, D_80189C90, D_80189900[7]) is the next step; the goto-heavy draft is unlikely to match exactly.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794751508.451317,
+  "score_before": 14855,
+  "score_after": 14855
+ },
+ {
+  "function": "func_8013F884",
+  "text": "Claimed at the end of a low-effort session and released without any compile. Target is 1340 bytes. The machine draft (revision 5ab54916d60e87c8c491) is m2c output with many gotos, undeclared/incompatible pointer types (warnings at lines 114, 124, 207), a call with too few args to func_8022FDF0 (line 142), and an unresolved block structure around the two-loop body over the 0x8F0-stride record table at D_8022A770 and the flag array D_80189900. Start by re-deriving the two loops (the record stride is (idx*0x10 - idx)*0x10 + base, i.e. idx*0xF0, check against the asm), typing the globals (D_8018A244, D_80189920, D_80183BD8, D_80189C8C, D_80189C90 as s32), and replacing the goto web with a switch on the 0x3E state. No candidate score is recorded for this revision yet.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794759961.460063,
+  "score_before": 14855,
+  "score_after": 14855
+ },
+ {
+  "function": "func_8013F884",
+  "text": "Not matched. Saved best (5ab54916d60e87c8c491, score 25745) is the m2c draft with goto-heavy control flow; poor starting point for a 335-instruction state machine. A quick clean rewrite (2d3e7bbac562c439a9cb) was a placeholder that dropped the loops over D_8022A770 and scored 30150; discarded. Next step: rewrite from the assembly with explicit loops over 7 entries of D_8022A770 (index computed as ((var+i)*0x10 - i)*0x10, i.e. stride 0xF0 per step) and three state branches: state 0 (call func_8022FDF0 with D_8006FAF0+0x20, fill D_80189900[0..6] from D_8022AFE9), state 1 (reset D_8018A244/D_80189920/D_80183BD8, scan entries), state >=2 (scan, then alSeqpStop or func_801D65BC). Field offsets used: 0x2 (!=0xFFFF sentinel), 0x560 (&0x20 flag), 0x594 (s16 count), 0x879 (u8 kind, compared to 0 and 5). Stride derivation is unverified.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794762775.499507,
+  "score_before": 14855,
+  "score_after": 14855
  }
 ]
