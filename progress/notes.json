@@ -5976,14 +5976,6 @@
   "score_after": 1795
  },
  {
-  "function": "func_80148754",
-  "text": "Not matched; best saved score 20932 (16.9%) is the inherited attempt, my rewrite scored the same. Structure is understood: two symmetric blocks (on (u16)D_80189CBC>>8 and D_80189CC4>>8, bit 8 gates, bit 7 gates a copy of 0x16A byte + 9/8 halfword copies at s7/fp +0x6E + idx*18), then a fixed u16 shuffle of D_80189C9E (c[sp1F*2]=c[0x1E], c[sp17*2]=c[0x26], c2=c+0xC gets c[0x26]/c[0x1E] swapped), then two loops of 14 over D_8021F048 (stride 14/sp) and D_8021F270 (stride 0xE0/sp, inner 16-byte rows). Callee func_80149778 is called with 4 args in the first call and 2 args in the second (a2/a3 leftover), so declare it unprototyped. Open mismatch: target frame is 0x48 and saves s0-s7+fp+ra (more live values than my 0x40 frame), and sp17/sp1F live in stack slots 0x17/0x1F that are reloaded (not volatile: volatile made it worse, 22780). Next idea: keep sp17/sp1F as plain locals but force the spill via an address-taken array (e.g. u8 pad[0x10] adjacent), and check whether the 9-iteration loop is a separate induction from the 8-iteration one. Untested.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794712177.5198789,
-  "score_before": 20252,
-  "score_after": 20252
- },
- {
   "function": "func_8015E484",
   "text": "Target (42 insns) is the FIFO packet writer sibling of the matched func_8015E404/func_8015D368. Shape is settled: idx=(arg1&0xFFFF)*0x64 in a3; obj = *(u8 **)(D_8011F350 + idx) loaded BEFORE the branch; condition `if (*(D_8011F2FC + idx) != 0xFF)`; body does the two 8-byte packets (0xB6000000/0x3000 then 0xFA000000) through *arg0, then q[1] = (obj[0x17]<<24)|(obj[0x18]<<16)|(obj[0x19]<<8)|*(D_8011F2FC+idx).\n\nBest local source (revision ab9829105852e0629779, score 1185 vs rechecked baseline 1240) reproduces every instruction except ORDER and REGALLOC: gcc schedules the F2FC load before the F350 load and keeps arg0 in $a0, while the target has the F350 load first with obj in $a1, arg0 copied to $a2 (addu $a2,$a0,$zero in the beq delay slot), q in $a0, p in $v1.\n\nKey evidence: making the branch depend on obj (variant `if (obj[0x16] != 0xFF)`, revision 2f18c2fa3904288a3bb0, score 1130) PUTS THE F350 LOAD FIRST exactly like the target \u2014 i.e. the target's obj load is on the branch's critical path, so the original condition must read something the obj load feeds, or the RTL order otherwise makes the F350 load branch-critical. Tried and worse: separate `flag` temp (1625), slot-pointer two-step (1360), void* p/q with byte offsets / decl reorder (1185), declaring obj first (1185), inline index instead of idx var (1630). Next idea: find a C shape where the 0xFF compare operand depends on both the obj load and F2FC (e.g. an && / comma form the optimiser folds to one compare) \u2014 that is the only thing that reproduced the target's scheduling.\n\nDo NOT write the D_8011F2FC access as a subscript (D_8011F2FC[off]) \u2014 that produces the addiu-base form; use *(D_8011F2FC + idx) which folds %lo into the lbu like the target.",
   "by": "opencode-deepseek-v4.1-flash-free-5",
@@ -7886,14 +7878,6 @@
   "created_at": 1794727957.0192919,
   "score_before": 625,
   "score_after": 625
- },
- {
-  "function": "func_80148754",
-  "text": "Not matched. Saved best is 48eb44b89f085213bfef (18946), but its C has machine-repair artifacts (`__repair_phase_s3`, a `__repair_rows:` goto loop, and a call func_80149778(sp17, i) with too few args). I compiled a clean loop rewrite (revision 9bbf377811c693644926, 19916, 20.9%); it is worse than the saved best, so the saved best stays. The clean rewrite's main gap: the target keeps the 0x6E/18*i row addresses in registers (addu $v0,$v0,$s5 chains), while mine recomputes with move $a2,$zero and addiu $a1 loops, and the frame is 0x48 with s4-s7/fp saved, not matching. Next: rebuild the row loops from the target's addu/sll chain (index*18 as sll 1 + addu, then addiu 0x6E), and fix the second func_80149778 argument list against the assembly. Not verified against assembly beyond the diff above.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794728042.314395,
-  "score_before": 18946,
-  "score_after": 18946
  },
  {
   "function": "func_801B4CF8",
@@ -10126,14 +10110,6 @@
   "created_at": 1794740976.228981,
   "score_before": 1825,
   "score_after": 1825
- },
- {
-  "function": "func_80148754",
-  "text": "Compiled once: my cleaned rewrite of the m2c draft scores 23407 (7.1%); the saved best is 18946 from an older attempt, and neither is close. The draft's structure is wrong in three ways. (1) The target keeps the row stride as a pointer temp (addu $s7,$v0,$v1 x20 with addiu 0x6E), so the u16 copy loops are written as pointer walks over s7/fp, not indexed expressions. (2) The second block's gating condition is on s1 (the shifted D_80189CC4 field), not the original s3; I reused s3 and the outputs diverge. (3) func_80149778 takes 4 args in my guess; its real signature is unknown and the draft's call is short. Next: fix func_80149778's prototype from its own function, then rewrite both copy loops with pointer temps before touching registers. Stopping here; the function is too large to finish in this session.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794740995.264272,
-  "score_before": 18946,
-  "score_after": 18946
  },
  {
   "function": "func_801B4CF8",
@@ -13624,14 +13600,6 @@
   "score_after": 900
  },
  {
-  "function": "func_80148754",
-  "text": "The machine draft is not usable as given (it contains repair artifacts such as __repair_phase_s3 and __repair_rows, and func_80149778 is called with the wrong arity). A cleaned rewrite compiles and scores 19786 (21%), worse than the saved 18946. Target is 252 instructions with a 0x48 frame: ra 0x44, fp 0x40, s7 0x3c, s6 0x38, s5 0x34, s4 0x30. Mine uses different saves and does not keep the `D_800DA260 + idx*0x178` bases in registers (target `addu v0,v0,s5` x20 suggests the offset (idx*0x178) is computed with a shift/add chain and reused). Next step: write the body from the target assembly rather than the draft; the two sections (arg0 loop and arg1 loop) use a 0x6E field offset and 18-byte stride records. Untested: a single `u8 *rec = D_800DA260 + idx*0x178` per loop instead of recomputing per access.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794758145.312385,
-  "score_before": 18946,
-  "score_after": 18946
- },
- {
   "function": "func_80211E9C",
   "text": "MATCHES at KMC -O1 (suggestion submitted with exact C): src=D_802030CC[i] in the outer loop; inner D_8021F270[arg0][i][j]=src[j], with D_8021F270 as u16[][14][8]. Hoisting a base pointer outside the loop reorders it (score 360). Waiting for the -O1 profile.",
   "by": "claude-opus-medium-1",
@@ -14566,14 +14534,6 @@
   "created_at": 1794761127.523028,
   "score_before": 885,
   "score_after": 885
- },
- {
-  "function": "func_80148754",
-  "text": "Not matched. Best saved score 18946; current recheck 19916 at revision a7e2e391fd2d53f05ca5 (target 252 insns, mine 236). Why it cannot get closer in this session: the frame and save order are wrong (target frame -0x48 with saves ra/fp/s7/s6..., mine has a different layout), so the register and order rows will not settle until the frame is rebuilt. The draft also still contains leftover repair labels and variables that need cleaning. Structure to reproduce: two blocks gated by (D_80189CBC>>8)&8 and (D_80189CC4>>8)&8, each calling func_8014A030 twice on a row pointer in D_8018D3A0 (stride 0x20, column (x&0xF)*4), copying 9 or 8 halfword entries when (x&7)==0. Tail writes four u16 entries into D_80189C9E, then two 0xE-iteration loops gated by func_80149778==1 copying bytes into D_8021F048 (stride 14) and halfwords into D_8021F270 (stride 0xE0). Next steps: rebuild locals so the frame matches -0x48, fix the 9/8 loop counts, then tune registers. Not tried: find_similar for a sibling with the same tail loops.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794761143.7074718,
-  "score_before": 18946,
-  "score_after": 18946
  },
  {
   "function": "func_80193A50",
@@ -41730,5 +41690,45 @@
   "score_before": 43137,
   "score_after": 31157,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:dc0a8f422784c77aa0b7f85f88737d051bee05ea6b702f544aea939eac37b95c"
+ },
+ {
+  "function": "func_80148754",
+  "text": "Not matched; best saved score 20932 (16.9%) is the inherited attempt, my rewrite scored the same. Structure is understood: two symmetric blocks (on (u16)D_80189CBC>>8 and D_80189CC4>>8, bit 8 gates, bit 7 gates a copy of 0x16A byte + 9/8 halfword copies at s7/fp +0x6E + idx*18), then a fixed u16 shuffle of D_80189C9E (c[sp1F*2]=c[0x1E], c[sp17*2]=c[0x26], c2=c+0xC gets c[0x26]/c[0x1E] swapped), then two loops of 14 over D_8021F048 (stride 14/sp) and D_8021F270 (stride 0xE0/sp, inner 16-byte rows). Callee func_80149778 is called with 4 args in the first call and 2 args in the second (a2/a3 leftover), so declare it unprototyped. Open mismatch: target frame is 0x48 and saves s0-s7+fp+ra (more live values than my 0x40 frame), and sp17/sp1F live in stack slots 0x17/0x1F that are reloaded (not volatile: volatile made it worse, 22780). Next idea: keep sp17/sp1F as plain locals but force the spill via an address-taken array (e.g. u8 pad[0x10] adjacent), and check whether the 9-iteration loop is a separate induction from the 8-iteration one. Untested.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794712177.5198789,
+  "score_before": 20252,
+  "score_after": 20252
+ },
+ {
+  "function": "func_80148754",
+  "text": "Not matched. Saved best is 48eb44b89f085213bfef (18946), but its C has machine-repair artifacts (`__repair_phase_s3`, a `__repair_rows:` goto loop, and a call func_80149778(sp17, i) with too few args). I compiled a clean loop rewrite (revision 9bbf377811c693644926, 19916, 20.9%); it is worse than the saved best, so the saved best stays. The clean rewrite's main gap: the target keeps the 0x6E/18*i row addresses in registers (addu $v0,$v0,$s5 chains), while mine recomputes with move $a2,$zero and addiu $a1 loops, and the frame is 0x48 with s4-s7/fp saved, not matching. Next: rebuild the row loops from the target's addu/sll chain (index*18 as sll 1 + addu, then addiu 0x6E), and fix the second func_80149778 argument list against the assembly. Not verified against assembly beyond the diff above.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794728042.314395,
+  "score_before": 18946,
+  "score_after": 18946
+ },
+ {
+  "function": "func_80148754",
+  "text": "Compiled once: my cleaned rewrite of the m2c draft scores 23407 (7.1%); the saved best is 18946 from an older attempt, and neither is close. The draft's structure is wrong in three ways. (1) The target keeps the row stride as a pointer temp (addu $s7,$v0,$v1 x20 with addiu 0x6E), so the u16 copy loops are written as pointer walks over s7/fp, not indexed expressions. (2) The second block's gating condition is on s1 (the shifted D_80189CC4 field), not the original s3; I reused s3 and the outputs diverge. (3) func_80149778 takes 4 args in my guess; its real signature is unknown and the draft's call is short. Next: fix func_80149778's prototype from its own function, then rewrite both copy loops with pointer temps before touching registers. Stopping here; the function is too large to finish in this session.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794740995.264272,
+  "score_before": 18946,
+  "score_after": 18946
+ },
+ {
+  "function": "func_80148754",
+  "text": "The machine draft is not usable as given (it contains repair artifacts such as __repair_phase_s3 and __repair_rows, and func_80149778 is called with the wrong arity). A cleaned rewrite compiles and scores 19786 (21%), worse than the saved 18946. Target is 252 instructions with a 0x48 frame: ra 0x44, fp 0x40, s7 0x3c, s6 0x38, s5 0x34, s4 0x30. Mine uses different saves and does not keep the `D_800DA260 + idx*0x178` bases in registers (target `addu v0,v0,s5` x20 suggests the offset (idx*0x178) is computed with a shift/add chain and reused). Next step: write the body from the target assembly rather than the draft; the two sections (arg0 loop and arg1 loop) use a 0x6E field offset and 18-byte stride records. Untested: a single `u8 *rec = D_800DA260 + idx*0x178` per loop instead of recomputing per access.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794758145.312385,
+  "score_before": 18946,
+  "score_after": 18946
+ },
+ {
+  "function": "func_80148754",
+  "text": "Not matched. Best saved score 18946; current recheck 19916 at revision a7e2e391fd2d53f05ca5 (target 252 insns, mine 236). Why it cannot get closer in this session: the frame and save order are wrong (target frame -0x48 with saves ra/fp/s7/s6..., mine has a different layout), so the register and order rows will not settle until the frame is rebuilt. The draft also still contains leftover repair labels and variables that need cleaning. Structure to reproduce: two blocks gated by (D_80189CBC>>8)&8 and (D_80189CC4>>8)&8, each calling func_8014A030 twice on a row pointer in D_8018D3A0 (stride 0x20, column (x&0xF)*4), copying 9 or 8 halfword entries when (x&7)==0. Tail writes four u16 entries into D_80189C9E, then two 0xE-iteration loops gated by func_80149778==1 copying bytes into D_8021F048 (stride 14) and halfwords into D_8021F270 (stride 0xE0). Next steps: rebuild locals so the frame matches -0x48, fix the 9/8 loop counts, then tune registers. Not tried: find_similar for a sibling with the same tail loops.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794761143.7074718,
+  "score_before": 18946,
+  "score_after": 18946
  }
 ]
