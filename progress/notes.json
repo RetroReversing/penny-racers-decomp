@@ -6784,14 +6784,6 @@
   "score_after": 15900
  },
  {
-  "function": "func_8015F33C",
-  "text": "Not matched after 2 compiles. Best saved is the m2c draft (2995), which compiles; my hand-written version scored 6318. Target: 303 insns, frame 0x58, saves only ra/s0/s1 (func_800DE41C call with 18 args fits a 72-byte outgoing area). Both candidates get a 0x70 frame with extra s5 and sdc1 $f20 saves, so a double temp is being introduced; check that every float literal and f32 field access stays single-precision. Calls pass D_802390C8/func_8013AF08/func_8015FD04 as addresses; the target loads D_802390C8 via lui/addiu x3 and reorders the call args. func_8013E49C returns s32 (context.h). D_8011F2FD is not declared in context.h. Next step: fix the frame size and the double temp, then tune the call arg order and registers. Releasing because the remaining gap needs a restructure I could not verify at this effort level.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794714251.777076,
-  "score_before": 2995,
-  "score_after": 2995
- },
- {
   "function": "func_8015B82C",
   "text": "Init routine (1268 B, 317 target insns), unmatched. Best current 13640 (56.9%, revision f17f9c56b8180e09cfe9); saved best 10905 is from a different source. The draft compiles once the Ghidra-style types are replaced with plain externs: D_802210C8 as f32[], D_80187D00 as V16[2][224], D_8011F350 as Rec100[] (u8 *p plus pad). Remaining differences: target computes `D_3E4880 - D_3B7C00` (size arg) with the operands loaded in a different order (lui/addiu v0 for D_3E4880, then a2 for D_3B7C00 with a `subu`), and the 14x16 nested loops are written as index-scaled loops (`sll`/`addu` by 0x10 and 0x2C0 multiplies) where mine repeat `lui %hi(D_003B7C00)` per store. Try a single pointer `V16 *p = &D_80187D00[i][y*16+x]` hoisted per iteration, and reorder the initial size expression. Stopping here because the remaining gap is in loop codegen and the no-improvement budget is spent.",
   "by": "claude-haiku-5-5-23",
@@ -12008,14 +12000,6 @@
   "score_after": 10
  },
  {
-  "function": "func_8015F33C",
-  "text": "Why it can't get closer now: the 303-insn target needs the D_8011F350 object typed as a struct with offsets 0x4, 0x8, 0x14, 0x76, 0x560, 0x714-0x728, 0x748, 0x784-0x7CC, 0x860, 0x890 and 0x8A1, and the redraft depends on those. Small edits to the 2-line stub score 28130 and only move on register or stack details, so more blind compiles will not help. Saved-best 2995 is still the reference. Next agent: start from the m2c draft in get_candidate (saved draft in claim brief), type the object first, then redraft and compile. Notes from the earlier attempt: the 0x748 float is +100 with clamp to 7000.0f; the 0x14 s16 is a countdown that calls func_8013E49C(*(u16*)+0x76) at zero; the two func_800DE41C blocks (args 0x5B,0x7F, &D_802390C8, &func_8013AF08, &func_8015FD04, floats from +0x714/+0x718/+0x71C and +0x720/+0x724/+0x728, then 0.08f x3) write the D_8011F2F0 table.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794741552.0787358,
-  "score_before": 2995,
-  "score_after": 2995
- },
- {
   "function": "func_80207EC0",
   "text": "Not matched; releasing because the remaining gap needs a full target-assembly pass that I did not complete. Best rechecked score 15257 (49.3%, 301 target insns vs 291 candidate); the saved 7212 does not reproduce from the same source. Structural gaps: (1) target frame is -0x60 with ra/s0..s3 saved; candidate is -0x70 with an extra s4, so the candidate keeps a value live across calls that the target does not. (2) Candidate begins with `lui $a0,%hi(D_00400E00)` for the first func_800294A0 call; the target's prologue differs there. (3) Target's loop indexing uses s0 with 13 addu, 6 sll-2 and 4 sll-3, suggesting one shared index and a 0x28 stride held in a register. Tried, no gain: removing the `a0` local by calling func_8021F6A0(1)/(4) directly (15257); signedness family, u32 i (15362, worse). Next: lay out the full target from get_assembly(focus=mismatch), then rebuild the three loops around one shared index and check the func_800DE41C argument stack layout against the 0x60 frame.",
   "by": "claude-haiku-5-5-20",
@@ -13542,14 +13526,6 @@
   "created_at": 1794749982.536088,
   "score_before": 14870,
   "score_after": 14870
- },
- {
-  "function": "func_8015F33C",
-  "text": "Best this session: 7268 (revision a8fe392c5f4bb9f7f3b6). Uses a u8*/FLD(p,type,off) typed-offset rewrite of the m2c draft with an explicit func_800DE41C prototype; without the prototype the float args promote to double (cvt.d.s), so keep it. Remaining diffs: target frame is 0x58 (saves s0,s1 only); ours is 0x70 with extra s3-s5/f20 live across the calls. Target reloads the 0x5b/0x7f constants into temporaries and stores the pointer args D_802390C8, func_8013AF08, func_8015FD04 in slots 0x18/0x1c/0x20 in that order, so keep that argument order. Tried: re-deriving FLD(s0,u8*,4) at every use instead of cached locals (7853, worse; the target keeps the struct pointer in a register, so cache it). Next idea: keep one cached struct-pointer local but reduce the live float values across the two calls so the frame shrinks toward 0x58. The original m2c draft scored 10733 under this header; the historical 2995 is from a different header and was not reproduced.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794750039.7489338,
-  "score_before": 2995,
-  "score_after": 2995
  },
  {
   "function": "func_8015B82C",
@@ -16712,14 +16688,6 @@
   "score_after": 3581
  },
  {
-  "function": "func_8015F33C",
-  "text": "Best current score 10733 (m2c draft, rev 5b31b0827f22). Saved historical 2995 does NOT reproduce with current inputs; do not build on it without rechecking. Diff analysis of best: target frame is 0x58 and saves only $ra/$s0/$s1; draft frame is 0x70 with extra saved regs (s5, f20 via sdc1) that come from extra temps. Index math (arg0&0xFFFF)*0x64 compiles to sll1/addu/sll3/addu/sll2 in target; draft uses sll 4 at one point. Try reducing locals to the pointer temps that actually recur (obj, obj->+4 struct pointer) to get the frame to 0x58. Tried this session: a trimmed rewrite that dropped the 0x860/0x7B4 block and both func_800DE41C calls scored 24633 (worse). Do not drop code blocks; the target is 303 insns and both func_800DE41C calls (args 0x5B,0x7F, 0x714/0x718/0x71C and 0x720/0x724/0x728, then sets 0x8D1-indexed D_8011F2F0 fields) are required. Header conflict: func_8013E49C has a shared prototype (u16 arg, returns M2C_UNK), do not redeclare it.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794758584.6710851,
-  "score_before": 2995,
-  "score_after": 2995
- },
- {
   "function": "func_80217F44",
   "text": "Not matched; releasing now because this draft is far from the target and needs a rewrite, not tuning. Best 8562 (59.0%), revision 39d47d0646d8f1c52f79. Target is an 836-byte loop over 0x20-byte records (while s2[0] != 0; s2 += 0x20) with a 0x48-byte frame. The draft has a 0x50 frame and spills the three f64 constants (D_8021DEE8/DEF0/DEF8) into sdc1 slots that the target does not use; the target loads them inline inside the __sinf/__cosf expressions. Record reads are also off: the target reads bytes at 1(s2), 0x1d, 0x1f and floats at 0x14/0x18/0x1c with lwc1, while the draft's pointer casts produce negative-offset lbu. Next: rewrite the record access with s2 as u8* and explicit offsets, inline the f64 constants, and fix the frame before tuning registers.",
   "by": "claude-haiku-5-5-20",
@@ -18534,14 +18502,6 @@
   "created_at": 1794761951.853166,
   "score_before": 3581,
   "score_after": 3581
- },
- {
-  "function": "func_8015F33C",
-  "text": "Cannot get closer in this session: the partial (73 insns vs 303, score 23754) covers only the first third of the function, and the remaining 230 instructions (the float lerp blocks, the 18-argument func_800DE41C calls, and the 0x58-byte frame with ra/s0/s1 saves) need a full rewrite from get_assembly. Stopping this session at low effort rather than tuning the partial. Next agent: read the full assembly, reconstruct the whole body, then fix the frame first. Note: func_8013E49C's prototype conflicts with include/context.h, so use the header's declaration and don't redeclare it. Verified: idx*100 indexing and the D_8011F350 base. Unverified: the 0x8D1 byte write and the float constants 0.2f, 0.15f and 0.08f.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794761964.327651,
-  "score_before": 2995,
-  "score_after": 2995
  },
  {
   "function": "func_802312F8",
@@ -41102,5 +41062,54 @@
   "created_at": 1794762511.43185,
   "score_before": 10368,
   "score_after": 10063
+ },
+ {
+  "function": "func_8015F33C",
+  "text": "Not matched after 2 compiles. Best saved is the m2c draft (2995), which compiles; my hand-written version scored 6318. Target: 303 insns, frame 0x58, saves only ra/s0/s1 (func_800DE41C call with 18 args fits a 72-byte outgoing area). Both candidates get a 0x70 frame with extra s5 and sdc1 $f20 saves, so a double temp is being introduced; check that every float literal and f32 field access stays single-precision. Calls pass D_802390C8/func_8013AF08/func_8015FD04 as addresses; the target loads D_802390C8 via lui/addiu x3 and reorders the call args. func_8013E49C returns s32 (context.h). D_8011F2FD is not declared in context.h. Next step: fix the frame size and the double temp, then tune the call arg order and registers. Releasing because the remaining gap needs a restructure I could not verify at this effort level.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794714251.777076,
+  "score_before": 2995,
+  "score_after": 2995
+ },
+ {
+  "function": "func_8015F33C",
+  "text": "Why it can't get closer now: the 303-insn target needs the D_8011F350 object typed as a struct with offsets 0x4, 0x8, 0x14, 0x76, 0x560, 0x714-0x728, 0x748, 0x784-0x7CC, 0x860, 0x890 and 0x8A1, and the redraft depends on those. Small edits to the 2-line stub score 28130 and only move on register or stack details, so more blind compiles will not help. Saved-best 2995 is still the reference. Next agent: start from the m2c draft in get_candidate (saved draft in claim brief), type the object first, then redraft and compile. Notes from the earlier attempt: the 0x748 float is +100 with clamp to 7000.0f; the 0x14 s16 is a countdown that calls func_8013E49C(*(u16*)+0x76) at zero; the two func_800DE41C blocks (args 0x5B,0x7F, &D_802390C8, &func_8013AF08, &func_8015FD04, floats from +0x714/+0x718/+0x71C and +0x720/+0x724/+0x728, then 0.08f x3) write the D_8011F2F0 table.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794741552.0787358,
+  "score_before": 2995,
+  "score_after": 2995
+ },
+ {
+  "function": "func_8015F33C",
+  "text": "Best this session: 7268 (revision a8fe392c5f4bb9f7f3b6). Uses a u8*/FLD(p,type,off) typed-offset rewrite of the m2c draft with an explicit func_800DE41C prototype; without the prototype the float args promote to double (cvt.d.s), so keep it. Remaining diffs: target frame is 0x58 (saves s0,s1 only); ours is 0x70 with extra s3-s5/f20 live across the calls. Target reloads the 0x5b/0x7f constants into temporaries and stores the pointer args D_802390C8, func_8013AF08, func_8015FD04 in slots 0x18/0x1c/0x20 in that order, so keep that argument order. Tried: re-deriving FLD(s0,u8*,4) at every use instead of cached locals (7853, worse; the target keeps the struct pointer in a register, so cache it). Next idea: keep one cached struct-pointer local but reduce the live float values across the two calls so the frame shrinks toward 0x58. The original m2c draft scored 10733 under this header; the historical 2995 is from a different header and was not reproduced.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794750039.7489338,
+  "score_before": 2995,
+  "score_after": 2995
+ },
+ {
+  "function": "func_8015F33C",
+  "text": "Best current score 10733 (m2c draft, rev 5b31b0827f22). Saved historical 2995 does NOT reproduce with current inputs; do not build on it without rechecking. Diff analysis of best: target frame is 0x58 and saves only $ra/$s0/$s1; draft frame is 0x70 with extra saved regs (s5, f20 via sdc1) that come from extra temps. Index math (arg0&0xFFFF)*0x64 compiles to sll1/addu/sll3/addu/sll2 in target; draft uses sll 4 at one point. Try reducing locals to the pointer temps that actually recur (obj, obj->+4 struct pointer) to get the frame to 0x58. Tried this session: a trimmed rewrite that dropped the 0x860/0x7B4 block and both func_800DE41C calls scored 24633 (worse). Do not drop code blocks; the target is 303 insns and both func_800DE41C calls (args 0x5B,0x7F, 0x714/0x718/0x71C and 0x720/0x724/0x728, then sets 0x8D1-indexed D_8011F2F0 fields) are required. Header conflict: func_8013E49C has a shared prototype (u16 arg, returns M2C_UNK), do not redeclare it.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794758584.6710851,
+  "score_before": 2995,
+  "score_after": 2995
+ },
+ {
+  "function": "func_8015F33C",
+  "text": "Cannot get closer in this session: the partial (73 insns vs 303, score 23754) covers only the first third of the function, and the remaining 230 instructions (the float lerp blocks, the 18-argument func_800DE41C calls, and the 0x58-byte frame with ra/s0/s1 saves) need a full rewrite from get_assembly. Stopping this session at low effort rather than tuning the partial. Next agent: read the full assembly, reconstruct the whole body, then fix the frame first. Note: func_8013E49C's prototype conflicts with include/context.h, so use the header's declaration and don't redeclare it. Verified: idx*100 indexing and the D_8011F350 base. Unverified: the 0x8D1 byte write and the float constants 0.2f, 0.15f and 0.08f.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794761964.327651,
+  "score_before": 2995,
+  "score_after": 2995
+ },
+ {
+  "function": "func_8015F33C",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 3465 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (9 of its 12 nearest matched neighbours were built with it), the saved C scores 5080 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721281.3146088,
+  "score_before": 5080,
+  "score_after": 3465,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:a9eaec4faef19dae320f1193247b1f34f08286d1e1d85fe3376294453b8dfe5f"
  }
 ]
