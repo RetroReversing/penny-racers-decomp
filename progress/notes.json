@@ -7384,14 +7384,6 @@
   "score_after": 14432
  },
  {
-  "function": "func_801E3038",
-  "text": "Best saved C scores 7107 (81.5%; 386 vs 386 insns). Use revision 682ee33fd2dc0da8fbdc as the base. Structure is right: switch on ST(arg0) with a jump table at 0x801E95C0 and 10 cases, all calls in the right order.\nRemaining diffs:\n(1) Frame: target is addiu $sp,-0x38 with saves ra/s2/s1/s0 at 0x34..0x28 and no locals (i and bad live in registers). Candidate is -0x48, spills s2 to 0x40 four times, and saves s1/s0 at 0x3c/0x38. Extra ~16 bytes of stack come from something in the candidate, not from the target. Find it first (try removing one local, or making bad/i u8 or s16).\n(2) Store addressing: target does lui v0,%hi(D_8021F028); addiu v0; sb via v0 for the three stores (one base pointer). Candidate uses lui at + sb %lo each time. Tried: local T3 *p = &D_8021F028 for the 0x15 stores: no effect (7107, same insns).\n(3) Struct copy after the bad check: target loads D_801F1895 with lui v1/addiu v1 then lbu from ($v1) and 1($v1) (one base pointer, 3 byte loads). Candidate's *(T3*)&D_801F1895 is the closer form. Byte-by-byte copy from globals scored 7957 (worse). Next to try: T3 *src = (T3 *)&D_801F1895; then copy via src->a/b/c.\nDo not repeat: byte-copy from globals alone; pointer-for-0x15-stores alone.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794719215.054456,
-  "score_before": 7107,
-  "score_after": 7107
- },
- {
   "function": "func_802178B4",
   "text": "Not attempted: 1680 bytes, 420 insns, jump table on the ST(arg0) switch (same pattern as func_801E3038: lhu from D_8011F32E with stride 100, then sltiu 0xB and a jr through a table), no saved C and no compiling draft. Needs a full C draft from the assembly before any compile. Start with the switch structure from get_assembly, then the externs in the brief.",
   "by": "claude-haiku-5-5-24",
@@ -12800,14 +12792,6 @@
   "score_after": 24288
  },
  {
-  "function": "func_801E3038",
-  "text": "Not matched. Best saved is 7107 (from earlier agent); my reconstructed switch (revision a8920d5fdee7eb7358f4) scores 7692 (80%) and is worse. The state machine is 5-6 cases on ST(arg0) = D_8011F32E[arg0*0x64] (u16 stride 100). Remaining diffs: target frame is 0x38 with ra/s2/s1/s0 saved; mine 0x48 with the saves in different slots, so the locals/out-arg area differs. Target recomputes andi $s2,0xffff several times (arg0 is NOT kept in a register across every call), and writes D_8021F028 and D_801E9015 as individual byte stores (sb $v1; sb $v1,1; sb $zero,2) with lui/addiu of D_8021F028 at 0x8021F028 and a store at 0x8021F02A, which suggests D_8021F028 is a 3-byte struct at 0x8021F028 with the two 0x15 values written separately. Next step: restructure the case 0 init as explicit byte stores to D_8021F028.a/.b/.c, and check whether the 0x0F4 / 0x64 ST stride is correct for case 10 (B2FD writes D_8011F2FD). Calls func_801DD938 with 10 args dominate the out-arg area; verify the prototype before ordering.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794742273.5241868,
-  "score_before": 7107,
-  "score_after": 7107
- },
- {
   "function": "func_802312F8",
   "text": "Not compiled. 444 instructions, 1776 bytes. The stored candidate is a stub (switch on a u16 at D_8006FAF0+0x20, minus 1, setting a volatile byte to constants) and does not cover the whole function. The machine draft failed on a jr jump table (line 26). Needs the full body read before any C is written; this is a large function, so it is a poor first pick.",
   "by": "claude-haiku-5-5-20",
@@ -14414,14 +14398,6 @@
   "created_at": 1794752090.2019782,
   "score_before": 431,
   "score_after": 30
- },
- {
-  "function": "func_801E3038",
-  "text": "Best revision 196de97129b866e06b97 = 7107 (81.5%). Draft ebb4724bc63382580109 has the same instructions with a prototype for func_801DD938. Still different: (1) frame 0x48 vs target 0x38: target saves ra,s0,s1,s2 at 0x34..0x28 and has 40 bytes of outgoing args (the 10-arg func_801DD938 calls); ours has 56 bytes of outgoing area and saves at 0x38..0x44. The source of the extra 16 bytes is unknown: not the 10-arg prototype, and not the struct copy. (2) Replacing `D_8021F028 = *(T3 *)&D_801F1895` with three byte copies made it worse (7957): keep the struct copy. (3) Making i unsigned (signedness family) made it worse (7707). (4) Target loads D_801F1895 via addiu v1,%lo then lbu/lbu 1($v1) and the case-1 checks use that base. Next: find the 16-byte stack source, then the register order.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794752093.039018,
-  "score_before": 7107,
-  "score_after": 7107
  },
  {
   "function": "func_80141C28",
@@ -18720,14 +18696,6 @@
   "score_after": 10368
  },
  {
-  "function": "func_801E3038",
-  "text": "Best saved 7107 (81.5%, 386 insns, same count as target). Restore it with get_candidate(base=\"saved_best\"); the last trial (7ced77a, scalar res/struct-field copy, 8937) was worse. Why it cannot get closer right now: the target frame is 0x38 (saves $ra,$s2,$s1,$s0) while every variant I tried gives 0x48 with an extra spill slot, so the local/argument set and the switch shape (jr needs a jump table that m2c could not find) are guessed. The D_8021F028 address is taken once in the target (lui/addiu into $v0, then sb at 0,1,2), my version re-materialises it with lui $at each store; a local T3 pointer did not change the score. Next step if someone retries: derive the switch/jump-table structure from the target's jr at the start, then fix locals to get the 0x38 frame; registers last.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794761234.503531,
-  "score_before": 7107,
-  "score_after": 7107
- },
- {
   "function": "func_8002B534",
   "text": "Not matched. Best saved candidate is 15851 (restructured note-on/off/controller/pitch-bend switch, same as func_80030E28's family). Latest candidate 49048ad3fcf27c9908a6 scores 15951 (70.7%) and is slightly worse. Target frame is -0x80 saving ra, fp, s7..s0 at 0x74..0x50; ours is -0x68 with fewer saves, so the function needs about 24 more bytes of stack locals (likely more 8-byte or struct-sized temporaries than sp20..sp3C/sp44 cover) and a different s-register set. The alCents2Ratio prototype comes from context.h (f32 alCents2Ratio(s32)); do not redeclare it. Next steps: (1) add the missing stack locals and match the -0x80 frame first; (2) then fix the s-register order in the 0x90 path. Verify __vsVol/__vsPan return types against the matched definitions before tuning arithmetic. Note that func_80030E28 (same command-dispatch shape, different function) is the closest template.",
   "by": "claude-haiku-5-5-24",
@@ -20014,14 +19982,6 @@
   "created_at": 1794762938.668698,
   "score_before": 23139,
   "score_after": 23139
- },
- {
-  "function": "func_801E3038",
-  "text": "1544-byte / 386-insn state machine, no match. Saved best is 7107 (from earlier draft). Draft (m2c) fails: \"Unable to determine jump table for jr\" at line 23, so the switch on ST(arg0) needs a case list written by hand. My one attempt (only case 0 written, rest omitted) scored 37148 and is not a real candidate. Facts from the target: the frame is 0x38 with ra/s0-s2 saved; the state word is D_8011F32E indexed by arg0*100 (entity array stride 0x64, see proposal #339302416501); the first call pattern is func_80029790, func_801E2EF4, then state=1 calling func_80029938. Next step: write all cases (0..10) with the same stride indexing and the err/done labels, then compare. Cases 1 and 2 loop over 9 entries with stride 12 words into D_801E97CC; confirm this before writing it.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794762962.572397,
-  "score_before": 7107,
-  "score_after": 7107
  },
  {
   "function": "func_801485C8",
@@ -40986,5 +40946,54 @@
   "score_before": 20782,
   "score_after": 13411,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:b6ad62a6209efa0198fd01707704de8d0a5720ac8be699437ea5c0e5bb25b736"
+ },
+ {
+  "function": "func_801E3038",
+  "text": "Best saved C scores 7107 (81.5%; 386 vs 386 insns). Use revision 682ee33fd2dc0da8fbdc as the base. Structure is right: switch on ST(arg0) with a jump table at 0x801E95C0 and 10 cases, all calls in the right order.\nRemaining diffs:\n(1) Frame: target is addiu $sp,-0x38 with saves ra/s2/s1/s0 at 0x34..0x28 and no locals (i and bad live in registers). Candidate is -0x48, spills s2 to 0x40 four times, and saves s1/s0 at 0x3c/0x38. Extra ~16 bytes of stack come from something in the candidate, not from the target. Find it first (try removing one local, or making bad/i u8 or s16).\n(2) Store addressing: target does lui v0,%hi(D_8021F028); addiu v0; sb via v0 for the three stores (one base pointer). Candidate uses lui at + sb %lo each time. Tried: local T3 *p = &D_8021F028 for the 0x15 stores: no effect (7107, same insns).\n(3) Struct copy after the bad check: target loads D_801F1895 with lui v1/addiu v1 then lbu from ($v1) and 1($v1) (one base pointer, 3 byte loads). Candidate's *(T3*)&D_801F1895 is the closer form. Byte-by-byte copy from globals scored 7957 (worse). Next to try: T3 *src = (T3 *)&D_801F1895; then copy via src->a/b/c.\nDo not repeat: byte-copy from globals alone; pointer-for-0x15-stores alone.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794719215.054456,
+  "score_before": 7107,
+  "score_after": 7107
+ },
+ {
+  "function": "func_801E3038",
+  "text": "Not matched. Best saved is 7107 (from earlier agent); my reconstructed switch (revision a8920d5fdee7eb7358f4) scores 7692 (80%) and is worse. The state machine is 5-6 cases on ST(arg0) = D_8011F32E[arg0*0x64] (u16 stride 100). Remaining diffs: target frame is 0x38 with ra/s2/s1/s0 saved; mine 0x48 with the saves in different slots, so the locals/out-arg area differs. Target recomputes andi $s2,0xffff several times (arg0 is NOT kept in a register across every call), and writes D_8021F028 and D_801E9015 as individual byte stores (sb $v1; sb $v1,1; sb $zero,2) with lui/addiu of D_8021F028 at 0x8021F028 and a store at 0x8021F02A, which suggests D_8021F028 is a 3-byte struct at 0x8021F028 with the two 0x15 values written separately. Next step: restructure the case 0 init as explicit byte stores to D_8021F028.a/.b/.c, and check whether the 0x0F4 / 0x64 ST stride is correct for case 10 (B2FD writes D_8011F2FD). Calls func_801DD938 with 10 args dominate the out-arg area; verify the prototype before ordering.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794742273.5241868,
+  "score_before": 7107,
+  "score_after": 7107
+ },
+ {
+  "function": "func_801E3038",
+  "text": "Best revision 196de97129b866e06b97 = 7107 (81.5%). Draft ebb4724bc63382580109 has the same instructions with a prototype for func_801DD938. Still different: (1) frame 0x48 vs target 0x38: target saves ra,s0,s1,s2 at 0x34..0x28 and has 40 bytes of outgoing args (the 10-arg func_801DD938 calls); ours has 56 bytes of outgoing area and saves at 0x38..0x44. The source of the extra 16 bytes is unknown: not the 10-arg prototype, and not the struct copy. (2) Replacing `D_8021F028 = *(T3 *)&D_801F1895` with three byte copies made it worse (7957): keep the struct copy. (3) Making i unsigned (signedness family) made it worse (7707). (4) Target loads D_801F1895 via addiu v1,%lo then lbu/lbu 1($v1) and the case-1 checks use that base. Next: find the 16-byte stack source, then the register order.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794752093.039018,
+  "score_before": 7107,
+  "score_after": 7107
+ },
+ {
+  "function": "func_801E3038",
+  "text": "Best saved 7107 (81.5%, 386 insns, same count as target). Restore it with get_candidate(base=\"saved_best\"); the last trial (7ced77a, scalar res/struct-field copy, 8937) was worse. Why it cannot get closer right now: the target frame is 0x38 (saves $ra,$s2,$s1,$s0) while every variant I tried gives 0x48 with an extra spill slot, so the local/argument set and the switch shape (jr needs a jump table that m2c could not find) are guessed. The D_8021F028 address is taken once in the target (lui/addiu into $v0, then sb at 0,1,2), my version re-materialises it with lui $at each store; a local T3 pointer did not change the score. Next step if someone retries: derive the switch/jump-table structure from the target's jr at the start, then fix locals to get the 0x38 frame; registers last.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794761234.503531,
+  "score_before": 7107,
+  "score_after": 7107
+ },
+ {
+  "function": "func_801E3038",
+  "text": "1544-byte / 386-insn state machine, no match. Saved best is 7107 (from earlier draft). Draft (m2c) fails: \"Unable to determine jump table for jr\" at line 23, so the switch on ST(arg0) needs a case list written by hand. My one attempt (only case 0 written, rest omitted) scored 37148 and is not a real candidate. Facts from the target: the frame is 0x38 with ra/s0-s2 saved; the state word is D_8011F32E indexed by arg0*100 (entity array stride 0x64, see proposal #339302416501); the first call pattern is func_80029790, func_801E2EF4, then state=1 calling func_80029938. Next step: write all cases (0..10) with the same stride indexing and the err/done labels, then compare. Cases 1 and 2 loop over 9 entries with stride 12 words into D_801E97CC; confirm this before writing it.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794762962.572397,
+  "score_before": 7107,
+  "score_after": 7107
+ },
+ {
+  "function": "func_801E3038",
+  "text": "Profile probe: this saved C scores 4190 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (10 of its 12 nearest matched neighbours were built with it), 5937 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721299.017249,
+  "score_before": 5937,
+  "score_after": 4190,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:34a5c8a7df5ce2d3346fa5f428d4eb2ce9f20ebc24ebf25f8d8aea34c4289ba2"
  }
 ]
