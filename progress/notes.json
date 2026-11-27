@@ -7408,14 +7408,6 @@
   "score_after": 1950
  },
  {
-  "function": "func_801375A0",
-  "text": "Best candidate is revision 5bcea33f5480db8e07a5, score 19903 (68.1%, 587 vs 624 insns). Remaining diffs: (1) the frame: target is addiu $sp,-0x40 and saves ra, s5..s0 (7 saved regs); the candidate saves ra and s1..s4 only, so the target keeps more values live across calls (index, loop variable, pointer into D_8011F350). (2) The target re-masks arg0 with andi $v0,$s2,0xffff many times (arg0 copied to s2 at entry), while the candidate uses $a0 directly. A local Racer* pointer (revision aefce43bba6b280026c2, 41437) was worse: it removed the repeated andi and grew the frame to -0x48. Do not repeat it. (3) Table reads at D_8011F32E use lui $at,%hi() with sh/sb; the target has its own statement per access. Next experiment: keep the R macro but declare a second local for the loop bound and index so arg0 stays live in a saved register; compare the frame first. Stopping this session at 19903 after 2 compiles because the register-allocation change needs more trials than this session has room for.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794719895.448096,
-  "score_before": 19903,
-  "score_after": 19903
- },
- {
   "function": "func_80027D00",
   "text": "Best saved score 360 (45 vs 46 insns) is the m2c draft (revision 9f1b3eba47d2a260ddfa), not a match. Remaining diffs: target frame 0x20 with saves s0,s1,s2 at 0x10,0x14,0x18 and ra at 0x1c; target computes base as lui/addiu s0=&D_8006FB38, then s2=s1+s0 (temp_s2), and the 0x7c offset as addiu s0,s0,0x7c in the fall-through only. Tried char-array base (score 694, frame 0x28, saves s3) and temp_s0 = temp_s2+0x7C (795, worse). Next: keep the draft's int-typed temp_s1 and try ordering the base lui/addiu before the arg*0x184 multiply so the single base register is shared. Do not redeclare u32/s8 typedefs: they already come from context.h.",
   "by": "claude-haiku-5-5-22",
@@ -12104,14 +12096,6 @@
   "score_after": 605
  },
  {
-  "function": "func_801375A0",
-  "text": "Best so far: score 19533 (68.6%) from the candidate C (switch on R.timer = D_8011F2F0[arg0&0xFFFF] at offset 0x3E, plus the post-switch loop). Remaining gap, from last_diff: the target's switch has range check sltiu $v1,0x1f (cases 0..30) with jump table at D_80183000, but the candidate only has cases 0..7 (bound 8, table at ?local). Add the missing cases 8..30 (their bodies are in the target asm; not yet read). Also the target frame is 0x40 with ra at 0x38 and saves s0-s5 plus 'move $s2,$a0' and 'move $s3,$a0' in the prologue: it keeps arg0 in s2/s3 and needs one more saved register (s5), which suggests a second copy of the index or a pointer local. Next: read the asm for the case 8..30 bodies, then fix the switch range before touching registers.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794743594.819078,
-  "score_before": 19533,
-  "score_after": 19533
- },
- {
   "function": "func_80234484",
   "text": "Not compiled this session. The inherited candidate (rev 42f93e7be27d75526f24, best 48077 over 7 attempts) does not compile: the draft does byte-offset pointer arithmetic on s32/u8 arrays (&D_8022AD04 + idx*0x8F0, D_8022AD06 + ..., &D_80237640 + n*0xC) and void* temp_s1 arithmetic. Errors at func.c:342/352/367/419/432 (\"arithmetic on pointer to an incomplete type\", \"array with unspecified bounds\"). Needed first: declare the per-slot tables as real struct arrays with stride 0x8F0 (D_8022AD04/AD07/AD08/AFE9/AD06), and a 0xC-byte record struct for D_80237640 (u16 f0 @0, s16 f2 @2, f32 f4 @4, s16 f8 @8 = row index, u8 fA @0xA flag). Then rewrite the goto/do-while loops cleanly. Prototype evidence disagrees with defs for func_801E2F38 (caller u8->s32, def void(s32)) and func_801E43A0. Stopping: a ~760-instruction function with unresolved struct layouts needs more than one pass.",
   "by": "claude-haiku-5-5-24",
@@ -13502,14 +13486,6 @@
   "created_at": 1794752363.046384,
   "score_before": 59416,
   "score_after": 59416
- },
- {
-  "function": "func_801375A0",
-  "text": "Releasing early: best saved 19533 (68.6%), one compile, no improvement. The mismatch is structural, not register-level: target frame is -0x40 with five saved s-registers plus ra at 0x38; candidate is -0x38 with four. Target has many more index computations (x10 addu, x6 sll 3, x3 sll 1 on $v1), so the array/struct index expressions (D_801E9990 stride 0x1C scan, D_8011F2FD/D_8011F300 stride 0x64 linked-list walk, PtrSlot indexing) are written differently than the compiler emitted them. Next step: rewrite the two loops (case 2 and case 5 scans, case 7 walk) with explicit pointer arithmetic to force more live locals, then re-check the frame before touching registers.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794752391.1329181,
-  "score_before": 19533,
-  "score_after": 19533
  },
  {
   "function": "func_80208444",
@@ -17368,14 +17344,6 @@
   "score_after": 34153
  },
  {
-  "function": "func_801375A0",
-  "text": "Best candidate (rev 892d64de61e897b9b46a) scores 19533 (68.6%), 587 insns vs target 624. Struct layout for R = D_8011F2F0[arg0] (stride 0x64, state at 0xC, timer at 0x3E, f44/f48/f4C at 0x44/0x48/0x4C) is confirmed by the lui %hi(D_8011F32E) rows. Remaining gaps are structural and not something one compile fixed: target frame is 0x40 with s1..s5 saved, mine is 0x38 with four; the target keeps the D_800DD2C0 / D_801E9990 loop state and the D_8011F350 obj pointer live across the func_801CF468 and func_80028100 calls, and it has about 10 extra addu/sll pairs that look like the D_801E9990[i*0x1C] and D_8011F2FD[t*0x64] index math done differently. Next step for a fresh session: rewrite case 2 and case 5 so the inner loop walks D_801E9990 with a pointer or a u32 index held across calls, then re-check the frame size before tuning registers. Released after one compile without improvement; the move-on budget is not exhausted, so this is a handoff on difficulty, not a dead end.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794761561.7254841,
-  "score_before": 19533,
-  "score_after": 19533
- },
- {
   "function": "func_801485C8",
   "text": "Same unit as func_801497AC/func_80149A80, which match only at -O1. Best try_compiler result: -O1 score 1690 (better than saved 1825) with: u8 D_8018A276[]; i=1; if(D_80189B34==1){u8*p=&D_8018A276[1]; p[0]|=0x10;p[1]|=0x10;p[2]|=0x10;} else { do{v=D_8018A276[i]; if((v&0xF)==D_80189CB6) D_8018A276[i]=v|0x10; i++;}while(i<4); i=1;} count=0; do{count+=(D_8018A276[i]&0x10)==0;i++;}while(i<4); return count. Remaining at -O1: p[1],p[2] fold into %lo(D_8018A278) instead of off(v1), and &D_80189CB6 is not hoisted into $a2 before the loop. -O1 -fforce-addr fixes both but then also hoists the array base (2020). -O1 -funroll-loops is far off. Next: find C that keeps p and &D_80189CB6 in registers at plain -O1 (e.g. pointer params/struct, a local pointer used in loop condition), or a different flag mix.",
   "by": "claude-opus-medium-1",
@@ -18430,14 +18398,6 @@
   "created_at": 1794764179.555904,
   "score_before": 35038,
   "score_after": 35038
- },
- {
-  "function": "func_801375A0",
-  "text": "Releasing now: the draft (rev 892d64de61e897b9b46a, 19533, 68.6%) cannot get closer by local tuning. Its frame (0x38 vs 0x40), loop structure and missing per-racer loops over D_8011F2FC/D_8011F32E (about 37 target instructions unaccounted) need a rewrite of the post-switch section, not register edits. Notes: frame needs one more saved s-register (s5 is live in target); index is (arg0&0xFFFF)*0x64; a second loop over D_8011F32E indices exists in target and is absent from draft; switch table must be verified (case 4 falls through to 5). Start from a full new draft with the extra loop.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794764187.892812,
-  "score_before": 19533,
-  "score_after": 19533
  },
  {
   "function": "func_801BFA1C",
@@ -41234,5 +41194,54 @@
   "score_before": 7091,
   "score_after": 3275,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:27b5b5ff65b8ccb5c9bf5b586ccfc705045d870861d9397eb6bdc7b47a46cc7c"
+ },
+ {
+  "function": "func_801375A0",
+  "text": "Best candidate is revision 5bcea33f5480db8e07a5, score 19903 (68.1%, 587 vs 624 insns). Remaining diffs: (1) the frame: target is addiu $sp,-0x40 and saves ra, s5..s0 (7 saved regs); the candidate saves ra and s1..s4 only, so the target keeps more values live across calls (index, loop variable, pointer into D_8011F350). (2) The target re-masks arg0 with andi $v0,$s2,0xffff many times (arg0 copied to s2 at entry), while the candidate uses $a0 directly. A local Racer* pointer (revision aefce43bba6b280026c2, 41437) was worse: it removed the repeated andi and grew the frame to -0x48. Do not repeat it. (3) Table reads at D_8011F32E use lui $at,%hi() with sh/sb; the target has its own statement per access. Next experiment: keep the R macro but declare a second local for the loop bound and index so arg0 stays live in a saved register; compare the frame first. Stopping this session at 19903 after 2 compiles because the register-allocation change needs more trials than this session has room for.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794719895.448096,
+  "score_before": 19903,
+  "score_after": 19903
+ },
+ {
+  "function": "func_801375A0",
+  "text": "Best so far: score 19533 (68.6%) from the candidate C (switch on R.timer = D_8011F2F0[arg0&0xFFFF] at offset 0x3E, plus the post-switch loop). Remaining gap, from last_diff: the target's switch has range check sltiu $v1,0x1f (cases 0..30) with jump table at D_80183000, but the candidate only has cases 0..7 (bound 8, table at ?local). Add the missing cases 8..30 (their bodies are in the target asm; not yet read). Also the target frame is 0x40 with ra at 0x38 and saves s0-s5 plus 'move $s2,$a0' and 'move $s3,$a0' in the prologue: it keeps arg0 in s2/s3 and needs one more saved register (s5), which suggests a second copy of the index or a pointer local. Next: read the asm for the case 8..30 bodies, then fix the switch range before touching registers.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794743594.819078,
+  "score_before": 19533,
+  "score_after": 19533
+ },
+ {
+  "function": "func_801375A0",
+  "text": "Releasing early: best saved 19533 (68.6%), one compile, no improvement. The mismatch is structural, not register-level: target frame is -0x40 with five saved s-registers plus ra at 0x38; candidate is -0x38 with four. Target has many more index computations (x10 addu, x6 sll 3, x3 sll 1 on $v1), so the array/struct index expressions (D_801E9990 stride 0x1C scan, D_8011F2FD/D_8011F300 stride 0x64 linked-list walk, PtrSlot indexing) are written differently than the compiler emitted them. Next step: rewrite the two loops (case 2 and case 5 scans, case 7 walk) with explicit pointer arithmetic to force more live locals, then re-check the frame before touching registers.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794752391.1329181,
+  "score_before": 19533,
+  "score_after": 19533
+ },
+ {
+  "function": "func_801375A0",
+  "text": "Best candidate (rev 892d64de61e897b9b46a) scores 19533 (68.6%), 587 insns vs target 624. Struct layout for R = D_8011F2F0[arg0] (stride 0x64, state at 0xC, timer at 0x3E, f44/f48/f4C at 0x44/0x48/0x4C) is confirmed by the lui %hi(D_8011F32E) rows. Remaining gaps are structural and not something one compile fixed: target frame is 0x40 with s1..s5 saved, mine is 0x38 with four; the target keeps the D_800DD2C0 / D_801E9990 loop state and the D_8011F350 obj pointer live across the func_801CF468 and func_80028100 calls, and it has about 10 extra addu/sll pairs that look like the D_801E9990[i*0x1C] and D_8011F2FD[t*0x64] index math done differently. Next step for a fresh session: rewrite case 2 and case 5 so the inner loop walks D_801E9990 with a pointer or a u32 index held across calls, then re-check the frame size before tuning registers. Released after one compile without improvement; the move-on budget is not exhausted, so this is a handoff on difficulty, not a dead end.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794761561.7254841,
+  "score_before": 19533,
+  "score_after": 19533
+ },
+ {
+  "function": "func_801375A0",
+  "text": "Releasing now: the draft (rev 892d64de61e897b9b46a, 19533, 68.6%) cannot get closer by local tuning. Its frame (0x38 vs 0x40), loop structure and missing per-racer loops over D_8011F2FC/D_8011F32E (about 37 target instructions unaccounted) need a rewrite of the post-switch section, not register edits. Notes: frame needs one more saved s-register (s5 is live in target); index is (arg0&0xFFFF)*0x64; a second loop over D_8011F32E indices exists in target and is absent from draft; switch table must be verified (case 4 falls through to 5). Start from a full new draft with the extra loop.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794764187.892812,
+  "score_before": 19533,
+  "score_after": 19533
+ },
+ {
+  "function": "func_801375A0",
+  "text": "Profile probe: this saved C scores 8751 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (9 of its 9 nearest matched neighbours were built with it), 13410 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721342.702295,
+  "score_before": 13410,
+  "score_after": 8751,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:677ec6da38c4fbd7a5fd543907b48468d219e8a9179a9a30e0fdc753eb3e45af"
  }
 ]
