@@ -4280,14 +4280,6 @@
   "score_after": 12455
  },
  {
-  "function": "func_801C10FC",
-  "text": "Deep permuter: score 12320 \u2192 10680; 2 improvements; 46 candidates tested; 106 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589935624",
-  "created_at": 1794356224.614797,
-  "score_before": 12320,
-  "score_after": 10680
- },
- {
   "function": "func_801976F8",
   "text": "Deep permuter: score 11100 \u2192 9400; 2 improvements; 71 candidates tested; 125 cached skips; 0 rejected; 7204s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935593",
@@ -4878,14 +4870,6 @@
   "created_at": 1794705207.463116,
   "score_before": 10613,
   "score_after": 7501
- },
- {
-  "function": "func_801C10FC",
-  "text": "Straight-line display-list writer (gfx = *arg0; *arg0 = gfx+2; gfx[0]/gfx[1] pairs), 808 bytes, 202 target insns. Current C (saved best 1900 historical; rechecked 12320) differs in prologue: target saves s0/s1 (sw $s0,($sp) first, addiu sp,-8) and keeps the gfx pointer/loop index in saved regs; mine keeps arg0 in a0 and reloads. Local repair families (signedness, constant_local, parameter_width, dead_pointer_clear, loop_weight_scope) gave no improvement. Next: try holding *arg0 in a local `void **p` or a local gfx pointer that lives across the loop, and try the loop counter as s32 vs s16 to influence s0/s1 use. Loop body address/immediate expressions still unverified (diff rows 111 and 133 show raw MIPS mismatch for 0x040040FF and 0xF5480400 immediates).",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794705357.155631,
-  "score_before": 1900,
-  "score_after": 1900
  },
  {
   "function": "func_8002D520",
@@ -5966,14 +5950,6 @@
   "created_at": 1794707153.105033,
   "score_before": 336,
   "score_after": 336
- },
- {
-  "function": "func_801C10FC",
-  "text": "RSP display-list builder. Move-on budget exhausted (3/3), best current rechecked 11795-12165 vs historical 1900 (historical score is stale, same source rechecks at 12320).\n\nStructure confirmed from target assembly: the three-way dispatch is `if (D_8011F330[idx*0x32] == 0) { D_8011F330[...] = 1; return; } if (... != 1) return;` then the straight-line display list followed by a do/while(i<7) loop, and the function returns void (no value in $v0; tail is `lw $s0,($sp); jr $ra; addiu $sp,sp,8`). `addu $t0,$a0,$zero` early and `move $t1,$zero` mean arg0 is copied to a callee-saved register before the dispatch and the loop counter lives in a register, not on the stack.\n\nRemaining known diffs (all in the prologue/dispatch, ~20 rows; the display-list body and loop already line up):\n1. Target indexes D_8011F330 as `andi $v1,$a1,0xFFFF; sll/addu x3; sll 2; lui %hi; addu; lhu %lo(reg)` \u2014 i.e. a u16 array indexed by a scaled offset held in a local. My `u16 D_8011F330[]` + inline `[(arg1 & 0xFFFF) * 0x32]` instead produced `lui; addiu %lo; lhu 0(reg)` (see knowledge #339302416396). next_experiment applies exactly that fix.\n2. My frame is 0x10 with an extra `sw $s1,4($sp)`; target frame is 0x08 with only $s0 saved. Reducing live u32 pointers in the dispatch (single `u32 *gfx` reused, which the body already does) and letting the loop counter stay in a register should remove $s1.\n3. Target branch layout: `beqz` to the store-1 block at the end, `beq $v1,1` into the body, else `j` to the epilogue.\n\nNot a boundary or non-C problem. Untested exact patch saved as next_experiment.",
-  "by": "api-route-llm-code-2",
-  "created_at": 1794707156.730495,
-  "score_before": 1900,
-  "score_after": 1900
  },
  {
   "function": "func_8020FFD0",
@@ -10280,14 +10256,6 @@
   "score_after": 17857
  },
  {
-  "function": "func_801C10FC",
-  "text": "Not matched. Target (202 insns) is a display-list builder: if D_8011F330[x*50] == 0 it sets it to 1; if == 1 it emits ~17 fixed gfx word pairs then a 7-iteration loop emitting 8 pairs each (gfx = *arg0; *arg0 = gfx+2 per pair). Index x = (arg1&0xFFFF), offset = x*100 bytes computed as sll/addu chain (x*3, *8, +x, *4), fine as D_8011F330[x*50]. Current recheck of the saved-best source (revision f27b7f6a6bd15a121730) scores 12320 (39%), while the historical 1900 came from a different header; local-index variant (ad4455b6ed46cea86980) also 12320. Main diffs: target keeps the address in $v1 (lui/addu/lhu %lo) while candidate does addiu+lhu($a0) and saves s1 (target saves only s0 at entry); the loop body register allocation and reordering of stores vs the loop's sll/andi chains differ. Next agent: first fix the entry block (target: addiu sp; sw s0; andi v1,a1,0xffff) so the index is computed before any gfx store, then the loop body, leave registers last.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794727235.9231172,
-  "score_before": 1900,
-  "score_after": 1900
- },
- {
   "function": "func_80230BC4",
   "text": "Best so far 14507 (29.5%), candidate revision c426e0951b038a64acae. Source uses byte-offset pointer math off extern u8 arrays (base = D_800DA260 + idx*0x178; D_800DA264/266/268/26A declared as u8[]), which compiles. Remaining diffs: (1) target saves $ra,$s3,$s2,$s1,$s0 in a 0x28 frame; mine uses 0x20 frame and only saves $s1. The target keeps arg0 in $s3 and arg1 in $s1 across calls; the candidate's register allocation is wrong, so the structure needs more live values. (2) Target computes D_8006FAF0+0x20 pointer in $a2 and reads it via lhu, then sll 2 on it (index into D_802D6288 table of pointers). (3) Target uses `andi $v1,$s3,0xffff` twice and mfc1/cvt.d.s chains (x8 mfc1 $a3,$f2 and x4 cvt.d.s) that suggest the float fields are passed through double-precision arguments in the func_8003DE60 calls, i.e. the calls take float values converted to double, not u16 values. Probably the func_8003DE60 calls at the end are not (ptr,u16,s32) \u2014 check the argument types (they seem to be f32 converted via cvt.d.s/mfc1 into $a3). (4) D_8021E1A6 load is through lui/lh, mine reads it as s16; verify. Next step: fix the func_8003DE60 call signatures (likely (ptr, s32, f32-ish via double)) before touching register allocation. Brief and m2c draft in get_function(brief).",
   "by": "claude-haiku-5-5-21",
@@ -13374,14 +13342,6 @@
   "created_at": 1794740448.715816,
   "score_before": 10,
   "score_after": 10
- },
- {
-  "function": "func_801C10FC",
-  "text": "Not matched. Display-list builder: writes 2-word F3D commands through *arg0 (each op does lw gfx=*arg0; sw gfx+8 back; store two words). First branch: table D_8011F330 u16 at stride 100 bytes (index (arg1&0xFFFF)*50 elements), if !=0 and !=1 return; if ==0 set entry=1 and return. Setup ops: 0x06000000/D_800E1C00, 0xB6000000/0x2000, 0xFD100000/D_8031B5D0, E8000000/0, F5000100/0x07000000, E6000000/0, F0000000/0x0703C000, E7000000/0, 040040FF/D_80167FB8. Loop of 7 (i from 0), with loop-invariant constants hoisted into s0/t9/t8/t7/t6/t5/t4/t3/t2 in the target (only s0 saved, frame is -8). Best this session: rev f27b7f6a6bd15a121730 score 12320 (straight loop, 39%); constant-locals variant (a432df79f7f060aa11e0) scored 14132 worse because it spills s1-s3 and needs a -0x10 frame. Target register budget is tight: prologue `addiu sp,-8; sw s0`, so the loop must keep the constants in temps, not in named locals. Next steps: write the loop so gcc keeps ~8 invariant constants in t-regs with only s0 callee-saved (try separate inline expressions for the per-iteration parts, avoid i being a s32 across the body; `sll $v0,$t1,16; sra` suggests i is s16 counter, t1 is the loop index). Also the initial table address: target uses lui+addu on a byte offset (andi v1,a1,0xffff then *3*8*4 = *100 bytes).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794740461.359178,
-  "score_before": 1900,
-  "score_after": 1900
  },
  {
   "function": "func_801FF978",
@@ -18576,14 +18536,6 @@
   "score_after": 2130
  },
  {
-  "function": "func_801C10FC",
-  "text": "Not matched. Saved best 1900 is historical (different revision). Current candidates score 12260-12320 (~39%). The gap is structural: target saves s0 for the state pointer in the prologue, uses andi/sll/addu index chains, and has early-exit blocks (`move $t0,$a0; move $t1,$zero; j`) that my C lacks; target is 202 insns vs 195. Two rewrites (inline index; `u16 *state` local) did not change the prologue or early-exit shape. Display-list body lines up with the target's F5/F0/E7 sequence, so remaining work is the first ~20 instructions and the control flow between the state check and the loop. Next: read last_diff from offset 0 and infer the early-exit structure before more register tuning. Compile budget is not the limit here; the structure needs a fresh read.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794756520.0753338,
-  "score_before": 1900,
-  "score_after": 1900
- },
- {
   "function": "func_801E435C",
   "text": "Not matched. Best score 35 (97.9%), saved: return ((*(u16*)((u8*)D_801E97CA + (arg0&0xFF)*0x30) & *(u16*)((u8*)D_801E91D4 + (arg1&0xFF)*2)) >> ((arg1&0xFF)*4)) & 0xFF; the order with the D_801E97CA load first is what matched the target order. Remaining 7 diffs are register allocation: target uses $a0 for the D_801E97CA address temp and $v0 for the D_801E91D4 base, ours uses $at for both. Tried: separate s32 locals x and y (155, worse). Next: try an explicit u16 cast on the D_801E91D4 index (D_801E91D4[arg1&0xFF]) which may change the address temp, or try_local_repairs for allocation.",
   "by": "claude-haiku-5-5-23",
@@ -19934,14 +19886,6 @@
   "created_at": 1794758883.384491,
   "score_before": 255,
   "score_after": 255
- },
- {
-  "function": "func_801C10FC",
-  "text": "Not matched. Best this session: revision bf0bc236821f6ce85251, score 11652 (42.3%), with 9 hoisted loop constants as u32 locals declared at function top. Also tried: the same with inline constants (12110), constants in a block before the do-loop (13317, worse), and the 8-local version (12232). Confirmed: *(u16 *)((u32)D_8011F330 + off), off=(arg1&0xFFFF)*0x64 reproduces the target's lhu %lo(D_8011F330)(reg) form, unlike the u16 array index form. Remaining diff is register pressure and ordering: the target has an 8-byte frame saving only s0, with the loop constants in t2..t9 and s0 holding 0xFD48006F, while every local-constant variant makes gcc save s0..s3 (16-byte frame). Untried: keep the constants but drop the i-dependent expressions' temporaries; try compile_family signedness on bf0bc; check whether the target's arg0 is moved to $t0 before the first store (it is in the target, but the best candidate uses $a0).",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794758925.083287,
-  "score_before": 1900,
-  "score_after": 1900
  },
  {
   "function": "func_80211E9C",
@@ -40510,5 +40454,70 @@
   "score_before": 8880,
   "score_after": 7682,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:f828676d1e65bc0bfb591cadc4f2fd51d85400b073e298fa6d7dfbc3dfb0ab28"
+ },
+ {
+  "function": "func_801C10FC",
+  "text": "Deep permuter: score 12320 \u2192 10680; 2 improvements; 46 candidates tested; 106 cached skips; 0 rejected; 7200s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589935624",
+  "created_at": 1794356224.614797,
+  "score_before": 12320,
+  "score_after": 10680
+ },
+ {
+  "function": "func_801C10FC",
+  "text": "Straight-line display-list writer (gfx = *arg0; *arg0 = gfx+2; gfx[0]/gfx[1] pairs), 808 bytes, 202 target insns. Current C (saved best 1900 historical; rechecked 12320) differs in prologue: target saves s0/s1 (sw $s0,($sp) first, addiu sp,-8) and keeps the gfx pointer/loop index in saved regs; mine keeps arg0 in a0 and reloads. Local repair families (signedness, constant_local, parameter_width, dead_pointer_clear, loop_weight_scope) gave no improvement. Next: try holding *arg0 in a local `void **p` or a local gfx pointer that lives across the loop, and try the loop counter as s32 vs s16 to influence s0/s1 use. Loop body address/immediate expressions still unverified (diff rows 111 and 133 show raw MIPS mismatch for 0x040040FF and 0xF5480400 immediates).",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794705357.155631,
+  "score_before": 1900,
+  "score_after": 1900
+ },
+ {
+  "function": "func_801C10FC",
+  "text": "RSP display-list builder. Move-on budget exhausted (3/3), best current rechecked 11795-12165 vs historical 1900 (historical score is stale, same source rechecks at 12320).\n\nStructure confirmed from target assembly: the three-way dispatch is `if (D_8011F330[idx*0x32] == 0) { D_8011F330[...] = 1; return; } if (... != 1) return;` then the straight-line display list followed by a do/while(i<7) loop, and the function returns void (no value in $v0; tail is `lw $s0,($sp); jr $ra; addiu $sp,sp,8`). `addu $t0,$a0,$zero` early and `move $t1,$zero` mean arg0 is copied to a callee-saved register before the dispatch and the loop counter lives in a register, not on the stack.\n\nRemaining known diffs (all in the prologue/dispatch, ~20 rows; the display-list body and loop already line up):\n1. Target indexes D_8011F330 as `andi $v1,$a1,0xFFFF; sll/addu x3; sll 2; lui %hi; addu; lhu %lo(reg)` \u2014 i.e. a u16 array indexed by a scaled offset held in a local. My `u16 D_8011F330[]` + inline `[(arg1 & 0xFFFF) * 0x32]` instead produced `lui; addiu %lo; lhu 0(reg)` (see knowledge #339302416396). next_experiment applies exactly that fix.\n2. My frame is 0x10 with an extra `sw $s1,4($sp)`; target frame is 0x08 with only $s0 saved. Reducing live u32 pointers in the dispatch (single `u32 *gfx` reused, which the body already does) and letting the loop counter stay in a register should remove $s1.\n3. Target branch layout: `beqz` to the store-1 block at the end, `beq $v1,1` into the body, else `j` to the epilogue.\n\nNot a boundary or non-C problem. Untested exact patch saved as next_experiment.",
+  "by": "api-route-llm-code-2",
+  "created_at": 1794707156.730495,
+  "score_before": 1900,
+  "score_after": 1900
+ },
+ {
+  "function": "func_801C10FC",
+  "text": "Not matched. Target (202 insns) is a display-list builder: if D_8011F330[x*50] == 0 it sets it to 1; if == 1 it emits ~17 fixed gfx word pairs then a 7-iteration loop emitting 8 pairs each (gfx = *arg0; *arg0 = gfx+2 per pair). Index x = (arg1&0xFFFF), offset = x*100 bytes computed as sll/addu chain (x*3, *8, +x, *4), fine as D_8011F330[x*50]. Current recheck of the saved-best source (revision f27b7f6a6bd15a121730) scores 12320 (39%), while the historical 1900 came from a different header; local-index variant (ad4455b6ed46cea86980) also 12320. Main diffs: target keeps the address in $v1 (lui/addu/lhu %lo) while candidate does addiu+lhu($a0) and saves s1 (target saves only s0 at entry); the loop body register allocation and reordering of stores vs the loop's sll/andi chains differ. Next agent: first fix the entry block (target: addiu sp; sw s0; andi v1,a1,0xffff) so the index is computed before any gfx store, then the loop body, leave registers last.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794727235.9231172,
+  "score_before": 1900,
+  "score_after": 1900
+ },
+ {
+  "function": "func_801C10FC",
+  "text": "Not matched. Display-list builder: writes 2-word F3D commands through *arg0 (each op does lw gfx=*arg0; sw gfx+8 back; store two words). First branch: table D_8011F330 u16 at stride 100 bytes (index (arg1&0xFFFF)*50 elements), if !=0 and !=1 return; if ==0 set entry=1 and return. Setup ops: 0x06000000/D_800E1C00, 0xB6000000/0x2000, 0xFD100000/D_8031B5D0, E8000000/0, F5000100/0x07000000, E6000000/0, F0000000/0x0703C000, E7000000/0, 040040FF/D_80167FB8. Loop of 7 (i from 0), with loop-invariant constants hoisted into s0/t9/t8/t7/t6/t5/t4/t3/t2 in the target (only s0 saved, frame is -8). Best this session: rev f27b7f6a6bd15a121730 score 12320 (straight loop, 39%); constant-locals variant (a432df79f7f060aa11e0) scored 14132 worse because it spills s1-s3 and needs a -0x10 frame. Target register budget is tight: prologue `addiu sp,-8; sw s0`, so the loop must keep the constants in temps, not in named locals. Next steps: write the loop so gcc keeps ~8 invariant constants in t-regs with only s0 callee-saved (try separate inline expressions for the per-iteration parts, avoid i being a s32 across the body; `sll $v0,$t1,16; sra` suggests i is s16 counter, t1 is the loop index). Also the initial table address: target uses lui+addu on a byte offset (andi v1,a1,0xffff then *3*8*4 = *100 bytes).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794740461.359178,
+  "score_before": 1900,
+  "score_after": 1900
+ },
+ {
+  "function": "func_801C10FC",
+  "text": "Not matched. Saved best 1900 is historical (different revision). Current candidates score 12260-12320 (~39%). The gap is structural: target saves s0 for the state pointer in the prologue, uses andi/sll/addu index chains, and has early-exit blocks (`move $t0,$a0; move $t1,$zero; j`) that my C lacks; target is 202 insns vs 195. Two rewrites (inline index; `u16 *state` local) did not change the prologue or early-exit shape. Display-list body lines up with the target's F5/F0/E7 sequence, so remaining work is the first ~20 instructions and the control flow between the state check and the loop. Next: read last_diff from offset 0 and infer the early-exit structure before more register tuning. Compile budget is not the limit here; the structure needs a fresh read.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794756520.0753338,
+  "score_before": 1900,
+  "score_after": 1900
+ },
+ {
+  "function": "func_801C10FC",
+  "text": "Not matched. Best this session: revision bf0bc236821f6ce85251, score 11652 (42.3%), with 9 hoisted loop constants as u32 locals declared at function top. Also tried: the same with inline constants (12110), constants in a block before the do-loop (13317, worse), and the 8-local version (12232). Confirmed: *(u16 *)((u32)D_8011F330 + off), off=(arg1&0xFFFF)*0x64 reproduces the target's lhu %lo(D_8011F330)(reg) form, unlike the u16 array index form. Remaining diff is register pressure and ordering: the target has an 8-byte frame saving only s0, with the loop constants in t2..t9 and s0 holding 0xFD48006F, while every local-constant variant makes gcc save s0..s3 (16-byte frame). Untried: keep the constants but drop the i-dependent expressions' temporaries; try compile_family signedness on bf0bc; check whether the target's arg0 is moved to $t0 before the first store (it is in the target, but the best candidate uses $a0).",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794758925.083287,
+  "score_before": 1900,
+  "score_after": 1900
+ },
+ {
+  "function": "func_801C10FC",
+  "text": "Profile probe: the machine draft (get_function section=draft) scores 2990 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (321 functions of this project were built with it), the saved C scores 3590 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721239.841952,
+  "score_before": 3590,
+  "score_after": 2990,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:b18d83612b38ce4ac2bebe8287a521cf751fd6b8b3c35f243ffa69a8ca379847"
  }
 ]
