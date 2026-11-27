@@ -6320,14 +6320,6 @@
   "score_after": 52929
  },
  {
-  "function": "func_801BD7E8",
-  "text": "Released without a compile. 8756 bytes. The machine draft does not compile (sp48 undeclared, bad pointer types, incomplete array at line 269), and its id-dispatch chain is a long if/else ladder that needs checking against the target's branch structure before any scoring. Too large to start in this session; a future agent should first rebuild the dispatch from get_assembly and fix the declarations (sp[] should be a u16 array of 4, D_8011F2F2 needs its real struct).",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794719790.173218,
-  "score_before": 169542,
-  "score_after": 169542
- },
- {
   "function": "func_8014F5A8",
   "text": "Compiled this session: revision 075e252709bc7dedf089 scores 144443 (6.7%), worse than the saved best 59841 (use get_candidate(base=\"saved_best\") to restore that starting point). The function is 6196 bytes: a straight-line run of about 60 func_800DE41C setup calls with D_8016BAE0 offsets in 0x10 steps, plus callbacks func_8013AE60 / func_8014F3B0 / func_8014F43C / func_8014F55C. Main blocker: the draft passes float arguments as raw hex ints (0x42960000, 0xC4160000, 0x40A47AE1, ...). The target builds each one with lui $at + mtc1 into $f20/$f22 or with lui/ori into a GPR and then stores via swc1 0x28($sp), and it spills fs regs (sdc1 $f30/$f20 at 0x90/0x78). Frame is -0x98 with sw $ra at 0x60 and the target's stack args go through swc1. Next steps: (1) decode each hex word to its float value and verify the bit pattern round-trips; (2) make the float slots f32 in the prototype; (3) restore the saved_best candidate and compile the batch. Also the target's per-call stack args are floats, so the call order (sw vs swc1) follows from the prototype. Multi-session; the float decode is about 200 values and was not done.",
   "by": "claude-haiku-5-5-24",
@@ -11248,14 +11240,6 @@
   "score_after": 160
  },
  {
-  "function": "func_801BD7E8",
-  "text": "Best attempt is revision 3b1f5d90e9e020708400: a clean if-chain over the id byte D_801C7AB4 that makes 4 func_800DE41C calls (signature: 18 args, a/b/x/y/z locals). It compiles, scores 187188 (14.4%), and is far from the target. Target has 2189 insns, mine 597; target frame is -0xa0, mine -0x80, and the target uses saved fs/fp regs and sdc1 slots 0x98..0x68. The target inlines or expands much more per case (many more float constants and FP adds, e.g. add.s $f0,$f30,$f0 x152), so the source is much bigger than the draft. Next step: split by id group into sub-cases, read each case's pattern in the assembly, and fix the frame size before tuning registers. Note: the first-candidate macro version failed to compile (duplicate typedefs with the header, and sp48 undeclared); the typedefs already come from context.h.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794752742.1378078,
-  "score_before": 169542,
-  "score_after": 169542
- },
- {
   "function": "func_80127AB0",
   "text": "Not attempted in C yet; only the header was read. Target: 884 insns, frame 0xE0 (ra at 0xAC, fp 0xA8, s0-s7 at 0x88-0xA4, fs0-fs5 spilled via sdc1 at 0xB0-0xD8). Args: a0 and a1 are saved to s0/s7 at entry; a2 is moved into fs5 via mtc1; a3 is spilled to 0x54(sp). Stack args are read at 0xF0-0x107 (three f32 fields, one u8 at 0x107). Writes go to D_8012AB40 (three f32 at 0/4/8) and D_8012AB58 (three f32 = stack args + a-vector sums). Also sb of zero into arg0+1..+3. Reads a struct via arg1->0x50->0x4->0x4. Current best is an empty stub (score 88260), so no C has been tried. Next step: read the full target in pages with get_assembly(focus=\"page\") and split it by the sqrtf calls and the D_8012AB* writes before writing C.",
   "by": "claude-haiku-5-5-22",
@@ -11342,14 +11326,6 @@
   "created_at": 1794752968.701853,
   "score_before": 59841,
   "score_after": 59841
- },
- {
-  "function": "func_801BD7E8",
-  "text": "Flat else-if rewrite of the saved candidate (compiles cleanly, revision b004d55535f9e2a3887a) scores 175808 (19.6%), worse than saved best 169542; the saved best is the do{}while(0) version and should be restored for any new attempt. Frame mismatch: target addiu $sp,-0xa0 with ra at 0x6C and s0-s4 at 0x58-0x68, fs2-fs5 at 0x80-0x98; mine is -0x98 with ra at 0x64. So the target has 8 more bytes of locals (maybe a wider sp[] or an extra s32/f32 temp); fix that first. Target has ~2189 insns vs ours ~1980, the gap is in the P() call argument setup (target has add.s $f0,$f30,$f0 x54 and sll/sra sign-extension of id x24, andi 0xff x21 per call), suggesting the x/y/z offsets and the u8 args are passed through extra temporaries. Also target uses sw $ra and a bare int sign-extension on id that a s8 local does not reproduce. Not resolved; suggest split_function for the if-chain, one case per helper, before more whole-function tuning.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794752994.348228,
-  "score_before": 169542,
-  "score_after": 169542
  },
  {
   "function": "func_8020B3CC",
@@ -14128,14 +14104,6 @@
   "score_after": 59841
  },
  {
-  "function": "func_801BD7E8",
-  "text": "Not matched. Target 2189 insns / 8756 bytes; saved best 169542 (~19.6% match). Current revision eee329277b962cb6c044 scores 175808, worse than saved best (restore with get_candidate(base=\"saved_best\")). Why it cannot get closer in this session: the diff is dominated by structure, not registers. Target frame is 0xa0 vs candidate 0x98 (extra 8 bytes of locals not yet modelled), and the per-id if/else chain is compiled differently (candidate re-materialises x+dx with swc1 $f26 x63 and addiu $a1,$zero,0xc8 x20, target does add.s $f0,$f30,$f0 x54). Each of ~30 id branches needs its own shape worked out, so one compile per guess will not reach 0 soon. Next steps for a future agent: (1) add one local to reach frame 0xa0; (2) confirm the id-chain shape on one small block (e.g. id==3 branch, four P calls) before touching the rest; (3) consider split_function on the big id chain. Callees: func_800DE41C (18 args, returns u16), func_801C1C28 (void, used as the 9th pointer argument), data D_801B7678, D_80315870/808/83C/8A4/8D8/9A8/940/974/90C/DC, D_803157A0/D4, D_801C7AB4, D_801C7D1A, D_8011F2F2 (stride 100, u16 f0 at offset 0).",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794761767.366219,
-  "score_before": 169542,
-  "score_after": 169542
- },
- {
   "function": "func_80038010",
   "text": "Best saved: score 1137 (83.5%), 69 insns vs 69, revision f794a0c5db993ffe7dd5 (locals: u8 sp12[0x8] first, s16 sp10, u16 sp26, the original temps). All remaining diffs are stack layout and register assignment. Target: addiu sp,-0x50; sp10 at 0x10 (addiu a1,sp,0x10; lh v0,0x10(sp)); sp26 halfword at 0x26 (sh/lhu 0x26). Saved regs: s0@0x28, s1@0x2c, s2@0x30, s3@0x34, s4@0x38, s5@0x3c, s6@0x40, s7@0x44, fp@0x48, ra@0x4c. Mine is 0x48 frame at best (sw s0 at 0x20).\nTried and rejected: dropping sp12 (frame 0x48, 1157); sp12[0x10] (frame 0x58, 1159); sp12[0xC] on that (no effect, 1159); reordering sp10 first (1137, sp10 at 0x18). Array size alone does not move the frame to 0x50, so the extra 8 bytes come from a different local. Next: find which local is spilled to 0x26 and whether sp10 needs its address taken (it is passed by pointer to func_80037D48, so it is addressable). Try declaring sp26 as s32 or moving sp10 into a 4-byte slot.",
   "by": "claude-haiku-5-5-21",
@@ -14734,14 +14702,6 @@
   "created_at": 1794764865.158171,
   "score_before": 59841,
   "score_after": 59841
- },
- {
-  "function": "func_801BD7E8",
-  "text": "Releasing: this is a 2189-instruction function with ~150 hard-coded func_800DE41C calls and a long if/else dispatch on D_801C7AB4. The draft does not compile as given (undeclared sp48 at line 73, pointer type errors at 168/255/269), and my single probe reached only 1.9% (214660) with a different frame. Reaching a match needs the draft fixed to compile, the 0xa0 frame and callee-saved layout recovered, then the constant tables. Not achievable at this effort in one session. Saved best is 169542; draft baseline revision 31885d4662c87e9893b9 (the current revision 976aa550f640877aae33 is my probe and can be discarded). Notes above list the first steps.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794764890.411049,
-  "score_before": 169542,
-  "score_after": 169542
  },
  {
   "function": "func_8014ABD8",
@@ -41926,5 +41886,53 @@
   "score_before": 11795,
   "score_after": 9933,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:f4b58ea619b03da6ab501bd3edf47214af402dadf9518087e5ee1ba733c53950"
+ },
+ {
+  "function": "func_801BD7E8",
+  "text": "Released without a compile. 8756 bytes. The machine draft does not compile (sp48 undeclared, bad pointer types, incomplete array at line 269), and its id-dispatch chain is a long if/else ladder that needs checking against the target's branch structure before any scoring. Too large to start in this session; a future agent should first rebuild the dispatch from get_assembly and fix the declarations (sp[] should be a u16 array of 4, D_8011F2F2 needs its real struct).",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794719790.173218,
+  "score_before": 169542,
+  "score_after": 169542
+ },
+ {
+  "function": "func_801BD7E8",
+  "text": "Best attempt is revision 3b1f5d90e9e020708400: a clean if-chain over the id byte D_801C7AB4 that makes 4 func_800DE41C calls (signature: 18 args, a/b/x/y/z locals). It compiles, scores 187188 (14.4%), and is far from the target. Target has 2189 insns, mine 597; target frame is -0xa0, mine -0x80, and the target uses saved fs/fp regs and sdc1 slots 0x98..0x68. The target inlines or expands much more per case (many more float constants and FP adds, e.g. add.s $f0,$f30,$f0 x152), so the source is much bigger than the draft. Next step: split by id group into sub-cases, read each case's pattern in the assembly, and fix the frame size before tuning registers. Note: the first-candidate macro version failed to compile (duplicate typedefs with the header, and sp48 undeclared); the typedefs already come from context.h.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794752742.1378078,
+  "score_before": 169542,
+  "score_after": 169542
+ },
+ {
+  "function": "func_801BD7E8",
+  "text": "Flat else-if rewrite of the saved candidate (compiles cleanly, revision b004d55535f9e2a3887a) scores 175808 (19.6%), worse than saved best 169542; the saved best is the do{}while(0) version and should be restored for any new attempt. Frame mismatch: target addiu $sp,-0xa0 with ra at 0x6C and s0-s4 at 0x58-0x68, fs2-fs5 at 0x80-0x98; mine is -0x98 with ra at 0x64. So the target has 8 more bytes of locals (maybe a wider sp[] or an extra s32/f32 temp); fix that first. Target has ~2189 insns vs ours ~1980, the gap is in the P() call argument setup (target has add.s $f0,$f30,$f0 x54 and sll/sra sign-extension of id x24, andi 0xff x21 per call), suggesting the x/y/z offsets and the u8 args are passed through extra temporaries. Also target uses sw $ra and a bare int sign-extension on id that a s8 local does not reproduce. Not resolved; suggest split_function for the if-chain, one case per helper, before more whole-function tuning.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794752994.348228,
+  "score_before": 169542,
+  "score_after": 169542
+ },
+ {
+  "function": "func_801BD7E8",
+  "text": "Not matched. Target 2189 insns / 8756 bytes; saved best 169542 (~19.6% match). Current revision eee329277b962cb6c044 scores 175808, worse than saved best (restore with get_candidate(base=\"saved_best\")). Why it cannot get closer in this session: the diff is dominated by structure, not registers. Target frame is 0xa0 vs candidate 0x98 (extra 8 bytes of locals not yet modelled), and the per-id if/else chain is compiled differently (candidate re-materialises x+dx with swc1 $f26 x63 and addiu $a1,$zero,0xc8 x20, target does add.s $f0,$f30,$f0 x54). Each of ~30 id branches needs its own shape worked out, so one compile per guess will not reach 0 soon. Next steps for a future agent: (1) add one local to reach frame 0xa0; (2) confirm the id-chain shape on one small block (e.g. id==3 branch, four P calls) before touching the rest; (3) consider split_function on the big id chain. Callees: func_800DE41C (18 args, returns u16), func_801C1C28 (void, used as the 9th pointer argument), data D_801B7678, D_80315870/808/83C/8A4/8D8/9A8/940/974/90C/DC, D_803157A0/D4, D_801C7AB4, D_801C7D1A, D_8011F2F2 (stride 100, u16 f0 at offset 0).",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794761767.366219,
+  "score_before": 169542,
+  "score_after": 169542
+ },
+ {
+  "function": "func_801BD7E8",
+  "text": "Releasing: this is a 2189-instruction function with ~150 hard-coded func_800DE41C calls and a long if/else dispatch on D_801C7AB4. The draft does not compile as given (undeclared sp48 at line 73, pointer type errors at 168/255/269), and my single probe reached only 1.9% (214660) with a different frame. Reaching a match needs the draft fixed to compile, the 0xa0 frame and callee-saved layout recovered, then the constant tables. Not achievable at this effort in one session. Saved best is 169542; draft baseline revision 31885d4662c87e9893b9 (the current revision 976aa550f640877aae33 is my probe and can be discarded). Notes above list the first steps.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794764890.411049,
+  "score_before": 169542,
+  "score_after": 169542
+ },
+ {
+  "function": "func_801BD7E8",
+  "text": "Profile probe: this saved C scores 39921 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (321 functions of this project were built with it), 141241 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721454.921315,
+  "score_before": 141241,
+  "score_after": 39921
  }
 ]
