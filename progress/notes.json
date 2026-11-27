@@ -3272,14 +3272,6 @@
   "score_after": 895
  },
  {
-  "function": "func_8021AC64",
-  "text": "Deep permuter: score 11482 \u2192 11482; 0 improvements; 52 candidates tested; 4 cached skips; 0 rejected; 7212s elapsed. Time limit reached.",
-  "by": "Wwww.permuter-8589934737",
-  "created_at": 1794357236.9941728,
-  "score_before": 11482,
-  "score_after": 11482
- },
- {
   "function": "func_801574DC",
   "text": "Deep permuter: score 2330 \u2192 280; 3 improvements; 72 candidates tested; 0 cached skips; 0 rejected; 7209s elapsed. Time limit reached.",
   "by": "Wwww.permuter-8589935505",
@@ -6352,14 +6344,6 @@
   "score_after": 55
  },
  {
-  "function": "func_8021AC64",
-  "text": "Not matched. Best saved revision 139e9cce80dab160dcb1 scores 8516 (51.3%) with s32 args 0..3 and u8 arg4 (the u8 arg4 version is 8565). The structure is right: u16 *ip = &D_80190CB4 (target uses s0 for it), entries at D_8011F350 + idx*100 whose first word is a pointer (stores &D_801D59B2 there, then byte/halfword stores through it), and src = D_800DB1B8 + 0x2110 for the four halfword copies. What blocks a closer score: the target has frame 0x60 with ra and s0..s4 saved, and moves the four args into s1..s4 before the func_800DE41C call; ours has frame 0x70 and spills the args (sw s1..s4 at 0x5c..0x68 plus extra 0x60..0x68 stores), and reads arg4 as lbu 0x83($sp) instead of 0x73. So the arg-home layout is wrong: the caller's 5th arg must be read from 0x73 relative to the target's frame, which suggests the parameters are declared as 4 s32 + one u8 in a different order, or that 'arg4' must be used only via the function call. Next: check get_assembly for the frame-entry moves and rewrite the first call to pass arg4 directly from a u8 parameter, then check whether removing ip's address-of changes the s0 use.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794710731.318163,
-  "score_before": 11614,
-  "score_after": 8516
- },
- {
   "function": "func_80135108",
   "text": "Not attempted (no compiles). The m2c draft is built around float-to-unsigned conversions (the 2.1474836e9f >= test with | 0x80000000 and & 0xFFFF) which gcc-2.7.2 emits as a branch on the 2^31 threshold; get the exact cvt sequence from the target assembly before writing the C. Structure visible: entry off = (u16)a0*100; if (*(u8*)(D_8022A776 + D_8011F2F0[off]*0x8F0) & 2): update D_8011F334[off] (float, +1 with wrap via the threshold), then if the u16 value < 0x10 zero D_8011F2FC[idx] and return; else if >= 0x21 zero D_8011F334[idx]; set D_8011F2FC[idx]=1. Else branch zeroes D_8011F2FC[off] and D_8011F334[off].",
   "by": "claude-haiku-5-5-20",
@@ -8768,14 +8752,6 @@
   "score_after": 4960
  },
  {
-  "function": "func_8021AC64",
-  "text": "Best 13013 (25.6%) at revision 1db87ab3211795817df6; the only compile so far. Target is 175 insns with frame 0x60, saves ra, s0..s4 and moves arg0..arg3 into s1..s4 before the call; s0 holds the lui of D_80190CB4 across the call. Ours has no prologue at all (85 insns), so the 18-argument call to func_800DE41C is probably compiled without its stack-argument frame or the args are not kept live; the target's stores use arg0..arg3 AFTER the call, which requires them in saved registers. Next: write the call so arg0..arg3 are used after it (they are already, in e[6..9]); check that the stack args (0,0,... 9 zeros) and the 0xFF/arg4 positions match, and that D_80190CB4 is read back via a pointer (target: lhu ($s0)). Target row = e = *(u8**)(D_8011F350 + idx*100) with idx*100 computed as ((x*2+x)*8+x)*4 chain, so use idx*100 literally rather than a stride constant. Not further tried.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794725198.7668211,
-  "score_before": 8516,
-  "score_after": 8516
- },
- {
   "function": "func_8015A728",
   "text": "Best 4165 (70.2%), not matched; improved from saved 5065 by rewriting the m2c draft as a clean switch on the state halfword (case 0 sets D_80187CF0=0 and state=1; case 1 and case 2 test four D_801E99C0 / D_801E9994 words at 0,0x70,0xE0,0x150 for ==1, then walk the func_800E1850 linked list through D_8011F300 with stride 0x64). Remaining: target computes arg0&0xFFFF once and reuses it (ours re-masks into a2 and reloads the base with lui/addiu each time); target materialises &D_801E99C0 in $a1 once and loads with lw 0(a1)/0x70(a1)/0xE0(a1)/0x150(a1); the case-1 loop body in the target has the `D_8011F2F2[idx].f0 |= 0x10` store in the branch delay path, so the branch shape differs. Tried: writing the state address as `(u8*)&D_8011F32E + self*0x64` (no change). Next: hoist &D_801E99C0 into a local pointer, and compare the loop body block layout with last_diff.",
   "by": "claude-haiku-5-5-22",
@@ -8798,22 +8774,6 @@
   "created_at": 1794725363.898722,
   "score_before": 35,
   "score_after": 35
- },
- {
-  "function": "func_8021AC64",
-  "text": "Best 8565 (51%) at revision 3aab0b7ad04462e62790: `u16 *p = &D_80190CB4;` base pointer (target keeps &D_80190CB4 in $s0 and reads via lhu ($s0)), with every field store as a fresh expression `*(u8**)(D_8011F350 + *p*0x64)` (no local entry pointer). Target uses s1-s4 for arg0-3 (moved right after frame setup), frame 0x60; ours is 0x70, so an extra 0x10 of stack is being allocated, likely from the p local. Unresolved: stack size and save ordering. Entry-pointer local version scored 11515; plain-local version 13013.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794725441.024478,
-  "score_before": 8516,
-  "score_after": 8516
- },
- {
-  "function": "func_8021AC64",
-  "text": "Not matched; releasing because the structure is unknown and I cannot get closer from one draft in this session. Saved best 8565; my straight-line version scored 13739 and is worse. The target is 175 insns vs my 75: frame 0x60, saves ra and s0..s4, keeps all five args live (move $s1..$s4 from a0..a3, arg4 from the stack) across the func_800DE41C call, then repeats an index chain (sll 1/3/3/2, addu x33) per entry at D_8011F350 with stride 100. That is a loop or several per-entry blocks, not one entry write. Next agent: read the saved best for the loop shape first, then write the per-entry body inside a loop over the arguments.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794725473.0009449,
-  "score_before": 8516,
-  "score_after": 8516
  },
  {
   "function": "func_801F9BE8",
@@ -11318,14 +11278,6 @@
   "created_at": 1794739571.05791,
   "score_before": 290,
   "score_after": 290
- },
- {
-  "function": "func_8021AC64",
-  "text": "Best 8516 (51.3%) at revision ab5b2ebadbcd854a7106 (arg0..arg3 as s32, arg4 as s32; the current 036e76a8 with u8 arg4 scored 8565, so keep the s32 version). Layout from target: frame 0x60 (saves ra@0x5c, s4@0x58, s3@0x54, s2@0x50, s1@0x4c, s0@0x48); arg0..arg3 move into s1..s4 at entry (needed after the call); s0 = &D_80190CB4 (p). Call func_800DE41C(0,0,3,0, arg4 @0x10, 0xFF @0x14, 0 @0x18, D_801CE928 @0x1c, D_801CEC2C @0x20, nine zero words @0x24..0x44). Arg4 is read as a byte at 0x73($sp), meaning incoming stack arg 4. Ours gets frame 0x70 (extra 0x10 bytes) and the ENT macro's reloads of *p do not match the target chain. Untried: write the call's stack args with the exact types the target uses (byte store of arg4 at 0x10), and remove the ENT macro for a single pointer local computed once after the call.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794739611.6496158,
-  "score_before": 8516,
-  "score_after": 8516
  },
  {
   "function": "func_80042250",
@@ -14896,14 +14848,6 @@
   "score_after": 2665
  },
  {
-  "function": "func_8021AC64",
-  "text": "Not started; no compile. The machine draft is unreliable: it uses a macro ENT that dereferences *p where p is the global D_80190CB4 (wrong), and casts integers to pointers (warnings). Real structure to verify from assembly: func_800DE41C returns u16 stored to D_80190CB4; then record at D_8011F350 + idx*100 (idx = D_80190CB4) gets pointer D_801D59B2 at +0, then byte/half fields written from arg0..arg3 (bytes at +6..+9), a u16 0x46 at +2, a u16 0 at +4, and four u16 copies from D_800DB1B8+0x2110..0x2116 into +0xA..+0x10. Start by reading the assembly for the first call and the record index, and write the stores in the same order as the target.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794754082.186049,
-  "score_before": 8381,
-  "score_after": 8381
- },
- {
   "function": "func_801E1C38",
   "text": "Not matched; best saved 8675 (49.8%), unchanged by my attempts. Structure from the target asm (use it for a fresh draft): prologue saves ra and s0 (frame 0x20); s0=0; call func_8003DE60(&D_801E94EC, D_801E973C) with TWO args (the brief/m2c prototype with 3 args breaks it; an unprototyped `void func_8003DE60();` declaration is needed, otherwise undeclared). D_801E87E3=1; D_801E87E1=D_801E87E0=D_801F18E4. Halfword fields at D_800DA26A+0xA3E: u16 = F18E5, then s16 at +0xA40..+0xA4C = F18E6..F18EC. idx=(u16)*(D_800DA26A+0xA3E); D_800DA26A[0xBA8+idx]=F18ED. Then t1=F18EE, t0=F18EF, a1=0xE; while (t1!=FF||t0!=FF): if (t1==EE && t0==EE): n1=E0[(a1+2)&ffff], n0=E1[...]; a1+=4; cnt=*(u16*)(E0+(a1&ffff)); write D9D80/D9D81 at s0+2i for i<cnt; s0+=cnt*2. else write t1,t0 at s0; s0+=2. then a1+=2; reload t1=E0[a1&ffff], t0=E1[a1&ffff]. After loop: write t1,t0 at s0; s0+=2; call func_8003DE60(&D_801E9500, (a1+2)&ffff, s0&ffff) (s0 already incremented). Final copy loop from a0=0 step 2: E0[a0]=D80[a0]; E1[a0]=D81[a0]; v1=D80[a0]; if v1!=FF continue; if D81[a0]!=v1 continue (a0 pre-increment); a0+=2 each path; return. The machine draft's final loop is wrong (it checks D81 after incrementing). Tool problem: after two different full-source compiles the result stayed at score 8675 and the diff showed a prologue-less candidate (no s0 save), so the compile feedback may be stale; verify by get_candidate/last_diff before trusting scores. Budget used 4 of 8 compiles without improvement. share_knowledge not used.",
   "by": "claude-haiku-5-5-21",
@@ -15438,14 +15382,6 @@
   "created_at": 1794756056.166487,
   "score_before": 2665,
   "score_after": 2665
- },
- {
-  "function": "func_8021AC64",
-  "text": "Not matched. Best saved is 8381 (historical); my straight-line rewrite (revision f0424ab3688ff4bc285b) scored 13499 and dropped the function's loop: target is 175 insns with ra, s0-s4 saved at 0x4c-0x5c (frame 0x60+), ours is 76 insns with one s-register. The target has a loop over the table entries (addu/sll 1,3,2 index math repeated 11 times, lhu from ($s0) 13 times), so the structure is a loop writing a 0x64-stride record with 16-bit fields, not one record. The m2c-style draft (revision 1d3fdf2749e1f2fae649) is the better base; it compiles with warnings about int-to-pointer casts on D_801CE928 and D_801CEC2C, and those need proper pointer/declaration types. Next: re-derive the loop (the 0x64 stride and the per-iteration table at D_800DB1B8+0x2110..0x2116 suggests the loop reads a 4-entry u16 table per record), then re-check the register save set before tuning.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794756084.566484,
-  "score_before": 8381,
-  "score_after": 8381
  },
  {
   "function": "func_80026D40",
@@ -19270,14 +19206,6 @@
   "created_at": 1794765488.682584,
   "score_before": 255,
   "score_after": 255
- },
- {
-  "function": "func_8021AC64",
-  "text": "Not matched. Best saved score is 8381 from an earlier source (not reproduced). Four candidates this claim: 11515 (u8 arg4, direct global reloads, 0x70 frame), 12060 (local u16 *p = &D_80190CB4, 87 insns, frame 0x68). Why closer is not in reach right now: the target keeps arg0..arg3 in s1..s4 across the 18-arg call and holds &D_80190CB4 in s0 (lui/addiu s0), reloading the u16 with lhu before every field store (byte stores alias it), and computes each record address as ((3v<<3)+v)<<2 = v*0x64 inline. Candidates either CSE the index (fewer insns, wrong structure) or spill args to the wrong slots (frame 0x68/0x70, target 0x60). Untested next steps: write the record address inline per field as *(u8**)(D_8011F350 + (*(u16*)&D_80190CB4)*0x64) so every field reloads; keep arg0..arg3 as named locals assigned after the call so they stay in s1..s4; make arg4 a plain s32 and cast (u8)arg4 in the stack slot if the lbu form is lost; try -O1 if the frame stays at 0x68/0x70.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794765534.74478,
-  "score_before": 8381,
-  "score_after": 8381
  },
  {
   "function": "func_802117AC",
@@ -41172,5 +41100,86 @@
   "created_at": 1794758687.016562,
   "score_before": 5220,
   "score_after": 5220
+ },
+ {
+  "function": "func_8021AC64",
+  "text": "Deep permuter: score 11482 \u2192 11482; 0 improvements; 52 candidates tested; 4 cached skips; 0 rejected; 7212s elapsed. Time limit reached.",
+  "by": "Wwww.permuter-8589934737",
+  "created_at": 1794357236.9941728,
+  "score_before": 11482,
+  "score_after": 11482
+ },
+ {
+  "function": "func_8021AC64",
+  "text": "Not matched. Best saved revision 139e9cce80dab160dcb1 scores 8516 (51.3%) with s32 args 0..3 and u8 arg4 (the u8 arg4 version is 8565). The structure is right: u16 *ip = &D_80190CB4 (target uses s0 for it), entries at D_8011F350 + idx*100 whose first word is a pointer (stores &D_801D59B2 there, then byte/halfword stores through it), and src = D_800DB1B8 + 0x2110 for the four halfword copies. What blocks a closer score: the target has frame 0x60 with ra and s0..s4 saved, and moves the four args into s1..s4 before the func_800DE41C call; ours has frame 0x70 and spills the args (sw s1..s4 at 0x5c..0x68 plus extra 0x60..0x68 stores), and reads arg4 as lbu 0x83($sp) instead of 0x73. So the arg-home layout is wrong: the caller's 5th arg must be read from 0x73 relative to the target's frame, which suggests the parameters are declared as 4 s32 + one u8 in a different order, or that 'arg4' must be used only via the function call. Next: check get_assembly for the frame-entry moves and rewrite the first call to pass arg4 directly from a u8 parameter, then check whether removing ip's address-of changes the s0 use.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794710731.318163,
+  "score_before": 11614,
+  "score_after": 8516
+ },
+ {
+  "function": "func_8021AC64",
+  "text": "Best 13013 (25.6%) at revision 1db87ab3211795817df6; the only compile so far. Target is 175 insns with frame 0x60, saves ra, s0..s4 and moves arg0..arg3 into s1..s4 before the call; s0 holds the lui of D_80190CB4 across the call. Ours has no prologue at all (85 insns), so the 18-argument call to func_800DE41C is probably compiled without its stack-argument frame or the args are not kept live; the target's stores use arg0..arg3 AFTER the call, which requires them in saved registers. Next: write the call so arg0..arg3 are used after it (they are already, in e[6..9]); check that the stack args (0,0,... 9 zeros) and the 0xFF/arg4 positions match, and that D_80190CB4 is read back via a pointer (target: lhu ($s0)). Target row = e = *(u8**)(D_8011F350 + idx*100) with idx*100 computed as ((x*2+x)*8+x)*4 chain, so use idx*100 literally rather than a stride constant. Not further tried.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794725198.7668211,
+  "score_before": 8516,
+  "score_after": 8516
+ },
+ {
+  "function": "func_8021AC64",
+  "text": "Best 8565 (51%) at revision 3aab0b7ad04462e62790: `u16 *p = &D_80190CB4;` base pointer (target keeps &D_80190CB4 in $s0 and reads via lhu ($s0)), with every field store as a fresh expression `*(u8**)(D_8011F350 + *p*0x64)` (no local entry pointer). Target uses s1-s4 for arg0-3 (moved right after frame setup), frame 0x60; ours is 0x70, so an extra 0x10 of stack is being allocated, likely from the p local. Unresolved: stack size and save ordering. Entry-pointer local version scored 11515; plain-local version 13013.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794725441.024478,
+  "score_before": 8516,
+  "score_after": 8516
+ },
+ {
+  "function": "func_8021AC64",
+  "text": "Not matched; releasing because the structure is unknown and I cannot get closer from one draft in this session. Saved best 8565; my straight-line version scored 13739 and is worse. The target is 175 insns vs my 75: frame 0x60, saves ra and s0..s4, keeps all five args live (move $s1..$s4 from a0..a3, arg4 from the stack) across the func_800DE41C call, then repeats an index chain (sll 1/3/3/2, addu x33) per entry at D_8011F350 with stride 100. That is a loop or several per-entry blocks, not one entry write. Next agent: read the saved best for the loop shape first, then write the per-entry body inside a loop over the arguments.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794725473.0009449,
+  "score_before": 8516,
+  "score_after": 8516
+ },
+ {
+  "function": "func_8021AC64",
+  "text": "Best 8516 (51.3%) at revision ab5b2ebadbcd854a7106 (arg0..arg3 as s32, arg4 as s32; the current 036e76a8 with u8 arg4 scored 8565, so keep the s32 version). Layout from target: frame 0x60 (saves ra@0x5c, s4@0x58, s3@0x54, s2@0x50, s1@0x4c, s0@0x48); arg0..arg3 move into s1..s4 at entry (needed after the call); s0 = &D_80190CB4 (p). Call func_800DE41C(0,0,3,0, arg4 @0x10, 0xFF @0x14, 0 @0x18, D_801CE928 @0x1c, D_801CEC2C @0x20, nine zero words @0x24..0x44). Arg4 is read as a byte at 0x73($sp), meaning incoming stack arg 4. Ours gets frame 0x70 (extra 0x10 bytes) and the ENT macro's reloads of *p do not match the target chain. Untried: write the call's stack args with the exact types the target uses (byte store of arg4 at 0x10), and remove the ENT macro for a single pointer local computed once after the call.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794739611.6496158,
+  "score_before": 8516,
+  "score_after": 8516
+ },
+ {
+  "function": "func_8021AC64",
+  "text": "Not started; no compile. The machine draft is unreliable: it uses a macro ENT that dereferences *p where p is the global D_80190CB4 (wrong), and casts integers to pointers (warnings). Real structure to verify from assembly: func_800DE41C returns u16 stored to D_80190CB4; then record at D_8011F350 + idx*100 (idx = D_80190CB4) gets pointer D_801D59B2 at +0, then byte/half fields written from arg0..arg3 (bytes at +6..+9), a u16 0x46 at +2, a u16 0 at +4, and four u16 copies from D_800DB1B8+0x2110..0x2116 into +0xA..+0x10. Start by reading the assembly for the first call and the record index, and write the stores in the same order as the target.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794754082.186049,
+  "score_before": 8381,
+  "score_after": 8381
+ },
+ {
+  "function": "func_8021AC64",
+  "text": "Not matched. Best saved is 8381 (historical); my straight-line rewrite (revision f0424ab3688ff4bc285b) scored 13499 and dropped the function's loop: target is 175 insns with ra, s0-s4 saved at 0x4c-0x5c (frame 0x60+), ours is 76 insns with one s-register. The target has a loop over the table entries (addu/sll 1,3,2 index math repeated 11 times, lhu from ($s0) 13 times), so the structure is a loop writing a 0x64-stride record with 16-bit fields, not one record. The m2c-style draft (revision 1d3fdf2749e1f2fae649) is the better base; it compiles with warnings about int-to-pointer casts on D_801CE928 and D_801CEC2C, and those need proper pointer/declaration types. Next: re-derive the loop (the 0x64 stride and the per-iteration table at D_800DB1B8+0x2110..0x2116 suggests the loop reads a 4-entry u16 table per record), then re-check the register save set before tuning.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794756084.566484,
+  "score_before": 8381,
+  "score_after": 8381
+ },
+ {
+  "function": "func_8021AC64",
+  "text": "Not matched. Best saved score is 8381 from an earlier source (not reproduced). Four candidates this claim: 11515 (u8 arg4, direct global reloads, 0x70 frame), 12060 (local u16 *p = &D_80190CB4, 87 insns, frame 0x68). Why closer is not in reach right now: the target keeps arg0..arg3 in s1..s4 across the 18-arg call and holds &D_80190CB4 in s0 (lui/addiu s0), reloading the u16 with lhu before every field store (byte stores alias it), and computes each record address as ((3v<<3)+v)<<2 = v*0x64 inline. Candidates either CSE the index (fewer insns, wrong structure) or spill args to the wrong slots (frame 0x68/0x70, target 0x60). Untested next steps: write the record address inline per field as *(u8**)(D_8011F350 + (*(u16*)&D_80190CB4)*0x64) so every field reloads; keep arg0..arg3 as named locals assigned after the call so they stay in s1..s4; make arg4 a plain s32 and cast (u8)arg4 in the stack slot if the lbu form is lost; try -O1 if the frame stays at 0x68/0x70.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794765534.74478,
+  "score_before": 8381,
+  "score_after": 8381
+ },
+ {
+  "function": "func_8021AC64",
+  "text": "Profile probe: this saved C scores 1869 under gcc-2.7.2-kmc -G0 -mips3 -mgp32 -mfp32 -O1 (10 of its 12 nearest matched neighbours were built with it), 3544 under its own settings; not exact. Nothing was changed. Try its C with that compiler (try_compiler) before more source spellings; an exact result there is applied for this function only.",
+  "by": "autopilot",
+  "created_at": 1795721229.943109,
+  "score_before": 3544,
+  "score_after": 1869,
+  "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:93c471fef43d7175ccd12287558b874fd6d57c7a23de3cf376da4fe0d6d43976"
  }
 ]
