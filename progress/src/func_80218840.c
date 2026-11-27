@@ -1,0 +1,74 @@
+extern u8 D_80239714[];
+extern u8 D_802399B8[];
+void func_8013DD2C(void);
+void func_80149A80(void);
+void func_801D5A90(void);
+void func_8020FED8(void);
+void func_802191E4(void);
+void func_8021999C(void);
+void func_80219A60(void);
+void func_80219B58(void);
+void func_80219C14(void);
+void func_80219CCC(void);
+void func_80219CF0(void);
+void func_8021FE04(void);
+void func_8022026C(void);
+typedef struct { s32 w[13]; } E34;
+typedef struct { s16 a0; s16 a2; u16 b[4]; u8 pad[0xC]; u8 f18; } S80190C98;
+typedef struct { u16 id; u8 pad[0x62]; } O64;
+typedef struct { u8 pad[4]; void *f4; } Obj;
+typedef struct { Obj *p; u8 pad[0x60]; } P64;
+typedef struct { s32 a, b, c; } E12;
+typedef struct { u16 sel; u8 pad[0x168]; u8 f16A[4]; } S800DA260;
+extern E34 D_8018F5D0[14][8];
+extern E34 D_80238EC0[8];
+extern S80190C98 D_80190C98;
+extern O64 D_8011F304[];
+extern P64 D_8011F340[];
+extern E12 D_80237DC0[];
+extern S800DA260 D_800DA260;
+extern u8 D_8021F0A0[];
+extern s16 D_8022A770[];
+extern s16 D_8021E1A6;
+extern s16 D_8018A44A[];
+extern s16 D_80189C94;
+extern s8 D_8018A43C;
+extern s8 D_80046832;
+extern f32 D_80220E40;
+s32 func_800DE41C(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
+void func_8021FCA4(void); void func_80230960(void *); void func_80203DF8(s32, s32, s32, s32, s32); void func_8012AD20(s32, void *, u8, u8);
+void func_80218840(void) {
+    s32 i;
+    s32 j;
+    S800DA260 *g = &D_800DA260;
+    s16 *q = D_8022A770;
+    D_80190C98.f18 = 0;
+    D_8018A44A[D_8021E1A6] = 0;
+    D_80189C94 = 0;
+    D_8018A43C = 0;
+    D_80046832 = 1;
+    func_800DE41C(0, 255, 3, 0, 127, 0, 0, func_801D5A90, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    func_8021FCA4();
+    func_800DE41C(0, 0, 3, 0, 114, 255, 0, 0, func_8021FE04, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    D_80220E40 = 10.0f;
+    func_800DE41C(0, 0, 3, 0, 116, 255, 0, 0, func_8022026C, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    func_800DE41C(0, 0, 3, 0, 122, 1, 0, func_80149A80, 0, 0.0f, 0.0f, 0.0f, 0.0f, 30.0f, 50.0f, 0.0f, 0.0f, 0.0f);
+    D_80190C98.a0 = func_800DE41C(0, 0, 1, 0x8000, 124, 155, D_80239714, func_80219A60, func_80219B58, 1.5f, -2.0f, 0.0f, -20.0f, 0.0f, 0.0f, 0.0500000007f, 0.100000001f, 0.0500000007f);
+    D_80190C98.a2 = func_800DE41C(0, 64, 1, 0x8000, 124, 155, D_80239714, func_80219A60, func_80219B58, -1.5f, -2.0f, 0.0f, -20.0f, 0.0f, 0.0f, 0.0500000007f, 0.100000001f, 0.0500000007f);
+    for (i = 0; i < 14; i++) {
+        for (j = 0; j < 8; j++) {
+            D_8018F5D0[i][j] = D_80238EC0[j];
+        }
+    }
+    D_80190C98.b[0] = func_800DE41C(0, 0, 1, 0x8000, 128, 255, D_8018F5D0, func_8021999C, func_8020FED8, 0.0f, -4.0f, -2.0f, 0.0f, 360.0f, 0.0f, 0.0700000003f, 0.0700000003f, 0.0700000003f);
+    D_8011F340[D_8011F304[D_80190C98.b[0]].id].p->f4 = &D_80237DC0[g->sel];
+    func_8012AD20(D_8011F304[D_80190C98.b[0]].id, D_8021F0A0, g->sel, g->f16A[g->sel]);
+    q[1] = D_80190C98.b[0];
+    func_80230960(q);
+    func_800DE41C(0, 0, 3, 0, 161, 255, 0, 0, func_8013DD2C, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    D_80190C98.b[1] = func_800DE41C(0, 0, 3, 0, 132, 255, 0, 0, func_80219C14, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    D_80190C98.b[2] = func_800DE41C(0, 0, 3, 0, 129, 255, 0, func_80219CF0, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    D_80190C98.b[3] = func_800DE41C(0, 0, 1, 0, 123, 255, D_802399B8, 0, func_80219CCC, 0.0f, 1.10000002f, 5.0f, 0.0f, 0.0f, 0.0f, 0.100000001f, 0.100000001f, 0.100000001f);
+    func_800DE41C(0, 0, 3, 0, 122, 0, 0, func_802191E4, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    func_80203DF8(1, 0x3C, 0, 0, 0);
+}
