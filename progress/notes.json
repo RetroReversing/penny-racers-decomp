@@ -6280,14 +6280,6 @@
   "score_after": 10760
  },
  {
-  "function": "func_80026250",
-  "text": "Best verified: 16963 at revision b232578b01f9d8e3c573 (single `s32 size` local reused for all 16 blocks, `p = &D_8006FB14` byte-pointer stores, m2c-style shift loop with u8 c). Move-on budget exhausted (3/3 without improvement).\n\nTarget shape confirmed: 16 identical blocks of `size = &end - &start; func_8003DE60(&str,&start,fn,size); func_800294A0(&start,fn,size);` where start/end are u8 data symbols, then the D_8006FB14 zero-fill, nuContInit, a 4-iteration bit scan writing D_801E87C0, then the init calls and two infinite loops. Target frame 0x20 with only $ra,$s1,$s0 saved; s1 holds the size, s0 the start pointer (s1 reused for both the end address and the difference).\n\nTried and worse: 16 distinct size locals t0..t15 (21023), block-scoped `{ s32 sz = ...; }` macro (20648), inline `&end - &start` at each call site (21158), struct-typed D_8006FB14 (21158), do/while bit-scan (20648). search_flags: project flags already best (all variants >= 16963; -fno-schedule-insns 17683, -g3 17253).\n\nRemaining gaps at 16963: (a) 5 `sh $zero, %lo(D_8006FB14+0x6)($at)` stores fold the symbol instead of using a base register like target `sh $zero, 0x6($s0)`; (b) register allocation gives 3 callee-saved (s0,s2,s3) and a 0x28 frame instead of 2 and 0x20; (c) the bit-scan loop emits extra `andi/beqz` and `sb $zero` instead of target's `andi $v0,$v0,1 / beql / addiu $v1` with the store only on the taken path; (d) tail sign-extension `sll/sra` pair for D_8006FE58 missing. next_experiment is anchored on the current revision eea7e117842ed8003109 and needs an S8006FB14 typedef added.",
-  "by": "api-route-llm-code-1",
-  "created_at": 1794717399.846236,
-  "score_before": 10031,
-  "score_after": 10031
- },
- {
   "function": "sqrtf",
   "text": "Target is a bare leaf: `jr $ra` + `sqrt.s $fv0,$fa0` in the delay slot, no errno check or call. Best C (`return __builtin_sqrtf(x);`) scores 960 with gcc-2.7.2-kmc at all flags tried (search_flags) and with sn-n64-281: the compiler always emits the c.eq.s NaN check and a jal sqrtf fallback. Plain C cannot drop that check, so this looks like a hand-written libm stub. Suggest leaving it as not_c unless a flag removes the errno check.",
   "by": "claude-haiku-5-5-21",
@@ -8230,14 +8222,6 @@
   "created_at": 1794728336.085492,
   "score_before": 200,
   "score_after": 200
- },
- {
-  "function": "func_80026250",
-  "text": "Not matched. Saved candidate scores 16668 (54%); target 363 insns vs ours 331. Two variants tried, both 16668: (1) saved draft as-is; (2) rewrite using a `start` local (start = &D_xxx; size = &D_next - start; ...), which gives the same score.\nKey difference: target's prologue is addiu sp,-0x20 with only ra/s0/s1 saved, and it reloads each table address with lui/addiu inside each block (e.g. lui $s0,%hi(D_29A40) again for block 2). Ours CSEs &D_29A40 (shared end/start of adjacent tables) into a long-lived s2 and keeps size in s3, forcing a 0x28 frame and extra spills. So the next attempt should prevent that CSE: the original likely computed each block's end/start independently per statement, not via a shared local. Untried ideas: write each block with its own expression pair (no `start` local, no shared value), or pass the table end through a volatile/opaque-free helper per block; also check the `p`/`c`/`v` tail (target uses sll/sra on a0 for the nuContInit loop). Remaining work is the per-block structure; the tail after the loop is probably fine.",
-  "by": "claude-haiku-5-5-22",
-  "created_at": 1794728500.436128,
-  "score_before": 10031,
-  "score_after": 10031
  },
  {
   "function": "func_80038010",
@@ -10582,14 +10566,6 @@
   "created_at": 1794741756.096906,
   "score_before": 395,
   "score_after": 395
- },
- {
-  "function": "func_80026250",
-  "text": "Best 16578 (54.3%) is the saved base; 2 further experiments were worse (18383 for inlining the size expression in the second block). Structure: 17 blocks of size=(&next)-(&cur); func_8003DE60(&tab,&cur,fn,size); func_800294A0(&cur,fn,size). Target re-materializes &D_29A40 with lui/addiu after each call and holds only s0=cur, s1=size across calls; the candidate CSEs the successor address across the calls into s2 and gets a -0x28 frame instead of -0x20. Source forms that avoid that CSE have not been found. Next: find a per-block form that stops the successor address being kept live (or accept it as a compiler-scheduling issue and check search_flags), then check the tail: p=&D_8006FB14 stores, nuContInit loop with inline_fn, nuGfxFuncSet, and the D_8006FE58 spin.",
-  "by": "claude-haiku-5-5-20",
-  "created_at": 1794741802.079243,
-  "score_before": 10031,
-  "score_after": 10031
  },
  {
   "function": "func_8014B048",
@@ -14616,14 +14592,6 @@
   "score_after": 7727
  },
  {
-  "function": "func_80026250",
-  "text": "Machine draft compiled as-is scores 17588 (51.5%); saved best 16578 is from an earlier source, so restore it if needed. The function is a boot-time sequence: 20 pairs of `size = (&D_end) - (&D_start); func_8003DE60(&D_dst, &D_start, fn, size); func_800294A0(&D_start, fn, size);` followed by init calls and a loop on D_801E4420 bits, then `D_8006FE58 = 0` and while(1). Target (363 insns, frame -0x20, saves ra/s0/s1/s2/s3) keeps the segment start/end addresses in s0/s1/s2 and the sizes as subu of those registers, so the draft's repeated `lui/addiu` per use is the main mismatch. Next: write the size computations as explicit `u8 *` pointers held across calls (e.g. `start = &D_25EA0; end = &D_29A40;` then size = end - start) and check that the loop (which the draft wrote as a while) matches the target's do/while with `break` at i>=4. Also the draft's `*((s32*)p) = 0` and six u16 stores at &D_8006FB14 need checking against the target's sh/sw order. Symbols D_xxx are raw ROM-offset addresses (0x25EA0 etc.) and the relocations render as 0x00025EA0; do not treat those as the link address.",
-  "by": "claude-haiku-5-5-24",
-  "created_at": 1794759424.975847,
-  "score_before": 10031,
-  "score_after": 10031
- },
- {
   "function": "func_800E0B8C",
   "text": "a1: draft rev 6174f63827315e195237 does not compile: sqrtf is declared f32 sqrtf(f32, void *) and called with two args at the two fallback sites (func.c:199, 237); this is the first error to fix. My one follow-up compile (rev 3281d14b7eecc01871e1) was a placeholder body with missing M2C_UNK typedefs and proves nothing; ignore it. Not worked further. Next agent: fix sqrtf to one argument, add the M2C typedefs, then restructure the goto-only flowgraph into loops over the 0x64-byte node pool D_8011F2F0 (u16 indices remasked at use). Check try_compiler -O1 early, since this unit is reportedly KMC GCC -O1.",
   "by": "claude-haiku-5-5-22",
@@ -15896,14 +15864,6 @@
   "score_after": 336
  },
  {
-  "function": "func_80026250",
-  "text": "Releasing now: the remaining gap is a whole-body restructure (the 19-segment copy sequence needs a different size/address form), which one-line edits won't reach. Best saved 16578 is the reference; current 17493 is worse. Frame target 0x20 vs candidate 0x28 with an extra s3 save from the explicit `subu $s3,$s2,$s0` size computation; target keeps segment addresses in $s1 via repeated `lui/addiu %lo` pairs (D_00029A40 used 31 times as address, not as a size). Next step: express the segment table as a static const array of {start,end,dest,fn} and loop, or test the size as a pointer difference with the segment symbols declared u8[] before rewriting the rest.",
-  "by": "claude-haiku-5-5-23",
-  "created_at": 1794762517.748456,
-  "score_before": 10031,
-  "score_after": 10031
- },
- {
   "function": "func_801497AC",
   "text": "Matches byte-for-byte at -O1 with natural C: u8 r = 0xFF, three table lookups. A suggestion with that exact C is filed. At -O2 the best is 10 (s8 r): -O2 drops the return andi for u8 r and uses li -1 for s8 r. It can't get closer under -O2.",
   "by": "claude-opus-medium-1",
@@ -16302,14 +16262,6 @@
   "created_at": 1794764260.4427981,
   "score_before": 335,
   "score_after": 335
- },
- {
-  "function": "func_80026250",
-  "text": "Unmatched, 1452 B boot/init routine; releasing because it can't get closer in this session without a full rewrite. Current draft 16668 (54%, 363 target / 331 mine); saved best 16578 from the same family. Structural mismatch: the target's prologue is a 0x20 frame saving ra, s1, s0 and it loads D_00029A40 into s1 first and keeps it there for the whole sequence (lui/addiu s1 repeated about 30 times); mine is 0x28 with ra, s0..s3, keeps D_25EA0 in s0 and D_29A40 in s2, and computes `subu $s3,$s2,$s0` for the size. So the size computation and the segment-address rematerialisation (start and end of each segment pair, then the call) must be written so gcc does not hoist a long-lived pair; the 20 (start,end,fn) triples are the same shape, so one trial should decide it. The nuContInit bit scan (c, v temps) also uses more live registers than the target. Next step: rewrite the 20 triple calls as one helper-free sequence with the end address recomputed per call, then compile the bit scan as a plain for loop over D_801E4420.",
-  "by": "claude-haiku-5-5-21",
-  "created_at": 1794764270.9074671,
-  "score_before": 10031,
-  "score_after": 10031
  },
  {
   "function": "func_801552C4",
@@ -41601,5 +41553,53 @@
   "score_before": 43157,
   "score_after": 21060,
   "handoff_inputs": "53ac714285bdfe5afde383645032da10a8c0fb56f2e548b3c101c0a14735fe69:4b0e7731b81c8391b2a51c4be531f366fac318ae04d8bcf3a4fb2c15c8a40a45:3c15000eb169e497a9eac2d5504b2ae73d337e98c8df49e3804006bdae8ff6eb"
+ },
+ {
+  "function": "func_80026250",
+  "text": "Best verified: 16963 at revision b232578b01f9d8e3c573 (single `s32 size` local reused for all 16 blocks, `p = &D_8006FB14` byte-pointer stores, m2c-style shift loop with u8 c). Move-on budget exhausted (3/3 without improvement).\n\nTarget shape confirmed: 16 identical blocks of `size = &end - &start; func_8003DE60(&str,&start,fn,size); func_800294A0(&start,fn,size);` where start/end are u8 data symbols, then the D_8006FB14 zero-fill, nuContInit, a 4-iteration bit scan writing D_801E87C0, then the init calls and two infinite loops. Target frame 0x20 with only $ra,$s1,$s0 saved; s1 holds the size, s0 the start pointer (s1 reused for both the end address and the difference).\n\nTried and worse: 16 distinct size locals t0..t15 (21023), block-scoped `{ s32 sz = ...; }` macro (20648), inline `&end - &start` at each call site (21158), struct-typed D_8006FB14 (21158), do/while bit-scan (20648). search_flags: project flags already best (all variants >= 16963; -fno-schedule-insns 17683, -g3 17253).\n\nRemaining gaps at 16963: (a) 5 `sh $zero, %lo(D_8006FB14+0x6)($at)` stores fold the symbol instead of using a base register like target `sh $zero, 0x6($s0)`; (b) register allocation gives 3 callee-saved (s0,s2,s3) and a 0x28 frame instead of 2 and 0x20; (c) the bit-scan loop emits extra `andi/beqz` and `sb $zero` instead of target's `andi $v0,$v0,1 / beql / addiu $v1` with the store only on the taken path; (d) tail sign-extension `sll/sra` pair for D_8006FE58 missing. next_experiment is anchored on the current revision eea7e117842ed8003109 and needs an S8006FB14 typedef added.",
+  "by": "api-route-llm-code-1",
+  "created_at": 1794717399.846236,
+  "score_before": 10031,
+  "score_after": 10031
+ },
+ {
+  "function": "func_80026250",
+  "text": "Not matched. Saved candidate scores 16668 (54%); target 363 insns vs ours 331. Two variants tried, both 16668: (1) saved draft as-is; (2) rewrite using a `start` local (start = &D_xxx; size = &D_next - start; ...), which gives the same score.\nKey difference: target's prologue is addiu sp,-0x20 with only ra/s0/s1 saved, and it reloads each table address with lui/addiu inside each block (e.g. lui $s0,%hi(D_29A40) again for block 2). Ours CSEs &D_29A40 (shared end/start of adjacent tables) into a long-lived s2 and keeps size in s3, forcing a 0x28 frame and extra spills. So the next attempt should prevent that CSE: the original likely computed each block's end/start independently per statement, not via a shared local. Untried ideas: write each block with its own expression pair (no `start` local, no shared value), or pass the table end through a volatile/opaque-free helper per block; also check the `p`/`c`/`v` tail (target uses sll/sra on a0 for the nuContInit loop). Remaining work is the per-block structure; the tail after the loop is probably fine.",
+  "by": "claude-haiku-5-5-22",
+  "created_at": 1794728500.436128,
+  "score_before": 10031,
+  "score_after": 10031
+ },
+ {
+  "function": "func_80026250",
+  "text": "Best 16578 (54.3%) is the saved base; 2 further experiments were worse (18383 for inlining the size expression in the second block). Structure: 17 blocks of size=(&next)-(&cur); func_8003DE60(&tab,&cur,fn,size); func_800294A0(&cur,fn,size). Target re-materializes &D_29A40 with lui/addiu after each call and holds only s0=cur, s1=size across calls; the candidate CSEs the successor address across the calls into s2 and gets a -0x28 frame instead of -0x20. Source forms that avoid that CSE have not been found. Next: find a per-block form that stops the successor address being kept live (or accept it as a compiler-scheduling issue and check search_flags), then check the tail: p=&D_8006FB14 stores, nuContInit loop with inline_fn, nuGfxFuncSet, and the D_8006FE58 spin.",
+  "by": "claude-haiku-5-5-20",
+  "created_at": 1794741802.079243,
+  "score_before": 10031,
+  "score_after": 10031
+ },
+ {
+  "function": "func_80026250",
+  "text": "Machine draft compiled as-is scores 17588 (51.5%); saved best 16578 is from an earlier source, so restore it if needed. The function is a boot-time sequence: 20 pairs of `size = (&D_end) - (&D_start); func_8003DE60(&D_dst, &D_start, fn, size); func_800294A0(&D_start, fn, size);` followed by init calls and a loop on D_801E4420 bits, then `D_8006FE58 = 0` and while(1). Target (363 insns, frame -0x20, saves ra/s0/s1/s2/s3) keeps the segment start/end addresses in s0/s1/s2 and the sizes as subu of those registers, so the draft's repeated `lui/addiu` per use is the main mismatch. Next: write the size computations as explicit `u8 *` pointers held across calls (e.g. `start = &D_25EA0; end = &D_29A40;` then size = end - start) and check that the loop (which the draft wrote as a while) matches the target's do/while with `break` at i>=4. Also the draft's `*((s32*)p) = 0` and six u16 stores at &D_8006FB14 need checking against the target's sh/sw order. Symbols D_xxx are raw ROM-offset addresses (0x25EA0 etc.) and the relocations render as 0x00025EA0; do not treat those as the link address.",
+  "by": "claude-haiku-5-5-24",
+  "created_at": 1794759424.975847,
+  "score_before": 10031,
+  "score_after": 10031
+ },
+ {
+  "function": "func_80026250",
+  "text": "Releasing now: the remaining gap is a whole-body restructure (the 19-segment copy sequence needs a different size/address form), which one-line edits won't reach. Best saved 16578 is the reference; current 17493 is worse. Frame target 0x20 vs candidate 0x28 with an extra s3 save from the explicit `subu $s3,$s2,$s0` size computation; target keeps segment addresses in $s1 via repeated `lui/addiu %lo` pairs (D_00029A40 used 31 times as address, not as a size). Next step: express the segment table as a static const array of {start,end,dest,fn} and loop, or test the size as a pointer difference with the segment symbols declared u8[] before rewriting the rest.",
+  "by": "claude-haiku-5-5-23",
+  "created_at": 1794762517.748456,
+  "score_before": 10031,
+  "score_after": 10031
+ },
+ {
+  "function": "func_80026250",
+  "text": "Unmatched, 1452 B boot/init routine; releasing because it can't get closer in this session without a full rewrite. Current draft 16668 (54%, 363 target / 331 mine); saved best 16578 from the same family. Structural mismatch: the target's prologue is a 0x20 frame saving ra, s1, s0 and it loads D_00029A40 into s1 first and keeps it there for the whole sequence (lui/addiu s1 repeated about 30 times); mine is 0x28 with ra, s0..s3, keeps D_25EA0 in s0 and D_29A40 in s2, and computes `subu $s3,$s2,$s0` for the size. So the size computation and the segment-address rematerialisation (start and end of each segment pair, then the call) must be written so gcc does not hoist a long-lived pair; the 20 (start,end,fn) triples are the same shape, so one trial should decide it. The nuContInit bit scan (c, v temps) also uses more live registers than the target. Next step: rewrite the 20 triple calls as one helper-free sequence with the end address recomputed per call, then compile the bit scan as a plain for loop over D_801E4420.",
+  "by": "claude-haiku-5-5-21",
+  "created_at": 1794764270.9074671,
+  "score_before": 10031,
+  "score_after": 10031
  }
 ]
