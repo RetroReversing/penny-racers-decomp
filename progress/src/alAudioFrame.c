@@ -4229,87 +4229,52 @@ static s32 __nextSampleTime(ALSynth *drvr, ALPlayer **client);
 
 
 
-Acmd *alAudioFrame(Acmd *cmdList, s32 *cmdLen, s16 *outBuf, s32 outLen)
+/* Runs one audio frame: updates the players, then appends the RSP commands that mix the next output chunks into the output buffer. Returns the end of the command list. */ Acmd *alAudioFrame(Acmd *cmdList, s32 *cmdLen, s16 *outBuf, s32 outLen)
 {
     ALPlayer    *client;
     ALFilter    *output;
     ALSynth     *drvr = &D_800473B0->drvr;
-    s16         tmp = 0;         
+    s16         tmp = 0;
     Acmd        *cmdlEnd = cmdList;
     Acmd        *cmdPtr;
     s32         nOut;
     s16         *lOutBuf = outBuf;
 
-
-
     if (drvr->head == 0) {
-	*cmdLen = 0;
-        return cmdList;          
+        *cmdLen = 0;
+        return cmdList;
     }
-
-     
-
-
-
-
-
-
-
-
-     
-
-
-
-
-
-
-
-
 
     for (drvr->paramSamples = __nextSampleTime(drvr, &client);
-	 drvr->paramSamples - drvr->curSamples < outLen;
-	 drvr->paramSamples = __nextSampleTime(drvr, &client))
+         drvr->paramSamples - drvr->curSamples < outLen;
+         drvr->paramSamples = __nextSampleTime(drvr, &client))
     {
-	drvr->paramSamples &= ~0xf;
-	client->samplesLeft += _timeToSamplesNoRound(drvr, (*client->handler)(client));
+        drvr->paramSamples &= ~0xf;
+        client->samplesLeft += _timeToSamplesNoRound(drvr, (*client->handler)(client));
     }
-
-     
-
-
-
 
     drvr->paramSamples &= ~0xf;
 
-
-
-
-     
-
-
-    while (outLen > 0){
-        nOut = (( drvr->maxOutSamples ) < (  outLen ) ? ( drvr->maxOutSamples ) : (  outLen )) ;
-
-         
-
-
+    while (outLen > 0) {
+        nOut = ((drvr->maxOutSamples) < (outLen) ? (drvr->maxOutSamples) : (outLen));
 
         cmdPtr = cmdlEnd;
-        {	Acmd *_a = (Acmd *) cmdPtr++ ;	_a->words.w0 = ((unsigned int) (((unsigned int)( 7  ) & ((0x01 << (  8 )) - 1)) << (  24 ))) ;	_a->words.w1 = ((unsigned int) (((unsigned int)(   0  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int) (((unsigned int)(   0  ) & ((0x01 << (  24 )) - 1)) << (  0 ))) ;	} ;
+        {
+            Acmd *_a = (Acmd *) cmdPtr++;
+            _a->words.w0 = ((unsigned int) (((unsigned int)(7) & ((0x01 << (8)) - 1)) << (24)));
+            _a->words.w1 = ((unsigned int) (((unsigned int)(0) & ((0x01 << (8)) - 1)) << (24)))  | ((unsigned int) (((unsigned int)(0) & ((0x01 << (24)) - 1)) << (0)));
+        };
         output = drvr->outputFilter;
         (*output->setParam)(output, AL_FILTER_SET_DRAM, lOutBuf);
-        cmdlEnd = (*output->handler)(output, &tmp, nOut, drvr->curSamples,
-                                     cmdPtr);
+        cmdlEnd = (*output->handler)(output, &tmp, nOut, drvr->curSamples, cmdPtr);
 
         outLen -= nOut;
-        lOutBuf += nOut<<1;      
+        lOutBuf += nOut << 1;
         drvr->curSamples += nOut;
-
     }
     *cmdLen = (s32) (cmdlEnd - cmdList);
 
-    _collectPVoices(drvr);  
-
+    _collectPVoices(drvr);
 
     return cmdlEnd;
 }

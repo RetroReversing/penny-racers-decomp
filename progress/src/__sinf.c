@@ -3437,88 +3437,68 @@ static const fu	zero = {0x00000000};
 
 
 
-float
-__sinf ( float x )
+/* Single-precision sine: reduces the angle to the nearest multiple of pi, evaluates a polynomial, and flips sign by quadrant. */ float
+__sinf ( float angle )
 {
-double	dx, xsq, poly;
-double	dn;
-int	n;
-double	result;
-int	ix, xpt;
+double	reduced, reducedSq, series;
+double	quadrantD;
+int	quadrant;
+double	value;
+int	bits, expBits;
 
 
-	ix = *(int *)&x;
-	xpt = (ix >> 22);
-	xpt &= 0x1ff;
+	bits = *(int *)&angle;
+	expBits = (bits >> 22);
+	expBits &= 0x1ff;
 
-	 
 
-	if ( xpt < 0xff )
+	if ( expBits < 0xff )
 	{
-		 
+		reduced = angle;
 
-		dx = x;
-
-		if ( xpt >= 0xe6 )
+		if ( expBits >= 0xe6 )
 		{
-			 
+			reducedSq = reduced*reduced;
 
-			 
+			series = ((P[4].d*reducedSq + P[3].d)*reducedSq + P[2].d)*reducedSq + P[1].d;
 
-			xsq = dx*dx;
+			value = reduced + (reduced*reducedSq)*series;
 
-			poly = ((P[4].d*xsq + P[3].d)*xsq + P[2].d)*xsq + P[1].d;
-
-			result = dx + (dx*xsq)*poly;
-
-			return ( (float)result );
+			return ( (float)value );
 		}
 
-		return ( x );
+		return ( angle );
 	}
 
-	if ( xpt < 0x136 )
+	if ( expBits < 0x136 )
 	{
-		 
+		reduced = angle;
 
-		dx = x;
+		quadrantD = reduced*rpi.d;
 
-		 
+		quadrant = (int)((( quadrantD ) >= 0.0) ? (( quadrantD ) + 0.5) : (( quadrantD ) - 0.5)) ;
+		quadrantD = quadrant;
 
-		dn = dx*rpi.d;
+		reduced = reduced - quadrantD*pihi.d;
+		reduced = reduced - quadrantD*pilo.d;
 
-		n = (int)((( dn ) >= 0.0) ? (( dn ) + 0.5) : (( dn ) - 0.5)) ;
-		dn = n;
+		reducedSq = reduced*reduced;
 
-		dx = dx - dn*pihi.d;
-		dx = dx - dn*pilo.d;	 
+		series = ((P[4].d*reducedSq + P[3].d)*reducedSq + P[2].d)*reducedSq + P[1].d;
 
-		 
-
-
-		xsq = dx*dx;
-
-		poly = ((P[4].d*xsq + P[3].d)*xsq + P[2].d)*xsq + P[1].d;
-
-		result = dx + (dx*xsq)*poly;
+		value = reduced + (reduced*reducedSq)*series;
 
 
-		if ( (n & 1) == 0 )
-			return ( (float)result );
+		if ( (quadrant & 1) == 0 )
+			return ( (float)value );
 
-		return ( -(float)result );
+		return ( -(float)value );
 	}
 
-	if ( x != x )
+	if ( angle != angle )
 	{
-		 
-
-
-
 		return ( D_8004AA00 );
 	}
-
-	 
 
 	return ( zero.f );
 }

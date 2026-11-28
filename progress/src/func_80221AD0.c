@@ -22,7 +22,7 @@ s32 func_80223FBC(Car *);
 void func_802240B0(Car *);
 void func_802241E8(Car *);
 void func_80224334(Car *);
-void func_80224508(Car *);
+void updateRideHeight(Car *);
 void func_80224694(Car *, f32);
 void func_80224784(Car *, f32, f32, s32);
 void carWallCollide(Car *);
@@ -74,7 +74,7 @@ void func_80221AD0(Car *car) {
     func_802241E8(car);
     func_80224334(car);
     car->x780 = car->x760 * 0.03f + car->x758 + car->x764 + car->x768 + car->x76C;
-    func_80224508(car);
+    updateRideHeight(car);
     func_80224694(car, ratio);
     car->x778++;
     func_80224784(car, spd, rot, n);

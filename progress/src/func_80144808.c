@@ -62,7 +62,7 @@ extern s32 D_80168BB0;
 
 extern void updateColorCycle();
 extern void func_8002C410();
-extern void func_8014843C();
+extern void buildMenuRowList();
 extern void buildRandomMasks();
 extern void applyRandomMaskBits();
 extern void func_8014981C();
@@ -71,7 +71,7 @@ extern void func_801D65BC();
 extern s32 func_80149778();
 extern void updateRacerProfile();
 extern s32 func_80149110();
-extern u16 func_80149B38(s32, s32, f32, f32);
+extern u16 spawnMenuCarEntry(s32, s32, f32, f32);
 extern void func_8012AD20();
 extern s32 func_8014AAE8();
 extern s32 func_8014AB2C();
@@ -127,7 +127,7 @@ void func_80144808(u16 arg0)
         func_8002C410(D_8006FB38);
         D_80189C98.flags.all |= 0x100;
         D_80189C98.car = 0;
-        func_8014843C();
+        buildMenuRowList();
         buildRandomMasks(D_8021E1A7);
         applyRandomMaskBits();
         if ((D_80189B34.mode == 1 || D_80189B34.mode == 2) && (D_80189B34.flags & 0x80)) {
@@ -163,7 +163,7 @@ void func_80144808(u16 arg0)
         *id3 = SPAWN0(0x4A, 0, updateMenuNav, 0);
         f = 0.9f;
         for (i = 0; i < D_8018A274.count; i++) {
-            D_80190C98.ids[i].v = func_80149B38(i, D_8018A274.sCars[i] & 0xF, 1.0f, f);
+            D_80190C98.ids[i].v = spawnMenuCarEntry(i, D_8018A274.sCars[i] & 0xF, 1.0f, f);
             f -= 2.05;
         }
         if (D_80189C98.flags.all & 0x2000) {
@@ -201,7 +201,7 @@ void func_80144808(u16 arg0)
         D_80189C98.pl[0].pos = buildPickList(D_80189C98.pl[0].id, 0);
         D_80189C98.pl[1].pos = buildPickList(D_80189C98.pl[1].id, 1);
         D_80189C98.pl[0].unk1 = D_80189C98.pl[0].pos - 4;
-        *id1 = func_80149B38(3, D_8018A274.sCars[D_80189C98.car] & 0xF, 1.5f, 2.3f);
+        *id1 = spawnMenuCarEntry(3, D_8018A274.sCars[D_80189C98.car] & 0xF, 1.5f, 2.3f);
         D_80189C98.flags.all |= 0x4000;
     case 0x31:
         D_8011F2F0[*id2].unk18 = -2.259998f;

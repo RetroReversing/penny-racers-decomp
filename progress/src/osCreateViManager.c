@@ -25,7 +25,7 @@ static OSMesg viEventBuf[5] __attribute__((aligned(8)));
 static OSIoMesg viRetraceMsg __attribute__((aligned(8)));
 static OSIoMesg viCounterMsg __attribute__((aligned(8)));
 static void viMgrMain(void *arg);
-void osCreateViManager(OSPri pri) {
+/* Creates the VI (video interface) manager thread and its retrace and counter event messages, raising the caller's priority while setting up. */ void osCreateViManager(OSPri pri) {
     u32 savedMask;
     OSPri oldPri;
     OSPri myPri;

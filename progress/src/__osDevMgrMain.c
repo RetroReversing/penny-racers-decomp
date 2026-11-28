@@ -5239,7 +5239,7 @@ s32 osPiRawStartDma (s32, u32 , void *, u32 );
 s32 osPiRawWriteIo (u32, u32);
 s32 osPiRawReadIo (u32, u32 *);
 s32 func_80041A70 (OSPiHandle *, u32 , u32);
-s32 pi_read_word (OSPiHandle *, u32 , u32 *);
+s32 osEpiRawReadWord (OSPiHandle *, u32 , u32 *);
 s32 osEPiRawStartDma (OSPiHandle *, s32 , u32 , void *, u32 );
 OSMesgQueue *osPiGetCmdQueue(void);
 
@@ -5304,7 +5304,7 @@ OSMesgQueue *osPiGetCmdQueue(void);
                 u32 stat;
                 func_80041A70 (mb->piHandle, (0x05000000  + 0x510) , info->bmCtlShadow | 0x10000000 );
                 func_80041A70 (mb->piHandle, (0x05000000  + 0x510) , info->bmCtlShadow);
-                pi_read_word (mb->piHandle, (0x05000000  + 0x508) , &stat);
+                osEpiRawReadWord (mb->piHandle, (0x05000000  + 0x508) , &stat);
 
                 if (stat & 0x02000000 ) {
                     func_80041A70 (mb->piHandle, (0x05000000  + 0x510) , info->bmCtlShadow | 0x01000000 );

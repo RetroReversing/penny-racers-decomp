@@ -15,15 +15,15 @@ typedef s32 M2C_UNK32;
 M2C_UNK osRecvMesg(s32, M2C_UNK, M2C_UNK);       /* extern */
 M2C_UNK __osPackReadData();                            /* extern */
 s32 __osSiRawStartDma(M2C_UNK, M2C_UNK *);              /* extern */
-M2C_UNK func_8003F464();                            /* extern */
-M2C_UNK func_8003F4D0();                            /* extern */
+M2C_UNK __osSiGetAccess();                            /* extern */
+M2C_UNK __osSiRelAccess();                            /* extern */
 extern M2C_UNK D_8006F990;
 extern u8 D_80092C04;
 
 s32 osContStartReadData(s32 arg0) {
     s32 temp_v0;
 
-    func_8003F464();
+    __osSiGetAccess();
     if (D_80092C04 != 1) {
         __osPackReadData();
         __osSiRawStartDma(1, &D_8006F990);
@@ -31,6 +31,6 @@ s32 osContStartReadData(s32 arg0) {
     }
     temp_v0 = __osSiRawStartDma(0, &D_8006F990);
     D_80092C04 = 1;
-    func_8003F4D0();
+    __osSiRelAccess();
     return temp_v0;
 }

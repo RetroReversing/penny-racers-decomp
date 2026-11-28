@@ -9,66 +9,68 @@ void __CSPRepostEvent(void *, void *);
 void alLink(void *, void *);
 void alUnlink(void *);
 void __n_setUsptFromTempo(void *, f32);
-void __CSPHandleMetaMsg(void *arg0, void *arg1)
+
+/* Handles a sequence meta event: on a set-tempo message (0xFF 0x51) it updates the player's tempo and rescales the ticks of the tempo events before reposting them. */
+void __CSPHandleMetaMsg(void *seqp, void *msg)
 {
-  char *a = arg0;
-  u8 *m = arg1;
-  s32 total;
-  CSPNode *matched;
-  s32 div;
+  char *seqpBytes = seqp;
+  u8 *msgBytes = msg;
+  s32 totalTicks;
+  CSPNode *tempoEvents;
+  s32 division;
   CSPNode *node;
-  CSPNode *next;
-  s32 tmp;
-  s32 v;
+  CSPNode *nextNode;
+  s32 savedTotal;
+  s32 delta;
   s32 pad[4];
-  total = 0;
- do { matched = NULL; } while (0);
-  if ((m[8] == 0xFF) && (m[9] == 0x51))
+  totalTicks = 0;
+ do { tempoEvents = NULL; } while (0);
+  if ((msgBytes[8] == 0xFF) && (msgBytes[9] == 0x51))
   {
-    div = *((s32 *) (arg0 + 0x24));
-    __n_setUsptFromTempo(arg0, (f32) (((m[0xB] << 16) | (m[0xC] << 8)) | m[0xD]));
-    node = *((CSPNode **) (arg0 + 0x50));
+    division = *((s32 *) (seqp + 0x24));
+    __n_setUsptFromTempo(seqp, (f32) (((msgBytes[0xB] << 16) | (msgBytes[0xC] << 8)) | msgBytes[0xD]));
+    node = *((CSPNode **) (seqp + 0x50));
     if (node != NULL)
     {
       do
       {
-        next = node->next;
-        total += node->f8;
+        nextNode = node->next;
+        totalTicks += node->f8;
         if (node->fC == 0x15)
         {
           alUnlink(node);
-          if (matched != NULL)
+          if (tempoEvents != NULL)
           {
-            alLink(node, matched);
+            alLink(node, tempoEvents);
           }
           else
           {
-            matched = node;
+            tempoEvents = node;
             node->next = NULL;
             node->f4 = 0;
           }
-          tmp = total;
-          if (next != NULL)
+          savedTotal = totalTicks;
+          if (nextNode != NULL)
           {
-            v = node->f8;
-            total = tmp - v;
-            next->f8 += v;
+            delta = node->f8;
+            totalTicks = savedTotal - delta;
+            nextNode->f8 += delta;
           }
-          node->f8 = tmp;
+          node->f8 = savedTotal;
         }
-        node = next;
+        node = nextNode;
       }
       while (node != NULL);
     }
-    node = matched;
+    node = tempoEvents;
     if (node != NULL)
     {
       do
       {
-        next = node->next;
-        node->f8 = (node->f8 / div) * (*((s32 *) (arg0 + 0x24)));
-        __CSPRepostEvent(arg0 + 0x48, node);
-        node = next;
+        nextNode = node->next;
+        node->f8 = (node->f8 / division) * (*((s32 *) (seqp + 0x24)));
+        __CSPRepostEvent(seqp + 0x48, node);
+        node = nextNode;
       }
       while (node != NULL);
     }

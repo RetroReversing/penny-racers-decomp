@@ -6,7 +6,7 @@ extern Slot sCars[];
 extern Rec slotRadius[];
 extern u8 D_8023977C[];
 extern u8 D_80239950[];
-extern void updateBall(), func_80140A0C(), func_80140A38(), func_80138304();
+extern void updateBall(), func_80140A0C(), updateBallShadow(), func_80138304();
 u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, s32, s32, s32, f32, f32, f32);
 u16 raceAllocSlot(void);
 void initHitSlot(u16, s32, s16, f32, f32, f32, u16);
@@ -58,7 +58,7 @@ f32 sqrtf(f32);
                 initHitSlot(slotId, objIdx, 0x40, (targetX - x) * 0.008f * speed, height, (targetZ - z) * 0.008f * speed, 0xC8);
                 D_8011F2F0[objIdx].f48 = 0;
                 slotRadius[slotId].f0 = 25.0f;
-                partnerIdx = objCreate(0, 0, 1, 0, 0x52, 0x9B, D_80239950, func_80140A38, func_80138304, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0.2f, 0.2f, 0.2f);
+                partnerIdx = objCreate(0, 0, 1, 0, 0x52, 0x9B, D_80239950, updateBallShadow, func_80138304, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0.2f, 0.2f, 0.2f);
                 if ((u16) (partnerIdx + 2) >= 2U) {
                     D_8011F2F0[partnerIdx].f44 = objIdx;
                     D_8011F2F0[objIdx].f44 = partnerIdx;

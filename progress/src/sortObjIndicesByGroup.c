@@ -5,45 +5,45 @@ typedef struct
 } Row_D_8011F2FA;
 extern Row_D_8011F2FA D_8011F2FA[];
 
-void sortObjIndicesByGroup(s32 lo, s32 hi, u16 *arr)
+/* Quicksorts the object index list in indices[lo..hi] by each object's group key (f0). */ void sortObjIndicesByGroup(s32 lo, s32 hi, u16 *indices)
 {
-  s32 i;
-  s32 j;
-  u8 pivot;
-  u16 tmp;
+  s32 left;
+  s32 right;
+  u8 pivotKey;
+  u16 swapTmp;
 
-  pivot = D_8011F2FA[arr[(lo + hi) / 2]].f0;
-  i = lo;
-  j = hi;
+  pivotKey = D_8011F2FA[indices[(lo + hi) / 2]].f0;
+  left = lo;
+  right = hi;
   for (;;)
   {
-    while (D_8011F2FA[arr[i]].f0 < pivot)
+    while (D_8011F2FA[indices[left]].f0 < pivotKey)
     {
-      i++;
+      left++;
     }
-    while (pivot < D_8011F2FA[arr[j]].f0)
+    while (pivotKey < D_8011F2FA[indices[right]].f0)
     {
-      j--;
+      right--;
     }
-    if (i < j)
+    if (left < right)
     {
-      tmp = arr[i];
-      arr[i] = arr[j];
-      arr[j] = tmp;
-      i++;
-      j--;
+      swapTmp = indices[left];
+      indices[left] = indices[right];
+      indices[right] = swapTmp;
+      left++;
+      right--;
     }
     else
     {
       break;
     }
   }
-  if (lo < i - 1)
+  if (lo < left - 1)
   {
-    sortObjIndicesByGroup(lo, i - 1, arr);
+    sortObjIndicesByGroup(lo, left - 1, indices);
   }
-  if (j + 1 < hi)
+  if (right + 1 < hi)
   {
-    sortObjIndicesByGroup(j + 1, hi, arr);
+    sortObjIndicesByGroup(right + 1, hi, indices);
   }
 }

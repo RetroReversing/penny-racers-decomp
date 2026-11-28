@@ -26,7 +26,7 @@ M2C_UNK func_80206F20();                            /* extern */
 M2C_UNK func_80207014();                            /* extern */
 M2C_UNK initResultsScreen();                            /* extern */
 M2C_UNK func_80208374();                            /* extern */
-M2C_UNK func_8020C7A0();                            /* extern */
+M2C_UNK initMenuScene();                            /* extern */
 M2C_UNK func_8020C948();                            /* extern */
 M2C_UNK setupSelectionMenu();                            /* extern */
 M2C_UNK func_8020EE10();                            /* extern */
@@ -92,7 +92,7 @@ extern u32 D_80168BB0;
         func_80208374();
         break;
     case 0xC:
-        func_8020C7A0();
+        initMenuScene();
         D_80168BB0 = 0xD;
     case 0xD:
         func_8020C948();

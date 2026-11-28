@@ -7,13 +7,13 @@ extern u8 D_801D5A90[];
 extern u8 D_801D6670[];
 extern u8 D_801DF62C[];
 extern u8 D_801DFDEC[];
-extern s16 D_801E9D5E;
-void func_80138B1C(void);
+extern s16 sceneRenderObjId;
+void emitSceneRenderState(void);
 
 /* Creates the scene's background, fade, notice and transition objects, then sets up the screen transition and scene fade. */
 void setupSceneObjects(void)
 {
-    D_801E9D5E = objCreate(0, 0, 3, 0, 0x40, 0xFF, 0, NULL, &func_80138B1C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    sceneRenderObjId = objCreate(0, 0, 3, 0, 0x40, 0xFF, 0, NULL, &emitSceneRenderState, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     objCreate(0, 0, 3, 0, 0x80, 0xFF, 0, D_801DF62C, D_801DFDEC, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     createNoticeScreenObj();
     setScreenTransition(0, 0x3C, 0xFF, 0xFF, 0xFF);

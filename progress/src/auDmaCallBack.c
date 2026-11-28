@@ -8,66 +8,67 @@ extern char D_8005D088[];
 extern IoMesg D_8005D1A0[];
 extern s32 D_8005DCB0;
 
-s32 auDmaCallBack(s32 addr, s32 len)
+/* Audio DMA callback: returns the physical address of a ROM range, reusing a cached 1KB buffer when one covers it or else queuing a new cart-to-RAM DMA. */
+s32 auDmaCallBack(s32 romAddr, s32 length)
 {
-    void *foundBuffer;
-    s32 delta, addrEnd, startAddr, endAddr;
-    DMABuf *dmaPtr, *lastDmaPtr;
-    s32 handle;
-    IoMesg *mb;
+    void *buffer;
+    s32 misalign, romEnd, bufStart, bufEnd;
+    DMABuf *buf, *prevBuf;
+    s32 cartHandle;
+    IoMesg *msg;
 
-    lastDmaPtr = 0;
-    dmaPtr = D_8005D7A0.firstUsed;
-    addrEnd = addr + len;
+    prevBuf = 0;
+    buf = D_8005D7A0.firstUsed;
+    romEnd = romAddr + length;
 
-    while (dmaPtr) {
-        startAddr = dmaPtr->startAddr;
-        endAddr = startAddr + 0x400;
-        if (addr < startAddr)
+    while (buf) {
+        bufStart = buf->startAddr;
+        bufEnd = bufStart + 0x400;
+        if (romAddr < bufStart)
             break;
-        else if (addrEnd <= endAddr) {
-            dmaPtr->lastFrame = auFrameCount;
-            foundBuffer = dmaPtr->ptr + addr - dmaPtr->startAddr;
-            return osVirtualToPhysical(foundBuffer);
+        else if (romEnd <= bufEnd) {
+            buf->lastFrame = auFrameCount;
+            buffer = buf->ptr + romAddr - buf->startAddr;
+            return osVirtualToPhysical(buffer);
         }
-        lastDmaPtr = dmaPtr;
-        dmaPtr = (DMABuf *) dmaPtr->node.next;
+        prevBuf = buf;
+        buf = (DMABuf *) buf->node.next;
     }
 
-    dmaPtr = D_8005D7A0.firstFree;
-    if (!dmaPtr) {
+    buf = D_8005D7A0.firstFree;
+    if (!buf) {
         return (u32) D_8005D7A0.firstUsed->ptr - 0x80000000;
     }
-    D_8005D7A0.firstFree = (DMABuf *) dmaPtr->node.next;
-    alUnlink(dmaPtr);
+    D_8005D7A0.firstFree = (DMABuf *) buf->node.next;
+    alUnlink(buf);
 
-    if (lastDmaPtr)
-        alLink(dmaPtr, lastDmaPtr);
+    if (prevBuf)
+        alLink(buf, prevBuf);
     else if (D_8005D7A0.firstUsed) {
-        lastDmaPtr = D_8005D7A0.firstUsed;
-        D_8005D7A0.firstUsed = dmaPtr;
-        dmaPtr->node.next = (ALink *) lastDmaPtr;
-        dmaPtr->node.prev = 0;
-        lastDmaPtr->node.prev = (ALink *) dmaPtr;
+        prevBuf = D_8005D7A0.firstUsed;
+        D_8005D7A0.firstUsed = buf;
+        buf->node.next = (ALink *) prevBuf;
+        buf->node.prev = 0;
+        prevBuf->node.prev = (ALink *) buf;
     } else {
-        D_8005D7A0.firstUsed = dmaPtr;
-        dmaPtr->node.next = 0;
-        dmaPtr->node.prev = 0;
+        D_8005D7A0.firstUsed = buf;
+        buf->node.next = 0;
+        buf->node.prev = 0;
     }
 
-    delta = addr & 1;
-    handle = osCartRomInit();
-addr -= delta;
-dmaPtr->startAddr = addr;
-mb = &D_8005D1A0[D_8005DCB0++];
-foundBuffer = dmaPtr->ptr;
-dmaPtr->lastFrame = auFrameCount;
-    mb->pri = 0;
-    mb->retQueue = D_8005D088;
-    mb->dramAddr = foundBuffer;
-    mb->devAddr = addr;
-    mb->size = 0x400;
-    osEPiStartDma(handle, mb, 0);
+    misalign = romAddr & 1;
+    cartHandle = osCartRomInit();
+    romAddr -= misalign;
+    buf->startAddr = romAddr;
+    msg = &D_8005D1A0[D_8005DCB0++];
+    buffer = buf->ptr;
+    buf->lastFrame = auFrameCount;
+    msg->pri = 0;
+    msg->retQueue = D_8005D088;
+    msg->dramAddr = buffer;
+    msg->devAddr = romAddr;
+    msg->size = 0x400;
+    osEPiStartDma(cartHandle, msg, 0);
 
-    return osVirtualToPhysical(foundBuffer) + delta;
+    return osVirtualToPhysical(buffer) + misalign;
 }

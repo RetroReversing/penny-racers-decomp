@@ -1,38 +1,38 @@
 typedef struct { u16 prev; u16 next; u8 pad[120]; } Node;
-extern u16 D_80187BE0;
-extern u16 D_80189DC2;
-extern Node D_8018D738[];
-extern u16 D_8018F5C2;
+extern u16 nodeListCount;
+extern u16 nodeListTail;
+extern Node nodePool[];
+extern u16 nodeListHead;
 
 s32 func_8013E49C(u16 arg0)
 {
   s32 count;
 
   count = 1;
-  if (D_80189DC2 == 0xFFFF)
+  if (nodeListTail == 0xFFFF)
   {
-    D_8018F5C2 = arg0;
-    while (D_8018D738[arg0].next != 0xFFFF)
+    nodeListHead = arg0;
+    while (nodePool[arg0].next != 0xFFFF)
       {
-        arg0 = D_8018D738[arg0].next;
+        arg0 = nodePool[arg0].next;
             count++;
       }
-    D_80189DC2 = arg0;
-    D_80187BE0 = count;
+    nodeListTail = arg0;
+    nodeListCount = count;
   }
   else
   {
-    while (D_8018D738[arg0].next != 0xFFFF)
+    while (nodePool[arg0].next != 0xFFFF)
       {
-        D_8018D738[D_80189DC2].next = arg0;
-        D_8018D738[arg0].prev = D_80189DC2;
-        D_80189DC2 = arg0;
-        arg0 = D_8018D738[arg0].next;
+        nodePool[nodeListTail].next = arg0;
+        nodePool[arg0].prev = nodeListTail;
+        nodeListTail = arg0;
+        arg0 = nodePool[arg0].next;
             count++;
       }
-    D_8018D738[D_80189DC2].next = arg0;
-    D_8018D738[arg0].prev = D_80189DC2;
-    D_80189DC2 = arg0;
-    D_80187BE0 = count + D_80187BE0;
+    nodePool[nodeListTail].next = arg0;
+    nodePool[arg0].prev = nodeListTail;
+    nodeListTail = arg0;
+    nodeListCount = count + nodeListCount;
   }
 }

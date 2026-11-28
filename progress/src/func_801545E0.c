@@ -2,7 +2,7 @@ extern u8 D_8016D2C8[][16];
 extern u8 D_8023991C[];
 u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 void liftCopyFlags();
-void func_80152720();
+void pulseRacerTimerFlag();
 void func_80153D40();
 void func_80153EA8();
 void func_80153EE8();
@@ -40,5 +40,5 @@ void func_801545E0(void)
     objCreate(0, 32, 2, 0, 0x51, 0xff, D_8023991C, liftCopyFlags, 0, 392.9700012207031f, 75.0f, 4557.2998046875f, 0.0f, -157.57000732421875f, -180.0f, 2.0f, 2.0f, 1.0f);
     objCreate(0, 35, 2, 0, 0x51, 0xff, D_8023991C, liftCopyFlags, 0, 567.469970703125f, 25.0f, 2738.179931640625f, 0.0f, 45.0f, 0.0f, 1.0f, 1.0f, 1.0f);
     objCreate(0, 35, 2, 0, 0x51, 0xff, D_8023991C, liftCopyFlags, 0, 461.4100036621094f, 25.0f, 2844.25f, 0.0f, 45.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-    objCreate(0, 0, 3, 0, 0x40, 0xff, 0, func_80152720, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+    objCreate(0, 0, 3, 0, 0x40, 0xff, 0, pulseRacerTimerFlag, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 }

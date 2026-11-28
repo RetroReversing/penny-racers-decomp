@@ -10,7 +10,7 @@
 #define PI_DOM2_RLS        (*(volatile u32 *)0xA4600028)
 
 typedef struct { u8 pad0[5]; u8 latency,pulse_width,page_size,release,domain; u8 padA[2]; s32 base_addr; } PiDevCfg;
-extern PiDevCfg *D_80048150[4];
+extern PiDevCfg *piCurrentDevs[4];
 extern volatile u8 D_A0000000[];
 
 /* Starts a PI access on the device described by dev: waits for the PI to go
@@ -22,7 +22,7 @@ s32 func_80041A70(PiDevCfg *dev, s32 arg1, s32 arg2) {
     PiDevCfg *cur;
     while (PI_STATUS_REG & 3) {}
     domain = dev->domain;
-    cur = D_80048150[domain];
+    cur = piCurrentDevs[domain];
     if (cur != dev) {
         if (domain == 0) {
             if (cur->latency != dev->latency) PI_DOM1_LAT = dev->latency;
@@ -35,7 +35,7 @@ s32 func_80041A70(PiDevCfg *dev, s32 arg1, s32 arg2) {
             if (cur->page_size != dev->page_size) PI_DOM2_PGS = dev->page_size;
             if (cur->release != dev->release) PI_DOM2_RLS = dev->release;
         }
-        D_80048150[domain] = dev;
+        piCurrentDevs[domain] = dev;
     }
     *(volatile u32 *)((dev->base_addr | arg1 | 0xA0000000) ) = arg2;
     return 0;

@@ -10,21 +10,23 @@ extern char racerTimers[];
 extern char racerAnimFrames[];
 extern char D_8011F33C[];
 #define F(s, i) (*(f32 *)((s) + (i)))
+
+/* Advances a slot's position by its velocity with damping and growth while its timer flag is high; once the flag drops below 0x33 the slot is marked done (state 2). */
 void stepSlotMotion(s32 arg0)
 {
-  s32 i = (arg0 & 0xFFFF) * 0x64;
-  if (*(u8 *)(racerTimerFlags + i) >= 0x33U)
+  s32 recOff = (arg0 & 0xFFFF) * 0x64;
+  if (*(u8 *)(racerTimerFlags + recOff) >= 0x33U)
   {
-    F(D_8011F320, i) = F(D_8011F320, i) + 0.01f;
-    F(D_8011F324, i) = F(D_8011F324, i) + 0.01f;
-    F(D_8011F328, i) = F(D_8011F328, i) + 0.01f;
-    *(u8 *)(racerTimerFlags + i) = *(u8 *)(racerTimerFlags + i) - 8;
-    F(D_8011F308, i) = F(D_8011F308, i) + F(racerTimers, i);
-    F(sPrimColorG, i) = F(sPrimColorG, i) + F(racerAnimFrames, i);
-    F(sPathOffsetZ, i) = F(sPathOffsetZ, i) + F(D_8011F33C, i);
-    F(racerTimers, i) = F(racerTimers, i) * 0.95f;
-    F(racerAnimFrames, i) = F(racerAnimFrames, i) * 0.6f;
-    F(D_8011F33C, i) = F(D_8011F33C, i) * 0.95f;
+    F(D_8011F320, recOff) = F(D_8011F320, recOff) + 0.01f;
+    F(D_8011F324, recOff) = F(D_8011F324, recOff) + 0.01f;
+    F(D_8011F328, recOff) = F(D_8011F328, recOff) + 0.01f;
+    *(u8 *)(racerTimerFlags + recOff) = *(u8 *)(racerTimerFlags + recOff) - 8;
+    F(D_8011F308, recOff) = F(D_8011F308, recOff) + F(racerTimers, recOff);
+    F(sPrimColorG, recOff) = F(sPrimColorG, recOff) + F(racerAnimFrames, recOff);
+    F(sPathOffsetZ, recOff) = F(sPathOffsetZ, recOff) + F(D_8011F33C, recOff);
+    F(racerTimers, recOff) = F(racerTimers, recOff) * 0.95f;
+    F(racerAnimFrames, recOff) = F(racerAnimFrames, recOff) * 0.6f;
+    F(D_8011F33C, recOff) = F(D_8011F33C, recOff) * 0.95f;
     return;
   }
   *(D_8011F2FD + ((arg0 & 0xFFFF) * 0x64)) = 2;

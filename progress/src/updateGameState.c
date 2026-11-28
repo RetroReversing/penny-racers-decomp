@@ -123,7 +123,7 @@ extern void func_800341C0(u64);
     case 0x18:
       if ((btnModePressed != 0) && (D_801E4420 & 1))
     {
-      func_801E0B98();
+      spawnSceneObjects();
       gameState = 0x19;
     }
     else

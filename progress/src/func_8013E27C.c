@@ -1,7 +1,7 @@
-extern u16 D_80187BE0;
-extern u16 D_80189DC2;
-extern u16 D_8018F5C2;
-extern char D_8018D738[];
+extern u16 nodeListCount;
+extern u16 nodeListTail;
+extern u16 nodeListHead;
+extern char nodePool[];
 extern char D_8018D73A[];
 
 s32 func_8013E27C(s32 arg0)
@@ -15,22 +15,22 @@ s32 func_8013E27C(s32 arg0)
     u32 off;
 
     m = arg0 & 0xFFFF;
-    if ((u32) D_80187BE0 < m)
+    if ((u32) nodeListCount < m)
     {
         return 0xFFFF;
     }
-    saved = a1 = D_8018F5C2;
+    saved = a1 = nodeListHead;
     for (i = 0; i < ((u16)arg0); i++) { off = (a1 & 0xFFFF) * 124;
             a1 = *((u16 *) (D_8018D73A + off)); }
     idx = (a1 & 0xFFFF) * 124;
-    slot = *((u16 *) (D_8018D738 + idx));
+    slot = *((u16 *) (nodePool + idx));
     *((u16 *) (D_8018D73A + slot * 124)) = 0xFFFF;
-    *((u16 *) (D_8018D738 + idx)) = 0xFFFF;
-    D_8018F5C2 = a1;
-    D_80187BE0 -= arg0;
-    if (D_80187BE0 == 0)
+    *((u16 *) (nodePool + idx)) = 0xFFFF;
+    nodeListHead = a1;
+    nodeListCount -= arg0;
+    if (nodeListCount == 0)
     {
-        D_80189DC2 = 0xFFFF;
+        nodeListTail = 0xFFFF;
     }
     return saved & 0xFFFF;
 }

@@ -1,6 +1,6 @@
 s32 nextRandom(void);
 extern u8 D_80189CC9[];
-extern u8 D_8018A276;
+extern u8 menuRowList;
 extern u8 D_8018A277[];
 
 s32 func_80149110(void)
@@ -17,7 +17,7 @@ s32 func_80149110(void)
     {
         var_a2 = 0xFF;
         var_a1 = 0;
-        limit = D_8018A276;
+        limit = menuRowList;
         do
         {
             var_a0 = var_a1 & 0xFF;
@@ -32,7 +32,7 @@ s32 func_80149110(void)
     }
     var_a2 = 0;
     var_a1 = 0;
-    limit = D_8018A276;
+    limit = menuRowList;
     do
     {
         var_a0 = var_a1 & 0xFF;

@@ -31,7 +31,7 @@ extern u32 D_801E973C;
 extern u8 D_801E9766;
 extern u8 D_801E9780;
 extern u8 D_801E9798;
-extern u16 D_801E9B1A;
+extern u16 sceneOverlayObjId;
 extern u16 D_801E9B32;
 extern u8 D_801E9B34;
 extern u8 D_801F1888;
@@ -185,16 +185,16 @@ D_801E9798 = 0;
 } else if (D_801E9988[0].f8 == 1) {
 if (D_801E9780 == 1) {
 playStageSound(7, 0x3D);
-D_8011F2F0[D_801E9B1A].f3E = 0x1E;
+D_8011F2F0[sceneOverlayObjId].f3E = 0x1E;
 func_801DD938(0x10, 0x4C, 0xA, 2, 0xC8, 0x78, 0x12, 0x16, 0, 0x2d);
 } else {
 playStageSound(7, 0x3A);
-D_8011F2F0[D_801E9B1A].f3E = 0x1F;
+D_8011F2F0[sceneOverlayObjId].f3E = 0x1F;
 D_8011F2F0[arg0].f3E = 0x13;
 }
 } else if (D_801E9988[0].fC == 1) {
 playStageSound(7, 0x3A);
-D_8011F2F0[D_801E9B1A].f3E = 0x1F;
+D_8011F2F0[sceneOverlayObjId].f3E = 0x1F;
 D_8011F2F0[arg0].f3E = 0x13;
 }
 break;

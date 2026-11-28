@@ -33,7 +33,7 @@ typedef struct { u16 f0; u8 pad[98]; } Slot_8011F2FD;
 extern Slot_8011F2FD D_8011F2FD[];
 extern M2C_UNK D_8011F304;
 extern M2C_UNK D_8011F308;
-extern M2C_UNK D_8011F314;
+extern M2C_UNK liftPlatforms;
 extern M2C_UNK D_8011F318;
 extern M2C_UNK D_8011F31C;
 extern u16 D_80167E60;
@@ -339,7 +339,7 @@ void func_8012C4F4(u16 arg0) {
                 temp_fs0 = *(&D_8011F318 + temp_v0_4);
                 temp_fs1 = *(&D_8011F31C + temp_v0_4);
                 sp10 = NULL;
-                guRotateF(&sp88, *(&D_8011F314 + temp_v0_4), (f32 *)0x3F800000, sp10);
+                guRotateF(&sp88, *(&liftPlatforms + temp_v0_4), (f32 *)0x3F800000, sp10);
                 sp10 = NULL;
                 guRotateF(&sp48, temp_fs0, sp10, (f32 *)0x3F800000);
                 sp10 = (f32 *)0x3F800000;
@@ -382,7 +382,7 @@ block_46:
                         goto block_48;
                     }
                 } else {
-                    temp_fs0_3 = *(&D_8011F314 + (*(&D_8011F304 + (*(&slotObjIds + ((temp_s5 & 0xFFFF) * 0x8F0)) * 0x64)) * 0x64));
+                    temp_fs0_3 = *(&liftPlatforms + (*(&D_8011F304 + (*(&slotObjIds + ((temp_s5 & 0xFFFF) * 0x8F0)) * 0x64)) * 0x64));
                     sp10 = &sp17C;
                     sp14 = &sp180;
                     sp18 = &sp184;
@@ -557,7 +557,7 @@ block_37:
         temp_fs0_9 = *(&D_8011F318 + temp_s0_3);
         temp_fs1_5 = *(&D_8011F31C + temp_s0_3);
         sp10 = NULL;
-        guRotateF(&sp88, *(&D_8011F314 + temp_s0_3), (f32 *)0x3F800000, sp10);
+        guRotateF(&sp88, *(&liftPlatforms + temp_s0_3), (f32 *)0x3F800000, sp10);
         sp10 = NULL;
         guRotateF(&sp48, temp_fs0_9, sp10, (f32 *)0x3F800000);
         sp10 = (f32 *)0x3F800000;

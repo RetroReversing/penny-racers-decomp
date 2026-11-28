@@ -4,7 +4,7 @@ typedef struct { u16 unk0; u8 pad2[2]; Car *car; f32 unk8; f32 unkC; u8 pad10[4]
 extern Cam D_8011F2F0[];
 extern Row hitSlots[];
 extern u8 D_802399EC[], D_80239A20[], D_80239A54[];
-extern void updateCarOutroSpin(void), updateCarIntroSpin(void), func_80166540(void), func_801666E8(void), func_80166890(void);
+extern void updateCarOutroSpin(void), updateCarIntroSpin(void), updateExhaustPuff(void), updateDustPuff(void), func_80166890(void);
 s32 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, s32, f32, f32, f32, f32, f32, f32, f32, f32, f32);
 
 void func_80165830(Car *car, u16 kind) {
@@ -43,10 +43,10 @@ void func_80165830(Car *car, u16 kind) {
             }
             switch (kind) {
             case 0:
-                objCreate(0, ((u8 *) car)[3], 1, 0, 0x5B, 0xFF, D_802399EC, func_80166540, 0, rec->x, rec->y, rec->z, 0.0f, 0.0f, 0.0f, 0.1f, 0.05f, 0.1f);
+                objCreate(0, ((u8 *) car)[3], 1, 0, 0x5B, 0xFF, D_802399EC, updateExhaustPuff, 0, rec->x, rec->y, rec->z, 0.0f, 0.0f, 0.0f, 0.1f, 0.05f, 0.1f);
                 break;
             case 1:
-                objCreate(0, ((u8 *) car)[3], 1, 0, 0x5B, 0xFF, D_80239A20, func_801666E8, 0, rec->x, rec->y, rec->z, 0.0f, 0.0f, 0.0f, 0.1f, 0.05f, 0.1f);
+                objCreate(0, ((u8 *) car)[3], 1, 0, 0x5B, 0xFF, D_80239A20, updateDustPuff, 0, rec->x, rec->y, rec->z, 0.0f, 0.0f, 0.0f, 0.1f, 0.05f, 0.1f);
                 objCreate(0, ((u8 *) car)[3], 1, 0, 0x5B, 0xFF, D_80239A54, func_80166890, 0, rec->x, rec->y, rec->z, 0.0f, 0.0f, 0.0f, 0.1f, 0.4f, 0.1f);
                 break;
             }

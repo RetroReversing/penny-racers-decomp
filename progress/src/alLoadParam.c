@@ -7909,84 +7909,65 @@ Acmd *_decodeChunk(Acmd *ptr, ALLoadFilter *f, s32 tsam, s32 nbytes, s16 outp, s
 
 
 
-s32
+/* Applies a parameter to a load filter: AL_FILTER_SET_WAVETABLE attaches a wavetable and sets up its loop, AL_FILTER_RESET rewinds playback to the start. */ s32
 alLoadParam(void *filter, s32 paramID, void *param)
 {
-    ALLoadFilter *a = (ALLoadFilter *) filter;
-    ALFilter *f = (ALFilter *) filter;
+    ALLoadFilter *loadFilter = (ALLoadFilter *) filter;
+    ALFilter *baseFilter = (ALFilter *) filter;
 
     switch (paramID) {
         case (AL_FILTER_SET_WAVETABLE):
-            a->table = (ALWaveTable *) param;
-            a->memin = (s32) a->table->base;
-            a->sample = 0;
-            switch (a->table->type){
+            loadFilter->table = (ALWaveTable *) param;
+            loadFilter->memin = (s32) loadFilter->table->base;
+            loadFilter->sample = 0;
+            switch (loadFilter->table->type) {
                 case (AL_ADPCM_WAVE):
-
-                     
-
-
-                    f->handler = alAdpcmPull;
-
-                     
-
-
-
-                    a->table->len = 9  *
-                        ((s32) (a->table->len/ 9 ));
-
-                    a->bookSize = 2*a->table->waveInfo.adpcmWave.book->order*
-                    a->table->waveInfo.adpcmWave.book->npredictors* 8 ;
-                    if (a->table->waveInfo.adpcmWave.loop) {
-                        a->loop.start = a->table->waveInfo.adpcmWave.loop->start;
-                        a->loop.end = a->table->waveInfo.adpcmWave.loop->end;
-                        a->loop.count = a->table->waveInfo.adpcmWave.loop->count;
-                        alCopy(a->table->waveInfo.adpcmWave.loop->state,
-                               a->lstate, sizeof(ADPCM_STATE));
+                    baseFilter->handler = alAdpcmPull;
+                    loadFilter->table->len = 9 *
+                        ((s32) (loadFilter->table->len / 9));
+                    loadFilter->bookSize = 2 * loadFilter->table->waveInfo.adpcmWave.book->order *
+                        loadFilter->table->waveInfo.adpcmWave.book->npredictors * 8;
+                    if (loadFilter->table->waveInfo.adpcmWave.loop) {
+                        loadFilter->loop.start = loadFilter->table->waveInfo.adpcmWave.loop->start;
+                        loadFilter->loop.end = loadFilter->table->waveInfo.adpcmWave.loop->end;
+                        loadFilter->loop.count = loadFilter->table->waveInfo.adpcmWave.loop->count;
+                        alCopy(loadFilter->table->waveInfo.adpcmWave.loop->state,
+                               loadFilter->lstate, sizeof(ADPCM_STATE));
                     } else {
-                        a->loop.start = a->loop.end = a->loop.count = 0;
+                        loadFilter->loop.start = loadFilter->loop.end = loadFilter->loop.count = 0;
                     }
                     break;
 
                 case (AL_RAW16_WAVE):
-                    f->handler = alRaw16Pull;
-                    if (a->table->waveInfo.rawWave.loop) {
-                        a->loop.start = a->table->waveInfo.rawWave.loop->start;
-                        a->loop.end = a->table->waveInfo.rawWave.loop->end;
-                        a->loop.count = a->table->waveInfo.rawWave.loop->count;
+                    baseFilter->handler = alRaw16Pull;
+                    if (loadFilter->table->waveInfo.rawWave.loop) {
+                        loadFilter->loop.start = loadFilter->table->waveInfo.rawWave.loop->start;
+                        loadFilter->loop.end = loadFilter->table->waveInfo.rawWave.loop->end;
+                        loadFilter->loop.count = loadFilter->table->waveInfo.rawWave.loop->count;
                     } else {
-                        a->loop.start = a->loop.end = a->loop.count = 0;
+                        loadFilter->loop.start = loadFilter->loop.end = loadFilter->loop.count = 0;
                     }
                     break;
 
                 default:
                     break;
-
             }
             break;
 
         case (AL_FILTER_RESET):
-            a->lastsam = 0;
-            a->first   = 1;
-            a->sample = 0;
-
-	     
-	     
-	    if (a->table)
-	    {
-		a->memin  = (s32) a->table->base;
-		if (a->table->type == AL_ADPCM_WAVE)
-		{
-		    if (a->table->waveInfo.adpcmWave.loop)
-			a->loop.count = a->table->waveInfo.adpcmWave.loop->count;
-		}
-		else if (a->table->type == AL_RAW16_WAVE)
-		{
-		    if (a->table->waveInfo.rawWave.loop)
-			a->loop.count = a->table->waveInfo.rawWave.loop->count;
-		}
-	    }
-
+            loadFilter->lastsam = 0;
+            loadFilter->first = 1;
+            loadFilter->sample = 0;
+            if (loadFilter->table) {
+                loadFilter->memin = (s32) loadFilter->table->base;
+                if (loadFilter->table->type == AL_ADPCM_WAVE) {
+                    if (loadFilter->table->waveInfo.adpcmWave.loop)
+                        loadFilter->loop.count = loadFilter->table->waveInfo.adpcmWave.loop->count;
+                } else if (loadFilter->table->type == AL_RAW16_WAVE) {
+                    if (loadFilter->table->waveInfo.rawWave.loop)
+                        loadFilter->loop.count = loadFilter->table->waveInfo.rawWave.loop->count;
+                }
+            }
             break;
 
         default:

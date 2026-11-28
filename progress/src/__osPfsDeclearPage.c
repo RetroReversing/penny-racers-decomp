@@ -1,63 +1,63 @@
 /* identical to func_800099D0 in Resident Evil II (local match library) (matched), with its names changed by decompdecomp */
 s32 __osClearPage(u8 *, s32, s32, u8);
 
-s32 __osPfsDeclearPage(u8 *arg0, u16 *arg1, s32 arg2, s32 *arg3, u8 arg4, s32 *arg5, s32 *arg6) {
-    u8 buf[0x20];
+/* Chains free pages in the controller page table for a new file and clears each one; returns an error code. */ s32 __osPfsDeclearPage(u8 *pfs, u16 *pageTable, s32 numPages, s32 *firstPageOut, u8 bankId, s32 *pageCount, s32 *lastPageOut) {
+    u8 pageBuf[0x20];
     s32 ret;
-    s32 start;
+    s32 startPage;
     s32 i;
-    s32 prev;
-    s32 first;
+    s32 prevPage;
+    s32 firstPage;
     s32 k;
 
     ret = 0;
-    start = 1;
-    if (arg4 == 0) {
-        start = *(s32 *)(arg0 + 0x60);
+    startPage = 1;
+    if (bankId == 0) {
+        startPage = *(s32 *)(pfs + 0x60);
     }
-    i = start;
+    i = startPage;
     for (; i < 0x80; i++) {
-        if (arg1[i] == 3) {
+        if (pageTable[i] == 3) {
             break;
         }
     }
     if (i == 0x80) {
-        *arg3 = -1;
+        *firstPageOut = -1;
         return ret;
     }
     for (k = 0x1F; k >= 0; k--) {
-        buf[k] = 0;
+        pageBuf[k] = 0;
     }
-    *arg5 = 1;
-    prev = i;
-    first = prev;
-    i = prev + 1;
-    if (*arg5 < arg2 && i < 0x80) {
+    *pageCount = 1;
+    prevPage = i;
+    firstPage = prevPage;
+    i = prevPage + 1;
+    if (*pageCount < numPages && i < 0x80) {
         do {
-            if (arg1[i] == 3) {
-                u8 *p = (u8 *)(arg1 + prev);
-                p[0] = arg4;
+            if (pageTable[i] == 3) {
+                u8 *p = (u8 *)(pageTable + prevPage);
+                p[0] = bankId;
                 p[1] = i;
-                ret = __osClearPage(arg0, prev, (s32)buf, arg4 & 0xFF);
+                ret = __osClearPage(pfs, prevPage, (s32)pageBuf, bankId & 0xFF);
                 if (ret != 0) {
                     return ret;
                 }
-                (*arg5)++;
-                prev = i;
+                (*pageCount)++;
+                prevPage = i;
             }
             i++;
-        } while (*arg5 < arg2 && i < 0x80);
+        } while (*pageCount < numPages && i < 0x80);
     }
-    *arg3 = first;
-    if (i == 0x80 && *arg5 < arg2) {
-        *arg6 = prev;
+    *firstPageOut = firstPage;
+    if (i == 0x80 && *pageCount < numPages) {
+        *lastPageOut = prevPage;
         return ret;
     }
     {
-        u16 *q = arg1 + prev;
+        u16 *q = pageTable + prevPage;
         *q = 1;
     }
-    ret = __osClearPage(arg0, prev, (s32)buf, arg4);
-    *arg6 = 0;
+    ret = __osClearPage(pfs, prevPage, (s32)pageBuf, bankId);
+    *lastPageOut = 0;
     return ret;
 }

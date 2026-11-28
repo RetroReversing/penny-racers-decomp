@@ -1,5 +1,5 @@
 extern s32 objCreate(s32, s32, s32, s32, s32, s32, s32, void *, void *, s32, s32, s32, s32, s32, s32, s32, s32, s32);
-extern void func_8021A994(void);
+extern void initStageScene(void);
 extern void spawnRowBoardEntry(s32, s32, s32, s32, s32);
 extern void setScreenTransition(s8, s16, s8, s8, u8);
 extern void func_8013DD2C(void);
@@ -48,7 +48,7 @@ extern u8 D_8021CA28[];
     D_8021EEB2 = 1;
     D_80046832 = 0;
     objCreate(0, 0xFF, 3, 0, 0x7F, 0, 0, func_801D5A90, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    func_8021A994();
+    initStageScene();
     spawnRowBoardEntry(0x87, 0x52, 0, 0x80, 0x83);
     objCreate(0, 0, 3, 0, 0xA1, 0xFF, 0, 0, func_8013DD2C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     objCreate(0, 0, 3, 0, 0x7A, 0, 0, runSpawnScript, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);

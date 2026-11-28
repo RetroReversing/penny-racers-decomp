@@ -62,7 +62,7 @@ extern u8 (*D_802352CC[])[2];
 extern u8 D_802352F4[];
 extern f32 D_80235C60[];
 f32 func_801F9BE8(f32, f32);
-f32 func_801FA4B0(f32, f32, f32, f32, f32, f32, f32, f32);
+f32 intersectEdgeParam(f32, f32, f32, f32, f32, f32, f32, f32);
 f32 sqrtf(f32);
 static inline f32 ABSF(f32 x) { return x > 0.0f ? x : -x; }
 
@@ -105,7 +105,7 @@ void func_8022312C(Car *car) {
     if (dx * seg->e[0].nx + dz * seg->e[0].nz > 0.0f) {
         if (seg->next[0] != -1) {
             if (car->b879 == 0) {
-                mark->t = func_801FA4B0(0.0f, 0.0f, seg->e[0].ax * 100.0f, seg->e[0].az * 100.0f, dx, dz, car->f7B4, car->f7BC) * 100.0f;
+                mark->t = intersectEdgeParam(0.0f, 0.0f, seg->e[0].ax * 100.0f, seg->e[0].az * 100.0f, dx, dz, car->f7B4, car->f7BC) * 100.0f;
                 mark->v = car->f770;
                 mark->edge = 0;
             }
@@ -133,7 +133,7 @@ void func_8022312C(Car *car) {
             }
             return;
         } else {
-            t = func_801FA4B0(0.0f, 0.0f, seg->e[0].ax * 100.0f, seg->e[0].az * 100.0f, dx, dz, car->f7B4, car->f7BC) * 100.0f;
+            t = intersectEdgeParam(0.0f, 0.0f, seg->e[0].ax * 100.0f, seg->e[0].az * 100.0f, dx, dz, car->f7B4, car->f7BC) * 100.0f;
             car->f854 -= t * seg->e[0].ax + seg->p[0].x + seg->e[0].nx * 40.0f - obj->x;
             car->f85C -= t * seg->e[0].az + seg->p[0].z + seg->e[0].nz * 40.0f - obj->z;
             vx = car->f7C0;
@@ -159,7 +159,7 @@ void func_8022312C(Car *car) {
     if (dx * seg->e[1].nx + dz * seg->e[1].nz > 0.0f) {
         if (seg->next[1] != -1) {
             if (car->b879 == 0) {
-                mark->t = func_801FA4B0(0.0f, 0.0f, seg->e[1].ax * 100.0f, seg->e[1].az * 100.0f, dx, dz, car->f7B4, car->f7BC) * 100.0f;
+                mark->t = intersectEdgeParam(0.0f, 0.0f, seg->e[1].ax * 100.0f, seg->e[1].az * 100.0f, dx, dz, car->f7B4, car->f7BC) * 100.0f;
                 mark->v = car->f770;
                 mark->edge = 1;
             }
@@ -187,7 +187,7 @@ void func_8022312C(Car *car) {
             }
             return;
         } else {
-            t = func_801FA4B0(0.0f, 0.0f, seg->e[1].ax * 100.0f, seg->e[1].az * 100.0f, dx, dz, car->f7B4, car->f7BC) * 100.0f;
+            t = intersectEdgeParam(0.0f, 0.0f, seg->e[1].ax * 100.0f, seg->e[1].az * 100.0f, dx, dz, car->f7B4, car->f7BC) * 100.0f;
             car->f854 -= t * seg->e[1].ax + seg->p[1].x + seg->e[1].nx * 40.0f - obj->x;
             car->f85C -= t * seg->e[1].az + seg->p[1].z + seg->e[1].nz * 40.0f - obj->z;
             vx = car->f7C0;
@@ -213,7 +213,7 @@ void func_8022312C(Car *car) {
     if (dx * seg->e[2].nx + dz * seg->e[2].nz > 0.0f) {
         if (seg->next[2] != -1) {
             if (car->b879 == 0) {
-                mark->t = func_801FA4B0(0.0f, 0.0f, seg->e[2].ax * 100.0f, seg->e[2].az * 100.0f, dx, dz, car->f7B4, car->f7BC) * 100.0f;
+                mark->t = intersectEdgeParam(0.0f, 0.0f, seg->e[2].ax * 100.0f, seg->e[2].az * 100.0f, dx, dz, car->f7B4, car->f7BC) * 100.0f;
                 mark->v = car->f770;
                 mark->edge = 2;
             }
@@ -241,7 +241,7 @@ void func_8022312C(Car *car) {
             }
             return;
         } else {
-            t = func_801FA4B0(0.0f, 0.0f, seg->e[2].ax * 100.0f, seg->e[2].az * 100.0f, dx, dz, car->f7B4, car->f7BC) * 100.0f;
+            t = intersectEdgeParam(0.0f, 0.0f, seg->e[2].ax * 100.0f, seg->e[2].az * 100.0f, dx, dz, car->f7B4, car->f7BC) * 100.0f;
             car->f854 -= t * seg->e[2].ax + seg->p[2].x + seg->e[2].nx * 40.0f - obj->x;
             car->f85C -= t * seg->e[2].az + seg->p[2].z + seg->e[2].nz * 40.0f - obj->z;
             vx = car->f7C0;
@@ -267,7 +267,7 @@ void func_8022312C(Car *car) {
     if (dx * seg->e[3].nx + dz * seg->e[3].nz > 0.0f) {
         if (seg->next[3] != -1) {
             if (car->b879 == 0) {
-                mark->t = func_801FA4B0(0.0f, 0.0f, seg->e[3].ax * 100.0f, seg->e[3].az * 100.0f, dx, dz, car->f7B4, car->f7BC) * 100.0f;
+                mark->t = intersectEdgeParam(0.0f, 0.0f, seg->e[3].ax * 100.0f, seg->e[3].az * 100.0f, dx, dz, car->f7B4, car->f7BC) * 100.0f;
                 mark->v = car->f770;
                 mark->edge = 3;
             }
@@ -295,7 +295,7 @@ void func_8022312C(Car *car) {
             }
             return;
         } else {
-            t = func_801FA4B0(0.0f, 0.0f, seg->e[3].ax * 100.0f, seg->e[3].az * 100.0f, dx, dz, car->f7B4, car->f7BC) * 100.0f;
+            t = intersectEdgeParam(0.0f, 0.0f, seg->e[3].ax * 100.0f, seg->e[3].az * 100.0f, dx, dz, car->f7B4, car->f7BC) * 100.0f;
             car->f854 -= t * seg->e[3].ax + seg->p[3].x + seg->e[3].nx * 40.0f - obj->x;
             car->f85C -= t * seg->e[3].az + seg->p[3].z + seg->e[3].nz * 40.0f - obj->z;
             vx = car->f7C0;

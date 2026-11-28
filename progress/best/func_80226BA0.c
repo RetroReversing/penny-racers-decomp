@@ -19,7 +19,7 @@ extern f32 m2c_fbits;
 s32 queueObjEvent();
 f32 func_801F9BE8();
 s32 angleFromDelta();
-f32 func_801FA4B0(f32, f32, void *, void *, f32, f32, f32, f32, f32, f32); /* extern */
+f32 intersectEdgeParam(f32, f32, void *, void *, f32, f32, f32, f32, f32, f32); /* extern */
 s32 func_80221AD0();
 f32 sqrtf(f32);                                     /* extern */
 extern u16 gameState;
@@ -314,7 +314,7 @@ void func_80226BA0(s32 arg0, void *arg1) {
     temp_ft3 = var_s4 - var_s2;
     temp_fs1 = temp_fv0 - var_fs5;
     temp_v0 = (arg0 & 0xFFFF) * 0x64;
-    temp_fv0_2 = func_801FA4B0(var_s2, var_fs5, var_a0, var_a1, var_s4, temp_fv0, *((s32 *)((s8 *)D_8011F308 + temp_v0)), *((s32 *)((s8 *)&sPathOffsetZ + temp_v0)), temp_fs1, -temp_ft3);
+    temp_fv0_2 = intersectEdgeParam(var_s2, var_fs5, var_a0, var_a1, var_s4, temp_fv0, *((s32 *)((s8 *)D_8011F308 + temp_v0)), *((s32 *)((s8 *)&sPathOffsetZ + temp_v0)), temp_fs1, -temp_ft3);
     var_fv1_2 = temp_fv0_2 * 100.0f;
     var_fv0_2 = 99.0f;
     if ((var_fv1_2 > 99.0f) || (var_fv0_2 = 0.0f, (var_fv1_2 < 0.0f))) {

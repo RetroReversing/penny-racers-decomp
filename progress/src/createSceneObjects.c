@@ -23,7 +23,7 @@ extern s16 D_8021F00E;
 extern char D_8021FE04[];
 extern char D_8022026C[];
 
-void createSceneObjects(void) {
+/* Runs three scene setup routines, then creates the two scene objects and the two overlay objects. */ void createSceneObjects(void) {
     func_801D87FC();
     func_80209AEC();
     func_8021FCA4();

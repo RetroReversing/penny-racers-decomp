@@ -19,12 +19,12 @@ void initObjList();
 void initModelTransforms();
 void alSeqpStop(void *);
 void initRowTable(s32);
-void func_80138B1C();
+void emitSceneRenderState();
 void func_801FD9F8();
 void func_801FE908();
 void snapshotSoundDriverState();
 void appendRowBoardDisplayList();
-void func_80220A50();
+void appendViewMatrixGfx();
 
 /* Race scene setup: resets the sound sequence, voice and slot tables, and creates the main objects for the race. */ void initRaceObjects(void) {
     u16 index;
@@ -32,12 +32,12 @@ void func_80220A50();
 
     initModelTransforms();
     initObjList();
-    hudObj = objCreate(0, 0, 3, 0, 0, 0xFF, 0, 0, func_80138B1C, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    hudObj = objCreate(0, 0, 3, 0, 0, 0xFF, 0, 0, emitSceneRenderState, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     D_8011F2F0[hudObj].f4 |= 0x20;
     D_8011F2F0[hudObj].f6 |= 0x20;
     D_8011F2F0[hudObj].f8 |= 0x20;
     objCreate(0, 0, 3, 0, 2, 0xFF, 0, 0, appendRowBoardDisplayList, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    objCreate(0, 0, 3, 0, 4, 0xFF, 0, 0, func_80220A50, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    objCreate(0, 0, 3, 0, 4, 0xFF, 0, 0, appendViewMatrixGfx, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     objCreate(0, 0, 3, 0, 0xC8, 0, 0, 0, func_801FD9F8, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     objCreate(0, 0, 3, 0, 0, 0, 0, func_801FE908, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     objCreate(0, 0, 3, 0, 0, 0, 0, snapshotSoundDriverState, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);

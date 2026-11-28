@@ -7,14 +7,14 @@ extern Screen sRowBoard;
 extern u8 noticeBackgroundDl[];
 extern u8 D_80171040[];
 extern u8 D_80172E48[];
-void func_801CA2D4();
+void gfxSetup2DStateAlt();
 void gfxSetPrimAlpha();
 void gfxDrawClippedTex8b(void *, s16, s16, s16, s16, s16, s16, s16, s16, s16, s16, s16, s16, s16, s16, u8 *, u8 *);
 
 void func_80131090(Cmd **gfxp, u16 id) {
 if (viewIndex == sRowBoard.views - 1) {
 { Cmd *g = (*gfxp)++; g->w0 = 0x06000000; g->w1 = (u32)noticeBackgroundDl; }
-func_801CA2D4(gfxp);
+gfxSetup2DStateAlt(gfxp);
 gfxSetPrimAlpha(gfxp, 0xFF);
 if (D_8011F2F0[id].state != 0) {
 gfxDrawClippedTex8b(gfxp, (s32)D_8011F2F0[id].x, (s32)D_8011F2F0[id].y, 0, 0, 0x28, 0xf, 0x30, 0xa0, 0x28, 0xf, 0x10, 0xc, 0x13f, 0xef, D_80171040, D_80172E48);

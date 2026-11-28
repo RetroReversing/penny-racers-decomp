@@ -4,40 +4,40 @@ typedef struct
   u16 next;
   u8 pad[120];
 } Node;
-extern u16 D_80187BE0;
-extern u16 D_80189DC2;
-extern Node D_8018D738[];
-extern u16 D_8018F5C2;
+extern u16 nodeListCount;
+extern u16 nodeListTail;
+extern Node nodePool[];
+extern u16 nodeListHead;
 
 u16 raceAllocSlot(void)
 {
   u16 cur;
   u16 a1;
   u16 ret;
-  if (D_80187BE0 == 0)
+  if (nodeListCount == 0)
   {
-    cur = D_8018F5C2;
-    if (D_8018D738[cur].next != 0xFFFF)
+    cur = nodeListHead;
+    if (nodePool[cur].next != 0xFFFF)
     {
       do
       {
-        cur = D_8018D738[cur].next;
+        cur = nodePool[cur].next;
       }
-      while (D_8018D738[cur].next != 0xFFFF);
+      while (nodePool[cur].next != 0xFFFF);
     }
     return 0xFFFF;
   }
-  a1 = D_8018F5C2;
-  D_8018F5C2 = D_8018D738[D_8018F5C2].next;
-  D_8018D738[a1].next = 0xFFFF;
-  if (D_8018F5C2 != 0xFFFF)
+  a1 = nodeListHead;
+  nodeListHead = nodePool[nodeListHead].next;
+  nodePool[a1].next = 0xFFFF;
+  if (nodeListHead != 0xFFFF)
   {
-    D_8018D738[D_8018F5C2].prev = 0xFFFF;
+    nodePool[nodeListHead].prev = 0xFFFF;
   }
-  D_80187BE0 -= 1;
-  if (D_80187BE0 == 0)
+  nodeListCount -= 1;
+  if (nodeListCount == 0)
   {
-    D_80189DC2 = 0xFFFF;
+    nodeListTail = 0xFFFF;
   }
   ret = a1;
   return ret;

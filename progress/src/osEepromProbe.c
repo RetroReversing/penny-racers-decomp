@@ -1,6 +1,6 @@
 /* identical to osEepromProbe in V-RALLY-PAL (local match library) (matched), with its names changed by decompdecomp */
-s32 func_8003F464();
-s32 func_8003F4D0();
+s32 __osSiGetAccess();
+s32 __osSiRelAccess();
 s32 __osEepStatus();
 
 s32 osEepromProbe(s32 arg0) {
@@ -10,7 +10,7 @@ s32 osEepromProbe(s32 arg0) {
     u16 v;
 
     s0 = arg0;
-    func_8003F464(s0);
+    __osSiGetAccess(s0);
     r = __osEepStatus(s0, &sp10);
     v = sp10 & 0xC000;
     if (r == 0) {
@@ -28,6 +28,6 @@ s32 osEepromProbe(s32 arg0) {
     } else {
         s0 = 0;
     }
-    func_8003F4D0();
+    __osSiRelAccess();
     return s0;
 }

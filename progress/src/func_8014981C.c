@@ -1,5 +1,5 @@
 extern u8 D_80189CC9[];
-extern u8 D_8018A276;
+extern u8 menuRowList;
 extern u8 D_8018A277[];
 extern u32 randomMasks[][8];
 
@@ -17,7 +17,7 @@ void func_8014981C(u8 arg0)
         D_80189CC9[i] = 0;
     }
     {
-        for (i = 0; i < D_8018A276; i++) {
+        for (i = 0; i < menuRowList; i++) {
             count = 0;
             row = D_8018A277[i] & 0xF;
             for (j = 0; j < 8; j++) {

@@ -4,7 +4,7 @@ void func_8013ADA8(void);
 void func_801FA338(s32);
 void func_8022F780(u16);
 void func_8022FE50(s32, s32, s32, s32);
-void func_80231130(void);
+void resetCarSlots(void);
 void func_802312F8(s32);
 void initSceneBackdrop(void);
 void createNoticeScreenObj(void);
@@ -31,7 +31,7 @@ void func_801FD3B4(void) {
     createStageObjects();
     func_8022F780(*(u16 *)((s8 *)&D_8006FAF0 + 0x20));
     interpolateObjPositions();
-    func_80231130();
+    resetCarSlots();
     func_802312F8(0);
     do {
         func_8022FE50(var_s0 & 0xFF, var_s0 & 0xFF, var_s0 & 0xFF, 1);

@@ -46,7 +46,7 @@ extern Row D_8031445C[];
 void updateBoardCamera(u16);
 void moveBoardCursor(s32);
 void func_8019E814(u16);
-void func_801A03F4(u16);
+void placeObjBehindCamera(u16);
 u8 func_801C3418(void);
 u8 func_801C1CA4(s8);
 u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f32, f32, f32, f32, f32, f32, f32);
@@ -233,7 +233,7 @@ void func_801C1DC0(u16 arg0)
         sRowBoard.a = 2;
         sRowBoard.b = 2;
         func_8019E814(arg0);
-        func_801A03F4(arg0);
+        placeObjBehindCamera(arg0);
         D_8011F2F0[D_801C7D24].x = 0.0f;
         D_8011F2F0[D_801C7D24].y = 0.0f;
         D_8011F2F0[D_801C7D24].z = 0.0f;

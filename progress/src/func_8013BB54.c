@@ -53,8 +53,8 @@ extern u8 D_802393A0[];
 extern void stepSlotMotion();
 extern void func_8013B0D4();
 extern void updateExpandingFx();
-extern void func_8013B704();
-extern void func_8013B894();
+extern void appendRacerColorDl();
+extern void updateFallingParticle();
 extern void func_8013BA38();
 extern void func_8013BA58();
 extern void func_8013BB0C();
@@ -121,7 +121,7 @@ void func_8013BB54(u16 arg0)
         case 0x28:
         case 0x29:
             if (car->ground && (car->wheels & 0xF) == 0xF) {
-                id = objCreate(0, (u8) car->num, 1, 0, 0x5B, 0xC8, D_80239200, updateExpandingFx, func_8013B704,
+                id = objCreate(0, (u8) car->num, 1, 0, 0x5B, 0xC8, D_80239200, updateExpandingFx, appendRacerColorDl,
                                    D_8011F2F0[car->owner].x, D_8011F2F0[car->owner].y, D_8011F2F0[car->owner].z,
                                    D_8011F2F0[car->owner].rx, D_8011F2F0[car->owner].ry, D_8011F2F0[car->owner].rz,
                                    0.08f, 0.02f, 0.08f);
@@ -139,7 +139,7 @@ void func_8013BB54(u16 arg0)
         case 0x2C:
         case 0x2D:
             if (car->ground && (car->wheels & 0xF) == 0xF) {
-                id = objCreate(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, updateExpandingFx, func_8013B704,
+                id = objCreate(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, updateExpandingFx, appendRacerColorDl,
                                    car->posA[0], car->posA[1], car->posA[2], 0.0f, 0.0f, 0.0f, 0.08f, 0.08f, 0.08f);
                 if (BAD(id)) {
                     break;
@@ -150,7 +150,7 @@ void func_8013BB54(u16 arg0)
                 D_8011F2F0[id].vz = car->sz * 1.2f;
                 D_8011F2F0[id].kind = car->type;
                 D_8011F2F0[id].parent = arg0;
-                id = objCreate(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, updateExpandingFx, func_8013B704,
+                id = objCreate(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, updateExpandingFx, appendRacerColorDl,
                                    car->posB[0], car->posB[1], car->posB[2], 0.0f, 0.0f, 0.0f, 0.08f, 0.08f, 0.08f);
                 if (BAD(id)) {
                     break;
@@ -168,7 +168,7 @@ void func_8013BB54(u16 arg0)
         case 0x24:
         case 0x25:
             if (car->ground && (car->wheels & 0xF) == 0xF) {
-                id = objCreate(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, updateExpandingFx, func_8013B704,
+                id = objCreate(0, (u8) car->num, 1, 0, 0x5B, 0x9B, D_802390C8, updateExpandingFx, appendRacerColorDl,
                                    D_8011F2F0[car->owner].x, D_8011F2F0[car->owner].y, D_8011F2F0[car->owner].z,
                                    0.0f, 0.0f, 0.0f, 0.08f, 0.08f, 0.08f);
                 if (BAD(id)) {
@@ -208,7 +208,7 @@ void func_8013BB54(u16 arg0)
                         z = D_8011F2F0[arg0].z + (z = func_801FA38C(0) % 400);
                         z -= 200.0f;
                         z = z + func_80032320(D_8011F2F0[arg0].ry * 3.14f / 180.0f) * (car->speed + car->speed + 100.0f);
-                        id = objCreate(0, 0, 1, 0, 0x5B, 0xFF, sprayDef, func_8013B894, func_8013BA38,
+                        id = objCreate(0, 0, 1, 0, 0x5B, 0xFF, sprayDef, updateFallingParticle, func_8013BA38,
                                            x, D_8011F2F0[arg0].y + 80.0f, z, 0.0f, 0.0f, 0.0f, 0.08f, 0.08f, 0.08f);
                         if (BAD(id)) {
                             break;

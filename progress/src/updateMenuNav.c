@@ -4,7 +4,7 @@ extern u8 D_80189B36[];
 extern u16 D_80189C98;
 extern u8 D_80189C9A[];
 extern u16 D_80189CC6[];
-extern u8 D_8018A276;
+extern u8 menuRowList;
 extern u8 D_8018A277[];
 s32 getMenuNavMask(s32, s32, u8);
 void playMenuSound(s32);
@@ -26,7 +26,7 @@ void playMenuSound(s32);
             }
         }
         if (navFlags & 2) {
-            if (D_80189C9A[0] != D_8018A276 - 1) {
+            if (D_80189C9A[0] != menuRowList - 1) {
                 moved = 1;
                 D_80189C9A[0]++;
             }

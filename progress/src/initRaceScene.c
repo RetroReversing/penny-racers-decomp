@@ -49,9 +49,9 @@ void func_8021FCA4();
 u8 func_80148230();
 void func_8014998C();
 u16 computeUnlockFlags();
-u16 func_8014BB30(s32);
+u16 getObjTypeFlags(s32);
 void debugPrintf();
-void func_801D5A90(), func_80138B1C(), gfxSetViewViewport(), appendCameraDisplayList(), func_80149A80(), func_80144808(), func_80145A6C(), func_8013DD2C();
+void func_801D5A90(), emitSceneRenderState(), gfxSetViewViewport(), appendCameraDisplayList(), func_80149A80(), func_80144808(), func_80145A6C(), func_8013DD2C();
 
 /* Sets up the race scene: spawns the base objects, clears race state and the per-slot tables, and loads the race data. */ void initRaceScene(void)
 {
@@ -63,7 +63,7 @@ void func_801D5A90(), func_80138B1C(), gfxSetViewViewport(), appendCameraDisplay
     objCreate(0, 0xFF, 3, 0, 0x7F, 0, 0, func_801D5A90, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     dmaRomToRam(D_3B7C00, D_802D6890, D_3E4880 - D_3B7C00);
     dmaRomToRam(D_40A890, D_8030BD90, D_412160 - D_40A890);
-    slot = objCreate(0, 0, 3, 0, 0x40, 0xFF, 0, 0, func_80138B1C, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    slot = objCreate(0, 0, 3, 0, 0x40, 0xFF, 0, 0, emitSceneRenderState, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     D_8011F2F0[slot].flags |= 0x20;
     D_8011F2F0[slot].flags2 |= 0x20;
     D_8011F2F0[slot].flags3 |= 0x20;
@@ -94,7 +94,7 @@ void func_801D5A90(), func_80138B1C(), gfxSetViewViewport(), appendCameraDisplay
     }
     func_8014998C();
     D_8018A27C = computeUnlockFlags();
-    D_8018A43A = func_8014BB30(0);
+    D_8018A43A = getObjTypeFlags(0);
     D_8018A27C &= ~D_8018A43A;
     debugPrintf(D_80183630, D_8018A44A[carClassIndex]);
     debugPrintf(D_80183644, D_8018A27C, D_8018A43A);

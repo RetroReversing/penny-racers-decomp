@@ -1,36 +1,36 @@
-/* Same-name source lead: n_alResamplePull in BattleTanx-Global-Assault; donor defaults. Destination verification required. */
-Acmd *n_alResamplePull(N_PVoice *e, s16 *outp, Acmd *p)
+/* Appends the ADPCM decode or resample commands for one voice to the audio command list. Returns the new list end. */
+Acmd *n_alResamplePull(N_PVoice *voice, s16 *dmemOut, Acmd *cmdList)
 {
-    Acmd *ptr = p;
-    s16 inp;
-    s32 inCount;
-    s32 incr;
-    f32 finCount;
+    Acmd *cmd = cmdList;
+    s16 dmemIn;
+    s32 inSamples;
+    s32 pitchIncr;
+    f32 exactSamples;
 
-    inp = 0x170 ;
+    dmemIn = 0x170 ;
 
-    if (e->rs_upitch) {
-        ptr = n_alAdpcmPull(e, &inp, 184 , p);
+    if (voice->rs_upitch) {
+        cmd = n_alAdpcmPull(voice, &dmemIn, 184 , cmdList);
         {
-            Acmd *_a = ptr++;
-            _a->words.w0 = ((unsigned int)(((unsigned int)( 10  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int)(((unsigned int)( inp ) & ((0x01 << (  24 )) - 1)) << (  0 ))) ;
-            _a->words.w1 = ((unsigned int)(((unsigned int)( *outp ) & ((0x01 << (  16 )) - 1)) << (  16 )))  | ((unsigned int)(((unsigned int)( 184  << 1 ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ;
+            Acmd *_a = cmd++;
+            _a->words.w0 = ((unsigned int)(((unsigned int)( 10  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int)(((unsigned int)( dmemIn ) & ((0x01 << (  24 )) - 1)) << (  0 ))) ;
+            _a->words.w1 = ((unsigned int)(((unsigned int)( *dmemOut ) & ((0x01 << (  16 )) - 1)) << (  16 )))  | ((unsigned int)(((unsigned int)( 184  << 1 ) & ((0x01 << (  16 )) - 1)) << (  0 ))) ;
         }
     } else {
-        if (e->rs_ratio > 1.99996 )
-            e->rs_ratio = 1.99996 ;
-        e->rs_ratio = (s32)(e->rs_ratio * 0x8000 ) / (f32)0x8000 ;
-        finCount = e->rs_delta + (e->rs_ratio * (f32)184 );
-        inCount = (s32)finCount;
-        e->rs_delta = finCount - (f32)inCount;
-        ptr = n_alAdpcmPull(e, &inp, inCount, p);
-        incr = (s32)(e->rs_ratio * 0x8000 );
+        if (voice->rs_ratio > 1.99996 )
+            voice->rs_ratio = 1.99996 ;
+        voice->rs_ratio = (s32)(voice->rs_ratio * 0x8000 ) / (f32)0x8000 ;
+        exactSamples = voice->rs_delta + (voice->rs_ratio * (f32)184 );
+        inSamples = (s32)exactSamples;
+        voice->rs_delta = exactSamples - (f32)inSamples;
+        cmd = n_alAdpcmPull(voice, &dmemIn, inSamples, cmdList);
+        pitchIncr = (s32)(voice->rs_ratio * 0x8000 );
         {
-            Acmd *_a = ptr++;
-            _a->words.w0 = ((unsigned int)(((unsigned int)( 5  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int)(((unsigned int)( osVirtualToPhysical(e->rs_state) ) & ((0x01 << (  24 )) - 1)) << (  0 ))) ;
-            _a->words.w1 = ((unsigned int)(((unsigned int)( e->rs_first ) & ((0x01 << (  2 )) - 1)) << (  30 )))  | ((unsigned int)(((unsigned int)( incr ) & ((0x01 << (  16 )) - 1)) << (  14 )))  | ((unsigned int)(((unsigned int)( inp ) & ((0x01 << (  12 )) - 1)) << (  2 ))) ;
+            Acmd *_a = cmd++;
+            _a->words.w0 = ((unsigned int)(((unsigned int)( 5  ) & ((0x01 << (  8 )) - 1)) << (  24 )))  | ((unsigned int)(((unsigned int)( osVirtualToPhysical(voice->rs_state) ) & ((0x01 << (  24 )) - 1)) << (  0 ))) ;
+            _a->words.w1 = ((unsigned int)(((unsigned int)( voice->rs_first ) & ((0x01 << (  2 )) - 1)) << (  30 )))  | ((unsigned int)(((unsigned int)( pitchIncr ) & ((0x01 << (  16 )) - 1)) << (  14 )))  | ((unsigned int)(((unsigned int)( dmemIn ) & ((0x01 << (  12 )) - 1)) << (  2 ))) ;
         }
-        e->rs_first = 0;
+        voice->rs_first = 0;
     }
-    return ptr;
+    return cmd;
 }

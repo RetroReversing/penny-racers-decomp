@@ -77,15 +77,15 @@ extern s32 D_801E9768[];
 extern u8 D_801E9799;
 extern u16 D_801E9764;
 extern u8 D_801E9B1C;
-void func_801CA2D4(Gfx **);
+void gfxSetup2DStateAlt(Gfx **);
 void gfxSetup2DState(Gfx **);
 void gfxDrawClippedTex4b(Gfx **, s16, s16, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, s32, u8 *, u8 *);
-void func_801CB820(Gfx **, u16, u16, u16, u32, u8, u16);
+void drawDecimalNumber(Gfx **, u16, u16, u16, u32, u8, u16);
 void drawGlyphCell(Gfx **, u16, u16, u16, u8 *, u32);
-void func_801CBC20(Gfx **, u16, u16, u16, u32, Row *);
+void drawNameAndNumber(Gfx **, u16, u16, u16, u32, Row *);
 
 #define BACKDROP() \
-    func_801CA2D4(gfxp); \
+    gfxSetup2DStateAlt(gfxp); \
     for (i = 0; i < 4; i++) { \
         for (j = 0; j < 5; j++) { \
             gfxDrawClippedTex4b(gfxp, j * 64, i * 60, 0, 0, 64, 60, 64, 60, 64, 30, 0, 0, 319, 239, D_801E4438, D_801E4BC0); \
@@ -116,10 +116,10 @@ void func_801DECB4(Gfx **gfxp, u16 id) {
         for (i = -up; i < down + 7; i++) {
             flag = D_801F188A + i == D_801E9730;
             y = i * 14 + 0x40;
-            func_801CB820(gfxp, 0x20, y + D_801E9D5C, 0xA, D_801E8790[flag], 2, i + 1 + D_801F188A);
+            drawDecimalNumber(gfxp, 0x20, y + D_801E9D5C, 0xA, D_801E8790[flag], 2, i + 1 + D_801F188A);
             drawGlyphCell(gfxp, 0x34, y + D_801E9D5C, 0x1A, D_801CF4C8, D_801E8790[flag]);
-            func_801CBC20(gfxp, 0x48, y + D_801E9D5C, 0xA, D_801E8790[flag], &D_801E9B38[D_801F188A + i]);
-            func_801CB820(gfxp, 0x106, y + D_801E9D5C, 0xA, D_801E8790[flag], 3, D_801E9B38[D_801F188A + i].w[0] >> 8);
+            drawNameAndNumber(gfxp, 0x48, y + D_801E9D5C, 0xA, D_801E8790[flag], &D_801E9B38[D_801F188A + i]);
+            drawDecimalNumber(gfxp, 0x106, y + D_801E9D5C, 0xA, D_801E8790[flag], 3, D_801E9B38[D_801F188A + i].w[0] >> 8);
         }
         gDma((*gfxp)++, _S(0xED, 24, 8) | _S((s32)((f32)sRowBoard.view[viewIndex].ulx * 4.0F), 12, 12) | _S((s32)((f32)sRowBoard.view[viewIndex].uly * 4.0F), 0, 12),
              _S((s32)((f32)sRowBoard.view[viewIndex].lrx * 4.0F), 12, 12) | _S((s32)((f32)sRowBoard.view[viewIndex].lry * 4.0F), 0, 12));
@@ -128,9 +128,9 @@ void func_801DECB4(Gfx **gfxp, u16 id) {
             sum += D_801E9B38[i].w[0];
         }
         gfxDrawClippedTex4b(gfxp, 0x48, 0xAC, 0, 0, 0xB0, 0x14, 0xB0, 0x14, 0xB0, 0x14, 0, 0, 319, 239, D_801E59F8, D_801E60E0);
-        func_801CB820(gfxp, 0xB0, 0xB0, 0xA, D_801E8798[0], 3, D_801E9768[D_801E87C0] >> 8);
+        drawDecimalNumber(gfxp, 0xB0, 0xB0, 0xA, D_801E8798[0], 3, D_801E9768[D_801E87C0] >> 8);
         drawGlyphCell(gfxp, 0xCE, 0xB0, 0xF, D_801CF4C8, D_801E8798[0]);
-        func_801CB820(gfxp, 0xD8, 0xB0, 0xA, D_801E8798[0], 3, (s32)(sum + D_801E9768[D_801E87C0]) >> 8);
+        drawDecimalNumber(gfxp, 0xD8, 0xB0, 0xA, D_801E8798[0], 3, (s32)(sum + D_801E9768[D_801E87C0]) >> 8);
         if (D_801E9799 != 0) {
             D_8011F2F0[D_801E9764].panel->alpha = 0x96;
             gfxDrawClippedTex4b(gfxp, 0x48, 0xC5, 0, 0, 0x50, 0x14, 0x50, 0x14, 0x50, 0x14, 0, 0, 319, 239, D_801E6108, D_801E6430);

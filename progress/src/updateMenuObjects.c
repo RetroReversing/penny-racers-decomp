@@ -27,7 +27,7 @@ void func_801B3CB0();
 void func_801B3E18();
 void func_801B41D8();
 void func_801B42C8();
-void func_801B4B6C();
+void stepHudSlotAnim();
 void drawRaceStatusPanel();
 void initCursorObjects();
 void updateBoardCamera();
@@ -57,7 +57,7 @@ u16 objCreate(s32, s32, s32, s32, s32, s32, void *, void *, void *, f32, f32, f3
         D_801C6B2A = 1;
     }
     if (D_801C6B2B == 0) {
-        D_8011F2F0[objCreate(0, 0, 3, 0, 0x71, 0, 0, func_801B4B6C, drawRaceStatusPanel,
+        D_8011F2F0[objCreate(0, 0, 3, 0, 0x71, 0, 0, stepHudSlotAnim, drawRaceStatusPanel,
                                  0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)].flags |= 0x20;
         D_801C6B2B = 1;
     }

@@ -5,7 +5,7 @@ void liftCopyFlags();
 void func_801552A4();
 void func_80155110();
 void func_8015518C();
-void func_80152720();
+void pulseRacerTimerFlag();
 
 void func_801552C4(void)
 {
@@ -34,5 +34,5 @@ void func_801552C4(void)
     objCreate(0, 8, 2, 0, 0x51, 0xff, D_8023991C, liftCopyFlags, 0, -2032.7900390625f, 129.64999389648438f, -995.8699951171875f, -7.170000076293945f, 4.039999961853027f, 0.0f, 2.0f, 2.0f, 1.0f);
     objCreate(0, 14, 2, 0, 0x51, 0xff, D_8023991C, liftCopyFlags, 0, 1655.56005859375f, 133.8300018310547f, -428.239990234375f, 0.0f, -117.62999725341797f, 180.0f, 2.0f, 2.0f, 1.0f);
     objCreate(0, 20, 2, 0, 0x51, 0xff, D_8023991C, liftCopyFlags, 0, 728.030029296875f, 151.0500030517578f, 902.5700073242188f, -8.180000305175781f, 106.69999694824219f, 0.0f, 2.0f, 2.0f, 1.0f);
-    objCreate(0, 0, 3, 0, 0x40, 0xff, 0, func_80152720, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+    objCreate(0, 0, 3, 0, 0x40, 0xff, 0, pulseRacerTimerFlag, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 }
